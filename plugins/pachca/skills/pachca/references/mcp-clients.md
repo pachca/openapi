@@ -2,7 +2,7 @@
 
 Read this when the Pachca plugin is not installed in the client, or the client is not in the plugin table of
 `SKILL.md`. Address `https://mcp.pachca.com/mcp`, transport Streamable HTTP. Every client with its exact
-steps: [Connecting to MCP](https://dev.pachca.com/guides/ai-agents/mcp-connect.md).
+steps: [Connecting to MCP](https://dev.pachca.com/guides/mcp/connect.md).
 
 ## Commands
 
@@ -39,7 +39,7 @@ qwen mcp add --transport http pachca https://mcp.pachca.com/mcp --header "Author
 Kilo Code, Cline, SourceCraft Code Assistant, Devin Desktop without the `devin` command, Claude Code in CI or
 another run with nobody to sign in (over SSH `claude mcp login` is enough), stdio-only clients through
 `mcp-remote`, Yandex AI Studio and GigaChat: copy the exact config from the
-[connection page](https://dev.pachca.com/guides/ai-agents/mcp-connect.md).
+[connection page](https://dev.pachca.com/guides/mcp/connect.md).
 
 ## Skills without the plugin
 
@@ -61,4 +61,4 @@ into the project, without `-g`.
 - The Claude app without the plugin: upload each skill's ZIP, such as
   `https://dev.pachca.com/skills/pachca.zip`, in **Customize > Skills > + > Create skill > Upload a skill**.
 
-Details: [Pachca plugin for agent apps](https://dev.pachca.com/guides/ai-agents/plugin.md).
+Details: [Pachca plugin for agent apps](https://dev.pachca.com/guides/mcp/plugin.md).

@@ -10,7 +10,7 @@
 - [Авторизация](/api/authorization)
 - [Модели API](/api/models)
 - [AI-агенты](/guides/ai-agents/overview)
-- [MCP-сервер](/guides/ai-agents/mcp)
+- [MCP-сервер](/guides/mcp/overview)
 - [CLI](/guides/cli/overview)
 - [SDK](/guides/sdk/overview)
 - [n8n](/guides/n8n/overview)

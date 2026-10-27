@@ -22,6 +22,10 @@ const redirects: Redirect[] = [
   { source: '/guides/cli/workflows', destination: '/guides/cli/overview', permanent: true },
   { source: '/guides/cli/workflows.md', destination: '/guides/cli/overview.md', permanent: true },
 
+  // Короткий адрес раздела MCP: его можно назвать вслух и напечатать.
+  { source: '/mcp', destination: '/guides/mcp/overview', permanent: false },
+  { source: '/mcp.md', destination: '/guides/mcp/overview.md', permanent: false },
+
   // ===== Корни разделов → стартовые страницы (иначе 404) =====
   { source: '/api', destination: '/api/authorization', permanent: false },
   { source: '/guides', destination: '/guides/quickstart', permanent: false },
@@ -76,6 +80,8 @@ const redirects: Redirect[] = [
   { source: '/guides/cli.md', destination: '/guides/cli/overview.md' },
   { source: '/guides/ai-agents', destination: '/guides/ai-agents/overview' },
   { source: '/guides/ai-agents.md', destination: '/guides/ai-agents/overview.md' },
+  { source: '/guides/mcp', destination: '/guides/mcp/overview', permanent: false },
+  { source: '/guides/mcp.md', destination: '/guides/mcp/overview.md', permanent: false },
   { source: '/guides/bots', destination: '/guides/bots/overview' },
   { source: '/guides/bots.md', destination: '/guides/bots/overview.md' },
   { source: '/guides/webhook', destination: '/guides/webhook/overview' },

@@ -89,4 +89,4 @@ The same four steps: `POST /uploads` with the token (no body), `${filename}` in 
 - A draft never erases a file from storage, neither when you remove the file from the draft nor when you delete the draft. A forwarded copy never erases it either, whether you edit it or delete it.
 - To get rid of a sensitive file, remove it in this order: from every draft that carries it, then from every forwarded copy, then from the other messages. The file is erased by the last removal only when that is a message that is not a forwarded copy, such as the original. In any other order the file can stay in storage with nothing pointing to it.
 
-Source pages: <https://dev.pachca.com/guides/ai-agents/mcp-tools.md>, <https://dev.pachca.com/api/file-uploads.md>, <https://dev.pachca.com/guides/ai-agents/mcp.md>
+Source pages: <https://dev.pachca.com/guides/mcp/tools.md>, <https://dev.pachca.com/api/file-uploads.md>, <https://dev.pachca.com/guides/mcp/overview.md>

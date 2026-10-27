@@ -220,7 +220,12 @@ export function GuideCards() {
   return (
     <CardGroup>
       {guides.map((guide) => (
-        <Card key={guide.path} title={guide.title} icon={GUIDE_ICONS[guide.path]} href={guide.path}>
+        <Card
+          key={guide.path}
+          title={guide.sectionTitle ? `${guide.sectionTitle}, ${guide.title}` : guide.title}
+          icon={GUIDE_ICONS[guide.path]}
+          href={guide.path}
+        >
           {guide.description}
         </Card>
       ))}

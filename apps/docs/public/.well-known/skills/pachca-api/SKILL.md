@@ -197,4 +197,4 @@ Token sources, auth diagnostics, output modes, error JSON and raw `pachca api` r
 - File upload and download: <https://dev.pachca.com/api/file-uploads.md>
 - SDK and generator: <https://dev.pachca.com/guides/sdk/overview.md>
 - CLI: <https://dev.pachca.com/guides/cli/authentication.md>, <https://dev.pachca.com/guides/cli/scripting.md>, <https://dev.pachca.com/guides/cli/output.md>, <https://dev.pachca.com/guides/cli/api-requests.md>
-- MCP server limits: <https://dev.pachca.com/guides/ai-agents/mcp.md>
+- MCP server limits: <https://dev.pachca.com/guides/mcp/overview.md>

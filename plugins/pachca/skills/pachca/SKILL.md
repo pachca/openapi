@@ -23,7 +23,7 @@ gets you connected, explains why something is or is not available, and routes yo
 ## When to use
 
 - Pachca is mentioned and you have no Pachca tools, no CLI login and no token yet.
-- The user asks to connect Pachca to Claude Code, Cursor, Codex or another agent app, or to a server-side agent.
+- The user asks to connect Pachca to Claude Code, Cursor, Codex, ChatGPT or another agent app, or to a server-side agent.
 - A tool or CLI command fails with `401`, `402` or `403`, or a tool the user expects is missing.
 - You need to know whose name you act under and what that account may do.
 - For everything else pick a sibling from [Where to go next](#where-to-go-next).
@@ -60,7 +60,7 @@ Address `https://mcp.pachca.com/mcp`, transport Streamable HTTP. Choose how to s
 
 | Way                                               | Fits                                                                                                                                       | Acts as                   | Lifetime                 |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | ------------------------ |
-| Browser, consent screen                           | Claude Code, the Claude app, VS Code, GitHub Copilot CLI, Codex                                                                            | the employee who approved | 1 hour, refreshes itself |
+| Browser, consent screen                           | Claude Code, the Claude app, VS Code, GitHub Copilot CLI, Codex, the ChatGPT desktop app (through Codex)                                   | the employee who approved | 1 hour, refreshes itself |
 | Personal token in `Authorization: Bearer <token>` | Cursor, SourceCraft Code Assistant, Qwen Code, GigaCode CLI, OpenCode, Devin Desktop, Cline, Kilo Code, Gemini CLI, nobody to sign in (CI) | the token owner           | until deleted            |
 | Bot token in `Authorization: Bearer <token>`      | an agent with no employee present: a server, Yandex AI Studio, GigaChat                                                                    | the bot                   | until deleted            |
 
@@ -272,10 +272,10 @@ result through other tools. Owner privileges, multi-guest limits and role change
 ## Read more
 
 - [Docs map for agents](https://dev.pachca.com/llms.txt)
-- [MCP server: rights, safety, limits](https://dev.pachca.com/guides/ai-agents/mcp.md)
-- [Connecting to MCP, per client](https://dev.pachca.com/guides/ai-agents/mcp-connect.md)
-- [MCP tools: who gets which tool](https://dev.pachca.com/guides/ai-agents/mcp-tools.md)
-- [Pachca plugin for agent apps](https://dev.pachca.com/guides/ai-agents/plugin.md)
+- [MCP server: rights, safety, limits](https://dev.pachca.com/guides/mcp/overview.md)
+- [Connecting to MCP, per client](https://dev.pachca.com/guides/mcp/connect.md)
+- [MCP tools: who gets which tool](https://dev.pachca.com/guides/mcp/tools.md)
+- [Pachca plugin for agent apps](https://dev.pachca.com/guides/mcp/plugin.md)
 - [CLI](https://dev.pachca.com/guides/cli/overview.md) and [CLI authorization](https://dev.pachca.com/guides/cli/authentication.md)
 - [Authorization: token kinds, scopes, who may issue](https://dev.pachca.com/api/authorization.md)
 - [Permissions and roles](https://dev.pachca.com/guides/permissions.md)

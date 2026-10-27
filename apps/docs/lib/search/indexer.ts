@@ -7,6 +7,7 @@ import {
 import type { Schema, Endpoint } from '../openapi/types';
 import { loadUpdates } from '../updates-parser';
 import { GUIDE_SCHEMAS } from '../schemas/guide-schemas';
+import { getContextualTitle } from '../tabs-config';
 import {
   expandQueryWithSynonyms,
   removeStopWords,
@@ -803,8 +804,10 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
     const allKeywords = addStems([...guide.keywords, ...schemaData.keywords]);
 
     const guideDoc: SearchIndex = {
-      id: guide.id,
-      title: guide.title,
+      // The URL, not the file name: many pages are called overview.mdx, and a
+      // shared id kept only one of them in the index.
+      id: guide.url,
+      title: getContextualTitle(guide.url, guide.title),
       description: guide.description,
       url: guide.url,
       type: 'guide' as const,

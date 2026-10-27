@@ -218,19 +218,20 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '## MCP-сервер\n\n';
   content +=
     'Адрес: `https://mcp.pachca.com/mcp` (Streamable HTTP). Инструмент на каждый метод API, ' +
-    'список зависит от роли, тарифа и типа токена. Claude Code, Claude, VS Code, GitHub Copilot CLI и Codex ' +
-    'входят через браузер с экраном согласия (OAuth Client ID Metadata Document). Остальные программы ' +
+    'список зависит от роли, тарифа и типа токена. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex ' +
+    'и приложение ChatGPT на компьютере входят через браузер с экраном согласия (OAuth Client ID Metadata Document). Остальные программы ' +
     'передают персональный токен или токен бота в заголовке `Authorization: Bearer <TOKEN>`. ' +
-    'Codex: `codex mcp add pachca --url https://mcp.pachca.com/mcp` добавляет сервер и сразу открывает вход. ' +
+    'Codex и приложение ChatGPT на компьютере (подключение у них общее): ' +
+    '`codex mcp add pachca --url https://mcp.pachca.com/mcp` добавляет сервер и сразу открывает вход. ' +
     'На компьютере без браузера войдите командой `codex mcp login pachca --no-browser`, она выведет ссылку. ' +
     'В CI добавьте к `codex mcp add` флаг `--bearer-token-env-var PACHCA_TOKEN`: токен Codex возьмёт из переменной. ' +
     'Агенты в Yandex AI Studio и на GigaChat (GigaChain, `langchain-mcp-adapters`) подключаются токеном ' +
     'бота в том же заголовке. Claude Code с плагином «Пачка»: сервер уже есть и называется ' +
     '`plugin:pachca:pachca`, вход через `/mcp` или `claude mcp login plugin:pachca:pachca`. ' +
     'Без плагина: `claude mcp add --transport http pachca https://mcp.pachca.com/mcp`, затем `/mcp` для входа. ' +
-    `Как устроен: [MCP-сервер](${SITE_URL}/guides/ai-agents/mcp.md), подключение программ: ` +
-    `[Подключение к MCP](${SITE_URL}/guides/ai-agents/mcp-connect.md), все инструменты: ` +
-    `[Инструменты MCP](${SITE_URL}/guides/ai-agents/mcp-tools.md).\n\n`;
+    `Как устроен: [MCP-сервер](${SITE_URL}/guides/mcp/overview.md), подключение программ: ` +
+    `[Подключение к MCP](${SITE_URL}/guides/mcp/connect.md), все инструменты: ` +
+    `[Инструменты MCP](${SITE_URL}/guides/mcp/tools.md).\n\n`;
 
   content += '## Agent Skills\n\n';
   content +=
@@ -269,7 +270,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     `Без Node.js архив \`${SITE_URL}/.well-known/agent-skills/<скилл>.tar.gz\` распаковывается в папку ` +
     '`<папка скиллов агента>/<скилл>/`, общей папки в архиве нет. ' +
     `ZIP с папкой скилла для Yandex AI Studio и приложения Claude: \`${SITE_URL}/skills/<скилл>.zip\`. ` +
-    `Подробнее: [Плагин и скиллы](${SITE_URL}/guides/ai-agents/plugin.md).\n\n`;
+    `Подробнее: [Плагин и скиллы](${SITE_URL}/guides/mcp/plugin.md).\n\n`;
   // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
   // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
   content +=
@@ -411,7 +412,7 @@ function generateLibraryRules(): string {
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
 - Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
 - A personal token issued in the interface does not expire; one obtained by \`pachca auth login\` lives an hour and renews itself
-- MCP server: \`https://mcp.pachca.com/mcp\`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI and Codex sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in \`Authorization: Bearer <TOKEN>\`
+- MCP server: \`https://mcp.pachca.com/mcp\`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex and the ChatGPT desktop app (it shares the Codex setup) sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in \`Authorization: Bearer <TOKEN>\`. Setup per client: ${SITE_URL}/guides/mcp/connect.md (Russian), in English: ${SITE_URL}/skill.md and ${SITE_URL}/.well-known/skills/pachca/references/mcp-clients.md. Plugin with the server and skills: ${SITE_URL}/guides/mcp/plugin.md
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: \`const client = new PachcaClient("YOUR_TOKEN")\`
 - Python SDK: \`client = PachcaClient("YOUR_TOKEN")\`
@@ -2077,7 +2078,7 @@ function generateGuidesSectionLlmsTxt(): string {
 
   let c = '# Пачка — руководства\n\n';
   c +=
-    '> Индекс раздела «Руководства»: гайды по интеграции (боты, вебхуки, формы, SDK, CLI, n8n, AI-агенты). ' +
+    '> Индекс раздела «Руководства»: гайды по интеграции (боты, вебхуки, формы, SDK, CLI, n8n, MCP, AI-агенты). ' +
     'Каждая ссылка ведёт на `.md` (или добавь `Accept: text/markdown`).\n\n';
   c += `[Родительский индекс](${SITE_URL}/llms.txt)\n\n`;
 

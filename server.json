@@ -1,0 +1,26 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.pachca/mcp",
+  "title": "Pachca",
+  "description": "A tool for each Pachca API method: messages, chats, threads, tasks, users and more",
+  "version": "1.4.0",
+  "websiteUrl": "https://dev.pachca.com/guides/mcp/overview",
+  "icons": [
+    {
+      "src": "https://dev.pachca.com/web-app-manifest-192x192.png",
+      "mimeType": "image/png",
+      "sizes": ["192x192"]
+    },
+    {
+      "src": "https://dev.pachca.com/web-app-manifest-512x512.png",
+      "mimeType": "image/png",
+      "sizes": ["512x512"]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.pachca.com/mcp"
+    }
+  ]
+}

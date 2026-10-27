@@ -54,7 +54,7 @@ How to attach, by access path:
 - **MCP:** a small file goes by its contents in `files` of `pachca_send_message`
   — up to 4 MB per call with files in base64, about 3 MB of source files. A file
   from disk the agent uploads itself and attaches by key
-  ([MCP server limits](https://dev.pachca.com/guides/ai-agents/mcp.md)).
+  ([MCP server limits](https://dev.pachca.com/guides/mcp/overview.md)).
 
 Every path needs `uploads:write` on the token. Very large `.md` and `.html`
 files open as an ordinary attachment to download instead of a preview.

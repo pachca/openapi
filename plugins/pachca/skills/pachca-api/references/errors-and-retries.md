@@ -86,7 +86,7 @@ Some scopes cannot be given to some token kinds at all. `bot_self:*` is bot only
 - The body is a normal `ApiError` with code `rate_limit`, for both the per-second limits and the daily cap. Incoming webhooks are the exception: plain text.
 - **Daily cap per chat.** Counted per sender and chat over a rolling 24 hours. Thread messages count toward the parent chat. Only created messages use the quota. When hit, sending to that chat pauses, and **every attempt while the quota is still used up lengthens the pause**, up to a day. The scale is on <https://dev.pachca.com/api/limits.md>, and `Retry-After` always carries the real wait. A send that passes after the pause resets the scale. Do not probe.
 - **Overload block.** An app that keeps sending above the limits after `429` can have message sending from that token blocked for a while (the remaining time comes in `Retry-After`), while other methods keep working. The threshold is far above normal work. If your service cannot keep up, pause requests instead of retrying faster.
-- **MCP**: every tool call is an API request, so these limits apply, plus the MCP server's own limits: <https://dev.pachca.com/guides/ai-agents/mcp.md>.
+- **MCP**: every tool call is an API request, so these limits apply, plus the MCP server's own limits: <https://dev.pachca.com/guides/mcp/overview.md>.
 
 ## Not idempotent by default
 

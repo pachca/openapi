@@ -2,8 +2,8 @@
 title: Обзор
 description: "Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — MCP-сервер Пачки, CLI, llms.txt, Agent Skills, OpenAPI, Context7"
 related:
-  - /guides/ai-agents/mcp
-  - /guides/ai-agents/plugin
+  - { path: /guides/mcp/overview, title: MCP-сервер }
+  - { path: /guides/mcp/plugin, title: Плагин и скиллы }
   - /guides/ai-agents/interaction
   - /guides/ai-agents/markdown
   - /guides/threads
@@ -52,14 +52,16 @@ Claude Code, Cursor и другие программы с агентом под�
 https://mcp.pachca.com/mcp
 ```
 
+Всё о сервере собрано в отдельном разделе [MCP](/guides/mcp/overview): как он устроен, как подключить программу, какие инструменты получит агент и как поставить плагин со скиллами.
+
 <CardGroup columns={3}>
-  <Card title="MCP-сервер" icon="Server" href="/guides/ai-agents/mcp">
+  <Card title="MCP-сервер" icon="Server" href="/guides/mcp/overview">
     Как устроен, права, безопасность и пределы
   </Card>
-  <Card title="Подключение к MCP" icon="Plug" href="/guides/ai-agents/mcp-connect">
+  <Card title="Подключение к MCP" icon="Plug" href="/guides/mcp/connect">
     Вход через браузер и токен в заголовке для разных программ
   </Card>
-  <Card title="Инструменты MCP" icon="Wrench" href="/guides/ai-agents/mcp-tools">
+  <Card title="Инструменты MCP" icon="Wrench" href="/guides/mcp/tools">
     Все инструменты: метод API, кому доступен и пометка
   </Card>
 </CardGroup>
@@ -126,7 +128,7 @@ pachca api POST /messages --docs      # полный markdown-референс
 
 ### Context7
 
-Сторонний сервис документации, который подключается по MCP. [Context7](https://context7.com) отдаёт актуальную документацию Пачки в контекст агента — только документацию, без действий в API. Действия в Пачке выполняет [MCP-сервер Пачки](/guides/ai-agents/mcp). Подходит, когда вы часто просите агента делать разные задачи в Пачке из промптов и хотите, чтобы у него была свежая документация под рукой.
+Сторонний сервис документации, который подключается по MCP. [Context7](https://context7.com) отдаёт актуальную документацию Пачки в контекст агента — только документацию, без действий в API. Действия в Пачке выполняет [MCP-сервер Пачки](/guides/mcp/overview). Подходит, когда вы часто просите агента делать разные задачи в Пачке из промптов и хотите, чтобы у него была свежая документация под рукой.
 
 ```bash
 claude mcp add context7 https://mcp.context7.com/mcp
@@ -159,7 +161,7 @@ https://dev.pachca.com/openapi.yaml
 Скиллы — знание о том, как правильно делать задачи в Пачке: куда писать и что подтверждать, как найти и пересказать обсуждение, какой токен выбрать и почему не хватает прав. Справочник по аргументам у агента уже есть в описаниях инструментов MCP-сервера, поэтому скиллы его не повторяют. В Claude Code, приложении Claude, Codex, GitHub Copilot и Cursor скиллы вместе с MCP-сервером и командами ставит плагин «Пачка». В SourceCraft Code Assistant, OpenCode и других агентах скиллы ставятся без плагина.
 
 <CardGroup columns={1}>
-  <Card title="Плагин и скиллы" icon="Puzzle" href="/guides/ai-agents/plugin">
+  <Card title="Плагин и скиллы" icon="Puzzle" href="/guides/mcp/plugin">
     Установка плагина и скиллов в Claude Code, Claude, Codex, VS Code, Cursor и другие агенты, команды плагина и все скиллы
   </Card>
 </CardGroup>

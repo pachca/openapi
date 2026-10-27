@@ -56,7 +56,7 @@ copilot plugin install pachca@pachca
 npx skills add https://dev.pachca.com -g -a opencode -y
 ```
 
-Плагин ставит MCP-сервер, скиллы и команды. В агент, где уже стоит плагин, скиллы через `npx skills` не ставьте: у него окажется по две копии каждого скилла. Cursor, приложение Claude, вход в Пачку и скиллы без Node.js — на странице [Плагин и скиллы](https://dev.pachca.com/guides/ai-agents/plugin).
+Плагин ставит MCP-сервер, скиллы и команды. В агент, где уже стоит плагин, скиллы через `npx skills` не ставьте: у него окажется по две копии каждого скилла. Cursor, приложение Claude, вход в Пачку и скиллы без Node.js — на странице [Плагин и скиллы](https://dev.pachca.com/guides/mcp/plugin).
 
 | Скилл | Когда пригодится |
 |-------|------------------|

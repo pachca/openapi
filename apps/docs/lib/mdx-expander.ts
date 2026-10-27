@@ -44,7 +44,7 @@ const JSX_PROP_MARKDOWN: Record<string, string> = {
     'Если только начинаете, загляните в [руководства](/) с пошаговыми примерами. ' +
     'Можно обойтись и без написания кода: соберите интеграции из визуальных блоков ' +
     'в no-code инструменте [n8n](/guides/n8n/overview). AI-агенту в Claude Code, Cursor и других ' +
-    'программах весь API доступен через [MCP-сервер](/guides/ai-agents/mcp).',
+    'программах весь API доступен через [MCP-сервер](/guides/mcp/overview).',
 };
 
 function formatSchemaWithTitle(schema: Schema, title?: string): string {
@@ -79,7 +79,8 @@ function guideCardsToMarkdown(): string {
 
   let md = '';
   for (const guide of guides) {
-    md += `- [${guide.title}](${guide.path})`;
+    const title = guide.sectionTitle ? `${guide.sectionTitle}, ${guide.title}` : guide.title;
+    md += `- [${title}](${guide.path})`;
     if (guide.description) {
       md += ` — ${guide.description}`;
     }

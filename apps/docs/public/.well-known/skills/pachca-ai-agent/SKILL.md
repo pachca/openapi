@@ -264,6 +264,6 @@ employee sees how long the agent has been working. The timer runs up to 5 minute
 - [Bot access](https://dev.pachca.com/guides/bots/access.md) — chats, threads, DMs, bot search
 - [Draft instead of sending](https://dev.pachca.com/guides/ai-agents/drafts.md)
 - [Formatting answers](https://dev.pachca.com/guides/ai-agents/markdown.md) — `.md` cards, `.html` preview
-- [MCP server](https://dev.pachca.com/guides/ai-agents/mcp.md) — when MCP, rights, security, limits
+- [MCP server](https://dev.pachca.com/guides/mcp/overview.md) — when MCP, rights, security, limits
 - [AI agents overview](https://dev.pachca.com/guides/ai-agents/overview.md)
 - [Threads](https://dev.pachca.com/guides/threads.md) · [Text formatting](https://dev.pachca.com/guides/markdown.md) · [Bot tokens](https://dev.pachca.com/guides/bots/tokens.md) · [Webhook events](https://dev.pachca.com/guides/webhook/events.md) · [Webhook handler](https://dev.pachca.com/guides/webhook/handler.md)

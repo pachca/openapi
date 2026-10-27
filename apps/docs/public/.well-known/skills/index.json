@@ -3,7 +3,7 @@
     {
       "name": "pachca",
       "description": "Вход в Пачку (Pachca) для агента: подключить агента или MCP-клиента (MCP через браузер или токеном, плагин, CLI), проверить подключение, выбрать токен, разобрать отказ 401/403 инструмента или CLI и отсутствие инструмента (роль, тариф, тип токена, участие в чате). Когда: «подключи Пачку», «настрой MCP Пачки», «войди в Пачку через CLI», «каким токеном подключить агента», «экран входа MCP», «агент получил 403 insufficient_scope», «нет инструмента Пачки (экспорт, журнал аудита)», «что умеет Пачка». English: \"connect Pachca\", \"set up Pachca MCP\", \"Pachca CLI login\", \"which token for my agent or MCP client\", \"MCP sign-in screen\", \"MCP tool or CLI returned 401/403\", \"a Pachca tool is missing\". Not for: writing messages → pachca-messaging, search and summaries → pachca-search, administration, who may create tokens → pachca-admin, building a bot → pachca-bots, an agent living in Pachca → pachca-ai-agent, OAuth for employees → pachca-oauth, a token for a script or service, 401/403 in your own code → pachca-api.",
-      "version": "8f803b58b4f6",
+      "version": "d1f5ab7435aa",
       "files": [
         "SKILL.md",
         "references/access-model.md",
@@ -24,7 +24,7 @@
     {
       "name": "pachca-ai-agent",
       "description": "Build an AI agent that lives in Pachca as a bot: called by @mention in a chat or thread or messaged in a DM, it reads the thread for context, shows the agent-thinking timer, replies in the thread and formats a long result as an .md card; plus bot vs MCP. Use when: «AI-агент в Пачке», «агент отвечает по упоминанию в треде», «агент не слышит упоминание», «бот-агент в личных сообщениях», «как агенту собрать контекст треда», «реакция agent-thinking», «длинный ответ агента карточкой .md», «бот или MCP»; \"AI agent bot in Pachca\", \"agent replies when mentioned\", \"agent does not hear a mention\", \"read thread context\", \"thinking indicator\", \"agent reply as an .md card\", \"bot vs MCP\". Not for: working in Pachca from Claude or Cursor through MCP → pachca, pachca-messaging, pachca-search; drafts and scheduled messages (a bot cannot make them), sending a file or report from Claude, Cursor or the CLI → pachca-messaging; webhooks, tokens and settings of any bot → pachca-bots; acting on behalf of an employee → pachca-oauth.",
-      "version": "68735f8c2b52",
+      "version": "402a93ce23c1",
       "files": [
         "SKILL.md",
         "references/drafts-and-scheduled.md",
@@ -35,7 +35,7 @@
     {
       "name": "pachca-api",
       "description": "API Пачки из кода, скриптов и CI: токен и скоупы для скрипта или сервиса, курсорная пагинация, ошибки и повторы без дублей (401/403/422, 429, 5xx), файлы в коде, SDK и генератор, CLI в скриптах, массовые выгрузки, поиск метода. Когда: «напиши скрипт для API Пачки», «какой токен дать скрипту, сервису или CI», «мой код получает 401/403/422 от API», «упёрлись в 429», «поиск вернул 504 timeout, повторить?», «обойти все страницы», «скрипт, который выгружает всех сотрудников», «загрузка файла из кода», «SDK Пачки», «какой метод API»; \"call the Pachca API from code\", \"token for a script or CI job\", \"401/403/422 in my code\", \"cursor pagination\", \"429 Retry-After\", \"upload a file from my code\", \"Pachca SDK\", \"pachca CLI in CI\", \"which endpoint\". Not for: connecting an agent or MCP client, a 401/403 from an MCP tool → pachca; writing messages, a file to a chat now → pachca-messaging; bots, webhooks, events → pachca-bots; OAuth for employees → pachca-oauth; token policy, all-tokens tab, message export → pachca-admin.",
-      "version": "fea9c24e2396",
+      "version": "73352861da97",
       "files": [
         "SKILL.md",
         "references/cli-scripting.md",
@@ -56,7 +56,7 @@
     {
       "name": "pachca-messaging",
       "description": "Writing in Pachca: markdown that renders, mentions, where to post (thread, quoted reply, DM), a draft the employee sends, scheduled and recurring chat messages, files, forwarding, reactions, pins, «Важное», edits and deletions, finding the message to act on, when to ask first, limits. Use when: «напиши в чат», «отправь сообщение», «ответь в треде», «напиши в личку», «упомяни», «подготовь черновик, я отправлю сам», «агент готовит черновик, сотрудник отправляет», «запланируй сообщение», «напоминай в канал каждый понедельник», «отправь отчёт файлом .md», «приложи файл», «перешли сообщение», «поставь реакцию», «закрепи сообщение», «отметь как важное», «исправь сообщение»; \"send a message\", \"reply in the thread\", \"DM someone\", \"draft for me to send\", \"schedule a message\", \"attach a file\", \"forward a message\", \"pin\". Not for: search or summaries as the goal, a task or reminder → pachca-search; buttons, forms, clicks → pachca-bots; an AI agent as a bot → pachca-ai-agent; uploads from code → pachca-api.",
-      "version": "4a250ad32495",
+      "version": "8e492f4f506d",
       "files": [
         "SKILL.md",
         "references/drafts-and-scheduled.md",
@@ -77,7 +77,7 @@
     {
       "name": "pachca-search",
       "description": "Finding, summarizing and reminders in Pachca: which search covers what, reading a whole thread, channel and thread digests for a period, decisions and action items turned into tasks, a reminder at a set time for you or a colleague (Pachca notifies then), listing tasks and your «Важное», who is in a tag or chat. Use when: «найди, где обсуждали», «кто писал про», «где меня упоминали», «найди чат», «найди сотрудника», «перескажи тред», «что было в канале за неделю», «дайджест», «какие решения приняли», «поставь задачи по итогам», «напомни мне завтра в 9:00», «мои напоминания», «что у меня в важном», «кто в теге», «кто в чате»; \"find where we discussed\", \"summarize this thread\", \"channel digest\", \"remind me tomorrow at 9\", \"my tasks\". Not for: posting, pinning, reacting to or editing a message, including finding it first, or one sent later at a set time → pachca-messaging; changing employees, tags or chat members → pachca-admin; a bot that answers in threads → pachca-ai-agent; scripts → pachca-api.",
-      "version": "1d603a036df5",
+      "version": "d743b0a25441",
       "files": [
         "SKILL.md",
         "references/digests.md",

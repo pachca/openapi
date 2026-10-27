@@ -112,10 +112,10 @@ their own.
 
 - Tool calls and requests to the server are limited separately, per token. A tool call over its limit is
   refused with the time to wait. Requests, connecting and listing tools included, get `429` beyond theirs.
-  The numbers change, so read them on the [MCP server page](https://dev.pachca.com/guides/ai-agents/mcp.md).
+  The numbers change, so read them on the [MCP server page](https://dev.pachca.com/guides/mcp/overview.md).
 - Every call is an API request, so all [API limits](https://dev.pachca.com/api/limits.md) apply too.
 - A response holds up to 100,000 characters. List records are cut to their main fields; ask for the full
   record when you need it. A long list is cut at whole records: request a smaller page.
 
 Files sent and received through MCP have their own limits: see the
-[MCP server page](https://dev.pachca.com/guides/ai-agents/mcp.md) and `pachca-messaging`.
+[MCP server page](https://dev.pachca.com/guides/mcp/overview.md) and `pachca-messaging`.

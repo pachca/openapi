@@ -23,7 +23,7 @@ export interface SidebarSection {
   items: SidebarPageItem[];
   /**
    * Prefix for the titles of the section's pages outside the sidebar (browser
-   * tab, llms.txt), as a group gives its children: «AI-агенты, Обзор».
+   * tab, llms.txt), as a group gives its children: «MCP, Обзор».
    */
   titlePrefix?: string;
 }
@@ -99,22 +99,28 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
     items: [
       { title: 'Главная', path: '/' },
       { title: 'Быстрый старт', path: '/guides/quickstart' },
+      {
+        title: 'AI-агенты',
+        path: '/guides/ai-agents/overview',
+        children: [
+          { title: 'Обзор', path: '/guides/ai-agents/overview' },
+          { title: 'Взаимодействие с агентом', path: '/guides/ai-agents/interaction' },
+          { title: 'Черновик вместо отправки', path: '/guides/ai-agents/drafts' },
+          { title: 'Оформление ответов', path: '/guides/ai-agents/markdown' },
+        ],
+      },
       { title: 'Треды', path: '/guides/threads' },
       { title: 'Теги', path: '/guides/tags' },
     ],
   },
   {
-    title: 'AI-агенты',
-    titlePrefix: 'AI-агенты',
+    title: 'MCP',
+    titlePrefix: 'MCP',
     items: [
-      { title: 'Обзор', path: '/guides/ai-agents/overview' },
-      { title: 'MCP-сервер', path: '/guides/ai-agents/mcp' },
-      { title: 'Подключение к MCP', path: '/guides/ai-agents/mcp-connect' },
-      { title: 'Инструменты MCP', path: '/guides/ai-agents/mcp-tools' },
-      { title: 'Плагин и скиллы', path: '/guides/ai-agents/plugin' },
-      { title: 'Взаимодействие с агентом', path: '/guides/ai-agents/interaction' },
-      { title: 'Черновик вместо отправки', path: '/guides/ai-agents/drafts' },
-      { title: 'Оформление ответов', path: '/guides/ai-agents/markdown' },
+      { title: 'Обзор', path: '/guides/mcp/overview' },
+      { title: 'Подключение', path: '/guides/mcp/connect' },
+      { title: 'Инструменты', path: '/guides/mcp/tools' },
+      { title: 'Плагин и скиллы', path: '/guides/mcp/plugin' },
     ],
   },
   {
@@ -310,6 +316,20 @@ export function getNestedParentTitle(pathname: string): string | null {
     }
   }
   return null;
+}
+
+/**
+ * Page title for places outside the sidebar (browser tab, search results): the
+ * parent group, section prefix or CLI/SDK/n8n tab goes first, so a shared title
+ * like "Обзор" reads as «MCP, Обзор» or «CLI, Обзор». Other pages keep their own title.
+ */
+export function getContextualTitle(pathname: string, title: string): string {
+  const parent = getNestedParentTitle(pathname);
+  if (parent) return `${parent}, ${title}`;
+  const tab = getActiveTab(pathname);
+  const tabTitle =
+    tab === 'cli' || tab === 'sdk' || tab === 'n8n' ? TABS.find((t) => t.id === tab)?.title : null;
+  return tabTitle ? `${tabTitle}, ${title}` : title;
 }
 
 /**

@@ -141,7 +141,7 @@ The API has no forward method: «Переслать» exists only in the app. Fo
 - Threads, ids, members, mentions: <https://dev.pachca.com/guides/threads.md>
 - Drafts and scheduled messages: <https://dev.pachca.com/guides/ai-agents/drafts.md>, <https://dev.pachca.com/api/drafts/create.md>
 - Sending a message (all fields): <https://dev.pachca.com/api/messages/create.md>
-- Files: <https://dev.pachca.com/api/file-uploads.md>, MCP file sending: <https://dev.pachca.com/guides/ai-agents/mcp-tools.md>
+- Files: <https://dev.pachca.com/api/file-uploads.md>, MCP file sending: <https://dev.pachca.com/guides/mcp/tools.md>
 - Buttons: <https://dev.pachca.com/guides/buttons.md>
 - Who can write where: <https://dev.pachca.com/guides/permissions.md>
-- Limits: <https://dev.pachca.com/api/limits.md>, MCP limits and confirmations: <https://dev.pachca.com/guides/ai-agents/mcp.md>
+- Limits: <https://dev.pachca.com/api/limits.md>, MCP limits and confirmations: <https://dev.pachca.com/guides/mcp/overview.md>

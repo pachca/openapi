@@ -252,4 +252,4 @@ is pachca-admin.
   <https://dev.pachca.com/api/tasks/list.md>,
   <https://dev.pachca.com/api/tasks/update.md>
 - Pagination: <https://dev.pachca.com/api/pagination.md>
-- All MCP tools: <https://dev.pachca.com/guides/ai-agents/mcp-tools.md>
+- All MCP tools: <https://dev.pachca.com/guides/mcp/tools.md>

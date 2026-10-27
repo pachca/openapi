@@ -56,7 +56,7 @@ copilot plugin install pachca@pachca
 npx skills add https://dev.pachca.com -g -a opencode -y
 ```
 
-The plugin installs the MCP server, skills and commands. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app, signing in to Pachca and installing skills without Node.js are covered on the [Plugin and skills](https://dev.pachca.com/guides/ai-agents/plugin) page.
+The plugin installs the MCP server, skills and commands. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app, signing in to Pachca and installing skills without Node.js are covered on the [Plugin and skills](https://dev.pachca.com/guides/mcp/plugin) page.
 
 | Skill | Use it for |
 |-------|------------|

@@ -408,14 +408,14 @@
     ]
   },
   "ReactionOperations_addReaction": {
-    "usage": "request = ReactionRequest(code=\"👍\", name=\":+1:\")\nresponse = await client.reactions.add_reaction(id=7231942, request=request)",
+    "usage": "request = ReactionRequest(code=\"👍\", name=\"agent-thinking\")\nresponse = await client.reactions.add_reaction(id=7231942, request=request)",
     "output": "Reaction(user_id: int, created_at: datetime, code: str, name: str)",
     "imports": [
       "ReactionRequest"
     ]
   },
   "ReactionOperations_removeReaction": {
-    "usage": "params = RemoveReactionParams(code=\"👍\", name=\":+1:\")\nawait client.reactions.remove_reaction(id=7231942, params=params)",
+    "usage": "params = RemoveReactionParams(code=\"👍\", name=\"agent-thinking\")\nawait client.reactions.remove_reaction(id=7231942, params=params)",
     "imports": [
       "RemoveReactionParams"
     ]

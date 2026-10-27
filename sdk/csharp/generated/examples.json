@@ -382,14 +382,14 @@
     "output": "ListReactionsResponse(Data: List<Reaction>, Meta: PaginationMeta)"
   },
   "ReactionOperations_addReaction": {
-    "usage": "var request = new ReactionRequest { Code = \"👍\", Name = \":+1:\" };\nvar response = await client.Reactions.AddReactionAsync(7231942, request);",
+    "usage": "var request = new ReactionRequest { Code = \"👍\", Name = \"agent-thinking\" };\nvar response = await client.Reactions.AddReactionAsync(7231942, request);",
     "output": "Reaction(UserId: int, CreatedAt: DateTimeOffset, Code: string, Name: string)",
     "imports": [
       "ReactionRequest"
     ]
   },
   "ReactionOperations_removeReaction": {
-    "usage": "await client.Reactions.RemoveReactionAsync(7231942, \"👍\", \":+1:\");"
+    "usage": "await client.Reactions.RemoveReactionAsync(7231942, \"👍\", \"agent-thinking\");"
   },
   "ReadMemberOperations_listReadMembers": {
     "usage": "var response = await client.ReadMembers.ListReadMembersAsync(194275, 300, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",

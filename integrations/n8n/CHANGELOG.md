@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 2.2.2 (2026-10-27)
+
+### Improvements
+
+- Field descriptions follow the server's behaviour: `Order` in the chat and message lists works only together with `Sort`, a reaction's `Name` is the name of a custom emoji of the workspace, `Performer IDs` in a task update replaces the whole list of assignees, `All Day` works together with a due date at 23:59:59, and a repeating scheduled message is counted in UTC
+
 ## 2.2.1 (2026-10-21)
 
 ### Features

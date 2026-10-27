@@ -1307,8 +1307,10 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
     // it is, without an upload.
     const owner = at.includes('.') ? at.split('.')[0] : 'record';
     // A file from disk goes by key: the model uploads it with the upload tool
-    // (`STANDALONE_STEPS`) and passes the key, with the size it alone knows —
-    // a file attached by key with no size shows 0 KB to its readers.
+    // (`STANDALONE_STEPS`) and passes the key, with the size it knows. Without
+    // one the server reads the size from storage after the save, so a reader
+    // who got the message before that may see 0 KB. The public file record has no
+    // size, so a file already in Pachca goes by key without one.
     const uploader = uploadToolName();
     const kept = Object.entries<JsonSchema>(item.properties ?? {})
       .filter(([name]) => name !== 'size' || uploader)
@@ -1323,8 +1325,9 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
             {
               ...schema,
               description:
-                'Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it — ' +
-                'the full record carries it, and you know it for a file you uploaded — or readers see 0 KB.',
+                'Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it ' +
+                'for a file you uploaded. Without it the server reads the size from storage after the save, and a reader ' +
+                'who got the message before that may see 0 KB.',
             },
           ];
         }

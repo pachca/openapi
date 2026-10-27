@@ -408,14 +408,14 @@
     ]
   },
   "ReactionOperations_addReaction": {
-    "usage": "request := ReactionRequest{\n\tCode: \"👍\",\n\tName: Ptr(\":+1:\"),\n}\nresponse, err := client.Reactions.AddReaction(ctx, int32(7231942), request)",
+    "usage": "request := ReactionRequest{\n\tCode: \"👍\",\n\tName: Ptr(\"agent-thinking\"),\n}\nresponse, err := client.Reactions.AddReaction(ctx, int32(7231942), request)",
     "output": "Reaction{UserID: int32, CreatedAt: string, Code: string, Name: string}",
     "imports": [
       "ReactionRequest"
     ]
   },
   "ReactionOperations_removeReaction": {
-    "usage": "params := RemoveReactionParams{\n\tCode: \"👍\",\n\tName: Ptr(\":+1:\"),\n}\nclient.Reactions.RemoveReaction(ctx, int32(7231942), params)",
+    "usage": "params := RemoveReactionParams{\n\tCode: \"👍\",\n\tName: Ptr(\"agent-thinking\"),\n}\nclient.Reactions.RemoveReaction(ctx, int32(7231942), params)",
     "imports": [
       "RemoveReactionParams"
     ]

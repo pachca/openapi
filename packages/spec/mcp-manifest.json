@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "26ee88a291d21a9b"
+    "digest": "6162ce4c54725b12"
   },
   "server": {
     "name": "pachca",
@@ -1845,7 +1845,7 @@
               },
               "redirect_uris": {
                 "type": "array",
-                "description": "Redirect URIs after consent. HTTPS is required, except for addresses on the same computer (`localhost`, `127.0.0.1`, `[::1]`). The address in the authorization link must exactly match one from the list, except that the port is not compared for addresses on the same computer. Pass at least one address when enabling. The list is replaced as a whole.",
+                "description": "Redirect URIs after consent. A web address needs HTTPS: plain `http` is allowed only for `localhost`, `127.0.0.1` and `[::1]`. An app's own scheme such as `com.example.app:/oauth` also fits. A fragment `#…` is not allowed in the address. The address in the authorization link must match one from the list. Query parameters are compared only if the address in the list has them, and the port is not compared for addresses on the same computer. More in the \"Enabling\" (https://dev.pachca.com/guides/oauth/setup#vklyuchenie) section. Pass at least one address when enabling. The list is replaced as a whole.",
                 "examples": [
                   [
                     "https://example.com/oauth/callback"
@@ -2950,7 +2950,7 @@
               },
               "redirect_uris": {
                 "type": "array",
-                "description": "Redirect URIs after consent. HTTPS is required, except for addresses on the same computer (`localhost`, `127.0.0.1`, `[::1]`). The address in the authorization link must exactly match one from the list, except that the port is not compared for addresses on the same computer. Pass at least one address when enabling. The list is replaced as a whole.",
+                "description": "Redirect URIs after consent. A web address needs HTTPS: plain `http` is allowed only for `localhost`, `127.0.0.1` and `[::1]`. An app's own scheme such as `com.example.app:/oauth` also fits. A fragment `#…` is not allowed in the address. The address in the authorization link must match one from the list. Query parameters are compared only if the address in the list has them, and the port is not compared for addresses on the same computer. More in the \"Enabling\" (https://dev.pachca.com/guides/oauth/setup#vklyuchenie) section. Pass at least one address when enabling. The list is replaced as a whole.",
                 "examples": [
                   [
                     "https://example.com/oauth/callback"
@@ -5166,7 +5166,7 @@
           },
           "order": {
             "type": "string",
-            "description": "Sort direction. Values: asc — Ascending; desc — Descending.",
+            "description": "Sort direction. Applies together with `sort`, such as `sort=last_message_at&order=desc`. Without `sort` chats come in descending `id` order whatever `order` is. Values: asc — Ascending; desc — Descending.",
             "enum": [
               "asc",
               "desc"
@@ -6055,7 +6055,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Archive chat. Sends a conversation or a channel to the archive: the chat disappears from the lists of all members, new messages are not accepted into it, and the history is kept. Archiving does not merely freeze the chat. All guests are removed from it and all tags are unlinked from it. The employees a tag brought in stay as ordinary members, but the membership is no longer maintained by itself. The `unarchive_chat` method brings back neither the guests nor the tag links. Threads created in the chat stay open: they can still be written to after archiving. A direct chat and a thread are not sent to the archive. Archiving a chat that is already archived responds `403`.",
+      "description": "Archive chat. Sends a conversation or a channel to the archive: the chat disappears from the lists of all members, new messages are not accepted into it, and the history is kept. Archiving does not merely freeze the chat. Guests with the `guest` role are removed from it, and all tags are unlinked from it. Multi-guests (`multi_guest`) stay in the chat. The employees a tag brought in stay as ordinary members, but the membership is no longer maintained by itself. The `unarchive_chat` method brings back neither the guests nor the tag links. Threads created in the chat stay open: they can still be written to after archiving. A direct chat and a thread are not sent to the archive. Archiving a chat that is already archived responds `403`.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -8009,7 +8009,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Up to 40,000 bytes in UTF-8, and for a scheduled message in a workspace with advanced encryption — up to 27,000.",
+            "description": "Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Up to 40,000 bytes in UTF-8.",
             "examples": [
               "Weekly report: sales are up 10%"
             ]
@@ -8072,7 +8072,7 @@
                 },
                 "size": {
                   "type": "integer",
-                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it — the full record carries it, and you know it for a file you uploaded — or readers see 0 KB.",
+                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it for a file you uploaded. Without it the server reads the size from storage after the save, and a reader who got the message before that may see 0 KB.",
                   "format": "int64",
                   "examples": [
                     12345
@@ -8132,7 +8132,7 @@
             "properties": {
               "start_date": {
                 "type": "string",
-                "description": "First sending (ISO-8601). The time of day, the day of the month, and the day of the week on which the repetition is built further are taken from it. An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. A moment named in words is local time: write it with a UTC offset — the caller’s, which today carries in the instructions and Now in every footer, unless the tool names another zone — as 2024-01-15T15:00:00+03:00, and the end of a day as its end in that zone. A day named ahead is the date listed for it after today, there and in every footer: take it as written rather than counting. A day already past is counted back from today.",
+                "description": "First sending (ISO-8601). The time of day, the day of the month, and the day of the week on which the repetition is built further are taken from it. For a one-time sending (`once`), an offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. For a repetition, the time of day, the day of the month and the day of the week are taken as written and counted in UTC: `10:00+03:00` goes out at 10:00 UTC. So write a repetition in UTC, with `Z`, converting the local time into it, and check `next_send_at` in the response. A moment named in words is local time: write it with a UTC offset — the caller’s, which today carries in the instructions and Now in every footer, unless the tool names another zone — as 2024-01-15T15:00:00+03:00, and the end of a day as its end in that zone. A day named ahead is the date listed for it after today, there and in every footer: take it as written rather than counting. A day already past is counted back from today.",
                 "format": "date-time",
                 "examples": [
                   "2026-09-17T12:00:00.000Z"
@@ -8734,7 +8734,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Draft text. Up to 40,000 bytes in UTF-8, and for a scheduled message in a workspace with advanced encryption — up to 27,000.",
+            "description": "Draft text. Up to 40,000 bytes in UTF-8.",
             "examples": [
               "Weekly report: sales are up 10%"
             ]
@@ -8797,7 +8797,7 @@
                 },
                 "size": {
                   "type": "integer",
-                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it — the full record carries it, and you know it for a file you uploaded — or readers see 0 KB.",
+                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it for a file you uploaded. Without it the server reads the size from storage after the save, and a reader who got the message before that may see 0 KB.",
                   "format": "int64",
                   "examples": [
                     12345
@@ -8857,7 +8857,7 @@
             "properties": {
               "start_date": {
                 "type": "string",
-                "description": "First sending (ISO-8601). The time of day, the day of the month, and the day of the week on which the repetition is built further are taken from it. An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. A moment named in words is local time: write it with a UTC offset — the caller’s, which today carries in the instructions and Now in every footer, unless the tool names another zone — as 2024-01-15T15:00:00+03:00, and the end of a day as its end in that zone. A day named ahead is the date listed for it after today, there and in every footer: take it as written rather than counting. A day already past is counted back from today.",
+                "description": "First sending (ISO-8601). The time of day, the day of the month, and the day of the week on which the repetition is built further are taken from it. For a one-time sending (`once`), an offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. For a repetition, the time of day, the day of the month and the day of the week are taken as written and counted in UTC: `10:00+03:00` goes out at 10:00 UTC. So write a repetition in UTC, with `Z`, converting the local time into it, and check `next_send_at` in the response. A moment named in words is local time: write it with a UTC offset — the caller’s, which today carries in the instructions and Now in every footer, unless the tool names another zone — as 2024-01-15T15:00:00+03:00, and the end of a day as its end in that zone. A day named ahead is the date listed for it after today, there and in every footer: take it as written rather than counting. A day already past is counted back from today.",
                 "format": "date-time",
                 "examples": [
                   "2026-09-17T12:00:00.000Z"
@@ -10098,7 +10098,7 @@
           },
           "order": {
             "type": "string",
-            "description": "Sort direction. Values: asc — Ascending; desc — Descending.",
+            "description": "Sort direction. Applies together with `sort`: messages from oldest to newest come with `sort=id` and `order=asc`. Without `sort` messages come newest first whatever `order` is. Values: asc — Ascending; desc — Descending.",
             "enum": [
               "asc",
               "desc"
@@ -10194,7 +10194,7 @@
                 },
                 "root_chat_id": {
                   "type": "integer",
-                  "description": "Root chat ID. For messages in threads — the ID of the chat where the thread was created. For regular messages, equals `chat_id`."
+                  "description": "Root chat ID. For a message in a thread — the ID of the chat that holds the thread's parent message. A standalone thread has no parent message, and its `root_chat_id` equals `chat_id`, as on regular messages. A thread message is recognised by `entity_type: \"thread\"`."
                 },
                 "content": {
                   "type": "string",
@@ -10512,7 +10512,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes. The message goes out under the token owner's name, and a bot's with the Bot badge. Write it in the voice of the account it goes out under. Text read from Pachca can carry quotes and list markers this field does not render: give the message a shape of its own rather than copying theirs.",
+            "description": "Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. The message goes out under the token owner's name, and a bot's with the Bot badge. Write it in the voice of the account it goes out under. Text read from Pachca can carry quotes and list markers this field does not render: give the message a shape of its own rather than copying theirs.",
             "examples": [
               "Yesterday we sold 756 t-shirts (10% more than last Sunday)"
             ]
@@ -10556,7 +10556,7 @@
                 },
                 "size": {
                   "type": "integer",
-                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it — the full record carries it, and you know it for a file you uploaded — or readers see 0 KB.",
+                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it for a file you uploaded. Without it the server reads the size from storage after the save, and a reader who got the message before that may see 0 KB.",
                   "format": "int64",
                   "examples": [
                     12345
@@ -10611,7 +10611,7 @@
           },
           "buttons": {
             "type": "array",
-            "description": "Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons per row. Buttons are shown under the text and work only on messages sent with a bot token: a click on a button with `data` arrives as a `button_click` event to that same bot, carrying a `trigger_id` — there are 3 seconds to open a form with it, the `open_form` method. A button with `url` simply follows the link and creates no event. Details are in the \"Buttons\" (https://dev.pachca.com/guides/buttons) section.",
+            "description": "Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons per row. Buttons are shown under the text. A button with `url` follows the link whoever sent the message and creates no event. A button with `data` works in a message from a bot: a click on it arrives as a `button_click` event to the bot that sent the message, carrying a `trigger_id` — there are 3 seconds to open a form with it, the `open_form` method. Details are in the \"Buttons\" (https://dev.pachca.com/guides/buttons) section.",
             "maxItems": 32,
             "examples": [
               [
@@ -10694,7 +10694,7 @@
           },
           "skip_invite_mentions": {
             "type": "boolean",
-            "description": "Skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there.",
+            "description": "Skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. With the workspace setting \"Use cross-chat threads\" on (the default), a mention also adds an employee from outside the parent chat, and with `true` in this field a mention adds nobody. A mention by a guest or a multi-guest then adds only those who share a chat with the author. With the setting off, a mention adds only members of the parent chat, and this field changes nothing. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there.",
             "default": false,
             "examples": [
               false
@@ -10799,7 +10799,7 @@
               },
               "root_chat_id": {
                 "type": "integer",
-                "description": "Root chat ID. For messages in threads — the ID of the chat where the thread was created. For regular messages, equals `chat_id`."
+                "description": "Root chat ID. For a message in a thread — the ID of the chat that holds the thread's parent message. A standalone thread has no parent message, and its `root_chat_id` equals `chat_id`, as on regular messages. A thread message is recognised by `entity_type: \"thread\"`."
               },
               "content": {
                 "type": "string",
@@ -11114,7 +11114,7 @@
               },
               "root_chat_id": {
                 "type": "integer",
-                "description": "Root chat ID. For messages in threads — the ID of the chat where the thread was created. For regular messages, equals `chat_id`."
+                "description": "Root chat ID. For a message in a thread — the ID of the chat that holds the thread's parent message. A standalone thread has no parent message, and its `root_chat_id` equals `chat_id`, as on regular messages. A thread message is recognised by `entity_type: \"thread\"`."
               },
               "content": {
                 "type": "string",
@@ -11390,7 +11390,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes. Write it in the voice of the account it goes out under. Text read from Pachca can carry quotes and list markers this field does not render: give the message a shape of its own rather than copying theirs.",
+            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. Write it in the voice of the account it goes out under. Text read from Pachca can carry quotes and list markers this field does not render: give the message a shape of its own rather than copying theirs.",
             "examples": [
               "Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur, liaison, necessary, surveillance, questionnaire."
             ]
@@ -11434,7 +11434,7 @@
                 },
                 "size": {
                   "type": "integer",
-                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it — the full record carries it, and you know it for a file you uploaded — or readers see 0 KB.",
+                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it for a file you uploaded. Without it the server reads the size from storage after the save, and a reader who got the message before that may see 0 KB.",
                   "format": "int64",
                   "examples": [
                     12345
@@ -11625,7 +11625,7 @@
               },
               "root_chat_id": {
                 "type": "integer",
-                "description": "Root chat ID. For messages in threads — the ID of the chat where the thread was created. For regular messages, equals `chat_id`."
+                "description": "Root chat ID. For a message in a thread — the ID of the chat that holds the thread's parent message. A standalone thread has no parent message, and its `root_chat_id` equals `chat_id`, as on regular messages. A thread message is recognised by `entity_type: \"thread\"`."
               },
               "content": {
                 "type": "string",
@@ -12285,7 +12285,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Add reaction. Adds an emoji reaction to a message on behalf of the token owner. The `code` field carries the emoji character itself: text notations such as `+1` or `:+1:` are not accepted by the method. If the user has already added the same reaction, it will not be duplicated. To remove a reaction, use the `remove_reaction` method. If there is a thread under the message, the employee who reacted is subscribed to it as well and starts receiving the new messages of the thread. A message the token cannot see responds `404` with the `not_found` code, as a nonexistent one does. Reaction limits:\n- Each user can add no more than 20 unique reactions to a message\n- A message can have no more than 30 unique reactions\n- The total number of reactions on a message cannot exceed 1000",
+      "description": "Add reaction. Adds an emoji reaction to a message on behalf of the token owner. The `code` field carries the emoji character itself: text notations such as `+1` or `:+1:` are not accepted by the method. A custom emoji of the workspace is added by its name in the `name` field. If the user has already added the same reaction, it will not be duplicated. To remove a reaction, use the `remove_reaction` method. If there is a thread under the message, the employee who reacted is subscribed to it as well and starts receiving the new messages of the thread. A message the token cannot see responds `404` with the `not_found` code, as a nonexistent one does. Reaction limits:\n- Each user can add no more than 20 unique reactions to a message\n- A message can have no more than 30 unique reactions\n- The total number of reactions on a message cannot exceed 1000",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -12305,16 +12305,16 @@
           },
           "code": {
             "type": "string",
-            "description": "Reaction emoji character. The character itself: text forms such as `+1` or `:+1:` are rejected as an unknown emoji.",
+            "description": "Reaction emoji character. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value fits: it is stored as passed.",
             "examples": [
               "👍"
             ]
           },
           "name": {
             "type": "string",
-            "description": "Emoji text name (used for custom emoji)",
+            "description": "Name of a custom emoji of the workspace. With it, the reaction is that emoji, and if the workspace has no such emoji, the response is `404`.",
             "examples": [
-              ":+1:"
+              "agent-thinking"
             ]
           }
         },
@@ -12405,16 +12405,16 @@
           },
           "code": {
             "type": "string",
-            "description": "Emoji character of the reaction. The character itself: text forms such as `+1` or `:+1:` are rejected as an unknown emoji.",
+            "description": "Emoji character of the reaction. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji.",
             "examples": [
               "👍"
             ]
           },
           "name": {
             "type": "string",
-            "description": "Text name of the emoji (used for custom emoji)",
+            "description": "Name of the reaction, as in its `name` field. With it, the reaction is looked up by name, which is also how a custom emoji of the workspace is removed.",
             "examples": [
-              ":+1:"
+              "agent-thinking"
             ]
           }
         },
@@ -13626,7 +13626,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Search messages. Searches by message text and by the names of attachments, but only in the chats the token owner belongs to. A public channel they have not joined does not make it into the search, even though its feed can be read. Thread messages are included in the results. The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query wrapped entirely in quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it. Straight quotes `\"…\"` and typographic ones `«…»`, `“…”`, `„…“` both work. By default messages come from newest to oldest. `sort=relevance` switches the results to how well they match the query, where recent messages are still valued higher. A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and the query is worth narrowing.",
+      "description": "Search messages. Searches by message text and by the names of attachments, but only in the chats the token owner belongs to. A public channel they have not joined does not make it into the search, even though its feed can be read. Without `chat_ids` the search covers the token owner's conversations and channels, their direct chats, and the threads of those conversations and channels. Threads of direct chats, standalone threads, and threads they were added to without the parent chat make it into the results only when `chat_ids` carries the ID of the thread's chat or of the chat with its parent message. The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query wrapped entirely in quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it. Straight quotes `\"…\"` and typographic ones `«…»`, `“…”`, `„…“` both work. By default messages come from newest to oldest. `sort=relevance` switches the results to how well they match the query, where recent messages are still valued higher. A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and the query is worth narrowing.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -13814,7 +13814,7 @@
                 },
                 "root_chat_id": {
                   "type": "integer",
-                  "description": "Root chat ID. For messages in threads — the ID of the chat where the thread was created. For regular messages, equals `chat_id`."
+                  "description": "Root chat ID. For a message in a thread — the ID of the chat that holds the thread's parent message. A standalone thread has no parent message, and its `root_chat_id` equals `chat_id`, as on regular messages. A thread message is recognised by `entity_type: \"thread\"`."
                 },
                 "content": {
                   "type": "string",
@@ -14479,7 +14479,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "List tasks. The tasks available to the token owner. Without the `chat_ids` parameter only your own tasks are returned: those from conversations and channels you are a member of, plus tasks with no chat that you created or that are assigned to you. The `chat_ids` parameter changes the selection — all tasks of the listed chats are returned, including those of other employees.",
+      "description": "List tasks. The tasks available to the token owner. Without the `chat_ids` parameter all tasks of the active chats you are a member of are returned, other employees' tasks included, plus tasks with no chat that you created or that are assigned to you. The tasks you are an assignee of are picked by the `performer_ids` filter with your ID. The `chat_ids` parameter changes the selection — all tasks of the listed chats are returned.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -14661,7 +14661,7 @@
                 },
                 "all_day": {
                   "type": "boolean",
-                  "description": "Whether this is an all-day task (without specific time)"
+                  "description": "Whether this is an all-day task: `true` if `all_day: true` was passed on creation or the due date is exactly 23:59:59. The Pachca web app shows a task without a time only for such a due date, and for any other time of the due date it shows that time."
                 },
                 "custom_properties": {
                   "type": "array",
@@ -14746,7 +14746,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New task. Creates a task and assigns the employees responsible for it. Specifying the task type is required when creating a task: call, meeting, simple reminder, event, or email. A description is not required — without it the task takes the name of its type as the text. If a description is passed, it is what becomes the task's text. A task must have assignees; if none are specified, you are assigned as the responsible one. Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the `list_users` method. If no user exists with an ID from `performer_ids`, the method responds `404`. If the caller cannot see the employee, the response is `403`: this happens with an employee of another workspace, a suspended or a deleted one, and for a guest with anyone they share no chat with. In both cases the task is not created. A task can be linked to a conversation with the `chat_id` field — then, besides the author and the assignees, the members of that conversation see it. Whoever links it must belong to that conversation. Tasks are not created in a channel, in a thread, or in an archived chat. Handing a task to somebody else means changing the assignee with `update_task`. If a calendar is connected to the workspace or to the profile, the task also appears there as an event.\n\nNot for:\n- «отдай её Вере», «пусть этим займётся Глеб» — the existing task changing hands.",
+      "description": "New task. Creates a task and assigns the employees responsible for it. Specifying the task type is required when creating a task: call, meeting, simple reminder, event, or email. A description is not required — without it the task takes the name of its type as the text. If a description is passed, it is what becomes the task's text. A task must have assignees; if none are specified, you are assigned as the responsible one. Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the `list_users` method. If no user exists with an ID from `performer_ids`, the method responds `404`. If the caller cannot see the employee, the response is `403`: this happens with an employee of another workspace, a suspended or a deleted one, and for a guest with anyone they share no chat with. In both cases the task is not created. A task can be linked with the `chat_id` field to a conversation or to a direct chat, the chat with yourself included. Then, besides the author and the assignees, the members of that chat see it. Whoever links it must belong to that chat. Tasks are not created in a channel, in a thread, or in an archived chat. Handing a task to somebody else means changing the assignee with `update_task`. A task with a due date also appears as an event in a calendar connected to the workspace or to the token owner's profile. The assignees are invited to that event as attendees. Their own connected calendars do not create the event.\n\nNot for:\n- «отдай её Вере», «пусть этим займётся Глеб» — the existing task changing hands.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -14820,7 +14820,7 @@
           },
           "all_day": {
             "type": "boolean",
-            "description": "Whether this is an all-day task (without specific time). Pass it whenever the request names no hour — «к среде», «в любое время в понедельник», «в течение дня» — instead of inventing one that then shows in the task.",
+            "description": "Whether this is an all-day task. Pass `due_at` with it at exactly 23:59:59 of the day in the employee's local offset, such as `2026-10-29T23:59:59+03:00`. The Pachca web app shows a task without a time only for such a due date, and for any other time of the due date it shows that time even with `all_day: true`. Make the task all-day this way whenever the request names no hour — «к среде», «в любое время в понедельник», «в течение дня» — instead of inventing one that then shows in the task.",
             "examples": [
               false
             ]
@@ -14960,7 +14960,7 @@
               },
               "all_day": {
                 "type": "boolean",
-                "description": "Whether this is an all-day task (without specific time)"
+                "description": "Whether this is an all-day task: `true` if `all_day: true` was passed on creation or the due date is exactly 23:59:59. The Pachca web app shows a task without a time only for such a due date, and for any other time of the due date it shows that time."
               },
               "custom_properties": {
                 "type": "array",
@@ -15110,7 +15110,7 @@
               },
               "all_day": {
                 "type": "boolean",
-                "description": "Whether this is an all-day task (without specific time)"
+                "description": "Whether this is an all-day task: `true` if `all_day: true` was passed on creation or the due date is exactly 23:59:59. The Pachca web app shows a task without a time only for such a due date, and for any other time of the due date it shows that time."
               },
               "custom_properties": {
                 "type": "array",
@@ -15166,7 +15166,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Edit task. Changes a task: only the fields you pass are overwritten. Handing a task over to another employee is an edit too: add them to `performer_ids` in place of the previous one. A completed task is closed with this same method: `status: \"done\"` ticks it off and keeps it in the list, `status: \"undone\"` puts it back to work. Available to the author and the assignees. A member of the chat where the task hangs sees it but cannot change it. The link to a chat cannot be changed: to move a task to another chat, delete it and create it again with the `chat_id` you need.",
+      "description": "Edit task. Changes a task: only the fields you pass are overwritten. Handing a task over to another employee is an edit too. `performer_ids` replaces the whole list of assignees: read the current list with `get_task` and pass everyone who stays together with the new assignee. A completed task is closed with this same method: `status: \"done\"` ticks it off and keeps it in the list, `status: \"undone\"` puts it back to work. Available to the author and the assignees. A member of the chat where the task hangs sees it but cannot change it. The link to a chat cannot be changed: to move a task to another chat, delete it and create it again with the `chat_id` you need.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -15225,7 +15225,7 @@
           },
           "performer_ids": {
             "type": "array",
-            "description": "Array of user IDs to assign as task performers",
+            "description": "Array of user IDs to assign as task performers. The list replaces the previous one whole.",
             "examples": [
               [
                 12
@@ -15249,7 +15249,7 @@
           },
           "all_day": {
             "type": "boolean",
-            "description": "Whether this is an all-day task (without specific time). Pass it whenever the request names no hour — «к среде», «в любое время в понедельник», «в течение дня» — instead of inventing one that then shows in the task.",
+            "description": "Whether this is an all-day task. An edit does not apply this field: a task becomes all-day by a `due_at` at exactly 23:59:59 of the day in the employee's local offset, such as `2026-10-29T23:59:59+03:00`. Make the task all-day this way whenever the request names no hour — «к среде», «в любое время в понедельник», «в течение дня» — instead of inventing one that then shows in the task.",
             "examples": [
               false
             ]
@@ -15404,7 +15404,7 @@
               },
               "all_day": {
                 "type": "boolean",
-                "description": "Whether this is an all-day task (without specific time)"
+                "description": "Whether this is an all-day task: `true` if `all_day: true` was passed on creation or the due date is exactly 23:59:59. The Pachca web app shows a task without a time only for such a due date, and for any other time of the due date it shows that time."
               },
               "custom_properties": {
                 "type": "array",
@@ -15460,7 +15460,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Delete task. Removes a task for good: it cannot be restored, and it disappears for the assignees as well. If the task went into a connected calendar, the event is deleted there too. Available to the author and the assignees. A repeated call responds `404`. A completed task can be closed while keeping it in the list with `update_task` and `status: \"done\"`.",
+      "description": "Delete task. Removes a task for good: it cannot be restored, and it disappears for the assignees as well. If the task went into a connected calendar, the event is deleted there too when the task is deleted by its author. When an assignee deletes it, the event can stay in the author's calendar. Available to the author and the assignees. A repeated call responds `404`. A completed task can be closed while keeping it in the list with `update_task` and `status: \"done\"`.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -15823,7 +15823,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Get signature, key and other parameters. The first step of a file upload: the method issues the storage address and the signed form fields with which the file is uploaded by the next request. Nothing is created in Pachca at this point yet: the uploaded file is visible to nobody and linked to nothing. It becomes an attachment when its `key` is passed in the `files` field — to `send_message` or `create_draft`, and when editing either of them. The parameters are issued for one file: request them again for each next one. The signature is valid for 14 days, and the `key` is tied to the token owner, so someone else's key cannot be attached to your own message. This server takes a file only as base64 contents in the call, so a document or picture from disk, anything you would not write out yourself, you upload from a shell and attach by its key. Put the file name in place of ${filename} in key, then post a multipart form to direct_url from this same answer, never a remembered one: every other field as it is, direct_url itself left out, the file last — `curl -sS -X POST \"<direct_url>\" -F \"key=<key>\" -F \"policy=<policy>\" … -F \"file=@photo.jpg\"` answers 204. direct_url is the cloud storage Pachca keeps files in, a host outside pachca.com that changes with the provider; this form is the one answer of a tool that goes to an outside address, and only there. Then pass that key, with the name, file_type and size of the file, in files, or in the image key that sent you here.",
+      "description": "Get signature, key and other parameters. The first step of a file upload: the method issues the storage address and the signed form fields with which the file is uploaded by the next request. Nothing is created in Pachca at this point yet: the uploaded file is visible to nobody and linked to nothing. It becomes an attachment when its `key` is passed in the `files` field — to `send_message` or `create_draft`, and when editing either of them. The parameters are issued for one file: request them again for each next one. The signature is valid for 14 days. The `key` records the token owner: a draft accepts only their keys and answers someone else's with `422`, error key `draft.files` and code `invalid`. This server takes a file only as base64 contents in the call, so a document or picture from disk, anything you would not write out yourself, you upload from a shell and attach by its key. Put the file name in place of ${filename} in key, then post a multipart form to direct_url from this same answer, never a remembered one: every other field as it is, direct_url itself left out, the file last — `curl -sS -X POST \"<direct_url>\" -F \"key=<key>\" -F \"policy=<policy>\" … -F \"file=@photo.jpg\"` answers 204. direct_url is the cloud storage Pachca keeps files in, a host outside pachca.com that changes with the provider; this form is the one answer of a tool that goes to an outside address, and only there. Then pass that key, with the name, file_type and size of the file, in files, or in the image key that sent you here.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,

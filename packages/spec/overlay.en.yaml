@@ -150,7 +150,7 @@ actions:
       description: Sort field
   - target: $.paths['/chats'].get.parameters[?(@.name=='order')]
     update:
-      description: Sort direction
+      description: "Sort direction. Applies together with `sort`, such as `sort=last_message_at&order=desc`. Without `sort` chats come in descending `id` order whatever `order` is."
   - target: $.paths['/chats'].get.parameters[?(@.name=='availability')]
     update:
       description: Parameter that controls chat availability and filtering for the user
@@ -270,7 +270,7 @@ actions:
 
         Sends a conversation or a channel to the archive: the chat disappears from the lists of all members, new messages are not accepted into it, and the history is kept.
 
-        Archiving does not merely freeze the chat. All guests are removed from it and all tags are unlinked from it. The employees a tag brought in stay as ordinary members, but the membership is no longer maintained by itself. The [Unarchive chat](PUT /chats/{id}/unarchive) method brings back neither the guests nor the tag links.
+        Archiving does not merely freeze the chat. Guests with the `guest` role are removed from it, and all tags are unlinked from it. Multi-guests (`multi_guest`) stay in the chat. The employees a tag brought in stay as ordinary members, but the membership is no longer maintained by itself. The [Unarchive chat](PUT /chats/{id}/unarchive) method brings back neither the guests nor the tag links.
 
         Threads created in the chat stay open: they can still be written to after archiving.
 
@@ -628,7 +628,7 @@ actions:
       description: Sort field
   - target: $.paths['/messages'].get.parameters[?(@.name=='order')]
     update:
-      description: Sort direction
+      description: "Sort direction. Applies together with `sort`: messages from oldest to newest come with `sort=id` and `order=asc`. Without `sort` messages come newest first whatever `order` is."
   - target: $.paths['/messages'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
@@ -714,7 +714,7 @@ actions:
 
         Adds an emoji reaction to a message on behalf of the token owner.
 
-        The `code` field carries the emoji character itself: text notations such as `+1` or `:+1:` are not accepted by the method. If the user has already added the same reaction, it will not be duplicated. To remove a reaction, use the [Delete reaction](DELETE /messages/{id}/reactions) method.
+        The `code` field carries the emoji character itself: text notations such as `+1` or `:+1:` are not accepted by the method. A custom emoji of the workspace is added by its name in the `name` field. If the user has already added the same reaction, it will not be duplicated. To remove a reaction, use the [Delete reaction](DELETE /messages/{id}/reactions) method.
 
         If there is a thread under the message, the employee who reacted is subscribed to it as well and starts receiving the new messages of the thread.
 
@@ -741,10 +741,10 @@ actions:
       description: Message ID
   - target: $.paths['/messages/{id}/reactions'].delete.parameters[?(@.name=='code')]
     update:
-      description: "Emoji character of the reaction. The character itself: text forms such as `+1` or `:+1:` are rejected as an unknown emoji."
+      description: "Emoji character of the reaction. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji."
   - target: $.paths['/messages/{id}/reactions'].delete.parameters[?(@.name=='name')]
     update:
-      description: Text name of the emoji (used for custom emoji)
+      description: "Name of the reaction, as in its `name` field. With it, the reaction is looked up by name, which is also how a custom emoji of the workspace is removed."
   - target: $.paths['/messages/{id}/reactions'].get
     update:
       description: |-
@@ -926,7 +926,9 @@ actions:
       description: |-
         Search messages
 
-        Searches by message text and by the names of attachments, but only in the chats the token owner belongs to. A public channel they have not joined does not make it into the search, even though its feed can be read. Thread messages are included in the results.
+        Searches by message text and by the names of attachments, but only in the chats the token owner belongs to. A public channel they have not joined does not make it into the search, even though its feed can be read.
+
+        Without `chat_ids` the search covers the token owner's conversations and channels, their direct chats, and the threads of those conversations and channels. Threads of direct chats, standalone threads, and threads they were added to without the parent chat make it into the results only when `chat_ids` carries the ID of the thread's chat or of the chat with its parent message.
 
         The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query wrapped entirely in quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it. Straight quotes `"…"` and typographic ones `«…»`, `“…”`, `„…“` both work.
 
@@ -1012,11 +1014,11 @@ actions:
 
         Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the [List employees](GET /users) method. If no user exists with an ID from `performer_ids`, the method responds `404`. If the caller cannot see the employee, the response is `403`: this happens with an employee of another workspace, a suspended or a deleted one, and for a guest with anyone they share no chat with. In both cases the task is not created.
 
-        A task can be linked to a conversation with the `chat_id` field — then, besides the author and the assignees, the members of that conversation see it. Whoever links it must belong to that conversation. Tasks are not created in a channel, in a thread, or in an archived chat.
+        A task can be linked with the `chat_id` field to a conversation or to a direct chat, the chat with yourself included. Then, besides the author and the assignees, the members of that chat see it. Whoever links it must belong to that chat. Tasks are not created in a channel, in a thread, or in an archived chat.
 
         Handing a task to somebody else means changing the assignee with [Edit task](PUT /tasks/{id}).
 
-        If a calendar is connected to the workspace or to the profile, the task also appears there as an event.
+        A task with a due date also appears as an event in a calendar connected to the workspace or to the token owner's profile. The assignees are invited to that event as attendees. Their own connected calendars do not create the event.
   - target: $.paths['/tasks'].get
     update:
       description: |-
@@ -1024,7 +1026,7 @@ actions:
 
         The tasks available to the token owner.
 
-        Without the `chat_ids` parameter only your own tasks are returned: those from conversations and channels you are a member of, plus tasks with no chat that you created or that are assigned to you. The `chat_ids` parameter changes the selection — all tasks of the listed chats are returned, including those of other employees.
+        Without the `chat_ids` parameter all tasks of the active chats you are a member of are returned, other employees' tasks included, plus tasks with no chat that you created or that are assigned to you. The tasks you are an assignee of are picked by the `performer_ids` filter with your ID. The `chat_ids` parameter changes the selection — all tasks of the listed chats are returned.
   - target: $.paths['/tasks'].get.parameters[?(@.name=='status')]
     update:
       description: Filter by state. If the parameter is omitted, tasks in any state are returned.
@@ -1061,7 +1063,7 @@ actions:
 
         Changes a task: only the fields you pass are overwritten.
 
-        Handing a task over to another employee is an edit too: add them to `performer_ids` in place of the previous one.
+        Handing a task over to another employee is an edit too. `performer_ids` replaces the whole list of assignees: read the current list with [Task info](GET /tasks/{id}) and pass everyone who stays together with the new assignee.
 
         A completed task is closed with this same method: `status: "done"` ticks it off and keeps it in the list, `status: "undone"` puts it back to work.
 
@@ -1074,7 +1076,7 @@ actions:
       description: |-
         Delete task
 
-        Removes a task for good: it cannot be restored, and it disappears for the assignees as well. If the task went into a connected calendar, the event is deleted there too.
+        Removes a task for good: it cannot be restored, and it disappears for the assignees as well. If the task went into a connected calendar, the event is deleted there too when the task is deleted by its author. When an assignee deletes it, the event can stay in the author's calendar.
 
         Available to the author and the assignees. A repeated call responds `404`.
 
@@ -1140,7 +1142,7 @@ actions:
 
         Nothing is created in Pachca at this point yet: the uploaded file is visible to nobody and linked to nothing. It becomes an attachment when its `key` is passed in the `files` field — to [New message](POST /messages) or [New draft](POST /drafts), and when editing either of them.
 
-        The parameters are issued for one file: request them again for each next one. The signature is valid for 14 days, and the `key` is tied to the token owner, so someone else's key cannot be attached to your own message.
+        The parameters are issued for one file: request them again for each next one. The signature is valid for 14 days. The `key` records the token owner: a draft accepts only their keys and answers someone else's with `422`, error key `draft.files` and code `invalid`.
   - target: $.paths['/users'].post
     update:
       description: |-
@@ -2643,7 +2645,7 @@ actions:
       description: "ID of what is named in `entity_type`: the conversation or channel, the thread, or the employee"
   - target: $.components.schemas.DraftCreateRequest.properties.draft.properties.content
     update:
-      description: "Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Up to 40,000 bytes in UTF-8, and for a scheduled message in a workspace with advanced encryption — up to 27,000."
+      description: "Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Up to 40,000 bytes in UTF-8."
       example: "Weekly report: sales are up 10%"
   - target: $.components.schemas.DraftCreateRequest.properties.draft.properties.parent_message_id
     update:
@@ -2740,7 +2742,7 @@ actions:
       description: Sending schedule in the request
   - target: $.components.schemas.DraftScheduleRequest.properties.start_date
     update:
-      description: "First sending (ISO-8601). The time of day, the day of the month, and the day of the week on which the repetition is built further are taken from it. An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC."
+      description: "First sending (ISO-8601). The time of day, the day of the month, and the day of the week on which the repetition is built further are taken from it. For a one-time sending (`once`), an offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. For a repetition, the time of day, the day of the month and the day of the week are taken as written and counted in UTC: `10:00+03:00` goes out at 10:00 UTC. So write a repetition in UTC, with `Z`, converting the local time into it, and check `next_send_at` in the response."
   - target: $.components.schemas.DraftScheduleRequest.properties.end_date
     update:
       description: "Date after which the repetition stops (ISO-8601). Without it the repetition goes on indefinitely."
@@ -2764,7 +2766,7 @@ actions:
       description: Object of the draft parameters being changed
   - target: $.components.schemas.DraftUpdateRequest.properties.draft.properties.content
     update:
-      description: "Draft text. Up to 40,000 bytes in UTF-8, and for a scheduled message in a workspace with advanced encryption — up to 27,000."
+      description: "Draft text. Up to 40,000 bytes in UTF-8."
       example: "Weekly report: sales are up 10%"
   - target: $.components.schemas.DraftUpdateRequest.properties.draft.properties.parent_message_id
     update:
@@ -3136,8 +3138,9 @@ actions:
   - target: $.components.schemas.Message.properties.root_chat_id
     update:
       description: >-
-        Root chat ID. For messages in threads — the ID of the chat where the thread was created. For regular messages,
-        equals `chat_id`.
+        Root chat ID. For a message in a thread — the ID of the chat that holds the thread's parent message. A
+        standalone thread has no parent message, and its `root_chat_id` equals `chat_id`, as on regular messages. A
+        thread message is recognised by `entity_type: "thread"`.
   - target: $.components.schemas.Message.properties.content
     update:
       description: Message text
@@ -3199,7 +3202,7 @@ actions:
       description: "Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user. A thread has two: its `id` goes with `entity_type: \"thread\"`, and its `chat_id` with `discussion`, like any chat."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.content
     update:
-      description: "Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes. The message goes out under the token owner's name, and a bot's with the Bot badge."
+      description: "Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. The message goes out under the token owner's name, and a bot's with the Bot badge."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files
     update:
       description: Files to attach
@@ -3223,7 +3226,7 @@ actions:
       description: Image height in px (used when file_type is set to image)
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.buttons
     update:
-      description: "Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons per row. Buttons are shown under the text and work only on messages sent with a bot token: a click on a button with `data` arrives as a `button_click` event to that same bot, carrying a `trigger_id` — there are 3 seconds to open a form with it, the [Open view](POST /views/open) method. A button with `url` simply follows the link and creates no event. Details are in the [Buttons](/guides/buttons) section."
+      description: "Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons per row. Buttons are shown under the text. A button with `url` follows the link whoever sent the message and creates no event. A button with `data` works in a message from a bot: a click on it arrives as a `button_click` event to the bot that sent the message, carrying a `trigger_id` — there are 3 seconds to open a form with it, the [Open view](POST /views/open) method. Details are in the [Buttons](/guides/buttons) section."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.parent_message_id
     update:
       description: "ID of the message you are replying to with a quote. You can reply to a message in any chat, including a thread: send the reply to the same chat or thread where that message is, otherwise the request returns a `422` error. To write into the thread under a message, set `entity_type: \"thread\"` and the thread's `id` in `entity_id`."
@@ -3235,7 +3238,7 @@ actions:
       description: "Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else's name and avatar, and only this message. The Bot badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Details are in the [Bots](/guides/bots/overview) section."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.skip_invite_mentions
     update:
-      description: "Skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there."
+      description: "Skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. With the workspace setting \"Use cross-chat threads\" on (the default), a mention also adds an employee from outside the parent chat, and with `true` in this field a mention adds nobody. A mention by a guest or a multi-guest then adds only those who share a chat with the author. With the setting off, a mention adds only members of the parent chat, and this field changes nothing. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there."
   - target: $.components.schemas.MessageCreateRequest.properties.link_preview
     update:
       description: Display a preview of the first link found in the message text
@@ -3256,7 +3259,7 @@ actions:
       description: Message parameters object to update
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.content
     update:
-      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes."
+      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters."
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files
     update:
       description: "Files to attach. The set you pass replaces the previous one: to keep a file already attached, pass it again with the same `key`."
@@ -3507,10 +3510,10 @@ actions:
       description: Reaction creation request
   - target: $.components.schemas.ReactionRequest.properties.code
     update:
-      description: "Reaction emoji character. The character itself: text forms such as `+1` or `:+1:` are rejected as an unknown emoji."
+      description: "Reaction emoji character. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value fits: it is stored as passed."
   - target: $.components.schemas.ReactionRequest.properties.name
     update:
-      description: Emoji text name (used for custom emoji)
+      description: "Name of a custom emoji of the workspace. With it, the reaction is that emoji, and if the workspace has no such emoji, the response is `404`."
   - target: $.components.schemas.ReactionWebhookPayload
     update:
       description: Outgoing webhook payload for reactions
@@ -3644,7 +3647,7 @@ actions:
       description: Array of user IDs assigned to the task as performers
   - target: $.components.schemas.Task.properties.all_day
     update:
-      description: Whether this is an all-day task (without specific time)
+      description: "Whether this is an all-day task: `true` if `all_day: true` was passed on creation or the due date is exactly 23:59:59. The Pachca web app shows a task without a time only for such a due date, and for any other time of the due date it shows that time."
   - target: $.components.schemas.Task.properties.custom_properties
     update:
       description: Task custom properties
@@ -3674,7 +3677,7 @@ actions:
       description: ID of the chat to link the task to
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.all_day
     update:
-      description: Whether this is an all-day task (without specific time)
+      description: "Whether this is an all-day task. Pass `due_at` with it at exactly 23:59:59 of the day in the employee's local offset, such as `2026-10-29T23:59:59+03:00`. The Pachca web app shows a task without a time only for such a due date, and for any other time of the due date it shows that time even with `all_day: true`."
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.custom_properties
     update:
       description: Custom properties to set
@@ -3723,13 +3726,13 @@ actions:
       description: 'Priority: 1, 2 (important), or 3 (very important)'
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.performer_ids
     update:
-      description: Array of user IDs to assign as task performers
+      description: Array of user IDs to assign as task performers. The list replaces the previous one whole.
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.status
     update:
       description: Status
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.all_day
     update:
-      description: Whether this is an all-day task (without specific time)
+      description: "Whether this is an all-day task. An edit does not apply this field: a task becomes all-day by a `due_at` at exactly 23:59:59 of the day in the employee's local offset, such as `2026-10-29T23:59:59+03:00`."
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.done_at
     update:
       description: "Task completion date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. A value that could not be parsed removes the completion mark: the response comes back successful, and `done_at` in it is `null`."
@@ -4681,7 +4684,7 @@ actions:
       description: "Where the secret is stored: `true` — a server-side application stores `client_secret` and exchanges the code on its side, `false` — an application without a secret (browser, mobile, CLI) exchanges the code with PKCE. If omitted, the value does not change, and a new client gets `true`."
   - target: $.components.schemas.BotOAuthClientRequest.properties.redirect_uris
     update:
-      description: "Redirect URIs after consent. HTTPS is required, except for addresses on the same computer (`localhost`, `127.0.0.1`, `[::1]`). The address in the authorization link must exactly match one from the list, except that the port is not compared for addresses on the same computer. Pass at least one address when enabling. The list is replaced as a whole."
+      description: "Redirect URIs after consent. A web address needs HTTPS: plain `http` is allowed only for `localhost`, `127.0.0.1` and `[::1]`. An app's own scheme such as `com.example.app:/oauth` also fits. A fragment `#…` is not allowed in the address. The address in the authorization link must match one from the list. Query parameters are compared only if the address in the list has them, and the port is not compared for addresses on the same computer. More in the [Enabling](/guides/oauth/setup#vklyuchenie) section. Pass at least one address when enabling. The list is replaced as a whole."
   - target: $.components.schemas.BotOAuthClientRequest.properties.scopes
     update:
       description: "Scopes the bot requests from an employee on the consent screen. Only scopes that can be granted to the bot itself are available. If omitted when enabling, all bot scopes are requested. The list is replaced as a whole."

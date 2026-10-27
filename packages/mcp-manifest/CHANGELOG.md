@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.4.0 (2026-10-27)
+
+Tool texts follow what the server actually does; schema_version stays 1.2.0.
+
+- `pachca_list_chats` and `pachca_list_chat_messages`: `order` takes effect only together with `sort`, so oldest first is `sort=id` with `order=asc`.
+- `pachca_add_reaction` and `pachca_remove_reaction`: `name` is the name of a custom emoji of the workspace, a name the workspace does not have answers `404`, and `code` must be the emoji character only without `name`.
+- `pachca_create_draft` and `pachca_update_draft`: a repeating schedule takes hour, minute and weekday from `start_date` as written and runs on UTC, so a repetition is written in UTC and `next_send_at` is checked; a single send honours the offset.
+- `pachca_send_message` and `pachca_update_message`: only `data` buttons need a bot sender, a `url` button opens its link whoever sent the message; `skip_invite_mentions` acts only while the workspace setting for cross threads is on.
+- `pachca_list_tasks`: without `chat_ids` the list holds every task of the active chats you are in, other employees' included, plus unbound tasks you created or are assigned to.
+- `pachca_create_task` and `pachca_update_task`: a task binds to a conversation or a direct chat you are in, not to a channel, a thread or an archived chat; `all_day` goes together with `due_at` at 23:59:59 of that day in the employee's offset; `performer_ids` replaces the whole list of assignees.
+- `pachca_search_messages`: without `chat_ids` threads under direct chats, standalone threads and threads you joined without their parent chat are not searched.
+- `pachca_archive_chat`: archiving removes guests, multi-guests stay.
+- `pachca_get_upload_params`: a key is checked against its owner only in drafts.
+- `pachca_send_message`, `pachca_update_message`, `pachca_create_draft` and `pachca_update_draft`: a file passed by key without `size` gets its size from storage after the save, so a reader who got the message before that may see 0 KB; the file record of a message or a draft carries no size to copy.
+- `pachca_delete_task`: the calendar event goes away with the task only when its author deletes it; after an assignee deletes it, the event can stay in the author's calendar.
+- `pachca_get_message`, `pachca_get_task`, `pachca_create_bot` and `pachca_update_bot` carry the corrected field texts of their models: `root_chat_id` of a message in a standalone thread equals `chat_id`, `all_day`, and the rules for `redirect_uris`.
+
 ## 1.3.0 (2026-10-22)
 
 An agent with a shell uploads a file itself and attaches it by key; schema_version stays 1.2.0.

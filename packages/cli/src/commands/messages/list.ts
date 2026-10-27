@@ -29,7 +29,7 @@ export default class MessagesList extends BaseCommand {
       default: "id",
     }),
     'order': Flags.string({
-      description: "Направление сортировки",
+      description: "Направление сортировки. Применяется вместе с `sort`: сообщения от старых к новым дают `sort=id` и `order=asc`. Без `sort` сообщения идут от новых к старым при любом `order`.",
       options: ["asc","desc"],
       default: "desc",
     }),

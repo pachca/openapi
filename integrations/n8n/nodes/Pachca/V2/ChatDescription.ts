@@ -167,7 +167,7 @@ export const chatFields: INodeProperties[] = [
 		options: [{ name: 'Ascending', value: 'asc' },
 { name: 'Descending', value: 'desc' }],
 		default: "desc",
-		description: 'Sort direction',
+		description: 'Sort direction. Applies together with `sort`, such as `sort=last_message_at&order=desc`. Without `sort` chats come in descending ID order whatever `order` is.',
 		displayOptions: { show: { resource: ['chat'], operation: ['getAll'] } },
 	},
 	{

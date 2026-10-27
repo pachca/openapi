@@ -65,7 +65,7 @@ export const taskFields: INodeProperties[] = [
 				name: 'allDay',
 				type: 'boolean',
 				default: false,
-				description: 'Whether this is an all-day task (without specific time)',
+				description: 'Whether this is an all-day task. Pass `due_at` with it at exactly 23:59:59 of the day in the employee\'s local offset, such as `2026-10-29T23:59:59+03:00`. The Pachca web app shows a task without a time only for such a due date, and for any other time of the due date it shows that time even with `all_day: true`.',
 			},
 			{
 				displayName: 'Chat ID',
@@ -244,7 +244,7 @@ export const taskFields: INodeProperties[] = [
 				name: 'allDay',
 				type: 'boolean',
 				default: false,
-				description: 'Whether this is an all-day task (without specific time)',
+				description: 'Whether this is an all-day task. An edit does not apply this field: a task becomes all-day by a `due_at` at exactly 23:59:59 of the day in the employee\'s local offset, such as `2026-10-29T23:59:59+03:00`.',
 			},
 			{
 				displayName: 'Content',
@@ -316,7 +316,7 @@ export const taskFields: INodeProperties[] = [
 				name: 'performerIds',
 				type: 'string',
 				default: "",
-				description: 'Array of user IDs to assign as task performers',
+				description: 'Array of user IDs to assign as task performers. The list replaces the previous one whole.',
 				placeholder: '12',
 			},
 			{

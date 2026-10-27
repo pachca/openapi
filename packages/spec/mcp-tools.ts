@@ -19,9 +19,9 @@
  *    The spec points at the neighbour, and a model gets that link as a tool
  *    name; the phrasing has no place there: «подними» reads like pinning, though
  *    a request with it usually asks for the feed of a chat.
- * 2. **What to put in a field.** A request that names no hour takes the all-day
- *    flag rather than an invented time; the spec gives the shape of the value and
- *    has no place for that.
+ * 2. **What to put in a field.** A request that names no hour makes an all-day
+ *    task rather than one at an invented time; the spec says how an all-day task
+ *    is written and has no place for when to write one.
  * 3. **The consequence worth knowing** before a call, when it comes from how a
  *    model works rather than from the API: a window of seconds that a
  *    conversation cannot meet.
@@ -94,13 +94,15 @@ export interface ToolProse {
 }
 
 /**
- * A day with no hour in it, on either side of a task. The note on the date-time
- * argument says how a named day is written; this says what to pass when the
- * request names no time.
+ * A day with no hour in it, on either side of a task. The spec, on `all_day`,
+ * says how an all-day task is written — the due date at 23:59:59 of its day, the
+ * one moment the web app shows without a time, and on an edit the due date
+ * alone — and the note on the date-time argument how a named day is written;
+ * this says when to write one.
  */
 const NO_HOUR_NOTE =
-  'Pass it whenever the request names no hour — «к среде», «в любое время в понедельник», «в течение дня» — ' +
-  'instead of inventing one that then shows in the task.';
+  'Make the task all-day this way whenever the request names no hour — «к среде», «в любое время в понедельник», ' +
+  '«в течение дня» — instead of inventing one that then shows in the task.';
 
 /**
  * Whose words a message is, and the shape it takes: read where the text is

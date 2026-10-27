@@ -379,14 +379,14 @@
     "output": "ListReactionsResponse({ data: Reaction[], meta: PaginationMeta })"
   },
   "ReactionOperations_addReaction": {
-    "usage": "const request: ReactionRequest = { code: \"👍\", name: \":+1:\" }\nconst response = client.reactions.addReaction(7231942, request)",
+    "usage": "const request: ReactionRequest = { code: \"👍\", name: \"agent-thinking\" }\nconst response = client.reactions.addReaction(7231942, request)",
     "output": "Reaction({ userId: number, createdAt: string, code: string, name: string })",
     "imports": [
       "ReactionRequest"
     ]
   },
   "ReactionOperations_removeReaction": {
-    "usage": "client.reactions.removeReaction(7231942, { code: \"👍\", name: \":+1:\" })"
+    "usage": "client.reactions.removeReaction(7231942, { code: \"👍\", name: \"agent-thinking\" })"
   },
   "ReadMemberOperations_listReadMembers": {
     "usage": "const response = client.readMembers.listReadMembers(194275, { limit: 300, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",

@@ -21,7 +21,7 @@ export default class ChatsList extends BaseCommand {
       default: "id",
     }),
     'order': Flags.string({
-      description: "Направление сортировки",
+      description: "Направление сортировки. Применяется вместе с `sort`, например `sort=last_message_at&order=desc`. Без `sort` чаты идут по убыванию `id` при любом `order`.",
       options: ["asc","desc"],
       default: "desc",
     }),

@@ -327,6 +327,19 @@
       ],
       "cache": true
     },
+    "@pachca/cli#test": {
+      "dependsOn": [
+        "^build",
+        "generate-cli",
+        "generate-n8n",
+        "build"
+      ],
+      "inputs": [
+        "src/**",
+        "tests/**"
+      ],
+      "cache": true
+    },
     "start": {
       "dependsOn": [
         "build"

@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, beforeAll, afterAll, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeAll, afterAll } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
@@ -420,7 +420,6 @@ describe('retries', () => {
 
     afterEach(() => {
       globalThis.fetch = realFetch;
-      vi.useRealTimers();
     });
 
     // Answers each request with the next status (and body, if given) and
@@ -434,10 +433,18 @@ describe('retries', () => {
         const [status, body] = typeof next === 'number' ? [next, null] : next;
         return new Response(body, { status, headers: status === 429 ? { 'Retry-After': '1' } : {} });
       }) as typeof fetch;
-      vi.useFakeTimers();
-      const pending = fetchWithRetry(input, init);
-      await vi.runAllTimersAsync();
-      return pending;
+      // The pauses between attempts run at once. A stub of setTimeout instead of
+      // fake timers: CI runs this file with bun test, which has no runAllTimersAsync.
+      const realSetTimeout = globalThis.setTimeout;
+      globalThis.setTimeout = ((fn: () => void) => {
+        queueMicrotask(fn);
+        return 0;
+      }) as unknown as typeof setTimeout;
+      try {
+        return await fetchWithRetry(input, init);
+      } finally {
+        globalThis.setTimeout = realSetTimeout;
+      }
     }
 
     async function run(answers: (number | [number, string])[], input: string | Request, init?: RequestInit) {

@@ -17,6 +17,7 @@ import { customPropertyOperations, customPropertyFields } from './CustomProperty
 import { fileOperations, fileFields } from './FileDescription';
 import { draftOperations, draftFields } from './DraftDescription';
 import { groupTagOperations, groupTagFields } from './GroupTagDescription';
+import { importantMessageOperations, importantMessageFields } from './ImportantMessageDescription';
 import { messageOperations, messageFields } from './MessageDescription';
 import { reactionOperations, reactionFields } from './ReactionDescription';
 import { readMemberOperations, readMemberFields } from './ReadMemberDescription';
@@ -55,6 +56,7 @@ export class PachcaV2 implements INodeType {
 					{ name: 'File', value: 'file' },
 					{ name: 'Form', value: 'form' },
 					{ name: 'Group Tag', value: 'groupTag' },
+					{ name: 'Important Message', value: 'importantMessage' },
 					{ name: 'Message', value: 'message' },
 					{ name: 'OAuth', value: 'oauth' },
 					{ name: 'Profile', value: 'profile' },
@@ -84,6 +86,8 @@ export class PachcaV2 implements INodeType {
 				...draftFields,
 				...groupTagOperations,
 				...groupTagFields,
+				...importantMessageOperations,
+				...importantMessageFields,
 				...messageOperations,
 				...messageFields,
 				...reactionOperations,

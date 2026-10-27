@@ -1,6 +1,15 @@
 import { FileUploadRequest, OAuthError, UploadParams } from "./types.js";
 import { deserialize, deserializeType, fetchWithRetry } from "./utils.js";
 
+/** The body of an error answer, or undefined when it is empty or not JSON (a 404 without a body, a proxy page). */
+async function errorBody(response: Response): Promise<any> {
+  try {
+    return JSON.parse(await response.text());
+  } catch {
+    return undefined;
+  }
+}
+
 export class CommonService {
   async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
     throw new Error("Common.uploadFile is not implemented");
@@ -37,8 +46,10 @@ export class CommonServiceImpl extends CommonService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
+      case 401: {
+        const body = await errorBody(response);
+        throw typeof body?.error === "string" ? new OAuthError(body.error) : new Error(`HTTP ${response.status}`);
+      }
       default:
         throw new Error(`HTTP ${response.status}`);
     }
@@ -49,14 +60,17 @@ export class CommonServiceImpl extends CommonService {
       method: "POST",
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("UploadParams", body.data) as UploadParams;
-      case 401:
-        throw new OAuthError(body.error);
+      }
+      case 401: {
+        const body = await errorBody(response);
+        throw typeof body?.error === "string" ? new OAuthError(body.error) : new Error(`HTTP ${response.status}`);
+      }
       default:
-        throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
+        throw new Error(`HTTP ${response.status}`);
     }
   }
 }

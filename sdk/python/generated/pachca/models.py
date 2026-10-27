@@ -371,6 +371,8 @@ class OAuthScope(OpenStrEnum):
     SEARCH_MESSAGES = "search:messages"  # Поиск сообщений
     DRAFTS_READ = "drafts:read"  # Просмотр черновиков и отложенных сообщений
     DRAFTS_WRITE = "drafts:write"  # Создание, изменение и удаление черновиков и отложенных сообщений
+    IMPORTANT_MESSAGES_READ = "important_messages:read"  # Просмотр важных сообщений
+    IMPORTANT_MESSAGES_WRITE = "important_messages:write"  # Добавление сообщений в важные и удаление из важных
 
 
 class OAuthTokenTypeHint(StrEnum):
@@ -427,7 +429,7 @@ class TaskStatus(OpenStrEnum):
 
 
 class UserCreateRole(StrEnum):
-    """Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат."""
+    """Роль пользователя, допустимая при создании сотрудника. Для роли `guest` параметр `chat_ids` обязателен и должен содержать ровно один чат."""
 
     ADMIN = "admin"  # Администратор
     USER = "user"  # Сотрудник
@@ -456,11 +458,12 @@ class UserRole(OpenStrEnum):
 
 
 class UserRoleInput(StrEnum):
-    """Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`)."""
+    """Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` передают вместе с `chat_ids`, в котором ровно один чат."""
 
     ADMIN = "admin"  # Администратор
     USER = "user"  # Сотрудник
     MULTI_GUEST = "multi_guest"  # Мульти-гость
+    GUEST = "guest"  # Гость
 
 
 class ValidationErrorCode(OpenStrEnum):
@@ -481,7 +484,7 @@ class ValidationErrorCode(OpenStrEnum):
     INVALID_DATE_RANGE = "invalid_date_range"  # Выбран слишком большой диапазон дат
     INVALID_WEBHOOK_URL = "invalid_webhook_url"  # Некорректный URL вебхука
     RATE_LIMIT = "rate_limit"  # Достигнут лимит запросов
-    LICENSES_LIMIT = "licenses_limit"  # Превышен лимит активных сотрудников (пояснения вы получите в поле message)
+    LICENSES_LIMIT = "licenses_limit"  # Превышен лимит активных сотрудников. Больше не возвращается
     USER_LIMIT = "user_limit"  # Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
     UNIQUE_LIMIT = "unique_limit"  # Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
     GENERAL_LIMIT = "general_limit"  # Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
@@ -499,7 +502,7 @@ class ValidationErrorCode(OpenStrEnum):
     SCHEDULE_END_DATE_INVALID = "schedule_end_date_invalid"  # Расписание заканчивается раньше ближайшей отправки
     SCHEDULED_MESSAGES_LIMIT = "scheduled_messages_limit"  # Превышен лимит отложенных сообщений на чат (50)
     DRAFT_TYPE_CHANGE_FORBIDDEN = "draft_type_change_forbidden"  # Отложенное сообщение нельзя превратить обратно в черновик
-    CONFIDENTIAL_DOWNLOAD_DENIED = "confidential_download_denied"  # Скачивание файла запрещено: нужен запрос из безопасного контура
+    CONFIDENTIAL_DOWNLOAD_DENIED = "confidential_download_denied"  # Скачивание файла запрещено: нужен запрос из безопасного контура или в файле найден вирус
     DECRYPTION_FAILED = "decryption_failed"  # Не удалось расшифровать файл
     BOT_ADD_DENIED = "bot_add_denied"  # Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
     SINGLE_CHAT_BOT_OCCUPIED = "single_chat_bot_occupied"  # Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
@@ -570,10 +573,12 @@ class AddTagsRequest:
 @dataclass
 class ApiError(Exception):
     errors: list[ApiErrorItem]
+    # HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty.
+    status_code: int | None = None
 
     def __str__(self) -> str:
         if not self.errors:
-            return "api error"
+            return f"HTTP {self.status_code}" if self.status_code is not None else "api error"
         if len(self.errors) == 1:
             return self.errors[0].message
         return "Errors: " + "; ".join(e.message for e in self.errors)
@@ -749,8 +754,8 @@ class AuditDetailsSearch:
     search_type: str
     query_present: bool
     cursor_present: bool
-    limit: int
     filters: dict[str, Any]
+    limit: int | None = None
 
 
 @dataclass
@@ -771,6 +776,7 @@ class AuditDetailsToken:
     scopes: list[str]
     token_name: str | None = None
     bot_id: int | None = None
+    reason: str | None = None
 
 
 @dataclass
@@ -1390,6 +1396,11 @@ class GroupTagRequest:
 
 
 @dataclass
+class ImportantMessageRequest:
+    message_id: int
+
+
+@dataclass
 class LinkPreviewImage:
     key: str
     name: str
@@ -1447,6 +1458,7 @@ class Message:
     created_at: datetime
     url: str
     files: list[File]
+    important: bool
     voice_content: VoiceContent | None = None
     buttons: list[list[Button]] | None = None
     thread: MessageThread | None = None
@@ -1836,6 +1848,7 @@ class UserUpdateRequestUser:
     department: str | None = None
     title: str | None = None
     role: UserRoleInput | None = None
+    chat_ids: list[int] | None = None
     suspended: bool | None = None
     list_tags: list[str] | None = None
     custom_properties: list[UserUpdateRequestCustomProperty] | None = None
@@ -2026,6 +2039,12 @@ class WebhookEvent:
 
 
 @dataclass
+class WebhookEventsStream:
+    url: str
+    expires_at: datetime
+
+
+@dataclass
 class WebhookLink:
     url: str
     domain: str
@@ -2061,6 +2080,7 @@ class UpdateBotAvatarRequest:
 @dataclass
 class CreateChatResponseMeta:
     not_found_member_ids: list[int]
+    not_found_group_tag_ids: list[int]
 
 
 @dataclass
@@ -2175,6 +2195,12 @@ class ListTagsParams:
 
 @dataclass
 class GetTagUsersParams:
+    limit: int | None = None
+    cursor: str | None = None
+
+
+@dataclass
+class ListImportantMessagesParams:
     limit: int | None = None
     cursor: str | None = None
 
@@ -2344,6 +2370,12 @@ class ListTagsResponse:
 @dataclass
 class GetTagUsersResponse:
     data: list[User]
+    meta: PaginationMeta
+
+
+@dataclass
+class ListImportantMessagesResponse:
+    data: list[Message]
     meta: PaginationMeta
 
 

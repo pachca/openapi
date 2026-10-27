@@ -45,9 +45,16 @@ public struct ApiErrorItem: Codable {
 
 public struct ApiError: Codable, Error {
     public let errors: [ApiErrorItem]?
+    /// HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty.
+    public var statusCode: Int?
 
-    public init(errors: [ApiErrorItem]? = nil) {
+    public init(errors: [ApiErrorItem]? = nil, statusCode: Int? = nil) {
         self.errors = errors
+        self.statusCode = statusCode
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case errors
     }
 }
 

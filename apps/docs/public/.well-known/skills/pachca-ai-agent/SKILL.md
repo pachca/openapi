@@ -45,12 +45,13 @@ What actually differs:
 
 - **Whose voice.** A bot agent writes as the bot and sees what the bot sees. An
   MCP agent writes as the employee whose token it uses. After browser sign-in
-  the message is signed with the employee's name and shows the program's icon;
-  with a personal token it looks hand-written.
+  the message is signed with the employee's name and carries a badge
+  «Отправлено через …» naming the program; with a personal token it looks
+  hand-written.
 - **They combine.** The MCP server accepts a bot token in the `Authorization`
   header, so a bot agent whose runtime speaks MCP can make its calls through
   `https://mcp.pachca.com/mcp`. Messages still reach the agent through the
-  outgoing webhook (or polling of the event history).
+  outgoing webhook (or the event history, polled or as a live stream).
 - **MCP costs context.** The tool list depends on the token (role, plan, token
   kind), and all tool descriptions together take tens of thousands of tokens.
   If the runtime allows, turn off the tools the agent does not need.
@@ -59,7 +60,8 @@ What actually differs:
 
 1. **One bot per agent.** A separate bot separates rights, tokens and logic.
 2. **Outgoing webhook** with a URL reachable from the internet (a tunnel for
-   development, or polling of the event history if you cannot accept requests).
+   development, or the event history, polled or as a live stream, if you cannot
+   accept requests → `pachca-bots`).
 3. **Event «Новые сообщения» (`message_new`) in the «Любые сообщения» (any
    messages) mode.** There is no "mentions only" mode: the agent gets every
    message and decides itself whether it is addressed. A new bot listens only to

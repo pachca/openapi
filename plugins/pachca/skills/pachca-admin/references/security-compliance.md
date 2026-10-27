@@ -64,6 +64,11 @@ Traps when reading records:
 - When an Administrator revokes someone's access on the All tokens tab, the
   actor is the Administrator; the access owner is `resource_owner_id` (tokens)
   or `user_id` (bot authorizations).
+- Making an employee a guest revokes all their tokens at once: one
+  `access_token_destroy` per token with `reason: guest_downgrade` in
+  `details`, and the actor is whoever changed the role. Access they gave bots
+  and apps comes this way too, not as `oauth_authorization_revoked`. Report
+  such records as the demotion, not as a manual revocation.
 - Code exchange and token refresh leave no records; the consent does.
 - Changes to the IP allowlist and encryption settings are not logged.
 
@@ -75,15 +80,17 @@ Tools `pachca_request_export` and `pachca_download_export`, CLI
 `pachca chats request-export` and `pachca chats download-export`. Scopes
 `chat_exports:write` and `chat_exports:read`.
 
-Confirm first: the archive holds open, closed and archived chats with threads,
-regardless of the Owner's membership. Direct chats come with author and time but
-no content; threads in direct chats, attachments and forwarded messages are not
-included. Treat the archive as sensitive data.
+The archive holds open, closed and archived chats with threads, regardless of
+the Owner's membership. Direct chats come with author and time but no content;
+threads in direct chats, attachments and forwarded messages are not included.
+Treat the archive as sensitive data, and say so when you request it.
 
 1. Period: up to 45 days; with `chat_ids` (up to 50 chats) up to 366 days,
    and `end_at` not earlier than `start_at`. A longer or reversed period gives
    `422` `invalid_date_range`, and more than 50 `chat_ids` gives `422`
-   `too_long`. For a longer history, request consecutive periods.
+   `too_long`. Dates go as `YYYY-MM-DD` (a time after the date is dropped):
+   another format gets `422` `invalid`. For a longer history, request
+   consecutive periods.
 2. Export requests from one workspace have their own pause between them,
    counted even while the previous export is still building
    ([export guide](https://dev.pachca.com/guides/export.md)). An early request
@@ -94,11 +101,12 @@ included. Treat the archive as sensitive data.
    themselves.
 4. `webhook_url` (REST, SDK, CLI `--webhook-url`; the MCP tool does not take
    it, so download by the id instead) is optional and must be a public address
-   over `http` or `https`. A malformed URL or another scheme is refused at
-   once with `422` `invalid_webhook_url`. A private or unresolvable address
-   gets the same error, but only after the request has started the pause from
-   step 2: fix the address and wait before retrying, or the retry gets
-   `rate_limit`. If at delivery the address no longer resolves to a public one,
+   over `http` or `https`. A malformed URL, one without a host, another
+   scheme or a private IP address is refused at once with `422`
+   `invalid_webhook_url`. A host name that does not resolve or leads to a
+   private address (such as `localhost`) gets the same error, but only after
+   the request has started the pause from step 2: fix the address and wait
+   before retrying, or the retry gets `rate_limit`. If at delivery the address no longer resolves to a public one,
    the export still succeeds and only the webhook never comes. The requester
    always gets an email and a Pachca notification, with or without a webhook.
 5. Download: `404` `export_file_not_found` means still building, retry later.

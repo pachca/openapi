@@ -18,6 +18,7 @@ import {
   GetWebhookEventsResponse,
   WebhookEvent,
   WebhookPayloadUnion,
+  WebhookEventsStream,
   BotSelfTokenResponse,
   BotCreateRequest,
   BotCreateResponse,
@@ -59,9 +60,11 @@ import {
   GetTagUsersParams,
   GetTagUsersResponse,
   GroupTagRequest,
+  ListImportantMessagesParams,
+  ListImportantMessagesResponse,
+  Message,
   ListChatMessagesParams,
   ListChatMessagesResponse,
-  Message,
   MessageCreateRequest,
   LinkPreviewsRequest,
   MessageUpdateRequest,
@@ -119,13 +122,24 @@ function createdAtMatches(event: WebhookEvent, createdAfter: Date | string | nul
   return new Date(event.createdAt).getTime() >= new Date(createdAfter).getTime();
 }
 
+/** The body of an error answer, or undefined when it is empty or not JSON (a 404 without a body, a proxy page). */
+async function errorBody(response: Response): Promise<any> {
+  try {
+    return JSON.parse(await response.text());
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * An error body is either `{ errors: [...] }` or the OAuth form `{ error, error_description }`,
  * which also comes with 400 and 403 (`insufficient_scope`, `invalid_grant`). The body decides the class.
+ * An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in `status`.
  */
-function errorFromBody(body: any): Error {
+async function errorFromResponse(response: Response): Promise<Error> {
+  const body = await errorBody(response);
   if (body && typeof body.error === "string" && body.errors === undefined) return new OAuthError(body.error);
-  return new ApiError(body?.errors);
+  return new ApiError(Array.isArray(body?.errors) ? body.errors : [], response.status);
 }
 
 export const PACHCA_AUTHORIZE_URL = "https://app.pachca.com/apps/authorize";
@@ -210,14 +224,13 @@ export class SecurityServiceImpl extends SecurityService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as GetAuditEventsResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -324,6 +337,10 @@ export class BotsService {
     }
   }
 
+  async getWebhookEventsStream(): Promise<WebhookEventsStream> {
+    throw new Error("Bots.getWebhookEventsStream is not implemented");
+  }
+
   async selfRecreateBotToken(): Promise<BotSelfTokenResponse> {
     throw new Error("Bots.selfRecreateBotToken is not implemented");
   }
@@ -398,14 +415,13 @@ export class BotsServiceImpl extends BotsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListBotsResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -427,14 +443,13 @@ export class BotsServiceImpl extends BotsService {
     const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("BotResponse", body.data) as BotResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -442,14 +457,13 @@ export class BotsServiceImpl extends BotsService {
     const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}/scopes`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("BotScopeCatalog", body) as BotScopeCatalog;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -461,14 +475,13 @@ export class BotsServiceImpl extends BotsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListBotTokensResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -495,14 +508,13 @@ export class BotsServiceImpl extends BotsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListCompanyBotsResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -528,14 +540,13 @@ export class BotsServiceImpl extends BotsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return { ...(deserialize(body) as GetWebhookEventsResponse), data: Array.isArray(body.data) ? body.data.map((item: unknown) => deserializeType("WebhookEvent", item) as WebhookEvent) : [] } as GetWebhookEventsResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -553,19 +564,32 @@ export class BotsServiceImpl extends BotsService {
     return items;
   }
 
+  async getWebhookEventsStream(): Promise<WebhookEventsStream> {
+    const response = await fetchWithRetry(`${this.baseUrl}/webhooks/events/stream`, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("WebhookEventsStream", body.data) as WebhookEventsStream;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
   async selfRecreateBotToken(): Promise<BotSelfTokenResponse> {
     const response = await fetchWithRetry(`${this.baseUrl}/bot/recreate_token`, {
       method: "POST",
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("BotSelfTokenResponse", body.data) as BotSelfTokenResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -575,14 +599,13 @@ export class BotsServiceImpl extends BotsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("BotCreateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("BotCreateResponse", body.data) as BotCreateResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -591,14 +614,13 @@ export class BotsServiceImpl extends BotsService {
       method: "POST",
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("BotCreateResponse", body.data) as BotCreateResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -607,14 +629,13 @@ export class BotsServiceImpl extends BotsService {
       method: "POST",
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("BotResponse", body.data) as BotResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -624,14 +645,13 @@ export class BotsServiceImpl extends BotsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("BotTokenCreateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("BotAccessToken", body.data) as BotAccessToken;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -640,14 +660,13 @@ export class BotsServiceImpl extends BotsService {
       method: "POST",
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("BotAccessToken", body.data) as BotAccessToken;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -657,14 +676,13 @@ export class BotsServiceImpl extends BotsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("BotWebhookSelfUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("BotSelfResponse", body.data) as BotSelfResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -674,14 +692,13 @@ export class BotsServiceImpl extends BotsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("BotUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("BotResponse", body.data) as BotResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -693,14 +710,13 @@ export class BotsServiceImpl extends BotsService {
       headers: this.headers,
       body: form,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("AvatarData", body.data) as AvatarData;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -710,14 +726,13 @@ export class BotsServiceImpl extends BotsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("BotTokenUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("BotAccessToken", body.data) as BotAccessToken;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -729,10 +744,8 @@ export class BotsServiceImpl extends BotsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -744,10 +757,8 @@ export class BotsServiceImpl extends BotsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -759,10 +770,8 @@ export class BotsServiceImpl extends BotsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -774,10 +783,8 @@ export class BotsServiceImpl extends BotsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -863,14 +870,13 @@ export class ChatsServiceImpl extends ChatsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListChatsResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -892,14 +898,13 @@ export class ChatsServiceImpl extends ChatsService {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Chat", body.data) as Chat;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -916,10 +921,8 @@ export class ChatsServiceImpl extends ChatsService {
         }
         return location;
       }
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -932,14 +935,13 @@ export class ChatsServiceImpl extends ChatsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListCompanyChatsResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -963,14 +965,13 @@ export class ChatsServiceImpl extends ChatsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("ChatCreateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return { ...(deserialize(body) as CreateChatResponse), data: deserializeType("Chat", body.data) as Chat };
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -980,14 +981,13 @@ export class ChatsServiceImpl extends ChatsService {
       headers: { ...this.headers, "Content-Type": "application/json", "Prefer": "return=representation" },
       body: JSON.stringify(serializeType("ExportRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 202:
+      case 202: {
+        const body = await response.json();
         return deserializeType("ChatExport", body.data) as ChatExport;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -997,14 +997,13 @@ export class ChatsServiceImpl extends ChatsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("ChatUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Chat", body.data) as Chat;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1016,10 +1015,8 @@ export class ChatsServiceImpl extends ChatsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1031,14 +1028,13 @@ export class ChatsServiceImpl extends ChatsService {
       headers: this.headers,
       body: form,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("AvatarData", body.data) as AvatarData;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1050,10 +1046,8 @@ export class ChatsServiceImpl extends ChatsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1066,10 +1060,8 @@ export class ChatsServiceImpl extends ChatsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1081,10 +1073,8 @@ export class ChatsServiceImpl extends ChatsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -1140,14 +1130,13 @@ export class MembersServiceImpl extends MembersService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListMembersResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1174,10 +1163,8 @@ export class MembersServiceImpl extends MembersService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1190,10 +1177,8 @@ export class MembersServiceImpl extends MembersService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1206,10 +1191,8 @@ export class MembersServiceImpl extends MembersService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1221,10 +1204,8 @@ export class MembersServiceImpl extends MembersService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1236,10 +1217,8 @@ export class MembersServiceImpl extends MembersService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1251,10 +1230,8 @@ export class MembersServiceImpl extends MembersService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -1279,14 +1256,13 @@ export class CustomPropertiesServiceImpl extends CustomPropertiesService {
     const response = await fetchWithRetry(`${this.baseUrl}/custom_properties?${query}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListPropertiesResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -1323,10 +1299,8 @@ export class FilesServiceImpl extends FilesService {
     switch (response.status) {
       case 200:
         return await response.blob();
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1350,7 +1324,7 @@ export class FilesServiceImpl extends FilesService {
       case 204:
         return;
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1359,14 +1333,13 @@ export class FilesServiceImpl extends FilesService {
       method: "POST",
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("UploadParams", body) as UploadParams;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -1416,14 +1389,13 @@ export class DraftsServiceImpl extends DraftsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListDraftsResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1445,14 +1417,13 @@ export class DraftsServiceImpl extends DraftsService {
     const response = await fetchWithRetry(`${this.baseUrl}/drafts/${id}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Draft", body.data) as Draft;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1462,14 +1433,13 @@ export class DraftsServiceImpl extends DraftsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("DraftCreateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("Draft", body.data) as Draft;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1479,14 +1449,13 @@ export class DraftsServiceImpl extends DraftsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("DraftUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Draft", body.data) as Draft;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1498,10 +1467,8 @@ export class DraftsServiceImpl extends DraftsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -1559,14 +1526,13 @@ export class GroupTagsServiceImpl extends GroupTagsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListTagsResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1588,14 +1554,13 @@ export class GroupTagsServiceImpl extends GroupTagsService {
     const response = await fetchWithRetry(`${this.baseUrl}/group_tags/${id}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("GroupTag", body.data) as GroupTag;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1607,14 +1572,13 @@ export class GroupTagsServiceImpl extends GroupTagsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as GetTagUsersResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1638,14 +1602,13 @@ export class GroupTagsServiceImpl extends GroupTagsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("GroupTagRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("GroupTag", body.data) as GroupTag;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1655,14 +1618,13 @@ export class GroupTagsServiceImpl extends GroupTagsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("GroupTagRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("GroupTag", body.data) as GroupTag;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1674,10 +1636,94 @@ export class GroupTagsServiceImpl extends GroupTagsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
+    }
+  }
+}
+
+export class ImportantMessagesService {
+  async listImportantMessages(params?: ListImportantMessagesParams): Promise<ListImportantMessagesResponse> {
+    throw new Error("Important messages.listImportantMessages is not implemented");
+  }
+
+  async listImportantMessagesAll(params?: Omit<ListImportantMessagesParams, 'cursor'>): Promise<Message[]> {
+    throw new Error("Important messages.listImportantMessagesAll is not implemented");
+  }
+
+  async addMessageToImportant(messageId: number): Promise<void> {
+    throw new Error("Important messages.addMessageToImportant is not implemented");
+  }
+
+  async removeMessageFromImportant(id: number): Promise<void> {
+    throw new Error("Important messages.removeMessageFromImportant is not implemented");
+  }
+}
+
+export class ImportantMessagesServiceImpl extends ImportantMessagesService {
+  constructor(
+    private baseUrl: string,
+    private headers: Record<string, string>,
+  ) {
+    super();
+  }
+
+  async listImportantMessages(params?: ListImportantMessagesParams): Promise<ListImportantMessagesResponse> {
+    const query = new URLSearchParams();
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
+    const url = `${this.baseUrl}/important_messages${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserialize(body) as ListImportantMessagesResponse;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async listImportantMessagesAll(params?: Omit<ListImportantMessagesParams, 'cursor'>): Promise<Message[]> {
+    const items: Message[] = [];
+    let cursor: string | undefined;
+    let hasNext = true;
+    while (hasNext) {
+      const response = await this.listImportantMessages({ ...params, cursor } as ListImportantMessagesParams);
+      items.push(...response.data);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
+    return items;
+  }
+
+  async addMessageToImportant(messageId: number): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/important_messages`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ message_id: messageId }),
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async removeMessageFromImportant(id: number): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/important_messages/${id}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      default:
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -1738,14 +1784,13 @@ export class MessagesServiceImpl extends MessagesService {
     const response = await fetchWithRetry(`${this.baseUrl}/messages?${query}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListChatMessagesResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1767,14 +1812,13 @@ export class MessagesServiceImpl extends MessagesService {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Message", body.data) as Message;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1784,14 +1828,13 @@ export class MessagesServiceImpl extends MessagesService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("MessageCreateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("Message", body.data) as Message;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1804,10 +1847,8 @@ export class MessagesServiceImpl extends MessagesService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1819,10 +1860,8 @@ export class MessagesServiceImpl extends MessagesService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1832,14 +1871,13 @@ export class MessagesServiceImpl extends MessagesService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("MessageUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Message", body.data) as Message;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1851,10 +1889,8 @@ export class MessagesServiceImpl extends MessagesService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1866,10 +1902,8 @@ export class MessagesServiceImpl extends MessagesService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -1908,14 +1942,13 @@ export class ReactionsServiceImpl extends ReactionsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListReactionsResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1939,14 +1972,13 @@ export class ReactionsServiceImpl extends ReactionsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("ReactionRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("Reaction", body) as Reaction;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -1961,10 +1993,8 @@ export class ReactionsServiceImpl extends ReactionsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -1991,14 +2021,13 @@ export class ReadMembersServiceImpl extends ReadMembersService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as unknown;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -2043,14 +2072,13 @@ export class ThreadsServiceImpl extends ThreadsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListThreadsResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2072,14 +2100,13 @@ export class ThreadsServiceImpl extends ThreadsService {
     const response = await fetchWithRetry(`${this.baseUrl}/threads/${id}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Thread", body.data) as Thread;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2088,14 +2115,13 @@ export class ThreadsServiceImpl extends ThreadsService {
       method: "POST",
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("Thread", body.data) as Thread;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2104,14 +2130,13 @@ export class ThreadsServiceImpl extends ThreadsService {
       method: "POST",
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("Thread", body.data) as Thread;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -2142,14 +2167,13 @@ export class OAuthServiceImpl extends OAuthService {
     const response = await fetchWithRetry(`${this.baseUrl}/oauth/token/info`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("AccessTokenInfo", body.data) as AccessTokenInfo;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2162,10 +2186,8 @@ export class OAuthServiceImpl extends OAuthService {
     switch (response.status) {
       case 200:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2175,14 +2197,13 @@ export class OAuthServiceImpl extends OAuthService {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: toFormBody(serializeType("OAuthTokenRequest", request) as Record<string, unknown>),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("OAuthToken", body) as OAuthToken;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -2229,14 +2250,13 @@ export class ProfileServiceImpl extends ProfileService {
     const response = await fetchWithRetry(`${this.baseUrl}/profile`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("User", body.data) as User;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2244,14 +2264,13 @@ export class ProfileServiceImpl extends ProfileService {
     const response = await fetchWithRetry(`${this.baseUrl}/profile/status`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("UserStatus", body.data) as UserStatus;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2263,14 +2282,13 @@ export class ProfileServiceImpl extends ProfileService {
       headers: this.headers,
       body: form,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("AvatarData", body.data) as AvatarData;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2280,14 +2298,13 @@ export class ProfileServiceImpl extends ProfileService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("StatusUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("UserStatus", body.data) as UserStatus;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2299,10 +2316,8 @@ export class ProfileServiceImpl extends ProfileService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2314,10 +2329,8 @@ export class ProfileServiceImpl extends ProfileService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2325,14 +2338,13 @@ export class ProfileServiceImpl extends ProfileService {
     const response = await fetchWithRetry(`${this.baseUrl}/oauth/token/info`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("AccessTokenInfo", body.data) as AccessTokenInfo;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -2386,14 +2398,13 @@ export class SearchServiceImpl extends SearchService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as SearchChatsResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2429,14 +2440,13 @@ export class SearchServiceImpl extends SearchService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as SearchMessagesResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2468,14 +2478,13 @@ export class SearchServiceImpl extends SearchService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as SearchUsersResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2542,14 +2551,13 @@ export class TasksServiceImpl extends TasksService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListTasksResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2571,14 +2579,13 @@ export class TasksServiceImpl extends TasksService {
     const response = await fetchWithRetry(`${this.baseUrl}/tasks/${id}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Task", body.data) as Task;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2588,14 +2595,13 @@ export class TasksServiceImpl extends TasksService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("TaskCreateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("Task", body.data) as Task;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2605,14 +2611,13 @@ export class TasksServiceImpl extends TasksService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("TaskUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Task", body.data) as Task;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2624,10 +2629,8 @@ export class TasksServiceImpl extends TasksService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -2695,14 +2698,13 @@ export class UsersServiceImpl extends UsersService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListUsersResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2724,14 +2726,13 @@ export class UsersServiceImpl extends UsersService {
     const response = await fetchWithRetry(`${this.baseUrl}/users/${id}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("User", body.data) as User;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2739,14 +2740,13 @@ export class UsersServiceImpl extends UsersService {
     const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/status`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("UserStatus", body.data) as UserStatus;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2756,14 +2756,13 @@ export class UsersServiceImpl extends UsersService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("UserCreateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("User", body.data) as User;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2773,14 +2772,13 @@ export class UsersServiceImpl extends UsersService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("UserUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("User", body.data) as User;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2792,14 +2790,13 @@ export class UsersServiceImpl extends UsersService {
       headers: this.headers,
       body: form,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("AvatarData", body.data) as AvatarData;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2809,14 +2806,13 @@ export class UsersServiceImpl extends UsersService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("StatusUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("UserStatus", body.data) as UserStatus;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2828,10 +2824,8 @@ export class UsersServiceImpl extends UsersService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2843,10 +2837,8 @@ export class UsersServiceImpl extends UsersService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2858,10 +2850,8 @@ export class UsersServiceImpl extends UsersService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -2890,14 +2880,13 @@ export class ViewsServiceImpl extends ViewsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("SubmitViewResponseRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("SubmitViewResponseResult", body) as SubmitViewResponseResult;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2910,10 +2899,8 @@ export class ViewsServiceImpl extends ViewsService {
     switch (response.status) {
       case 201:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -2953,14 +2940,13 @@ export class CommonServiceImpl extends CommonService {
       method: "POST",
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("UploadParams", body) as UploadParams;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2984,7 +2970,7 @@ export class CommonServiceImpl extends CommonService {
       case 204:
         return;
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 
@@ -2994,14 +2980,13 @@ export class CommonServiceImpl extends CommonService {
     const response = await fetchWithRetry(`${this.baseUrl}/custom_properties?${query}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListPropertiesResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -3011,14 +2996,13 @@ export class CommonServiceImpl extends CommonService {
       headers: { ...this.headers, "Content-Type": "application/json", "Prefer": "return=representation" },
       body: JSON.stringify(serializeType("ExportRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 202:
+      case 202: {
+        const body = await response.json();
         return deserializeType("ChatExport", body.data) as ChatExport;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -3035,10 +3019,8 @@ export class CommonServiceImpl extends CommonService {
         }
         return location;
       }
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -3066,10 +3048,8 @@ export class LinkPreviewsServiceImpl extends LinkPreviewsService {
     switch (response.status) {
       case 204:
         return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw errorFromBody(await response.json());
+        throw await errorFromResponse(response);
     }
   }
 }
@@ -3085,6 +3065,7 @@ export class PachcaClient {
   readonly drafts: DraftsService;
   readonly files: FilesService;
   readonly groupTags: GroupTagsService;
+  readonly importantMessages: ImportantMessagesService;
   /** @deprecated Renamed for clarity — use the new service(s). Kept working for backward compatibility. */
   readonly linkPreviews: LinkPreviewsService;
   readonly members: MembersService;
@@ -3101,8 +3082,8 @@ export class PachcaClient {
   readonly views: ViewsService;
 
   constructor(token: string, baseUrl?: string);
-  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
-  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
     let resolvedHeaders: Record<string, string>;
     let resolvedBaseUrl: string;
     if (typeof tokenOrConfig === 'string') {
@@ -3115,6 +3096,7 @@ export class PachcaClient {
       this.drafts = new DraftsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.files = new FilesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.groupTags = new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.importantMessages = new ImportantMessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.linkPreviews = new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.members = new MembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.messages = new MessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -3138,6 +3120,7 @@ export class PachcaClient {
       this.drafts = tokenOrConfig.drafts ?? new DraftsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.files = tokenOrConfig.files ?? new FilesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.groupTags = tokenOrConfig.groupTags ?? new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.importantMessages = tokenOrConfig.importantMessages ?? new ImportantMessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.linkPreviews = tokenOrConfig.linkPreviews ?? new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.members = tokenOrConfig.members ?? new MembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.messages = tokenOrConfig.messages ?? new MessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -3154,7 +3137,7 @@ export class PachcaClient {
     }
   }
 
-  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
+  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
     client.bots = overrides.bots ?? new BotsService();
     client.chats = overrides.chats ?? new ChatsService();
@@ -3163,6 +3146,7 @@ export class PachcaClient {
     client.drafts = overrides.drafts ?? new DraftsService();
     client.files = overrides.files ?? new FilesService();
     client.groupTags = overrides.groupTags ?? new GroupTagsService();
+    client.importantMessages = overrides.importantMessages ?? new ImportantMessagesService();
     client.linkPreviews = overrides.linkPreviews ?? new LinkPreviewsService();
     client.members = overrides.members ?? new MembersService();
     client.messages = overrides.messages ?? new MessagesService();

@@ -7,7 +7,7 @@ A form is a modal window with fields defined by the bot; the API calls it a view
 - A form opens **only** from a Data-button click in a message the bot sent. No button, no form.
 - Send that message with the bot token, and turn on the «Нажатие кнопок» (`button_click`) event. The same event delivers form submissions; without it, neither clicks nor submissions reach the bot.
 - The bot does not need to be in the chat to receive the submission: it goes to the bot that opened the form.
-- Every step has a seconds-long window. It needs an automated handler (webhook server, or a fast history poller). An agent that reads events and composes calls in a conversation will miss it: ask the employee in a message instead.
+- Every step has a seconds-long window. It needs an automated handler (webhook server, the live stream of the event history, or a fast history poller; [events.md](events.md), section 7). An agent that reads events and composes calls in a conversation will miss it: ask the employee in a message instead.
 
 ## Lifecycle
 

@@ -80,7 +80,7 @@ export const chatFields: INodeProperties[] = [
 		type: 'string',
 		required: true,
 		default: "",
-		description: 'Name. An empty name is replaced with the first and last name of the token owner (for a bot, with its name), or with the nickname if there are none.',
+		description: 'Name of the conversation or channel. An empty name or a name of spaces only responds `422` with the `blank` code.',
 		displayOptions: { show: { resource: ['chat'], operation: ['create'] } },
 		placeholder: '🤿 aqua',
 	},

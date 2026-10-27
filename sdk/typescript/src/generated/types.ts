@@ -605,6 +605,10 @@ export enum OAuthScope {
   DraftsRead = "drafts:read",
   /** Создание, изменение и удаление черновиков и отложенных сообщений */
   DraftsWrite = "drafts:write",
+  /** Просмотр важных сообщений */
+  ImportantMessagesRead = "important_messages:read",
+  /** Добавление сообщений в важные и удаление из важных */
+  ImportantMessagesWrite = "important_messages:write",
 }
 
 /** Что передано в запросе на отзыв токена */
@@ -683,7 +687,7 @@ export enum TaskStatus {
   Undone = "undone",
 }
 
-/** Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат. */
+/** Роль пользователя, допустимая при создании сотрудника. Для роли `guest` параметр `chat_ids` обязателен и должен содержать ровно один чат. */
 export enum UserCreateRole {
   /** Администратор */
   Admin = "admin",
@@ -731,7 +735,7 @@ export enum UserRole {
   Guest = "guest",
 }
 
-/** Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`). */
+/** Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` передают вместе с `chat_ids`, в котором ровно один чат. */
 export enum UserRoleInput {
   /** Администратор */
   Admin = "admin",
@@ -739,6 +743,8 @@ export enum UserRoleInput {
   User = "user",
   /** Мульти-гость */
   MultiGuest = "multi_guest",
+  /** Гость */
+  Guest = "guest",
 }
 
 /**
@@ -777,7 +783,7 @@ export enum ValidationErrorCode {
   InvalidWebhookUrl = "invalid_webhook_url",
   /** Достигнут лимит запросов */
   RateLimit = "rate_limit",
-  /** Превышен лимит активных сотрудников (пояснения вы получите в поле message) */
+  /** Превышен лимит активных сотрудников. Больше не возвращается */
   LicensesLimit = "licenses_limit",
   /** Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций) */
   UserLimit = "user_limit",
@@ -813,7 +819,7 @@ export enum ValidationErrorCode {
   ScheduledMessagesLimit = "scheduled_messages_limit",
   /** Отложенное сообщение нельзя превратить обратно в черновик */
   DraftTypeChangeForbidden = "draft_type_change_forbidden",
-  /** Скачивание файла запрещено: нужен запрос из безопасного контура */
+  /** Скачивание файла запрещено: нужен запрос из безопасного контура или в файле найден вирус */
   ConfidentialDownloadDenied = "confidential_download_denied",
   /** Не удалось расшифровать файл */
   DecryptionFailed = "decryption_failed",
@@ -918,9 +924,12 @@ export interface AddTagsRequest {
 
 export class ApiError extends Error {
   errors?: ApiErrorItem[];
-  constructor(errors?: ApiErrorItem[]) {
-    super(errors?.map((e) => `${e.key}: ${e.value}`).join(", "));
+  /** HTTP status code of the response. An answer with an empty body or one that is not JSON comes with `errors` empty. */
+  status?: number;
+  constructor(errors?: ApiErrorItem[], status?: number) {
+    super(errors?.length ? errors.map((e) => `${e.key}: ${e.value}`).join(", ") : status !== undefined ? `HTTP ${status}` : "");
     this.errors = errors;
+    this.status = status;
   }
 }
 
@@ -1068,7 +1077,7 @@ export interface AuditDetailsSearch {
   searchType: string;
   queryPresent: boolean;
   cursorPresent: boolean;
-  limit: number;
+  limit: number | null;
   filters: Record<string, unknown>;
 }
 
@@ -1087,6 +1096,7 @@ export interface AuditDetailsToken {
   resourceOwnerId: number;
   scopes: string[];
   botId?: number;
+  reason?: string;
 }
 
 export interface AuditDetailsTokenScopes {
@@ -1633,6 +1643,10 @@ export interface GroupTagRequest {
   };
 }
 
+export interface ImportantMessageRequest {
+  messageId: number;
+}
+
 export interface LinkPreview {
   title: string;
   description: string;
@@ -1689,6 +1703,7 @@ export interface Message {
   displayName?: string | null;
   changedAt: string | null;
   deletedAt: string | null;
+  important: boolean;
 }
 
 export interface MessageCreateRequestFile {
@@ -2016,6 +2031,7 @@ export interface UserUpdateRequest {
     department?: string;
     title?: string;
     role?: UserRoleInput;
+    chatIds?: number[];
     suspended?: boolean;
     listTags?: string[];
     customProperties?: UserUpdateRequestCustomProperty[];
@@ -2191,6 +2207,11 @@ export interface WebhookEvent {
   createdAt: string;
 }
 
+export interface WebhookEventsStream {
+  url: string;
+  expiresAt: string;
+}
+
 export interface WebhookLink {
   url: string;
   domain: string;
@@ -2221,6 +2242,7 @@ export interface UpdateBotAvatarRequest {
 
 export interface CreateChatResponseMeta {
   notFoundMemberIds: number[];
+  notFoundGroupTagIds: number[];
 }
 
 export interface UpdateChatAvatarRequest {
@@ -2317,6 +2339,11 @@ export interface ListTagsParams {
 }
 
 export interface GetTagUsersParams {
+  limit?: number;
+  cursor?: string;
+}
+
+export interface ListImportantMessagesParams {
   limit?: number;
   cursor?: string;
 }
@@ -2463,6 +2490,11 @@ export interface ListTagsResponse {
 
 export interface GetTagUsersResponse {
   data: User[];
+  meta: PaginationMeta;
+}
+
+export interface ListImportantMessagesResponse {
+  data: Message[];
   meta: PaginationMeta;
 }
 

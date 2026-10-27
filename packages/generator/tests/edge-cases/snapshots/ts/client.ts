@@ -36,12 +36,13 @@ export class EventsServiceImpl extends EventsService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListEventsResponse;
+      }
       default:
-        throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
+        throw new Error(`HTTP ${response.status}`);
     }
   }
 
@@ -51,12 +52,13 @@ export class EventsServiceImpl extends EventsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify({ scope: scope }),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Event", body.data) as Event;
+      }
       default:
-        throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
+        throw new Error(`HTTP ${response.status}`);
     }
   }
 }

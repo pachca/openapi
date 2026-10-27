@@ -53,6 +53,9 @@ catch (NotSupportedException)
 }
 Check(OAuthErrorCode.InvalidToken.IsKnown, "a listed code stays known");
 Console.WriteLine("open enums ok");
+
+await Retries.RunAsync();
+await ErrorBodies.RunAsync();
 return 0;
 
 static void Check(bool condition, string message)

@@ -49,10 +49,8 @@ public sealed class LinkPreviewsServiceImpl : LinkPreviewsService
         {
             case 201:
                 return;
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.ErrorFromJson(json);
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }
     }
 }

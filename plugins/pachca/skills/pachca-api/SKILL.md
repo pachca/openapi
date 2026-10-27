@@ -112,7 +112,7 @@ Polling for new records (`prev_page` in newest-first lists, the last `next_page`
 - Retry a `5xx` on `GET`, `PUT` and `DELETE` (except a `504` `timeout`, below) with exponential backoff and jitter, at most 3 times. A `5xx`, timeout or network error on a `POST` (a send, a create) may already be applied: look for the message or object first and send again only if it is missing.
 - Do not retry `400`, `401`, `403`, `404`, `422`: fix the request or the token. The few codes that clear on their own are in the reference.
 - `504` with code `timeout` from search or the employee list with `query`: the query is too heavy. Do not just repeat it, with or without backoff: the same request will likely time out again. Narrow it first: for message search, fewer chats (`chat_ids`), a shorter period (`created_from`, `created_to`) or an author (`user_ids`); for chat and employee search, a more specific `query` or the method's filters; for the employee list, a more specific `query`.
-- The CLI, the n8n node and the SDKs retry on their own: do not wrap a second retry loop around what they already repeat. SDKs retry `429` and `5xx` on every method, sends included. The n8n node retries `429`, and a `5xx` on `GET`, `PUT` and `DELETE`. The CLI retries `429`, and a `503` or a network error on `GET` and `PUT`, nothing else. Neither the CLI nor the n8n node resends a `POST` after a `5xx`. A CLI `GET` or `PUT` that failed with `500`, `502`, `504` or a timeout, and a CLI `DELETE` that failed with a `5xx`, a timeout or a network error, are left to your script: repeat them under the rules above.
+- The CLI, the n8n node and the SDKs retry on their own: do not wrap a second retry loop around what they already repeat. All three wait out a `429` for `Retry-After` and hand one with a `Retry-After` over a minute straight back. They retry `500`, `502`, `503` and `504` only on `GET`, `HEAD`, `OPTIONS`, `PUT` and `DELETE`, never on a `POST`, and hand a `504` `timeout` straight back. The CLI also retries a network error on those methods. So a failed `POST` (a send, a create) always reaches your code: look for the message or object before sending again. A CLI timeout (`PACHCA_TIMEOUT_ERROR`) is not retried either.
 
 The error shapes, which `403` is which, and the full retry policy: [references/errors-and-retries.md](references/errors-and-retries.md).
 
@@ -127,23 +127,23 @@ Upload takes three steps, and step 1 is repeated for every file:
 In the CLI, `pachca upload <file>` does steps 1 and 2 and returns the `key`.
 
 - The extension in `name` must match the one in `key`, or you get `422` `wrong_params`. The base name may differ.
-- `403` at step 2: the form does not match what was signed (a field changed, left out or added, the file not last) or the signature expired. Request new parameters and send them exactly as returned. `400`: the request went as JSON instead of multipart.
+- `403` at step 2: the form does not match what was signed (a field changed, left out or added, the file not last) or the signature expired. Request new parameters and send them exactly as returned. `400`: the request went as JSON instead of multipart, or, where the parameters came with `bucket`, the file is over 4 GB.
 
 Download:
 
 - A message attachment's `url` is a direct link that needs no auth, valid up to 7 days from issue and often less. Download right away; on `403` fetch the message again for a fresh link.
 - With encryption or the secure perimeter on, `url` points to the Download file method instead: it needs `Authorization` and `files:read`. The link itself tells you which case it is.
-- A protected file sent from the secure perimeter is served only to requests from a perimeter address. That is the address of your server, not of the employee whose token you use. Otherwise: `403` `confidential_download_denied`.
+- A protected file sent from the secure perimeter is served only to requests from a perimeter address. That is the address of your server, not of the employee whose token you use. Otherwise: `403` `confidential_download_denied`. The same code comes from any address for a file in which the antivirus found a virus (workspaces with the secure perimeter): another address does not help.
 - Download a file by its attachment `id`: `pachca_download_file` / `pachca files get <id> --save <path>`.
 
-Deleting a message, or removing an attachment by edit, erases the file from storage at once, with no trash (a file stays only while another message, such as a forward, still references it). Confirm before doing either.
+Deleting a message, or removing an attachment by edit, erases the file from storage at once, with no trash (a file stays only while another message, such as a forward, still references it). Do either only when the user asked for it, and ask first when the message is a guess.
 
 ## SDK and generated clients
 
-- Ready SDKs: TypeScript `@pachca/sdk`, Python `pachca-sdk`, Go, Kotlin, Swift, C#. Each has a typed method per API method, auto-pagination (`*All()`, `*_all()` in Python, `*AllAsync()` in C#), retry on `429` and `5xx`, typed `ApiError` and `OAuthError`, and field names in each language's convention (camelCase in TypeScript, Kotlin and Swift, PascalCase in Go and C#, snake_case kept in Python). The token is passed once, when the client is created.
+- Ready SDKs: TypeScript `@pachca/sdk`, Python `pachca-sdk`, Go, Kotlin, Swift, C#. Each has a typed method per API method, auto-pagination (`*All()`, `*_all()` in Python, `*AllAsync()` in C#), retries (`429` on every method, `5xx` on `GET`, `PUT` and `DELETE` only), typed `ApiError` and `OAuthError`, and field names in each language's convention (camelCase in TypeScript, Kotlin and Swift, PascalCase in Go and C#, snake_case kept in Python). The token is passed once, when the client is created.
 - Prefer the SDK to hand-written HTTP where the language has one: pagination and `429` handling are already right.
-- After a `5xx` the SDK replays every method, creates included, so one send can post a message more than once. When a duplicate would hurt, read the chat's latest messages after a send that failed or was slow. Never wrap your own retry around an SDK create.
-- SDK errors carry no HTTP status and no `Retry-After`. Branch on the codes instead: `errors[].code` of `ApiError` (`rate_limit`, `already_exists`, `invalid`, …) and `error` of `OAuthError` (`invalid_token`, `insufficient_scope`, `role_forbidden`).
+- The SDK never resends a `POST` after a `5xx`: a failed send or create comes to your code, and the first attempt may still have gone through. Before sending again, read the chat's latest messages or find the object. Never wrap your own retry around an SDK create.
+- `ApiError` carries the HTTP status (`status` in TypeScript; the field name per language is on the SDK page), and an answer with an empty or non-JSON body comes with `errors` empty. `Retry-After` is not exposed. Branch on the codes: `errors[].code` of `ApiError` (`rate_limit`, `already_exists`, `invalid`, …) and `error` of `OAuthError` (`invalid_token`, `insufficient_scope`, `role_forbidden`).
 - A `rate_limit` that reaches your code means the SDK has already given up: the wait is over a minute (daily per-chat cap or overload block), or its retries are spent. Do not catch and retry. Stop that job and resume it later without probing: every attempt during a daily-cap pause lengthens it.
 - Python, Kotlin and C# clients need closing (`await client.close()`, `client.close()`, `client.Dispose()`).
 - Own client: `npx -y @pachca/generator --output ./generated --lang <langs>` builds it from the live spec. Commit the result and rerun generation in CI as an API compatibility check.
@@ -168,13 +168,13 @@ Token sources, auth diagnostics, output modes, error JSON and raw `pachca api` r
 - Space out sends to one chat. For bulk sends, plan around the per-chat daily cap before starting.
 - Treat `Retry-After` as a minimum. Add jitter upward only.
 - A create that timed out or answered `5xx` may have gone through. Before re-sending, read the chat's latest messages instead of retrying blind.
-- Confirm destructive or mass actions with the user first: deletes, bulk sends, deactivating employees.
+- A clear request runs. Ask the user first before a mass action (bulk sends, changes to many employees or chats), a delete when a reversible step would do (suspending instead of deleting an employee), or a change to a target you guessed.
 
 ## Pitfalls
 
 - `401` is the token itself (missing, unknown, expired, revoked), not a permission.
 - `403` `role_forbidden`: neither a new token nor a re-login helps. Someone with the needed role does the action, or an admin changes the role; Owner-only scopes need the Owner.
-- `403` with an `errors` array (`ApiError`) is not about scopes. With code `access_denied` it is the token's owner: a guest, or an employee whose access is suspended or deleted, and a new token will not help. Any other code is not about scopes either. Usually it is the object: a closed chat, a chat rule, a role in the chat or workspace. It can also be a feature the workspace plan lacks (`not_authorized`, which does not say which case it is: check membership before blaming the plan), `display_name` / `display_avatar_url` sent with a token that is not a bot token, or a protected file requested from outside the secure perimeter (`confidential_download_denied`).
+- `403` with an `errors` array (`ApiError`) is not about scopes. With code `access_denied` it is the token's owner: a guest, or an employee whose access is suspended or deleted, and a new token will not help. Any other code is not about scopes either. Usually it is the object: a closed chat, a chat rule, a role in the chat or workspace. It can also be a feature the workspace plan lacks (`not_authorized`, which does not say which case it is: check membership before blaming the plan), `display_name` / `display_avatar_url` sent with a token that is not a bot token, or a protected file requested from outside the secure perimeter or a file the antivirus flagged (`confidential_download_denied`).
 - Search has no `prev_page`: search results cannot be polled by cursor.
 - `limit` outside the allowed range is clamped silently; a non-integer gives `400` `invalid`.
 - A duplicate gives `409` `already_exists` with the field in `errors[].key`; a taken tag name gives `400` `taken`.

@@ -140,6 +140,9 @@ client.close()
 | `client.reactions.addReaction()` | [Добавление реакции](/api/reactions/add) |
 | `client.reactions.listReactions()` | [Список реакций](/api/reactions/list) |
 | `client.reactions.removeReaction()` | [Удаление реакции](/api/reactions/remove) |
+| `client.importantMessages.addMessageToImportant()` | [Добавление сообщения в важные](/api/important-messages/create) |
+| `client.importantMessages.listImportantMessages()` | [Список важных сообщений](/api/important-messages/list) |
+| `client.importantMessages.removeMessageFromImportant()` | [Удаление сообщения из важных](/api/important-messages/delete) |
 | `client.search.searchChats()` | [Поиск чатов](/api/search/list-chats) |
 | `client.search.searchMessages()` | [Поиск сообщений](/api/search/list-messages) |
 | `client.search.searchUsers()` | [Поиск сотрудников](/api/search/list-users) |
@@ -167,6 +170,7 @@ client.close()
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.bots.getBotScopes()` | [Каталог прав бота](/api/bots/list-scopes) |
 | `client.bots.listBotTokens()` | [Список токенов бота](/api/bots/list-tokens) |
+| `client.bots.getWebhookEventsStream()` | [Поток событий](/api/bots/get-stream) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.updateBotAvatar()` | [Загрузка аватара бота](/api/bots/update-avatar) |
@@ -218,7 +222,7 @@ val request = ChatCreateRequest(
     )
 )
 val response = client.chats.createChat(request = request)
-// → CreateChatResponse(data: Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String, avatarUrl: String?), meta: CreateChatResponseMeta(notFoundMemberIds: List<Int>))
+// → CreateChatResponse(data: Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String, avatarUrl: String?), meta: CreateChatResponseMeta(notFoundMemberIds: List<Int>, notFoundGroupTagIds: List<Int>))
 ```
 
 
@@ -314,6 +318,8 @@ try {
 | `code` | `ValidationErrorCode` | Код валидации |
 | `payload` | `String?` | Дополнительные данные |
 
+Код статуса ответа — в поле `statusCode`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже выбрасывает `ApiError`: с кодом статуса и пустым `errors`. Так бывает с ответом `404` без тела от метода [Поток событий](/api/bots/get-stream), когда история событий выключена, и со страницей прокси при `502`.
+
 ### OAuthError
 
 Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
@@ -333,11 +339,15 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
+SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
 - **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff с jitter
-- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
+- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
+- **5xx:** экспоненциальный backoff с jitter: ~20 сек, ~40 сек, ~80 сек
+- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
+- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
+- **Сетевая ошибка** без ответа сервера тоже повторяется только у GET, PUT и DELETE, а таймаут не повторяется
 - Реализовано через плагин Ktor `HttpRequestRetry`
 - Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
@@ -427,7 +437,7 @@ val request = MessageCreateRequest(
     linkPreview = false
 )
 val response = client.messages.createMessage(request = request)
-// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)
+// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean)
 
 // Список сотрудников
 val response = client.users.listUsers(query = "Олег", limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")

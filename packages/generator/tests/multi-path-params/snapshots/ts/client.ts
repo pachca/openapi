@@ -27,12 +27,13 @@ export class TasksServiceImpl extends TasksService {
     const response = await fetchWithRetry(`${this.baseUrl}/projects/${projectId}/tasks/${taskId}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Task", body.data) as Task;
+      }
       default:
-        throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
+        throw new Error(`HTTP ${response.status}`);
     }
   }
 
@@ -42,12 +43,13 @@ export class TasksServiceImpl extends TasksService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("TaskUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Task", body.data) as Task;
+      }
       default:
-        throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
+        throw new Error(`HTTP ${response.status}`);
     }
   }
 

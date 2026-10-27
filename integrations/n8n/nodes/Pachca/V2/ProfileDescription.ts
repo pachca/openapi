@@ -74,7 +74,7 @@ export const profileFields: INodeProperties[] = [
 		name: 'statusEmoji',
 		type: 'string',
 		default: "",
-		description: 'Status emoji character. Required if there is no status yet.',
+		description: 'Status emoji character. Required if there is no status yet. An emoji in text form (without U+FE0F or with U+FE0E) is saved and returned with U+FE0F. An empty value responds `400` with the `blank` code, several emoji with the `invalid` code, text instead of an emoji or next to it with the `wrong_emoji` code.',
 		displayOptions: { show: { resource: ['profile'], operation: ['updateStatus'] } },
 		placeholder: '🎮',
 	},

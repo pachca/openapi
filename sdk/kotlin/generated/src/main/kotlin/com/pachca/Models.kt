@@ -920,14 +920,18 @@ value class OAuthScope(val value: String) {
         val DRAFTS_READ = OAuthScope("drafts:read")
         /** Создание, изменение и удаление черновиков и отложенных сообщений */
         val DRAFTS_WRITE = OAuthScope("drafts:write")
+        /** Просмотр важных сообщений */
+        val IMPORTANT_MESSAGES_READ = OAuthScope("important_messages:read")
+        /** Добавление сообщений в важные и удаление из важных */
+        val IMPORTANT_MESSAGES_WRITE = OAuthScope("important_messages:write")
 
         /** Every value this SDK version lists */
-        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, FILES_WRITE, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_READ, WEBHOOKS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE)
+        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, FILES_WRITE, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_READ, WEBHOOKS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE, IMPORTANT_MESSAGES_READ, IMPORTANT_MESSAGES_WRITE)
 
         /** The same values as an array, like `values()` of an enum class */
         fun values(): Array<OAuthScope> = entries.toTypedArray()
 
-        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "files:write" to "FILES_WRITE", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:read" to "WEBHOOKS_READ", "webhooks:write" to "WEBHOOKS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE")
+        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "files:write" to "FILES_WRITE", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:read" to "WEBHOOKS_READ", "webhooks:write" to "WEBHOOKS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE", "important_messages:read" to "IMPORTANT_MESSAGES_READ", "important_messages:write" to "IMPORTANT_MESSAGES_WRITE")
 
         fun valueOf(name: String): OAuthScope =
             entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No OAuthScope constant $name")
@@ -1065,7 +1069,7 @@ value class TaskStatus(val value: String) {
     }
 }
 
-/** Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат. */
+/** Роль пользователя, допустимая при создании сотрудника. Для роли `guest` параметр `chat_ids` обязателен и должен содержать ровно один чат. */
 @Serializable
 enum class UserCreateRole(val value: String) {
     /** Администратор */
@@ -1148,7 +1152,7 @@ value class UserRole(val value: String) {
     }
 }
 
-/** Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`). */
+/** Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` передают вместе с `chat_ids`, в котором ровно один чат. */
 @Serializable
 enum class UserRoleInput(val value: String) {
     /** Администратор */
@@ -1157,6 +1161,8 @@ enum class UserRoleInput(val value: String) {
     @SerialName("user") USER("user"),
     /** Мульти-гость */
     @SerialName("multi_guest") MULTI_GUEST("multi_guest"),
+    /** Гость */
+    @SerialName("guest") GUEST("guest"),
 }
 
 /** Коды ошибок валидации */
@@ -1200,7 +1206,7 @@ value class ValidationErrorCode(val value: String) {
         val INVALID_WEBHOOK_URL = ValidationErrorCode("invalid_webhook_url")
         /** Достигнут лимит запросов */
         val RATE_LIMIT = ValidationErrorCode("rate_limit")
-        /** Превышен лимит активных сотрудников (пояснения вы получите в поле message) */
+        /** Превышен лимит активных сотрудников. Больше не возвращается */
         val LICENSES_LIMIT = ValidationErrorCode("licenses_limit")
         /** Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций) */
         val USER_LIMIT = ValidationErrorCode("user_limit")
@@ -1236,7 +1242,7 @@ value class ValidationErrorCode(val value: String) {
         val SCHEDULED_MESSAGES_LIMIT = ValidationErrorCode("scheduled_messages_limit")
         /** Отложенное сообщение нельзя превратить обратно в черновик */
         val DRAFT_TYPE_CHANGE_FORBIDDEN = ValidationErrorCode("draft_type_change_forbidden")
-        /** Скачивание файла запрещено: нужен запрос из безопасного контура */
+        /** Скачивание файла запрещено: нужен запрос из безопасного контура или в файле найден вирус */
         val CONFIDENTIAL_DOWNLOAD_DENIED = ValidationErrorCode("confidential_download_denied")
         /** Не удалось расшифровать файл */
         val DECRYPTION_FAILED = ValidationErrorCode("decryption_failed")
@@ -1399,7 +1405,7 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
         setOf("chat_id", "started_message_id", "recording_id", "file_id", "duration", "size") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallRecording.serializer(), element) },
         setOf("bot_id", "actor_id", "client_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClientSecretRotated.serializer(), element) },
         setOf("bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClientDisabled.serializer(), element) },
-        setOf("token_kind", "token_name", "resource_owner_id", "scopes", "bot_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsToken.serializer(), element) },
+        setOf("token_kind", "token_name", "resource_owner_id", "scopes", "bot_id", "reason") to { json, element -> json.decodeFromJsonElement(AuditDetailsToken.serializer(), element) },
         setOf("token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotTokenUpdated.serializer(), element) },
         setOf("method", "login_grant_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsUserLoginQr.serializer(), element) },
         setOf("login_grant_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsLoginGrantCreated.serializer(), element) },
@@ -1662,6 +1668,7 @@ data class AuditDetailsToken(
     @SerialName("resource_owner_id") val resourceOwnerId: Int,
     val scopes: List<String>,
     @SerialName("bot_id") val botId: Int? = null,
+    val reason: String? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -2003,11 +2010,13 @@ data class AddTagsRequest(
 @Serializable
 data class ApiError(
     val errors: List<ApiErrorItem>,
+    /** HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty. */
+    @Transient val statusCode: Int? = null,
 ) : Exception()
  {
     override val message: String
         get() = when {
-            errors.isEmpty() -> "api error"
+            errors.isEmpty() -> if (statusCode != null) "HTTP $statusCode" else "api error"
             errors.size == 1 -> errors[0].message
             else -> "Errors: " + errors.joinToString("; ") { it.message }
         }
@@ -2566,6 +2575,11 @@ data class GroupTagRequest(
 )
 
 @Serializable
+data class ImportantMessageRequest(
+    @SerialName("message_id") val messageId: Int,
+)
+
+@Serializable
 data class LinkPreviewImage(
     val key: String,
     val name: String,
@@ -2617,6 +2631,7 @@ data class Message(
     @SerialName("display_name") val displayName: String? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("changed_at") val changedAt: OffsetDateTime? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("deleted_at") val deletedAt: OffsetDateTime? = null,
+    val important: Boolean,
 )
 
 @Serializable
@@ -2966,6 +2981,7 @@ data class UserUpdateRequestUser(
     val department: String? = null,
     val title: String? = null,
     val role: UserRoleInput? = null,
+    @SerialName("chat_ids") val chatIds: List<Int>? = null,
     val suspended: Boolean? = null,
     @SerialName("list_tags") val listTags: List<String>? = null,
     @SerialName("custom_properties") val customProperties: List<UserUpdateRequestCustomProperty>? = null,
@@ -3025,6 +3041,12 @@ data class WebhookEvent(
 )
 
 @Serializable
+data class WebhookEventsStream(
+    val url: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("expires_at") val expiresAt: OffsetDateTime,
+)
+
+@Serializable
 data class WebhookLink(
     val url: String,
     val domain: String,
@@ -3060,6 +3082,7 @@ data class UpdateBotAvatarRequest(
 @Serializable
 data class CreateChatResponseMeta(
     @SerialName("not_found_member_ids") val notFoundMemberIds: List<Int>,
+    @SerialName("not_found_group_tag_ids") val notFoundGroupTagIds: List<Int>,
 )
 
 @Serializable
@@ -3149,6 +3172,12 @@ data class GetTagUsersResponse(
 )
 
 @Serializable
+data class ListImportantMessagesResponse(
+    val data: List<Message>,
+    val meta: PaginationMeta,
+)
+
+@Serializable
 data class ListChatMessagesResponse(
     val data: List<Message>,
     val meta: PaginationMeta,
@@ -3204,6 +3233,9 @@ data class GetWebhookEventsResponse(
 
 @Serializable
 data class BotResponseDataWrapper(val data: BotResponse)
+
+@Serializable
+data class WebhookEventsStreamDataWrapper(val data: WebhookEventsStream)
 
 @Serializable
 data class BotSelfTokenResponseDataWrapper(val data: BotSelfTokenResponse)

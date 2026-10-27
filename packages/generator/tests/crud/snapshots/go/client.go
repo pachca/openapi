@@ -11,10 +11,12 @@ import (
 	"time"
 )
 
-// errorFromBody reads an error answer. Its body is either {"errors": [...]} or the
-// OAuth form {"error", "error_description"}, which also comes with 400 and 403
-// (insufficient_scope, invalid_grant): the body decides the type.
-func errorFromBody(resp *http.Response) error {
+// errorFromResponse reads an error answer. Its body is either {"errors": [...]} or
+// the OAuth form {"error", "error_description"}, which also comes with 400 and 403
+// (insufficient_scope, invalid_grant): the body decides the type. An empty body or
+// one that is not JSON (a 404 without a body, a proxy page) gives an ApiError with
+// no errors. The status code stays in StatusCode.
+func errorFromResponse(resp *http.Response) error {
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
@@ -30,9 +32,10 @@ func errorFromBody(resp *http.Response) error {
 		}
 	}
 	var e ApiError
-	if err := json.Unmarshal(data, &e); err != nil {
-		return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+	if json.Unmarshal(data, &e) != nil {
+		e = ApiError{}
 	}
+	e.StatusCode = resp.StatusCode
 	return &e
 }
 
@@ -129,14 +132,8 @@ func (s *ChatsServiceImpl) ListChats(ctx context.Context, params *ListChatsParam
 			return nil, err
 		}
 		return &result, nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return nil, &e
 	default:
-		return nil, errorFromBody(resp)
+		return nil, errorFromResponse(resp)
 	}
 }
 
@@ -185,14 +182,8 @@ func (s *ChatsServiceImpl) GetChat(ctx context.Context, id int32) (*Chat, error)
 			return nil, err
 		}
 		return &result.Data, nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return nil, &e
 	default:
-		return nil, errorFromBody(resp)
+		return nil, errorFromResponse(resp)
 	}
 }
 
@@ -220,14 +211,8 @@ func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateReq
 			return nil, err
 		}
 		return &result.Data, nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return nil, &e
 	default:
-		return nil, errorFromBody(resp)
+		return nil, errorFromResponse(resp)
 	}
 }
 
@@ -255,14 +240,8 @@ func (s *ChatsServiceImpl) UpdateChat(ctx context.Context, id int32, request Cha
 			return nil, err
 		}
 		return &result.Data, nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return nil, &e
 	default:
-		return nil, errorFromBody(resp)
+		return nil, errorFromResponse(resp)
 	}
 }
 
@@ -279,14 +258,8 @@ func (s *ChatsServiceImpl) ArchiveChat(ctx context.Context, id int32) error {
 	switch resp.StatusCode {
 	case http.StatusNoContent:
 		return nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return &e
 	default:
-		return errorFromBody(resp)
+		return errorFromResponse(resp)
 	}
 }
 
@@ -303,14 +276,8 @@ func (s *ChatsServiceImpl) DeleteChat(ctx context.Context, id int32) error {
 	switch resp.StatusCode {
 	case http.StatusNoContent:
 		return nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return &e
 	default:
-		return errorFromBody(resp)
+		return errorFromResponse(resp)
 	}
 }
 

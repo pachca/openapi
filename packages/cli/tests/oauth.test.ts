@@ -477,3 +477,169 @@ describe('token refresh', () => {
     );
   });
 });
+
+describe('closing the login on logout', () => {
+  let tmpDir: string;
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pachca-revoke-test-'));
+    process.env.XDG_CONFIG_HOME = tmpDir;
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  const inAnHour = () => new Date(Date.now() + 3_600_000).toISOString();
+  const aMinuteAgo = () => new Date(Date.now() - 60_000).toISOString();
+
+  function writeProfile(overrides: Record<string, unknown> = {}) {
+    const configDir = path.join(tmpDir, 'pachca');
+    fs.mkdirSync(configDir, { recursive: true });
+    const profile: Record<string, unknown> = {
+      type: 'user',
+      token: 'saved-access',
+      user: 'Test',
+      auth: 'oauth',
+      refresh_token: 'saved-refresh',
+      expires_at: inAnHour(),
+      ...overrides,
+    };
+    for (const key of Object.keys(profile)) if (profile[key] === undefined) delete profile[key];
+    const lines = Object.entries(profile).map(([k, v]) => `${k} = ${JSON.stringify(v)}`);
+    fs.writeFileSync(
+      path.join(configDir, 'config.toml'),
+      `active_profile = "default"\n\n[profiles.default]\n${lines.join('\n')}\n`,
+    );
+    return profile;
+  }
+
+  /** Routes the token and revoke endpoints to their own answers. */
+  function serve(answers: { token?: () => unknown; revoke?: () => unknown }) {
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      const endpoint = String(url).endsWith('/oauth/revoke') ? 'revoke' : 'token';
+      const answer = answers[endpoint];
+      if (!answer) throw new Error(`unexpected call to ${endpoint}`);
+      return answer();
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    return fetchMock;
+  }
+
+  function calledEndpoints(fetchMock: ReturnType<typeof vi.fn>): string[] {
+    return fetchMock.mock.calls.map(([url]) => (String(url).endsWith('/oauth/revoke') ? 'revoke' : 'token'));
+  }
+
+  it('revokes a live token as it is, without a refresh', async () => {
+    const profile = writeProfile();
+    const fetchMock = serve({ revoke: () => jsonResponse(200, {}) });
+
+    const { revokeSession } = await import('../src/token-refresh.js');
+
+    await expect(revokeSession('default', profile as never)).resolves.toBe('revoked');
+    expect(calledEndpoints(fetchMock)).toEqual(['revoke']);
+    expect(fetchMock.mock.calls[0][1].body).toBe('token=saved-access');
+  });
+
+  // The server answers 200 to an expired token and revokes nothing: the refresh
+  // token in the same record would keep the login alive.
+  it('refreshes an expired token first and revokes the fresh one', async () => {
+    const profile = writeProfile({ expires_at: aMinuteAgo() });
+    const fetchMock = serve({
+      token: () => jsonResponse(200, { access_token: 'fresh-access', refresh_token: 'fresh-refresh', expires_in: 3600 }),
+      revoke: () => jsonResponse(200, {}),
+    });
+
+    const { revokeSession } = await import('../src/token-refresh.js');
+
+    await expect(revokeSession('default', profile as never)).resolves.toBe('revoked');
+    expect(calledEndpoints(fetchMock)).toEqual(['token', 'revoke']);
+    expect(fetchMock.mock.calls[0][1].body).toContain('refresh_token=saved-refresh');
+    const [, revoke] = fetchMock.mock.calls[1];
+    expect(revoke.body).toBe('token=fresh-access');
+    expect((revoke.headers as Record<string, string>).Authorization).toBe('Bearer fresh-access');
+  });
+
+  it('refreshes a token that runs out within the skew', async () => {
+    const profile = writeProfile({ expires_at: new Date(Date.now() + 30_000).toISOString() });
+    const fetchMock = serve({
+      token: () => jsonResponse(200, { access_token: 'fresh-access', expires_in: 3600 }),
+      revoke: () => jsonResponse(200, {}),
+    });
+
+    const { revokeSession } = await import('../src/token-refresh.js');
+
+    await expect(revokeSession('default', profile as never)).resolves.toBe('revoked');
+    expect(calledEndpoints(fetchMock)).toEqual(['token', 'revoke']);
+  });
+
+  it('does not trust a token of unknown age and refreshes it first', async () => {
+    const profile = writeProfile({ expires_at: undefined });
+    const fetchMock = serve({
+      token: () => jsonResponse(200, { access_token: 'fresh-access', expires_in: 3600 }),
+      revoke: () => jsonResponse(200, {}),
+    });
+
+    const { revokeSession } = await import('../src/token-refresh.js');
+
+    await expect(revokeSession('default', profile as never)).resolves.toBe('revoked');
+    expect(calledEndpoints(fetchMock)).toEqual(['token', 'revoke']);
+  });
+
+  it('reports a login closed earlier when the server no longer takes the refresh token', async () => {
+    const profile = writeProfile({ expires_at: aMinuteAgo() });
+    const fetchMock = serve({ token: () => jsonResponse(400, { error: 'invalid_grant' }) });
+
+    const { revokeSession } = await import('../src/token-refresh.js');
+
+    await expect(revokeSession('default', profile as never)).resolves.toBe('closed');
+    expect(calledEndpoints(fetchMock)).toEqual(['token']);
+  });
+
+  it('leaves the login open when the refresh cannot reach the server', async () => {
+    const profile = writeProfile({ expires_at: aMinuteAgo() });
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError('fetch failed'));
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const { revokeSession } = await import('../src/token-refresh.js');
+
+    await expect(revokeSession('default', profile as never)).resolves.toBe('open');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the login open when the revoke after a refresh fails', async () => {
+    const profile = writeProfile({ expires_at: aMinuteAgo() });
+    serve({
+      token: () => jsonResponse(200, { access_token: 'fresh-access', expires_in: 3600 }),
+      revoke: () => {
+        throw new TypeError('fetch failed');
+      },
+    });
+
+    const { revokeSession } = await import('../src/token-refresh.js');
+
+    await expect(revokeSession('default', profile as never)).resolves.toBe('open');
+  });
+
+  it('leaves the login open when the server refuses the revoke', async () => {
+    const profile = writeProfile();
+    serve({ revoke: () => jsonResponse(403, { error: 'unauthorized_client' }) });
+
+    const { revokeSession } = await import('../src/token-refresh.js');
+
+    await expect(revokeSession('default', profile as never)).resolves.toBe('open');
+  });
+
+  it('sends nothing for an expired token with no refresh token to renew it', async () => {
+    const profile = writeProfile({ expires_at: aMinuteAgo(), refresh_token: undefined });
+    const fetchMock = vi.fn();
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const { revokeSession } = await import('../src/token-refresh.js');
+
+    await expect(revokeSession('default', profile as never)).resolves.toBe('open');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});

@@ -32,6 +32,7 @@ hideTableOfContents: true
   <Card title="Каталог прав бота" href="#katalog-prav-bota" methods="GET" />
   <Card title="Параметры бота пространства" href="#parametry-bota-prostranstva" methods="GET" />
   <Card title="Событие исходящего вебхука" href="#sobytie-ishodyaschego-vebhuka" methods="GET DELETE" />
+  <Card title="Ссылка на поток событий" href="#ssylka-na-potok-sobytiy" methods="GET" />
   <Card title="Событие аудита" href="#sobytie-audita" methods="GET" />
 </CardGroup>
 
@@ -141,13 +142,16 @@ hideTableOfContents: true
 
 - [Новое сообщение](POST /messages)
 - [Закрепление сообщения](POST /messages/{id}/pin)
+- [Добавление сообщения в важные](POST /important_messages)
 - [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews)
 - [Информация о сообщении](GET /messages/{id})
 - [Список сообщений чата](GET /messages)
+- [Список важных сообщений](GET /important_messages)
 - [Поиск сообщений](GET /search/messages)
 - [Список прочитавших сообщение](GET /messages/{id}/read_member_ids)
 - [Редактирование сообщения](PUT /messages/{id})
 - [Открепление сообщения](DELETE /messages/{id}/pin)
+- [Удаление сообщения из важных](DELETE /important_messages/{id})
 - [Удаление сообщения](DELETE /messages/{id})
 
 <ModelSchema name="Message" />
@@ -234,6 +238,12 @@ hideTableOfContents: true
 - [Удаление события истории](DELETE /webhooks/events/{id})
 
 <ModelSchema name="WebhookEvent" />
+
+## Ссылка на поток событий
+
+- [Поток событий](GET /webhooks/events/stream)
+
+<ModelSchema name="WebhookEventsStream" />
 
 ## Событие аудита
 

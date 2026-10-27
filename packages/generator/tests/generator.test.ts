@@ -1,7 +1,9 @@
-import { describe, it, expect, afterEach, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, afterEach, beforeAll, afterAll, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { pathToFileURL } from 'node:url';
+import ts from 'typescript';
 import { generate, SUPPORTED_LANGS } from '../src/index.js';
 import { classifyEnumUsage, transform } from '../src/transform.js';
 import { parseOpenAPI } from '@pachca/openapi-parser';
@@ -204,15 +206,17 @@ describe('open enums', () => {
       expect(models).toContain('class MemberStatus(OpenStrEnum):');
       expect(models).toContain('class SortOrder(StrEnum):');
       expect(read('py/utils.py')).toContain('issubclass(raw_tp, Enum)');
-      expect(read('py/client.py')).toContain('OAuthError(OAuthErrorCode(body["error"])');
+      expect(read('py/client.py')).toContain('OAuthError(error=OAuthErrorCode(body["error"])');
     });
 
     it('Go: the OAuth code is typed and holds only a code', () => {
       expect(read('go/types.go')).toContain('Err              OAuthErrorCode `json:"error"`');
       expect(read('go/types.go')).toContain('return string(e.Err)');
-      // A 401 body that does not decode comes back wrapped, not as a code.
+      // An OAuthError comes only from a body whose `error` is a string: a body that
+      // does not decode is an ApiError with the status code, not a code.
       const client = read('go/client.go');
-      expect(client).toMatch(/case http\.StatusUnauthorized:\n\t\tvar e OAuthError\n\t\tif err := json\.NewDecoder\(resp\.Body\)\.Decode\(&e\); err != nil \{\n\t\t\treturn nil, fmt\.Errorf\("HTTP %d: %w", resp\.StatusCode, err\)/);
+      expect(client).toContain('if json.Unmarshal(data, &probe) == nil && probe.Errors == nil && probe.Error != nil {');
+      expect(client).toContain('e.StatusCode = resp.StatusCode');
       expect(client).not.toContain('e.Err =');
     });
 
@@ -311,5 +315,359 @@ describe('single object with meta', () => {
       .filter((o) => o.successResponse.isSingleWithMeta)
       .map((o) => `${o.method} ${o.path}`);
     expect(whole).toEqual(['POST /chats']);
+  });
+});
+
+// A 5xx says nothing about whether the server already applied the request, and
+// the API has no idempotency key: a retried POST /messages sends the message
+// twice. Every runtime retries a 5xx only for GET, HEAD, OPTIONS, PUT and
+// DELETE, and a 429 for any method. A 504 with the error code `timeout` is a
+// search the server stopped because the query is too heavy: no runtime repeats
+// it. The snapshots record the code; these checks hold the rule itself, so a
+// regenerated snapshot cannot quietly drop it.
+describe('retries', () => {
+  const fixture = path.join(TESTS_DIR, 'crud', 'fixture.yaml');
+  let out: string;
+  const read = (file: string) => fs.readFileSync(path.join(out, file), 'utf-8');
+
+  beforeAll(() => {
+    out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-retries-'));
+    generate(fixture, out, SUPPORTED_LANGS);
+  });
+  afterAll(() => fs.rmSync(out, { recursive: true, force: true }));
+
+  it('every runtime gates the 5xx retry on an idempotent method', () => {
+    const tsUtils = read('ts/utils.ts');
+    expect(tsUtils).toContain('const IDEMPOTENT_METHODS = new Set(["GET", "HEAD", "OPTIONS", "PUT", "DELETE"]);');
+    expect(tsUtils).toMatch(/RETRYABLE_5XX\.has\(response\.status\) &&\n\s+IDEMPOTENT_METHODS\.has\(method\) &&\n\s+attempt < MAX_RETRIES &&/);
+
+    const py = read('py/utils.py');
+    expect(py).toContain('_IDEMPOTENT_METHODS = {"GET", "HEAD", "OPTIONS", "PUT", "DELETE"}');
+    expect(py).toMatch(/response\.status_code in _RETRYABLE_5XX\n\s+and request\.method in _IDEMPOTENT_METHODS\n/);
+
+    const go = read('go/utils.go');
+    expect(go).toContain('case "", http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodPut, http.MethodDelete:');
+    expect(go).toContain('if retryable5xx[resp.StatusCode] && isIdempotent(req.Method) && attempt < maxRetries && !isQueryTimeout(resp) {');
+
+    const kt = read('kt/Client.kt');
+    expect(kt).toContain('setOf(HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Put, HttpMethod.Delete)');
+    expect(kt).toMatch(/val serverError = status in setOf\(500, 502, 503, 504\) &&\n\s+request\.method in idempotentMethods &&/);
+    // Ktor retries a failed request for any method unless told otherwise.
+    expect(kt).toMatch(/retryOnExceptionIf \{ request, cause ->\n\s+request\.method in idempotentMethods &&/);
+
+    const cs = read('cs/Utils.cs');
+    expect(cs).toContain('HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Put, HttpMethod.Delete,');
+    expect(cs).toMatch(/Retryable5xx\.Contains\(\(int\)response\.StatusCode\)\n\s+&& IdempotentMethods\.Contains\(request\.Method\)/);
+
+    const swift = read('swift/Utils.swift');
+    expect(swift).toContain('private let idempotentMethods: Set<String> = ["GET", "HEAD", "OPTIONS", "PUT", "DELETE"]');
+    expect(swift).toContain('if retryable5xx.contains(http.statusCode), idempotent, attempt < maxRetries, !isQueryTimeout(http.statusCode, data) {');
+  });
+
+  it('every runtime hands a 504 with the code timeout back at once', () => {
+    const tsUtils = read('ts/utils.ts');
+    expect(tsUtils).toContain('async function isQueryTimeout(response: Response): Promise<boolean> {');
+    expect(tsUtils).toContain('const body = (await response.clone().json()) as { errors?: unknown } | null;');
+    expect(tsUtils).toMatch(/attempt < MAX_RETRIES &&\n\s+!\(await isQueryTimeout\(response\)\)\n/);
+
+    const py = read('py/utils.py');
+    expect(py).toContain('async def _is_query_timeout(response: httpx.Response) -> bool:');
+    expect(py).toContain('error.get("code") == "timeout"');
+    expect(py).toMatch(/and attempt < self\._max_retries\n\s+and not await _is_query_timeout\(response\)\n/);
+
+    const go = read('go/utils.go');
+    expect(go).toContain('func isQueryTimeout(resp *http.Response) bool {');
+    // The body is put back, so the caller can still decode the error.
+    expect(go).toContain('resp.Body = io.NopCloser(bytes.NewReader(body))');
+    expect(go).toContain('if e.Code == "timeout" {');
+
+    // retryIf cannot read the body: an interceptor under the retry plugin reads
+    // it and marks the call, and retryIf checks the mark.
+    const kt = read('kt/Client.kt');
+    expect(kt).toContain('private val queryTimeoutKey = io.ktor.util.AttributeKey<Unit>("PachcaQueryTimeout")');
+    expect(kt).toContain('client.plugin(HttpSend).intercept { request ->');
+    expect(kt).toContain('call.attributes.put(queryTimeoutKey, Unit)');
+    expect(kt).toMatch(/request\.method in idempotentMethods &&\n\s+!response\.call\.attributes\.contains\(queryTimeoutKey\)/);
+    expect(kt).toContain('}.also(::markQueryTimeouts)');
+
+    const cs = read('cs/Utils.cs');
+    expect(cs).toContain('private static async Task<bool> IsQueryTimeoutAsync(HttpResponseMessage response, CancellationToken cancellationToken)');
+    expect(cs).toContain('&& code.GetString() == "timeout")');
+    expect(cs).toMatch(/&& attempt < MaxRetries\n\s+&& !await IsQueryTimeoutAsync\(response, cancellationToken\)\.ConfigureAwait\(false\)\)/);
+
+    const swift = read('swift/Utils.swift');
+    expect(swift).toContain('private func isQueryTimeout(_ statusCode: Int, _ data: Data) -> Bool {');
+    expect(swift).toContain('return errors.contains { ($0 as? [String: Any])?["code"] as? String == "timeout" }');
+  });
+
+  describe('TypeScript fetchWithRetry at runtime', () => {
+    type FetchWithRetry = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
+    let fetchWithRetry: FetchWithRetry;
+    const realFetch = globalThis.fetch;
+    let calls: string[] = [];
+    const timeoutBody = JSON.stringify({
+      errors: [{ key: 'system', value: null, message: 'Search timed out', code: 'timeout', payload: null }],
+    });
+
+    beforeAll(async () => {
+      const js = ts.transpileModule(read('ts/utils.ts'), {
+        compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+      }).outputText;
+      const file = path.join(out, 'ts', 'utils.mjs');
+      fs.writeFileSync(file, js);
+      ({ fetchWithRetry } = await import(pathToFileURL(file).href));
+    });
+
+    afterEach(() => {
+      globalThis.fetch = realFetch;
+      vi.useRealTimers();
+    });
+
+    // Answers each request with the next status (and body, if given) and
+    // records its method.
+    async function send(answers: (number | [number, string])[], input: string | Request, init?: RequestInit) {
+      calls = [];
+      const queue = [...answers];
+      globalThis.fetch = (async (req: string | Request, opts?: RequestInit) => {
+        calls.push(opts?.method ?? (typeof req === 'object' ? req.method : 'GET'));
+        const next = queue.shift()!;
+        const [status, body] = typeof next === 'number' ? [next, null] : next;
+        return new Response(body, { status, headers: status === 429 ? { 'Retry-After': '1' } : {} });
+      }) as typeof fetch;
+      vi.useFakeTimers();
+      const pending = fetchWithRetry(input, init);
+      await vi.runAllTimersAsync();
+      return pending;
+    }
+
+    async function run(answers: (number | [number, string])[], input: string | Request, init?: RequestInit) {
+      return (await send(answers, input, init)).status;
+    }
+
+    it('does not retry a 5xx for POST or PATCH', async () => {
+      expect(await run([503, 201], 'https://api.test/messages', { method: 'POST' })).toBe(503);
+      expect(calls).toEqual(['POST']);
+      expect(await run([500, 200], 'https://api.test/messages/1', { method: 'PATCH' })).toBe(500);
+      expect(calls).toEqual(['PATCH']);
+      expect(await run([502, 201], new Request('https://api.test/messages', { method: 'POST' }))).toBe(502);
+      expect(calls).toHaveLength(1);
+    });
+
+    it('retries a 5xx for GET, PUT and DELETE', async () => {
+      expect(await run([503, 200], 'https://api.test/chats')).toBe(200);
+      expect(calls).toEqual(['GET', 'GET']);
+      expect(await run([502, 200], 'https://api.test/chats/1', { method: 'PUT' })).toBe(200);
+      expect(calls).toEqual(['PUT', 'PUT']);
+      expect(await run([504, 204], 'https://api.test/chats/1', { method: 'delete' })).toBe(204);
+      expect(calls).toEqual(['delete', 'delete']);
+      expect(await run([500, 500, 500, 500], 'https://api.test/chats')).toBe(500);
+      expect(calls).toHaveLength(4);
+    });
+
+    it('retries a 429 for any method', async () => {
+      expect(await run([429, 201], 'https://api.test/messages', { method: 'POST' })).toBe(201);
+      expect(calls).toEqual(['POST', 'POST']);
+    });
+
+    it('hands a 504 with the code timeout back at once, body intact', async () => {
+      const response = await send([[504, timeoutBody], 200], 'https://api.test/search/messages?query=report');
+      expect(response.status).toBe(504);
+      expect(calls).toEqual(['GET']);
+      // The check reads a clone: the caller still gets the whole error body.
+      expect(await response.json()).toEqual(JSON.parse(timeoutBody));
+    });
+
+    it('retries a 504 without the code timeout', async () => {
+      expect(await run([[504, '<html>Gateway Timeout</html>'], 200], 'https://api.test/chats')).toBe(200);
+      expect(calls).toEqual(['GET', 'GET']);
+      const other = JSON.stringify({ errors: [{ code: 'unavailable', message: 'Try later' }] });
+      expect(await run([[504, other], 200], 'https://api.test/chats')).toBe(200);
+      expect(calls).toEqual(['GET', 'GET']);
+      // The code decides only for a 504: a 503 that names it is still retried.
+      expect(await run([[503, timeoutBody], 200], 'https://api.test/chats')).toBe(200);
+      expect(calls).toEqual(['GET', 'GET']);
+    });
+  });
+});
+
+// Some answers come without a JSON body: GET /webhooks/events/stream answers 404
+// with no body when the event history is off, and a proxy answers 502 or 504 with
+// an HTML page. Every runtime reads such an answer as its normal ApiError with the
+// status code and no errors, instead of failing to parse it. Only the success
+// answer is parsed strictly. With both error models the body decides the class,
+// a 401 included: a 401 without the OAuth form is an ApiError with status 401.
+describe('error bodies', () => {
+  const read = (dir: string, file: string) => fs.readFileSync(path.join(dir, file), 'utf-8');
+  let crud: string;
+  let oauthOnly: string;
+
+  beforeAll(() => {
+    crud = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-error-bodies-'));
+    generate(path.join(TESTS_DIR, 'crud', 'fixture.yaml'), crud, SUPPORTED_LANGS);
+    oauthOnly = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-error-bodies-oauth-'));
+    generate(path.join(TESTS_DIR, 'search', 'fixture.yaml'), oauthOnly, SUPPORTED_LANGS);
+  });
+  afterAll(() => {
+    fs.rmSync(crud, { recursive: true, force: true });
+    fs.rmSync(oauthOnly, { recursive: true, force: true });
+  });
+
+  it('every runtime keeps the status code on ApiError', () => {
+    expect(read(crud, 'ts/types.ts')).toContain('  status?: number;');
+    expect(read(crud, 'py/models.py')).toContain('    status_code: int | None = None');
+    expect(read(crud, 'go/types.go')).toMatch(/StatusCode int\s+`json:"-"`/);
+    expect(read(crud, 'kt/Models.kt')).toContain('    @Transient val statusCode: Int? = null,');
+    expect(read(crud, 'cs/Models.cs')).toContain('    [JsonIgnore]\n    public int? StatusCode { get; set; }');
+    const swiftModels = read(crud, 'swift/Models.swift');
+    expect(swiftModels).toContain('    public var statusCode: Int?');
+    // The status code is not in the body: CodingKeys leave it out.
+    expect(swiftModels).toMatch(/public struct ApiError: Codable, Error \{[\s\S]*?enum CodingKeys: String, CodingKey \{\n        case errors\n    \}/);
+  });
+
+  it('every runtime reads an empty or non-JSON error body as an ApiError', () => {
+    const ts = read(crud, 'ts/client.ts');
+    expect(ts).toContain('return JSON.parse(await response.text());');
+    expect(ts).toContain('return new ApiError(Array.isArray(body?.errors) ? body.errors : [], response.status);');
+    // The success answer alone is parsed strictly, inside its own case.
+    expect(ts).toMatch(/case 200: \{\n\s+const body = await response\.json\(\);/);
+    expect(ts).not.toMatch(/const body = await response\.json\(\);\n\s+switch/);
+
+    const py = read(crud, 'py/client.py');
+    expect(py).toContain('def _error_body(response: httpx.Response) -> object:');
+    expect(py).toMatch(/return response\.json\(\)\n\s+except ValueError:\n\s+return None/);
+    // Items that are not objects (a list of strings) would break str(error): such a list stays empty.
+    expect(py).toContain('    error = ApiError(errors=[])\n    errors = body.get("errors") if isinstance(body, dict) else None\n    if isinstance(errors, list) and all(isinstance(item, dict) for item in errors):');
+    expect(py).toContain('error.status_code = response.status_code');
+    expect(py).not.toContain('body = response.json()');
+
+    const go = read(crud, 'go/client.go');
+    expect(go).toContain('if json.Unmarshal(data, &e) != nil {\n\t\te = ApiError{}\n\t}\n\te.StatusCode = resp.StatusCode');
+
+    const kt = read(crud, 'kt/Client.kt');
+    expect(kt).toContain('val decoded = runCatching { pachcaJson.decodeFromString(ApiError.serializer(), text) }.getOrNull()');
+    expect(kt).toContain('?: ApiError(errors = emptyList(), statusCode = response.status.value)');
+    expect(kt).not.toContain('response.body<ApiError>()');
+
+    const cs = read(crud, 'cs/Utils.cs');
+    expect(cs).toContain('internal static Exception ErrorFromResponse(int statusCode, string json)');
+    expect(cs).toContain('error ??= new ApiError();');
+    expect(cs).toContain('error.StatusCode = statusCode;');
+    expect(read(crud, 'cs/Client.cs')).toContain('throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);');
+
+    const swift = read(crud, 'swift/Client.swift');
+    expect(swift).toContain('func pachcaErrorFromResponse(_ statusCode: Int, _ data: Data) -> Error {');
+    expect(swift).toContain('var apiError = (try? deserialize(ApiError.self, from: data)) ?? ApiError(errors: [])');
+    expect(swift).toContain('throw pachcaErrorFromResponse(statusCode, data)');
+    expect(swift).not.toContain('URLError(.badServerResponse)\n}');
+  });
+
+  it('with both error models no runtime forces a 401 into OAuthError', () => {
+    expect(read(crud, 'ts/client.ts')).not.toContain('case 401:');
+    expect(read(crud, 'py/client.py')).not.toContain('case 401:');
+    expect(read(crud, 'go/client.go')).not.toContain('case http.StatusUnauthorized:');
+    expect(read(crud, 'kt/Client.kt')).not.toContain('401 ->');
+    expect(read(crud, 'cs/Client.cs')).not.toContain('case 401:');
+    expect(read(crud, 'swift/Client.swift')).not.toContain('case 401:');
+  });
+
+  it('with OAuthError alone a 401 that does not decode is the plain error with its status', () => {
+    expect(read(oauthOnly, 'ts/client.ts')).toContain('throw typeof body?.error === "string" ? new OAuthError(body.error) : new Error(`HTTP ${response.status}`);');
+    const py = read(oauthOnly, 'py/client.py');
+    expect(py).toContain('raise _oauth_error_from_response(response)');
+    expect(py).toContain('return RuntimeError(f"Unexpected status code: {response.status_code}")');
+    expect(read(oauthOnly, 'go/client.go')).toMatch(/case http\.StatusUnauthorized:\n\t\tvar e OAuthError\n\t\tif err := json\.NewDecoder\(resp\.Body\)\.Decode\(&e\); err != nil \{\n\t\t\treturn nil, fmt\.Errorf\("HTTP %d: %w", resp\.StatusCode, err\)/);
+    expect(read(oauthOnly, 'kt/Client.kt')).toContain('401 -> throw oauthErrorFromResponse(response)');
+    expect(read(oauthOnly, 'cs/Client.cs')).toContain('throw PachcaUtils.OAuthErrorFromResponse((int)response.StatusCode, json);');
+    expect(read(oauthOnly, 'swift/Client.swift')).toContain('throw pachcaOAuthErrorFromBody(data)');
+  });
+
+  describe('TypeScript client at runtime', () => {
+    type ApiErrorLike = Error & { status?: number; errors?: { key: string; value: string }[] };
+    type Chats = {
+      getChat(id: number): Promise<unknown>;
+      createChat(request: Record<string, unknown>): Promise<unknown>;
+      deleteChat(id: number): Promise<void>;
+    };
+    let chats: Chats;
+    let ApiError: new (...args: unknown[]) => ApiErrorLike;
+    let OAuthError: new (...args: unknown[]) => Error & { error?: string };
+    const realFetch = globalThis.fetch;
+
+    beforeAll(async () => {
+      const dir = path.join(crud, 'ts-run');
+      fs.mkdirSync(dir);
+      for (const name of ['types', 'utils', 'client']) {
+        const js = ts.transpileModule(read(crud, `ts/${name}.ts`), {
+          compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+        }).outputText;
+        fs.writeFileSync(path.join(dir, `${name}.js`), js);
+      }
+      fs.writeFileSync(path.join(dir, 'package.json'), '{"type":"module"}');
+      const client = await import(pathToFileURL(path.join(dir, 'client.js')).href);
+      ({ ApiError, OAuthError } = await import(pathToFileURL(path.join(dir, 'types.js')).href));
+      chats = new client.PachcaClient('test-token', 'https://api.test').chats;
+    });
+
+    afterEach(() => {
+      globalThis.fetch = realFetch;
+    });
+
+    function answer(status: number, body: string | null, contentType?: string): void {
+      globalThis.fetch = (async () =>
+        new Response(body, { status, headers: contentType ? { 'Content-Type': contentType } : {} })) as typeof fetch;
+    }
+
+    async function failure(call: () => Promise<unknown>): Promise<unknown> {
+      try {
+        await call();
+      } catch (error) {
+        return error;
+      }
+      throw new Error('the call did not fail');
+    }
+
+    it('reads a 404 with no body as an ApiError with the status code', async () => {
+      answer(404, null);
+      const error = (await failure(() => chats.getChat(1))) as ApiErrorLike;
+      expect(error).toBeInstanceOf(ApiError);
+      expect(error.status).toBe(404);
+      expect(error.errors).toEqual([]);
+      expect(error.message).toBe('HTTP 404');
+    });
+
+    it('reads a proxy page as an ApiError, for a call with no answer body too', async () => {
+      answer(502, '<html><body>Bad Gateway</body></html>', 'text/html');
+      const posted = (await failure(() => chats.createChat({ name: 'Отчёты' }))) as ApiErrorLike;
+      expect(posted).toBeInstanceOf(ApiError);
+      expect(posted.status).toBe(502);
+      answer(404, '<html>Not Found</html>', 'text/html');
+      const deleted = (await failure(() => chats.deleteChat(1))) as ApiErrorLike;
+      expect(deleted).toBeInstanceOf(ApiError);
+      expect(deleted.status).toBe(404);
+    });
+
+    it('keeps the errors and the status code of a JSON error body', async () => {
+      answer(422, JSON.stringify({ errors: [{ key: 'name', value: 'blank' }] }), 'application/json');
+      const error = (await failure(() => chats.getChat(1))) as ApiErrorLike;
+      expect(error).toBeInstanceOf(ApiError);
+      expect(error.status).toBe(422);
+      expect(error.errors).toEqual([{ key: 'name', value: 'blank' }]);
+    });
+
+    it('reads a 401 by its body: the OAuth form is an OAuthError, an empty body an ApiError', async () => {
+      answer(401, JSON.stringify({ error: 'invalid_token', error_description: 'Access token is missing' }), 'application/json');
+      const oauth = (await failure(() => chats.getChat(1))) as Error & { error?: string };
+      expect(oauth).toBeInstanceOf(OAuthError);
+      expect(oauth.error).toBe('invalid_token');
+      answer(401, null);
+      const empty = (await failure(() => chats.getChat(1))) as ApiErrorLike;
+      expect(empty).toBeInstanceOf(ApiError);
+      expect(empty.status).toBe(401);
+    });
+
+    it('still parses the success answer', async () => {
+      answer(200, JSON.stringify({ data: { id: 7, name: 'Отчёты' } }), 'application/json');
+      expect(await chats.getChat(7)).toMatchObject({ id: 7, name: 'Отчёты' });
+    });
   });
 });

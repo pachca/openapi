@@ -1,9 +1,15 @@
 # Changelog
 
-## 1.4.0 (2026-10-27)
+## 1.4.0 (2026-10-28)
 
-Tool texts follow what the server actually does; schema_version stays 1.2.0.
+Tools for the «Important» section, making an employee a guest, and tool texts that follow what the server actually does; schema_version stays 1.2.0.
 
+- Tools `pachca_list_important_messages`, `pachca_add_message_to_important` and `pachca_remove_message_from_important`: the caller's own «Important» section, in every audience but `bot`; adding is not destructive, removing is. `pachca_get_token_info` names the scopes `important_messages:read` and `important_messages:write`.
+- `pachca_update_user`: `role` takes `guest` together with the new `chat_ids` argument, and the description says what making a person a guest takes away (tags, other conversations and channels, every token, answering `401`).
+- Message outputs carry `important`, left out of the compact card.
+- `pachca_create_chat`: the output `meta` carries `not_found_group_tag_ids`, and unknown tags no longer read as skipped silently.
+- `GET /webhooks/events/stream` is no tool: its answer is a link that only a program holding a connection can use, and it opens the bot's events with no token.
+- Field and tool texts follow the server: `name` of `pachca_create_chat`, `emoji` of the status tools, `files` and `name` of `pachca_update_message`, `content` of the message and draft tools (one limit, 40,000 bytes), `pachca_download_file` (a virus), `pachca_create_bot` and `pachca_self_update_bot_webhook` (`400 forbidden`), `pachca_rotate_bot_client_secret` (`400 invalid`), `pachca_recreate_bot_token` and `pachca_rotate_bot_client_secret` (webhook credentials in the answer), the `webhook` fields of a bot in every bot output (they come in an answer about a single bot to a token with `bots:write` that can manage its tokens), `pachca_create_task` (the calendar event invites the assignees), `pachca_create_unattached_thread`, `pachca_remove_member` and `pachca_delete_message` (the owner of an unattached thread and workspace admins added to it), `pachca_get_chat` and `pachca_mark_chat_unread` (`404` for another workspace), `pachca_request_export` (`too_long`, `invalid`, which rejections start no pause), `pachca_create_tag` and `pachca_update_tag` (`blank`), `limit` and `filters` of search audit details (`limit` now nullable), `reason` of token audit details.
 - `pachca_list_chats` and `pachca_list_chat_messages`: `order` takes effect only together with `sort`, so oldest first is `sort=id` with `order=asc`.
 - `pachca_add_reaction` and `pachca_remove_reaction`: `name` is the name of a custom emoji of the workspace, a name the workspace does not have answers `404`, and `code` must be the emoji character only without `name`.
 - `pachca_create_draft` and `pachca_update_draft`: a repeating schedule takes hour, minute and weekday from `start_date` as written and runs on UTC, so a repetition is written in UTC and `next_send_at` is checked; a single send honours the offset.
@@ -15,7 +21,8 @@ Tool texts follow what the server actually does; schema_version stays 1.2.0.
 - `pachca_get_upload_params`: a key is checked against its owner only in drafts.
 - `pachca_send_message`, `pachca_update_message`, `pachca_create_draft` and `pachca_update_draft`: a file passed by key without `size` gets its size from storage after the save, so a reader who got the message before that may see 0 KB; the file record of a message or a draft carries no size to copy.
 - `pachca_delete_task`: the calendar event goes away with the task only when its author deletes it; after an assignee deletes it, the event can stay in the author's calendar.
-- `pachca_get_message`, `pachca_get_task`, `pachca_create_bot` and `pachca_update_bot` carry the corrected field texts of their models: `root_chat_id` of a message in a standalone thread equals `chat_id`, `all_day`, and the rules for `redirect_uris`.
+- Every tool that takes or returns a message, a task or a bot carries the corrected field texts of its model: `root_chat_id` of a message in a standalone thread equals `chat_id`, `all_day`, and the rules for `redirect_uris`.
+- The instructions say when the model asks before a change: its target is a guess, it cannot be undone while a reversible step would do, it touches many objects at once, or it sends words the model chose for the person; any other change it carries out, and the client asks its own approval.
 
 ## 1.3.0 (2026-10-22)
 

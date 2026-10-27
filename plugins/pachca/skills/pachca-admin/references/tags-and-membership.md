@@ -45,12 +45,13 @@ nothing. Conditions: [bot settings](https://dev.pachca.com/guides/bots/settings.
 
 At creation pass `group_tag_ids` to the new chat; for an existing chat use
 `pachca_add_tags_to_chat` (CLI `pachca members add-group-tags`). Binding takes
-effect in the same request. At creation an unknown tag id is skipped silently:
-the chat is still created, without that tag, so check the new chat's
-`group_tag_ids`. On an existing chat, if any tag id is not found,
-`pachca_add_tags_to_chat` returns `404` and binds none. A tag already bound is
-not bound twice, but its members are still loaded into the chat. Current tags
-of a chat are in `group_tag_ids`.
+effect in the same request. At creation an id that is not a tag of the
+workspace does not stop the request: the chat is created with the other tags,
+and such ids come back in `meta.not_found_group_tag_ids` (an empty array when
+every tag was bound). Report them. On an existing chat, if any tag id is not
+found, `pachca_add_tags_to_chat` returns `404` and binds none. A tag already
+bound is not bound twice, but its members are still loaded into the chat.
+Current tags of a chat are in `group_tag_ids`.
 
 Prefer a tag over adding a department member by member: the chat then follows
 the team on its own.
@@ -88,8 +89,9 @@ delete it earlier, everyone stays in the chat as an ordinary member.
 
 When a tag is created (`pachca_create_tag`) or renamed (`pachca_update_tag`),
 the name must be up to 255 characters, unique in the workspace regardless of
-case, without `@`, and not `here` or `all`. Create and rename store the name
-exactly as sent, so trim it first. A taken name returns `400` with `taken`
+case, without `@`, and not `here` or `all`. An empty name or one of only
+spaces returns `400` with `blank`. Create and rename store the name exactly as
+sent, so trim it first. A taken name returns `400` with `taken`
 (`409` only for a simultaneous duplicate). Renaming keeps members and bindings.
 
 Names sent in `list_tags` are trimmed at the edges, and repeats that differ
@@ -127,7 +129,8 @@ and keeps their current role, even the Owner, so confirm the result with the
 member list filtered by `role=admin` (`pachca_list_members`). Any employee can
 add them to an open chat; in a closed chat only a participant who is not a
 guest or multi-guest can. A closed chat with no such active participant left
-cannot get anyone via the API.
+takes new people only through a tag already bound to it: giving the Owner or
+an Administrator that tag brings them in as chat Admin.
 
 ## Workspace inventory
 

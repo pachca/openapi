@@ -42,6 +42,10 @@
   "BotOperations_getWebhookEvents_pollWebhookPayloads": {
     "usage": "for try await payload in client.bots.pollWebhookPayloads(interval: 5) {\n    print(payload)\n}"
   },
+  "BotOperations_getWebhookEventsStream": {
+    "usage": "let response = try await client.bots.getWebhookEventsStream()",
+    "output": "WebhookEventsStream(url: String, expiresAt: String)"
+  },
   "BotOperations_selfRecreateBotToken": {
     "usage": "let response = try await client.bots.selfRecreateBotToken()",
     "output": "BotSelfTokenResponse(id: Int, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Bool, redirectUris: [String], scopes: [String])?, webhook: BotSelfWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd), accessToken: String)"
@@ -154,7 +158,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "let request = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"🤿 aqua\",\n        memberIds: [123],\n        groupTagIds: [123],\n        channel: true,\n        `public`: false\n    )\n)\nlet response = try await client.chats.createChat(request: request)",
-    "output": "CreateChatResponse(data: Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String, avatarUrl: String?), meta: CreateChatResponseMeta(notFoundMemberIds: [Int]))",
+    "output": "CreateChatResponse(data: Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String, avatarUrl: String?), meta: CreateChatResponseMeta(notFoundMemberIds: [Int], notFoundGroupTagIds: [Int]))",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -322,6 +326,16 @@
   "GroupTagOperations_deleteTag": {
     "usage": "try await client.groupTags.deleteTag(id: 9111)"
   },
+  "ImportantMessageOperations_listImportantMessages": {
+    "usage": "let response = try await client.importantMessages.listImportantMessages(limit: 25, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListImportantMessagesResponse(data: [Message], meta: PaginationMeta)"
+  },
+  "ImportantMessageOperations_addMessageToImportant": {
+    "usage": "try await client.importantMessages.addMessageToImportant(messageId: 194275)"
+  },
+  "ImportantMessageOperations_removeMessageFromImportant": {
+    "usage": "try await client.importantMessages.removeMessageFromImportant(id: 194275)"
+  },
   "ChatMessageOperations_listChatMessages": {
     "usage": "let response = try await client.messages.listChatMessages(chatId: 198, sort: .id, order: .desc, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "ListChatMessagesResponse(data: [Message], meta: PaginationMeta)",
@@ -332,11 +346,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "let response = try await client.messages.getMessage(id: 194275)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)"
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool)"
   },
   "MessageOperations_createMessage": {
     "usage": "let request = MessageCreateRequest(\n    message: MessageCreateRequestMessage(\n        entityType: .discussion,\n        entityId: 334,\n        content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files: [MessageCreateRequestFile(\n            key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name: \"logo.png\",\n            fileType: .image,\n            size: Int64(12345),\n            width: 800,\n            height: 600,\n            durationMs: 5400,\n            waveform: \"4,8,12,20,16,10,6,3\"\n        )],\n        buttons: [[Button(\n            text: \"Подробнее\",\n            url: \"https://example.com/details\",\n            data: \"awesome\"\n        )]],\n        parentMessageId: 194270,\n        displayAvatarUrl: \"https://example.com/avatar.png\",\n        displayName: \"Бот Поддержки\",\n        skipInviteMentions: false\n    ),\n    linkPreview: false\n)\nlet response = try await client.messages.createMessage(request: request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool)",
     "imports": [
       "Button",
       "FileType",
@@ -359,7 +373,7 @@
   },
   "MessageOperations_updateMessage": {
     "usage": "let request = MessageUpdateRequest(\n    message: MessageUpdateRequestMessage(\n        content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files: [MessageUpdateRequestFile(\n            key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name: \"logo.png\",\n            fileType: .image,\n            size: Int64(12345),\n            width: 800,\n            height: 600,\n            durationMs: 5400,\n            waveform: \"4,8,12,20,16,10,6,3\"\n        )],\n        buttons: [[Button(\n            text: \"Подробнее\",\n            url: \"https://example.com/details\",\n            data: \"awesome\"\n        )]],\n        displayAvatarUrl: \"https://example.com/avatar.png\",\n        displayName: \"Бот Поддержки\"\n    )\n)\nlet response = try await client.messages.updateMessage(id: 194275, request: request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool)",
     "imports": [
       "Button",
       "FileType",
@@ -535,7 +549,7 @@
     ]
   },
   "UserOperations_updateUser": {
-    "usage": "let request = UserUpdateRequest(\n    user: UserUpdateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegpetrov@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Отдел разработки\",\n        title: \"Старший разработчик\",\n        role: .user,\n        suspended: false,\n        listTags: [\"example\"],\n        customProperties: [UserUpdateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    )\n)\nlet response = try await client.users.updateUser(id: 12, request: request)",
+    "usage": "let request = UserUpdateRequest(\n    user: UserUpdateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegpetrov@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Отдел разработки\",\n        title: \"Старший разработчик\",\n        role: .user,\n        chatIds: [123],\n        suspended: false,\n        listTags: [\"example\"],\n        customProperties: [UserUpdateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    )\n)\nlet response = try await client.users.updateUser(id: 12, request: request)",
     "output": "User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)",
     "imports": [
       "UserRoleInput",

@@ -77,24 +77,31 @@ pachca chats download-export 123 --save ./export.zip
 
 ## Пагинация
 
-Pachca использует cursor-based пагинацию. CLI предоставляет три способа навигации:
+Pachca использует cursor-based пагинацию. Команды списков принимают флаги `--limit`, `--cursor` и `--all`:
 
 ```bash
 # Первая страница (по умолчанию)
 pachca users list --limit 20
 
-# Следующая страница вручную
-pachca users list --cursor eyJpZCI6NTB9
-
 # Загрузить все страницы автоматически
 pachca users list --all
 ```
 
-При `--all` CLI показывает прогресс загрузки в stderr, а финальный результат выводит в stdout единым массивом.
+При `--all` CLI проходит все страницы сам и выводит записи в stdout единым массивом. В терминале он показывает прогресс загрузки в stderr.
 
-В API существует **две группы методов с пагинацией**, у которых разная структура `meta` в JSON-выводе:
+Без `--all` команда выводит только записи страницы, массив `data`. Блок `meta` с курсорами она не показывает, поэтому курсор следующей страницы берут из полного ответа [прямого запроса](/guides/cli/api-requests) `pachca api`:
+
+```bash
+# Полный ответ с meta: курсор следующей страницы
+pachca api GET /users --query limit=20 | jq -r '.meta.paginate.next_page'
+
+# Следующая страница по этому курсору
+pachca users list --limit 20 --cursor <next_page>
+```
+
+В API существует **две группы методов с пагинацией**, у которых разная структура `meta` в ответе:
 
 - **Списочные методы** (`pachca users list`, `pachca chats list`, `pachca messages list` и т.д.) — `meta.paginate` с полями `next_page`, `prev_page`, `has_next`, `has_prev`. Признак конца — `has_next: false`.
-- **Методы поиска** (`pachca search list-users`, `pachca search list-chats`, `pachca search list-messages`) — `meta` с полями `total` и `paginate.next_page` (без `prev_page`/`has_next`/`has_prev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
+- **Методы поиска** (`pachca search list-users`, `pachca search list-chats`, `pachca search list-messages`) — `meta` с полями `total` и `paginate.next_page` (без `prev_page`/`has_next`/`has_prev`). Признак конца — пустой `data`. По `total` конец не определяют: в поиске сообщений по дате он с каждой страницей считает только оставшиеся совпадения.
 
 Подробнее — в разделе [Пагинация](/api/pagination).

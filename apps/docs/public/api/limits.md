@@ -19,13 +19,16 @@
 **Отправка сообщений — ~4 запроса / 1 секунда** Считается отдельно по `entity_id`. Действует на `POST /messages`. Считаем по токену авторизации (заголовок `HTTP_AUTHORIZATION`), отдельно по каждому `entity_id` из тела запроса — то есть по беседе, треду или собеседнику, кому пишете. Дополнительно действует общий предел по всем адресатам сразу — 30 запросов за 5 секунд: он допускает короткие ускорения выше посекундного лимита, но не даёт держать такой темп долго. Изменение и удаление сообщений под этот лимит не подпадают и работают в рамках общего.
 
 
-**Чтение сообщений — ~10 запросов / 1 секунда** Действует на методы чтения, путь которых начинается с `/messages`: список сообщений, отдельное сообщение, его реакции и список прочитавших. Считаем по токену авторизации (заголовок `HTTP_AUTHORIZATION`). Один токен — один лимит.
+**Чтение сообщений — ~10 запросов / 1 секунда** Действует на методы чтения, путь которых начинается с `/messages` (список сообщений, отдельное сообщение, его реакции и список прочитавших), и на список важных сообщений `GET /important_messages`. Счётчик у них общий. Считаем по токену авторизации (заголовок `HTTP_AUTHORIZATION`). Один токен — один лимит.
+
+
+**Добавление в важные и удаление из важных — ~30 запросов / 5 секунд** Действует на `POST /important_messages` и `DELETE /important_messages/{id}`. Считаем по токену авторизации.
 
 
 **Остальные методы API — ~50 запросов / 1 секунда** Считаем по токену авторизации (заголовок `HTTP_AUTHORIZATION`). Один токен — один лимит.
 
 
-**Чтение истории событий бота — ~5 запросов / 2 секунды** Действует на `GET /webhooks/events`. Считаем по токену авторизации.
+**Чтение истории событий бота — ~5 запросов / 2 секунды** Действует на `GET /webhooks/events` и `GET /webhooks/events/stream`, счётчик у них общий. Считаем по токену авторизации. События, которые приходят по ссылке на поток, в лимит не входят: считается только запрос ссылки.
 
 
 **Инвентаризация пространства — ~30 запросов / 1 минута** Действует на `GET /company/chats` и `GET /company/bots`. Считаем по токену авторизации. Лимит заметно строже общего: при странице в 50 записей за минуту получится обойти около 1500 чатов или ботов.
@@ -64,7 +67,7 @@
 
 ## Повторные запросы (Retry)
 
-[SDK](/guides/sdk/overview) ([TypeScript](/guides/sdk/typescript), [Python](/guides/sdk/python)), CLI и нода n8n повторяют запрос сами, поэтому их вызовы во второй цикл повторов не оборачивайте: ошибки SDK не содержат HTTP-статуса, и такой цикл ничего не распознает. Ниже — реализация для кастомных HTTP-клиентов.
+[SDK](/guides/sdk/overview) ([TypeScript](/guides/sdk/typescript), [Python](/guides/sdk/python)), CLI и нода n8n повторяют запрос сами, поэтому их вызовы во второй цикл повторов не оборачивайте: каждая внешняя попытка снова запустит их собственные повторы. Ниже — реализация для кастомных HTTP-клиентов.
 
 Если пишете свой клиент, соблюдайте три правила.
 
@@ -72,7 +75,7 @@
 
 **Не повторяйте долгие паузы.** `Retry-After` дольше минуты приходит только там, где повтор не поможет: суточный предел сообщений в чат и блокировка отправки при перегрузке. Повтор внутри такой паузы бесполезен, а у суточного предела ещё и продлевает её, пока квота за 24 часа выбрана: каждая попытка поднимает срок на ступень, от часа до суток. Отдайте ошибку вызывающему коду вместе с `Retry-After`, и пусть он вернётся к работе позже. Наши клиенты такие ответы не повторяют и сразу отдают ошибку.
 
-**Повторяйте `5xx` только для идемпотентных методов.** Запросы GET, PUT и DELETE можно повторить без побочных эффектов. Запрос POST сервер мог выполнить до сбоя, и повтор `POST /messages` отправит сообщение дважды.
+**Повторяйте `5xx` только для идемпотентных методов.** Запросы GET, PUT и DELETE можно повторить без побочных эффектов. Запрос POST сервер мог выполнить до сбоя, и повтор `POST /messages` отправит сообщение дважды. Исключение — `504` с кодом `timeout`: так отвечают методы поиска и [Список сотрудников](/api/users/list) с параметром `query`, когда запрос не уложился по времени. Тот же запрос, скорее всего, снова не уложится, поэтому его не повторяют, а сужают: короче период, меньше чатов, точнее фраза.
 
 ### TypeScript
 
@@ -82,6 +85,12 @@ const IDEMPOTENT = new Set(["GET", "PUT", "DELETE"])
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 // Джиттер только вверх: ждать меньше Retry-After нельзя
 const withJitter = (ms: number) => ms * (1 + Math.random() * 0.25)
+// 504 с кодом timeout: поиск не уложился по времени, повтор не поможет
+const isSearchTimeout = async (response: Response) =>
+  response.status === 504 &&
+  ((await response.clone().json().catch(() => null))?.errors ?? []).some(
+    (e: { code?: string }) => e.code === "timeout"
+  )
 
 async function fetchWithRetry(
   url: string,
@@ -101,7 +110,7 @@ async function fetchWithRetry(
       continue
     }
     // 5xx повторяем только у идемпотентных методов: повтор POST может создать дубль
-    if (RETRYABLE_5XX.has(response.status) && IDEMPOTENT.has(method)) {
+    if (RETRYABLE_5XX.has(response.status) && IDEMPOTENT.has(method) && !(await isSearchTimeout(response))) {
       await sleep(withJitter(1000 * 2 ** attempt))
       continue
     }
@@ -132,6 +141,16 @@ def with_jitter(seconds: float) -> float:
     return seconds * (1 + random.random() * 0.25)
 
 
+def is_search_timeout(response: httpx.Response) -> bool:
+    # 504 с кодом timeout: поиск не уложился по времени, повтор не поможет
+    if response.status_code != 504:
+        return False
+    try:
+        return any(e.get("code") == "timeout" for e in response.json().get("errors", []))
+    except ValueError:
+        return False
+
+
 def request_with_retry(client: httpx.Client, method: str, url: str, max_retries: int = 3, **kwargs) -> httpx.Response:
     for attempt in range(max_retries + 1):
         response = client.request(method, url, **kwargs)
@@ -146,7 +165,7 @@ def request_with_retry(client: httpx.Client, method: str, url: str, max_retries:
             time.sleep(with_jitter(retry_after or 2 ** attempt))
             continue
         # 5xx повторяем только у идемпотентных методов: повтор POST может создать дубль
-        if response.status_code in RETRYABLE_5XX and method.upper() in IDEMPOTENT:
+        if response.status_code in RETRYABLE_5XX and method.upper() in IDEMPOTENT and not is_search_timeout(response):
             time.sleep(with_jitter(2 ** attempt))
             continue
         return response
@@ -166,7 +185,8 @@ with httpx.Client(
 | --- | --- | --- |
 | `429` с `Retry-After` до минуты | Повторить | Не меньше `Retry-After`, без заголовка — 1 с, 2 с, 4 с |
 | `429` с `Retry-After` дольше минуты | **Не повторять** | Отдать ошибку вызывающему коду вместе с `Retry-After` |
-| `500`, `502`, `503`, `504` | Повторить только GET, PUT и DELETE | Exponential backoff: 1 с, 2 с, 4 с |
+| `500`, `502`, `503` и `504` без кода `timeout` | Повторить только GET, PUT и DELETE | Exponential backoff: 1 с, 2 с, 4 с |
+| `504` с кодом `timeout` | **Не повторять** | Сузить запрос: короче период, меньше чатов, точнее фраза |
 | `400`, `401`, `403`, `404`, `422` | **Не повторять** | Ошибка клиента — нужно [исправить запрос](/api/errors) |
 
 > Максимум **3 повтора** на каждый запрос. Jitter (случайная добавка до 25% сверху к задержке) предотвращает «thundering herd» при массовых 429 и никогда не сокращает ожидание меньше `Retry-After`.

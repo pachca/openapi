@@ -24,7 +24,7 @@ Or install from archive (Docker, custom n8n images):
 # Download from GitHub Releases
 # Find the latest n8n-nodes-pachca.tgz at:
 # https://github.com/pachca/openapi/releases?q=n8n
-wget https://github.com/pachca/openapi/releases/download/n8n-v2.2.1/n8n-nodes-pachca.tgz
+wget https://github.com/pachca/openapi/releases/download/n8n-v2.2.2/n8n-nodes-pachca.tgz
 
 # Via npm (recommended)
 cd ~/.n8n/nodes && npm install ./n8n-nodes-pachca.tgz
@@ -39,28 +39,29 @@ tar -xzf n8n-nodes-pachca.tgz -C ~/.n8n/nodes/
 
 ### Pachca
 
-Main node for interacting with the Pachca API. Supports 18 resources and 65+ operations:
+Main node for interacting with the Pachca API. Supports 19 resources and 100+ operations:
 
-| Resource        | Operations                                                                            |
-| --------------- | ------------------------------------------------------------------------------------- |
-| Bot             | Update, Get Many Events, Remove Events                                                |
-| Chat            | Create, Get, Get Many, Update, Archive, Unarchive                                     |
-| Chat Export     | Create, Get                                                                           |
-| Chat Member     | Get Many, Create, Delete, Update, Leave, Add/Remove Group Tags                        |
-| Custom Property | Get                                                                                   |
-| File            | Create (S3 two-stage upload)                                                          |
-| Form            | Create (visual builder, templates, or JSON)                                           |
-| Group Tag       | Create, Get, Get Many, Update, Delete, Get Many Users                                 |
-| Link Preview    | Create                                                                                |
-| Message         | Create, Get, Get Many, Update, Delete, Pin, Unpin                                     |
-| Profile         | Get Info, Get, Update/Delete Avatar, Get/Update/Delete Status                         |
-| Reaction        | Create, Delete, Get Many                                                              |
-| Read Member     | Get Many                                                                              |
-| Search          | Chats, Messages, Users                                                                |
-| Security        | Get Many                                                                              |
-| Task            | Create, Get, Get Many, Update, Delete                                                 |
-| Thread          | Create, Get                                                                           |
-| User            | Create, Get, Get Many, Update, Delete, Update/Delete Avatar, Get/Update/Delete Status |
+| Resource          | Operations                                                                                                                                                                                                                                                           |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bot               | Create, Get, Get Many, Update, Delete, Update/Delete Avatar, Update Webhook, Recreate Token, Recreate Token Self, Rotate Client Secret, Get Many/Create/Update/Reissue/Delete Token, Get Scopes, Get Many Events, Remove Events, Get Stream, Get Many Workspace Bots |
+| Chat              | Create, Get, Get Many, Update, Archive, Unarchive, Update/Delete Avatar, Mark Unread, Request Export, Download Export, Get Many Workspace Chats                                                                                                                      |
+| Chat Member       | Get Many, Create, Delete, Update, Leave, Add/Remove Group Tags                                                                                                                                                                                                       |
+| Custom Property   | Get                                                                                                                                                                                                                                                                  |
+| Draft             | Create, Get, Get Many, Update, Delete                                                                                                                                                                                                                                |
+| File              | Create (S3 two-stage upload), Get                                                                                                                                                                                                                                    |
+| Form              | Create (visual builder, templates, or JSON), Submit Response                                                                                                                                                                                                         |
+| Group Tag         | Create, Get, Get Many, Update, Delete, Get Many Users                                                                                                                                                                                                                |
+| Important Message | Get Many, Create, Delete                                                                                                                                                                                                                                             |
+| Message           | Create, Get, Get Many, Update, Delete, Pin, Unpin, Unfurl                                                                                                                                                                                                            |
+| OAuth             | Get Info                                                                                                                                                                                                                                                             |
+| Profile           | Get, Update/Delete Avatar, Get/Update/Delete Status                                                                                                                                                                                                                  |
+| Reaction          | Create, Delete, Get Many                                                                                                                                                                                                                                             |
+| Read Member       | Get Many Read Member IDs                                                                                                                                                                                                                                             |
+| Search            | Get Many Chats, Get Many Messages, Get Many Users                                                                                                                                                                                                                    |
+| Security          | Get Many                                                                                                                                                                                                                                                             |
+| Task              | Create, Get, Get Many, Update, Delete                                                                                                                                                                                                                                |
+| Thread            | Create, Create Standalone, Get, Get Many                                                                                                                                                                                                                             |
+| User              | Create, Get, Get Many, Update, Delete, Update/Delete Avatar, Get/Update/Delete Status                                                                                                                                                                                |
 
 ### Pachca Trigger
 
@@ -157,7 +158,8 @@ Both nodes have `usableAsTool: true` — they can be used as tools for AI Agent 
 
 ### Error Handling
 
-- **5xx/429 retry** — exponential backoff with jitter, respects `Retry-After` header (up to 5 attempts)
+- **429 retry** — waits for the `Retry-After` header, up to 3 retries; a `Retry-After` over a minute (daily chat cap or overload block) fails at once
+- **5xx retry** — 500, 502, 503 and 504 on `GET`, `PUT` and `DELETE` only, exponential backoff with jitter, up to 3 retries; a `POST` (send, create) is never retried after a 5xx, and a 504 with code `timeout` (search did not finish) fails at once
 - **continueOnFail** — supported on all operations
 
 ## v1 Compatibility

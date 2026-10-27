@@ -132,6 +132,9 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Reactions.AddReaction()` | [Добавление реакции](/api/reactions/add) |
 | `client.Reactions.ListReactions()` | [Список реакций](/api/reactions/list) |
 | `client.Reactions.RemoveReaction()` | [Удаление реакции](/api/reactions/remove) |
+| `client.ImportantMessages.AddMessageToImportant()` | [Добавление сообщения в важные](/api/important-messages/create) |
+| `client.ImportantMessages.ListImportantMessages()` | [Список важных сообщений](/api/important-messages/list) |
+| `client.ImportantMessages.RemoveMessageFromImportant()` | [Удаление сообщения из важных](/api/important-messages/delete) |
 | `client.Search.SearchChats()` | [Поиск чатов](/api/search/list-chats) |
 | `client.Search.SearchMessages()` | [Поиск сообщений](/api/search/list-messages) |
 | `client.Search.SearchUsers()` | [Поиск сотрудников](/api/search/list-users) |
@@ -159,6 +162,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Bots.GetWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.Bots.GetBotScopes()` | [Каталог прав бота](/api/bots/list-scopes) |
 | `client.Bots.ListBotTokens()` | [Список токенов бота](/api/bots/list-tokens) |
+| `client.Bots.GetWebhookEventsStream()` | [Поток событий](/api/bots/get-stream) |
 | `client.Bots.SelfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.Bots.UpdateBotAvatar()` | [Загрузка аватара бота](/api/bots/update-avatar) |
@@ -216,7 +220,7 @@ request := ChatCreateRequest{
 	},
 }
 response, err := client.Chats.CreateChat(ctx, request)
-// → CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32}}
+// → CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32, NotFoundGroupTagIDs: []int32}}
 ```
 
 
@@ -335,6 +339,8 @@ if err != nil {
 | `Code` | `ValidationErrorCode` | Код валидации |
 | `Payload` | `*string` | Дополнительные данные |
 
+Код статуса ответа — в поле `StatusCode`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже возвращает `*ApiError`: с кодом статуса и пустым `Errors`. Так бывает с ответом `404` без тела от метода [Поток событий](/api/bots/get-stream), когда история событий выключена, и со страницей прокси при `502`.
+
 ### OAuthError
 
 Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
@@ -350,15 +356,18 @@ if err != nil {
 }
 ```
 
-Поле `Err` — перечисление `OAuthErrorCode`: его сравнивают с константой, например `pachca.OAuthErrorCodeInsufficientScope`, а строкой оно становится через `string(oauthErr.Err)`. Если тело ответа `401` не разбирается, SDK возвращает обычную ошибку с текстом `HTTP 401: …`.
+Поле `Err` — перечисление `OAuthErrorCode`: его сравнивают с константой, например `pachca.OAuthErrorCodeInsufficientScope`, а строкой оно становится через `string(oauthErr.Err)`. Если у ответа `401` нет тела в формате OAuth, SDK возвращает `*ApiError` с кодом статуса `401`.
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
+SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
 - **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
 - **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
+- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
+- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
 - Тело запроса пересоздаётся через `req.GetBody()` при каждой попытке
 - Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
@@ -428,7 +437,7 @@ request := MessageCreateRequest{
 	LinkPreview: Ptr(false),
 }
 response, err := client.Messages.CreateMessage(ctx, request)
-// → Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}
+// → Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool}
 
 // Список сотрудников
 params := &ListUsersParams{

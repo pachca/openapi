@@ -7,6 +7,15 @@ import {
 } from "./types.js";
 import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
 
+/** The body of an error answer, or undefined when it is empty or not JSON (a 404 without a body, a proxy page). */
+async function errorBody(response: Response): Promise<any> {
+  try {
+    return JSON.parse(await response.text());
+  } catch {
+    return undefined;
+  }
+}
+
 export class ExportService {
   async listEvents(params: ListEventsParams): Promise<ListEventsResponse> {
     throw new Error("Export.listEvents is not implemented");
@@ -34,12 +43,13 @@ export class ExportServiceImpl extends ExportService {
     const response = await fetchWithRetry(`${this.baseUrl}/events?${query}`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListEventsResponse;
+      }
       default:
-        throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
+        throw new Error(`HTTP ${response.status}`);
     }
   }
 
@@ -49,14 +59,17 @@ export class ExportServiceImpl extends ExportService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("ExportRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 201:
+      case 201: {
+        const body = await response.json();
         return deserializeType("Export", body.data) as Export;
-      case 401:
-        throw new OAuthError(body.error);
+      }
+      case 401: {
+        const body = await errorBody(response);
+        throw typeof body?.error === "string" ? new OAuthError(body.error) : new Error(`HTTP ${response.status}`);
+      }
       default:
-        throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
+        throw new Error(`HTTP ${response.status}`);
     }
   }
 }

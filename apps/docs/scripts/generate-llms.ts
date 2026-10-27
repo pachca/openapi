@@ -418,10 +418,10 @@ function generateLibraryRules(): string {
 
 ## Rate limits
 - Sending messages (POST /messages): about 4 per second per chat, 30 requests per 5 seconds across all chats, and 7,500 messages per chat per rolling day from one sender. Hitting the daily cap pauses that chat for an hour and every further attempt doubles the pause. Editing and deleting messages fall under the general limit
-- Reading messages (GET methods under /messages): about 10 per second per token. Event history (GET /webhooks/events): about 5 per 2 seconds per token. Other endpoints: about 50 per second per token
+- Reading messages (GET methods under /messages and GET /important_messages, one shared counter): about 10 per second per token. Marking and unmarking important (POST and DELETE /important_messages): about 30 per 5 seconds per token. Event history (GET /webhooks/events and GET /webhooks/events/stream): about 5 per 2 seconds per token. Other endpoints: about 50 per second per token
 - Incoming webhooks: about 10 per second per webhook id (counted by the identifier in the path, e.g. \`/webhooks/user123\`)
 - A \`429\` comes as ordinary JSON with the code \`rate_limit\` and a \`Retry-After\` header, from the per-second limits and the daily cap alike. Incoming webhooks answer \`429\` with plain text
-- Retries: never wait less than \`Retry-After\` and add jitter upward only. Do not retry pauses longer than a minute (the daily cap, overload protection): return the error with \`Retry-After\` instead. Retry \`5xx\` with exponential backoff and jitter, at most 3 times. The SDK (@pachca/sdk, pachca-sdk), CLI and n8n node retry by themselves
+- Retries: never wait less than \`Retry-After\` and add jitter upward only. Do not retry pauses longer than a minute (the daily cap, overload protection): return the error with \`Retry-After\` instead. Retry \`500\`, \`502\`, \`503\` and \`504\` with backoff and jitter, at most 3 times, and only for \`GET\`, \`HEAD\`, \`OPTIONS\`, \`PUT\` and \`DELETE\`: a \`POST\` after a \`5xx\` may already be applied, so it is never retried blind. A \`504\` with the code \`timeout\` is a search that did not finish in time: it comes back at once, and the same query would time out again. The SDK (@pachca/sdk, pachca-sdk), CLI and n8n node retry by these rules themselves
 
 ## Pagination
 - Cursor-based: use \`limit\` (1–50, default 50) and \`cursor\` query parameters. Always set \`limit\` explicitly — do not rely on the default
@@ -468,8 +468,8 @@ function generateLibraryRules(): string {
 - \`404\`: not found
 - \`409\`: conflict (duplicate)
 - \`422\`: unprocessable — \`{ errors: [{ key, value, message, code }] }\`
-- \`429\`: rate limited — respect \`Retry-After\` header, use exponential backoff with jitter
-- SDK auto-retries \`429\` and \`5xx\` errors (3 attempts with exponential backoff)
+- \`429\`: rate limited — wait at least \`Retry-After\` and add jitter upward only, back off exponentially when the header is missing
+- SDK auto-retries \`429\` on every method after \`Retry-After\`, when the pause is a minute or shorter. \`500\`, \`502\`, \`503\` and \`504\` are retried only for \`GET\`, \`HEAD\`, \`OPTIONS\`, \`PUT\` and \`DELETE\`, never for \`POST\`. A \`504\` with the code \`timeout\` (the search did not finish in time) comes back at once. At most 3 retries
 
 ## Idempotency and Reliability
 - Pachca API operations are NOT idempotent by default — duplicate POST requests create duplicate resources
@@ -890,7 +890,7 @@ for (const event of events.data) {
   // Q5: Rate limiting + retry
   content += `## How to handle rate limits and implement retry logic
 
-Both SDKs handle retry automatically — 3 retries with exponential backoff for \`429\` and \`5xx\` errors. No extra code needed:
+Both SDKs handle retry automatically, at most 3 retries. \`429\` is retried on every method after \`Retry-After\`, when the pause is a minute or shorter. \`500\`, \`502\`, \`503\` and \`504\` are retried with backoff only for \`GET\`, \`HEAD\`, \`OPTIONS\`, \`PUT\` and \`DELETE\`: a \`POST\` (sending a message, creating a chat) is never retried after a \`5xx\`, because it may already be applied. A \`504\` with the code \`timeout\` (the search did not finish in time) comes back at once. No extra code needed:
 
 ### TypeScript SDK
 \`\`\`typescript
@@ -898,18 +898,18 @@ import { PachcaClient, ApiError } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
-// SDK retries 429 and 5xx automatically (3 attempts, exponential backoff)
+// SDK retries 429 on every method, and 500/502/503/504 on GET, HEAD, OPTIONS, PUT and DELETE
 // Just call methods normally — retries are transparent
 const users = await client.users.listUsersAll()
 
-// If all retries are exhausted, ApiError is thrown
+// A POST is not retried after a 5xx: ApiError is thrown at once, and the message may already be sent
 try {
   await client.messages.createMessage({
     message: { entityId: 12345, content: "Hello" }
   })
 } catch (error) {
   if (error instanceof ApiError) {
-    // After 3 retries, the error is surfaced — check error.errors for details
+    // After a 429 the error comes when the retries run out or the pause is longer than a minute — check error.errors for details
     for (const e of error.errors ?? []) {
       console.error(e.key, e.message)
     }
@@ -924,15 +924,15 @@ from pachca.models import ApiError
 
 client = PachcaClient("YOUR_TOKEN")
 
-# SDK retries 429 and 5xx automatically (3 attempts, exponential backoff)
+# SDK retries 429 on every method, and 500/502/503/504 on GET, HEAD, OPTIONS, PUT and DELETE
 # Just call methods normally — retries are transparent
 users = await client.users.list_users_all()
 
-# If all retries are exhausted, ApiError is raised
+# A POST is not retried after a 5xx: ApiError is raised at once, and the message may already be sent
 try:
     await client.messages.create_message(request)
 except ApiError as e:
-    # After 3 retries, the error is surfaced — check e.errors for details
+    # After a 429 the error comes when the retries run out or the pause is longer than a minute — check e.errors for details
     for err in e.errors:
         print(err.key, err.message)
 \`\`\`
@@ -943,7 +943,7 @@ Rate limits by endpoint category:
 - All other endpoints: ~50 req/sec per token
 - Webhook events read (GET /webhooks/events): ~5 req / 2 sec per token
 - Incoming webhooks: ~10 req/sec per webhook id (counted by path identifier)
-- On 429: SDK respects \`Retry-After\` header automatically
+- On 429: SDK respects \`Retry-After\` header automatically. A pause longer than a minute (the daily cap, overload protection) is not waited out: the error comes back with \`Retry-After\`
 
 `;
 
@@ -1316,7 +1316,7 @@ setInterval(() => reconcileUsers(externalDb), 15 * 60 * 1000) // Every 15 minute
 - **Use saga pattern with compensating actions** — for multi-step workflows where partial completion is worse than full rollback
 - **Implement periodic reconciliation** — webhooks can be missed; polling + reconciliation ensures eventual consistency
 - **Track operation state externally** — store saga progress in your database, not in memory, for crash recovery
-- **SDK auto-retry handles transient failures** — 429 and 5xx are retried 3 times automatically, so sagas should only compensate on permanent failures (4xx)
+- **SDK auto-retry handles transient failures** — \`429\` is retried on every method, and \`500\`, \`502\`, \`503\`, \`504\` only on \`GET\`, \`HEAD\`, \`OPTIONS\`, \`PUT\` and \`DELETE\`, at most 3 times. A \`POST\` that fails with a \`5xx\` comes back at once and may already be applied: check its result before compensating
 
 `;
 

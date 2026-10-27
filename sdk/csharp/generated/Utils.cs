@@ -16,6 +16,16 @@ internal static class PachcaUtils
 {
     private const int MaxRetries = 3;
     private static readonly HashSet<int> Retryable5xx = new() { 500, 502, 503, 504 };
+
+    // A 5xx says nothing about whether the server already applied the request.
+    // These methods are safe to repeat. A retried POST or PATCH could apply
+    // twice: POST /messages would send the message again, and the API has no
+    // idempotency key. 429 is safe for any method: the request was rejected
+    // before it was processed.
+    private static readonly HashSet<HttpMethod> IdempotentMethods = new()
+    {
+        HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Put, HttpMethod.Delete,
+    };
     private static readonly Random JitterRandom = new();
 
     internal static readonly JsonSerializerOptions JsonOptions = new()
@@ -71,7 +81,10 @@ internal static class PachcaUtils
                 continue;
             }
 
-            if (Retryable5xx.Contains((int)response.StatusCode) && attempt < MaxRetries)
+            if (Retryable5xx.Contains((int)response.StatusCode)
+                && IdempotentMethods.Contains(request.Method)
+                && attempt < MaxRetries
+                && !await IsQueryTimeoutAsync(response, cancellationToken).ConfigureAwait(false))
             {
                 var delay = AddJitter(TimeSpan.FromSeconds(10 * Math.Pow(2, attempt)));
                 await System.Threading.Tasks.Task.Delay(delay, cancellationToken).ConfigureAwait(false);
@@ -85,6 +98,48 @@ internal static class PachcaUtils
         return await client.SendAsync(
             await CloneRequestAsync(request).ConfigureAwait(false),
             cancellationToken).ConfigureAwait(false);
+    }
+
+    // A 504 with the code timeout is a search the server stopped because the
+    // query is too heavy: the same query would time out again, so it goes back
+    // to the caller at once. A 504 from a proxy has no such code and is retried.
+    // The content is buffered, so the caller can still read it.
+    private static async Task<bool> IsQueryTimeoutAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        if (response.StatusCode != HttpStatusCode.GatewayTimeout)
+        {
+            return false;
+        }
+
+        try
+        {
+            await response.Content.LoadIntoBufferAsync().ConfigureAwait(false);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            using var document = JsonDocument.Parse(body);
+            if (document.RootElement.ValueKind != JsonValueKind.Object
+                || !document.RootElement.TryGetProperty("errors", out var errors)
+                || errors.ValueKind != JsonValueKind.Array)
+            {
+                return false;
+            }
+
+            foreach (var error in errors.EnumerateArray())
+            {
+                if (error.ValueKind == JsonValueKind.Object
+                    && error.TryGetProperty("code", out var code)
+                    && code.ValueKind == JsonValueKind.String
+                    && code.GetString() == "timeout")
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 
     private static async Task<HttpRequestMessage> CloneRequestAsync(HttpRequestMessage request)
@@ -132,8 +187,10 @@ internal static class PachcaUtils
 
     // An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
     // which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
-    internal static Exception ErrorFromJson(string json)
+    // An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in StatusCode.
+    internal static Exception ErrorFromResponse(int statusCode, string json)
     {
+        ApiError? error = null;
         try
         {
             using var document = JsonDocument.Parse(json);
@@ -149,11 +206,16 @@ internal static class PachcaUtils
                     : "";
                 return new OAuthError { Error = new OAuthErrorCode(code.GetString()!), ErrorDescription = description };
             }
+            if (root.ValueKind == JsonValueKind.Object)
+                error = Deserialize<ApiError>(json);
         }
         catch (JsonException)
         {
         }
-        return Deserialize<ApiError>(json);
+        error ??= new ApiError();
+        error.Errors ??= new();
+        error.StatusCode = statusCode;
+        return error;
     }
 
     // A request that takes no token (the upload to storage, the code exchange) goes without it. A default

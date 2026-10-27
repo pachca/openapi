@@ -46,7 +46,7 @@ Who may create bots: admins and employees, unless the owner or an admin restrict
 4. **Outgoing webhook**, if the bot must react: URL, events, and the message mode. A new bot (UI, or API without `trigger_on` and `commands`) listens to commands with an empty command list, so it hears nothing: set `trigger_on: "all_messages"` or list the commands in `commands`.
 5. **Add to chats.** A new bot is in no chat: add it to conversations and channels, or to one thread by the thread's `chat_id` (`pachca_add_members`, `pachca members add`). A mention in a thread adds only a public bot, and a new bot is not public by default. DMs need no adding, but not every employee can open one (see Chat access).
 
-Agent doing this with tools: creating a bot or token returns a secret shown once — give it to the person in your reply, never post it in a chat or commit it. Confirm before deleting a bot (irreversible: tokens revoked, webhooks and authorizations stop) and before reissuing a token that live services use.
+Agent doing this with tools: creating a bot or token returns a secret shown once — give it to the person in your reply, never post it in a chat or commit it. Deleting a bot is final (tokens revoked, webhooks and authorizations stop). An Owner or Administrator can suspend it instead, which can be undone (→ pachca-admin): when that is open to you, ask first and offer it. Reissuing a token kills the old value at once: tell the person that every service using it needs the new one.
 
 ## Tokens and scopes
 
@@ -57,9 +57,9 @@ Agent doing this with tools: creating a bot or token returns a secret shown once
 - Bot tokens never expire: they live until reissued, deleted or the bot is deleted.
 - Managing a bot's tokens through the API needs a personal token with `bots:read` and `bots:write`. A chat owner who may edit the bot never sees its tokens.
 - Leaked token: reissue (`pachca_reissue_bot_token`, `pachca bots reissue-token`) — the old value dies instantly — then update the services. Keep tokens in env vars or a secret store, never in code.
-- Leaked incoming address or Signing secret: neither can be set; each is reissued only by deleting that webhook. Confirm first: the integration stops until the service or handler gets the new value.
+- Leaked incoming address or Signing secret: neither can be set; each is reissued only by deleting that webhook. Say that the integration stops until the service or handler gets the new value.
   - Incoming: «Удалить вебхук» on its tab, then «Включить». The new address comes with the source, template, engine and the rest of the tab reset: set them again.
-  - Outgoing: «Удалить вебхук», or `pachca_update_bot` with `outgoing_url: ""` and `events: []` in one call (without `events_history_enabled: true`). An empty `outgoing_url` alone only pauses delivery and keeps the old secret. Deletion also resets events, mode, commands, history and «Игнорировать свои сообщения»: note them from `pachca_get_bot` first, restore them after, then read the new `webhook.secret_token` (`view: "full"`).
+  - Outgoing: «Удалить вебхук», or `pachca_update_bot` with `outgoing_url: ""` and `events: []` in one call (without `events_history_enabled: true`). An empty `outgoing_url` alone only pauses delivery and keeps the old secret. Deletion also resets events, mode, commands, history and «Игнорировать свои сообщения»: note them from `pachca_get_bot` first and restore them after. The answer of the restoring `pachca_update_bot` call already carries the new `webhook.secret_token` for a token whose owner may manage the bot's tokens; otherwise read it with `pachca_get_bot` (`view: "full"`).
 - "Main token" (the unnamed one, else the oldest) is what `webhook.scopes` and the two rotation methods act on. Details: [tokens](https://dev.pachca.com/guides/bots/tokens.md).
 
 ## Chat access
@@ -70,7 +70,7 @@ Agent doing this with tools: creating a bot or token returns a secret shown once
 - DMs: an employee can write to the bot only if it is public, shares a non-archived conversation or channel with them, or wrote first (`entity_type: "user"`). A bot cannot be added to an existing DM between two people.
 - Opening a DM with the bot fires no event. The bot learns about the employee from their first message — or writes first.
 
-Settings that bite («Основное» tab, [settings](https://dev.pachca.com/guides/bots/settings.md)): a new bot is editable only by its creator (admins do not even see it until the creator ticks «Администраторы» in «Кто может редактировать настройки бота»); chat owners may change settings and webhooks but not name, tokens, OAuth, showcase or deletion. A bot can be in tags only if anyone may add it and «Ограничить одним чатом» is off; setting "who can add" to creator or creator-and-admins, or turning on «Ограничить одним чатом», removes it from tags and tag-joined chats — confirm first.
+Settings that bite («Основное» tab, [settings](https://dev.pachca.com/guides/bots/settings.md)): a new bot is editable only by its creator (admins do not even see it until the creator ticks «Администраторы» in «Кто может редактировать настройки бота»); chat owners may change settings and webhooks but not name, tokens, OAuth, showcase or deletion. A bot can be in tags only if anyone may add it and «Ограничить одним чатом» is off; setting "who can add" to creator or creator-and-admins, or turning on «Ограничить одним чатом», removes it from tags and tag-joined chats at once — ask first.
 
 ## Answering in conversations
 
@@ -87,11 +87,11 @@ Settings that bite («Основное» tab, [settings](https://dev.pachca.com/
 
 Must-haves; procedure and payload notes in [references/events.md](references/events.md):
 
-- The URL must be public `http`/`https`; local and internal addresses are refused. Develop through a tunnel, or poll the event history.
+- The URL must be public `http`/`https`; local and internal addresses are refused. Develop through a tunnel, or read the event history: polled, or as a live stream with no public URL (events.md, section 7).
 - Give the final address. Events and button clicks do not follow redirects: a `3xx` (an `http` URL that redirects to `https`, a route that adds a trailing slash, a login page) counts as a failed answer and is not retried. A form submission follows one redirect at most. Check that a `POST` to the URL gets a `2xx` directly.
 - Verify `Pachca-Signature` (HMAC-SHA256 of the **raw** body with the Signing secret) and reject a `webhook_timestamp` more than a minute away from now.
 - Answer `200` immediately, queue the work. Pachca waits 5 s for a regular event and re-sends it only when it could not connect; an error code or a timeout is never retried. A button click waits up to 30 s, but the employee sees an error only for a failed answer within the first 3 s. A form submission waits 3 s. Neither is re-sent. Turn on event history to recover missed events; it is read with the bot's own token.
-- Process idempotently: an event can occasionally arrive twice. Build the dedup key per event type (events.md, section 5).
+- Process idempotently: an event can occasionally arrive twice. Build the dedup key per event type (events.md, section 5). A message `update` is not always an edit: it also comes when nothing in the message changed (events.md, section 6).
 - Payloads carry the essentials only; fetch the full message by `id` for attachments, buttons, forwards.
 
 ## Buttons
@@ -125,7 +125,7 @@ A form opens only from a Data-button click in the bot's message, by `trigger_id`
 
 - «Публичный бот»: in search and the Overview list; anyone may DM it; any employee (not guests) may add it. Published bot: a card with a page; needs authorization enabled and a saved description (screenshots optional).
 - Publishing does not let anyone write to the bot. Authorization happens in the DM, so make a published bot public too.
-- Deleting the OAuth client also revokes every authorization granted — confirm first. [Showcase](https://dev.pachca.com/guides/bots/showcase.md).
+- Deleting the OAuth client also revokes every authorization granted at once — ask first. [Showcase](https://dev.pachca.com/guides/bots/showcase.md).
 
 ## Pitfalls
 

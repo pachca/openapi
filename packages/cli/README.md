@@ -87,6 +87,7 @@ pachca auth switch bot-notify
 | `pachca bots reissue-token` | Перевыпуск токена бота |
 | `pachca bots list-company` | Список ботов пространства |
 | `pachca bots list-events` | История событий |
+| `pachca bots get-stream` | Поток событий |
 | `pachca bots remove-event` | Удаление события истории |
 
 ### chats
@@ -152,6 +153,14 @@ pachca auth switch bot-notify
 | `pachca group-tags update` | Редактирование тега |
 | `pachca group-tags delete` | Удаление тега |
 | `pachca group-tags list-users` | Список сотрудников тега |
+
+### important-messages
+
+| Команда | Описание |
+|---------|---------|
+| `pachca important-messages list` | Список важных сообщений |
+| `pachca important-messages create` | Добавление сообщения в важные |
+| `pachca important-messages delete` | Удаление сообщения из важных |
 
 ### messages
 
@@ -265,7 +274,7 @@ pachca auth switch bot-notify
 | `--no-input` |  | Отключить интерактивные промпты |
 | `--dry-run` |  | Показать запрос без отправки |
 | `--timeout <value>` |  | Таймаут запроса в секундах (по умолчанию 30) |
-| `--no-retry` |  | Отключить авто-retry при 429/503 |
+| `--no-retry` |  | Отключить автоповтор при 429, 5xx и сетевых ошибках |
 | `--plain` |  | Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов) |
 
 <!-- AUTO:FLAGS:END -->

@@ -9,7 +9,7 @@
 - [Авторизация](https://dev.pachca.com/api/authorization.md): Авторизация в API Пачки: персональный токен и токен бота, токен по авторизации для ботов и программ с MCP, скоупы методов, headless-интеграции для агентов, настройка доступа для администраторов и сотрудников
 - [Запросы и ответы](https://dev.pachca.com/api/requests-responses.md): Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
 - [Пагинация](https://dev.pachca.com/api/pagination.md): Пагинация в API Пачки по курсору: две группы методов (списочные и поиск) с разной структурой meta, поля next_page, prev_page, has_next, has_prev, обход всех записей и polling новых данных через prev_page
-- [Загрузка файлов](https://dev.pachca.com/api/file-uploads.md): Файлы в API Пачки: трёхшаговая загрузка через presigned URL S3, типы вложений и их поля, ссылка на скачивание и когда она ведёт не в хранилище, а на адрес API
+- [Загрузка файлов](https://dev.pachca.com/api/file-uploads.md): Файлы в API Пачки: трёхшаговая загрузка через presigned URL S3, типы вложений и их поля, ссылка на скачивание и когда она ведёт не в хранилище, а на адрес API, размер и имя файла без скачивания
 - [Ошибки](https://dev.pachca.com/api/errors.md): Коды ошибок HTTP в API Пачки и структуры тела ответа: ApiError (400/402/403/404/409/410/422/429/503/504) и OAuthError (401/403) с описанием полей и кодов
 - [Лимиты](https://dev.pachca.com/api/limits.md): Лимиты запросов (rate limits) в API Пачки: числа по типам операций, поведение ответа 429, заголовок Retry-After, готовые примеры экспоненциального backoff на TypeScript и Python
 - [Модели](https://dev.pachca.com/api/models.md): Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, черновики, задачи, теги, вебхуки и другие сущности
@@ -94,6 +94,11 @@
 - [Удаление реакции](https://dev.pachca.com/api/reactions/remove.md): DELETE /messages/{id}/reactions
 - [Список реакций](https://dev.pachca.com/api/reactions/list.md): GET /messages/{id}/reactions
 
+## Important messages
+- [Список важных сообщений](https://dev.pachca.com/api/important-messages/list.md): GET /important_messages
+- [Добавление сообщения в важные](https://dev.pachca.com/api/important-messages/create.md): POST /important_messages
+- [Удаление сообщения из важных](https://dev.pachca.com/api/important-messages/delete.md): DELETE /important_messages/{id}
+
 ## Search
 - [Поиск чатов](https://dev.pachca.com/api/search/list-chats.md): GET /search/chats
 - [Поиск сообщений](https://dev.pachca.com/api/search/list-messages.md): GET /search/messages
@@ -137,6 +142,7 @@
 - [Перевыпуск токена бота](https://dev.pachca.com/api/bots/reissue-token.md): POST /bots/{id}/tokens/{token_id}/reissue
 - [Список ботов пространства](https://dev.pachca.com/api/bots/list-company.md): GET /company/bots
 - [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
+- [Поток событий](https://dev.pachca.com/api/bots/get-stream.md): GET /webhooks/events/stream
 - [Удаление события истории](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}
 
 ## Security

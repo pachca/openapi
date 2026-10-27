@@ -29,6 +29,7 @@ class FakeMessages : MessagesService {
             createdAt = OffsetDateTime.now(),
             url = "",
             files = emptyList(),
+            important = false,
         )
     }
 }

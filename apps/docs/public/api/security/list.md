@@ -102,8 +102,8 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `search_type: string` (required) — Тип поиска
       - `query_present: boolean` (required) — Указан ли поисковый запрос
       - `cursor_present: boolean` (required) — Использован ли курсор
-      - `limit: integer, int32` (required) — Количество возвращённых результатов
-      - `filters: Record<string, object>` (required) — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages).
+      - `limit: integer, int32` (required, nullable) — Запрошенный размер страницы. `null`, если параметр `limit` не передан. В записях до 16 октября 2026 года вместо `null` приходит `0`.
+      - `filters: Record<string, object>` (required) — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active (chats и messages), chat_subtype, personal (chats), chat_ids, user_ids, include_root_chat_id (messages, всегда `true`).
         **Структура значений Record:**
         - Тип значения: `any`
     - **AuditDetailsBot**: При: bot_deleted, а также bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued в записях до 7 октября 2026 года
@@ -173,6 +173,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `resource_owner_id: integer, int32` (required) — Идентификатор владельца токена: сотрудника, а у токена бота — самого бота
       - `scopes: array of string` (required) — Скоупы токена
       - `bot_id: integer, int32` — Идентификатор бота. Есть у токенов бота и у токенов, которые сотрудник выдал боту.
+      - `reason: string` — Причина отзыва. `guest_downgrade` — токен отозван автоматически, когда сотрудника перевели в гости. Есть только в таких записях.
     - **AuditDetailsBotTokenUpdated**: При: bot_token_updated
       - `token_kind: string` (required) — Вид токена: `bot`
       - `token_name: string` (required, nullable) — Название токена после изменения. `null`, если названия нет.

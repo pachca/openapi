@@ -2,11 +2,20 @@
 
 # Changelog
 
-## 2.2.2 (2026-10-27)
+## 2.2.2 (2026-10-28)
+
+### Features
+
+- Important Message: new resource with `Get Many`, `Create` and `Delete` operations for the employee's «Важное» (Important) section
+- Bot: the new `Get Stream` operation returns a link to the bot's live event stream
+- User: in `Update`, the `Guest` role together with the new `Chat IDs` field makes an employee a guest
+- Chat: `Create` returns `not_found_group_tag_ids` — the IDs from `Group Tag IDs` that are not tags of the workspace
+- Message responses gain the `important` field — the message is in the token owner's «Важное» section
 
 ### Improvements
 
-- Field descriptions follow the server's behaviour: `Order` in the chat and message lists works only together with `Sort`, a reaction's `Name` is the name of a custom emoji of the workspace, `Performer IDs` in a task update replaces the whole list of assignees, `All Day` works together with a due date at 23:59:59, and a repeating scheduled message is counted in UTC
+- Retries: of the server errors only `500`, `502`, `503` and `504` are retried, on GET, PUT and DELETE, and a `504` with the code `timeout` (the search did not finish in time) comes back as an error at once
+- README lists all 19 resources of the node with their operations
 
 ## 2.2.1 (2026-10-21)
 

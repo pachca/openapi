@@ -1475,9 +1475,13 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope DraftsRead { get; } = new("drafts:read");
     /// <summary>Создание, изменение и удаление черновиков и отложенных сообщений</summary>
     public static OAuthScope DraftsWrite { get; } = new("drafts:write");
+    /// <summary>Просмотр важных сообщений</summary>
+    public static OAuthScope ImportantMessagesRead { get; } = new("important_messages:read");
+    /// <summary>Добавление сообщений в важные и удаление из важных</summary>
+    public static OAuthScope ImportantMessagesWrite { get; } = new("important_messages:write");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, FilesWrite, UploadsWrite, ViewsWrite, WebhooksRead, WebhooksWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite });
+    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, FilesWrite, UploadsWrite, ViewsWrite, WebhooksRead, WebhooksWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -1805,7 +1809,7 @@ internal class TaskStatusConverter : JsonConverter<TaskStatus>
         writer.WriteStringValue(value.Value);
 }
 
-/// <summary>Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат.</summary>
+/// <summary>Роль пользователя, допустимая при создании сотрудника. Для роли `guest` параметр `chat_ids` обязателен и должен содержать ровно один чат.</summary>
 [JsonConverter(typeof(UserCreateRoleConverter))]
 public enum UserCreateRole
 {
@@ -1956,7 +1960,7 @@ internal class UserRoleConverter : JsonConverter<UserRole>
         writer.WriteStringValue(value.Value);
 }
 
-/// <summary>Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`).</summary>
+/// <summary>Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` передают вместе с `chat_ids`, в котором ровно один чат.</summary>
 [JsonConverter(typeof(UserRoleInputConverter))]
 public enum UserRoleInput
 {
@@ -1966,6 +1970,8 @@ public enum UserRoleInput
     User,
     /// <summary>Мульти-гость</summary>
     MultiGuest,
+    /// <summary>Гость</summary>
+    Guest,
 }
 
 internal class UserRoleInputConverter : JsonConverter<UserRoleInput>
@@ -1978,6 +1984,7 @@ internal class UserRoleInputConverter : JsonConverter<UserRoleInput>
             "admin" => UserRoleInput.Admin,
             "user" => UserRoleInput.User,
             "multi_guest" => UserRoleInput.MultiGuest,
+            "guest" => UserRoleInput.Guest,
             _ => throw new JsonException($"Unknown UserRoleInput value: {value}"),
         };
     }
@@ -1989,6 +1996,7 @@ internal class UserRoleInputConverter : JsonConverter<UserRoleInput>
             UserRoleInput.Admin => "admin",
             UserRoleInput.User => "user",
             UserRoleInput.MultiGuest => "multi_guest",
+            UserRoleInput.Guest => "guest",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -2033,7 +2041,7 @@ public readonly struct ValidationErrorCode : IEquatable<ValidationErrorCode>
     public static ValidationErrorCode InvalidWebhookUrl { get; } = new("invalid_webhook_url");
     /// <summary>Достигнут лимит запросов</summary>
     public static ValidationErrorCode RateLimit { get; } = new("rate_limit");
-    /// <summary>Превышен лимит активных сотрудников (пояснения вы получите в поле message)</summary>
+    /// <summary>Превышен лимит активных сотрудников. Больше не возвращается</summary>
     public static ValidationErrorCode LicensesLimit { get; } = new("licenses_limit");
     /// <summary>Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)</summary>
     public static ValidationErrorCode UserLimit { get; } = new("user_limit");
@@ -2069,7 +2077,7 @@ public readonly struct ValidationErrorCode : IEquatable<ValidationErrorCode>
     public static ValidationErrorCode ScheduledMessagesLimit { get; } = new("scheduled_messages_limit");
     /// <summary>Отложенное сообщение нельзя превратить обратно в черновик</summary>
     public static ValidationErrorCode DraftTypeChangeForbidden { get; } = new("draft_type_change_forbidden");
-    /// <summary>Скачивание файла запрещено: нужен запрос из безопасного контура</summary>
+    /// <summary>Скачивание файла запрещено: нужен запрос из безопасного контура или в файле найден вирус</summary>
     public static ValidationErrorCode ConfidentialDownloadDenied { get; } = new("confidential_download_denied");
     /// <summary>Не удалось расшифровать файл</summary>
     public static ValidationErrorCode DecryptionFailed { get; } = new("decryption_failed");
@@ -2294,7 +2302,7 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         (typeof(AuditDetailsVideoCallRecording), new HashSet<string> { "chat_id", "started_message_id", "recording_id", "file_id", "duration", "size" }),
         (typeof(AuditDetailsBotOAuthClientSecretRotated), new HashSet<string> { "bot_id", "actor_id", "client_id" }),
         (typeof(AuditDetailsBotOAuthClientDisabled), new HashSet<string> { "bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count" }),
-        (typeof(AuditDetailsToken), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "scopes", "bot_id" }),
+        (typeof(AuditDetailsToken), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "scopes", "bot_id", "reason" }),
         (typeof(AuditDetailsBotTokenUpdated), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id" }),
         (typeof(AuditDetailsUserLoginQr), new HashSet<string> { "method", "login_grant_id" }),
         (typeof(AuditDetailsLoginGrantCreated), new HashSet<string> { "login_grant_id" }),
@@ -2455,7 +2463,7 @@ public class AuditDetailsSearch : AuditEventDetailsUnion
     [JsonPropertyName("cursor_present")]
     public bool CursorPresent { get; set; } = default!;
     [JsonPropertyName("limit")]
-    public int Limit { get; set; } = default!;
+    public int? Limit { get; set; }
     [JsonPropertyName("filters")]
     public Dictionary<string, object> Filters { get; set; } = default!;
 }
@@ -2612,6 +2620,8 @@ public class AuditDetailsToken : AuditEventDetailsUnion
     public List<string> Scopes { get; set; } = default!;
     [JsonPropertyName("bot_id")]
     public int? BotId { get; set; }
+    [JsonPropertyName("reason")]
+    public string? Reason { get; set; }
 }
 
 public class AuditDetailsBotTokenUpdated : AuditEventDetailsUnion
@@ -3101,8 +3111,12 @@ public class ApiError : Exception
     [JsonPropertyName("errors")]
     public List<ApiErrorItem> Errors { get; set; } = default!;
 
+    /// <summary>HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves Errors empty.</summary>
+    [JsonIgnore]
+    public int? StatusCode { get; set; }
+
     public override string Message => Errors is not { Count: > 0 }
-        ? "api error"
+        ? StatusCode is { } status ? $"HTTP {status}" : "api error"
         : Errors.Count == 1 ? Errors[0].Message
         : $"Errors: {string.Join("; ", Errors.Select(t => t.Message))}";
 }
@@ -3979,6 +3993,12 @@ public class GroupTagRequest
     public GroupTagRequestGroupTag GroupTag { get; set; } = default!;
 }
 
+public class ImportantMessageRequest
+{
+    [JsonPropertyName("message_id")]
+    public int MessageId { get; set; } = default!;
+}
+
 public class LinkPreviewImage
 {
     [JsonPropertyName("key")]
@@ -4061,6 +4081,8 @@ public class Message
     public DateTimeOffset? ChangedAt { get; set; }
     [JsonPropertyName("deleted_at")]
     public DateTimeOffset? DeletedAt { get; set; }
+    [JsonPropertyName("important")]
+    public bool Important { get; set; } = default!;
 }
 
 public class MessageCreateRequestFile
@@ -4595,6 +4617,8 @@ public class UserUpdateRequestUser
     public string? Title { get; set; }
     [JsonPropertyName("role")]
     public UserRoleInput? Role { get; set; }
+    [JsonPropertyName("chat_ids")]
+    public List<int>? ChatIds { get; set; }
     [JsonPropertyName("suspended")]
     public bool? Suspended { get; set; }
     [JsonPropertyName("list_tags")]
@@ -4681,6 +4705,14 @@ public class WebhookEvent
     public DateTimeOffset CreatedAt { get; set; } = default!;
 }
 
+public class WebhookEventsStream
+{
+    [JsonPropertyName("url")]
+    public string Url { get; set; } = default!;
+    [JsonPropertyName("expires_at")]
+    public DateTimeOffset ExpiresAt { get; set; } = default!;
+}
+
 public class WebhookLink
 {
     [JsonPropertyName("url")]
@@ -4731,6 +4763,8 @@ public class CreateChatResponseMeta
 {
     [JsonPropertyName("not_found_member_ids")]
     public List<int> NotFoundMemberIds { get; set; } = default!;
+    [JsonPropertyName("not_found_group_tag_ids")]
+    public List<int> NotFoundGroupTagIds { get; set; } = default!;
 }
 
 public class UpdateChatAvatarRequest
@@ -4845,6 +4879,14 @@ public class GetTagUsersResponse
     public PaginationMeta Meta { get; set; } = default!;
 }
 
+public class ListImportantMessagesResponse
+{
+    [JsonPropertyName("data")]
+    public List<Message> Data { get; set; } = new();
+    [JsonPropertyName("meta")]
+    public PaginationMeta Meta { get; set; } = default!;
+}
+
 public class ListChatMessagesResponse
 {
     [JsonPropertyName("data")]
@@ -4921,6 +4963,12 @@ public class BotResponseDataWrapper
 {
     [JsonPropertyName("data")]
     public BotResponse Data { get; set; } = default!;
+}
+
+public class WebhookEventsStreamDataWrapper
+{
+    [JsonPropertyName("data")]
+    public WebhookEventsStream Data { get; set; } = default!;
 }
 
 public class BotSelfTokenResponseDataWrapper

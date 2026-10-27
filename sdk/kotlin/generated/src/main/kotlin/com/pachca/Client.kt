@@ -41,6 +41,7 @@ internal fun formParameters(element: JsonElement): Parameters = Parameters.build
 /**
  * An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
  * which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
+ * An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in statusCode.
  */
 internal suspend fun errorFromResponse(response: HttpResponse): Exception {
     val text = response.bodyAsText()
@@ -50,7 +51,9 @@ internal suspend fun errorFromResponse(response: HttpResponse): Exception {
         val description = element["error_description"] as? JsonPrimitive
         return OAuthError(error = OAuthErrorCode(code.content), errorDescription = description?.content ?: "")
     }
-    return pachcaJson.decodeFromString(ApiError.serializer(), text)
+    val decoded = runCatching { pachcaJson.decodeFromString(ApiError.serializer(), text) }.getOrNull()
+    return decoded?.copy(statusCode = response.status.value)
+        ?: ApiError(errors = emptyList(), statusCode = response.status.value)
 }
 
 /** The authorization link and the PKCE pair of the OAuth flow. */
@@ -163,7 +166,6 @@ class SecurityServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -255,6 +257,10 @@ interface BotsService {
         throw NotImplementedError("Bots.getWebhookEventsAll is not implemented")
     }
 
+    suspend fun getWebhookEventsStream(): WebhookEventsStream {
+        throw NotImplementedError("Bots.getWebhookEventsStream is not implemented")
+    }
+
     suspend fun selfRecreateBotToken(): BotSelfTokenResponse {
         throw NotImplementedError("Bots.selfRecreateBotToken is not implemented")
     }
@@ -332,7 +338,6 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -355,7 +360,6 @@ class BotsServiceImpl internal constructor(
         val response = client.get("$baseUrl/bots/$id")
         return when (response.status.value) {
             200 -> response.body<BotResponseDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -364,7 +368,6 @@ class BotsServiceImpl internal constructor(
         val response = client.get("$baseUrl/bots/$id/scopes")
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -380,7 +383,6 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -411,7 +413,6 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -437,7 +438,6 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -456,11 +456,18 @@ class BotsServiceImpl internal constructor(
         return items
     }
 
+    override suspend fun getWebhookEventsStream(): WebhookEventsStream {
+        val response = client.get("$baseUrl/webhooks/events/stream")
+        return when (response.status.value) {
+            200 -> response.body<WebhookEventsStreamDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
     override suspend fun selfRecreateBotToken(): BotSelfTokenResponse {
         val response = client.post("$baseUrl/bot/recreate_token")
         return when (response.status.value) {
             200 -> response.body<BotSelfTokenResponseDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -472,7 +479,6 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body<BotCreateResponseDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -481,7 +487,6 @@ class BotsServiceImpl internal constructor(
         val response = client.post("$baseUrl/bots/$id/recreate_token")
         return when (response.status.value) {
             200 -> response.body<BotCreateResponseDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -490,7 +495,6 @@ class BotsServiceImpl internal constructor(
         val response = client.post("$baseUrl/bots/$id/rotate_client_secret")
         return when (response.status.value) {
             200 -> response.body<BotResponseDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -502,7 +506,6 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body<BotAccessTokenDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -511,7 +514,6 @@ class BotsServiceImpl internal constructor(
         val response = client.post("$baseUrl/bots/$id/tokens/$tokenId/reissue")
         return when (response.status.value) {
             200 -> response.body<BotAccessTokenDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -523,7 +525,6 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<BotSelfResponseDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -535,7 +536,6 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<BotResponseDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -551,7 +551,6 @@ class BotsServiceImpl internal constructor(
         )
         return when (response.status.value) {
             200 -> response.body<AvatarDataDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -567,7 +566,6 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<BotAccessTokenDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -576,7 +574,6 @@ class BotsServiceImpl internal constructor(
         val response = client.delete("$baseUrl/bots/$id")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -585,7 +582,6 @@ class BotsServiceImpl internal constructor(
         val response = client.delete("$baseUrl/bots/$id/avatar")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -594,7 +590,6 @@ class BotsServiceImpl internal constructor(
         val response = client.delete("$baseUrl/bots/$id/tokens/$tokenId")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -603,7 +598,6 @@ class BotsServiceImpl internal constructor(
         val response = client.delete("$baseUrl/webhooks/events/$id")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -769,7 +763,6 @@ class ChatsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -811,7 +804,6 @@ class ChatsServiceImpl internal constructor(
         val response = client.get("$baseUrl/chats/$id")
         return when (response.status.value) {
             200 -> response.body<ChatDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -821,7 +813,6 @@ class ChatsServiceImpl internal constructor(
         return when (response.status.value) {
             302 -> response.headers[HttpHeaders.Location]
                 ?: error("Missing Location header in redirect response")
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -838,7 +829,6 @@ class ChatsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -864,7 +854,6 @@ class ChatsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -877,7 +866,6 @@ class ChatsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             202 -> response.body<ChatExportDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -889,7 +877,6 @@ class ChatsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<ChatDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -898,7 +885,6 @@ class ChatsServiceImpl internal constructor(
         val response = client.put("$baseUrl/chats/$id/archive")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -914,7 +900,6 @@ class ChatsServiceImpl internal constructor(
         )
         return when (response.status.value) {
             200 -> response.body<AvatarDataDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -923,7 +908,6 @@ class ChatsServiceImpl internal constructor(
         val response = client.put("$baseUrl/chats/$id/unarchive")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -935,7 +919,6 @@ class ChatsServiceImpl internal constructor(
         }
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -944,7 +927,6 @@ class ChatsServiceImpl internal constructor(
         val response = client.delete("$baseUrl/chats/$id/avatar")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1014,7 +996,6 @@ class MembersServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1049,7 +1030,6 @@ class MembersServiceImpl internal constructor(
         }
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1061,7 +1041,6 @@ class MembersServiceImpl internal constructor(
         }
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1077,7 +1056,6 @@ class MembersServiceImpl internal constructor(
         }
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1086,7 +1064,6 @@ class MembersServiceImpl internal constructor(
         val response = client.delete("$baseUrl/chats/$id/group_tags/$tagId")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1095,7 +1072,6 @@ class MembersServiceImpl internal constructor(
         val response = client.delete("$baseUrl/chats/$id/leave")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1104,7 +1080,6 @@ class MembersServiceImpl internal constructor(
         val response = client.delete("$baseUrl/chats/$id/members/$userId")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1126,7 +1101,6 @@ class CustomPropertiesServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1156,7 +1130,6 @@ class FilesServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<ByteArray>()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1183,7 +1156,7 @@ class FilesServiceImpl internal constructor(
         }
         when (response.status.value) {
             204 -> return
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1191,7 +1164,6 @@ class FilesServiceImpl internal constructor(
         val response = client.post("$baseUrl/uploads")
         return when (response.status.value) {
             201 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1254,7 +1226,6 @@ class DraftsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1288,7 +1259,6 @@ class DraftsServiceImpl internal constructor(
         val response = client.get("$baseUrl/drafts/$id")
         return when (response.status.value) {
             200 -> response.body<DraftDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1300,7 +1270,6 @@ class DraftsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body<DraftDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1312,7 +1281,6 @@ class DraftsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<DraftDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1321,7 +1289,6 @@ class DraftsServiceImpl internal constructor(
         val response = client.delete("$baseUrl/drafts/$id")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1385,7 +1352,6 @@ class GroupTagsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1408,7 +1374,6 @@ class GroupTagsServiceImpl internal constructor(
         val response = client.get("$baseUrl/group_tags/$id")
         return when (response.status.value) {
             200 -> response.body<GroupTagDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1424,7 +1389,6 @@ class GroupTagsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1450,7 +1414,6 @@ class GroupTagsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body<GroupTagDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1462,7 +1425,6 @@ class GroupTagsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<GroupTagDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1471,7 +1433,73 @@ class GroupTagsServiceImpl internal constructor(
         val response = client.delete("$baseUrl/group_tags/$id")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
+            else -> throw errorFromResponse(response)
+        }
+    }
+}
+
+interface ImportantMessagesService {
+    suspend fun listImportantMessages(limit: Int? = null, cursor: String? = null): ListImportantMessagesResponse {
+        throw NotImplementedError("Important messages.listImportantMessages is not implemented")
+    }
+
+    suspend fun listImportantMessagesAll(limit: Int? = null): List<Message> {
+        throw NotImplementedError("Important messages.listImportantMessagesAll is not implemented")
+    }
+
+    suspend fun addMessageToImportant(messageId: Int) {
+        throw NotImplementedError("Important messages.addMessageToImportant is not implemented")
+    }
+
+    suspend fun removeMessageFromImportant(id: Int) {
+        throw NotImplementedError("Important messages.removeMessageFromImportant is not implemented")
+    }
+}
+
+class ImportantMessagesServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : ImportantMessagesService {
+    override suspend fun listImportantMessages(limit: Int?, cursor: String?): ListImportantMessagesResponse {
+        val response = client.get("$baseUrl/important_messages") {
+            limit?.let { parameter("limit", it) }
+            cursor?.let { parameter("cursor", it) }
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun listImportantMessagesAll(limit: Int?): List<Message> {
+        val items = mutableListOf<Message>()
+        var cursor: String? = null
+        var hasNext = true
+        while (hasNext) {
+            val response = listImportantMessages(limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
+        return items
+    }
+
+    override suspend fun addMessageToImportant(messageId: Int) {
+        val response = client.post("$baseUrl/important_messages") {
+            contentType(ContentType.Application.Json)
+            setBody(ImportantMessageRequest(messageId = messageId))
+        }
+        when (response.status.value) {
+            204 -> return
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun removeMessageFromImportant(id: Int) {
+        val response = client.delete("$baseUrl/important_messages/$id")
+        when (response.status.value) {
+            204 -> return
             else -> throw errorFromResponse(response)
         }
     }
@@ -1546,7 +1574,6 @@ class MessagesServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1580,7 +1607,6 @@ class MessagesServiceImpl internal constructor(
         val response = client.get("$baseUrl/messages/$id")
         return when (response.status.value) {
             200 -> response.body<MessageDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1592,7 +1618,6 @@ class MessagesServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body<MessageDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1604,7 +1629,6 @@ class MessagesServiceImpl internal constructor(
         }
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1613,7 +1637,6 @@ class MessagesServiceImpl internal constructor(
         val response = client.post("$baseUrl/messages/$id/pin")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1625,7 +1648,6 @@ class MessagesServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<MessageDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1634,7 +1656,6 @@ class MessagesServiceImpl internal constructor(
         val response = client.delete("$baseUrl/messages/$id")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1643,7 +1664,6 @@ class MessagesServiceImpl internal constructor(
         val response = client.delete("$baseUrl/messages/$id/pin")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1690,7 +1710,6 @@ class ReactionsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1716,7 +1735,6 @@ class ReactionsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1732,7 +1750,6 @@ class ReactionsServiceImpl internal constructor(
         }
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1763,7 +1780,6 @@ class ReadMembersServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1818,7 +1834,6 @@ class ThreadsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1850,7 +1865,6 @@ class ThreadsServiceImpl internal constructor(
         val response = client.get("$baseUrl/threads/$id")
         return when (response.status.value) {
             200 -> response.body<ThreadDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1859,7 +1873,6 @@ class ThreadsServiceImpl internal constructor(
         val response = client.post("$baseUrl/messages/$id/thread")
         return when (response.status.value) {
             201 -> response.body<ThreadDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1868,7 +1881,6 @@ class ThreadsServiceImpl internal constructor(
         val response = client.post("$baseUrl/threads")
         return when (response.status.value) {
             201 -> response.body<ThreadDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1896,7 +1908,6 @@ class OAuthServiceImpl internal constructor(
         val response = client.get("$baseUrl/oauth/token/info")
         return when (response.status.value) {
             200 -> response.body<AccessTokenInfoDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1907,7 +1918,6 @@ class OAuthServiceImpl internal constructor(
         }
         when (response.status.value) {
             200 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1919,7 +1929,6 @@ class OAuthServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1963,7 +1972,6 @@ class ProfileServiceImpl internal constructor(
         val response = client.get("$baseUrl/profile")
         return when (response.status.value) {
             200 -> response.body<UserDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1972,7 +1980,6 @@ class ProfileServiceImpl internal constructor(
         val response = client.get("$baseUrl/profile/status")
         return when (response.status.value) {
             200 -> response.body<UserStatusDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -1988,7 +1995,6 @@ class ProfileServiceImpl internal constructor(
         )
         return when (response.status.value) {
             200 -> response.body<AvatarDataDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2000,7 +2006,6 @@ class ProfileServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<UserStatusDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2009,7 +2014,6 @@ class ProfileServiceImpl internal constructor(
         val response = client.delete("$baseUrl/profile/avatar")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2018,7 +2022,6 @@ class ProfileServiceImpl internal constructor(
         val response = client.delete("$baseUrl/profile/status")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2027,7 +2030,6 @@ class ProfileServiceImpl internal constructor(
         val response = client.get("$baseUrl/oauth/token/info")
         return when (response.status.value) {
             200 -> response.body<AccessTokenInfoDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2144,7 +2146,6 @@ class SearchServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2206,7 +2207,6 @@ class SearchServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2266,7 +2266,6 @@ class SearchServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2362,7 +2361,6 @@ class TasksServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2398,7 +2396,6 @@ class TasksServiceImpl internal constructor(
         val response = client.get("$baseUrl/tasks/$id")
         return when (response.status.value) {
             200 -> response.body<TaskDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2410,7 +2407,6 @@ class TasksServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body<TaskDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2422,7 +2418,6 @@ class TasksServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<TaskDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2431,7 +2426,6 @@ class TasksServiceImpl internal constructor(
         val response = client.delete("$baseUrl/tasks/$id")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2503,7 +2497,6 @@ class UsersServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2526,7 +2519,6 @@ class UsersServiceImpl internal constructor(
         val response = client.get("$baseUrl/users/$id")
         return when (response.status.value) {
             200 -> response.body<UserDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2535,7 +2527,6 @@ class UsersServiceImpl internal constructor(
         val response = client.get("$baseUrl/users/$userId/status")
         return when (response.status.value) {
             200 -> response.body<UserStatusDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2547,7 +2538,6 @@ class UsersServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body<UserDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2559,7 +2549,6 @@ class UsersServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<UserDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2575,7 +2564,6 @@ class UsersServiceImpl internal constructor(
         )
         return when (response.status.value) {
             200 -> response.body<AvatarDataDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2587,7 +2575,6 @@ class UsersServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<UserStatusDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2596,7 +2583,6 @@ class UsersServiceImpl internal constructor(
         val response = client.delete("$baseUrl/users/$id")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2605,7 +2591,6 @@ class UsersServiceImpl internal constructor(
         val response = client.delete("$baseUrl/users/$userId/avatar")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2614,7 +2599,6 @@ class UsersServiceImpl internal constructor(
         val response = client.delete("$baseUrl/users/$userId/status")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2641,7 +2625,6 @@ class ViewsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2653,7 +2636,6 @@ class ViewsServiceImpl internal constructor(
         }
         when (response.status.value) {
             201 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2690,7 +2672,6 @@ class CommonServiceImpl internal constructor(
         val response = client.post("$baseUrl/uploads")
         return when (response.status.value) {
             201 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2717,7 +2698,7 @@ class CommonServiceImpl internal constructor(
         }
         when (response.status.value) {
             204 -> return
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2727,7 +2708,6 @@ class CommonServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body()
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2740,7 +2720,6 @@ class CommonServiceImpl internal constructor(
         }
         return when (response.status.value) {
             202 -> response.body<ChatExportDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2750,7 +2729,6 @@ class CommonServiceImpl internal constructor(
         return when (response.status.value) {
             302 -> response.headers[HttpHeaders.Location]
                 ?: error("Missing Location header in redirect response")
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2774,7 +2752,6 @@ class LinkPreviewsServiceImpl internal constructor(
         }
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2791,6 +2768,7 @@ class PachcaClient private constructor(
     val drafts: DraftsService,
     val files: FilesService,
     val groupTags: GroupTagsService,
+    val importantMessages: ImportantMessagesService,
     val linkPreviews: LinkPreviewsService,
     val members: MembersService,
     val messages: MessagesService,
@@ -2821,6 +2799,7 @@ class PachcaClient private constructor(
             drafts: DraftsService? = null,
             files: FilesService? = null,
             groupTags: GroupTagsService? = null,
+            importantMessages: ImportantMessagesService? = null,
             linkPreviews: LinkPreviewsService? = null,
             members: MembersService? = null,
             messages: MessagesService? = null,
@@ -2845,6 +2824,7 @@ class PachcaClient private constructor(
                 drafts = drafts ?: DraftsServiceImpl(baseUrl, client),
                 files = files ?: FilesServiceImpl(baseUrl, client),
                 groupTags = groupTags ?: GroupTagsServiceImpl(baseUrl, client),
+                importantMessages = importantMessages ?: ImportantMessagesServiceImpl(baseUrl, client),
                 linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client),
                 members = members ?: MembersServiceImpl(baseUrl, client),
                 messages = messages ?: MessagesServiceImpl(baseUrl, client),
@@ -2869,6 +2849,7 @@ class PachcaClient private constructor(
             drafts: DraftsService = object : DraftsService {},
             files: FilesService = object : FilesService {},
             groupTags: GroupTagsService = object : GroupTagsService {},
+            importantMessages: ImportantMessagesService = object : ImportantMessagesService {},
             linkPreviews: LinkPreviewsService = object : LinkPreviewsService {},
             members: MembersService = object : MembersService {},
             messages: MessagesService = object : MessagesService {},
@@ -2891,6 +2872,7 @@ class PachcaClient private constructor(
             drafts = drafts,
             files = files,
             groupTags = groupTags,
+            importantMessages = importantMessages,
             linkPreviews = linkPreviews,
             members = members,
             messages = messages,
@@ -2906,20 +2888,72 @@ class PachcaClient private constructor(
             views = views
         )
 
+        // A 5xx says nothing about whether the server already applied the request.
+        // These methods are safe to repeat. A retried POST or PATCH could apply
+        // twice: POST /messages would send the message again, and the API has no
+        // idempotency key. 429 is safe for any method: the request was rejected
+        // before it was processed.
+        private val idempotentMethods =
+            setOf(HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Put, HttpMethod.Delete)
+
+        /** Set on a call whose 504 carries the error code `timeout`: the retry leaves it alone. */
+        private val queryTimeoutKey = io.ktor.util.AttributeKey<Unit>("PachcaQueryTimeout")
+
+        /**
+         * A 504 with the error code `timeout` is a search the server stopped because the query
+         * is too heavy: the same query would time out again, so it goes back to the caller at
+         * once. A 504 from a proxy has no such code and is retried. `retryIf` cannot read the
+         * body, so this interceptor, registered after the retry plugin and so running under it,
+         * reads the body of each attempt and marks the call. Ktor keeps the body in memory, so
+         * the caller can still read it.
+         */
+        private fun markQueryTimeouts(client: HttpClient) {
+            client.plugin(HttpSend).intercept { request ->
+                val call = execute(request)
+                if (call.response.status == HttpStatusCode.GatewayTimeout && isQueryTimeout(call.response.bodyAsText())) {
+                    call.attributes.put(queryTimeoutKey, Unit)
+                }
+                call
+            }
+        }
+
+        private fun isQueryTimeout(body: String): Boolean {
+            val element = runCatching { Json.parseToJsonElement(body) }.getOrNull()
+            val errors = (element as? kotlinx.serialization.json.JsonObject)?.get("errors") as? kotlinx.serialization.json.JsonArray
+            return errors.orEmpty().any { error ->
+                val code = (error as? kotlinx.serialization.json.JsonObject)?.get("code") as? kotlinx.serialization.json.JsonPrimitive
+                code != null && code.isString && code.content == "timeout"
+            }
+        }
+
         private fun createClient(token: String): HttpClient = HttpClient {
             expectSuccess = false
             followRedirects = false
             install(ContentNegotiation) { json(Json { explicitNulls = false; ignoreUnknownKeys = true }) }
             install(HttpRequestRetry) {
                 maxRetries = 3
-                retryIf { _, response ->
+                retryIf { request, response ->
                     val status = response.status.value
                     val retryAfter = response.headers["Retry-After"]?.toLongOrNull()
                     // Only the daily chat limit and the hour-long ban wait longer than a
                     // minute. Retrying those is pointless — it blocks the caller for hours,
                     // and an early retry doubles the pause. Hand the response back instead.
                     val waitsTooLong = status == 429 && retryAfter != null && retryAfter > 60L
-                    !waitsTooLong && (status == 429 || status in setOf(500, 502, 503, 504))
+                    val serverError = status in setOf(500, 502, 503, 504) &&
+                        request.method in idempotentMethods &&
+                        !response.call.attributes.contains(queryTimeoutKey)
+                    !waitsTooLong && (status == 429 || serverError)
+                }
+                // Ktor also retries a request that failed with an exception, for any
+                // method by default. A POST that failed after reaching the server may
+                // already be applied, so only the methods above are retried. Timeouts
+                // and cancellation stay unretried, as in the Ktor default.
+                retryOnExceptionIf { request, cause ->
+                    request.method in idempotentMethods &&
+                        cause !is kotlin.coroutines.cancellation.CancellationException &&
+                        cause !is HttpRequestTimeoutException &&
+                        cause !is io.ktor.client.network.sockets.ConnectTimeoutException &&
+                        cause !is java.net.SocketTimeoutException
                 }
                 delayMillis { retry ->
                     val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
@@ -2935,7 +2969,7 @@ class PachcaClient private constructor(
                 }
             }
             defaultRequest { bearerAuth(token) }
-        }
+        }.also(::markQueryTimeouts)
     }
 
     constructor(
@@ -2948,6 +2982,7 @@ class PachcaClient private constructor(
         drafts: DraftsService? = null,
         files: FilesService? = null,
         groupTags: GroupTagsService? = null,
+        importantMessages: ImportantMessagesService? = null,
         linkPreviews: LinkPreviewsService? = null,
         members: MembersService? = null,
         messages: MessagesService? = null,
@@ -2970,6 +3005,7 @@ class PachcaClient private constructor(
         drafts = drafts ?: DraftsServiceImpl(baseUrl, client),
         files = files ?: FilesServiceImpl(baseUrl, client),
         groupTags = groupTags ?: GroupTagsServiceImpl(baseUrl, client),
+        importantMessages = importantMessages ?: ImportantMessagesServiceImpl(baseUrl, client),
         linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client),
         members = members ?: MembersServiceImpl(baseUrl, client),
         messages = messages ?: MessagesServiceImpl(baseUrl, client),

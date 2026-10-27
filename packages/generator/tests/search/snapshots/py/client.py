@@ -11,6 +11,22 @@ from .models import (
 )
 from .utils import deserialize, RetryTransport
 
+
+def _error_body(response: httpx.Response) -> object:
+    # The body of an error answer, or None when it is empty or not JSON (a 404 without a body, a proxy page).
+    try:
+        return response.json()
+    except ValueError:
+        return None
+
+
+def _oauth_error_from_response(response: httpx.Response) -> Exception:
+    # A 401 body that is empty or not the OAuth form gives a RuntimeError with the status code.
+    body = _error_body(response)
+    if isinstance(body, dict) and isinstance(body.get("error"), str):
+        return OAuthError(error=body["error"])
+    return RuntimeError(f"Unexpected status code: {response.status_code}")
+
 class SearchService:
     async def search_messages(
         self,
@@ -55,12 +71,11 @@ class SearchServiceImpl(SearchService):
             "/search/messages",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(SearchMessagesResponse, body)
+                return deserialize(SearchMessagesResponse, response.json())
             case 401:
-                raise deserialize(OAuthError, body)
+                raise _oauth_error_from_response(response)
             case _:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"

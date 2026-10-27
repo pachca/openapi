@@ -5,9 +5,26 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
+
+// errorFromResponse reads an error answer, an ApiError. An empty body or
+// one that is not JSON (a 404 without a body, a proxy page) gives an ApiError with
+// no errors. The status code stays in StatusCode.
+func errorFromResponse(resp *http.Response) error {
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+	}
+	var e ApiError
+	if json.Unmarshal(data, &e) != nil {
+		e = ApiError{}
+	}
+	e.StatusCode = resp.StatusCode
+	return &e
+}
 
 type authTransport struct {
 	token string
@@ -59,11 +76,7 @@ func (s *ItemsServiceImpl) PatchItem(ctx context.Context, id int32, request Item
 		}
 		return &result.Data, nil
 	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return nil, &e
+		return nil, errorFromResponse(resp)
 	}
 }
 

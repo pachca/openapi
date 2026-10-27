@@ -84,19 +84,19 @@ retry that item: correct the assignee list, or create the task without
   `status: "undone"` reopens it. Prefer this over deleting.
 - The chat binding cannot change. Moving a task to another chat means
   deleting it for good and creating a new one with the new `chat_id`, so
-  ask the user first. Read it with `pachca_get_task` before deleting and
-  pass its fields to the new task again, `custom_properties` included. The
-  new task gets a new id, you become its author, and the assignees are
-  notified again. A done task comes back undone: set `status: "done"`
-  afterwards.
+  ask first, as before any task deletion (below). Read it with
+  `pachca_get_task` before deleting and pass its fields to the new task
+  again, `custom_properties` included. The new task gets a new id, you
+  become its author, and the assignees are notified again. A done task
+  comes back undone: set `status: "done"` afterwards.
 - The author and the assignees can edit or delete the task, and so can
   whoever last marked it done. Any other member of the bound chat can read
   the task, not change it (`403`).
 - `pachca_delete_task` is final: the task cannot be restored and disappears
-  for the assignees. Delete only after the user confirms which task, and
-  prefer `status: "done"`. A connected calendar's event is removed when the
-  author deletes the task; when an assignee deletes it, the event can stay
-  in the author's calendar.
+  for the assignees. Since `status: "done"` can be undone, ask first: name
+  the task, offer marking it done, and delete only after a yes. A connected
+  calendar's event is removed when the author deletes the task; when an
+  assignee deletes it, the event can stay in the author's calendar.
 
 ## Listing tasks
 

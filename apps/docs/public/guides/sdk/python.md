@@ -130,6 +130,9 @@ await client.close()
 | `client.reactions.add_reaction()` | [Добавление реакции](/api/reactions/add) |
 | `client.reactions.list_reactions()` | [Список реакций](/api/reactions/list) |
 | `client.reactions.remove_reaction()` | [Удаление реакции](/api/reactions/remove) |
+| `client.important_messages.add_message_to_important()` | [Добавление сообщения в важные](/api/important-messages/create) |
+| `client.important_messages.list_important_messages()` | [Список важных сообщений](/api/important-messages/list) |
+| `client.important_messages.remove_message_from_important()` | [Удаление сообщения из важных](/api/important-messages/delete) |
 | `client.search.search_chats()` | [Поиск чатов](/api/search/list-chats) |
 | `client.search.search_messages()` | [Поиск сообщений](/api/search/list-messages) |
 | `client.search.search_users()` | [Поиск сотрудников](/api/search/list-users) |
@@ -157,6 +160,7 @@ await client.close()
 | `client.bots.get_webhook_events()` | [История событий](/api/bots/list-events) |
 | `client.bots.get_bot_scopes()` | [Каталог прав бота](/api/bots/list-scopes) |
 | `client.bots.list_bot_tokens()` | [Список токенов бота](/api/bots/list-tokens) |
+| `client.bots.get_webhook_events_stream()` | [Поток событий](/api/bots/get-stream) |
 | `client.bots.self_update_bot_webhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.update_bot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.update_bot_avatar()` | [Загрузка аватара бота](/api/bots/update-avatar) |
@@ -214,7 +218,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → CreateChatResponse(data: Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None), meta: CreateChatResponseMeta(not_found_member_ids: list[int]))
+# → CreateChatResponse(data: Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None), meta: CreateChatResponseMeta(not_found_member_ids: list[int], not_found_group_tag_ids: list[int]))
 ```
 
 
@@ -308,6 +312,8 @@ except ApiError as error:
 | `code` | `ValidationErrorCode` | Код валидации |
 | `payload` | `str \| None` | Дополнительные данные |
 
+Код статуса ответа — в поле `status_code`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже выбрасывает `ApiError`: с кодом статуса и пустым `errors`. Так бывает с ответом `404` без тела от метода [Поток событий](/api/bots/get-stream), когда история событий выключена, и со страницей прокси при `502`.
+
 ### OAuthError
 
 Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
@@ -326,11 +332,14 @@ except OAuthError as error:
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
+SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
 - **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
+- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
+- **5xx:** линейная пауза с jitter: ~1 сек, ~2 сек, ~3 сек
+- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
+- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
 - Реализовано через `RetryTransport` — обёртку над httpx-транспортом
 - Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
@@ -406,7 +415,7 @@ request = MessageCreateRequest(
     link_preview=False
 )
 response = await client.messages.create_message(request=request)
-# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)
+# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None, important: bool)
 
 # Список сотрудников
 params = ListUsersParams(

@@ -78,6 +78,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275" \
   - `display_name: string` (nullable) — Полное имя отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
   - `changed_at: date-time` (required, nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2021-08-28T16:10:00.000Z"`
   - `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются. Пример: `null`
+  - `important: boolean` (required) — Сообщение в разделе «Важное» владельца токена. У токена бота всегда `false`. Пример: `false`
 
 **Пример ответа:**
 
@@ -136,7 +137,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275" \
     "display_avatar_url": null,
     "display_name": null,
     "changed_at": "2021-08-28T16:10:00.000Z",
-    "deleted_at": null
+    "deleted_at": null,
+    "important": false
   }
 }
 ```

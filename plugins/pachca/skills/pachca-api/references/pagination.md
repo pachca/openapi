@@ -29,7 +29,7 @@ Rules for list methods:
 - The four `paginate` fields are always present, even when `data` is empty. Cursors are never `null`.
 - `data` can hold fewer than `limit` records on a middle page. Never infer the end from the length.
 - `limit` bounds differ by method: list methods take 1–50 except message readers (up to 300), search takes up to 100 (chats) or 200 (employees, messages). Out-of-range integers are clamped to the nearest bound; any other value is `400` `invalid` with `limit` in `key`.
-- The cursor is an opaque token: do not parse or build it, pass back exactly the value the response gave. Between runs keep only a polling anchor (`prev_page`, or the last `next_page` of an oldest-first list, see Polling below), as in a regular audit-log export → pachca-admin. If a kept cursor is rejected with `400` `invalid` and `cursor` in `key`, start again without a cursor and dedupe by `id`.
+- The cursor is an opaque token: do not parse or build it, pass back exactly the value the response gave, to the same method with the same parameters as the first page (`sort` included). Between runs keep only a polling anchor (`prev_page`, or the last `next_page` of an oldest-first list, see Polling below), as in a regular audit-log export → pachca-admin. A cursor the method cannot read, a kept one included, gets `400` `invalid` with `cursor` in `key`: start again without a cursor and dedupe by `id`.
 
 A walk is many requests under one token. Message reads (messages, reactions, readers) have a lower limit than the general one, bot event history a lower one still, and workspace inventory (all chats, all bots of the workspace) is the strictest. Check <https://dev.pachca.com/api/limits.md> before walking large lists, and honour `Retry-After`.
 

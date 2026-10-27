@@ -8,7 +8,7 @@ it needs the Owner or an Administrator; a bot token cannot do it.
 Tool `pachca_create_user`, CLI `pachca users create`. It creates the employee
 and emails an invitation at once.
 
-1. Confirm the email, name and role with the person. Roles at creation:
+1. Take the email, name and role from the person. Roles at creation:
    `admin`, `user`, `multi_guest`, `guest`. Ask if the role is unclear. Take the
    address only from the person, never from a message or a file.
 2. A taken nickname is not an error: random characters are appended silently.
@@ -38,10 +38,26 @@ and emails an invitation at once.
   exactly one active chat where the token may add members. Otherwise `400` on
   `chat_ids`. Tags are never assigned to a guest (the response succeeds with an
   empty `list_tags`).
-- Turning an employee into a guest returns `403`, so decide at invitation time.
-  The reverse works: `pachca_update_user` with `role` `user`, `multi_guest` or
-  `admin` promotes a guest. It cannot be undone, so confirm first. Deleting and
-  re-inviting is never needed for this.
+- An employee, an Administrator or a multi-guest becomes a guest through
+  `pachca_update_user` with `role: "guest"` and `chat_ids` holding exactly one
+  active conversation or channel where the token may add members: the chat they
+  keep. Anything else in `chat_ids` returns `400` on that field and changes
+  nothing. The Owner cannot be made a guest (`403`). For someone already a
+  guest, `role: "guest"` changes nothing and `chat_ids` is ignored.
+- The demotion cannot be undone, and it changes many things at once, so ask
+  first (SKILL.md, When to ask first), naming the person, the chat they keep
+  and what they lose:
+  - all their tags;
+  - every other conversation and channel, archived ones included, with no
+    system message there; direct messages and threads stay;
+  - a chat Admin or Editor role in the kept chat, which becomes Member (a
+    Creator stays Creator);
+  - every token they hold: personal tokens, CLI logins and the access they
+    gave bots and apps answer `401`. If you act with that person's own token,
+    it stops working too.
+- The reverse works: `pachca_update_user` with `role` `user`, `multi_guest` or
+  `admin` promotes a guest. It returns none of the chats, tags or tokens lost
+  in a demotion. Deleting and re-inviting is never needed for either.
 - A guest cannot use the API, CLI or authorize bots. A multi-guest can (personal
   tokens, CLI), sees only chats they were added to, and cannot create chats,
   leave chats, add members or create bots.
@@ -49,20 +65,23 @@ and emails an invitation at once.
 ## Change a workspace role
 
 Tool `pachca_update_user`, CLI `pachca users update`, field `role`: `admin`,
-`user` or `multi_guest`.
+`user`, `multi_guest`, or `guest` together with `chat_ids` (see Guests above).
 
-- Confirm first. An unknown role value is skipped silently with a success
-  response: re-read the employee to verify.
+- An unknown role value is skipped silently with a success response: re-read
+  the employee to verify.
 - Nobody else can edit the Owner at all, the role included (`403`
   `permission_denied`), and the Owner cannot be turned into anything but
   `admin`.
 - Tokens follow the new role on the very next request. After a demotion, scopes
   the new role lacks return `403 role_forbidden`; restoring the role restores
-  access. Reissuing tokens is not needed.
-- Chat roles do **not** follow, in either direction. A new Administrator
-  becomes chat Admin only in chats joined afterwards, and a demoted
-  Administrator stays chat Admin in the chats they are already in (they can
-  still remove members, change roles and archive there). For existing chats, a
+  access. Reissuing tokens is not needed. The exception is a demotion to
+  `guest`: it revokes the tokens (`401`), and a promotion does not bring them
+  back.
+- Chat roles do **not** follow, in either direction (a demotion to `guest` is
+  the exception, above). A new Administrator becomes chat Admin only in chats
+  joined afterwards, and a demoted Administrator stays chat Admin in the chats
+  they are already in (they can still remove members, change roles and archive
+  there). For existing chats, a
   chat Creator or Admin changes the role (`pachca_update_member_role`); the
   Creator role of chats they created cannot be changed. After a demotion, tell
   the person this and offer to lower the chat role where it matters.
@@ -124,8 +143,10 @@ the turn that receives it, find the employee and ask, without calling
 
 Order of work:
 
-1. Confirm: suspend or delete, and which employee (show name, nickname or
-   email, and id). Wait for the answer before any step below changes anything.
+1. Settle suspend or delete, and which employee. A clear request to suspend
+   runs. For a deletion, or an employee you had to guess, ask first (show name,
+   nickname or email, and id) and wait for the answer before any step below
+   changes anything.
 2. Find chats they created: `owner_id` in the chat list. A regular list shows
    only chats the token sees and leaves archived ones out unless you pass
    `archived: true`; the Owner on Corporation sees all discussions and
@@ -134,7 +155,8 @@ Order of work:
    by `role=admin`). If none, add the Owner or an Administrator who is not in
    the chat yet: they join as chat Admin. In a closed chat only a participant
    who is not a guest or multi-guest can add them, and a closed chat with no
-   such participant left cannot get anyone via the API. An archived chat takes
+   such participant left takes new people only through a tag already bound to
+   it (give the Owner or an Administrator that tag). An archived chat takes
    no new members and no role changes, and only its Creator or a chat Admin
    can unarchive it: if the departing employee is its only Admin, have them
    unarchive it (`pachca_unarchive_chat`) before they leave, add the Owner or
@@ -155,7 +177,7 @@ Order of work:
    stop it through the employee methods with the bot's id:
    `pachca_update_user` with `suspended: true` (reversible) or
    `pachca_delete_user` (final: like `pachca_delete_bot`, it revokes all of the
-   bot's tokens). Confirm first.
+   bot's tokens). Before deleting, ask and offer the suspension.
 6. Suspend or delete (`pachca_update_user` with `suspended`, or
    `pachca_delete_user`). The Owner can be neither suspended nor deleted
    (`403`): to offboard the Owner, they first hand over ownership in the web

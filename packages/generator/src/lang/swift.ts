@@ -133,8 +133,8 @@ function emitEnum(lines: string[], e: IREnum): void {
   lines.push('}');
 }
 
-function emitCodingKeys(lines: string[], fields: IRField[]): void {
-  const needs = fields.some((f) => swiftIdentifier(f.name) !== f.name);
+function emitCodingKeys(lines: string[], fields: IRField[], force = false): void {
+  const needs = force || fields.some((f) => swiftIdentifier(f.name) !== f.name);
   if (!needs) return;
   lines.push('');
   lines.push('    enum CodingKeys: String, CodingKey {');
@@ -185,6 +185,12 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
     lines.push(`    public ${mutable ? 'var' : 'let'} ${name}: ${t}`);
     fieldInfos.push({ name, type: t, optional, mutable });
   }
+  if (m.name === 'ApiError') {
+    // Not in the body: the client sets it, so CodingKeys below leave it out.
+    lines.push('    /// HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty.');
+    lines.push('    public var statusCode: Int?');
+    fieldInfos.push({ name: 'statusCode', type: 'Int?', optional: true, mutable: true });
+  }
   // Generate public memberwise init
   lines.push('');
   const initParams = fieldInfos.map((fi) => {
@@ -208,7 +214,7 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
     if (hasMessage) {
       lines.push('');
       lines.push('    public var localizedDescription: String {');
-      lines.push('        guard !errors.isEmpty else { return "api error" }');
+      lines.push('        guard !errors.isEmpty else { return statusCode.map { "HTTP \\($0)" } ?? "api error" }');
       lines.push('        if errors.count == 1 { return errors[0].message }');
       lines.push('        return "Errors: " + errors.map(\\.message).joined(separator: "; ")');
       lines.push('    }');
@@ -223,7 +229,7 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
     }
   }
 
-  emitCodingKeys(lines, m.fields);
+  emitCodingKeys(lines, m.fields, m.name === 'ApiError');
   lines.push('}');
 }
 
@@ -570,20 +576,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
     lines.push('                throw URLError(.badServerResponse)');
     lines.push('            }');
     lines.push('            return location');
-    if (op.hasOAuthError) {
-      lines.push('        case 401:');
-      lines.push('            throw try deserialize(OAuthError.self, from: data)');
-    }
-    if (swPicksErrorByBody(ir)) {
-      lines.push('        default:');
-      lines.push('            throw pachcaErrorFromBody(data)');
-    } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
-      lines.push('        default:');
-      lines.push('            throw try deserialize(ApiError.self, from: data)');
-    } else {
-      lines.push('        default:');
-      lines.push('            throw URLError(.badServerResponse)');
-    }
+    emitSwiftErrorCases(lines, op, ir, 'data');
     lines.push('        }');
     lines.push('    }');
     return;
@@ -601,22 +594,23 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
   else if (op.successResponse.isUnwrap && op.successResponse.dataRef) lines.push(`            return try deserialize(${op.successResponse.dataRef}DataWrapper.self, from: ${resVar}).data`);
   else lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
 
-  if (op.hasOAuthError) {
-    lines.push('        case 401:');
-    lines.push(`            throw try deserialize(OAuthError.self, from: ${resVar})`);
-  }
-  if (swPicksErrorByBody(ir)) {
-    lines.push('        default:');
-    lines.push(`            throw pachcaErrorFromBody(${resVar})`);
-  } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
-    lines.push('        default:');
-    lines.push(`            throw try deserialize(ApiError.self, from: ${resVar})`);
-  } else {
-    lines.push('        default:');
-    lines.push('            throw URLError(.badServerResponse)');
-  }
+  emitSwiftErrorCases(lines, op, ir, resVar);
   lines.push('        }');
   lines.push('    }');
+}
+
+/** The error cases of a response switch. With both error models the body decides the type, a 401 included. */
+function emitSwiftErrorCases(lines: string[], op: IROperation, ir: IR, dataVar: string): void {
+  if (op.hasOAuthError && !swHasApiError(ir)) {
+    lines.push('        case 401:');
+    lines.push(`            throw pachcaOAuthErrorFromBody(${dataVar})`);
+  }
+  lines.push('        default:');
+  if (swHasApiError(ir)) {
+    lines.push(`            throw pachcaErrorFromResponse(statusCode, ${dataVar})`);
+  } else {
+    lines.push('            throw URLError(.badServerResponse)');
+  }
 }
 
 function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, fnPrefix = 'public func'): void {
@@ -804,8 +798,17 @@ function emitWebhookPollingMethods(lines: string[], prefix: string): void {
 }
 
 /** Both error models exist, so an error's class is read off its body. */
+function swHasApiError(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError');
+}
+
+/** Only OAuthError exists: a 401 is read by its own helper, other errors stay a URLError. */
+function swReadsOAuthErrorAlone(ir: IR): boolean {
+  return !swHasApiError(ir) && ir.services.some((s) => s.operations.some((o) => o.hasOAuthError));
+}
+
 function swPicksErrorByBody(ir: IR): boolean {
-  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+  return swHasApiError(ir) && ir.models.some((m) => m.name === 'OAuthError');
 }
 
 /** The authorization link and the PKCE pair for the OAuth flow (`x-oauth-authorize-url`). */
@@ -904,24 +907,39 @@ function generateClient(ir: IR): string {
     lines.push('}');
     lines.push('');
   }
-  if (hasServices && swPicksErrorByBody(ir)) {
-    lines.push('/// An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
-    lines.push('/// which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the type.');
-    lines.push('func pachcaErrorFromBody(_ data: Data) -> Error {');
-    const codeEnum = oauthErrorCodeEnum(ir);
-    lines.push('    if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],');
-    if (codeEnum && !codeEnum.open) {
-      // A closed enum takes only the values it lists: the decoder refuses the rest.
-      lines.push('       object["errors"] == nil, object["error"] is String,');
-      lines.push('       let oauthError = try? deserialize(OAuthError.self, from: data) {');
-      lines.push('        return oauthError');
-    } else {
-      const code = codeEnum ? `${codeEnum.name}(code)` : 'code';
-      lines.push('       object["errors"] == nil, let code = object["error"] as? String {');
-      lines.push(`        return OAuthError(error: ${code}, errorDescription: object["error_description"] as? String ?? "")`);
+  if (hasServices && swHasApiError(ir)) {
+    const picks = swPicksErrorByBody(ir);
+    if (picks) {
+      lines.push('/// An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
+      lines.push('/// which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the type.');
     }
-    lines.push('    }');
-    lines.push('    if let apiError = try? deserialize(ApiError.self, from: data) { return apiError }');
+    lines.push('/// An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in statusCode.');
+    lines.push('func pachcaErrorFromResponse(_ statusCode: Int, _ data: Data) -> Error {');
+    if (picks) {
+      const codeEnum = oauthErrorCodeEnum(ir);
+      lines.push('    if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],');
+      if (codeEnum && !codeEnum.open) {
+        // A closed enum takes only the values it lists: the decoder refuses the rest.
+        lines.push('       object["errors"] == nil, object["error"] is String,');
+        lines.push('       let oauthError = try? deserialize(OAuthError.self, from: data) {');
+        lines.push('        return oauthError');
+      } else {
+        const code = codeEnum ? `${codeEnum.name}(code)` : 'code';
+        lines.push('       object["errors"] == nil, let code = object["error"] as? String {');
+        lines.push(`        return OAuthError(error: ${code}, errorDescription: object["error_description"] as? String ?? "")`);
+      }
+      lines.push('    }');
+    }
+    lines.push('    var apiError = (try? deserialize(ApiError.self, from: data)) ?? ApiError(errors: [])');
+    lines.push('    apiError.statusCode = statusCode');
+    lines.push('    return apiError');
+    lines.push('}');
+    lines.push('');
+  }
+  if (hasServices && swReadsOAuthErrorAlone(ir)) {
+    lines.push('/// A 401 body that is empty or not the OAuth form gives URLError(.badServerResponse).');
+    lines.push('func pachcaOAuthErrorFromBody(_ data: Data) -> Error {');
+    lines.push('    if let oauthError = try? deserialize(OAuthError.self, from: data) { return oauthError }');
     lines.push('    return URLError(.badServerResponse)');
     lines.push('}');
     lines.push('');
@@ -1128,6 +1146,13 @@ function generateUtils(ir: IR): string {
     'private let maxRetries = 3',
     'private let retryable5xx: Set<Int> = [500, 502, 503, 504]',
     '',
+    '// A 5xx says nothing about whether the server already applied the request.',
+    '// These methods are safe to repeat. A retried POST or PATCH could apply',
+    '// twice: POST /messages would send the message again, and the API has no',
+    '// idempotency key. 429 is safe for any method: the request was rejected',
+    '// before it was processed.',
+    'private let idempotentMethods: Set<String> = ["GET", "HEAD", "OPTIONS", "PUT", "DELETE"]',
+    '',
     '// Retry-After is a minimum, not an estimate: waiting less lands the retry',
     '// inside a window that is still closed. Jitter only upwards.',
     'private func jitter(_ delay: UInt64) -> UInt64 {',
@@ -1137,7 +1162,18 @@ function generateUtils(ir: IR): string {
     '// Only the daily chat limit and the hour-long ban wait longer than a minute.',
     'private let maxRetryAfterSeconds: UInt64 = 60',
     '',
+    '// A 504 with the code timeout is a search the server stopped because the',
+    '// query is too heavy: the same query would time out again, so it goes back',
+    '// to the caller at once. A 504 from a proxy has no such code and is retried.',
+    'private func isQueryTimeout(_ statusCode: Int, _ data: Data) -> Bool {',
+    '    guard statusCode == 504,',
+    '          let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any],',
+    '          let errors = body["errors"] as? [Any] else { return false }',
+    '    return errors.contains { ($0 as? [String: Any])?["code"] as? String == "timeout" }',
+    '}',
+    '',
     'func dataWithRetry(session: URLSession, for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {',
+    '    let idempotent = idempotentMethods.contains((request.httpMethod ?? "GET").uppercased())',
     '    for attempt in 0...maxRetries {',
     '        let (data, response) = try await session.data(for: request, delegate: delegate)',
     '        if let http = response as? HTTPURLResponse {',
@@ -1157,7 +1193,7 @@ function generateUtils(ir: IR): string {
     '                try await _Concurrency.Task.sleep(nanoseconds: jitter(delay))',
     '                continue',
     '            }',
-    '            if retryable5xx.contains(http.statusCode), attempt < maxRetries {',
+    '            if retryable5xx.contains(http.statusCode), idempotent, attempt < maxRetries, !isQueryTimeout(http.statusCode, data) {',
     '                let delay = UInt64(attempt + 1) * 1_000_000_000',
     '                try await _Concurrency.Task.sleep(nanoseconds: jitter(delay))',
     '                continue',

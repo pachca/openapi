@@ -74,6 +74,12 @@ export interface ClientFlags {
 const MAX_RETRIES = 3;
 const DEFAULT_TIMEOUT = 30;
 
+const RETRYABLE_5XX = new Set([500, 502, 503, 504]);
+// A 5xx says nothing about whether the server already applied the request, and
+// the API has no idempotency key: a retried POST /messages sends the message
+// twice. These methods are safe to repeat, the same set as in the SDKs.
+const IDEMPOTENT_METHODS = new Set(['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE']);
+
 function buildUrl(apiPath: string, query?: Record<string, string | number | boolean | string[] | undefined>): string {
   const base = apiPath.startsWith('http://') || apiPath.startsWith('https://')
     ? apiPath
@@ -158,9 +164,11 @@ export async function request(
   // means by `--timeout 0`. The env var already ignored 0; make the flag agree.
   const timeoutSeconds = requestedTimeout > 0 ? requestedTimeout : DEFAULT_TIMEOUT;
   const noRetry = opts.noRetry ?? clientFlags?.['no-retry'] ?? false;
-  // Retrying a request the server may already have committed duplicates it.
-  // Only these methods are safe to repeat blindly.
-  const safeMethod = ['GET', 'HEAD', 'OPTIONS', 'PUT'].includes(opts.method);
+  const method = opts.method.toUpperCase();
+  // The same set is retried after a 5xx and after a network error. A repeated
+  // DELETE whose first attempt went through answers 404, which the caller sees
+  // as an error, but it never deletes anything twice.
+  const idempotent = IDEMPOTENT_METHODS.has(method);
 
   const fetchHeaders: Record<string, string> = {
     ...(opts.noAuth ? {} : { Authorization: `Bearer ${opts.token}` }),
@@ -244,34 +252,32 @@ export async function request(
         }
       }
 
-      // Handle 503 with backoff. Unlike 429, a 503 from a proxy or a draining
-      // load balancer says nothing about whether the backend already committed
-      // the write — retrying a POST there duplicates the message.
-      if (response.status === 503 && safeMethod && !noRetry && attempt < MAX_RETRIES) {
-        const baseMs = 1000;
-        const waitMs = baseMs * Math.pow(2, attempt) + Math.random() * baseMs;
-        if (clientFlags?.verbose) {
-          process.stderr.write(`${ansis.dim(`⏳ Service unavailable, retrying in ${Math.round(waitMs)}ms...`)}\n`);
-        }
-        await sleep(waitMs);
-        continue;
-      }
-
-      // Parse response body
-      const contentType = response.headers.get('content-type') || '';
+      // Handle 5xx with backoff, for idempotent methods only. Unlike 429, a 5xx
+      // from a proxy or a draining load balancer says nothing about whether the
+      // backend already committed the write — retrying a POST there duplicates
+      // the message.
       let data: unknown;
-
-      if (response.status === 204 || response.headers.get('content-length') === '0') {
-        data = null;
-      } else if (opts.isBinary && response.ok) {
-        // Тело файла нельзя читать как текст: любой байт вне UTF-8 портится
-        // при декодировании, и сохранённый файл оказывается битым.
-        data = Buffer.from(await response.arrayBuffer());
-      } else if (contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        data = await response.text();
+      let bodyRead = false;
+      if (RETRYABLE_5XX.has(response.status) && idempotent && !noRetry && attempt < MAX_RETRIES) {
+        // A 504 with the code `timeout` is a search the server stopped because
+        // the query is too heavy: the same query would time out again, so it
+        // goes back to the caller at once. A 504 from a proxy has no such code.
+        if (response.status === 504) {
+          data = await readBody(response, opts.isBinary).catch(() => null);
+          bodyRead = true;
+        }
+        if (!isQueryTimeout(response.status, data)) {
+          const baseMs = 1000;
+          const waitMs = baseMs * Math.pow(2, attempt) + Math.random() * baseMs;
+          if (clientFlags?.verbose) {
+            process.stderr.write(`${ansis.dim(`⏳ Server error ${response.status}, retrying in ${Math.round(waitMs)}ms...`)}\n`);
+          }
+          await sleep(waitMs);
+          continue;
+        }
       }
+
+      if (!bodyRead) data = await readBody(response, opts.isBinary);
 
       // Handle errors
       if (!response.ok) {
@@ -299,8 +305,7 @@ export async function request(
       }
 
       lastError = error as Error;
-      // Only retry network errors for idempotent methods (not POST/DELETE)
-      if (!safeMethod || noRetry || attempt >= MAX_RETRIES) {
+      if (!idempotent || noRetry || attempt >= MAX_RETRIES) {
         break;
       }
     }
@@ -313,6 +318,31 @@ export async function request(
     type: 'PACHCA_NETWORK_ERROR',
     message: lastError?.message || 'Failed to connect to server',
   });
+}
+
+async function readBody(response: Response, isBinary?: boolean): Promise<unknown> {
+  const contentType = response.headers.get('content-type') || '';
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return null;
+  }
+  if (isBinary && response.ok) {
+    // Тело файла нельзя читать как текст: любой байт вне UTF-8 портится
+    // при декодировании, и сохранённый файл оказывается битым.
+    return Buffer.from(await response.arrayBuffer());
+  }
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+  return response.text();
+}
+
+function isQueryTimeout(status: number, body: unknown): boolean {
+  return (
+    status === 504 &&
+    isRecord(body) &&
+    Array.isArray(body.errors) &&
+    body.errors.some((error) => isRecord(error) && error.code === 'timeout')
+  );
 }
 
 // Недостающий скоуп по RFC 6750 приходит в параметре scope заголовка

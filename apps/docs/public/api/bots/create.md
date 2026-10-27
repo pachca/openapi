@@ -20,7 +20,7 @@
 
 Авторизацию от имени сотрудника можно включить сразу, передав `oauth_client`, а страницу в витрине заполнить в `promo`. У серверного клиента секрет приходит в `client_secret` один раз. Подробнее — в разделе [Настройка авторизации](/guides/oauth/setup). Ссылку авторизации для кнопки собирает и код на токен обменивает сервер бота — по шагам в разделе [Получение токена](/guides/oauth/flow).
 
-Ник обязан заканчиваться на `_bot` и быть свободным в пространстве. Бота с разворачиванием ссылок создаёт только администратор или владелец пространства.
+Ник обязан заканчиваться на `_bot` и быть свободным в пространстве. Бота с разворачиванием ссылок создаёт только администратор или владелец пространства: остальным — `400` с кодом `forbidden`.
 
 Аватар боту ставят после создания методом [Загрузка аватара бота](/api/bots/update-avatar).
 
@@ -171,9 +171,9 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
       Значения: `simple` — Свой формат: сообщение собирается из тела запроса по шаблону бота, `gitlab` — GitLab: Пачка сама разбирает запрос и собирает сообщение, `grafana` — Grafana: Пачка сама разбирает запрос и собирает сообщение
     - `unfurl_domains: array of string` (required) — Домены, ссылки на которые бот разворачивает. Пример: `["example.com"]`
     - `last_request_at: date-time` (required, nullable) — Дата и время последнего запроса на входящий вебхук бота (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если запросов не было. Пример: `"2025-05-15T14:30:00.000Z"`
-    - `url: string` (nullable) — Адрес входящего вебхука. `null`, если входящий вебхук у бота выключен. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M"`
-    - `secret_token: string` — Секрет подписи исходящего вебхука: им подписан заголовок `Pachca-Signature`. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA"`
-    - `last_request_body: string` (nullable) — Тело последнего запроса на входящий вебхук бота. Длиннее 128 КБ обрезается и заканчивается на `...[truncated]`. `null`, если запросов не было. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"{\"client\": \"ООО Ромашка\", \"amount\": 15000}"`
+    - `url: string` (nullable) — Адрес входящего вебхука. `null`, если входящий вебхук у бота выключен. Приходит в ответе об одном боте токену со скоупом `bots:write`, который может управлять токенами бота (`permissions.recreate_token`). Пример: `"https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M"`
+    - `secret_token: string` — Секрет подписи исходящего вебхука: им подписан заголовок `Pachca-Signature`. Приходит в ответе об одном боте токену со скоупом `bots:write`, который может управлять токенами бота (`permissions.recreate_token`). Пример: `"pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA"`
+    - `last_request_body: string` (nullable) — Тело последнего запроса на входящий вебхук бота. Длиннее 128 КБ обрезается и заканчивается на `...[truncated]`. `null`, если запросов не было. Приходит в ответе об одном боте токену со скоупом `bots:write`, который может управлять токенами бота (`permissions.recreate_token`). Пример: `"{\"client\": \"ООО Ромашка\", \"amount\": 15000}"`
   - `oauth_client_enabled: boolean` (required) — Включена ли у бота авторизация от имени сотрудника. Пример: `true`
   - `oauth_client: object` (required) — Параметры авторизации от имени сотрудника. Может прийти и у бота с выключенной авторизацией, поэтому включена ли она, смотрите в `oauth_client_enabled`. У бота без токенов может прийти `null`.
     - `client_id: string` (required) — Идентификатор клиента для ссылки авторизации. Пример: `"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY"`
@@ -234,7 +234,10 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
       "who_can_add": "creator",
       "kind": "simple",
       "unfurl_domains": [],
-      "last_request_at": null
+      "last_request_at": null,
+      "url": "https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M",
+      "secret_token": "pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA",
+      "last_request_body": null
     },
     "oauth_client_enabled": true,
     "oauth_client": {

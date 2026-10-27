@@ -134,6 +134,10 @@ public class ApiError : Exception
 {
     [JsonPropertyName("errors")]
     public List<ApiErrorItem>? Errors { get; set; }
+
+    /// <summary>HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves Errors empty.</summary>
+    [JsonIgnore]
+    public int? StatusCode { get; set; }
 }
 
 public class OAuthError : Exception

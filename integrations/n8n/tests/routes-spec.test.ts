@@ -34,6 +34,7 @@ const TAG_TO_RESOURCE: Record<string, string> = {
 	'Link Previews': 'linkPreview',
 	'Search': 'search',
 	'Security': 'security',
+	'Important messages': 'importantMessage',
 };
 
 function tagToResource(tag: string): string {

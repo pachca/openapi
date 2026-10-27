@@ -476,6 +476,18 @@ describe('generated commands — functional tests', () => {
       expect(stderr).toBe(notAdded);
     });
 
+    it('meta.not_found_group_tag_ids → своё предупреждение в stderr', async () => {
+      const chat = mockEntity('/chats', 'POST', { id: 334, name: 'Релизы' });
+      mockFetch({ status: 201, data: { data: chat, meta: { not_found_member_ids: [], not_found_group_tag_ids: [9] } } });
+      const { stdout, stderr, error } = await runCommand(
+        ['chats', 'create', '--name', 'Релизы', '--group-tag-ids', '[4,9]', '-o', 'json'],
+        { root: CLI_ROOT },
+      );
+      expect(error).toBeUndefined();
+      expect(JSON.parse(stdout)).toEqual(chat);
+      expect(stderr).toBe('⚠ Не удалось подключить теги: 9.\n  Таких тегов нет в пространстве.\n');
+    });
+
     it('пустой not_found_member_ids → stderr пуст', async () => {
       mockFetchForEndpoint('/chats', 'POST', { status: 201 });
       const { stdout, stderr } = await runCommand(['chats', 'create', '--name', 'Релизы', '--member-ids', '[3]'], { root: CLI_ROOT });

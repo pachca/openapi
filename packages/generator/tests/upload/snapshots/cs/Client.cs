@@ -66,7 +66,7 @@ public sealed class CommonServiceImpl : CommonService
             case 204:
                 return;
             case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
+                throw PachcaUtils.OAuthErrorFromResponse((int)response.StatusCode, json);
             default:
                 throw new InvalidOperationException($"Unexpected status code: {(int)response.StatusCode}");
         }
@@ -83,7 +83,7 @@ public sealed class CommonServiceImpl : CommonService
             case 201:
                 return PachcaUtils.Deserialize<UploadParamsDataWrapper>(json).Data;
             case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
+                throw PachcaUtils.OAuthErrorFromResponse((int)response.StatusCode, json);
             default:
                 throw new InvalidOperationException($"Unexpected status code: {(int)response.StatusCode}");
         }

@@ -85,7 +85,7 @@
   {
     "name": "no-retry",
     "type": "boolean",
-    "description": "Отключить авто-retry при 429/503",
+    "description": "Отключить автоповтор при 429, 5xx и сетевых ошибках",
     "hidden": false
   },
   {

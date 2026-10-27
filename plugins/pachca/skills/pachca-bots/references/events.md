@@ -18,7 +18,7 @@ How a bot learns what happens in the workspace, and how to build a handler that 
 
 - Changing these with a personal token needs `bots:write` and edit access to the bot.
 - The bot can set its own URL with its own token: `pachca_self_update_bot_webhook` (`pachca bots update-webhook`), scope `bot_self:webhook:write`, no admin involved. It fails for a bot with link unfurling.
-- The Signing secret cannot be set, only read: «Исходящий вебхук» tab, or `webhook.secret_token` in bot info (`pachca_get_bot` with `view: "full"`, `pachca bots get`) for a token with `bots:write` whose owner may manage the bot's tokens.
+- The Signing secret cannot be set, only read: «Исходящий вебхук» tab, or `webhook.secret_token` in an answer about one bot for a token with `bots:write` whose owner may manage the bot's tokens. That is bot info (`pachca_get_bot` with `view: "full"`, `pachca bots get`) and the answers of `pachca_create_bot`, `pachca_update_bot`, `pachca_recreate_bot_token` and `pachca_rotate_bot_client_secret`.
 - «Удалить вебхук» (API: `outgoing_url: ""` together with `events: []` in one call, without `events_history_enabled: true`) stops delivery, resets events to `message_new`, mode to commands, the command list and «Игнорировать свои сообщения», turns off «Сохранять историю событий» (records already saved stay), and issues a **new** Signing secret. Re-enabled, it starts like a new one: restore the settings (note them from bot info before deleting) and update the secret in your handler.
 - `trigger_on: unfurl` is a legacy link-unfurling mode the interface does not offer. Only an admin or the owner turns it on. Such a bot accepts no events except `message_link_shared`, so adding others fails until the mode is switched to `all_messages` or `commands`. It counts as a bot with link unfurling, so the admin-only rules in SKILL.md apply.
 
@@ -73,7 +73,7 @@ The same event can occasionally arrive twice. Keep a durable set of processed ke
 
 The handler page's example key `type:event:id-or-message_id` is unsafe with a durable set: `view`, `chat_member`, `company_member` and `video_call` payloads carry neither `id` nor `message_id`, so every event of one kind gets the same key and all later ones are dropped. All edits of one message share a key too. Start the key with `type:event` and add per type:
 
-- `message`: `id`, plus `changed_at` for `update`. For `link_shared`: `message_id` and the `links` URLs (an edit sends the links again).
+- `message`: `id`, plus `changed_at` for `update`. For `link_shared`: `message_id` and the `links` URLs (an edit sends the links again, and so does an `update` without an edit from section 6, unless a link preview was added).
 - `reaction`: `message_id`, `user_id`, `code`, `created_at`.
 - `button`: `trigger_id` (new on every click).
 - `view`: `submit_id`.
@@ -89,6 +89,7 @@ Use the same key for webhook and history events. History IDs do not deduplicate:
 - A file-only message has an empty `content`; the payload cannot tell you it has an attachment.
 - `content` is Markdown that Pachca assembles from the message (quotes, lists may appear). See [Markdown](https://dev.pachca.com/guides/markdown.md).
 - For `message`/`delete`, the message method still answers `200` but returns a cleared record (empty `content`, `deleted_at` set).
+- `message`/`update` is not always an edit. It also comes, with the same `content`, when someone adds the message to their «Важное» or removes it (in the app or through the API), when the preview of an attached document or the transcription of a voice message is ready, and when a link preview is added or removed. Keep the last `changed_at` you handled per message, the one from `message`/`new` included: an `update` with that same `changed_at` is not an edit. When `changed_at` moved, still compare `content` with what you have before treating it as an edit.
 - `entity_type` / `entity_id` tell where to answer (`user` = DM, `discussion` = conversation or channel, `thread`). `thread.message_id` and `thread.message_chat_id` point to the thread's parent; both are `null` for a standalone thread.
 - `parent_message_id` is set when the message is a reply.
 - The payload has no flag for a bot author: messages of other bots and incoming-webhook posts arrive like any other.
@@ -106,5 +107,11 @@ Use it when the server cannot accept inbound HTTP (local development, strict fir
 4. Delete processed records with `pachca_delete_webhook_event` (`pachca bots remove-event`). The history does not clear itself, and records left in it come again on every request.
 
 SDK helpers (`pollWebhookEvents`, `pollWebhookPayloads` and their equivalents) wrap this. By default they start from events created **after** the worker starts (pass `createdAfter`, or `created_after` in Python, to read older history) and dedupe delivery IDs in memory, so the dedup does not survive a restart. Examples per language: [Polling](https://dev.pachca.com/guides/webhook/polling.md).
+
+**Live stream.** A bot with no public URL that must react within seconds (a button click, a form) can get history records as they are written. With the bot's own token, `GET /webhooks/events/stream` returns a link (`url`, `expires_at`) to a Server-Sent Events stream. There is no MCP tool: a model cannot hold the connection, and the link opens with no token, so keep it as a secret. With «Сохранять историю событий» off, or when the stream is unavailable, the method answers `404` with an empty body. Each event comes as a history record (`id`, `event_type`, `payload`, `created_at`); service frames carry `type`.
+
+- Open the link, wait for the subscription to be confirmed, then read the history (step 2). Do the same after every reconnect and every new link: events written before the subscription are only in the history.
+- After `expires_at` the stream goes silent without closing. Request a new link in the last five minutes before `expires_at` (an earlier request returns the same link), open it, wait for the confirmation, read the history, then close the old stream.
+- Delivery to the stream is not guaranteed: keep deleting processed records (step 4). The record `id` removes repeats between the stream and the history, and between the old and the new link. If the bot also has a webhook URL, a delivery retried after a failed connection reaches the stream again with a new `id`, sometimes before the webhook request itself: dedupe it by the payload key from section 5.
 
 A bot with no webhook URL also reads button clicks and form submissions from the history; its form rules differ — see [forms.md](forms.md).

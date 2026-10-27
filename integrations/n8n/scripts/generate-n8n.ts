@@ -496,6 +496,7 @@ function tagToResource(tag: string): string {
     'Custom Properties': 'customProperty',
     'Files': 'file',
     'Drafts': 'draft',
+    'Important messages': 'importantMessage',
   };
   if (MAP[tag]) return MAP[tag];
   // Fallback for an unmapped tag. Must produce a valid camelCase identifier:
@@ -515,6 +516,7 @@ function resourceDisplayName(resource: string): string {
     profile: 'Profile', customProperty: 'Custom Property', task: 'Task',
     bot: 'Bot', file: 'File', form: 'Form', readMember: 'Read Member',
     oauth: 'OAuth', search: 'Search', security: 'Security', draft: 'Draft',
+    importantMessage: 'Important Message',
   };
   return MAP[resource] || snakeToPascal(resource);
 }

@@ -20,8 +20,11 @@ export interface ApiErrorItem {
 
 export class ApiError extends Error {
   errors?: ApiErrorItem[];
-  constructor(errors?: ApiErrorItem[]) {
-    super(errors?.map((e) => `${e.key}: ${e.value}`).join(", "));
+  /** HTTP status code of the response. An answer with an empty body or one that is not JSON comes with `errors` empty. */
+  status?: number;
+  constructor(errors?: ApiErrorItem[], status?: number) {
+    super(errors?.length ? errors.map((e) => `${e.key}: ${e.value}`).join(", ") : status !== undefined ? `HTTP ${status}` : "");
     this.errors = errors;
+    this.status = status;
   }
 }

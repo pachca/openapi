@@ -211,6 +211,112 @@ describe('client', () => {
     expect(callCount).toBe(2);
   });
 
+  describe('5xx retries', () => {
+    type Answer = { status: number; json?: unknown; text?: string };
+
+    // Answers each request with the next canned response and records the
+    // method. The pauses between attempts run on fake timers.
+    async function send(answers: Answer[], method: string, path = '/chats') {
+      const methods: string[] = [];
+      const queue = [...answers];
+      globalThis.fetch = vi.fn().mockImplementation((_url: string, init: RequestInit) => {
+        methods.push(init.method ?? 'GET');
+        const next = queue.shift()!;
+        const isJson = next.json !== undefined;
+        return Promise.resolve({
+          ok: next.status < 400,
+          status: next.status,
+          statusText: '',
+          headers: new Headers(isJson ? { 'content-type': 'application/json' } : next.text ? { 'content-type': 'text/html' } : {}),
+          json: () => Promise.resolve(next.json),
+          text: () => Promise.resolve(next.text ?? ''),
+        });
+      });
+      vi.useFakeTimers();
+      try {
+        const pending = request({ method, path, token: 'test' }, { quiet: true });
+        const settled = pending.then(
+          (result) => ({ result, error: undefined }),
+          (error: unknown) => ({ result: undefined, error }),
+        );
+        await vi.runAllTimersAsync();
+        return { ...(await settled), methods };
+      } finally {
+        vi.useRealTimers();
+      }
+    }
+
+    const ok = { status: 200, json: { data: 'ok' } };
+    const searchTimeout = {
+      status: 504,
+      json: { errors: [{ key: 'system', value: null, message: 'Search timed out', code: 'timeout', payload: null }] },
+    };
+
+    it('retries 500, 502, 503 and 504 for GET', async () => {
+      for (const status of [500, 502, 503, 504]) {
+        const { result, methods } = await send([{ status, json: { errors: [{ message: 'Server error' }] } }, ok], 'GET');
+        expect(result?.data).toEqual({ data: 'ok' });
+        expect(methods).toEqual(['GET', 'GET']);
+      }
+    });
+
+    it('retries a 5xx for PUT and DELETE', async () => {
+      const put = await send([{ status: 502, text: '<html>Bad Gateway</html>' }, ok], 'PUT', '/users/1');
+      expect(put.methods).toEqual(['PUT', 'PUT']);
+      const del = await send([{ status: 503, json: { errors: [] } }, { status: 204 }], 'DELETE', '/messages/1');
+      expect(del.result?.status).toBe(204);
+      expect(del.methods).toEqual(['DELETE', 'DELETE']);
+    });
+
+    it('does not retry a 5xx for POST or PATCH', async () => {
+      for (const method of ['POST', 'PATCH']) {
+        const { error, methods } = await send([{ status: 500, json: { errors: [{ message: 'Server error' }] } }, ok], method, '/messages');
+        expect(error).toBeInstanceOf(ApiError);
+        expect(methods).toEqual([method]);
+      }
+    });
+
+    it('stops after three retries', async () => {
+      const failure = { status: 502, text: '<html>Bad Gateway</html>' };
+      const { error, methods } = await send([failure, failure, failure, failure], 'GET');
+      expect((error as ApiError).details.code).toBe(502);
+      expect(methods).toHaveLength(4);
+    });
+
+    it('does not retry a 504 with the code timeout, and keeps its body', async () => {
+      const { error, methods } = await send([searchTimeout, ok], 'GET', '/search/messages');
+      expect(methods).toEqual(['GET']);
+      const details = (error as ApiError).details;
+      expect(details.code).toBe(504);
+      expect(details.validation_code).toBe('timeout');
+      expect(details.error).toBe('system: Search timed out');
+    });
+
+    it('retries a 504 without the code timeout', async () => {
+      const proxy = await send([{ status: 504, text: '<html>Gateway Timeout</html>' }, ok], 'GET');
+      expect(proxy.methods).toEqual(['GET', 'GET']);
+      const otherCode = await send([{ status: 504, json: { errors: [{ code: 'unavailable', message: 'Try later' }] } }, ok], 'GET');
+      expect(otherCode.methods).toEqual(['GET', 'GET']);
+      // The code decides only for a 504: a 503 that names it is still retried.
+      const unavailable = await send([{ ...searchTimeout, status: 503 }, ok], 'GET');
+      expect(unavailable.methods).toEqual(['GET', 'GET']);
+    });
+
+    it('does not retry a 5xx with noRetry', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 502,
+        statusText: 'Bad Gateway',
+        headers: new Headers({ 'content-type': 'text/html' }),
+        text: () => Promise.resolve('<html>Bad Gateway</html>'),
+      });
+      await expect(
+        request({ method: 'DELETE', path: '/messages/1', token: 'test', noRetry: true }, { quiet: true }),
+      ).rejects.toThrow(ApiError);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('should not retry on 400 errors', async () => {
     let callCount = 0;
     globalThis.fetch = vi.fn().mockImplementation(() => {
@@ -869,7 +975,29 @@ describe('client', () => {
     expect(callCount).toBe(1);
   });
 
-  it('should not retry DELETE on network error', async () => {
+  it('should retry DELETE on network error, the same set as for 5xx', async () => {
+    let callCount = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      if (callCount <= 2) {
+        return Promise.reject(new TypeError('fetch failed'));
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 204,
+        headers: new Headers(),
+      });
+    });
+
+    const result = await request(
+      { method: 'DELETE', path: '/messages/1', token: 'test' },
+      { quiet: true },
+    );
+    expect(result.status).toBe(204);
+    expect(callCount).toBe(3);
+  });
+
+  it('should not retry DELETE on network error with noRetry', async () => {
     let callCount = 0;
     globalThis.fetch = vi.fn().mockImplementation(() => {
       callCount++;
@@ -877,7 +1005,7 @@ describe('client', () => {
     });
 
     await expect(
-      request({ method: 'DELETE', path: '/messages/1', token: 'test' }, { quiet: true }),
+      request({ method: 'DELETE', path: '/messages/1', token: 'test', noRetry: true }, { quiet: true }),
     ).rejects.toThrow();
     expect(callCount).toBe(1);
   });

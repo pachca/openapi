@@ -17,6 +17,7 @@
         "openapi.yaml",
         "generated/**",
         "!generated/build.gradle.kts",
+        "!generated/README.md",
         "src/generated/**"
       ],
       "cache": true

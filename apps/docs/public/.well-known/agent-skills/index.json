@@ -6,56 +6,56 @@
       "type": "archive",
       "description": "Вход в Пачку (Pachca) для агента: подключить агента или MCP-клиента (MCP через браузер или токеном, плагин, CLI), проверить подключение, выбрать токен, разобрать отказ 401/403 инструмента или CLI и отсутствие инструмента (роль, тариф, тип токена, участие в чате). Когда: «подключи Пачку», «настрой MCP Пачки», «войди в Пачку через CLI», «каким токеном подключить агента», «экран входа MCP», «агент получил 403 insufficient_scope», «нет инструмента Пачки (экспорт, журнал аудита)», «что умеет Пачка». English: \"connect Pachca\", \"set up Pachca MCP\", \"Pachca CLI login\", \"which token for my agent or MCP client\", \"MCP sign-in screen\", \"MCP tool or CLI returned 401/403\", \"a Pachca tool is missing\". Not for: writing messages → pachca-messaging, search and summaries → pachca-search, administration, who may create tokens → pachca-admin, building a bot → pachca-bots, an agent living in Pachca → pachca-ai-agent, OAuth for employees → pachca-oauth, a token for a script or service, 401/403 in your own code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca.tar.gz",
-      "digest": "sha256:16e1f4b9caa0f4dc78ad4d0323aeb5c98362be39600211f6ed9b27e2f1bdfdd3"
+      "digest": "sha256:73cb39c5f50493daf1eb8339b75aab2136b1a94289b4bce3b72332521a9c3e20"
     },
     {
       "name": "pachca-admin",
       "type": "archive",
       "description": "Администрирование пространства Пачки: сотрудники (пригласить, сменить роль, приостановить, удалить), теги и участники чатов, доступ к API и «Все токены», журнал аудита, экспорт, DLP, безопасный контур и шифрование; что требует владельца, администратора или «Корпорации». Load before a tool call that changes an employee: delete only after a yes to your question. Use when: «пригласи сотрудника», «уволь / удали сотрудника», «сделай администратором», «добавь в тег», «добавь / удали участника чата», «кто в закрытом канале, где я не состою», «доступ к API ограничен», «отзови доступ сотрудника к API», «журнал аудита», «выгрузи переписку», «правило DLP»; \"invite an employee\", \"offboard a user\", \"change role\", \"add or remove chat members\", \"let employees create tokens\", \"export messages\". Not for: a missing tool or a general 401/403 → pachca; who is in a tag or chat → pachca-search; writing messages → pachca-messaging; a bot's own token → pachca-bots; an app acting for employees → pachca-oauth; scripts → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-admin.tar.gz",
-      "digest": "sha256:fdf84e007db7360c971dd1fa7cd2c5571cda2be25d16240794460e59b21a1141"
+      "digest": "sha256:fb130b8c939d149e1132c9b3b5e8f48b4cecea5d71aa87e2da85fd9b09027e95"
     },
     {
       "name": "pachca-ai-agent",
       "type": "archive",
       "description": "Build an AI agent that lives in Pachca as a bot: called by @mention in a chat or thread or messaged in a DM, it reads the thread for context, shows the agent-thinking timer, replies in the thread and formats a long result as an .md card; plus bot vs MCP. Use when: «AI-агент в Пачке», «агент отвечает по упоминанию в треде», «агент не слышит упоминание», «бот-агент в личных сообщениях», «как агенту собрать контекст треда», «реакция agent-thinking», «длинный ответ агента карточкой .md», «бот или MCP»; \"AI agent bot in Pachca\", \"agent replies when mentioned\", \"agent does not hear a mention\", \"read thread context\", \"thinking indicator\", \"agent reply as an .md card\", \"bot vs MCP\". Not for: working in Pachca from Claude or Cursor through MCP → pachca, pachca-messaging, pachca-search; drafts and scheduled messages (a bot cannot make them), sending a file or report from Claude, Cursor or the CLI → pachca-messaging; webhooks, tokens and settings of any bot → pachca-bots; acting on behalf of an employee → pachca-oauth.",
       "url": "/.well-known/agent-skills/pachca-ai-agent.tar.gz",
-      "digest": "sha256:87c4516d2eceb4f0562fac92474c30b3d7f37f8ab92b381f3b286dba1ab2d44e"
+      "digest": "sha256:43d2ce4926ee15a3ce3e841f5c79254103a03f38d4ec830105272437605fe358"
     },
     {
       "name": "pachca-api",
       "type": "archive",
       "description": "API Пачки из кода, скриптов и CI: токен и скоупы для скрипта или сервиса, курсорная пагинация, ошибки и повторы без дублей (401/403/422, 429, 5xx), файлы в коде, SDK и генератор, CLI в скриптах, массовые выгрузки, поиск метода. Когда: «напиши скрипт для API Пачки», «какой токен дать скрипту, сервису или CI», «мой код получает 401/403/422 от API», «упёрлись в 429», «поиск вернул 504 timeout, повторить?», «обойти все страницы», «скрипт, который выгружает всех сотрудников», «загрузка файла из кода», «SDK Пачки», «какой метод API»; \"call the Pachca API from code\", \"token for a script or CI job\", \"401/403/422 in my code\", \"cursor pagination\", \"429 Retry-After\", \"upload a file from my code\", \"Pachca SDK\", \"pachca CLI in CI\", \"which endpoint\". Not for: connecting an agent or MCP client, a 401/403 from an MCP tool → pachca; writing messages, a file to a chat now → pachca-messaging; bots, webhooks, events → pachca-bots; OAuth for employees → pachca-oauth; token policy, all-tokens tab, message export → pachca-admin.",
       "url": "/.well-known/agent-skills/pachca-api.tar.gz",
-      "digest": "sha256:830a3892a6c9d17913bd496bf3aa80c6bbe03853d71450d434b7b356d0271cf8"
+      "digest": "sha256:ff3339b958f88f15da368b44009f9f417f079f1dc3d1bfa9fcc53cef7012c9e6"
     },
     {
       "name": "pachca-bots",
       "type": "archive",
       "description": "Бот или интеграция в Пачке: что выбрать (входящий вебхук, бот с событиями, приложение с авторизацией), создание и настройки бота, токены и права, доступ к чатам, приём событий (подпись, повторы, идемпотентность, история событий), кнопки, формы, разворачивание ссылок, витрина. Use when: «сделать бота», «уведомления из CRM или CI в чат», «входящий вебхук», «исходящий вебхук», «бот команд или уведомлений не получает сообщения», «проверить подпись вебхука», «кнопки в сообщении бота», «форма, модальное окно», «превью ссылок, unfurl», «права токена бота», «токен бота утёк», «опубликовать бота в витрине»; \"build a Pachca bot\", \"incoming webhook\", \"outgoing webhook\", \"bot gets no events\", \"verify webhook signature\", \"message buttons\", \"modal form\", \"link unfurling\", \"reissue a leaked bot token\". Not for: an AI agent that answers in threads or does not hear a mention → pachca-ai-agent; an app acting for an employee → pachca-oauth; scripts, pagination, 429 → pachca-api; writing messages yourself → pachca-messaging.",
       "url": "/.well-known/agent-skills/pachca-bots.tar.gz",
-      "digest": "sha256:0ad6047f2f546bbd3900320d59476f9ccb47816cc9fa44b21d06878d422cb170"
+      "digest": "sha256:c1eb275802754330637db1015f8bb550d315474bafb421234bdee7f9f1eee943"
     },
     {
       "name": "pachca-messaging",
       "type": "archive",
-      "description": "How to write in Pachca right: markdown that renders, mentions, where to post (thread, quoted reply, direct message), a draft for the employee to send, scheduled and recurring messages to a chat, files, forwarding, reactions, pins, edits and deletions, what to confirm, send limits. Use when: «напиши в чат», «отправь сообщение», «ответь в треде», «напиши в личку», «упомяни», «подготовь черновик, я отправлю сам», «агент готовит черновик, сотрудник отправляет», «запланируй сообщение», «напоминай в канал каждый понедельник», «отправь отчёт файлом .md», «приложи файл», «перешли сообщение», «поставь реакцию», «закрепи», «исправь сообщение»; \"send a message\", \"reply in the thread\", \"DM someone\", \"draft a reply for me to send\", \"schedule a message\", \"attach a file or an .md report\", \"forward a message\", \"react\", \"pin\". Not for: search and summaries, a task or reminder → pachca-search; buttons, forms, clicks → pachca-bots; an AI agent running as a bot → pachca-ai-agent; file uploads from your own code → pachca-api.",
+      "description": "Writing in Pachca: markdown that renders, mentions, where to post (thread, quoted reply, DM), a draft the employee sends, scheduled and recurring chat messages, files, forwarding, reactions, pins, «Важное», edits and deletions, finding the message to act on, when to ask first, limits. Use when: «напиши в чат», «отправь сообщение», «ответь в треде», «напиши в личку», «упомяни», «подготовь черновик, я отправлю сам», «агент готовит черновик, сотрудник отправляет», «запланируй сообщение», «напоминай в канал каждый понедельник», «отправь отчёт файлом .md», «приложи файл», «перешли сообщение», «поставь реакцию», «закрепи сообщение», «отметь как важное», «исправь сообщение»; \"send a message\", \"reply in the thread\", \"DM someone\", \"draft for me to send\", \"schedule a message\", \"attach a file\", \"forward a message\", \"pin\". Not for: search or summaries as the goal, a task or reminder → pachca-search; buttons, forms, clicks → pachca-bots; an AI agent as a bot → pachca-ai-agent; uploads from code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-messaging.tar.gz",
-      "digest": "sha256:244bf9905453b9125f1568020f4f449d50bb07d5db9af7a9a6e2f1f082a5d871"
+      "digest": "sha256:c73ccd9219f7e62b0a65b7bf46dc8ff906acb1da6111898c3e4f5de51abbbc93"
     },
     {
       "name": "pachca-oauth",
       "type": "archive",
       "description": "Authorization on behalf of an employee in Pachca (OAuth 2.0 with PKCE): when a bot needs an employee's own token, the OAuth tab, redirect URIs and scope set, the authorization link, code exchange, checking whose token it is, storing a token per employee, re-authorization, revocation, launch checklist. Use when: «бот от имени сотрудника», «авторизация от имени сотрудника», «OAuth в Пачке», «client_id и client_secret», «redirect URI», «обменять код на токен», «PKCE», «экран согласия моего бота», «кнопка Предоставить доступ», «сотрудник отозвал доступ», «токен сотрудника вернул 401 или 403», \"Pachca OAuth\", \"act on behalf of a user\", \"authorization code flow\", \"exchange code for token\", \"my bot's OAuth consent screen\", \"per-user token for my bot\". Not for: a bot acting as itself, webhooks, showcase, a leaked bot token → pachca-bots; MCP sign-in, a 401/403 from an MCP tool or the CLI → pachca; your own token in a script → pachca-api; revoking access on the All tokens tab → pachca-admin.",
       "url": "/.well-known/agent-skills/pachca-oauth.tar.gz",
-      "digest": "sha256:c662f472e04ee5395dc6c43b70d69b0ded6e142f2ee079a17feea2a87e445714"
+      "digest": "sha256:eb911160d71db62c73235943141e3a21d194d0fc91eedde283f3b35dfc1a3816"
     },
     {
       "name": "pachca-search",
       "type": "archive",
-      "description": "Finding and summarizing in Pachca: which search covers what (messages, chats, employees, mentions), reading a whole thread from a link or a search hit, digests of channels and threads for a period, decisions and action items turned into tasks (due date, all-day, assignees), listing tasks, who is in a tag or a chat. Use when: «найди, где обсуждали», «кто писал про», «где меня упоминали», «найди чат», «найди сотрудника», «перескажи тред», «что было в канале за неделю», «дайджест», «какие решения приняли», «поставь задачи по итогам», «поставь напоминание себе или коллеге», «мои напоминания», «кто в теге», «кто в чате»; \"find where we discussed\", \"who said\", \"summarize this thread\", \"channel digest\", \"what was decided\", \"my tasks\", \"who is in this chat\". Not for: posting a summary or reply, or a message sent later at a set time → pachca-messaging; changing employees, tags or chat members → pachca-admin; a bot that answers in threads → pachca-ai-agent; pagination and limits in scripts → pachca-api.",
+      "description": "Finding, summarizing and reminders in Pachca: which search covers what, reading a whole thread, channel and thread digests for a period, decisions and action items turned into tasks, a reminder at a set time for you or a colleague (Pachca notifies then), listing tasks and your «Важное», who is in a tag or chat. Use when: «найди, где обсуждали», «кто писал про», «где меня упоминали», «найди чат», «найди сотрудника», «перескажи тред», «что было в канале за неделю», «дайджест», «какие решения приняли», «поставь задачи по итогам», «напомни мне завтра в 9:00», «мои напоминания», «что у меня в важном», «кто в теге», «кто в чате»; \"find where we discussed\", \"summarize this thread\", \"channel digest\", \"remind me tomorrow at 9\", \"my tasks\". Not for: posting, pinning, reacting to or editing a message, including finding it first, or one sent later at a set time → pachca-messaging; changing employees, tags or chat members → pachca-admin; a bot that answers in threads → pachca-ai-agent; scripts → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-search.tar.gz",
-      "digest": "sha256:a17d465c76d75e7e799a58621e180725854a2eb2fedad5ac87d8433aa1ae21b6"
+      "digest": "sha256:58bbd9656e0c2e3ca1ffbf1dd114b92bfccfc21144d8e9e14d3ce6fa0b4153f0"
     }
   ]
 }

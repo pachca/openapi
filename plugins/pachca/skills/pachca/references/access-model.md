@@ -48,6 +48,7 @@ those tools out for them.
 | ----------------------------- | ---------------------------------------------------------------------------- |
 | Role lowered                  | keeps working within the new role; lost scopes answer `403` `role_forbidden` |
 | Role restored                 | access comes back by itself                                                  |
+| Made a guest                  | revoked for good (`401`); a promotion does not bring it back                 |
 | Access suspended              | stops working; works again if access is restored                             |
 | Employee deleted              | stops working for good                                                       |
 
@@ -72,11 +73,10 @@ delete their personal tokens but can no longer edit them. To cut old access, rev
 - MCP browser connections: **Авторизации** on **Интеграции > API**. **Отозвать доступ** cuts every
   connection of that app you granted; the next call gets `401`. Other employees' connections of the same app
   stay.
-- CLI browser logins: **Токены CLI**, one row per device. `pachca auth logout` removes the profile, but ends
-  the login on the server only while the saved token is still live and the server answers. A token lasts an
-  hour from login or its last renewal, not from the last command: `pachca auth status` shows the time left. If
-  it has run out, run any API command first (for example `pachca profile get`) to renew it. For an expired
-  token the CLI still reports the token as revoked. To be sure, revoke the row in **Токены CLI**.
+- CLI browser logins: **Токены CLI**, one row per device. `pachca auth logout` removes the profile and
+  closes the login on the server, renewing an expired token first. `token_revoked: true` in JSON means the
+  login is closed, also when it had been closed earlier. `false` means the CLI could not confirm it (offline,
+  a server error): the row stays in **Токены CLI**, so revoke it there.
 - Ready tokens, personal or bot: delete the token on **Интеграции > API** or on the **API** tab of the bot
   card. `pachca auth logout` only removes the profile from the machine; the token keeps working.
 - Admins see and revoke employees' personal tokens, CLI logins, and authorizations of bots and MCP apps (rows

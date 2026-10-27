@@ -324,6 +324,14 @@ export const userFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['user'], operation: ['update'] } },
 		options: [
 			{
+				displayName: 'Chat IDs',
+				name: 'chatIds',
+				type: 'string',
+				default: "",
+				description: 'The chat the employee keeps when made a guest (`role: "guest"`): exactly one active conversation or channel where the token may add members. Without such a chat the response is `400` on this field, and nothing changes. With other roles, and for someone already a guest, the field is ignored.',
+				placeholder: '12345',
+			},
+			{
 				displayName: 'Custom Properties',
 				name: 'customProperties',
 				type: 'fixedCollection',
@@ -408,6 +416,7 @@ export const userFields: INodeProperties[] = [
 				name: 'role',
 				type: 'options',
 				options: [{ name: 'Admin', value: 'admin', description: 'Administrator' },
+{ name: 'Guest', value: 'guest' },
 { name: 'Multi Guest', value: 'multi_guest', description: 'Multi-guest' },
 { name: 'User', value: 'user', description: 'Employee' }],
 				default: "user",
@@ -631,7 +640,7 @@ export const userFields: INodeProperties[] = [
 		name: 'emoji',
 		type: 'string',
 		default: "",
-		description: 'Status emoji character. Required if there is no status yet.',
+		description: 'Status emoji character. Required if there is no status yet. An emoji in text form (without U+FE0F or with U+FE0E) is saved and returned with U+FE0F. An empty value responds `400` with the `blank` code, several emoji with the `invalid` code, text instead of an emoji or next to it with the `wrong_emoji` code.',
 		displayOptions: { show: { resource: ['user'], operation: ['updateStatus'] } },
 		placeholder: '🎮',
 	},

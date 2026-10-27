@@ -388,6 +388,15 @@
         "flags": []
       },
       {
+        "command": "pachca bots get-stream",
+        "summary": "Поток событий",
+        "method": "GET",
+        "path": "/webhooks/events/stream",
+        "scope": "webhooks:events:read",
+        "plan": null,
+        "flags": []
+      },
+      {
         "command": "pachca bots list",
         "summary": "Список ботов",
         "method": "GET",
@@ -899,7 +908,7 @@
             "name": "name",
             "type": "option",
             "required": true,
-            "description": "Название. Пустое название заменяется именем и фамилией владельца токена (у бота — его именем), а если их нет — никнеймом. (макс. 255 символов)"
+            "description": "Название беседы или канала. Пустое название или название из одних пробелов отвечает `422` с кодом `blank`. (макс. 255 символов)"
           },
           {
             "name": "member-ids",
@@ -1818,6 +1827,78 @@
     ]
   },
   {
+    "section": "important-messages",
+    "commands": [
+      {
+        "command": "pachca important-messages create",
+        "summary": "Добавление сообщения в важные",
+        "method": "POST",
+        "path": "/important_messages",
+        "scope": "important_messages:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "message-id",
+            "type": "option",
+            "required": true,
+            "description": "Идентификатор сообщения (pachca messages list)"
+          }
+        ]
+      },
+      {
+        "command": "pachca important-messages delete",
+        "summary": "Удаление сообщения из важных",
+        "method": "DELETE",
+        "path": "/important_messages/{id}",
+        "scope": "important_messages:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca important-messages list",
+        "summary": "Список важных сообщений",
+        "method": "GET",
+        "path": "/important_messages",
+        "scope": "important_messages:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "section": "introspect",
     "commands": [
       {
@@ -2309,7 +2390,7 @@
             "name": "files",
             "type": "option",
             "required": false,
-            "description": "Прикрепляемые файлы. Переданный набор заменяет прежний: чтобы оставить уже приложенный файл, передайте его снова с тем же `key`."
+            "description": "Прикрепляемые файлы. Переданный набор заменяет прежний: чтобы оставить уже приложенный файл, передайте его снова с тем же `key`. Такой файл остаётся прежним вложением с тем же `id` и названием, а его поля из запроса не применяются. Чтобы показать файл под другим названием, загрузите его заново."
           },
           {
             "name": "buttons",
@@ -2428,7 +2509,7 @@
             "name": "emoji",
             "type": "option",
             "required": false,
-            "description": "Emoji символ статуса. Обязателен, если статуса ещё нет."
+            "description": "Emoji символ статуса. Обязателен, если статуса ещё нет. Эмодзи в текстовой форме (без U+FE0F или с U+FE0E) сохраняется и возвращается с U+FE0F. Пустое значение отвечает `400` с кодом `blank`, несколько эмодзи — с кодом `invalid`, текст вместо эмодзи или рядом с ним — с кодом `wrong_emoji`."
           },
           {
             "name": "title",
@@ -3621,6 +3702,12 @@
             "description": "Уровень доступа"
           },
           {
+            "name": "chat-ids",
+            "type": "option",
+            "required": false,
+            "description": "Чат, в котором останется сотрудник при переводе в гости (`role: \"guest\"`): ровно одна активная беседа или канал, куда у токена есть право добавлять участников. Без такого чата ответ `400` по этому полю, и не меняется ничего. При других ролях и у того, кто уже гость, поле не учитывается."
+          },
+          {
             "name": "suspended",
             "type": "boolean",
             "required": false,
@@ -3682,7 +3769,7 @@
             "name": "emoji",
             "type": "option",
             "required": false,
-            "description": "Emoji символ статуса. Обязателен, если статуса ещё нет."
+            "description": "Emoji символ статуса. Обязателен, если статуса ещё нет. Эмодзи в текстовой форме (без U+FE0F или с U+FE0E) сохраняется и возвращается с U+FE0F. Пустое значение отвечает `400` с кодом `blank`, несколько эмодзи — с кодом `invalid`, текст вместо эмодзи или рядом с ним — с кодом `wrong_emoji`."
           },
           {
             "name": "title",

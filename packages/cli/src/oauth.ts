@@ -194,10 +194,15 @@ export async function pollForToken(grant: DeviceCodeGrant): Promise<TokenGrant> 
 /**
  * Put out an access token server-side (RFC 7009).
  *
- * The endpoint only accepts self-revocation: the same token must arrive both in
- * the body and as the bearer, and it must belong to the CLI's public client.
- * Returns false when the server declined, so the caller can say plainly that the
- * token is gone from this machine but still alive.
+ * The endpoint only accepts self-revocation: the same access token must arrive
+ * both in the body and as the bearer, and it must belong to the CLI's public
+ * client. A refresh token is refused here: the CLI does not know the client's
+ * real `client_id`, and self-revocation compares the body with the bearer.
+ *
+ * `true` proves the revocation only for a live token. The server answers `200`
+ * to an expired one too, yet leaves its record and refresh token untouched.
+ * Pass a token known to be live — `revokeSession` in `token-refresh.ts` does.
+ * Returns false when the server declined or could not be reached.
  */
 export async function revokeToken(token: string): Promise<boolean> {
   try {

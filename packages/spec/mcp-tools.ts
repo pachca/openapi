@@ -57,7 +57,8 @@
  * is found by name and a message or a thread by its words across the caller's
  * chats rather than asked about; that talking a matter over separately is
  * posting it for colleagues in the thread of the message it continues, else in
- * an unattached one; that a date alone makes a task, even with no subject; that a destructive request is carried out at
+ * an unattached one; that a date alone makes a task, even with no subject; that a change is carried out, the client
+ * asking approval, unless its target is a guess, it is final while a reversible one would do, or it touches many at
  * once; that facts of the workspace and of the token come from responses; and
  * that how Pachca works is documented at dev.pachca.com. Every other rule lives
  * with the tool it is about, and is read when that tool is loaded: in the spec,

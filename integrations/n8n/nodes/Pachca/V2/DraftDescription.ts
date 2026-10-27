@@ -138,7 +138,7 @@ export const draftFields: INodeProperties[] = [
 							name: 'size',
 							type: 'number',
 							default: 0,
-							description: 'File size in bytes, displayed to the user',
+							description: 'File size in bytes, displayed to the user. If it is not passed or is 0, Pachca takes the size from the storage shortly after saving.',
 						},
 						{
 							displayName: 'Waveform',
@@ -335,7 +335,7 @@ export const draftFields: INodeProperties[] = [
 							name: 'size',
 							type: 'number',
 							default: 0,
-							description: 'File size in bytes, displayed to the user',
+							description: 'File size in bytes, displayed to the user. If it is not passed or is 0, Pachca takes the size from the storage shortly after saving.',
 						},
 						{
 							displayName: 'Waveform',

@@ -329,6 +329,10 @@ const META_NOTICES: Record<string, { message: string; hint: string }> = {
     message: 'Не удалось добавить в чат',
     hint: 'Таких сотрудников нет в пространстве, либо они приостановлены или удалены.',
   },
+  'POST /chats meta.not_found_group_tag_ids': {
+    message: 'Не удалось подключить теги',
+    hint: 'Таких тегов нет в пространстве.',
+  },
 };
 
 function responseMetaNotices(endpoint: Endpoint): { field: string; message: string; hint: string }[] {
@@ -1216,7 +1220,7 @@ const GLOBAL_FLAG_DESCRIPTIONS_RU: Record<string, string> = {
   'no-input': 'Отключить интерактивные промпты',
   'dry-run': 'Показать запрос без отправки',
   timeout: 'Таймаут запроса в секундах (по умолчанию 30)',
-  'no-retry': 'Отключить авто-retry при 429/503',
+  'no-retry': 'Отключить автоповтор при 429, 5xx и сетевых ошибках',
   json: 'Алиас для --output json',
   plain: 'Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов)',
 };

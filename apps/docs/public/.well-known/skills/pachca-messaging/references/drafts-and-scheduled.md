@@ -77,7 +77,7 @@ The first sends once on Friday 6 November at 09:30 Moscow time. The second sends
 
 Rules:
 
-- Confirm the text, the chat, the first send time in the user's time zone, and the repetition before creating it. Nobody reviews the message before it goes.
+- Unless the user gave the exact text, the chat, the first send time and the repetition, show them (the time in the user's time zone) and wait for a yes before creating it. Nobody reviews the message before it goes.
 - The schedule can be changed but not removed: `schedule: null` on a scheduled message returns `422 draft_type_change_forbidden`. To cancel the send, delete it (`pachca_delete_draft`). Deletion is final, and attachments go with it.
 
 Source pages: <https://dev.pachca.com/guides/ai-agents/drafts.md>, <https://dev.pachca.com/api/drafts/create.md>, <https://dev.pachca.com/api/drafts/update.md>, <https://dev.pachca.com/api/drafts/list.md>

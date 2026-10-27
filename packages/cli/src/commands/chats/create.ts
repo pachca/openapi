@@ -18,7 +18,7 @@ export default class ChatsCreate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'name': Flags.string({
-      description: "Название. Пустое название заменяется именем и фамилией владельца токена (у бота — его именем), а если их нет — никнеймом. (макс. 255 символов)",
+      description: "Название беседы или канала. Пустое название или название из одних пробелов отвечает `422` с кодом `blank`. (макс. 255 символов)",
     }),
     'member-ids': Flags.string({
       description: "Массив идентификаторов пользователей, которые станут участниками",
@@ -41,7 +41,7 @@ export default class ChatsCreate extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'name', label: "Название. Пустое название заменяется именем и фамилией владельца токена (у бота — его именем), а если их нет — никнеймом.", type: 'string' },
+      { flag: 'name', label: "Название беседы или канала. Пустое название или название из одних пробелов отвечает `422` с кодом `blank`.", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {
@@ -90,5 +90,6 @@ export default class ChatsCreate extends BaseCommand {
     const result = responseBody.data ?? responseBody;
     this.output(result);
     this.warnMetaList(responseBody.meta, "not_found_member_ids", "Не удалось добавить в чат", "Таких сотрудников нет в пространстве, либо они приостановлены или удалены.");
+    this.warnMetaList(responseBody.meta, "not_found_group_tag_ids", "Не удалось подключить теги", "Таких тегов нет в пространстве.");
   }
 }

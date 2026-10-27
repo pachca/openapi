@@ -40,6 +40,7 @@ const SECTION = {
   File: 'File',
   Form: 'Form',
   GroupTag: 'Group Tag',
+  ImportantMessage: 'Important Message',
   Member: 'Chat Member',
   Message: 'Message',
   Oauth: 'OAuth',

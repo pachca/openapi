@@ -140,8 +140,11 @@
 | Доступ бота отозван в интерфейсе | `oauth_authorization_revoked` |
 | Бот сам отозвал выданный ему токен | `oauth_token_revoked` |
 | Боту выпущен или обновлён секрет клиента | `bot_oauth_client_secret_issued`, `bot_oauth_client_secret_rotated` |
+| Сотрудника перевели в гости, и все его токены отозваны: персональные, входы в CLI и доступы, выданные ботам и программам с MCP | `access_token_destroy` на каждый токен, в деталях `reason: guest_downgrade` |
 
 Отзыв в интерфейсе записывается от имени того, кто его выполнил. Когда чужой доступ закрывает администратор на вкладке [Все токены](/api/authorization#vse-tokeny-prostranstva), в `actor_id` приходит он, а владелец доступа остаётся в деталях: в `resource_owner_id` у токена и в `user_id` у авторизации бота.
+
+При [переводе в гости](/guides/permissions#perevod-v-gosti) в `actor_id` приходит тот, кто сменил роль, а владелец токенов — в `resource_owner_id`. Доступы, выданные ботам и программам с MCP, в этом случае записываются событием `access_token_destroy`, а не `oauth_authorization_revoked`. Неиспользованные коды авторизации и подтверждённые, но ещё не завершённые входы в CLI отменяются без записи в журнале.
 
 У события `oauth_token_revoked` актор — приложение, поэтому в `actor_id` приходит не идентификатор сотрудника. Сотрудник, чей токен отозван, указан в `resource_owner_id`.
 
@@ -185,7 +188,7 @@
 | `tag_created`, `tag_deleted` | `name` |
 | `tag_added_to_chat` | `chat_id`, `tag_name` |
 | `tag_removed_from_chat` | `chat_id` |
-| `access_token_created`, `access_token_updated`, `access_token_destroy`, `bot_token_created`, `bot_token_reissued`, `bot_token_recreated`, `bot_token_deleted`, `oauth_token_revoked` | `token_kind`, `token_name`, `resource_owner_id`, `scopes`. `bot_id` — у токенов бота и токенов, которые сотрудник выдал боту |
+| `access_token_created`, `access_token_updated`, `access_token_destroy`, `bot_token_created`, `bot_token_reissued`, `bot_token_recreated`, `bot_token_deleted`, `oauth_token_revoked` | `token_kind`, `token_name`, `resource_owner_id`, `scopes`. `bot_id` — у токенов бота и токенов, которые сотрудник выдал боту. `reason` со значением `guest_downgrade` — у `access_token_destroy`, когда токен отозван при переводе сотрудника в гости |
 | `bot_token_updated` | `token_kind`, `token_name`, `resource_owner_id`, `current_scopes`, `bot_id`, `actor_id` |
 | `bot_deleted` | `bot_id`, `actor_id` |
 | `bot_scopes_updated` | `added_scopes`, `removed_scopes` |

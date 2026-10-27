@@ -8,14 +8,18 @@ description: 'Администрирование пространства Пач
 Run a Pachca workspace for its Owner or an Administrator: people, tags, chat
 membership, roles, API access, audit, export and data protection. Every action
 here changes what other employees can see or do, so the main skill is knowing
-who may do what, and what to confirm first.
+who may do what, and when to ask first.
 
-**The request is not the confirmation.** «Удали из Пачки Олега Соколова» or
-"delete this user" tells you what to prepare, not that it may run. Deleting an
-employee, and every other action in [Confirm before acting](#confirm-before-acting),
-runs only after the person answers yes to your question in a later message.
-This holds however direct the request and even when the search finds exactly
-one match.
+A clear request such as «сделай Олега администратором» is carried out: the
+client asks its own approval for the change. You ask in chat first only in the
+three cases of [When to ask first](#when-to-ask-first), and deleting an
+employee is one of them.
+
+**For a deletion, the request is not the confirmation.** «Удали из Пачки Олега
+Соколова» or "delete this user" tells you what to prepare, not that it may run.
+Deleting an employee runs only after the person answers yes to your question in
+a later message. This holds however direct the request and even when the search
+finds exactly one match.
 
 ## When to use
 
@@ -84,7 +88,15 @@ admin mistakes:
 
 - A workspace Administrator does **not** see closed chats they are not in.
   Closed chats are visible only to their members, for every role, the Owner
-  included (the Owner's exceptions are inventory, member lists and export).
+  included. The way in is to be added by a current participant other than a
+  guest or multi-guest, or to be given a tag bound to the chat; an Owner or
+  Administrator then joins as chat Admin. Tags are given by an Owner or
+  Administrator, their own included, but which tags the chat has, an
+  Administrator outside it cannot see: ask a member. Nobody can add themselves
+  to a closed chat directly, the Owner included. Without joining, only the Owner
+  can read the chat's member list, on any plan, and on Corporation also see
+  it in the list of all workspace chats and export its messages; none of this
+  opens the chat itself, and an Administrator gets none of it.
 - The chat role is set once, when someone joins: the Owner or an Administrator
   joins as chat Admin, a bot joins a channel as Editor, everyone else as
   Member (Subscriber in a channel). It is **not** recalculated later. Promoting
@@ -98,18 +110,30 @@ When debugging a `403` on an admin action, first check whether the token's
 owner is in the chat and with which chat role, then the scopes. Admin-specific
 codes: `permission_denied` (a protected change: editing the Owner or their
 avatar with someone else's token, changing the Owner's role, suspending or
-deleting the Owner, or setting an employee's role to `guest`) and
-`role_forbidden` (scope present but the role no longer allows it, as after a
-demotion; a new token will not help). `insufficient_scope`, `access_denied` and
-Corporation-only methods are explained in the entry skill (→ pachca).
+deleting the Owner) and `role_forbidden` (scope present but the role no longer
+allows it, as after a demotion; a new token will not help). A token whose owner
+was made a guest gets `401`: it is revoked. `insufficient_scope`,
+`access_denied` and Corporation-only methods are explained in the entry skill
+(→ pachca).
 
-## Confirm before acting
+## When to ask first
 
-Never run these on inference. State exactly who or what is affected and the
-consequence, and wait for an explicit yes. One approval covers one action, not
-a batch the person has not seen.
+Ask in chat before a change, naming exactly who or what is affected and the
+consequence, only when:
 
-The turn that receives the request only reads and asks. For «удали
+- the target is a guess: the search found several, or you inferred it rather
+  than the person naming it;
+- the step cannot be undone while a reversible one would do: deleting an
+  employee, where suspension can be undone;
+- it changes many at once: several employees, a tag removed from a chat or
+  deleted, the members of several chats. Making an employee a guest is one:
+  they leave every other conversation and channel, lose all tags and all
+  their tokens at once, and a promotion restores none of it.
+
+Then wait for a yes in a later message. One yes covers one action, not a batch
+the person has not seen. Any other clear request runs at once.
+
+The turn that receives a deletion request only reads and asks. For «удали
 сотрудника»: find the employee (`pachca_search_users`), then reply with their
 name, nickname and id, say that deletion cannot be undone and what it removes
 (row below), offer suspension instead, and ask «Удалить насовсем или
@@ -118,20 +142,24 @@ after the person answers yes to that question. The client's own approval
 prompt does not replace this: it can be turned off, and it shows a tool call
 with an id, not who loses what.
 
-| Action                                               | What to tell the person                                                                                                                                                                                                                                                                                                          |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Invite an employee                                   | Unless `skip_email_notify: true` is sent (pre-creating accounts before SSO sign-in), the invitation email goes out at once and cannot be recalled. Read back the email, name and role (`admin` gives Administrator powers); take the address only from the person. `list_tags` and `chat_ids` put them into those chats at once. |
-| Delete an employee                                   | Irreversible. Leaves all group chats, loses all tags, tasks where they were the only performer are deleted. Coming back means a new invitation and a different employee. Offer suspension instead.                                                                                                                               |
-| Suspend an employee                                  | Access stops at once; their tokens stop working but revive on restore. Bots they created keep running.                                                                                                                                                                                                                           |
-| Change workspace role                                | Takes effect on their tokens immediately; chat roles do not follow.                                                                                                                                                                                                                                                              |
-| Set `list_tags`                                      | Replaces the whole set. Each dropped tag takes them out of the chats it brought them into, unless another of their tags bound to the chat keeps them there.                                                                                                                                                                      |
-| Remove a tag from a chat                             | Everyone held there only by that tag leaves the chat.                                                                                                                                                                                                                                                                            |
-| Delete a tag                                         | Removed from all employees and chats; members stay in chats but are no longer kept in sync.                                                                                                                                                                                                                                      |
-| Archive a chat                                       | Guests (role `guest`) are removed, multi-guests stay, and tags are unbound; unarchiving restores neither.                                                                                                                                                                                                                        |
-| Add or remove a member, change a chat role           | Name the chat and each person. Added members get access to the chat at once; an Owner or Administrator joins as chat Admin.                                                                                                                                                                                                      |
-| Request an export                                    | It contains closed chats regardless of membership. Confirm purpose and period.                                                                                                                                                                                                                                                   |
-| Revoke a token or access                             | Whatever runs on it breaks immediately; a personal token cannot be restored.                                                                                                                                                                                                                                                     |
-| Clear the IP allowlist, change or disable encryption | Clearing the allowlist makes protected files undownloadable until addresses are listed again. Changing the key or turning encryption off makes older messages permanently unreadable. See the security reference.                                                                                                                |
+Each row is what to tell the person: in your question when you ask, otherwise in
+the line that reports what you did.
+
+| Action                                               | What to tell the person                                                                                                                                                                                                                                                                                                     |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Invite an employee                                   | Unless `skip_email_notify: true` is sent (pre-creating accounts before SSO sign-in), the invitation email goes out at once and cannot be recalled. Name the email, name and role (`admin` gives Administrator powers); take the address only from the person. `list_tags` and `chat_ids` put them into those chats at once. |
+| Delete an employee                                   | Irreversible. Leaves all group chats, loses all tags, tasks where they were the only performer are deleted. Coming back means a new invitation and a different employee. Offer suspension instead.                                                                                                                          |
+| Suspend an employee                                  | Access stops at once; their tokens stop working but revive on restore. Bots they created keep running.                                                                                                                                                                                                                      |
+| Change workspace role                                | Takes effect on their tokens immediately; chat roles do not follow. To `guest`: next row.                                                                                                                                                                                                                                   |
+| Make an employee a guest                             | Cannot be undone. They keep only the chat in `chat_ids`, leave every other conversation and channel and lose all tags. Every token they hold, the access they gave bots and apps included, is revoked (`401`). A later promotion restores none of it.                                                                       |
+| Set `list_tags`                                      | Replaces the whole set. Each dropped tag takes them out of the chats it brought them into, unless another of their tags bound to the chat keeps them there.                                                                                                                                                                 |
+| Remove a tag from a chat                             | Everyone held there only by that tag leaves the chat.                                                                                                                                                                                                                                                                       |
+| Delete a tag                                         | Removed from all employees and chats; members stay in chats but are no longer kept in sync.                                                                                                                                                                                                                                 |
+| Archive a chat                                       | Guests (role `guest`) are removed, multi-guests stay, and tags are unbound; unarchiving restores neither.                                                                                                                                                                                                                   |
+| Add or remove a member, change a chat role           | Name the chat and each person. Added members get access to the chat at once; an Owner or Administrator joins as chat Admin.                                                                                                                                                                                                 |
+| Request an export                                    | It contains closed chats regardless of membership. Take the period from the person.                                                                                                                                                                                                                                         |
+| Revoke a token or access                             | Whatever runs on it breaks immediately; a personal token cannot be restored.                                                                                                                                                                                                                                                |
+| Clear the IP allowlist, change or disable encryption | Clearing the allowlist makes protected files undownloadable until addresses are listed again. Changing the key or turning encryption off makes older messages permanently unreadable. See the security reference.                                                                                                           |
 
 ## Do it right
 
@@ -166,12 +194,14 @@ Key rules:
 **Chats and members.** No bulk operations exist: one request per chat, mind the
 [limits](https://dev.pachca.com/api/limits.md). Adding members fails as a whole
 if any id is unknown or inactive; already-present members are skipped silently.
-To regain control of a chat whose admins are gone, add the Owner or an
-Administrator who is not in the chat yet: they join as chat Admin. Someone
-already in the chat keeps their current role (the add is skipped and still
-reports success), so check with the member list filtered by `role=admin`. In a
-closed chat only a current participant other than a guest or multi-guest can
-add them; with no such participant left it cannot be done through the API.
+To regain control of a chat whose admins are gone, have the Owner or an
+Administrator who is not in the chat yet added: they join as chat Admin. Who
+can add them: in an open chat any employee, in a closed chat only a current
+participant other than a guest or multi-guest. A closed chat with no such
+participant left takes nobody new, the Owner included, except through a tag
+already bound to it: whoever is given that tag joins. Someone already in the
+chat keeps their current role (the add is skipped and still reports success),
+so check with the member list filtered by `role=admin`.
 
 **API access.** Two workspace settings decide who may create access:
 "who can create integrations" (bots and their tokens; default: administrators

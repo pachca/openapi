@@ -317,64 +317,66 @@ const (
 type OAuthScope string
 
 const (
-	OAuthScopeChatsRead            OAuthScope = "chats:read" // Просмотр чатов и списка чатов
-	OAuthScopeChatsCreate          OAuthScope = "chats:create" // Создание новых чатов
-	OAuthScopeChatsUpdate          OAuthScope = "chats:update" // Изменение настроек чата
-	OAuthScopeChatsMarkUnread      OAuthScope = "chats:mark_unread" // Отметка чатов непрочитанными
-	OAuthScopeChatsArchive         OAuthScope = "chats:archive" // Архивация и разархивация чатов
-	OAuthScopeChatsLeave           OAuthScope = "chats:leave" // Выход из чатов
-	OAuthScopeChatMembersRead      OAuthScope = "chat_members:read" // Просмотр участников чата
-	OAuthScopeChatMembersWrite     OAuthScope = "chat_members:write" // Добавление, изменение и удаление участников чата
-	OAuthScopeChatExportsRead      OAuthScope = "chat_exports:read" // Скачивание экспортов чата
-	OAuthScopeChatExportsWrite     OAuthScope = "chat_exports:write" // Создание экспортов чата
-	OAuthScopeMessagesRead         OAuthScope = "messages:read" // Просмотр сообщений в чатах
-	OAuthScopeMessagesCreate       OAuthScope = "messages:create" // Отправка сообщений
-	OAuthScopeMessagesUpdate       OAuthScope = "messages:update" // Редактирование сообщений
-	OAuthScopeMessagesDelete       OAuthScope = "messages:delete" // Удаление сообщений
-	OAuthScopeReactionsRead        OAuthScope = "reactions:read" // Просмотр реакций на сообщения
-	OAuthScopeReactionsWrite       OAuthScope = "reactions:write" // Добавление и удаление реакций
-	OAuthScopePinsWrite            OAuthScope = "pins:write" // Закрепление и открепление сообщений
-	OAuthScopeThreadsRead          OAuthScope = "threads:read" // Просмотр тредов (комментариев)
-	OAuthScopeThreadsCreate        OAuthScope = "threads:create" // Создание тредов (комментариев)
-	OAuthScopeLinkPreviewsWrite    OAuthScope = "link_previews:write" // Unfurl (разворачивание ссылок)
-	OAuthScopeUsersRead            OAuthScope = "users:read" // Просмотр информации о сотрудниках и списка сотрудников
-	OAuthScopeUsersCreate          OAuthScope = "users:create" // Создание новых сотрудников
-	OAuthScopeUsersUpdate          OAuthScope = "users:update" // Редактирование данных сотрудника
-	OAuthScopeUsersDelete          OAuthScope = "users:delete" // Удаление сотрудников
-	OAuthScopeGroupTagsRead        OAuthScope = "group_tags:read" // Просмотр тегов
-	OAuthScopeGroupTagsWrite       OAuthScope = "group_tags:write" // Создание, редактирование и удаление тегов
-	OAuthScopeBotsRead             OAuthScope = "bots:read" // Просмотр ботов
-	OAuthScopeBotsWrite            OAuthScope = "bots:write" // Управление ботами
-	OAuthScopeBotSelfWebhookWrite  OAuthScope = "bot_self:webhook:write" // Самостоятельное управление адресом вебхука бота
-	OAuthScopeBotSelfWrite         OAuthScope = "bot_self:write" // Самостоятельное управление настройками бота
-	OAuthScopeProfileRead          OAuthScope = "profile:read" // Просмотр информации о своем профиле
-	OAuthScopeProfileStatusRead    OAuthScope = "profile_status:read" // Просмотр статуса профиля
-	OAuthScopeProfileStatusWrite   OAuthScope = "profile_status:write" // Изменение и удаление статуса профиля
-	OAuthScopeProfileAvatarWrite   OAuthScope = "profile_avatar:write" // Изменение и удаление аватара профиля
-	OAuthScopeUserStatusRead       OAuthScope = "user_status:read" // Просмотр статуса сотрудника
-	OAuthScopeUserStatusWrite      OAuthScope = "user_status:write" // Изменение и удаление статуса сотрудника
-	OAuthScopeUserAvatarWrite      OAuthScope = "user_avatar:write" // Изменение и удаление аватара сотрудника
-	OAuthScopeCustomPropertiesRead OAuthScope = "custom_properties:read" // Просмотр дополнительных полей
-	OAuthScopeAuditEventsRead      OAuthScope = "audit_events:read" // Просмотр журнала аудита
-	OAuthScopeCompanyChatsRead     OAuthScope = "company_chats:read" // Просмотр списка всех чатов пространства
-	OAuthScopeCompanyBotsRead      OAuthScope = "company_bots:read" // Просмотр списка всех ботов пространства
-	OAuthScopeTasksRead            OAuthScope = "tasks:read" // Просмотр задач
-	OAuthScopeTasksCreate          OAuthScope = "tasks:create" // Создание задач
-	OAuthScopeTasksUpdate          OAuthScope = "tasks:update" // Изменение задачи
-	OAuthScopeTasksDelete          OAuthScope = "tasks:delete" // Удаление задачи
-	OAuthScopeFilesRead            OAuthScope = "files:read" // Скачивание файлов
-	OAuthScopeFilesWrite           OAuthScope = "files:write" // Загрузка файлов
-	OAuthScopeUploadsWrite         OAuthScope = "uploads:write" // Получение данных для загрузки файлов
-	OAuthScopeViewsWrite           OAuthScope = "views:write" // Открытие форм (представлений)
-	OAuthScopeWebhooksRead         OAuthScope = "webhooks:read" // Просмотр вебхуков
-	OAuthScopeWebhooksWrite        OAuthScope = "webhooks:write" // Создание и управление вебхуками
-	OAuthScopeWebhooksEventsRead   OAuthScope = "webhooks:events:read" // Просмотр лога вебхуков
-	OAuthScopeWebhooksEventsDelete OAuthScope = "webhooks:events:delete" // Удаление записи в логе вебхука
-	OAuthScopeSearchUsers          OAuthScope = "search:users" // Поиск сотрудников
-	OAuthScopeSearchChats          OAuthScope = "search:chats" // Поиск чатов
-	OAuthScopeSearchMessages       OAuthScope = "search:messages" // Поиск сообщений
-	OAuthScopeDraftsRead           OAuthScope = "drafts:read" // Просмотр черновиков и отложенных сообщений
-	OAuthScopeDraftsWrite          OAuthScope = "drafts:write" // Создание, изменение и удаление черновиков и отложенных сообщений
+	OAuthScopeChatsRead              OAuthScope = "chats:read" // Просмотр чатов и списка чатов
+	OAuthScopeChatsCreate            OAuthScope = "chats:create" // Создание новых чатов
+	OAuthScopeChatsUpdate            OAuthScope = "chats:update" // Изменение настроек чата
+	OAuthScopeChatsMarkUnread        OAuthScope = "chats:mark_unread" // Отметка чатов непрочитанными
+	OAuthScopeChatsArchive           OAuthScope = "chats:archive" // Архивация и разархивация чатов
+	OAuthScopeChatsLeave             OAuthScope = "chats:leave" // Выход из чатов
+	OAuthScopeChatMembersRead        OAuthScope = "chat_members:read" // Просмотр участников чата
+	OAuthScopeChatMembersWrite       OAuthScope = "chat_members:write" // Добавление, изменение и удаление участников чата
+	OAuthScopeChatExportsRead        OAuthScope = "chat_exports:read" // Скачивание экспортов чата
+	OAuthScopeChatExportsWrite       OAuthScope = "chat_exports:write" // Создание экспортов чата
+	OAuthScopeMessagesRead           OAuthScope = "messages:read" // Просмотр сообщений в чатах
+	OAuthScopeMessagesCreate         OAuthScope = "messages:create" // Отправка сообщений
+	OAuthScopeMessagesUpdate         OAuthScope = "messages:update" // Редактирование сообщений
+	OAuthScopeMessagesDelete         OAuthScope = "messages:delete" // Удаление сообщений
+	OAuthScopeReactionsRead          OAuthScope = "reactions:read" // Просмотр реакций на сообщения
+	OAuthScopeReactionsWrite         OAuthScope = "reactions:write" // Добавление и удаление реакций
+	OAuthScopePinsWrite              OAuthScope = "pins:write" // Закрепление и открепление сообщений
+	OAuthScopeThreadsRead            OAuthScope = "threads:read" // Просмотр тредов (комментариев)
+	OAuthScopeThreadsCreate          OAuthScope = "threads:create" // Создание тредов (комментариев)
+	OAuthScopeLinkPreviewsWrite      OAuthScope = "link_previews:write" // Unfurl (разворачивание ссылок)
+	OAuthScopeUsersRead              OAuthScope = "users:read" // Просмотр информации о сотрудниках и списка сотрудников
+	OAuthScopeUsersCreate            OAuthScope = "users:create" // Создание новых сотрудников
+	OAuthScopeUsersUpdate            OAuthScope = "users:update" // Редактирование данных сотрудника
+	OAuthScopeUsersDelete            OAuthScope = "users:delete" // Удаление сотрудников
+	OAuthScopeGroupTagsRead          OAuthScope = "group_tags:read" // Просмотр тегов
+	OAuthScopeGroupTagsWrite         OAuthScope = "group_tags:write" // Создание, редактирование и удаление тегов
+	OAuthScopeBotsRead               OAuthScope = "bots:read" // Просмотр ботов
+	OAuthScopeBotsWrite              OAuthScope = "bots:write" // Управление ботами
+	OAuthScopeBotSelfWebhookWrite    OAuthScope = "bot_self:webhook:write" // Самостоятельное управление адресом вебхука бота
+	OAuthScopeBotSelfWrite           OAuthScope = "bot_self:write" // Самостоятельное управление настройками бота
+	OAuthScopeProfileRead            OAuthScope = "profile:read" // Просмотр информации о своем профиле
+	OAuthScopeProfileStatusRead      OAuthScope = "profile_status:read" // Просмотр статуса профиля
+	OAuthScopeProfileStatusWrite     OAuthScope = "profile_status:write" // Изменение и удаление статуса профиля
+	OAuthScopeProfileAvatarWrite     OAuthScope = "profile_avatar:write" // Изменение и удаление аватара профиля
+	OAuthScopeUserStatusRead         OAuthScope = "user_status:read" // Просмотр статуса сотрудника
+	OAuthScopeUserStatusWrite        OAuthScope = "user_status:write" // Изменение и удаление статуса сотрудника
+	OAuthScopeUserAvatarWrite        OAuthScope = "user_avatar:write" // Изменение и удаление аватара сотрудника
+	OAuthScopeCustomPropertiesRead   OAuthScope = "custom_properties:read" // Просмотр дополнительных полей
+	OAuthScopeAuditEventsRead        OAuthScope = "audit_events:read" // Просмотр журнала аудита
+	OAuthScopeCompanyChatsRead       OAuthScope = "company_chats:read" // Просмотр списка всех чатов пространства
+	OAuthScopeCompanyBotsRead        OAuthScope = "company_bots:read" // Просмотр списка всех ботов пространства
+	OAuthScopeTasksRead              OAuthScope = "tasks:read" // Просмотр задач
+	OAuthScopeTasksCreate            OAuthScope = "tasks:create" // Создание задач
+	OAuthScopeTasksUpdate            OAuthScope = "tasks:update" // Изменение задачи
+	OAuthScopeTasksDelete            OAuthScope = "tasks:delete" // Удаление задачи
+	OAuthScopeFilesRead              OAuthScope = "files:read" // Скачивание файлов
+	OAuthScopeFilesWrite             OAuthScope = "files:write" // Загрузка файлов
+	OAuthScopeUploadsWrite           OAuthScope = "uploads:write" // Получение данных для загрузки файлов
+	OAuthScopeViewsWrite             OAuthScope = "views:write" // Открытие форм (представлений)
+	OAuthScopeWebhooksRead           OAuthScope = "webhooks:read" // Просмотр вебхуков
+	OAuthScopeWebhooksWrite          OAuthScope = "webhooks:write" // Создание и управление вебхуками
+	OAuthScopeWebhooksEventsRead     OAuthScope = "webhooks:events:read" // Просмотр лога вебхуков
+	OAuthScopeWebhooksEventsDelete   OAuthScope = "webhooks:events:delete" // Удаление записи в логе вебхука
+	OAuthScopeSearchUsers            OAuthScope = "search:users" // Поиск сотрудников
+	OAuthScopeSearchChats            OAuthScope = "search:chats" // Поиск чатов
+	OAuthScopeSearchMessages         OAuthScope = "search:messages" // Поиск сообщений
+	OAuthScopeDraftsRead             OAuthScope = "drafts:read" // Просмотр черновиков и отложенных сообщений
+	OAuthScopeDraftsWrite            OAuthScope = "drafts:write" // Создание, изменение и удаление черновиков и отложенных сообщений
+	OAuthScopeImportantMessagesRead  OAuthScope = "important_messages:read" // Просмотр важных сообщений
+	OAuthScopeImportantMessagesWrite OAuthScope = "important_messages:write" // Добавление сообщений в важные и удаление из важных
 )
 
 type OAuthTokenTypeHint string
@@ -470,6 +472,7 @@ const (
 	UserRoleInputAdmin      UserRoleInput = "admin" // Администратор
 	UserRoleInputUser       UserRoleInput = "user" // Сотрудник
 	UserRoleInputMultiGuest UserRoleInput = "multi_guest" // Мульти-гость
+	UserRoleInputGuest      UserRoleInput = "guest" // Гость
 )
 
 // ValidationErrorCode may hold a value this SDK does not list yet: a response keeps it as is.
@@ -491,7 +494,7 @@ const (
 	ValidationErrorCodeInvalidDateRange           ValidationErrorCode = "invalid_date_range" // Выбран слишком большой диапазон дат
 	ValidationErrorCodeInvalidWebhookURL          ValidationErrorCode = "invalid_webhook_url" // Некорректный URL вебхука
 	ValidationErrorCodeRateLimit                  ValidationErrorCode = "rate_limit" // Достигнут лимит запросов
-	ValidationErrorCodeLicensesLimit              ValidationErrorCode = "licenses_limit" // Превышен лимит активных сотрудников (пояснения вы получите в поле message)
+	ValidationErrorCodeLicensesLimit              ValidationErrorCode = "licenses_limit" // Превышен лимит активных сотрудников. Больше не возвращается
 	ValidationErrorCodeUserLimit                  ValidationErrorCode = "user_limit" // Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
 	ValidationErrorCodeUniqueLimit                ValidationErrorCode = "unique_limit" // Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
 	ValidationErrorCodeGeneralLimit               ValidationErrorCode = "general_limit" // Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
@@ -509,7 +512,7 @@ const (
 	ValidationErrorCodeScheduleEndDateInvalid     ValidationErrorCode = "schedule_end_date_invalid" // Расписание заканчивается раньше ближайшей отправки
 	ValidationErrorCodeScheduledMessagesLimit     ValidationErrorCode = "scheduled_messages_limit" // Превышен лимит отложенных сообщений на чат (50)
 	ValidationErrorCodeDraftTypeChangeForbidden   ValidationErrorCode = "draft_type_change_forbidden" // Отложенное сообщение нельзя превратить обратно в черновик
-	ValidationErrorCodeConfidentialDownloadDenied ValidationErrorCode = "confidential_download_denied" // Скачивание файла запрещено: нужен запрос из безопасного контура
+	ValidationErrorCodeConfidentialDownloadDenied ValidationErrorCode = "confidential_download_denied" // Скачивание файла запрещено: нужен запрос из безопасного контура или в файле найден вирус
 	ValidationErrorCodeDecryptionFailed           ValidationErrorCode = "decryption_failed" // Не удалось расшифровать файл
 	ValidationErrorCodeBotAddDenied               ValidationErrorCode = "bot_add_denied" // Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
 	ValidationErrorCodeSingleChatBotOccupied      ValidationErrorCode = "single_chat_bot_occupied" // Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
@@ -577,11 +580,15 @@ type AddTagsRequest struct {
 }
 
 type ApiError struct {
-	Errors []ApiErrorItem `json:"errors"`
+	Errors     []ApiErrorItem `json:"errors"`
+	StatusCode int            `json:"-"` // HTTP status code of the answer
 }
 
 func (e *ApiError) Error() string {
 	if len(e.Errors) == 0 {
+		if e.StatusCode != 0 {
+			return fmt.Sprintf("HTTP %d", e.StatusCode)
+		}
 		return "api error"
 	}
 	parts := make([]string, 0, len(e.Errors))
@@ -738,8 +745,8 @@ type AuditDetailsSearch struct {
 	SearchType    string         `json:"search_type"`
 	QueryPresent  bool           `json:"query_present"`
 	CursorPresent bool           `json:"cursor_present"`
-	Limit         int32          `json:"limit"`
 	Filters       map[string]any `json:"filters"`
+	Limit         *int32         `json:"limit"`
 }
 
 type AuditDetailsTagChat struct {
@@ -757,6 +764,7 @@ type AuditDetailsToken struct {
 	Scopes          []string `json:"scopes"`
 	TokenName       *string  `json:"token_name"`
 	BotID           *int32   `json:"bot_id,omitempty"`
+	Reason          *string  `json:"reason,omitempty"`
 }
 
 type AuditDetailsTokenScopes struct {
@@ -1531,6 +1539,10 @@ type GroupTagRequest struct {
 	GroupTag GroupTagRequestGroupTag `json:"group_tag"`
 }
 
+type ImportantMessageRequest struct {
+	MessageID int32 `json:"message_id"`
+}
+
 type LinkPreviewImage struct {
 	Key  string `json:"key"`
 	Name string `json:"name"`
@@ -1582,6 +1594,7 @@ type Message struct {
 	CreatedAt        time.Time         `json:"created_at"`
 	URL              string            `json:"url"`
 	Files            []File            `json:"files"`
+	Important        bool              `json:"important"`
 	VoiceContent     *VoiceContent     `json:"voice_content"`
 	Buttons          [][]Button        `json:"buttons"`
 	Thread           *MessageThread    `json:"thread"`
@@ -2047,6 +2060,7 @@ type UserUpdateRequestUser struct {
 	Department       *string                           `json:"department,omitempty"`
 	Title            *string                           `json:"title,omitempty"`
 	Role             *UserRoleInput                    `json:"role,omitempty"`
+	ChatIDs          []int32                           `json:"chat_ids,omitempty"`
 	Suspended        *bool                             `json:"suspended,omitempty"`
 	ListTags         []string                          `json:"list_tags,omitempty"`
 	CustomProperties []UserUpdateRequestCustomProperty `json:"custom_properties,omitempty"`
@@ -2061,6 +2075,9 @@ func (m UserUpdateRequestUser) MarshalJSON() ([]byte, error) {
 	var raw map[string]any
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
+	}
+	if m.ChatIDs != nil {
+		raw["chat_ids"] = m.ChatIDs
 	}
 	if m.ListTags != nil {
 		raw["list_tags"] = m.ListTags
@@ -2267,6 +2284,11 @@ type WebhookEvent struct {
 	CreatedAt time.Time           `json:"created_at"`
 }
 
+type WebhookEventsStream struct {
+	URL       string    `json:"url"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
 type WebhookLink struct {
 	URL    string `json:"url"`
 	Domain string `json:"domain"`
@@ -2296,7 +2318,8 @@ type UpdateBotAvatarRequest struct {
 }
 
 type CreateChatResponseMeta struct {
-	NotFoundMemberIDs []int32 `json:"not_found_member_ids"`
+	NotFoundMemberIDs   []int32 `json:"not_found_member_ids"`
+	NotFoundGroupTagIDs []int32 `json:"not_found_group_tag_ids"`
 }
 
 type UpdateChatAvatarRequest struct {
@@ -2411,7 +2434,7 @@ var auditEventDetailsUnionShapes = []unionMemberShape{
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "recording_id": {}, "file_id": {}, "duration": {}, "size": {}}},
 	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}}},
 	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "deleted_access_tokens_count": {}, "deleted_access_grants_count": {}}},
-	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "scopes": {}, "bot_id": {}}},
+	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "scopes": {}, "bot_id": {}, "reason": {}}},
 	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "current_scopes": {}, "bot_id": {}, "actor_id": {}}},
 	{keys: map[string]struct{}{"method": {}, "login_grant_id": {}}},
 	{keys: map[string]struct{}{"login_grant_id": {}}},
@@ -2888,6 +2911,11 @@ type GetTagUsersParams struct {
 	Cursor *string
 }
 
+type ListImportantMessagesParams struct {
+	Limit  *int32
+	Cursor *string
+}
+
 type ListChatMessagesParams struct {
 	ChatID int32
 	Sort   *MessageSortField
@@ -3030,6 +3058,11 @@ type ListTagsResponse struct {
 
 type GetTagUsersResponse struct {
 	Data []User         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
+}
+
+type ListImportantMessagesResponse struct {
+	Data []Message      `json:"data"`
 	Meta PaginationMeta `json:"meta"`
 }
 

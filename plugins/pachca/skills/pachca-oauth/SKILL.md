@@ -180,12 +180,13 @@ Redirect URI rules:
 - **Secret rotation** (**Обновить секрет**, `pachca_rotate_bot_client_secret`,
   `pachca bots rotate-client-secret`): the old secret stops working at once, so have the bot
   ready to take the new value first. Issued authorizations and tokens keep working. The new
-  value is shown once. Confirm with the user before rotating.
+  value is shown once.
 - **Disabling** (**Удаление OAuth-клиента**, or `oauth_client: null`): every employee
   authorization is revoked and their tokens return `401`, the bot leaves the showcase and its
   description and screenshots are deleted for good, new authorizations with that `client_id`
   fail. The bot's own tokens keep working. Re-enabling keeps the old `client_id` and
-  `client_secret` (unless rotated), and the showcase needs a new publication. Always confirm.
+  `client_secret` (unless rotated), and the showcase needs a new publication. It ends every
+  employee's authorization at once, so ask first.
 - **Deleting the bot** also ends every employee token issued to it.
 
 ## Revocation and visibility

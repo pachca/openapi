@@ -70,10 +70,8 @@ public sealed class MembersServiceImpl : MembersService
         {
             case 200:
                 return PachcaUtils.Deserialize<ListMembersResponse>(json);
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.ErrorFromJson(json);
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }
     }
 
@@ -91,10 +89,8 @@ public sealed class MembersServiceImpl : MembersService
         {
             case 200:
                 return PachcaUtils.Deserialize<MemberDataWrapper>(json).Data;
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.ErrorFromJson(json);
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }
     }
 }

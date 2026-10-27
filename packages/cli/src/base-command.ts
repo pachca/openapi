@@ -66,7 +66,7 @@ export abstract class BaseCommand extends Command {
       min: 1,
     }),
     'no-retry': Flags.boolean({
-      description: 'Disable auto-retry on 429/503',
+      description: 'Disable auto-retry on 429, 5xx and network errors',
       default: false,
     }),
     json: Flags.boolean({

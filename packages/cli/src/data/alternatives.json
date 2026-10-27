@@ -51,6 +51,9 @@
   "group-tags:update": "Редактирование тега",
   "group-tags:delete": "Удаление тега",
   "group-tags:list-users": "Список сотрудников тега",
+  "important-messages:list": "Список важных сообщений",
+  "important-messages:create": "Добавление сообщения в важные",
+  "important-messages:delete": "Удаление сообщения из важных",
   "messages:create": "Новое сообщение",
   "messages:list": "Список сообщений чата",
   "messages:get": "Информация о сообщении",
@@ -96,5 +99,6 @@
   "views:open": "Открытие представления",
   "views:submit-response": "Ответ на отправку формы",
   "bots:list-events": "История событий",
+  "bots:get-stream": "Поток событий",
   "bots:remove-event": "Удаление события истории"
 }

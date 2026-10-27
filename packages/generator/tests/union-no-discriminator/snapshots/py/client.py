@@ -20,10 +20,9 @@ class EventsServiceImpl(EventsService):
         response = await self._client.get(
             "/events",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(GetEventsResponse, body)
+                return deserialize(GetEventsResponse, response.json())
             case _:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"

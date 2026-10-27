@@ -1609,7 +1609,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"👍\",\n  \"name\": \":+1:\"\n}",
+              "raw": "{\n  \"code\": \"👍\",\n  \"name\": \"agent-thinking\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

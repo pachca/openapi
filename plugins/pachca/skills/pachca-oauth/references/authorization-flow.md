@@ -21,9 +21,9 @@ The same addresses are published as authorization server metadata (RFC 8414) at
 
 ### 1. The employee writes to the bot
 
-The outgoing webhook delivers the new message to your server (or the bot writes to the
-employee first). Decide here that this employee needs to authorize: you know their user id
-from the event.
+The outgoing webhook delivers the new message to your server, or a bot without a webhook
+address reads it from the event history (or the bot writes to the employee first). Decide here
+that this employee needs to authorize: you know their user id from the event.
 
 ### 2. Generate `state` and a PKCE pair, per button
 
@@ -99,7 +99,7 @@ curl -X POST https://api.pachca.com/api/shared/v1/oauth/token \
 ```
 
 - Confidential client: `client_secret` in the body or in `Authorization: Basic`.
-- Public client: no secret, only `code_verifier`.
+- Public client: no secret, send `client_id` and `code_verifier`.
 - `redirect_uri` is the same one used in the link.
 
 Response fields: `access_token`, `token_type` (`Bearer`), `refresh_token`, `scope`,
@@ -115,8 +115,8 @@ If they differ, the button was forwarded:
 
 - save the token under the employee who consented;
 - send the button again to the employee you meant;
-- do not revoke the token: if that employee authorized the bot before, Pachca returned their
-  existing token, and revoking it cuts their access.
+- do not revoke the token: if that employee authorized the bot before and the bot's scope set
+  has not changed since, Pachca returned their existing token, and revoking it cuts their access.
 
 Method: <https://dev.pachca.com/api/oauth/token-info.md>
 
@@ -125,36 +125,75 @@ Method: <https://dev.pachca.com/api/oauth/token-info.md>
 Bind the token to the employee, keep the granted `scope` next to it, store it like a password.
 Send it as `Authorization: Bearer <token>` on calls made as that employee.
 
+If a different token is already stored for this employee, revoke the stored one from the bot
+(see below), then save the new one. Either the scope set changed and the old token still works
+with the old set, or the stored token was already revoked (by the employee, an admin or by
+disabling OAuth) and revoking it changes nothing. An equal value is the same token: revoke
+nothing.
+
 ### 10. Handle refusals on every call
 
-See the table below. `401` means the access is gone; react by state, not by retrying.
+See the table below. `401` means the access is gone; react by state, not by retrying. A `403`
+with an `errors` array instead of `error` is not about the authorization, so do not send the
+button again: `access_denied` is in the table, any other code means the employee has no right to
+that object (for example, not a member of that chat).
+
+## App on the employee's device (public client)
+
+A desktop, CLI or browser app on the employee's device starts the flow itself. It needs no DM,
+outgoing webhook or bot token, so stages 1 to 3 of the launch checklist do not apply; stage 4
+does (workspace setting, guests, at least one redirect URI). The bot only holds the OAuth client,
+type **Браузер, мобильное, CLI**.
+
+1. Generate `state` and the PKCE pair in the app, keep them in memory.
+2. Register one local redirect URI, for example `http://127.0.0.1/callback`. Listen on any free
+   port and put that port into `redirect_uri` in the link: for `localhost`, `127.0.0.1` and
+   `[::1]` the port is not compared, but the host and path are, so `localhost` and `127.0.0.1`
+   are separate entries.
+3. Open the authorization link in the employee's browser. If they are not signed in, Pachca asks
+   them to sign in first.
+4. On the callback, check `state` and `iss`, then exchange the code with `client_id`,
+   `code_verifier` and the same `redirect_uri`, without a secret.
+5. Call token info with the new token to learn who signed in (`data.user_id`).
+6. Keep the token in the OS keychain, never in a plain config file. To sign out, revoke it with
+   the token in the body and in `Authorization: Bearer`.
 
 ## Errors and what to do
 
 During the exchange:
 
-| Error                   | Cause                                                                                                             | Do                                                         |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `invalid_grant`         | Code expired, already used, issued for another `redirect_uri`, or `code_verifier` does not match `code_challenge` | Send the employee a new button                             |
-| `invalid_client`        | Wrong `client_id` or `client_secret`                                                                              | Check the secret: after rotation the old one stops at once |
-| `429 Too Many Requests` | Too many exchanges in a row, the exchange has its own limit                                                       | Retry after `Retry-After` seconds                          |
+| Error                   | Cause                                                                                                             | Do                                                                 |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `invalid_grant`         | Code expired, already used, issued for another `redirect_uri`, or `code_verifier` does not match `code_challenge` | Send the employee a new button                                     |
+| `invalid_client`        | Wrong `client_id` or `client_secret`, or a confidential client sent no secret                                     | Check the secret: after rotation the old one stops at once         |
+| `429 Too Many Requests` | Too many exchanges in a row, the exchange has its own limit                                                       | Over HTTP, retry after `Retry-After` seconds; the SDK already does |
 
 Other exchange and revoke codes: `invalid_request`, `unsupported_grant_type`,
 `unauthorized_client` (token issued to another bot, or the client did not authenticate).
 
 With the employee token:
 
-| Error                      | Cause                                                              | Do                                                                                        |
-| -------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| `401` (`invalid_token`)    | Employee revoked access, OAuth disabled on the bot, or bot deleted | Delete the token; send the button again when the employee next talks to the bot           |
-| `403` `insufficient_scope` | Scope not in the granted set                                       | If it is already added to the bot settings, send the button again                         |
-| `403` `role_forbidden`     | Scope granted, the employee's role does not allow the action       | Re-authorizing will not help: tell the employee the action is not available to their role |
+| Error                                                   | Cause                                                                                                                                                                                                      | Do                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `401` (`invalid_token`)                                 | Access revoked by the employee (**Авторизации**), by an admin (**Все токены** tab) or by the bot, OAuth disabled on the bot, bot deleted, or the employee was made a guest (that revokes all their tokens) | Delete the token; send the button again when the employee next talks to the bot (a guest gets a refusal instead of consent)                                                                                                                                    |
+| `403` `insufficient_scope`                              | Scope not in the granted set                                                                                                                                                                               | If it is already added to the bot settings, send the button again                                                                                                                                                                                              |
+| `403` `role_forbidden`                                  | Scope granted, the employee's role does not allow the action                                                                                                                                               | Re-authorizing will not help: tell the employee the action is not available to their role                                                                                                                                                                      |
+| `403` `access_denied` (in `errors[].code`, not `error`) | The employee was suspended or deleted                                                                                                                                                                      | Stop calling with it and do not send the button: they cannot authorize now. Get the employee with the bot token (`users:read`): `suspended: true` → keep the token, it works again once access is restored; `404` → the employee was deleted, delete the token |
 
-Both `403` responses also carry `WWW-Authenticate` (RFC 6750) with the same code; for
-`insufficient_scope` its `scope` parameter names the missing scope. In the SDK an exchange
-error is thrown as `OAuthError` with the code in `error`.
+`insufficient_scope` and `role_forbidden` come with the code in `error` and also carry
+`WWW-Authenticate` (RFC 6750) with the same code; for `insufficient_scope` its `scope` parameter
+names the missing scope. `access_denied` comes in the regular API error format (code in
+`errors[].code`). A workspace suspended over its plan answers `402` `payment_required` on most
+methods to every token, the bot's own included: nothing to fix in the authorization.
 
-Limits: <https://dev.pachca.com/api/limits.md> · Error format: <https://dev.pachca.com/api/authorization.md>
+In the SDK an exchange error with an OAuth code (`invalid_grant`, `invalid_client` and the others
+above) is thrown as `OAuthError` with the code in `error`. A `429` is not an OAuth error: it comes
+in the regular API error format with code `rate_limit` and a `Retry-After` header. The SDK waits
+`Retry-After` and repeats the exchange on its own, and throws `ApiError` only once its retries
+are spent (that error carries no `Retry-After`): do not wrap a retry loop of your own around it.
+
+Limits: <https://dev.pachca.com/api/limits.md> · Error formats (`ApiError`, `OAuthError`):
+<https://dev.pachca.com/api/errors.md> · OAuth error codes: <https://dev.pachca.com/api/authorization.md>
 
 ## Revoking a token from the bot
 
@@ -164,7 +203,8 @@ Use it when the employee disconnects the integration in your service. Endpoint
 - confidential client: `token` plus `client_id` and `client_secret`;
 - public client: the token in the body and in `Authorization: Bearer`.
 
-The employee can also revoke on their own in **Авторизации**; either way, the next call with
-that token returns `401`.
+The employee can also revoke on their own in **Авторизации**, and a workspace admin can revoke
+any employee's access on the **Все токены** tab; either way, the next call with that token returns
+`401`.
 
 Method: <https://dev.pachca.com/api/oauth/revoke-token.md>

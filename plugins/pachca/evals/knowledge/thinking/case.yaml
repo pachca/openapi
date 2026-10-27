@@ -10,4 +10,4 @@ execution:
 graders:
   - name: answer
     type: llm
-    criteria: "PASS if the answer describes putting the custom reaction agent-thinking on the message (Pachca shows a live timer) and removing it after the reply. FAIL if it suggests a typing indicator or sending a \"working on it\" message as the only way."
+    criteria: 'PASS if the answer describes putting the custom reaction agent-thinking on the message (Pachca shows a live timer) and removing it after the reply. FAIL if it suggests a typing indicator or sending a "working on it" message as the only way.'

@@ -1,15 +1,16 @@
 ---
 name: pachca
 description: >-
-  Вход в Пачку (Pachca) для агента: что это за мессенджер, как подключиться (MCP-сервер через браузер или
-  токеном, CLI, REST API), как проверить подключение, какой токен выбрать и почему нет инструмента или права
-  (роль, тариф, тип токена, участие в чате), куда идти дальше. Когда: «подключи Пачку», «настрой MCP Пачки»,
-  «войди в Пачку через CLI», «какой токен нужен», «почему 403 в Пачке», «нет инструмента Пачки», «что умеет
-  Пачка». English: "connect Pachca", "set up Pachca MCP", "Pachca CLI login", "which Pachca token", "Pachca
-  401/403", "what can I do in Pachca". Not for: writing messages → pachca-messaging, finding and summarizing →
-  pachca-search, workspace administration → pachca-admin, building a bot → pachca-bots, an agent living in
-  Pachca → pachca-ai-agent, acting for employees via OAuth → pachca-oauth, scripts, SDK, pagination →
-  pachca-api.
+  Вход в Пачку (Pachca) для агента: подключить агента или MCP-клиента (MCP через браузер или токеном, плагин,
+  CLI), проверить подключение, выбрать токен, разобрать отказ 401/403 инструмента или CLI и отсутствие
+  инструмента (роль, тариф, тип токена, участие в чате). Когда: «подключи Пачку», «настрой MCP Пачки», «войди
+  в Пачку через CLI», «каким токеном подключить агента», «экран входа MCP», «агент получил 403
+  insufficient_scope», «нет инструмента Пачки (экспорт, журнал аудита)», «что умеет Пачка». English: "connect
+  Pachca", "set up Pachca MCP", "Pachca CLI login", "which token for my agent or MCP client", "MCP sign-in
+  screen", "MCP tool or CLI returned 401/403", "a Pachca tool is missing". Not for: writing messages →
+  pachca-messaging, search and summaries → pachca-search, administration, who may create tokens →
+  pachca-admin, building a bot → pachca-bots, an agent living in Pachca → pachca-ai-agent, OAuth for employees
+  → pachca-oauth, a token for a script or service, 401/403 in your own code → pachca-api.
 ---
 
 # Pachca
@@ -22,8 +23,8 @@ gets you connected, explains why something is or is not available, and routes yo
 ## When to use
 
 - Pachca is mentioned and you have no Pachca tools, no CLI login and no token yet.
-- The user asks to connect Pachca to Claude Code, Cursor, Codex, a server-side agent, a script or CI.
-- A call fails with `401`, `402` or `403`, or a tool the user expects is missing.
+- The user asks to connect Pachca to Claude Code, Cursor, Codex or another agent app, or to a server-side agent.
+- A tool or CLI command fails with `401`, `402` or `403`, or a tool the user expects is missing.
 - You need to know whose name you act under and what that account may do.
 - For everything else pick a sibling from [Where to go next](#where-to-go-next).
 
@@ -36,8 +37,8 @@ gets you connected, explains why something is or is not available, and routes yo
 - **Chats**: group chats and channels, open or closed, plus direct messages. A thread hangs under a message; an
   unattached thread exists without a chat. The chat role (creator, admin, editor, member or subscriber) is
   independent of the workspace role: a workspace admin is an outsider in a closed chat they are not in.
-- **Bot**: a separate workspace member with its own name. It sees all open channels plus the closed chats and
-  threads it was added to.
+- **Bot**: a separate workspace member with its own name. It sees all open group chats and channels plus the
+  closed chats and threads it was added to.
 
 ## Pick the access path
 
@@ -48,7 +49,7 @@ Every path calls the same API methods with the same rights.
 | An employee, from an agent app (Claude, Claude Code, Cursor, VS Code, Codex) | MCP server                     |
 | An agent that runs terminal commands and needs to save context               | CLI                            |
 | Your own integration or service                                              | REST API or SDK → `pachca-api` |
-| An agent that lives in Pachca and is called by nickname in a thread          | a bot → `pachca-ai-agent`      |
+| An agent that lives in Pachca and is called by @mention or in a DM           | a bot → `pachca-ai-agent`      |
 
 If MCP tools are already connected, use them. The CLI is the terminal alternative: it spends less context
 (the agent learns commands from `--help`) but needs a shell.
@@ -57,25 +58,41 @@ If MCP tools are already connected, use them. The CLI is the terminal alternativ
 
 Address `https://mcp.pachca.com/mcp`, transport Streamable HTTP. Choose how to sign in:
 
-| Way                                               | Fits                                                                    | Acts as                   | Lifetime                 |
-| ------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------- | ------------------------ |
-| Browser, consent screen                           | Claude Code, Claude, VS Code, Codex                                     | the employee who approved | 1 hour, refreshes itself |
-| Personal token in `Authorization: Bearer <token>` | Cursor, Windsurf, SourceCraft Code Assistant, no browser                | the token owner           | until deleted            |
-| Bot token in `Authorization: Bearer <token>`      | an agent with no employee present: a server, Yandex AI Studio, GigaChat | the bot                   | until deleted            |
+| Way                                               | Fits                                                                                                                                       | Acts as                   | Lifetime                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | ------------------------ |
+| Browser, consent screen                           | Claude Code, the Claude app, VS Code, GitHub Copilot CLI, Codex                                                                            | the employee who approved | 1 hour, refreshes itself |
+| Personal token in `Authorization: Bearer <token>` | Cursor, SourceCraft Code Assistant, Qwen Code, GigaCode CLI, OpenCode, Devin Desktop, Cline, Kilo Code, Gemini CLI, nobody to sign in (CI) | the token owner           | until deleted            |
+| Bot token in `Authorization: Bearer <token>`      | an agent with no employee present: a server, Yandex AI Studio, GigaChat                                                                    | the bot                   | until deleted            |
+
+**With the Pachca plugin** the server is already configured: do not add a second one by hand, do what the
+table says for your client. Check the list (`claude mcp list`, `codex mcp list`, `copilot mcp list`,
+`agent mcp list` in Cursor). In Claude Code a server added by hand at the same address hides the plugin's
+server.
+
+| Client                      | Plugin's server                    | Sign in                                                                                                                                 |
+| --------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Claude Code                 | `plugin:pachca:pachca`             | `/mcp`, or `claude mcp login plugin:pachca:pachca` in the terminal. Installed from the shell during a session: `/reload-plugins` first  |
+| Claude app, Cowork          | on the plugin's **Connectors** tab | **Add**, then **Connect** there. On Team and Enterprise the organization owner adds the connector first, members only press **Connect** |
+| VS Code, GitHub Copilot CLI | `pachca`                           | the browser opens on first use. To retry in Copilot CLI: `/mcp auth pachca`                                                             |
+| Cursor                      | `plugin-pachca-pachca`             | no sign-in: it sends the token from `PACHCA_TOKEN`. Put a personal token there, restart Cursor                                          |
+| Codex                       | `pachca`                           | `codex mcp login pachca` (`--no-browser` prints the link)                                                                               |
+
+**Without the plugin**, Claude Code and Codex:
 
 ```bash
-# Claude Code: add, then run /mcp inside Claude Code, pick "pachca" and sign in
-claude mcp add --transport http pachca https://mcp.pachca.com/mcp   # --scope user: all projects
-claude mcp login pachca                                              # same sign-in from the terminal
-
-# Codex (shared by Codex CLI, the Codex extension and the ChatGPT desktop app)
+# Claude Code
+claude mcp add --transport http pachca https://mcp.pachca.com/mcp   # then /mcp; --scope user: all projects
+claude mcp login pachca                                              # from the terminal; with no browser, prints the link
+# Codex: CLI, IDE extension and ChatGPT desktop app share it. Adding starts the browser sign-in
 codex mcp add pachca --url https://mcp.pachca.com/mcp
-codex mcp login pachca
+codex mcp login pachca                                               # retry; --no-browser prints the link
+# Codex where nobody can sign in (CI): a personal token. Replaces a server of the same name, the plugin's too
+codex mcp add pachca --url https://mcp.pachca.com/mcp --bearer-token-env-var PACHCA_TOKEN
 ```
 
-Claude connectors, VS Code, Cursor, Windsurf, `.mcp.json` without a browser, stdio-only clients through
-`mcp-remote`, Yandex AI Studio and GigaChat: copy the exact config from the
-[connection page](https://dev.pachca.com/guides/ai-agents/mcp-connect.md).
+GitHub Copilot CLI and VS Code, Gemini CLI, Devin, Qwen Code, GigaCode CLI, Cursor, OpenCode, the Claude app,
+the other clients, and installing the skills without the plugin:
+[references/mcp-clients.md](references/mcp-clients.md).
 
 Do it right:
 
@@ -90,7 +107,9 @@ Do it right:
 - Read-only agent: a separate personal token with only read and search scopes. The tool list stays the same;
   writes are refused with `insufficient_scope`.
 - Keep the token in an environment variable such as `PACHCA_TOKEN`, never in a config file that lands in the
-  repository.
+  repository. The program reads it from the environment it was started in: set it in the shell profile (on
+  Windows, in the system environment variables) and restart the program. An app started outside the terminal,
+  such as the ChatGPT desktop app, may still not see it.
 - All tool descriptions together take tens of thousands of tokens. If the client allows, turn off the tools
   the agent does not need.
 
@@ -102,26 +121,32 @@ Needs Node.js 20+.
 npm install -g @pachca/cli
 pachca auth login                         # an employee at the terminal confirms in the browser
 export PACHCA_TOKEN=YOUR_ACCESS_TOKEN     # CI, scripts, agents: a ready token, no login step
-npx -y @pachca/cli users list --token YOUR_ACCESS_TOKEN   # one-off run without installing
+npx -y @pachca/cli users list             # one-off run without installing, token from PACHCA_TOKEN
 ```
 
 - `pachca auth login` prints an address and a code and waits for approval; `--no-browser` prints them
   without opening a browser. The token lives an hour and refreshes itself. Its scopes are the whole catalog
   cut by your role at the moment of approval, and they do not grow later.
-- In a non-interactive run `pachca auth login` without `--token` fails at once: nobody can approve. Use
-  `PACHCA_TOKEN` from the CI or agent secrets, and `--no-input`.
+- `pachca auth login` without `--token` needs a person at a terminal. Your own shell is usually not one (no
+  TTY), and CI is not either: the command fails at once with "Token required in non-interactive mode", and a
+  retry fails the same way. Ask the user to run `pachca auth login` in their own terminal window (for the
+  MCP server, `/mcp` in Claude Code), wait for them, then check with `pachca auth status`. Never ask for a
+  token in the conversation. The user saves a ready token in their own terminal (next bullet) or puts
+  `PACHCA_TOKEN` in the environment the agent starts from. CI and unattended agents take `PACHCA_TOKEN` from
+  their secrets and add `--no-input`.
 - Pass a copied token through stdin, not as an argument: `pbpaste | pachca auth login --token -`. An argument
   stays in shell history and in the process list.
-- Token sources in order: `--token`, `PACHCA_TOKEN`, `--profile` or `PACHCA_PROFILE`, the active profile. A
-  forgotten `PACHCA_TOKEN` silently wins over your profile.
+- Token sources in order: `--token`, `--profile`, `PACHCA_TOKEN`, `PACHCA_PROFILE`, the active profile. A
+  forgotten `PACHCA_TOKEN` silently wins over `PACHCA_PROFILE` and the active profile; name the profile with
+  `--profile` to be sure which workspace a command hits.
 - Discover instead of guessing: `pachca commands`, `pachca <section> <action> --help`, `pachca api ls`,
   `pachca api POST /messages --describe`. Add `-o json` for machine-readable output.
 
 ## Connect to the REST API
 
-Base URL `https://api.pachca.com/api/shared/v1`, header `Authorization: Bearer <token>`, JSON bodies. Responses
-carry `data`; lists add `meta` for pagination. Personal token: **Интеграции > API**; bot token: the **API** tab
-of the bot card. The value is shown once. Pagination, limits, errors, uploads and SDKs → `pachca-api`.
+Base URL `https://api.pachca.com/api/shared/v1`, header `Authorization: Bearer <token>`, JSON bodies. Personal
+token: **Интеграции > API**; bot token: the **API** tab of the bot card. The value is shown once. Response
+shapes, pagination, limits, errors, uploads and SDKs → `pachca-api`.
 
 ## Which token
 
@@ -134,20 +159,31 @@ of the bot card. The value is shown once. Pagination, limits, errors, uploads an
 
 ## Who may connect
 
-Owner, admin, employee and multi-guest; guests never. By default only admins may issue API access: the
+Owner, admin, employee and multi-guest; guests never. By default only admins may connect as themselves: the
 workspace setting **Кто может создавать персональные токены** starts at "Только администраторы" and closes
-personal tokens, CLI login and browser MCP sign-in for everyone else. If the consent screen says «Доступ к API
-ограничен администраторами пространства», an admin must switch it to **Все сотрудники**. Do not look for
-another sign-in way around it.
+personal tokens, CLI login, browser MCP sign-in and bot authorization on the consent screen for everyone else.
+Bots and their tokens fall under a separate setting, **Кто может создавать интеграции**, open to employees by
+default. If the consent screen says «Доступ к API ограничен администраторами пространства», an admin must
+switch the personal-token setting to **Все сотрудники** (→ `pachca-admin`). Do not look for another sign-in
+way around it.
 
 ## Check the connection
 
 Do this before real work and after any `401` or `403`.
 
+Over MCP the server's instructions already say whom you act as, in a line like
+`You act as <name> (<id>), personal token, owner`: the account, its id, the token kind and, for a personal
+token, the workspace role, where the owner reads `owner`. Every tool result ends with a footer repeating the
+name, id and token kind. Do not call a tool only to learn who you are, and do not ask whether the user is the
+owner. The plan is not in that line: a listed `pachca_list_company_chats` or `pachca_get_audit_events` means
+the owner on «Корпорация». If the line did not reach you (some clients drop server instructions) or the role
+may have changed, use step 1.
+
 1. Read your own profile: MCP `pachca_get_my_card`, CLI `pachca profile get`. You get the name, id and
-   workspace role (the owner shows as `admin`). With a bot token it is the bot's own profile.
-2. When the question is about scopes, read the token: MCP `pachca_get_token_info`, CLI `pachca auth status`
-   (also shows the sign-in method and time left; `--remote` refreshes the saved scopes from the server).
+   workspace role (the owner shows as `admin` here). With a bot token it is the bot's own profile.
+2. When the question is about scopes, read the token: MCP `pachca_get_token_info`, CLI
+   `pachca oauth token-info` for any token. `pachca auth status` also shows the sign-in method and time left,
+   but it reads only the saved profile and the scopes saved at login: add `--remote` to ask the server.
 3. When it matters for the task, tell the user in one line whom you act as. Messages sent through MCP browser
    sign-in carry the employee's name and the app icon; with a personal token they look hand-written.
 
@@ -159,7 +195,9 @@ Each call passes five checks, and any one can refuse:
 2. **Workspace role of the token owner**: checked on every call, so a demotion narrows live tokens at once.
 3. **Plan**: export, the audit log and the lists of all chats and all bots need the owner on the
    «Корпорация» plan. MCP works on every plan, including the free «Начало».
-4. **Chat membership and chat role**: closed chats are visible only to members, owner and admins included.
+4. **Chat membership and chat role**: a closed chat answers only its members, admins included. The owner is
+   the one exception: they get the members of any chat and, on «Корпорация», the list of all group chats and
+   channels and an export.
 5. **Token kind**: only a bot token has forms, link unfurling, event history, changing its own webhook and
    rotating its own token. Only a personal token has drafts, scheduled messages and bot management.
 
@@ -170,16 +208,16 @@ result through other tools. Owner privileges, multi-guest limits and role change
 
 ## Diagnose a refusal
 
-| Response                           | Meaning                                                           | What to do                                                                                                                                            |
-| ---------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `401`                              | no token, expired or revoked                                      | reconnect (`/mcp` in Claude Code, `pachca auth login`); a header token may have been deleted                                                          |
-| `403` `insufficient_scope`         | the token lacks the scope the response names                      | personal token: add it in the token menu on the API page; bot token: in the bot settings; CLI browser login: log in again if the role has grown since |
-| `403` `role_forbidden`             | scope present, the role forbids the action                        | only an admin changing the role helps; reconnecting does not                                                                                          |
-| `403` `access_denied`              | the token belongs to a guest, a suspended or a deleted employee   | use another account                                                                                                                                   |
-| other `403`                        | not a member of the chat, chat role too low, or a plan feature    | check membership and chat role first                                                                                                                  |
-| `402`                              | the workspace is suspended: plan message limit used up, or unpaid | tell the user; most methods refuse until it is paid                                                                                                   |
-| `404`                              | no such object; an existing chat closed to you answers `403`      | find the id with search or a list                                                                                                                     |
-| `429`, "Wait N s before repeating" | rate limit                                                        | wait the given time, then retry                                                                                                                       |
+| Response                           | Meaning                                                         | What to do                                                                                                                                                                                           |
+| ---------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `401`                              | no token, expired or revoked                                    | reconnect (`/mcp` in Claude Code, `pachca auth login`); a header token may have been deleted                                                                                                         |
+| `403` `insufficient_scope`         | the token lacks the scope the response names                    | personal token from the UI: add it in the token menu on **Интеграции > API**; bot token: in the bot settings; MCP browser sign-in or CLI login: sign in anew, a plain reconnect keeps the old scopes |
+| `403` `role_forbidden`             | scope present, the role forbids the action                      | only an admin changing the role helps; reconnecting does not                                                                                                                                         |
+| `403` `access_denied`              | the token belongs to a guest, a suspended or a deleted employee | use another account                                                                                                                                                                                  |
+| other `403`                        | not a member of the chat, chat role too low, or a plan feature  | check membership and chat role first                                                                                                                                                                 |
+| `402`                              | the workspace is suspended: the plan's message limit is used up | tell the user; most methods refuse until it is paid                                                                                                                                                  |
+| `404`                              | no such object; an existing chat closed to you answers `403`    | find the id with search or a list                                                                                                                                                                    |
+| `429`, "Wait N s before repeating" | rate limit                                                      | wait the given time, then retry                                                                                                                                                                      |
 
 ## Do it right
 
@@ -201,20 +239,26 @@ result through other tools. Owner privileges, multi-guest limits and role change
 ## Pitfalls
 
 - Expecting an admin to see every chat, or reading `role: admin` as "owner". Closed chats are member-only for
-  every role; only the owner on «Корпорация» gets all chats, members of any chat and an export.
+  every role; only the owner gets the members of any chat, and on «Корпорация» also the list of all chats and
+  an export.
+- The server never announces a changed tool list, and the client keeps the list it loaded when it connected.
+  After a role or plan change, or when Pachca adds methods, a tool that should now be there appears only after
+  you reconnect the server (`/mcp` > Reconnect in Claude Code, or restart the client). If the new tool then
+  answers `insufficient_scope`, sign in again.
 - A personal token "just to test" never expires. Delete it on **Интеграции > API** when done.
 - A CLI profile copied to another machine does not work: the secret stays in the first machine's OS keychain.
 - Without a keychain (container, minimal image) the CLI stores the token as plain text in
   `~/.config/pachca/config.toml`. In CI pass `PACHCA_TOKEN` instead of logging in.
-- A client without a terminal (the Claude app) sends only small text files as content, not files from disk
-  (→ `pachca-messaging`).
+- Claude chat (web, desktop, mobile) cannot send a file from disk: its code sandbox cannot read the user's
+  disk, and its network reaches package managers at most, not Pachca's file storage. It sends small text as
+  content (→ `pachca-messaging`).
 - OAuth authorization steps are not MCP tools (→ `pachca-oauth`).
 
 ## Where to go next
 
 | Task                                                                                             | Skill              |
 | ------------------------------------------------------------------------------------------------ | ------------------ |
-| Write, reply, mention, draft, schedule, send files, buttons, reactions, pins                     | `pachca-messaging` |
+| Write, reply, mention, draft, schedule, send files, reactions, pins                              | `pachca-messaging` |
 | Find messages, chats, people; read a thread; digests; decisions and tasks from a discussion      | `pachca-search`    |
 | Owner or admin: employees, tags, channels, roles, API access, all tokens, audit log, export, DLP | `pachca-admin`     |
 | Build a bot or integration: webhooks, events, tokens, scopes, buttons, forms, unfurling          | `pachca-bots`      |
@@ -228,6 +272,7 @@ result through other tools. Owner privileges, multi-guest limits and role change
 - [MCP server: rights, safety, limits](https://dev.pachca.com/guides/ai-agents/mcp.md)
 - [Connecting to MCP, per client](https://dev.pachca.com/guides/ai-agents/mcp-connect.md)
 - [MCP tools: who gets which tool](https://dev.pachca.com/guides/ai-agents/mcp-tools.md)
+- [Pachca plugin for agent apps](https://dev.pachca.com/guides/ai-agents/plugin.md)
 - [CLI](https://dev.pachca.com/guides/cli/overview.md) and [CLI authorization](https://dev.pachca.com/guides/cli/authentication.md)
 - [Authorization: token kinds, scopes, who may issue](https://dev.pachca.com/api/authorization.md)
 - [Permissions and roles](https://dev.pachca.com/guides/permissions.md)

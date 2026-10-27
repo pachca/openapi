@@ -7,7 +7,8 @@
     "claude-code",
     "cursor",
     "codex",
-    "gemini-cli"
+    "gemini-cli",
+    "opencode"
   ],
   "author": {
     "name": "Pachca",

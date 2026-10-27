@@ -40,13 +40,23 @@ Every API method is available as a command: typed flags, validation, four output
 Skills are know-how for doing things in Pachca the right way: where to post and what to confirm, how to find and summarize, which token to pick, why a permission is missing. The argument reference comes from the MCP tool descriptions, `pachca <command> --help` and the method pages, so the skills do not repeat it. They work with any access path: MCP, CLI or API.
 
 ```bash
-npx skills add https://dev.pachca.com   # from the site
-npx skills add pachca/openapi           # from the repository
-
-# The Pachca plugin for Claude Code: MCP server, skills and commands
-claude plugin marketplace add pachca/openapi
+# Claude Code
+claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins
 claude plugin install pachca@pachca
+
+# Codex
+codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca
+codex plugin add pachca@pachca
+
+# GitHub Copilot CLI and VS Code
+copilot plugin marketplace add pachca/openapi
+copilot plugin install pachca@pachca
+
+# Skills only, for OpenCode, Devin, Cline, Kilo Code, Qwen Code and other agents (Node.js 22.20+)
+npx skills add https://dev.pachca.com -g -a opencode -y
 ```
+
+The plugin installs the MCP server, skills and commands. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app, signing in to Pachca and installing skills without Node.js are covered on the [Plugin and skills](https://dev.pachca.com/guides/ai-agents/plugin) page.
 
 | Skill | Use it for |
 |-------|------------|
@@ -59,7 +69,7 @@ claude plugin install pachca@pachca
 | `pachca-oauth` | An app acting on behalf of each employee |
 | `pachca-api` | Scripts, SDKs and CI: pagination, limits, errors, files |
 
-The skills are written by hand in `plugins/pachca/skills/<name>/`. The build publishes them on dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) and checks their links and the MCP tool and CLI command names. Skills hold instructions only, no executable code.
+The skills are written by hand in `plugins/pachca/skills/<name>/`. The build publishes the eight knowledge skills on dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) and checks their links and the MCP tool and CLI command names. The plugin's commands are not published on the site. Skills hold instructions only, no executable code.
 
 ## n8n
 

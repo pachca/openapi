@@ -40,13 +40,23 @@ pachca api POST /messages -f message[content]="Привет"  # прямой з�
 Скиллы — знание о том, как правильно делать задачи в Пачке: куда писать и что подтверждать, как искать и пересказывать, какой токен выбрать, почему не хватает прав. Справочник по аргументам агент берёт из описаний инструментов MCP-сервера, `pachca <команда> --help` и страниц методов, поэтому скиллы его не повторяют. Работают с любым способом подключения: MCP, CLI или API.
 
 ```bash
-npx skills add https://dev.pachca.com   # с сайта
-npx skills add pachca/openapi           # из репозитория
-
-# Плагин «Пачка» для Claude Code: MCP-сервер, скиллы и команды
-claude plugin marketplace add pachca/openapi
+# Claude Code
+claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins
 claude plugin install pachca@pachca
+
+# Codex
+codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca
+codex plugin add pachca@pachca
+
+# GitHub Copilot CLI и VS Code
+copilot plugin marketplace add pachca/openapi
+copilot plugin install pachca@pachca
+
+# Только скиллы, для OpenCode, Devin, Cline, Kilo Code, Qwen Code и других агентов (Node.js 22.20+)
+npx skills add https://dev.pachca.com -g -a opencode -y
 ```
+
+Плагин ставит MCP-сервер, скиллы и команды. В агент, где уже стоит плагин, скиллы через `npx skills` не ставьте: у него окажется по две копии каждого скилла. Cursor, приложение Claude, вход в Пачку и скиллы без Node.js — на странице [Плагин и скиллы](https://dev.pachca.com/guides/ai-agents/plugin).
 
 | Скилл | Когда пригодится |
 |-------|------------------|
@@ -59,7 +69,7 @@ claude plugin install pachca@pachca
 | `pachca-oauth` | Приложение от имени каждого сотрудника |
 | `pachca-api` | Скрипты, SDK и CI: пагинация, лимиты, ошибки, файлы |
 
-Скиллы пишутся руками в `plugins/pachca/skills/<name>/`. Сборка публикует их на dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) и проверяет ссылки, имена инструментов MCP и команд CLI. В скиллах только инструкции, исполняемого кода нет.
+Скиллы пишутся руками в `plugins/pachca/skills/<name>/`. Сборка публикует на dev.pachca.com восемь скиллов-знаний (`/.well-known/agent-skills/index.json`, `/skill.md`) и проверяет ссылки, имена инструментов MCP и команд CLI. Команды плагина на сайт не попадают. В скиллах только инструкции, исполняемого кода нет.
 
 ## n8n
 

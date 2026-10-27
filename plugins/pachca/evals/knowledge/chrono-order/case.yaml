@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-chrono-order
+description: "What pachca-search adds: answered with the plugin and without it"
+tags: [knowledge, pachca-search]
+runs: 3
+execution:
+  prompt: "Как прочитать тред Пачки по порядку, от старых сообщений к новым, через MCP?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "The answer is advice: no tool calls are expected. PASS if it tells the reader to read the thread's chat feed (pachca_list_chat_messages) with sort=id together with order=asc on every call, cursor pages included, or to read it newest first and reverse the result. The REST form sort[id]=asc is not sort=id with order=asc: the MCP tool takes sort and order as two separate arguments. A warning that order without sort is ignored is fine, and so is message search with order=asc and its default sort. FAIL if it has the chat feed read with order=asc and no sort=id, or says the chat feed keeps its order on cursor pages without sort and order passed again."

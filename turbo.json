@@ -34,6 +34,12 @@
         "scripts/generate-llms.ts",
         "scripts/skills/**",
         "../../plugins/pachca/**",
+        "../../plugins/pachca/.claude-plugin/**",
+        "../../plugins/pachca/.cursor-plugin/**",
+        "../../plugins/pachca/.mcp.json",
+        "../../.claude-plugin/**",
+        "../../.cursor-plugin/**",
+        "../../.agents/plugins/**",
         "!../../plugins/pachca/evals/results/**",
         "!../../plugins/pachca/evals/mocks/pachca/_tools.json",
         "../../packages/cli/oclif.manifest.json",
@@ -52,6 +58,7 @@
         "public/guides/**",
         "public/**/*.md",
         "public/.well-known/**",
+        "public/skills/**",
         "public/pachca.postman_collection.json"
       ],
       "cache": true
@@ -67,6 +74,12 @@
         "scripts/generate-llms.ts",
         "scripts/skills/**",
         "../../plugins/pachca/**",
+        "../../plugins/pachca/.claude-plugin/**",
+        "../../plugins/pachca/.cursor-plugin/**",
+        "../../plugins/pachca/.mcp.json",
+        "../../.claude-plugin/**",
+        "../../.cursor-plugin/**",
+        "../../.agents/plugins/**",
         "!../../plugins/pachca/evals/results/**",
         "!../../plugins/pachca/evals/mocks/pachca/_tools.json",
         "../../packages/cli/oclif.manifest.json",
@@ -85,6 +98,7 @@
         "public/guides/**",
         "public/**/*.md",
         "public/.well-known/**",
+        "public/skills/**",
         "public/pachca.postman_collection.json"
       ],
       "cache": true

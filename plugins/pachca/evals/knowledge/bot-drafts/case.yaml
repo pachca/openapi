@@ -10,4 +10,4 @@ execution:
 graders:
   - name: answer
     type: llm
-    criteria: "PASS if the answer says no: drafts need the employee's own personal token, a bot token gets 403 on drafts. FAIL if it says the bot can create drafts with its own token."
+    criteria: "PASS if the answer says no: drafts and scheduled messages need the employee's own access (personal token, CLI login or MCP browser sign-in); a bot token gets 403, and the employee's OAuth authorization of the bot cannot add the drafts scopes either. It may suggest posting the proposed text for the employee to send. FAIL if it says the bot can create drafts with its own token or through OAuth on behalf of the employee."

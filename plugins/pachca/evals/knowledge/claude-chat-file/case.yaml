@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-claude-chat-file
+description: "What pachca-messaging adds: answered with the plugin and without it"
+tags: [knowledge, pachca-messaging]
+runs: 3
+execution:
+  prompt: "Я в чате на claude.ai. Отправь PDF с моего ноутбука в канал Пачки «Отчёты»."
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer says Claude chat cannot upload a file from the user's computer and offers attaching it in Pachca by hand, or a draft with the text for the employee to add the file to. It may point to Claude Code, Codex or Cursor on the user's machine, or to trying the upload in Cowork with the folder shared. FAIL if it proposes or starts uploading the PDF from this chat (curl to the storage, an upload after `pachca_get_upload_params`, or the file passed as content), or says the only reason is a missing terminal."

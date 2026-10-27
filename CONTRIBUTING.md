@@ -20,7 +20,7 @@ everything else is generated.** Read this before changing anything.
 | `packages/mcp-manifest` | npm package `@pachca/mcp-manifest`: the MCP tool manifest and its JSON Schema, copied from `packages/spec` by the build |
 | `apps/docs` | Next.js 16 docs site (dev.pachca.com): `content/` MDX, `lib/`, `scripts/` generators, `public/` generated artifacts |
 | `n8n-nodes-pachca` / `integrations/n8n` | n8n community node |
-| `plugins/pachca` | The Pachca plugin for Claude Code and Codex: hand-written Agent Skills (`skills/`), commands, MCP config; skills are published to the docs site by `apps/docs/scripts/skills/generate.ts` |
+| `plugins/pachca` | The Pachca plugin for Claude Code, the Claude app, Codex, VS Code and GitHub Copilot, and Cursor: hand-written skills, MCP configs and one manifest per host; checked, versioned and published by `apps/docs/scripts/skills/generate.ts` |
 
 ## Build & check
 
@@ -62,7 +62,7 @@ Edit **only** the source; never hand-edit generated output:
 | `packages/spec/mcp-manifest.json` | the spec + `packages/spec/mcp-core.ts`, `mcp-tools.ts`, `scripts/generate-mcp-manifest.ts` |
 | `packages/mcp-manifest/mcp-manifest.json`, `mcp-manifest.schema.json` | copies of `packages/spec/mcp-manifest.json` and `mcp-manifest.schema.json` |
 | `apps/docs/public/llms*.txt`, `public/**/*.md`, Postman collection | `apps/docs/scripts/generate-llms.ts` + `apps/docs/content/**` |
-| `apps/docs/public/skill.md`, `public/.well-known/**`, `skill.json` | `plugins/pachca/skills/**` (hand-written) via `apps/docs/scripts/skills/generate.ts` |
+| `apps/docs/public/skill.md`, `public/.well-known/**`, `public/skills/*.zip`, `skill.json`, the `version` in the plugin manifests and `apps/docs/scripts/skills/plugin-version.json` | `plugins/pachca/**` (hand-written) via `apps/docs/scripts/skills/generate.ts` |
 | `packages/cli/src/commands/**` (except `auth/`, `config/`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
 | `AGENTS.md` | `apps/docs/scripts/skills/generate.ts` |
 | n8n node files | n8n generator |
@@ -77,11 +77,33 @@ ad-hoc `bun -e` commands or the old `bin/` / `tests/` helpers.
 
 ## Agent skills and the plugin
 
-`plugins/pachca` is the Pachca plugin for Claude Code and Codex. Its skills
-(`skills/<name>/SKILL.md` plus `references/`) and commands (`commands/*.md`)
-are written by hand. The docs build publishes the skills on dev.pachca.com and
-fails on a broken link, a missing MCP tool, CLI command or skill, or an
-internal id; see `apps/docs/scripts/skills/generate.ts`.
+`plugins/pachca` is the Pachca plugin. Claude Code and the Claude app read
+`.claude-plugin/plugin.json` and `.mcp.json`. Codex, VS Code, GitHub Copilot and
+Cline read the Agent Plugins manifest `plugin.json` and `mcp.json`. Cursor reads
+`.cursor-plugin/plugin.json`, whose MCP server sends the token from `PACHCA_TOKEN`.
+The marketplaces at the repository root (`.claude-plugin/`, `.cursor-plugin/`,
+`.agents/plugins/`) all point at `./plugins/pachca`.
+
+Everything in the plugin is written by hand except the `version` of its three
+manifests. Once the plugin files (all but `evals/`) differ from the committed
+ones, the docs build sets it one patch above the committed version, so it grows
+once per commit that changes the plugin, and rebuilding or reverting before the
+commit does not move it. The build keeps the content hash and version in
+`apps/docs/scripts/skills/plugin-version.json`. Do not edit either. Run
+`npx turbo build` and commit the manifests and that file with your change; if
+the version did not change, rerun with `--force`.
+
+Skills live in `skills/<name>/`. Knowledge skills are named `pachca` or
+`pachca-<topic>`, keep only `name` and `description` in the frontmatter, and the
+agent picks them by description. The build publishes them on dev.pachca.com: the
+discovery index, `/skill.md` and `/skills/<name>.zip` for uploads. Commands are
+skills with any other name, `argument-hint` and `disable-model-invocation: true`,
+plus `agents/openai.yaml` with `policy.allow_implicit_invocation: false` for
+Codex. They run only when the user calls them (`/pachca:catch-up` in Claude Code)
+and are not published. A command says in words what the user gives with it,
+without `$ARGUMENTS`, which only some programs fill in. The build fails on a
+broken link, a missing MCP tool, CLI command or skill, an internal id, or
+manifests out of step; see `apps/docs/scripts/skills/generate.ts`.
 
 Evals live in `plugins/pachca/evals` and run with `claude plugin eval`
 (Claude Code 2.1.269+). Each run calls the model with your own account:

@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-access-denied
+description: "What pachca-api adds: answered with the plugin and without it"
+tags: [knowledge, pachca-api]
+runs: 3
+execution:
+  prompt: "Скрипт получает от API Пачки 403 с errors[].code access_denied. Поможет ли добавить скоупы токену?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if it says the token's owner is a guest or a suspended or deleted employee, so scopes or a new token of the same person will not help and another account is needed. FAIL if it suggests adding scopes or reissuing the token as the fix."

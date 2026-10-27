@@ -100,6 +100,20 @@ const nextConfig: NextConfig = {
         headers: [{ key: 'Content-Type', value: 'application/gzip' }],
       },
       {
+        // Skill folders zipped for upload: the Claude app (Customize > Skills) and
+        // Yandex AI Studio take a ZIP with the skill folder at the top.
+        source: '/skills/:file(.*\\.zip)',
+        headers: [
+          { key: 'Content-Type', value: 'application/zip' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+          },
+          { key: 'X-Robots-Tag', value: 'noindex' },
+        ],
+      },
+      {
         // A2A Agent Card (Agent2Agent discovery).
         source: '/.well-known/agent-card.json',
         headers: [

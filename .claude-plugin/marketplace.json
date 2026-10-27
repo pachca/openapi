@@ -1,6 +1,6 @@
 {
   "name": "pachca",
-  "description": "Pachca plugins for Claude Code",
+  "description": "Pachca plugins for AI agents",
   "owner": {
     "name": "Pachca",
     "url": "https://dev.pachca.com"
@@ -9,7 +9,7 @@
     {
       "name": "pachca",
       "source": "./plugins/pachca",
-      "description": "The Pachca MCP server, skills and commands for working in Pachca"
+      "description": "Pachca corporate messenger for AI agents: the MCP server with a tool per API method, skills on doing things right in Pachca, and commands to catch up, summarize a thread, build a digest, draft an announcement and turn a discussion into tasks."
     }
   ]
 }

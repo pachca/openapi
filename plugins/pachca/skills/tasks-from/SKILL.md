@@ -1,0 +1,20 @@
+---
+name: tasks-from
+description: 'Turn a Pachca discussion into tasks: action items with assignees and due dates, created after review'
+argument-hint: '<thread or message link>'
+disable-model-invocation: true
+---
+
+# Tasks from a Pachca discussion
+
+Turn the Pachca discussion the user gave with the command, a thread or message link, into tasks. If there is no link, ask for it.
+
+Follow the `pachca-search` skill: its thread procedure to read the discussion and its tasks reference to create tasks. A message link can point at a comment inside a thread, at the message the thread hangs under, or at a message with no thread: find the thread chat with the "Find the thread chat" table in the skill's `references/threads.md`. If the message has no thread (`thread` is `null` and its `entity_type` is not `thread`), do not create one: say so and take the action items from that message alone, unless the user points you to more of the chat.
+
+1. Read the whole thread, oldest first (`pachca_list_chat_messages` with `sort=id` together with `order=asc` on every call, cursor pages included, because `order` alone is ignored), and the parent message (a standalone thread has none). For a message with no thread, read just that message.
+2. Pull out the action items: what to do, who does it, by when. Take the assignee and the date from the discussion; do not guess. Count a relative date («завтра», «к пятнице») from the day the message was written, not from today: its `created_at`, or `forwarding.original_created_at` for a forward, in the user's time zone. Mark a date that has already passed instead of moving it. «Я сделаю» means the message author: `user_id`, or `forwarding.author_id` for a forward. Resolve other names to ids with `pachca_search_users`, and ask when two candidates match. No date named: leave the date empty.
+3. Show the list to the user as a table: task, assignee, due date, link to the message it came from. A task always has an assignee. Where the discussion names none, ask whom to assign, or write "you" in that cell and say that such rows become the user's own tasks. Under the table, name the chat the tasks will be bound to, or say they stay unbound, so the user's yes covers who can see them.
+4. After a clear yes, create each task with `pachca_create_task`: `kind` (`reminder` unless the item is clearly a call, meeting, event or email), the text in `content` ending with the link to the message it came from (its `url`), so the assignee finds the context, assignees in `performer_ids`, and `chat_id` of the chat the discussion hangs in (the `chat_id` of the parent message, or of the message itself when it has no thread) when it is a conversation or a direct chat you are a member of. Leave `chat_id` out for a channel, a standalone thread, an archived chat or a private item: a channel, a thread and an archived chat are refused with `403`, and every member of the bound chat sees the task (in an open conversation, every employee of the workspace). For a "you" row leave `performer_ids` out: the task goes to the user. Never send an empty array: with it the task is not created. A day without an hour: `all_day: true` and `due_at` at `23:59:59` of that day; otherwise `due_at`. Write both with the user's time zone offset.
+5. Report what was created: each task's text, assignee and due date, with the link to the message it came from (the API returns no link for a task). Also report every item that failed, with the reason. Creating is not idempotent: if a call times out, do not resend it blind. First list your own open tasks: `pachca_list_tasks` with `author_id` set to your id (the "you:" part of the MCP footer) and `status: "undone"`. The list comes oldest first, so a new task is on the last page: follow the cursor to the end and match `content`. Create the item again only if it is not there, so colleagues do not get duplicates.
+
+Do not create tasks for other employees without the user's yes on the list.

@@ -1,4 +1,4 @@
-# Drafts and scheduled messages from an agent
+# Drafts and scheduled messages: what a bot-hosted agent does
 
 Source: [Draft instead of sending](https://dev.pachca.com/guides/ai-agents/drafts.md).
 
@@ -6,78 +6,43 @@ A sent message has already been read: if the agent wrote to the wrong chat, in
 the wrong tone or to the wrong employee, deleting it does not help — the
 notification went out. A draft removes the irreversibility: the text appears in
 the input box of the chat, and the employee decides to edit, send or erase it.
+A scheduled message goes out by itself at the set time, in the employee's name.
 
-## Choose: send, draft or schedule
+## A bot cannot make them
 
-| The employee says                                | Do                |
-| ------------------------------------------------ | ----------------- |
-| "Answer in the thread"                           | Send as the bot   |
-| "Prepare a reply to the client, I will check it" | Draft             |
-| "Remind the team on Monday morning"              | Scheduled message |
+Drafts and scheduled messages need a token that belongs to the employee: a
+personal token, a CLI sign-in
+([CLI authentication](https://dev.pachca.com/guides/cli/authentication.md)) or
+the MCP browser sign-in. The `drafts:read` and `drafts:write` scopes are not
+issued to bot tokens, and the methods answer `403` to a bot token. They also
+cannot go into a bot's authorization scope set: a bot's set holds only scopes
+the bot itself can have, so a bot-hosted agent cannot get them through the
+employee's authorization of the bot (`pachca-oauth`) either.
 
-A scheduled message goes out by itself and the employee does not see it before
-sending, so nobody will review it: the text must be final. Do not use a
-schedule where the employee expects to check the text.
+## What the agent does instead
 
-## Token: the employee's, never the bot's
+| The employee says                                | A bot-hosted agent                                                                                                                                                                                  |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Answer in the thread"                           | Sends the reply                                                                                                                                                                                     |
+| "Prepare a reply to the client, I will check it" | Sends the text to the caller as a clearly marked proposal in the DM with the bot, and the caller sends it themselves                                                                                |
+| "Remind the team on Monday morning"              | Keeps its own scheduler and sends at that time with the bot token, or creates a reminder task ([New task](https://dev.pachca.com/api/tasks/create.md), `pachca_create_task`, `pachca tasks create`) |
 
-Bots cannot use drafts: the `drafts:read` and `drafts:write` scopes are not
-issued to bot tokens, and the methods answer `403` to a bot token. The agent
-acts with the personal token of the employee it writes for, so the draft
-appears where the employee would see their own. A CLI sign-in gives such a
-token ([CLI authentication](https://dev.pachca.com/guides/cli/authentication.md));
-a bot-hosted agent gets the employee's rights through authorization →
-`pachca-oauth`.
+The proposal goes into the thread instead only when the person the reply is for
+cannot read that thread: they are a member of neither the thread nor its parent
+chat, and when the parent chat is open (`public: true`), their role is `guest`
+or `multi_guest`. If you cannot check, use the DM.
 
-This is the point of the design: a draft is private — neither the other side
-nor the workspace admin sees it — and the employee who sends it is responsible
-for it.
+For its own scheduler the agent turns "Monday morning" into a moment in the
+caller's time zone: `time_zone` from the user info method (`pachca_get_user`,
+`pachca users get`). `null` means the workspace time zone, which the API does
+not return: the agent asks the caller which zone is meant. When it accepts the
+task, it repeats the chat and the exact time back to the caller, because nobody
+checks the message when it goes out.
 
-## Procedure
+## An agent with the employee's own sign-in
 
-1. **Look first.** List the employee's drafts (`pachca_list_drafts`,
-   `pachca drafts list`) so as not to pile up drafts.
-2. **Create** with `entity_type` (`discussion`, `thread` or `user`),
-   `entity_id` and `content` (`pachca_create_draft`, `pachca drafts create`).
-   To make it a reply to a message, add `parent_message_id` — the message must
-   be in the same chat.
-3. **On `409`** a draft already exists in that chat: its id comes in
-   `errors[].payload.draft_id`. Do not retry the create — it will fail the same
-   way. Read the existing draft (`pachca_get_draft`, `pachca drafts get`) and
-   update it (`pachca_update_draft`, `pachca drafts update`).
-4. **Update carefully.** The draft is overwritten by the fields you pass:
-   `content` replaces the text and keeps attachments, an empty `files` removes
-   the attachments. There is no check that the employee changed it meanwhile —
-   the last write wins. Read it before rewriting if the employee may have opened it.
-5. **Tell the employee.** A draft creates no notification: Pachca does not say
-   it appeared. The side that put it there says which chat it is in.
-
-There is no "send draft" method. Sending is an ordinary new message, after which
-the draft is deleted (`pachca_delete_draft`, `pachca drafts delete`). The
-interface does the same when the employee presses «Отправить сейчас». For an
-agent this is the design: the employee presses the button.
-
-## Scheduled message
-
-The same create method with the `schedule` field:
-
-- `start_date` — the first sending; the time of day, day of month and weekday of
-  the repeat come from it;
-- `repetition` — the rule: `interval` `once` for a single sending, or `daily`,
-  `weekly`, `monthly` and rarer up to `yearly`. Weekly takes a `days` list where
-  `0` is Sunday. Monthly can use `nth_day` from 1 to 4, and 5 means the last —
-  "every last Tuesday of the month";
-- `end_date` — optional; stops the repeat after that date, without it the repeat
-  never ends.
-
-The employee sees such messages in the «Отложенные» (scheduled) section and can
-open, edit or delete them. A scheduled message cannot be turned back into a
-draft, and removing the schedule by an update answers `422`: cancel it only by
-deleting.
-
-## Limits
-
-- One ordinary draft per chat, thread or DM.
-- Up to 50 scheduled messages per chat.
-- Up to 10 attachments in a draft.
-- An empty draft is not allowed: it needs text or attachments.
+An agent that works with the employee's own token (from Claude, Cursor, the CLI
+or its own service) can make drafts and scheduled messages. The procedure — the
+`409` on a second draft in a chat, updating attachments, sending a draft,
+`schedule` and time zones, limits — is in the `pachca-messaging` skill, with
+background in [Draft instead of sending](https://dev.pachca.com/guides/ai-agents/drafts.md).

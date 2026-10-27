@@ -11,11 +11,18 @@ graders:
   - name: fires
     type: tool_used
     tool: Skill
-    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?(?:pachca-messaging|announce)\""
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?(?:pachca-messaging)\""
   - name: no-sibling
     type: tool_used
     tool: Skill
     input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?pachca-(?!messaging\")[a-z-]+\""
+    min: 0
+    max: 0
+    arm: both
+  - name: no-command
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:pachca:)?(?:catch-up|thread-summary|digest|announce|tasks-from)\""
     min: 0
     max: 0
     arm: both

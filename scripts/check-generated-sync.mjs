@@ -11,7 +11,8 @@
 //   - packages/cli/src/data/changelog.json → packages/cli/CHANGELOG.md
 //   - apps/docs/content/**.mdx + apps/docs/data/releases.json
 //                                          → apps/docs/public/**, llms*.txt
-//   - plugins/pachca/skills/** (by hand)   → apps/docs/public/.well-known/**, skill.md, skill.json
+//   - plugins/pachca/** (by hand)          → apps/docs/public/.well-known/**, skills/*.zip, skill.md,
+//                                            skill.json, and the version in the plugin manifests
 //   - apps/docs/scripts/skills/generate.ts → AGENTS.md (template-driven)
 //
 // The deployment Docker image always regenerates these on build, so prod
@@ -56,6 +57,12 @@ const GENERATED_PATHS = [
   'AGENTS.md',
   'skill.json',
   'plugins/pachca/evals/mocks/pachca/_tools.json',
+  // The version field of the plugin manifests (the rest of each file is hand-written)
+  // and the record of the plugin content it was given for
+  'plugins/pachca/plugin.json',
+  'plugins/pachca/.claude-plugin/plugin.json',
+  'plugins/pachca/.cursor-plugin/plugin.json',
+  'apps/docs/scripts/skills/plugin-version.json',
   'apps/docs/public/.well-known/agent-card.json',
   'apps/docs/public/index.md',
   'apps/docs/public/llms.txt',
@@ -70,6 +77,7 @@ const GENERATED_PATHS = [
   'apps/docs/public/updates/**',
   'apps/docs/public/.well-known/skills/**',
   'apps/docs/public/.well-known/agent-skills/**',
+  'apps/docs/public/skills/**',
 ];
 
 function sh(cmd) {

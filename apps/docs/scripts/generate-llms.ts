@@ -218,12 +218,16 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '## MCP-сервер\n\n';
   content +=
     'Адрес: `https://mcp.pachca.com/mcp` (Streamable HTTP). Инструмент на каждый метод API, ' +
-    'список зависит от роли, тарифа и типа токена. Программы с поддержкой OAuth Client ID ' +
-    'Metadata Document (Claude Code, Claude, VS Code, Codex) входят через браузер с экраном ' +
-    'согласия, остальные передают личный токен или токен бота в заголовке ' +
-    '`Authorization: Bearer <TOKEN>`. Агенты в Yandex AI Studio и на GigaChat (GigaChain, ' +
-    '`langchain-mcp-adapters`) подключаются токеном бота в том же заголовке. Claude Code: ' +
-    '`claude mcp add --transport http pachca https://mcp.pachca.com/mcp`, затем `/mcp` для входа. ' +
+    'список зависит от роли, тарифа и типа токена. Claude Code, Claude, VS Code, GitHub Copilot CLI и Codex ' +
+    'входят через браузер с экраном согласия (OAuth Client ID Metadata Document). Остальные программы ' +
+    'передают персональный токен или токен бота в заголовке `Authorization: Bearer <TOKEN>`. ' +
+    'Codex: `codex mcp add pachca --url https://mcp.pachca.com/mcp` добавляет сервер и сразу открывает вход. ' +
+    'На компьютере без браузера войдите командой `codex mcp login pachca --no-browser`, она выведет ссылку. ' +
+    'В CI добавьте к `codex mcp add` флаг `--bearer-token-env-var PACHCA_TOKEN`: токен Codex возьмёт из переменной. ' +
+    'Агенты в Yandex AI Studio и на GigaChat (GigaChain, `langchain-mcp-adapters`) подключаются токеном ' +
+    'бота в том же заголовке. Claude Code с плагином «Пачка»: сервер уже есть и называется ' +
+    '`plugin:pachca:pachca`, вход через `/mcp` или `claude mcp login plugin:pachca:pachca`. ' +
+    'Без плагина: `claude mcp add --transport http pachca https://mcp.pachca.com/mcp`, затем `/mcp` для входа. ' +
     `Как устроен: [MCP-сервер](${SITE_URL}/guides/ai-agents/mcp.md), подключение программ: ` +
     `[Подключение к MCP](${SITE_URL}/guides/ai-agents/mcp-connect.md), все инструменты: ` +
     `[Инструменты MCP](${SITE_URL}/guides/ai-agents/mcp-tools.md).\n\n`;
@@ -241,12 +245,36 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   }
   content += '\n';
   content +=
-    `Установка: \`npx skills add ${SITE_URL}\`. В Claude Code и Codex скиллы вместе с MCP-сервером и командами ставит плагин «Пачка»: ` +
-    `\`claude plugin marketplace add pachca/openapi\`, затем \`claude plugin install pachca@pachca\`. ` +
+    'Установка. Плагин «Пачка» ставит MCP-сервер, скиллы и команды:\n\n' +
+    '- Claude Code: `claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins`, ' +
+    'затем `claude plugin install pachca@pachca`. Вход: `/mcp` или `claude mcp login plugin:pachca:pachca`. ' +
+    'Сервер, добавленный вручную по тому же адресу, заменяет сервер плагина, поэтому с плагином `claude mcp add` не нужен.\n' +
+    '- Codex: `codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca`, ' +
+    'затем `codex plugin add pachca@pachca`. Вход: `codex mcp login pachca`. Где входить некому, сервер с персональным токеном ' +
+    '`codex mcp add pachca --url https://mcp.pachca.com/mcp --bearer-token-env-var PACHCA_TOKEN` заменяет сервер плагина.\n' +
+    '- GitHub Copilot CLI и VS Code: `copilot plugin marketplace add pachca/openapi`, затем ' +
+    '`copilot plugin install pachca@pachca`. Вход в Copilot CLI: `/mcp auth pachca`.\n' +
+    '- Cursor: `agent plugin marketplace add https://github.com/pachca/openapi`, затем `/plugin` в сессии агента. ' +
+    'Сервер плагина берёт персональный токен из переменной окружения `PACHCA_TOKEN`, после её задания Cursor нужно перезапустить.\n\n';
+  content +=
+    `Только скиллы, для остальных агентов: \`npx skills add ${SITE_URL} -g -a <агент> -y\`, где \`<агент>\` — это ` +
+    '`opencode`, `devin`, `cline`, `kilo`, `qwen-code`, `gemini-cli`, `cursor`, `codex`, `github-copilot`, `claude-code` и другие. ' +
+    'Нужен Node.js 22.20 или новее. Если команду запускает агент, флаги `-a` и `-y` обязательны: без `-a` она может без вопросов ' +
+    'поставить скиллы во все найденные агенты. В агент, где уже стоит плагин, скиллы этой командой не ставьте: у него окажется ' +
+    'по две копии каждого скилла. ' +
+    'С `-g` скиллы ложатся в общие папки `~/.agents/skills/` и `~/.claude/skills/`, без `-g` в `.agents/skills/` или `.claude/skills/` проекта. ' +
+    'Эти папки читают и программы с плагином: Claude Code, Codex, Cursor, VS Code. Если плагин стоит в одной из них, ' +
+    'распакуйте скиллы архивом в папку, которую читает только нужный агент, например `~/.config/opencode/skills/` для OpenCode. ' +
+    'Команды плагина ставятся только с плагином. ' +
+    `Без Node.js архив \`${SITE_URL}/.well-known/agent-skills/<скилл>.tar.gz\` распаковывается в папку ` +
+    '`<папка скиллов агента>/<скилл>/`, общей папки в архиве нет. ' +
+    `ZIP с папкой скилла для Yandex AI Studio и приложения Claude: \`${SITE_URL}/skills/<скилл>.zip\`. ` +
     `Подробнее: [Плагин и скиллы](${SITE_URL}/guides/ai-agents/plugin.md).\n\n`;
   // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
   // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
-  content += `Индекс скиллов: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
+  content +=
+    `Индекс скиллов (Agent Skills Discovery 0.2.0): \`${SITE_URL}/.well-known/agent-skills/index.json\`, ` +
+    `прежний формат: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
   content += `Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman), доками (HTML, llms.txt) и метаданными.\n\n`;
 
   content += '## Руководства\n';
@@ -281,7 +309,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // и коллекции для инструментов, а не doc-страницы (иначе их сэмплят как страницы).
   content += `- OpenAPI 3.0 spec: \`${SITE_URL}/openapi.yaml\` — машиночитаемая спецификация API для кодогенерации и инструментов\n`;
   content += `- Postman collection: \`${SITE_URL}/pachca.postman_collection.json\` — готовая коллекция для импорта в Postman/Bruno/Insomnia\n`;
-  content += `- [Agent Skill](${SITE_URL}/skill.md): Описание API для AI-агентов (SKILL.md)\n`;
+  content += `- [Скилл pachca](${SITE_URL}/skill.md): вход для AI-агента, подключение к Пачке, выбор токена и куда идти дальше\n`;
   content += '- [Веб-сайт](https://pachca.com/)\n';
   content += '- [Получить помощь](mailto:team@pachca.com)\n';
   content += '\n____\n';
@@ -329,7 +357,7 @@ function insertLlmsDocumentMap(content: string): string {
     { name: 'CLI Quick Start', desc: 'Установка, команды, точечная справка по API', idx: cliIdx },
     { name: 'SDK', desc: 'Типизированные клиенты для 6 языков', idx: sdkIdx },
     { name: 'MCP-сервер', desc: 'Адрес, вход и инструменты MCP', idx: mcpIdx },
-    { name: 'Agent Skills', desc: 'Скиллы для AI-агентов и установка', idx: skillsIdx },
+    { name: 'Agent Skills', desc: 'Плагин и скиллы для AI-агентов, установка', idx: skillsIdx },
     { name: 'Руководства', desc: 'Страницы-руководства (Markdown по `.md`)', idx: guidesIdx },
     { name: 'API-методы', desc: 'Все эндпоинты, сгруппированы по разделам', idx: apiIdx },
     { name: 'Обновления', desc: 'Журнал обновлений по датам', idx: updIdx },
@@ -383,7 +411,7 @@ function generateLibraryRules(): string {
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
 - Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
 - A personal token issued in the interface does not expire; one obtained by \`pachca auth login\` lives an hour and renews itself
-- MCP server: \`https://mcp.pachca.com/mcp\`, one tool per API method under the same rights as the token. Clients that support OAuth Client ID Metadata Document (CIMD), such as Claude Code, Claude, VS Code and Codex, sign in through the browser and get a one-hour token that renews itself; other clients send a personal or bot token in \`Authorization: Bearer <TOKEN>\`
+- MCP server: \`https://mcp.pachca.com/mcp\`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI and Codex sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in \`Authorization: Bearer <TOKEN>\`
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: \`const client = new PachcaClient("YOUR_TOKEN")\`
 - Python SDK: \`client = PachcaClient("YOUR_TOKEN")\`
@@ -2130,7 +2158,11 @@ async function main() {
 
   // Skills last: their links are checked against the page .md files written above.
   const skillFiles = publishSkills();
-  for (const dir of ['public/.well-known/skills', 'public/.well-known/agent-skills']) {
+  for (const dir of [
+    'public/.well-known/skills',
+    'public/.well-known/agent-skills',
+    'public/skills',
+  ]) {
     fs.rmSync(path.join(process.cwd(), dir), { recursive: true, force: true });
   }
   for (const file of skillFiles) {

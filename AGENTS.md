@@ -17,6 +17,7 @@ single source of truth; everything else is generated from it.
 | `packages/openapi-parser` | Shared OpenAPI parser |
 | `packages/mcp-manifest` | npm package `@pachca/mcp-manifest`: the MCP tool manifest and its JSON Schema, copied from `packages/spec` by the build |
 | `apps/docs` | Next.js 16 docs site (dev.pachca.com): `content/` MDX, `lib/`, `scripts/` generators, `public/` generated artifacts |
+| `plugins/pachca` | The Pachca plugin for Claude Code, the Claude app, Codex, VS Code and GitHub Copilot, and Cursor: hand-written skills (knowledge skills and slash-only commands), MCP configs and one manifest per host |
 | `integrations/n8n` | n8n community node |
 
 ## Build & check
@@ -40,7 +41,7 @@ review generated diffs → commit. Branch from `origin/main`; open a PR
 | `packages/spec/mcp-manifest.json` | the spec + `packages/spec/mcp-core.ts`, `mcp-tools.ts`, `scripts/generate-mcp-manifest.ts` (then `bun run generate-mcp` in `packages/spec`) |
 | `packages/mcp-manifest/mcp-manifest.json`, `mcp-manifest.schema.json` | copies of `packages/spec/mcp-manifest.json` and `mcp-manifest.schema.json` (`npx turbo build --filter=@pachca/mcp-manifest`); a changed manifest needs a new version on top of `packages/mcp-manifest/CHANGELOG.md` and in its `package.json` (the package is not in `releases.json`) |
 | `apps/docs/public/llms*.txt`, `public/**/*.md`, Postman collection | `apps/docs/scripts/generate-llms.ts` |
-| `apps/docs/public/skill.md`, `public/.well-known/**`, root `skill.json` | the hand-written skills in `plugins/pachca/skills/<name>/`, published and checked by `apps/docs/scripts/skills/generate.ts` (links, MCP tool and CLI command names, size) |
+| `apps/docs/public/skill.md`, `public/.well-known/**`, `public/skills/*.zip`, root `skill.json`, `plugins/pachca/evals/mocks/pachca/_tools.json`, and the `version` in `plugins/pachca/plugin.json`, `.claude-plugin/plugin.json`, `.cursor-plugin/plugin.json` (recorded in `apps/docs/scripts/skills/plugin-version.json`) | the hand-written plugin in `plugins/pachca/`, checked and published by `apps/docs/scripts/skills/generate.ts` (links, MCP tool and CLI command names, size, manifests in step; the version is one patch above the committed one once the plugin files change) |
 | `packages/cli/src/commands/**` (except `auth`/`config`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
 | n8n node files | `integrations/n8n/scripts/generate-n8n.ts` |
 | `AGENTS.md` (this file) | `apps/docs/scripts/skills/generate.ts` (`generateAgentsMd()`) |
@@ -58,6 +59,7 @@ change to a published package ships with a release entry (and vice versa).
 - Snapshot regeneration for `packages/generator` is a bulk snapshot rewrite. Use `cd packages/generator && npm run regen-snapshots` (backed by top-level `scripts/regen-generator-snapshots.ts`) instead of ad-hoc `bun -e` one-offs or the old `bin/` / `tests/` helpers.
 - Restart the docs dev server after changing component registrations or new TS/TSX files (Turbopack HMR misses them).
 - Hand-written files must stay out of a turbo task's `outputs` globs. On a cache **hit** turbo restores every declared output over the working tree, silently reverting hand edits — the package script alone keeps them, so it looks intermittent. `generate-n8n` declares `nodes/**/*.ts`, so `nodes/Pachca/GenericFunctions.ts` and `nodes/Pachca/V1/**` are excluded by negation in `turbo.json`; keep new hand-written node files excluded too.
+- Never type the plugin `version`: once `plugins/pachca` (all but `evals/`) differs from the committed plugin, the docs build sets it one patch above the committed version and writes it into the three plugin manifests and `apps/docs/scripts/skills/plugin-version.json`. Rebuilding before the commit does not raise it again. After changing the plugin, run `npx turbo build` and commit those files with the change. If the version did not change after you changed the plugin, rerun with `--force`.
 
 ## Deep-dive docs (read before the relevant task)
 

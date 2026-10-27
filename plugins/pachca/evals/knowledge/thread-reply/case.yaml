@@ -10,4 +10,4 @@ execution:
 graders:
   - name: answer
     type: llm
-    criteria: "PASS if the answer says to create the thread under message 123 first (the method returns the existing thread if there is one) and then send with entity_type \"thread\" and the thread id, not the message id. FAIL if it sends to the message id as the thread id, or uses parent_message_id as a way to post into a thread."
+    criteria: 'PASS if the answer says to create the thread under message 123 first (the method returns the existing thread if there is one) and then send with entity_type "thread" and the thread id, or with entity_type "discussion" and the thread''s chat_id, not the message id. FAIL if it sends to the message id as the thread id, or uses parent_message_id as a way to post into a thread.'

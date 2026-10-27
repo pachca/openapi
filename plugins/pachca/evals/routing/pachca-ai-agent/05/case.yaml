@@ -4,7 +4,7 @@ description: "Routes to pachca-ai-agent, no sibling skill fires"
 tags: [routing, pachca-ai-agent]
 runs: 3
 execution:
-  prompt: "Пусть агент готовит черновик, а сотрудник сам отправляет"
+  prompt: "Бот-агент в Пачке должен отвечать сотруднику в личных сообщениях, что для этого настроить?"
   max_turns: 3
   allowed_tools: [Skill]
 graders:

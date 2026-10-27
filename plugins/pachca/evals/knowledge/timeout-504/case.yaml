@@ -10,4 +10,4 @@ execution:
 graders:
   - name: answer
     type: llm
-    criteria: "PASS if the answer says to narrow the query (by chats or period) rather than just retry, because a retry will likely time out again. FAIL if it recommends plain retries with backoff as the fix."
+    criteria: "PASS if the answer's first advice is to narrow the query (for example fewer chats or a shorter period) instead of repeating the same request, because the same request will likely time out again. FAIL if it advises repeating the same request, at once or with backoff, as the first step or the fix, even when it offers narrowing only as a fallback after further timeouts."

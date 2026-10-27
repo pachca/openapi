@@ -7,24 +7,27 @@ action is unavailable, or when you choose or revoke access. Live pages:
 
 ## Token kinds compared
 
-|                    | Personal, created in the UI                     | CLI browser login                                      | MCP browser sign-in (consent screen)                                                  | Bot                                                  |
-| ------------------ | ----------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| Acts as            | the employee                                    | the employee                                           | the employee                                                                          | the bot                                              |
-| Scopes             | chosen at creation, editable later              | whole catalog cut by the role at approval, then frozen | what the app asked for, usually the whole catalog; none can be unticked on the screen | set per token in the bot card                        |
-| Lifetime           | until deleted                                   | 1 hour, refreshes itself                               | 1 hour, refreshes itself                                                              | until deleted                                        |
-| Sees               | what the employee sees                          | the same                                               | the same                                                                              | open channels plus chats and threads it was added to |
-| Where it is listed | **Персональные токены** on **Интеграции > API** | **Токены CLI**, one row per device                     | **Авторизации**                                                                       | the **API** tab of the bot card                      |
+|                    | Personal, created in the UI                     | CLI browser login                                      | MCP browser sign-in (consent screen)                                                  | Bot                                                                   |
+| ------------------ | ----------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Acts as            | the employee                                    | the employee                                           | the employee                                                                          | the bot                                                               |
+| Scopes             | chosen at creation, editable later              | whole catalog cut by the role at approval, then frozen | what the app asked for, usually the whole catalog; none can be unticked on the screen | set per token in the bot card                                         |
+| Lifetime           | until deleted                                   | 1 hour, refreshes itself                               | 1 hour, refreshes itself                                                              | until deleted                                                         |
+| Sees               | what the employee sees                          | the same                                               | the same                                                                              | open group chats and channels, plus chats and threads it was added to |
+| Where it is listed | **Персональные токены** on **Интеграции > API** | **Токены CLI**, one row per device                     | **Авторизации**                                                                       | the **API** tab of the bot card                                       |
 
-A consent-screen token is the same kind an OAuth app gets for an employee (→ `pachca-oauth`). Whatever the
+The MCP consent screen and a bot's OAuth consent screen look alike but issue different tokens. The MCP token
+lives an hour, refreshes itself and can carry the whole catalog, drafts and bot management included. A bot's
+token for an employee does not expire and holds only scopes a bot may have (→ `pachca-oauth`). Whatever the
 scopes say, every call is also checked against the owner's current role.
 
 ## The owner is special, admins are not
 
-Closed chats are member-only for every role. The owner, and only the owner, on the «Корпорация» plan gets:
+Closed chats are member-only for every role. The owner, and only the owner, lists the members of any chat,
+without its messages, on every plan. On the «Корпорация» plan the owner also gets:
 
 - the list of all group chats and channels, closed ones included (no direct messages, no threads);
-- the members of any chat, without its messages;
-- an export of the whole workspace, closed and archived chats and threads included;
+- an export of messages from open, closed and archived chats with their threads, regardless of membership;
+  direct messages come with author and time but no text, and their threads are not included;
 - the list of all bots; bots the owner cannot edit come with name and nickname only.
 
 An admin gets none of this: those methods answer `403`. An admin or the owner who joins a chat becomes its
@@ -33,9 +36,11 @@ admin, which is the legitimate way to take over someone else's chat (→ `pachca
 ## Multi-guest
 
 Works with the API like an employee but sees only what the UI shows: the chats they were added to and their
-members. Other employees answer `404`, their email and phone come back `null`. Can create personal tokens,
-log in to the CLI and authorize bots. Cannot create or configure bots, create chats or leave them, add
-members or tags to a chat, or list a tag's employees. The MCP server leaves those tools out for them.
+members. Employees who share no active chat with them answer `404` (threads and archived chats do not count).
+In the cards they can see, other employees' `email` and `phone_number` come back `null` and `list_tags` comes
+back empty. Can create personal tokens, log in to the CLI and authorize bots. Cannot create or configure bots,
+create chats or leave them, add members or tags to a chat, or list a tag's employees. The MCP server leaves
+those tools out for them.
 
 ## Role changes hit live tokens
 
@@ -50,35 +55,52 @@ A suspended employee's tokens are not deleted. Revoke them on **Все токе�
 
 ## Who may issue access
 
-Two workspace settings, changed by the owner or an admin:
+Two workspace settings, changed by the owner or an admin (→ `pachca-admin`):
 
 - **Кто может создавать интеграции** (bots and their tokens): default "Администраторы и сотрудники".
 - **Кто может создавать персональные токены**: default "Только администраторы". It also closes CLI login and
   consent for bots and MCP apps.
 
-Tightening a setting closes only new access. Everything issued before keeps working until it is revoked on
-the **Все токены** tab.
+Tightening a setting stops new issuing. Access issued before keeps working: bots and their tokens, personal
+tokens, CLI logins and consent grants. With «Только администраторы» in **Кто может создавать интеграции**, a
+creator without the admin role also loses access to the card of their bot, while the bot and its tokens keep
+working. With «Только администраторы» in **Кто может создавать персональные токены**, employees can still
+delete their personal tokens but can no longer edit them. To cut old access, revoke it as below.
 
 ## Revoking access
 
 - MCP browser connections: **Авторизации** on **Интеграции > API**. **Отозвать доступ** cuts every
   connection of that app you granted; the next call gets `401`. Other employees' connections of the same app
   stay.
-- CLI browser logins: **Токены CLI**, one row per device, or `pachca auth logout`, which kills the token on the
-  server at once.
-- Ready tokens, personal or bot: delete the token on **Интеграции > API** or in the bot card. `pachca auth
-logout` only removes the profile from the machine; the token keeps working.
-- Admins see and revoke every access in the workspace, including rows typed «Клиент MCP», on **Все токены**.
+- CLI browser logins: **Токены CLI**, one row per device. `pachca auth logout` removes the profile, but ends
+  the login on the server only while the saved token is still live and the server answers. A token lasts an
+  hour from login or its last renewal, not from the last command: `pachca auth status` shows the time left. If
+  it has run out, run any API command first (for example `pachca profile get`) to renew it. For an expired
+  token the CLI still reports the token as revoked. To be sure, revoke the row in **Токены CLI**.
+- Ready tokens, personal or bot: delete the token on **Интеграции > API** or on the **API** tab of the bot
+  card. `pachca auth logout` only removes the profile from the machine; the token keeps working.
+- Admins see and revoke employees' personal tokens, CLI logins, and authorizations of bots and MCP apps (rows
+  typed «Клиент MCP») on **Все токены**, suspended employees included. A bot's own tokens are not listed
+  there: the bot's creator or an admin deletes them on the **API** tab of the bot card, an admin only while
+  **Администраторы** is ticked under **Кто может редактировать настройки бота** on that card (off by default).
 
 ## Reading a 403 precisely
 
-- Both scope and role refusals repeat their code in the `WWW-Authenticate` header; for
-  `insufficient_scope` its `scope` parameter names the missing scope.
-- In the CLI, `-o json` returns error type `PACHCA_SCOPE_ERROR` with a `scope` field. Then compare with
-  `pachca auth status`: the scope is in the token's list → the role stopped allowing it, only an admin helps;
-  it is not in the list → log in again (browser login) or issue a token with that scope (ready token).
-- A plain `403` without those codes usually means chat membership or chat role. Check whether the token's
-  owner is in the chat, and with which role, before blaming scopes or the plan.
+- In the CLI with `-o json`, `insufficient_scope` comes back as type `PACHCA_SCOPE_ERROR` with a `scope`
+  field: the token does not carry that scope. Add it to a ready token (**Персональные токены** on
+  **Интеграции > API**, or the **API** tab of the bot card). For a browser login, CLI or MCP, sign in again: it
+  helps when the catalog or, for the CLI, your role has grown since. A plain reconnect keeps the old scopes.
+- `role_forbidden` comes back as type `PACHCA_AUTH_ERROR` with `message` `role_forbidden`: the token carries
+  the scope but the current role forbids the action, so only an admin helps.
+- `pachca auth status` shows the scopes saved at login for the profile and ignores `PACHCA_TOKEN` and
+  `--token`. To see what the token really carries, run `pachca auth status --remote` for a profile, or
+  `pachca oauth token-info -o json` for any token.
+- `access_denied` comes back in the regular error format (in the CLI, type `PACHCA_API_ERROR` with
+  `validation_code` `access_denied`). The token belongs to a guest, or to a suspended or deleted employee.
+  Neither scopes nor a new sign-in help: use another account, or an admin restores the suspended employee's
+  access.
+- A plain `403` without any of these codes usually means chat membership or chat role. Check whether the
+  token's owner is in the chat, and with which role, before blaming scopes or the plan.
 
 ## Personal data
 
@@ -88,8 +110,9 @@ their own.
 
 ## MCP server limits
 
-- At most 20 tool calls per second per token; an extra call is refused with the time to wait.
-- At most 100 requests per second per token, connecting and listing tools included; beyond that `429`.
+- Tool calls and requests to the server are limited separately, per token. A tool call over its limit is
+  refused with the time to wait. Requests, connecting and listing tools included, get `429` beyond theirs.
+  The numbers change, so read them on the [MCP server page](https://dev.pachca.com/guides/ai-agents/mcp.md).
 - Every call is an API request, so all [API limits](https://dev.pachca.com/api/limits.md) apply too.
 - A response holds up to 100,000 characters. List records are cut to their main fields; ask for the full
   record when you need it. A long list is cut at whole records: request a smaller page.

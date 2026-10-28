@@ -2,7 +2,7 @@ import { Args } from '@oclif/core';
 import * as clack from '@clack/prompts';
 import { BaseCommand } from '../../base-command.js';
 import { listProfiles, deleteProfile, getAuthMethod, getSecretStorage, getProfile } from '../../profiles.js';
-import { revokeToken } from '../../oauth.js';
+import { revokeSession, type SessionRevocation } from '../../token-refresh.js';
 import { outputError } from '../../output.js';
 
 export default class AuthLogout extends BaseCommand {
@@ -90,13 +90,13 @@ export default class AuthLogout extends BaseCommand {
     const authMethod = getAuthMethod(profiles[profileName!]);
     const storage = getSecretStorage(profiles[profileName!]);
 
-    // Put the token out server-side before dropping the profile — afterwards the
-    // secret is gone and there is nothing left to revoke with. Only tokens this
-    // CLI issued can revoke themselves; a pasted one is not ours to cancel.
-    let revoked = false;
+    // Close the login server-side before dropping the profile — afterwards the
+    // secrets are gone and there is nothing left to revoke with. Only logins this
+    // CLI made can revoke themselves; a pasted token is not ours to cancel.
+    let session: SessionRevocation = 'open';
     if (authMethod === 'oauth') {
-      const secret = getProfile(profileName!)?.token;
-      if (secret) revoked = await revokeToken(secret);
+      const profile = getProfile(profileName!);
+      if (profile) session = await revokeSession(profileName!, profile);
     }
 
     deleteProfile(profileName!);
@@ -106,7 +106,11 @@ export default class AuthLogout extends BaseCommand {
         deleted_profile: profileName,
         auth: authMethod,
         storage,
-        token_revoked: revoked,
+        // True when the server confirms the login is closed. The revoke endpoint
+        // answers 200 to a login closed earlier too, so the field reports the
+        // state on the server, not which call closed it. False means nothing
+        // confirms it: the login may still be alive in the «Токены CLI» list.
+        token_revoked: session !== 'open',
       });
       return;
     }
@@ -117,11 +121,14 @@ export default class AuthLogout extends BaseCommand {
     // token when it did not is worse than an extra line here.
     if (!flags.quiet) {
       if (authMethod === 'oauth') {
-        process.stderr.write(
-          revoked
-            ? `  Токен отозван на сервере и удалён с этой машины.\n`
-            : `  Токен удалён с этой машины. Отозвать его не удалось — перестанет действовать по истечении срока.\n`,
-        );
+        if (session === 'revoked') {
+          process.stderr.write(`  Вход закрыт на сервере, токен удалён с этой машины.\n`);
+        } else if (session === 'closed') {
+          process.stderr.write(`  Токен удалён с этой машины. Вход на сервере уже был закрыт.\n`);
+        } else {
+          process.stderr.write(`  Токен удалён с этой машины, но закрыть вход на сервере не удалось.\n`);
+          process.stderr.write(`  Отзовите его в Пачке: Интеграции > API, список «Токены CLI».\n`);
+        }
       } else {
         process.stderr.write(`  Токен удалён с этой машины, но продолжает действовать.\n`);
         process.stderr.write(`  Отзовите его в настройках Пачки, если он больше не нужен.\n`);

@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class UsersRemoveAvatar extends BaseCommand {
   static override description = "Удаление аватара сотрудника";
-
-  static override examples = [
-      "Удалить аватар сотрудника — Удали аватар сотрудника:\n  $ pachca users remove-avatar"
-  ];
-
   static scope = "user_avatar:write";
   static apiMethod = "DELETE";
   static apiPath = "/users/{user_id}/avatar";

@@ -125,6 +125,9 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Reactions.AddReactionAsync()` | [Добавление реакции](/api/reactions/add) |
 | `client.Reactions.ListReactionsAsync()` | [Список реакций](/api/reactions/list) |
 | `client.Reactions.RemoveReactionAsync()` | [Удаление реакции](/api/reactions/remove) |
+| `client.ImportantMessages.AddMessageToImportantAsync()` | [Добавление сообщения в важные](/api/important-messages/create) |
+| `client.ImportantMessages.ListImportantMessagesAsync()` | [Список важных сообщений](/api/important-messages/list) |
+| `client.ImportantMessages.RemoveMessageFromImportantAsync()` | [Удаление сообщения из важных](/api/important-messages/delete) |
 | `client.Search.SearchChatsAsync()` | [Поиск чатов](/api/search/list-chats) |
 | `client.Search.SearchMessagesAsync()` | [Поиск сообщений](/api/search/list-messages) |
 | `client.Search.SearchUsersAsync()` | [Поиск сотрудников](/api/search/list-users) |
@@ -152,6 +155,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.GetWebhookEventsAsync()` | [История событий](/api/bots/list-events) |
 | `client.Bots.GetBotScopesAsync()` | [Каталог прав бота](/api/bots/list-scopes) |
 | `client.Bots.ListBotTokensAsync()` | [Список токенов бота](/api/bots/list-tokens) |
+| `client.Bots.GetWebhookEventsStreamAsync()` | [Поток событий](/api/bots/get-stream) |
 | `client.Bots.SelfUpdateBotWebhookAsync()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |
 | `client.Bots.UpdateBotAvatarAsync()` | [Загрузка аватара бота](/api/bots/update-avatar) |
@@ -200,7 +204,7 @@ var request = new ChatCreateRequest
     }
 };
 var response = await client.Chats.CreateChatAsync(request);
-// → CreateChatResponse(Data: Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?), Meta: CreateChatResponseMeta(NotFoundMemberIds: List<int>))
+// → CreateChatResponse(Data: Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?), Meta: CreateChatResponseMeta(NotFoundMemberIds: List<int>, NotFoundGroupTagIds: List<int>))
 ```
 
 
@@ -303,6 +307,8 @@ catch (ApiError e)
 | `Code` | `ValidationErrorCode` | Код валидации (`Blank`, `Invalid`, `Taken`, ...) |
 | `Payload` | `string?` | Дополнительные данные |
 
+Код статуса ответа — в поле `StatusCode`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже выбрасывает `ApiError`: с кодом статуса и пустым `Errors`. Так бывает с ответом `404` без тела от метода [Поток событий](/api/bots/get-stream), когда история событий выключена, и со страницей прокси при `502`.
+
 ### OAuthError
 
 Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
@@ -325,11 +331,14 @@ catch (OAuthError e)
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
+SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
 - **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
 - **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
+- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
+- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
 - Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Отмена запросов
@@ -456,7 +465,7 @@ var request = new MessageCreateRequest
     LinkPreview = false
 };
 var response = await client.Messages.CreateMessageAsync(request);
-// → Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)
+// → Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?, Important: bool)
 
 // Список сотрудников
 var response = await client.Users.ListUsersAsync("Олег", 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");

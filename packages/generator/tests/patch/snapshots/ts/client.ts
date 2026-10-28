@@ -1,6 +1,23 @@
 import { ItemPatchRequest, Item, ApiError } from "./types.js";
 import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
 
+/** The body of an error answer, or undefined when it is empty or not JSON (a 404 without a body, a proxy page). */
+async function errorBody(response: Response): Promise<any> {
+  try {
+    return JSON.parse(await response.text());
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in `status`.
+ */
+async function errorFromResponse(response: Response): Promise<Error> {
+  const body = await errorBody(response);
+  return new ApiError(Array.isArray(body?.errors) ? body.errors : [], response.status);
+}
+
 export class ItemsService {
   async patchItem(id: number, request: ItemPatchRequest): Promise<Item> {
     throw new Error("Items.patchItem is not implemented");
@@ -21,12 +38,13 @@ export class ItemsServiceImpl extends ItemsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("ItemPatchRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Item", body.data) as Item;
+      }
       default:
-        throw new ApiError(body.errors);
+        throw await errorFromResponse(response);
     }
   }
 }

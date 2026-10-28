@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Catch up'
+  short_description: 'What you missed in Pachca for a period'
+policy:
+  allow_implicit_invocation: false

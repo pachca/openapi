@@ -5,7 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class MembersAddGroupTags extends BaseCommand {
   static override description = "Добавление тегов";
-
   static scope = "chat_members:write";
   static apiMethod = "POST";
   static apiPath = "/chats/{id}/group_tags";

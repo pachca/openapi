@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ReactionsList extends BaseCommand {
   static override description = "Список реакций";
-
   static scope = "reactions:read";
   static apiMethod = "GET";
   static apiPath = "/messages/{id}/reactions";

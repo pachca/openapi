@@ -51,6 +51,9 @@
   "group-tags:update": "Редактирование тега",
   "group-tags:delete": "Удаление тега",
   "group-tags:list-users": "Список сотрудников тега",
+  "important-messages:list": "Список важных сообщений",
+  "important-messages:create": "Добавление сообщения в важные",
+  "important-messages:delete": "Удаление сообщения из важных",
   "messages:create": "Новое сообщение",
   "messages:list": "Список сообщений чата",
   "messages:get": "Информация о сообщении",
@@ -96,13 +99,6 @@
   "views:open": "Открытие представления",
   "views:submit-response": "Ответ на отправку формы",
   "bots:list-events": "История событий",
-  "bots:remove-event": "Удаление события истории",
-  "skill:pachca-users": "pachca-users",
-  "skill:pachca-oauth": "pachca-oauth",
-  "skill:pachca-profile": "получить профиль, мой профиль, установить свой статус",
-  "skill:pachca-bots": "pachca-bots",
-  "skill:pachca-chats": "pachca-chats",
-  "skill:pachca-search": "найти сообщение по тексту, полнотекстовый поиск",
-  "skill:pachca-messages": "pachca-messages",
-  "skill:pachca-forms": "pachca-forms"
+  "bots:get-stream": "Поток событий",
+  "bots:remove-event": "Удаление события истории"
 }

@@ -4,12 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsArchive extends BaseCommand {
   static override description = "Архивация чата";
-
-  static override examples = [
-      "Архивация и управление чатом — Архивировать чат:\n  $ pachca chats archive",
-      "Найти и заархивировать неактивные чаты — Для каждого чата: архивируй:\n  $ pachca chats archive"
-  ];
-
   static scope = "chats:archive";
   static apiMethod = "PUT";
   static apiPath = "/chats/{id}/archive";

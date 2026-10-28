@@ -118,6 +118,12 @@ function ktPicksErrorByBody(ir: IR): boolean {
   return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
 }
 
+/** Only OAuthError exists: a 401 is read by its own helper, other errors stay a RuntimeException. */
+function ktReadsOAuthErrorAlone(ir: IR): boolean {
+  return !ir.models.some((m) => m.name === 'ApiError') &&
+    ir.services.some((s) => s.operations.some((o) => o.hasOAuthError));
+}
+
 /** The authorization link and the PKCE pair for the OAuth flow (`x-oauth-authorize-url`). */
 function emitKotlinOAuthHelpers(lines: string[], authorizeUrl: string): void {
   lines.push('/** The authorization link and the PKCE pair of the OAuth flow. */');
@@ -198,6 +204,8 @@ function generateModels(ir: IR): string {
   if (ir.enums.some((e) => !e.open)) needSerialName = true;
   if (ir.unions.length > 0) needSerialName = true;
 
+  // ApiError carries the status code, which is not in the body.
+  if (ir.models.some((m) => m.name === 'ApiError')) needTransient = true;
   for (const m of ir.models) {
     for (const f of m.fields) {
       if (needsSerialName(f)) needSerialName = true;
@@ -606,6 +614,10 @@ function emitModel(
 
     lines.push(`    ${annotation}val ${sdkName}: ${fullType}${default_},`);
   }
+  if (m.name === 'ApiError') {
+    lines.push('    /** HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty. */');
+    lines.push('    @Transient val statusCode: Int? = null,');
+  }
 
   const ext = m.isError ? ' : Exception()' : '';
   lines.push(`)${ext}`);
@@ -622,7 +634,7 @@ function emitModel(
       lines.push(' {');
       lines.push('    override val message: String');
       lines.push('        get() = when {');
-      lines.push('            errors.isEmpty() -> "api error"');
+      lines.push('            errors.isEmpty() -> if (statusCode != null) "HTTP $statusCode" else "api error"');
       lines.push('            errors.size == 1 -> errors[0].message');
       lines.push('            else -> "Errors: " + errors.joinToString("; ") { it.message }');
       lines.push('        }');
@@ -717,7 +729,7 @@ function generateClient(ir: IR): string {
     lines.push('import kotlin.time.Duration.Companion.seconds');
   }
 
-  if (hasForm || errorByBody) {
+  if (hasForm || hasApiErrorModel(ir) || ktReadsOAuthErrorAlone(ir)) {
     lines.push('');
     lines.push('internal val pachcaJson = Json { explicitNulls = false; ignoreUnknownKeys = true }');
   }
@@ -730,28 +742,44 @@ function generateClient(ir: IR): string {
     lines.push('    }');
     lines.push('}');
   }
-  if (errorByBody) {
+  if (hasApiErrorModel(ir)) {
     lines.push('');
     lines.push('/**');
-    lines.push(' * An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
-    lines.push(' * which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.');
+    if (errorByBody) {
+      lines.push(' * An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
+      lines.push(' * which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.');
+    }
+    lines.push(' * An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in statusCode.');
     lines.push(' */');
     lines.push('internal suspend fun errorFromResponse(response: HttpResponse): Exception {');
     lines.push('    val text = response.bodyAsText()');
-    lines.push('    val element = runCatching { pachcaJson.parseToJsonElement(text) }.getOrNull()');
-    lines.push('    val code = (element as? JsonObject)?.get("error") as? JsonPrimitive');
-    lines.push('    if (element is JsonObject && element["errors"] == null && code != null && code.isString) {');
-    const codeEnum = oauthErrorCodeEnum(ir);
-    if (codeEnum && !codeEnum.open) {
-      // A closed enum takes only the values it lists: the decoder refuses the rest.
-      lines.push('        return pachcaJson.decodeFromJsonElement(OAuthError.serializer(), element)');
-    } else {
-      const code = codeEnum ? `${codeEnum.name}(code.content)` : 'code.content';
-      lines.push('        val description = element["error_description"] as? JsonPrimitive');
-      lines.push(`        return OAuthError(error = ${code}, errorDescription = description?.content ?: "")`);
+    if (errorByBody) {
+      lines.push('    val element = runCatching { pachcaJson.parseToJsonElement(text) }.getOrNull()');
+      lines.push('    val code = (element as? JsonObject)?.get("error") as? JsonPrimitive');
+      lines.push('    if (element is JsonObject && element["errors"] == null && code != null && code.isString) {');
+      const codeEnum = oauthErrorCodeEnum(ir);
+      if (codeEnum && !codeEnum.open) {
+        // A closed enum takes only the values it lists: the decoder refuses the rest.
+        lines.push('        return pachcaJson.decodeFromJsonElement(OAuthError.serializer(), element)');
+      } else {
+        const code = codeEnum ? `${codeEnum.name}(code.content)` : 'code.content';
+        lines.push('        val description = element["error_description"] as? JsonPrimitive');
+        lines.push(`        return OAuthError(error = ${code}, errorDescription = description?.content ?: "")`);
+      }
+      lines.push('    }');
     }
-    lines.push('    }');
-    lines.push('    return pachcaJson.decodeFromString(ApiError.serializer(), text)');
+    lines.push('    val decoded = runCatching { pachcaJson.decodeFromString(ApiError.serializer(), text) }.getOrNull()');
+    lines.push('    return decoded?.copy(statusCode = response.status.value)');
+    lines.push('        ?: ApiError(errors = emptyList(), statusCode = response.status.value)');
+    lines.push('}');
+  }
+  if (ktReadsOAuthErrorAlone(ir)) {
+    lines.push('');
+    lines.push('/** A 401 body that is empty or not the OAuth form gives a RuntimeException with the status code. */');
+    lines.push('internal suspend fun oauthErrorFromResponse(response: HttpResponse): Exception {');
+    lines.push('    val text = response.bodyAsText()');
+    lines.push('    return runCatching { pachcaJson.decodeFromString(OAuthError.serializer(), text) }');
+    lines.push('        .getOrElse { RuntimeException("Unexpected status code: ${response.status.value}") }');
     lines.push('}');
   }
   if (ir.oauthAuthorizeUrl) {
@@ -1324,19 +1352,12 @@ function emitResponseHandling(
     lines.push(`${indent3}${resp.statusCode} -> response.body()`);
   }
 
-  // Error handling
-  if (op.hasOAuthError) {
-    lines.push(
-      `${indent3}401 -> throw response.body<OAuthError>()`,
-    );
+  // Error handling. With both error models the body decides the class, a 401 included.
+  if (op.hasOAuthError && !globalHasApiError) {
+    lines.push(`${indent3}401 -> throw oauthErrorFromResponse(response)`);
   }
-  // Use ApiError if the operation declares it OR if ApiError exists in the spec
-  if (globalHasApiError && op.hasOAuthError) {
+  if (globalHasApiError) {
     lines.push(`${indent3}else -> throw errorFromResponse(response)`);
-  } else if (op.hasApiError || globalHasApiError) {
-    lines.push(
-      `${indent3}else -> throw response.body<ApiError>()`,
-    );
   } else {
     lines.push(
       `${indent3}else -> throw RuntimeException("Unexpected status code: \${response.status.value}")`,
@@ -1422,6 +1443,44 @@ function emitPachcaClient(
   lines.push('');
 
   // private fun createClient
+  lines.push('        // A 5xx says nothing about whether the server already applied the request.');
+  lines.push('        // These methods are safe to repeat. A retried POST or PATCH could apply');
+  lines.push('        // twice: POST /messages would send the message again, and the API has no');
+  lines.push('        // idempotency key. 429 is safe for any method: the request was rejected');
+  lines.push('        // before it was processed.');
+  lines.push('        private val idempotentMethods =');
+  lines.push('            setOf(HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Put, HttpMethod.Delete)');
+  lines.push('');
+  lines.push('        /** Set on a call whose 504 carries the error code `timeout`: the retry leaves it alone. */');
+  lines.push('        private val queryTimeoutKey = io.ktor.util.AttributeKey<Unit>("PachcaQueryTimeout")');
+  lines.push('');
+  lines.push('        /**');
+  lines.push('         * A 504 with the error code `timeout` is a search the server stopped because the query');
+  lines.push('         * is too heavy: the same query would time out again, so it goes back to the caller at');
+  lines.push('         * once. A 504 from a proxy has no such code and is retried. `retryIf` cannot read the');
+  lines.push('         * body, so this interceptor, registered after the retry plugin and so running under it,');
+  lines.push('         * reads the body of each attempt and marks the call. Ktor keeps the body in memory, so');
+  lines.push('         * the caller can still read it.');
+  lines.push('         */');
+  lines.push('        private fun markQueryTimeouts(client: HttpClient) {');
+  lines.push('            client.plugin(HttpSend).intercept { request ->');
+  lines.push('                val call = execute(request)');
+  lines.push('                if (call.response.status == HttpStatusCode.GatewayTimeout && isQueryTimeout(call.response.bodyAsText())) {');
+  lines.push('                    call.attributes.put(queryTimeoutKey, Unit)');
+  lines.push('                }');
+  lines.push('                call');
+  lines.push('            }');
+  lines.push('        }');
+  lines.push('');
+  lines.push('        private fun isQueryTimeout(body: String): Boolean {');
+  lines.push('            val element = runCatching { Json.parseToJsonElement(body) }.getOrNull()');
+  lines.push('            val errors = (element as? kotlinx.serialization.json.JsonObject)?.get("errors") as? kotlinx.serialization.json.JsonArray');
+  lines.push('            return errors.orEmpty().any { error ->');
+  lines.push('                val code = (error as? kotlinx.serialization.json.JsonObject)?.get("code") as? kotlinx.serialization.json.JsonPrimitive');
+  lines.push('                code != null && code.isString && code.content == "timeout"');
+  lines.push('            }');
+  lines.push('        }');
+  lines.push('');
   lines.push('        private fun createClient(token: String): HttpClient = HttpClient {');
   lines.push('            expectSuccess = false');
   if (hasRedirect) {
@@ -1433,14 +1492,28 @@ function emitPachcaClient(
   lines.push(`            install(ContentNegotiation) { json(${jsonConfig}) }`);
   lines.push('            install(HttpRequestRetry) {');
   lines.push('                maxRetries = 3');
-  lines.push('                retryIf { _, response ->');
+  lines.push('                retryIf { request, response ->');
   lines.push('                    val status = response.status.value');
   lines.push('                    val retryAfter = response.headers["Retry-After"]?.toLongOrNull()');
   lines.push('                    // Only the daily chat limit and the hour-long ban wait longer than a');
   lines.push('                    // minute. Retrying those is pointless — it blocks the caller for hours,');
   lines.push('                    // and an early retry doubles the pause. Hand the response back instead.');
   lines.push('                    val waitsTooLong = status == 429 && retryAfter != null && retryAfter > 60L');
-  lines.push('                    !waitsTooLong && (status == 429 || status in setOf(500, 502, 503, 504))');
+  lines.push('                    val serverError = status in setOf(500, 502, 503, 504) &&');
+  lines.push('                        request.method in idempotentMethods &&');
+  lines.push('                        !response.call.attributes.contains(queryTimeoutKey)');
+  lines.push('                    !waitsTooLong && (status == 429 || serverError)');
+  lines.push('                }');
+  lines.push('                // Ktor also retries a request that failed with an exception, for any');
+  lines.push('                // method by default. A POST that failed after reaching the server may');
+  lines.push('                // already be applied, so only the methods above are retried. Timeouts');
+  lines.push('                // and cancellation stay unretried, as in the Ktor default.');
+  lines.push('                retryOnExceptionIf { request, cause ->');
+  lines.push('                    request.method in idempotentMethods &&');
+  lines.push('                        cause !is kotlin.coroutines.cancellation.CancellationException &&');
+  lines.push('                        cause !is HttpRequestTimeoutException &&');
+  lines.push('                        cause !is io.ktor.client.network.sockets.ConnectTimeoutException &&');
+  lines.push('                        cause !is java.net.SocketTimeoutException');
   lines.push('                }');
   lines.push('                delayMillis { retry ->');
   lines.push('                    val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()');
@@ -1456,7 +1529,7 @@ function emitPachcaClient(
   lines.push('                }');
   lines.push('            }');
   lines.push('            defaultRequest { bearerAuth(token) }');
-  lines.push('        }');
+  lines.push('        }.also(::markQueryTimeouts)');
   lines.push('    }');
   lines.push('');
 

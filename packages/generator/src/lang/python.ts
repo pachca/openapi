@@ -216,11 +216,14 @@ function emitModel(
     const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
     const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
 
+    lines.push('    # HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty.');
+    lines.push('    status_code: int | None = None');
+
     if (hasMessage) {
       lines.push('');
       lines.push('    def __str__(self) -> str:');
       lines.push('        if not self.errors:');
-      lines.push('            return "api error"');
+      lines.push('            return f"HTTP {self.status_code}" if self.status_code is not None else "api error"');
       lines.push('        if len(self.errors) == 1:');
       lines.push('            return self.errors[0].message');
       lines.push('        return "Errors: " + "; ".join(e.message for e in self.errors)');
@@ -371,9 +374,33 @@ function pyPath(path: string, op: IROperation): string {
   return p;
 }
 
+function pyHasApiError(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError');
+}
+
+function pyHasOAuthError(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'OAuthError');
+}
+
 /** Both error models exist, so an error's class is read off its body. */
 function pyPicksErrorByBody(ir: IR): boolean {
-  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+  return pyHasApiError(ir) && pyHasOAuthError(ir);
+}
+
+/** Only OAuthError exists: a 401 is read by its own helper, other errors stay a RuntimeError. */
+function pyReadsOAuthErrorAlone(ir: IR): boolean {
+  return pyHasOAuthError(ir) && !pyHasApiError(ir) && ir.services.some((s) => s.operations.some((o) => o.hasOAuthError));
+}
+
+/** `OAuthError(...)` built from a dict `body` whose `error` is a string. */
+function pyOAuthErrorFromDict(ir: IR): string {
+  const model = ir.models.find((m) => m.name === 'OAuthError');
+  const codeEnum = oauthErrorCodeEnum(ir);
+  const args = [`error=${codeEnum ? `${codeEnum}(body["error"])` : 'body["error"]'}`];
+  if (model?.fields.some((f) => f.name === 'error_description')) {
+    args.push('error_description=str(body.get("error_description") or "")');
+  }
+  return `OAuthError(${args.join(', ')})`;
 }
 
 /** A form body (`application/x-www-form-urlencoded`): httpx sends `data=` as one, empty fields left out. */
@@ -443,9 +470,9 @@ function collectClientImports(ir: IR): string[] {
       }
       if (op.hasOAuthError || ir.models.some((m) => m.name === 'OAuthError')) {
         add('OAuthError');
-        // `_error_from_body` builds the OAuthError itself, its code included.
+        // The error helpers build the OAuthError themselves, its code included.
         const codeEnum = oauthErrorCodeEnum(ir);
-        if (codeEnum && pyPicksErrorByBody(ir)) add(codeEnum);
+        if (codeEnum && (pyPicksErrorByBody(ir) || pyReadsOAuthErrorAlone(ir))) add(codeEnum);
       }
       if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
         add('ApiError');
@@ -656,8 +683,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     }
   }
 
-  const hasBody = op.successResponse.hasBody && !op.successResponse.isRedirect;
-  if (hasBody) lines.push('        body = response.json()');
+  // Only the success answer is parsed strictly: an error body may be empty or not JSON.
   lines.push('        match response.status_code:');
 
   if (op.successResponse.isRedirect) {
@@ -681,32 +707,25 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   } else if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     lines.push(`            case ${op.successResponse.statusCode}:`);
-    lines.push(`                return deserialize(${rt?.name ?? 'object'}, body)`);
+    lines.push(`                return deserialize(${rt?.name ?? 'object'}, response.json())`);
   } else if (op.successResponse.isUnwrap && op.successResponse.dataRef) {
     lines.push(`            case ${op.successResponse.statusCode}:`);
-    lines.push(`                return deserialize(${op.successResponse.dataRef}, body["data"])`);
+    lines.push(`                return deserialize(${op.successResponse.dataRef}, response.json()["data"])`);
   } else {
     lines.push(`            case ${op.successResponse.statusCode}:`);
-    lines.push(`                return deserialize(${op.successResponse.dataRef ?? 'object'}, body)`);
+    lines.push(`                return deserialize(${op.successResponse.dataRef ?? 'object'}, response.json())`);
   }
 
-  if (op.hasOAuthError) {
+  // With both error models the body decides the class, a 401 included.
+  if (op.hasOAuthError && !pyPicksErrorByBody(ir)) {
     lines.push('            case 401:');
-    lines.push(
-      `                raise deserialize(OAuthError, ${hasBody ? 'body' : 'response.json()'})`,
-    );
+    lines.push('                raise _oauth_error_from_response(response)');
   }
 
-  if (pyPicksErrorByBody(ir)) {
-    lines.push('            case _:');
-    lines.push(`                raise _error_from_body(${hasBody ? 'body' : 'response.json()'})`);
-  } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
-    lines.push('            case _:');
-    lines.push(
-      `                raise deserialize(ApiError, ${hasBody ? 'body' : 'response.json()'})`,
-    );
+  lines.push('            case _:');
+  if (pyHasApiError(ir)) {
+    lines.push('                raise _error_from_response(response)');
   } else {
-    lines.push('            case _:');
     lines.push('                raise RuntimeError(');
     lines.push('                    f"Unexpected status code: {response.status_code}"');
     lines.push('                )');
@@ -974,17 +993,51 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     lines.push('    return {k: str(v).lower() if isinstance(v, bool) else str(v) for k, v in fields.items() if v is not None}');
   }
 
-  if (ir.services.length > 0 && pyPicksErrorByBody(ir)) {
+  if (ir.services.length > 0 && (pyHasApiError(ir) || pyReadsOAuthErrorAlone(ir))) {
     lines.push('');
     lines.push('');
-    lines.push('def _error_from_body(body: object) -> Exception:');
-    lines.push('    # An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
-    lines.push('    # which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.');
-    lines.push('    if isinstance(body, dict) and isinstance(body.get("error"), str) and "errors" not in body:');
-    const codeEnum = oauthErrorCodeEnum(ir);
-    const code = codeEnum ? `${codeEnum}(body["error"])` : 'body["error"]';
-    lines.push(`        return OAuthError(${code}, str(body.get("error_description") or ""))`);
-    lines.push('    return deserialize(ApiError, body)');
+    lines.push('def _error_body(response: httpx.Response) -> object:');
+    lines.push('    # The body of an error answer, or None when it is empty or not JSON (a 404 without a body, a proxy page).');
+    lines.push('    try:');
+    lines.push('        return response.json()');
+    lines.push('    except ValueError:');
+    lines.push('        return None');
+  }
+
+  if (ir.services.length > 0 && pyHasApiError(ir)) {
+    lines.push('');
+    lines.push('');
+    lines.push('def _error_from_response(response: httpx.Response) -> Exception:');
+    if (pyPicksErrorByBody(ir)) {
+      lines.push('    # An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
+      lines.push('    # which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.');
+    }
+    lines.push('    # An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in status_code.');
+    lines.push('    body = _error_body(response)');
+    if (pyPicksErrorByBody(ir)) {
+      lines.push('    if isinstance(body, dict) and isinstance(body.get("error"), str) and "errors" not in body:');
+      lines.push(`        return ${pyOAuthErrorFromDict(ir)}`);
+    }
+    lines.push('    error = ApiError(errors=[])');
+    lines.push('    errors = body.get("errors") if isinstance(body, dict) else None');
+    lines.push('    if isinstance(errors, list) and all(isinstance(item, dict) for item in errors):');
+    lines.push('        try:');
+    lines.push('            error = deserialize(ApiError, body)');
+    lines.push('        except (TypeError, ValueError):');
+    lines.push('            pass  # errors of another shape: the status code still says what happened');
+    lines.push('    error.status_code = response.status_code');
+    lines.push('    return error');
+  }
+
+  if (ir.services.length > 0 && pyReadsOAuthErrorAlone(ir)) {
+    lines.push('');
+    lines.push('');
+    lines.push('def _oauth_error_from_response(response: httpx.Response) -> Exception:');
+    lines.push('    # A 401 body that is empty or not the OAuth form gives a RuntimeError with the status code.');
+    lines.push('    body = _error_body(response)');
+    lines.push('    if isinstance(body, dict) and isinstance(body.get("error"), str):');
+    lines.push(`        return ${pyOAuthErrorFromDict(ir)}`);
+    lines.push('    return RuntimeError(f"Unexpected status code: {response.status_code}")');
   }
 
   if (ir.services.length > 0 && ir.oauthAuthorizeUrl) {
@@ -1139,6 +1192,7 @@ function generateUtils(ir: IR): string {
     'from __future__ import annotations',
     '',
     'import dataclasses',
+    'import json',
     'import keyword',
     'import types',
     'from dataclasses import asdict, fields',
@@ -1379,6 +1433,12 @@ function generateUtils(ir: IR): string {
   lines.push('');
   lines.push('_MAX_RETRIES = 3');
   lines.push('_RETRYABLE_5XX = {500, 502, 503, 504}');
+  lines.push('# A 5xx says nothing about whether the server already applied the request.');
+  lines.push('# These methods are safe to repeat. A retried POST or PATCH could apply');
+  lines.push('# twice: POST /messages would send the message again, and the API has no');
+  lines.push('# idempotency key. 429 is safe for any method: the request was rejected');
+  lines.push('# before it was processed.');
+  lines.push('_IDEMPOTENT_METHODS = {"GET", "HEAD", "OPTIONS", "PUT", "DELETE"}');
   lines.push('# Only the daily chat limit and the hour-long ban wait longer than a minute.');
   lines.push('_MAX_RETRY_AFTER = 60');
   lines.push('');
@@ -1390,8 +1450,25 @@ function generateUtils(ir: IR): string {
   lines.push('    return delay * (1 + random.random() * 0.25)');
   lines.push('');
   lines.push('');
+  lines.push('async def _is_query_timeout(response: httpx.Response) -> bool:');
+  lines.push('    """A 504 with the code timeout is a search the server stopped because the');
+  lines.push('    query is too heavy: the same query would time out again, so it goes back to');
+  lines.push('    the caller at once. A 504 from a proxy has no such code and is retried. The');
+  lines.push('    body stays on the response, so the caller can still read it."""');
+  lines.push('    if response.status_code != 504:');
+  lines.push('        return False');
+  lines.push('    try:');
+  lines.push('        body = json.loads(await response.aread())');
+  lines.push('    except ValueError:');
+  lines.push('        return False');
+  lines.push('    errors = body.get("errors") if isinstance(body, dict) else None');
+  lines.push('    return isinstance(errors, list) and any(');
+  lines.push('        isinstance(error, dict) and error.get("code") == "timeout" for error in errors');
+  lines.push('    )');
+  lines.push('');
+  lines.push('');
   lines.push('class RetryTransport(httpx.AsyncBaseTransport):');
-  lines.push('    """Wraps an httpx transport with retry on 429 Too Many Requests and 5xx errors."""');
+  lines.push('    """Wraps an httpx transport with retry on 429, and on 5xx for idempotent methods."""');
   lines.push('');
   lines.push('    def __init__(self, transport: httpx.AsyncBaseTransport, max_retries: int = _MAX_RETRIES) -> None:');
   lines.push('        self._transport = transport');
@@ -1412,7 +1489,12 @@ function generateUtils(ir: IR): string {
   lines.push('                delay = seconds if seconds is not None else 2 ** attempt');
   lines.push('                await asyncio.sleep(_add_jitter(delay))');
   lines.push('                continue');
-  lines.push('            if response.status_code in _RETRYABLE_5XX and attempt < self._max_retries:');
+  lines.push('            if (');
+  lines.push('                response.status_code in _RETRYABLE_5XX');
+  lines.push('                and request.method in _IDEMPOTENT_METHODS');
+  lines.push('                and attempt < self._max_retries');
+  lines.push('                and not await _is_query_timeout(response)');
+  lines.push('            ):');
   lines.push('                delay = attempt + 1');
   lines.push('                await asyncio.sleep(_add_jitter(delay))');
   lines.push('                continue');

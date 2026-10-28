@@ -1,0 +1,31 @@
+{
+  "name": "pachca",
+  "version": "1.0.4",
+  "displayName": "Pachca",
+  "description": "Pachca corporate messenger for AI agents: the MCP server with a tool per API method, skills on doing things right in Pachca, and commands to catch up, summarize a thread, build a digest, draft an announcement and turn a discussion into tasks.",
+  "author": {
+    "name": "Pachca"
+  },
+  "homepage": "https://dev.pachca.com/guides/mcp/plugin",
+  "repository": "https://github.com/pachca/openapi",
+  "license": "MIT",
+  "keywords": ["pachca", "messenger", "chat", "mcp", "team"],
+  "mcpServers": {
+    "pachca": {
+      "url": "https://mcp.pachca.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${PACHCA_TOKEN}"
+      }
+    }
+  },
+  "variables": {
+    "type": "object",
+    "properties": {
+      "PACHCA_TOKEN": {
+        "type": "string",
+        "title": "Pachca token",
+        "description": "A Pachca personal token or bot token. Cursor reads the PACHCA_TOKEN environment variable first. A value set here for a team is shared by every member, so the whole team would act as one employee or bot."
+      }
+    }
+  }
+}

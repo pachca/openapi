@@ -219,13 +219,16 @@
 
 - [Новое сообщение](/api/messages/create)
 - [Закрепление сообщения](/api/messages/pin)
+- [Добавление сообщения в важные](/api/important-messages/create)
 - [Unfurl (разворачивание ссылок)](/api/messages/unfurl)
 - [Информация о сообщении](/api/messages/get)
 - [Список сообщений чата](/api/messages/list)
+- [Список важных сообщений](/api/important-messages/list)
 - [Поиск сообщений](/api/search/list-messages)
 - [Список прочитавших сообщение](/api/read-member/list-readers)
 - [Редактирование сообщения](/api/messages/update)
 - [Открепление сообщения](/api/messages/unpin)
+- [Удаление сообщения из важных](/api/important-messages/delete)
 - [Удаление сообщения](/api/messages/delete)
 
 Сообщение
@@ -235,7 +238,7 @@
   Значения: `discussion` — Беседа или канал, `thread` — Тред, `user` — Пользователь
 - `entity_id: integer, int32` (required) — Идентификатор сущности, к которой относится сообщение (беседы/канала, треда или пользователя). Пример: `334`
 - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Пример: `334`
-- `root_chat_id: integer, int32` (required) — Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был создан тред. Для обычных сообщений совпадает с `chat_id`. Пример: `334`
+- `root_chat_id: integer, int32` (required) — Идентификатор корневого чата. Для сообщения в треде — идентификатор чата, где находится родительское сообщение треда. У самостоятельного треда родительского сообщения нет, и `root_chat_id` совпадает с `chat_id`, как у обычных сообщений. Сообщение треда узнают по `entity_type: "thread"`. Пример: `334`
 - `content: string` (required) — Текст сообщения. Пример: `"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"`
 - `user_id: integer, int32` (required) — Идентификатор пользователя, создавшего сообщение. Пример: `12`
 - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:57:23.000Z"`
@@ -271,6 +274,7 @@
 - `display_name: string` (nullable) — Полное имя отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
 - `changed_at: date-time` (required, nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2021-08-28T16:10:00.000Z"`
 - `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются. Пример: `null`
+- `important: boolean` (required) — Сообщение в разделе «Важное» владельца токена. У токена бота всегда `false`. Пример: `false`
 
 
 ## Реакция на сообщение
@@ -309,7 +313,7 @@
   Значения: `done` — Выполнено, `undone` — Активно
 - `created_at: date-time` (required) — Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2020-06-04T10:37:57.000Z"`
 - `performer_ids: array of integer` (required) — Массив идентификаторов пользователей, привязанных к напоминанию как «ответственные». Пример: `[12]`
-- `all_day: boolean` (required) — Напоминание на весь день (без указания времени). Пример: `false`
+- `all_day: boolean` (required) — Напоминание на весь день: `true`, если при создании передан `all_day: true` или срок стоит ровно на 23:59:59. Веб-версия Пачки показывает напоминание без времени только по такому сроку, а при другом времени срока показывает это время. Пример: `false`
 - `custom_properties: array of object` (required) — Дополнительные поля напоминания
   - `id: integer, int32` (required) — Идентификатор поля. Пример: `1678`
   - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
@@ -515,9 +519,9 @@
     Значения: `simple` — Свой формат: сообщение собирается из тела запроса по шаблону бота, `gitlab` — GitLab: Пачка сама разбирает запрос и собирает сообщение, `grafana` — Grafana: Пачка сама разбирает запрос и собирает сообщение
   - `unfurl_domains: array of string` (required) — Домены, ссылки на которые бот разворачивает. Пример: `["example.com"]`
   - `last_request_at: date-time` (required, nullable) — Дата и время последнего запроса на входящий вебхук бота (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если запросов не было. Пример: `"2025-05-15T14:30:00.000Z"`
-  - `url: string` (nullable) — Адрес входящего вебхука. `null`, если входящий вебхук у бота выключен. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M"`
-  - `secret_token: string` — Секрет подписи исходящего вебхука: им подписан заголовок `Pachca-Signature`. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA"`
-  - `last_request_body: string` (nullable) — Тело последнего запроса на входящий вебхук бота. Длиннее 128 КБ обрезается и заканчивается на `...[truncated]`. `null`, если запросов не было. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"{\"client\": \"ООО Ромашка\", \"amount\": 15000}"`
+  - `url: string` (nullable) — Адрес входящего вебхука. `null`, если входящий вебхук у бота выключен. Приходит в ответе об одном боте токену со скоупом `bots:write`, который может управлять токенами бота (`permissions.recreate_token`). Пример: `"https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M"`
+  - `secret_token: string` — Секрет подписи исходящего вебхука: им подписан заголовок `Pachca-Signature`. Приходит в ответе об одном боте токену со скоупом `bots:write`, который может управлять токенами бота (`permissions.recreate_token`). Пример: `"pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA"`
+  - `last_request_body: string` (nullable) — Тело последнего запроса на входящий вебхук бота. Длиннее 128 КБ обрезается и заканчивается на `...[truncated]`. `null`, если запросов не было. Приходит в ответе об одном боте токену со скоупом `bots:write`, который может управлять токенами бота (`permissions.recreate_token`). Пример: `"{\"client\": \"ООО Ромашка\", \"amount\": 15000}"`
 - `oauth_client_enabled: boolean` (required) — Включена ли у бота авторизация от имени сотрудника. Пример: `true`
 - `oauth_client: object` (required) — Параметры авторизации от имени сотрудника. Может прийти и у бота с выключенной авторизацией, поэтому включена ли она, смотрите в `oauth_client_enabled`. У бота без токенов может прийти `null`.
   - `client_id: string` (required) — Идентификатор клиента для ссылки авторизации. Пример: `"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY"`
@@ -787,6 +791,16 @@
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 
 
+## Ссылка на поток событий
+
+- [Поток событий](/api/bots/get-stream)
+
+Ссылка на поток событий бота
+
+- `url: string` (required) — Ссылка на поток событий в формате Server-Sent Events. Открывается без токена, поэтому храните её как секрет. Пример: `"https://api.pachca.com/events?signed_stream=d2ViaG9vay1ldmVudHMvMTczODgxNi8x&jid=eyJhbGciOiJIUzI1NiJ9.eyJ3ZWJob29rX2lkIjoxfQ.c2lnbmF0dXJl"`
+- `expires_at: date-time` (required) — Дата и время, до которых действует ссылка (ISO-8601, UTC+0). Пример: `"2026-10-27T12:20:00.000Z"`
+
+
 ## Событие аудита
 
 - [Журнал аудита событий](/api/security/list)
@@ -846,8 +860,8 @@
     - `search_type: string` (required) — Тип поиска
     - `query_present: boolean` (required) — Указан ли поисковый запрос
     - `cursor_present: boolean` (required) — Использован ли курсор
-    - `limit: integer, int32` (required) — Количество возвращённых результатов
-    - `filters: Record<string, object>` (required) — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages).
+    - `limit: integer, int32` (required, nullable) — Запрошенный размер страницы. `null`, если параметр `limit` не передан. В записях до 16 октября 2026 года вместо `null` приходит `0`.
+    - `filters: Record<string, object>` (required) — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active (chats и messages), chat_subtype, personal (chats), chat_ids, user_ids, include_root_chat_id (messages, всегда `true`).
       **Структура значений Record:**
       - Тип значения: `any`
   - **AuditDetailsBot**: При: bot_deleted, а также bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued в записях до 7 октября 2026 года
@@ -917,6 +931,7 @@
     - `resource_owner_id: integer, int32` (required) — Идентификатор владельца токена: сотрудника, а у токена бота — самого бота
     - `scopes: array of string` (required) — Скоупы токена
     - `bot_id: integer, int32` — Идентификатор бота. Есть у токенов бота и у токенов, которые сотрудник выдал боту.
+    - `reason: string` — Причина отзыва. `guest_downgrade` — токен отозван автоматически, когда сотрудника перевели в гости. Есть только в таких записях.
   - **AuditDetailsBotTokenUpdated**: При: bot_token_updated
     - `token_kind: string` (required) — Вид токена: `bot`
     - `token_name: string` (required, nullable) — Название токена после изменения. `null`, если названия нет.

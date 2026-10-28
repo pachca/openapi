@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class MessagesPin extends BaseCommand {
   static override description = "Закрепление сообщения";
-
-  static override examples = [
-      "Закрепить/открепить сообщение — Закрепить сообщение:\n  $ pachca messages pin"
-  ];
-
   static scope = "pins:write";
   static apiMethod = "POST";
   static apiPath = "/messages/{id}/pin";

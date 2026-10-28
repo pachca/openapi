@@ -269,6 +269,10 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/webhooks/events',
 			paginated: true,
 		},
+		getStream: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/webhooks/events/stream',
+		},
 		removeEvents: {
 			method: 'DELETE' as IHttpRequestMethods,
 			path: '/webhooks/events/{id}',
@@ -280,7 +284,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/chats',
 			wrapperKey: 'chat',
-			metaFields: ['not_found_member_ids'],
+			metaFields: ['not_found_member_ids', 'not_found_group_tag_ids'],
 			bodyMap: [
 				{ api: 'name', n8n: 'chatName' },
 			],
@@ -567,6 +571,25 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'DELETE' as IHttpRequestMethods,
 			path: '/chats/{groupTagChatId}/group_tags/{tagId}',
 			pathParams: [{ api: 'groupTagChatId', n8n: 'groupTagChatId' }, { api: 'tagId', n8n: 'tagId' }],
+		},
+	},
+	importantMessage: {
+		getAll: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/important_messages',
+			paginated: true,
+		},
+		create: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/important_messages',
+			bodyMap: [
+				{ api: 'message_id', n8n: 'messageId' },
+			],
+		},
+		delete: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/important_messages/{id}',
+			pathParams: [{ api: 'id', n8n: 'id' }],
 		},
 	},
 	message: {
@@ -870,6 +893,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'department', n8n: 'department' },
 				{ api: 'title', n8n: 'title' },
 				{ api: 'role', n8n: 'role' },
+				{ api: 'chat_ids', n8n: 'chatIds', isArray: true, arrayType: 'int' },
 				{ api: 'suspended', n8n: 'suspended' },
 				{ api: 'list_tags', n8n: 'listTags', isArray: true, arrayType: 'string' },
 				{ api: 'custom_properties', n8n: 'customProperties', subKey: 'property' },

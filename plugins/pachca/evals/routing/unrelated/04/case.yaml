@@ -1,0 +1,17 @@
+schema_version: "1.1"
+name: route-unrelated-04
+description: "Not about Pachca: no Pachca skill fires"
+tags: [routing, unrelated]
+runs: 3
+execution:
+  prompt: "Сделай README для этого репозитория"
+  max_turns: 3
+  allowed_tools: [Skill]
+graders:
+  - name: no-pachca-skill
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:(?:[\\w-]+:)?pachca(?:-[a-z-]+)?|(?:pachca:)?(?:catch-up|thread-summary|digest|announce|tasks-from))\""
+    min: 0
+    max: 0
+    arm: both

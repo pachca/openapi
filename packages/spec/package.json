@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "exports": {
-    "./workflows": "./workflows.ts",
     "./mcp-core": "./mcp-core.ts",
     "./mcp-tools": "./mcp-tools.ts",
     "./mcp-manifest": "./mcp-manifest.json",

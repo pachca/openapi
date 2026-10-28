@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class SearchListMessages extends BaseCommand {
   static override description = "Поиск сообщений";
-
-  static override examples = [
-      "Найти сообщение по тексту — Полнотекстовый поиск по сообщениям:\n  $ pachca search list-messages"
-  ];
-
   static scope = "search:messages";
   static apiMethod = "GET";
   static apiPath = "/search/messages";

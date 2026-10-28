@@ -42,6 +42,10 @@
   "BotOperations_getWebhookEvents_pollWebhookPayloads": {
     "usage": "for await (const payload of client.bots.pollWebhookPayloads({ intervalMs: 5_000 })) {\n  console.log(payload)\n}"
   },
+  "BotOperations_getWebhookEventsStream": {
+    "usage": "const response = client.bots.getWebhookEventsStream()",
+    "output": "WebhookEventsStream({ url: string, expiresAt: string })"
+  },
   "BotOperations_selfRecreateBotToken": {
     "usage": "const response = client.bots.selfRecreateBotToken()",
     "output": "BotSelfTokenResponse({ id: number, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, webhook: BotSelfWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })"
@@ -154,7 +158,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"🤿 aqua\",\n    memberIds: [123],\n    groupTagIds: [123],\n    channel: true,\n    public: false\n  }\n}\nconst response = client.chats.createChat(request)",
-    "output": "CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[] }) })",
+    "output": "CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[], notFoundGroupTagIds: number[] }) })",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -322,6 +326,16 @@
   "GroupTagOperations_deleteTag": {
     "usage": "client.groupTags.deleteTag(9111)"
   },
+  "ImportantMessageOperations_listImportantMessages": {
+    "usage": "const response = client.importantMessages.listImportantMessages({ limit: 25, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
+    "output": "ListImportantMessagesResponse({ data: Message[], meta: PaginationMeta })"
+  },
+  "ImportantMessageOperations_addMessageToImportant": {
+    "usage": "client.importantMessages.addMessageToImportant(194275)"
+  },
+  "ImportantMessageOperations_removeMessageFromImportant": {
+    "usage": "client.importantMessages.removeMessageFromImportant(194275)"
+  },
   "ChatMessageOperations_listChatMessages": {
     "usage": "const response = client.messages.listChatMessages({\n  chatId: 198,\n  sort: MessageSortField.Id,\n  order: SortOrder.Desc,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListChatMessagesResponse({ data: Message[], meta: PaginationMeta })",
@@ -332,11 +346,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "const response = client.messages.getMessage(194275)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })"
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean })"
   },
   "MessageOperations_createMessage": {
     "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    files: [{\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    buttons: [[{\n      text: \"Подробнее\",\n      url: \"https://example.com/details\",\n      data: \"awesome\"\n    }]],\n    parentMessageId: 194270,\n    displayAvatarUrl: \"https://example.com/avatar.png\",\n    displayName: \"Бот Поддержки\",\n    skipInviteMentions: false\n  },\n  linkPreview: false\n}\nconst response = client.messages.createMessage(request)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean })",
     "imports": [
       "Button",
       "FileType",
@@ -359,7 +373,7 @@
   },
   "MessageOperations_updateMessage": {
     "usage": "const request: MessageUpdateRequest = {\n  message: {\n    content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n    files: [{\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    buttons: [[{\n      text: \"Подробнее\",\n      url: \"https://example.com/details\",\n      data: \"awesome\"\n    }]],\n    displayAvatarUrl: \"https://example.com/avatar.png\",\n    displayName: \"Бот Поддержки\"\n  }\n}\nconst response = client.messages.updateMessage(194275, request)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean })",
     "imports": [
       "Button",
       "FileType",
@@ -379,14 +393,14 @@
     "output": "ListReactionsResponse({ data: Reaction[], meta: PaginationMeta })"
   },
   "ReactionOperations_addReaction": {
-    "usage": "const request: ReactionRequest = { code: \"👍\", name: \":+1:\" }\nconst response = client.reactions.addReaction(7231942, request)",
+    "usage": "const request: ReactionRequest = { code: \"👍\", name: \"agent-thinking\" }\nconst response = client.reactions.addReaction(7231942, request)",
     "output": "Reaction({ userId: number, createdAt: string, code: string, name: string })",
     "imports": [
       "ReactionRequest"
     ]
   },
   "ReactionOperations_removeReaction": {
-    "usage": "client.reactions.removeReaction(7231942, { code: \"👍\", name: \":+1:\" })"
+    "usage": "client.reactions.removeReaction(7231942, { code: \"👍\", name: \"agent-thinking\" })"
   },
   "ReadMemberOperations_listReadMembers": {
     "usage": "const response = client.readMembers.listReadMembers(194275, { limit: 300, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
@@ -535,7 +549,7 @@
     ]
   },
   "UserOperations_updateUser": {
-    "usage": "const request: UserUpdateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegpetrov@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Отдел разработки\",\n    title: \"Старший разработчик\",\n    role: UserRoleInput.User,\n    suspended: false,\n    listTags: [\"example\"],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  }\n}\nconst response = client.users.updateUser(12, request)",
+    "usage": "const request: UserUpdateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegpetrov@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Отдел разработки\",\n    title: \"Старший разработчик\",\n    role: UserRoleInput.User,\n    chatIds: [123],\n    suspended: false,\n    listTags: [\"example\"],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  }\n}\nconst response = client.users.updateUser(12, request)",
     "output": "User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })",
     "imports": [
       "UserRoleInput",

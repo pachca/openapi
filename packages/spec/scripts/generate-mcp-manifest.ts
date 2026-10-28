@@ -21,8 +21,9 @@
  * them, and a service tool's permissions are read from the operations it calls.
  *
  * Every operation becomes a tool by construction, unless it is a declared chain
- * step or a step of the OAuth flow, so a method added to the contract cannot end
- * up nowhere. The build fails — it does not warn — when:
+ * step, a step of the OAuth flow or declared no tool with a reason (`NOT_TOOLS`),
+ * so a method added to the contract cannot end up nowhere. The build fails — it
+ * does not warn — when:
  *
  * The spec
  *   - takes a form the generator does not know: a schema keyword or extension
@@ -187,6 +188,7 @@ import {
   DESTRUCTIVE_EFFECTS,
   FILE_SOURCES,
   NAME_OVERRIDES,
+  NOT_TOOLS,
   REFUSALS,
   RESPONSE_FORMAT,
   SINGLE_READ_OMIT,
@@ -961,7 +963,7 @@ function operationRoles(
  * the English spec lacks fails the build rather than becoming a tool described
  * as its path, with no title and no arguments.
  */
-function readOperations(problems: string[], oauthFlow: OperationKey[]): Operation[] {
+function readOperations(problems: string[], oauthFlow: OperationKey[], notTools: OperationKey[]): Operation[] {
   const doc = yaml.load(fs.readFileSync(SPEC_PATH, 'utf8')) as YamlNode;
   const docEn = yaml.load(fs.readFileSync(SPEC_EN_PATH, 'utf8')) as YamlNode;
   const roleTable = scopeRoleTable(docEn, problems);
@@ -976,6 +978,11 @@ function readOperations(problems: string[], oauthFlow: OperationKey[]): Operatio
       // never holds a client secret or exchanges a code, so it is no tool at all.
       if (node['x-oauth-flow'] === true) {
         oauthFlow.push(k);
+        continue;
+      }
+      // An operation whose answer only a program can use (`NOT_TOOLS`).
+      if (k in NOT_TOOLS) {
+        notTools.push(k);
         continue;
       }
       const nodeEn = docEn.paths?.[p]?.[method];
@@ -1307,8 +1314,10 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
     // it is, without an upload.
     const owner = at.includes('.') ? at.split('.')[0] : 'record';
     // A file from disk goes by key: the model uploads it with the upload tool
-    // (`STANDALONE_STEPS`) and passes the key, with the size it alone knows —
-    // a file attached by key with no size shows 0 KB to its readers.
+    // (`STANDALONE_STEPS`) and passes the key, with the size it knows. Without
+    // one the server reads the size from storage after the save, so a reader
+    // who got the message before that may see 0 KB. The public file record has no
+    // size, so a file already in Pachca goes by key without one.
     const uploader = uploadToolName();
     const kept = Object.entries<JsonSchema>(item.properties ?? {})
       .filter(([name]) => name !== 'size' || uploader)
@@ -1323,8 +1332,9 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
             {
               ...schema,
               description:
-                'Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it — ' +
-                'the full record carries it, and you know it for a file you uploaded — or readers see 0 KB.',
+                'Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it ' +
+                'for a file you uploaded. Without it the server reads the size from storage after the save, and a reader ' +
+                'who got the message before that may see 0 KB.',
             },
           ];
         }
@@ -2014,6 +2024,10 @@ interface BuiltTool {
 const HTTP_ONLY_SENTENCES = [
   // A redirect is not followed (`RESPONSE_FORMAT.redirect`), by any client.
   /Most HTTP clients [^.]*\./g,
+  // A tool sends GET; what a HEAD request answers is for a client that sends one.
+  /A `HEAD` request to the same address[^\n]*/g,
+  // The stream is a link a program holds open, and no tool (`NOT_TOOLS`).
+  /The same events can be received as they happen[^\n]*/g,
 ];
 /**
  * Sentences written for an HTTP client that still carry a fact, said the way an
@@ -2378,8 +2392,13 @@ function build(): void {
   const docEn = yaml.load(fs.readFileSync(SPEC_EN_PATH, 'utf8')) as YamlNode;
   const problems: string[] = [...specShapeProblems(docEn), ...queryListProblems(docEn)];
   const oauthFlow: OperationKey[] = [];
-  const operations = readOperations(problems, oauthFlow);
+  const notTools: OperationKey[] = [];
+  const operations = readOperations(problems, oauthFlow, notTools);
   const byKey = new Map(operations.map((o) => [o.key, o]));
+  for (const [k, why] of Object.entries(NOT_TOOLS)) {
+    if (!notTools.includes(k)) problems.push(`NOT_TOOLS names ${k}, which is not an operation of the spec`);
+    if (!why.trim()) problems.push(`NOT_TOOLS names ${k} without a reason`);
+  }
 
   // A hand table keyed by an operation the spec no longer has is a rule that
   // silently stopped applying: a renamed path would lose its name, the reason a
@@ -2916,7 +2935,8 @@ function build(): void {
     const elsewhere = new Set(
       [...texts.matchAll(/`(\w+)`/g)].flatMap((m) => Object.keys(tools.find((t) => t.name === m[1] && t !== tool)?.inputSchema.properties ?? {})),
     );
-    const spans = new Set([...texts.matchAll(/`([a-z_][a-z0-9_.]*)`/g)].map((m) => m[1]!));
+    // A field named with its value — `important: true`, `status=done` — is named too.
+    const spans = new Set([...texts.matchAll(/`([a-z_][a-z0-9_.]*)(?:\s*[:=][^`]*)?`/g)].map((m) => m[1]!));
     // A dotted field `parent.leaf` is named by `parent.leaf`, and by `leaf` in
     // words that name `parent` too — «`webhook` carries … `url`».
     const named = (field: string): string | undefined => {
@@ -4023,7 +4043,7 @@ function build(): void {
   console.log(
     `MCP manifest: ${tools.length} tools from ${operations.length} operations ` +
       `(${Object.keys(CHAIN_STEPS).length} folded as chain steps, ${Object.keys(STANDALONE_STEPS).length} of them also a tool), ${withProse} with written prose, ` +
-      `${scopes.size} scopes, ${TOOL_SCENARIOS.length} scenarios. Not tools, as steps of the OAuth flow: ${oauthFlow.join(', ') || 'none'}. ` +
+      `${scopes.size} scopes, ${TOOL_SCENARIOS.length} scenarios. Not tools, as steps of the OAuth flow: ${oauthFlow.join(', ') || 'none'}; by NOT_TOOLS: ${notTools.join(', ') || 'none'}. ` +
       `Listings: ${listings}. Per tool: median ~${median}, largest ${largest}; names of the widest listing ~${nameCost}; ` +
       `outputSchema of the set ~${answers}, not shown to the model.`,
   );

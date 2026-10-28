@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-ci-token
+description: "What pachca adds: answered with the plugin and without it"
+tags: [knowledge, pachca]
+runs: 3
+execution:
+  prompt: "У нас CI в GitLab, хочу, чтобы после сборки он писал итог в канал Пачки. Какой токен ему дать и как его хранить?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer recommends a bot token with only the scopes it needs, kept in a CI secret or an environment variable such as PACHCA_TOKEN. FAIL if it recommends a personal token of an employee, a browser login, or storing the token in the repository."

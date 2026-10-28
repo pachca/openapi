@@ -9,13 +9,15 @@ private func pachcaNotImplemented(_ method: String) -> Error {
 
 /// An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
 /// which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the type.
-func pachcaErrorFromBody(_ data: Data) -> Error {
+/// An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in statusCode.
+func pachcaErrorFromResponse(_ statusCode: Int, _ data: Data) -> Error {
     if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
        object["errors"] == nil, let code = object["error"] as? String {
         return OAuthError(error: code, errorDescription: object["error_description"] as? String ?? "")
     }
-    if let apiError = try? deserialize(ApiError.self, from: data) { return apiError }
-    return URLError(.badServerResponse)
+    var apiError = (try? deserialize(ApiError.self, from: data)) ?? ApiError(errors: [])
+    apiError.statusCode = statusCode
+    return apiError
 }
 
 open class LinkPreviewsService {
@@ -49,10 +51,8 @@ public final class LinkPreviewsServiceImpl: LinkPreviewsService {
         switch statusCode {
         case 201:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }

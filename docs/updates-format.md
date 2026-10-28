@@ -257,8 +257,6 @@ gotchas).
 - `integrations/n8n/CHANGELOG.md` — английский changelog n8n-пакета,
   едет в npm-тарбол.
 - `packages/cli/src/data/changelog.json` — источник `packages/cli/CHANGELOG.md`.
-- `packages/spec/workflows.ts` — `notes` / `steps` workflow'ов, если
-  скилл затрагивает этот метод.
 
 Если переписал длинное описание в `@doc` — короткие сводки в changelog'ах
 и `releases.json` обычно тоже устарели: проверь, что в них нет тех же

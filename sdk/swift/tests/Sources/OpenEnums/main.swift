@@ -84,3 +84,6 @@ do {
 check(OAuthErrorCode(rawValue: "insufficient_scope") == .insufficientScope, "a listed code is its case")
 check(OAuthErrorCode.insufficientScope == "insufficient_scope", "a listed case equals its string literal")
 print("open enums ok")
+
+await checkRetries()
+await checkErrorBodies()

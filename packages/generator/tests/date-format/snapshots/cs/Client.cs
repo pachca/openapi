@@ -82,7 +82,7 @@ public sealed class ExportServiceImpl : ExportService
             case 201:
                 return PachcaUtils.Deserialize<ExportDataWrapper>(json).Data;
             case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
+                throw PachcaUtils.OAuthErrorFromResponse((int)response.StatusCode, json);
             default:
                 throw new InvalidOperationException($"Unexpected status code: {(int)response.StatusCode}");
         }

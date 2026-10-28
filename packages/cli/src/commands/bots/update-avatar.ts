@@ -6,7 +6,6 @@ import * as path from 'node:path';
 
 export default class BotsUpdateAvatar extends BaseCommand {
   static override description = "Загрузка аватара бота";
-
   static scope = "bots:write";
   static apiMethod = "PUT";
   static apiPath = "/bots/{id}/avatar";

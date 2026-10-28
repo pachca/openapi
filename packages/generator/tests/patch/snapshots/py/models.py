@@ -31,3 +31,5 @@ class ApiErrorItem:
 @dataclass
 class ApiError(Exception):
     errors: list[ApiErrorItem] | None = None
+    # HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty.
+    status_code: int | None = None

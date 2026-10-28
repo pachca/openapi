@@ -216,6 +216,73 @@ describe('makeApiRequest error paths', () => {
     }
   });
 
+  it.each([500, 502, 503, 504])('should NOT retry a POST on %i', async (statusCode) => {
+    const ctx = createExecCtx({
+      httpResponse: { statusCode, body: {}, headers: {} },
+    });
+
+    await expect(
+      makeApiRequest.call(ctx, 'POST', '/messages', { content: 'hi' }, undefined, 0),
+    ).rejects.toThrow(NodeApiError);
+    expect(ctx.helpers.httpRequestWithAuthentication).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['PUT', 'DELETE'] as const)('should retry a 503 for %s', async (method) => {
+    const ctx = createExecCtx({
+      httpResponses: [
+        { statusCode: 503, body: {}, headers: {} },
+        { statusCode: 200, body: { data: { id: 1 } }, headers: {} },
+      ],
+    });
+
+    const result = await makeApiRequest.call(ctx, method, '/messages/1', undefined, undefined, 0);
+    expect(result).toEqual({ data: { id: 1 } });
+    expect(ctx.helpers.httpRequestWithAuthentication).toHaveBeenCalledTimes(2);
+  });
+
+  it('should return a 504 with the code timeout at once, without a retry', async () => {
+    const ctx = createExecCtx({
+      httpResponse: {
+        statusCode: 504,
+        body: { errors: [{ key: null, value: null, message: 'Превышено время выполнения поиска', code: 'timeout' }] },
+        headers: {},
+      },
+    });
+
+    try {
+      await makeApiRequest.call(ctx, 'GET', '/search/messages', undefined, { query: 'отчёт' }, 0);
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(NodeApiError);
+      expect((error as NodeApiError).httpCode).toBe('504');
+      expect(ctx.helpers.httpRequestWithAuthentication).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it('should retry a 504 without the code timeout (a proxy timeout)', async () => {
+    const ctx = createExecCtx({
+      httpResponses: [
+        { statusCode: 504, body: {}, headers: {} },
+        { statusCode: 200, body: { data: [] }, headers: {} },
+      ],
+    });
+
+    const result = await makeApiRequest.call(ctx, 'GET', '/search/messages', undefined, undefined, 0);
+    expect(result).toEqual({ data: [] });
+    expect(ctx.helpers.httpRequestWithAuthentication).toHaveBeenCalledTimes(2);
+  });
+
+  it('should NOT retry a 5xx outside 500, 502, 503 and 504', async () => {
+    const ctx = createExecCtx({
+      httpResponse: { statusCode: 501, body: {}, headers: {} },
+    });
+
+    await expect(
+      makeApiRequest.call(ctx, 'GET', '/users', undefined, undefined, 0),
+    ).rejects.toThrow(NodeApiError);
+    expect(ctx.helpers.httpRequestWithAuthentication).toHaveBeenCalledTimes(1);
+  });
+
   it('should still retry a POST on 429 (request was rejected, not committed)', async () => {
     const ctx = createExecCtx({
       httpResponse: {

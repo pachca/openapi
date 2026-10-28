@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class OauthTokenInfo extends BaseCommand {
   static override description = "Информация о токене";
-
-  static override examples = [
-      "Проверить свой токен — Получи информацию о токене: скоупы, дату создания, срок жизни:\n  $ pachca oauth token-info"
-  ];
-
   static override hiddenAliases = ["profile:get-info"];
   static apiMethod = "GET";
   static apiPath = "/oauth/token/info";

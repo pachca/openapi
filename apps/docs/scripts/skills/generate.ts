@@ -1,871 +1,1100 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'node:crypto';
-import type { Endpoint, Schema, ParsedAPI } from '../../lib/openapi/types';
-import { generateTitle } from '../../lib/openapi/mapper';
-import { operationRoles } from '../../lib/scope-roles';
-import { SKILL_TAG_MAP, COMMON_ENDPOINT_MAP, ROUTER_SKILL_CONFIG } from './config';
-import type { SkillConfig } from './config';
-import { WORKFLOWS } from '@pachca/spec/workflows';
-import type { Workflow } from '@pachca/spec/workflows';
+import { execFileSync } from 'node:child_process';
+import { isDeepStrictEqual } from 'node:util';
+import * as yaml from 'js-yaml';
 
+/**
+ * The Pachca plugin is hand-written in `plugins/pachca`: skills, MCP configs and one
+ * manifest per host (`plugin.json` for Codex, VS Code and Copilot,
+ * `.claude-plugin/plugin.json` for Claude Code and the Claude app,
+ * `.cursor-plugin/plugin.json` for Cursor). This module checks all of it and
+ * publishes the skills on the docs site.
+ *
+ * Skills come in two kinds:
+ * - knowledge skills, `pachca` and `pachca-<topic>`: the agent picks them by their
+ *   description; they are published;
+ * - commands, any other name: `disable-model-invocation: true` and
+ *   `agents/openai.yaml` with `allow_implicit_invocation: false`, so they run only
+ *   when the user calls them; they ship in the plugin only.
+ *
+ * Written into the plugin: the `version` of the three manifests, one patch above
+ * the committed version once the plugin files (all but `evals/`) differ from the
+ * committed ones (the content hash and version are kept in `plugin-version.json`
+ * next to this module), and `evals/mocks/pachca/_tools.json` for the eval suite.
+ *
+ * Published, knowledge skills only:
+ * - `/.well-known/agent-skills/index.json` — discovery index v0.2.0; a skill with
+ *   references goes as a `.tar.gz` archive next to it, a single file as `SKILL.md`;
+ * - `/.well-known/skills/index.json` and `/.well-known/skills/<name>/**` — the
+ *   earlier index format (a `files` list and a content `version`), which
+ *   `npx skills` falls back to after `agent-skills`, and the plain files that
+ *   llms.txt and the docs link to;
+ * - `/skills/<name>.zip` — the skill folder zipped with `<name>/` at the top, for
+ *   upload to the Claude app and Yandex AI Studio;
+ * - `/skill.md` — the entry skill, with links into its references made absolute;
+ * - `AGENTS.md`.
+ *
+ * There is no root `SKILL.md`: `npx skills add pachca/openapi` installs a root
+ * skill alone and skips the rest. It finds the plugin's skills through
+ * `.claude-plugin/marketplace.json`.
+ */
+
+const SITE_URL = 'https://dev.pachca.com';
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
+const PUBLIC_DIR = path.join(process.cwd(), 'public');
+const PLUGIN_REL = 'plugins/pachca';
+const SOURCE_REL = `${PLUGIN_REL}/skills`;
+const SOURCE_DIR = path.join(REPO_ROOT, SOURCE_REL);
+const ENTRY_SKILL = 'pachca';
+const DISCOVERY_SCHEMA = 'https://schemas.agentskills.io/discovery/0.2.0/schema.json';
+const PLUGIN_DIR = path.join(REPO_ROOT, PLUGIN_REL);
+const PLUGIN_SOURCE = './plugins/pachca';
+const MCP_URL = 'https://mcp.pachca.com/mcp';
+const AGENT_PLUGINS_SCHEMA = 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json';
+const AGENT_PLUGINS_MCP_SCHEMA = 'https://agent-plugins.org/schemas/1.0.0/mcp.schema.json';
+/** The closed field set of an Agent Plugins 1.0.0 manifest. */
+const AGENT_PLUGINS_KEYS = new Set([
+  '$schema',
+  'name',
+  'version',
+  'description',
+  'author',
+  'homepage',
+  'repository',
+  'license',
+  'keywords',
+  'extensions',
+]);
+/**
+ * One manifest per host, all with the same version: Agent Plugins (Codex, VS Code,
+ * Copilot), Claude (Claude Code, the Claude app), Cursor.
+ */
+const VERSIONED_MANIFESTS = [
+  'plugin.json',
+  '.claude-plugin/plugin.json',
+  '.cursor-plugin/plugin.json',
+];
+/** Files at the plugin root that ship and make up the version, next to `skills/**`. */
+const PLUGIN_ROOT_FILES = [...VERSIONED_MANIFESTS, '.mcp.json', 'mcp.json', 'README.md'];
+/** What may sit at the plugin root. A `bin/` would make the Claude app refuse the plugin. */
+const PLUGIN_LAYOUT = new Set([
+  '.claude-plugin',
+  '.cursor-plugin',
+  '.mcp.json',
+  'mcp.json',
+  'plugin.json',
+  'README.md',
+  'skills',
+  'evals',
+]);
+/**
+ * Major.minor of the plugin version. The patch grows by one whenever the plugin
+ * files change. Raise only for a breaking change: the patch then starts at 0.
+ */
+const PLUGIN_VERSION_BASE = '1.0';
+/** The last content hash of the plugin and the version given to it. */
+const PLUGIN_VERSION_REL = 'apps/docs/scripts/skills/plugin-version.json';
+/** Codex metadata of a skill: interface and invocation policy. */
+const OPENAI_YAML = 'agents/openai.yaml';
 
-const OUTPUT_DIRS = [
-  path.join(REPO_ROOT, 'skills'),
-  path.join(process.cwd(), 'public/.well-known/skills'),
-  path.join(process.cwd(), 'public/.well-known/agent-skills'),
+/** Limits from the Agent Skills spec, tightened: a skill stays short and links out. */
+const MAX_DESCRIPTION = 1024;
+const MAX_LINES = 300;
+const NAME_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+/**
+ * Knowledge skills keep to the Agent Skills fields we use: uploads to the Claude app
+ * and the Skills API reject any key outside the spec. Commands add Claude Code fields
+ * and ship in the plugin only.
+ */
+const KNOWLEDGE_KEYS = new Set(['name', 'description']);
+const COMMAND_KEYS = new Set(['name', 'description', 'argument-hint', 'disable-model-invocation']);
+/** Knowledge skills are `pachca` and `pachca-<topic>`; a command takes any other name. */
+const KNOWLEDGE_NAME_RE = /^pachca(-[a-z0-9]+)*$/;
+/** Internal identifiers that must never reach the public repository or the site. */
+const LEAKS: [RegExp, string][] = [
+  [/\b(?:BAK|WEB|PRO|SEC|DES|AGT|DEVP)-\d+\b/, 'an internal ticket id'],
+  [/x-beta/i, 'the beta header'],
+  [/\bstaply\b/i, 'an internal repository'],
+  [/(?:^|[\s(`])plans\//, 'an internal plans/ path'],
 ];
 
+/**
+ * One line per skill for llms.txt and the agent card, in Russian like the rest
+ * of llms.txt. A new skill needs a line here, the build checks it.
+ */
+export const SKILL_SUMMARIES: Record<string, string> = {
+  pachca:
+    'Вход: подключение агента через MCP, плагин или CLI, выбор токена, проверка подключения, отказ 401/403 или нет инструмента',
+  'pachca-messaging':
+    'Как писать: оформление, упоминания, куда отвечать, черновики, отложенные и повторяющиеся, файлы, пересылка, реакции, закрепы, правки',
+  'pachca-search':
+    'Поиск и пересказ: сообщения, чаты, сотрудники, тред целиком, дайджесты, решения и задачи по итогам, напоминания, кто в теге или чате',
+  'pachca-admin':
+    'Администрирование: сотрудники, состав тегов и чатов, доступ к API, вкладка «Все токены», журнал аудита, экспорт, DLP',
+  'pachca-bots':
+    'Боты и интеграции: вебхуки, события, токены и права, кнопки, формы, разворачивание ссылок, витрина',
+  'pachca-ai-agent':
+    'AI-агент в Пачке: зовут упоминанием, контекст треда, реакция agent-thinking, ответ в тред, карточка .md, бот или MCP',
+  'pachca-oauth':
+    'Приложение от имени сотрудника: OAuth с PKCE, обмен кода, хранение токенов, отзыв',
+  'pachca-api':
+    'API из кода и CI: токены, пагинация, лимиты и 429, ошибки, файлы, SDK, CLI в скриптах',
+};
+
+type Json = Record<string, unknown>;
+/** A nested value of parsed JSON or YAML, or undefined. */
+const at = (value: unknown, ...keys: string[]): unknown =>
+  keys.reduce<unknown>((v, k) => (v && typeof v === 'object' ? (v as Json)[k] : undefined), value);
+
+interface Skill {
+  name: string;
+  description: string;
+  /**
+   * A command: `disable-model-invocation: true`, runs only when the user calls it
+   * (`/pachca:<name>`). Ships in the plugin, never published on the site.
+   */
+  command: boolean;
+  /** Path inside the skill → content; `SKILL.md` first, then the rest sorted. */
+  files: Map<string, Buffer>;
+}
+
+interface PublishedFile {
+  /** Path from the repository root. */
+  path: string;
+  content: string | Buffer;
+}
+
 /** RFC digest format: `sha256:` + 64 lowercase hex chars. */
-function sha256(content: string): string {
-  return 'sha256:' + crypto.createHash('sha256').update(content, 'utf8').digest('hex');
+function sha256(content: string | Buffer): string {
+  return 'sha256:' + crypto.createHash('sha256').update(content).digest('hex');
 }
 
-function cleanOutputDirs() {
-  for (const dir of OUTPUT_DIRS) {
-    if (fs.existsSync(dir)) {
-      fs.rmSync(dir, { recursive: true });
-    }
+function listFiles(dir: string, base = dir): string[] {
+  const out: string[] = [];
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.name.startsWith('.')) continue;
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) out.push(...listFiles(p, base));
+    else out.push(path.relative(base, p).split(path.sep).join('/'));
   }
-  const agentsMd = path.join(REPO_ROOT, 'AGENTS.md');
-  if (fs.existsSync(agentsMd)) {
-    fs.unlinkSync(agentsMd);
-  }
-  // Clean up legacy directories no longer generated
-  for (const legacy of ['.claude/skills', '.cursor/rules']) {
-    const dir = path.join(REPO_ROOT, legacy);
-    if (fs.existsSync(dir)) {
-      fs.rmSync(dir, { recursive: true });
-    }
-  }
+  return out.sort();
 }
 
-interface SkillContext {
-  api: ParsedAPI;
-  config: SkillConfig;
-  endpoints: Endpoint[];
-  allEndpoints: Endpoint[];
-  baseUrl: string;
-  allSkills: SkillConfig[];
-}
-
-function slugify(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-zа-яё0-9\s-]/gi, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 60);
-}
-
-function buildFullDescription(config: SkillConfig): string {
-  let desc = config.description;
-  if (config.triggers.length > 0) {
-    desc += ` Use when: ${config.triggers.join(', ')}.`;
-  }
-  if (config.negativeTriggers.length > 0) {
-    // `parts` adds "→ neighbouring-skill" routing hints on top of the plain
-    // negative triggers. It was built and then dropped, so eight skills told
-    // agents what they are NOT for without saying where to go instead.
-    const parts: string[] = [...config.negativeTriggers];
-    if (config.nearestAlternatives) {
-      for (const alt of config.nearestAlternatives) {
-        if (typeof alt === 'string') {
-          parts.push(`→ ${alt}`);
-        } else {
-          parts.push(`${alt.text} → ${alt.name}`);
-        }
-      }
-    }
-    desc += ` NOT for: ${parts.join(', ')}.`;
-  }
-  return desc;
-}
-
-export function generateAllSkills(api: ParsedAPI) {
-  cleanOutputDirs();
-
-  const baseUrl = api.servers[0]?.url || 'https://api.pachca.com/api/shared/v1';
-  const skillEndpoints = groupEndpointsBySkill(api.endpoints);
-  const results: { path: string; content: string }[] = [];
-  // name → sha256 of the served SKILL.md, for the RFC v0.2.0 discovery index
-  const skillDigests = new Map<string, string>();
-
-  for (const config of SKILL_TAG_MAP) {
-    if (config.description.length > 1024) {
-      console.warn(
-        `⚠ ${config.name}: description ${config.description.length} chars (max 1024 per RFC)`
-      );
-    }
-
-    const endpoints = skillEndpoints.get(config.name) || [];
-    const ctx: SkillContext = {
-      api,
-      config,
-      endpoints,
-      allEndpoints: api.endpoints,
-      baseUrl,
-      allSkills: SKILL_TAG_MAP,
-    };
-
-    const skillMd = generateSkillMd(ctx);
-    skillDigests.set(config.name, sha256(skillMd));
-
-    const basePaths = [
-      `skills/${config.name}`,
-      `apps/docs/public/.well-known/skills/${config.name}`,
-    ];
-
-    for (const base of basePaths) {
-      results.push({ path: `${base}/SKILL.md`, content: skillMd });
-    }
-
-    // Generate inline:false workflow reference files
-    const workflows = WORKFLOWS[config.name] || [];
-    const refWorkflows = workflows.filter((wf) => wf.inline === false);
-    for (const wf of refWorkflows) {
-      const slug = slugify(wf.titleEn || wf.title);
-      const refMd = renderCLIWorkflow(wf, 'ru');
-      for (const base of basePaths) {
-        results.push({ path: `${base}/references/${slug}.md`, content: refMd });
-      }
-    }
-
-    if (config.name === 'pachca-bots') {
-      const webhookEventsMd = generateWebhookEventsMd();
-      for (const base of basePaths) {
-        results.push({ path: `${base}/references/webhook-events.md`, content: webhookEventsMd });
-      }
-    }
-
-    // Validation
-    const lineCount = skillMd.split('\n').length;
-    if (lineCount > 500) {
-      console.warn(`⚠ ${config.name}/SKILL.md: ${lineCount} lines (exceeds 500 line limit)`);
-    }
-    const tokenEstimate = Math.round(skillMd.split(/\s+/).length * 1.3);
-    if (tokenEstimate > 5000) {
-      console.warn(`⚠ ${config.name}/SKILL.md: ~${tokenEstimate} tokens (exceeds 5000 limit)`);
-    } else if (tokenEstimate > 4000) {
-      console.warn(`⚠ ${config.name}/SKILL.md: ~${tokenEstimate} tokens (exceeds 4000 target)`);
-    }
-
-    // Validate workflow steps
-    for (const wf of workflows) {
-      if (wf.inline !== false && wf.steps.length > 3) {
-        console.warn(
-          `⚠ ${config.name}: scenario "${wf.title}" has ${wf.steps.length} steps in SKILL.md (max 3, consider inline: false)`
-        );
-      }
-      for (const step of wf.steps) {
-        // A step of the OAuth flow has no CLI command by design: the CLI signs in with `auth login`
-        const oauthFlow = api.endpoints.some(
-          (ep) => ep.oauthFlow && ep.method === step.apiMethod && ep.path === step.apiPath
-        );
-        if (step.apiMethod && !step.command && !oauthFlow) {
-          console.warn(
-            `⚠ ${config.name}: step "${step.description.slice(0, 50)}" has API method but no command`
-          );
-        }
-      }
-    }
-  }
-
-  const knownNames = new Set(SKILL_TAG_MAP.map((c) => c.name));
-  for (const [name, endpoints] of skillEndpoints) {
-    if (knownNames.has(name) || endpoints.length === 0) continue;
-
-    const fallbackConfig: SkillConfig = {
-      name,
-      tags: [],
-      description: `Auto-discovered skill: ${name}.`,
-      triggers: endpoints.map((ep) => ep.summary || `${ep.method} ${ep.path}`),
-      negativeTriggers: [],
-    };
-    const ctx: SkillContext = {
-      api,
-      config: fallbackConfig,
-      endpoints,
-      allEndpoints: api.endpoints,
-      baseUrl,
-      allSkills: SKILL_TAG_MAP,
-    };
-    const skillMd = generateSkillMd(ctx);
-    for (const base of [`skills/${name}`, `apps/docs/public/.well-known/skills/${name}`]) {
-      results.push({ path: `${base}/SKILL.md`, content: skillMd });
-    }
-    console.warn(`⚠ Created fallback skill "${name}" with ${endpoints.length} endpoints`);
-  }
-
-  // Generate router skill
-  const routerMd = generateRouterSkillMd();
-  skillDigests.set(ROUTER_SKILL_CONFIG.name, sha256(routerMd));
-  for (const base of ['skills/pachca', 'apps/docs/public/.well-known/skills/pachca']) {
-    results.push({ path: `${base}/SKILL.md`, content: routerMd });
-  }
-
-  // Root-level entry points for skill catalogs that scan the repository root
-  // rather than recursing into skills/<name>/ (e.g. OpenAgentSkill wants a
-  // skill.json manifest; simpler crawlers look for a top-level SKILL.md). The
-  // recursive registries (skills.sh, GuildSkills) already read skills/*/SKILL.md.
-  results.push({ path: 'SKILL.md', content: routerMd });
-  results.push({ path: 'skill.json', content: generateSkillJson() });
-
-  // Agent Skills Discovery RFC v0.2.0 index. Canonical path is
-  // /.well-known/agent-skills/index.json; also served at the legacy
-  // /.well-known/skills/index.json (Mintlify-style path, referenced by
-  // llms.txt/skill.md) so both discovery conventions work.
-  const rfcIndex = generateIndexJson(skillDigests);
-  results.push({
-    path: 'apps/docs/public/.well-known/agent-skills/index.json',
-    content: rfcIndex,
-  });
-  results.push({
-    path: 'apps/docs/public/.well-known/skills/index.json',
-    content: rfcIndex,
-  });
-  // A2A Agent Card — same skills re-projected into the Agent2Agent schema.
-  results.push({
-    path: 'apps/docs/public/.well-known/agent-card.json',
-    content: generateAgentCardJson(skillDigests),
-  });
-  results.push({ path: 'AGENTS.md', content: generateAgentsMd() });
-
-  return results;
-}
-
-function groupEndpointsBySkill(endpoints: Endpoint[]) {
-  const result = new Map<string, Endpoint[]>();
-  for (const config of SKILL_TAG_MAP) {
-    result.set(config.name, []);
-  }
-
-  for (const ep of endpoints) {
-    const tag = ep.tags[0] || 'Common';
-    let assigned = false;
-
-    // Route by PATH first, regardless of tag. This map used to be consulted
-    // only for a `Common` tag, which no endpoint has — so /custom_properties,
-    // /uploads and /direct_url fell through to placeholder skills that no
-    // index, router or agent-card references, and the three endpoints became
-    // undiscoverable.
-    for (const [pathPrefix, skillName] of Object.entries(COMMON_ENDPOINT_MAP)) {
-      if (ep.path === pathPrefix || ep.path.startsWith(pathPrefix + '/')) {
-        result.get(skillName)?.push(ep);
-        assigned = true;
-        break;
-      }
-    }
-    if (assigned) continue;
-
-    if (tag === 'Common') {
-      result.get('pachca-profile')?.push(ep);
+function readSkills(problems: string[]): Skill[] {
+  const skills: Skill[] = [];
+  for (const e of fs.readdirSync(SOURCE_DIR, { withFileTypes: true })) {
+    if (!e.isDirectory() || e.name.startsWith('.')) continue;
+    const dir = path.join(SOURCE_DIR, e.name);
+    const rel = listFiles(dir);
+    if (!rel.includes('SKILL.md')) {
+      problems.push(`${SOURCE_REL}/${e.name}: no SKILL.md`);
       continue;
     }
-
-    for (const config of SKILL_TAG_MAP) {
-      if (config.tags.includes(tag)) {
-        result.get(config.name)?.push(ep);
-        assigned = true;
-        break;
-      }
+    const files = new Map<string, Buffer>();
+    for (const f of ['SKILL.md', ...rel.filter((f) => f !== 'SKILL.md')]) {
+      files.set(f, fs.readFileSync(path.join(dir, f)));
     }
-
-    if (!assigned) {
-      const fallbackName = `pachca-${tag.toLowerCase().replace(/\s+/g, '-')}`;
-      console.warn(`⚠ Unassigned tag "${tag}" → fallback skill "${fallbackName}"`);
-      if (!result.has(fallbackName)) {
-        result.set(fallbackName, []);
-      }
-      result.get(fallbackName)?.push(ep);
+    const text = files.get('SKILL.md')!.toString('utf8');
+    const m = text.match(/^---\n([\s\S]*?)\n---\n/);
+    if (!m) {
+      problems.push(`${SOURCE_REL}/${e.name}/SKILL.md: no frontmatter`);
+      continue;
     }
+    let meta: Record<string, unknown>;
+    try {
+      meta = (yaml.load(m[1]) as Record<string, unknown>) ?? {};
+    } catch (err) {
+      problems.push(
+        `${SOURCE_REL}/${e.name}/SKILL.md: frontmatter is not valid YAML (${(err as Error).message.split('\n')[0]})`
+      );
+      continue;
+    }
+    const command = meta['disable-model-invocation'] === true;
+    if ('disable-model-invocation' in meta && !command) {
+      problems.push(`${SOURCE_REL}/${e.name}: disable-model-invocation is either true or absent`);
+    }
+    const allowed = command ? COMMAND_KEYS : KNOWLEDGE_KEYS;
+    for (const key of Object.keys(meta)) {
+      if (!allowed.has(key))
+        problems.push(`${SOURCE_REL}/${e.name}: unexpected frontmatter key "${key}"`);
+    }
+    if (meta.name !== e.name)
+      problems.push(`${SOURCE_REL}/${e.name}: name "${meta.name}" differs from the folder`);
+    if (!NAME_RE.test(e.name) || e.name.length > 64)
+      problems.push(`${SOURCE_REL}/${e.name}: invalid skill name`);
+    if (/claude|anthropic/.test(e.name))
+      problems.push(
+        `${SOURCE_REL}/${e.name}: the Claude app rejects "claude" or "anthropic" in a name`
+      );
+    if (command === KNOWLEDGE_NAME_RE.test(e.name)) {
+      problems.push(
+        command
+          ? `${SOURCE_REL}/${e.name}: a command must not be named like a knowledge skill (pachca, pachca-<topic>)`
+          : `${SOURCE_REL}/${e.name}: a knowledge skill is named pachca or pachca-<topic>; a command needs disable-model-invocation: true`
+      );
+    }
+    const hint = meta['argument-hint'];
+    if (command && (typeof hint !== 'string' || !hint.trim()))
+      problems.push(`${SOURCE_REL}/${e.name}: a command needs argument-hint`);
+    const description = typeof meta.description === 'string' ? meta.description.trim() : '';
+    if (!description) problems.push(`${SOURCE_REL}/${e.name}: empty description`);
+    if (description.length > MAX_DESCRIPTION) {
+      problems.push(
+        `${SOURCE_REL}/${e.name}: description ${description.length} chars (max ${MAX_DESCRIPTION})`
+      );
+    }
+    if (/[<>]/.test(description))
+      problems.push(
+        `${SOURCE_REL}/${e.name}: < or > in the description, the Claude app rejects it`
+      );
+    skills.push({ name: e.name, description, command, files });
   }
-
-  return result;
+  return skills.sort((a, b) =>
+    a.name === ENTRY_SKILL ? -1 : b.name === ENTRY_SKILL ? 1 : a.name.localeCompare(b.name)
+  );
 }
 
-function renderCLIWorkflow(workflow: Workflow, lang: 'ru' | 'en' = 'ru'): string {
-  const title = lang === 'en' ? workflow.titleEn || workflow.title : workflow.title;
-  let md = `### ${title}\n\n`;
-
-  for (let i = 0; i < workflow.steps.length; i++) {
-    const step = workflow.steps[i];
-    const desc = lang === 'en' ? step.descriptionEn || step.description : step.description;
-    const notes = lang === 'en' ? step.notesEn || step.notes : step.notes;
-    md += `${i + 1}. ${desc}`;
-    if (step.command) {
-      md += `:\n   \`\`\`bash\n   ${step.command}\n   \`\`\``;
-    }
-    md += '\n';
-    if (notes) {
-      md += `   > ${notes}\n`;
-    }
-    md += '\n';
-  }
-
-  const wfNotes = lang === 'en' ? workflow.notesEn || workflow.notes : workflow.notes;
-  if (wfNotes) {
-    md += `> ${wfNotes}\n\n`;
-  }
-
-  return md;
+/** Text inside code spans and fenced blocks: where tool and command names live. */
+function codeText(md: string): string {
+  const fenced = [...md.matchAll(/```[^\n]*\n([\s\S]*?)```/g)].map((m) => m[1]);
+  const inline = [...md.replace(/```[\s\S]*?```/g, '').matchAll(/`([^`\n]+)`/g)].map((m) => m[1]);
+  return [...fenced, ...inline].join('\n');
 }
 
-function generateSkillMd(ctx: SkillContext): string {
-  const { config, endpoints } = ctx;
-  const allWorkflows = WORKFLOWS[config.name] || [];
-  const inlineWorkflows = allWorkflows.filter((wf) => wf.inline !== false);
-  const refWorkflows = allWorkflows.filter((wf) => wf.inline === false);
-
-  const lines: string[] = [];
-
-  // Frontmatter
-  const fullDescription = buildFullDescription(config);
-  lines.push('---');
-  lines.push(`name: ${config.name}`);
-  lines.push(`description: >`);
-  const descLines = fullDescription.match(/.{1,80}(\s|$)/g) || [fullDescription];
-  for (const dl of descLines) {
-    lines.push(`  ${dl.trim()}`);
-  }
-  lines.push('allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)');
-  lines.push('---');
-  lines.push('');
-
-  // Header
-  lines.push(`# ${config.name}`);
-  lines.push('');
-
-  // Quick start
-  lines.push('## Quick start');
-  lines.push('');
-  lines.push(
-    'Ask the user for a Pachca token (bot: the API tab of the bot in Integrations → Bots, user: Integrations → API).'
-  );
-  // Every method of the skill answers to a bot alone — read from the spec's roles.
-  const botOnly =
-    endpoints.length > 0 &&
-    endpoints.every((ep) => operationRoles(ep.requirements)?.join() === 'bot');
-  if (botOnly) {
-    lines.push('**Bot token only** — user tokens will not work.');
-  }
-  lines.push('');
-  lines.push('Run commands via `npx -y @pachca/cli` with the `--token` flag:');
-  lines.push('');
-  lines.push('    npx -y @pachca/cli <command> --token $PACHCA_TOKEN');
-  lines.push('');
-  lines.push('Or set the `PACHCA_TOKEN` environment variable:');
-  lines.push('');
-  lines.push('    export PACHCA_TOKEN=<token>');
-  lines.push('    npx -y @pachca/cli <command>');
-  lines.push('');
-  lines.push('Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`');
-  lines.push('');
-  lines.push(
-    '> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`'
-  );
-  lines.push('');
-
-  // Before you start
-  lines.push('## Before you start');
-  lines.push('');
-  lines.push('1. If the user has a saved profile — check:');
-  lines.push('');
-  lines.push('       npx -y @pachca/cli auth status');
-  lines.push('');
-  lines.push('   If OK — run commands without `--token`.');
-  lines.push('');
-  lines.push('2. If no profile is configured — ask for a token and use `--token`:');
-  lines.push('');
-  lines.push('       npx -y @pachca/cli auth status --token $PACHCA_TOKEN');
-  lines.push('');
-  lines.push("3. If you don't know the parameters — run `pachca <command> --help`.");
-  lines.push('');
-
-  // Inline workflows (max 3 steps)
-  if (inlineWorkflows.length > 0) {
-    lines.push('## Workflows');
-    lines.push('');
-    for (const wf of inlineWorkflows) {
-      lines.push(renderCLIWorkflow(wf, 'ru'));
-    }
-  }
-
-  // Extra sections (e.g. event_key table for pachca-security)
-  if (config.extraSections) {
-    for (const section of config.extraSections) {
-      lines.push(`## ${section.title}`);
-      lines.push('');
-      const { content } = section;
-      lines.push(typeof content === 'function' ? content(ctx.api) : content);
-      lines.push('');
-    }
-  }
-
-  // Gotchas (including rate limit and errors)
-  const gotchas = extractGotchas(endpoints, config);
-  if (gotchas.length > 0) {
-    lines.push('## Limitations');
-    lines.push('');
-    for (const gotcha of gotchas) {
-      lines.push(`- ${gotcha}`);
-    }
-    lines.push('');
-  }
-
-  // Endpoints table
-  if (endpoints.length > 0) {
-    lines.push('## Endpoints');
-    lines.push('');
-    lines.push('| Method | Path | Description |');
-    lines.push('|--------|------|-------------|');
-    for (const ep of endpoints) {
-      const title = generateTitle(ep);
-      lines.push(`| ${ep.method} | ${ep.path} | ${title} |`);
-    }
-    lines.push('');
-  }
-
-  // References to advanced workflows
-  if (refWorkflows.length > 0) {
-    lines.push('## Advanced workflows');
-    lines.push('');
-    lines.push('For advanced workflows, read the files in references/:');
-    for (const wf of refWorkflows) {
-      const slug = slugify(wf.titleEn || wf.title);
-      const title = wf.titleEn || wf.title;
-      lines.push(`  references/${slug}.md — ${title}`);
-    }
-    lines.push('');
-  }
-
-  // Special reference files
-  if (config.name === 'pachca-bots') {
-    lines.push('  references/webhook-events.md — Webhook event types');
-    lines.push('');
-  }
-
-  // Fallback
-  lines.push('> If unsure how to complete a task, read the corresponding file from references/.');
-  lines.push('');
-
-  return lines.join('\n');
+interface ManifestTool {
+  name: string;
+  title?: string;
+  description: string;
+  inputSchema: unknown;
+  annotations?: unknown;
 }
 
-/** Resolve allOf/oneOf/anyOf to a flat schema (first match wins). */
-function resolveComposed(schema: Schema): Schema {
-  if (schema.allOf?.length) {
-    let merged: Schema = {};
-    for (const sub of schema.allOf) {
-      merged = { ...merged, ...sub };
-    }
-    if (schema.description) merged.description = schema.description;
-    if (schema.example !== undefined) merged.example = schema.example;
-    return merged;
-  }
-  if (schema.oneOf?.length) return schema.oneOf[0];
-  if (schema.anyOf?.length) return schema.anyOf[0];
-  return schema;
-}
-
-function collectSchemaGotchas(
-  properties: Record<string, Schema>,
-  seen: Set<string>,
-  gotchas: string[],
-  prefix = ''
-): void {
-  for (const [name, rawProp] of Object.entries(properties)) {
-    const prop = resolveComposed(rawProp);
-    const fullName = prefix ? `${prefix}.${name}` : name;
-
-    if (prop.enum && prop.enum.length > 0) {
-      const key = `enum:${fullName}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        const enumDescriptions = prop['x-enum-descriptions'];
-        const values = prop.enum
-          .map((v) => {
-            const key = v as string;
-            const desc = enumDescriptions?.[key];
-            return desc ? `\`${key}\` (${desc})` : `\`${key}\``;
-          })
-          .join(', ');
-        gotchas.push(`\`${fullName}\`: allowed values — ${values}`);
-      }
-    }
-    if (prop.maxLength) {
-      const key = `maxLength:${fullName}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        gotchas.push(`\`${fullName}\`: max ${prop.maxLength} characters`);
-      }
-    }
-    if (prop.type === 'object' && prop.properties) {
-      collectSchemaGotchas(prop.properties, seen, gotchas, fullName);
-    }
-  }
-}
-
-function extractGotchas(endpoints: Endpoint[], config: SkillConfig): string[] {
-  const gotchas: string[] = [];
-  const seen = new Set<string>();
-
-  if (config.name === 'pachca-messages') {
-    gotchas.push('Rate limit: ~50 req/sec, messages ~4 req/sec per chat. On 429 — wait and retry.');
-  } else {
-    gotchas.push('Rate limit: ~50 req/sec. On 429 — wait and retry.');
-  }
-
-  if (config.errors) {
-    for (const err of config.errors) {
-      gotchas.push(`${err.code}: ${err.reason}. ${err.action}`);
-    }
-  }
-
-  for (const ep of endpoints) {
-    if (ep.requestBody) {
-      const jsonContent = ep.requestBody.content['application/json'];
-      if (jsonContent?.schema) {
-        const resolved = resolveComposed(jsonContent.schema);
-        if (resolved.properties) {
-          collectSchemaGotchas(resolved.properties, seen, gotchas);
-        }
-      }
-    }
-  }
-
-  const paramMaximums = new Map<string, { max: number; endpoint: string }[]>();
-  for (const ep of endpoints) {
-    const queryParams = ep.parameters.filter((p) => p.in === 'query');
-    for (const p of queryParams) {
-      if (p.schema?.maximum) {
-        const entries = paramMaximums.get(p.name) ?? [];
-        entries.push({
-          max: p.schema.maximum as number,
-          endpoint: `${ep.method.toUpperCase()} ${ep.path}`,
-        });
-        paramMaximums.set(p.name, entries);
-      }
-    }
-  }
-
-  for (const [name, entries] of paramMaximums) {
-    const uniqueValues = [...new Set(entries.map((e) => e.max))];
-    if (uniqueValues.length === 1) {
-      gotchas.push(`\`${name}\`: max ${uniqueValues[0]}`);
-    } else {
-      const details = entries.map((e) => `${e.max} (${e.endpoint})`).join(', ');
-      gotchas.push(`\`${name}\`: max — ${details}`);
-    }
-  }
-
-  const hasGetEndpoints = endpoints.some((ep) => ep.method === 'GET');
-  if (hasGetEndpoints) {
-    gotchas.push('Pagination: cursor-based (limit + cursor)');
-  }
-
-  if (config.extraGotchas) {
-    for (const g of config.extraGotchas) {
-      gotchas.push(g);
-    }
-  }
-
-  return gotchas;
-}
-
-function generateWebhookEventsMd(): string {
-  const lines: string[] = [];
-
-  lines.push('# Webhook event types');
-  lines.push('');
-  lines.push('Outgoing webhooks send JSON to the specified URL when events occur.');
-  lines.push(
-    'Signature: `Pachca-Signature` (HMAC-SHA256 of the request body with the Signing secret).'
-  );
-  lines.push('');
-
-  lines.push('## New messages');
-  lines.push('');
-  lines.push('Sent when a new message appears in a chat or thread where the bot is a member.');
-  lines.push(
-    'Filtered by `trigger_on`: `all_messages` or `commands` (the first word must equal one of `commands`). A new bot is in `commands` mode with an empty list and gets no messages until you change it. There is no mentions-only mode: take all messages and check for `@bot_nickname` in `content`.'
-  );
-  lines.push('');
-  lines.push('```json');
-  lines.push(
-    JSON.stringify(
-      {
-        event: 'new',
-        type: 'message',
-        webhook_timestamp: 1744618734,
-        chat_id: 918264,
-        content: 'Message text',
-        user_id: 134412,
-        id: 56431,
-        created_at: '2025-04-14T08:18:54.000Z',
-        parent_message_id: null,
-        entity_type: 'discussion',
-        entity_id: 918264,
-        thread: null,
-        url: 'https://app.pachca.com/chats/124511?message=56431',
-      },
-      null,
-      2
-    )
-  );
-  lines.push('```');
-  lines.push('');
-
-  lines.push('## Message edits and deletions');
-  lines.push('');
-  lines.push(
-    'Same fields as a new message, `event` is `update` or `delete`. In `commands` mode an edit arrives only if the message starts with a command; deletions always arrive.'
-  );
-  lines.push('');
-
-  lines.push('## Reaction add/remove');
-  lines.push('');
-  lines.push('Sent when a reaction is added/removed in a chat where the bot is a member.');
-  lines.push(
-    'Fields: `event` (`new`/`delete`), `type` (reaction), `code` (emoji), `message_id`, `user_id`.'
-  );
-  lines.push('');
-
-  lines.push('## Button clicks');
-  lines.push('');
-  lines.push('Sent only to the bot that sent the message, when a Data button in it is clicked.');
-  lines.push(
-    'Contains `trigger_id` for opening forms via `POST /views/open` — valid for 3 seconds.'
-  );
-  lines.push('');
-
-  lines.push('## Form submissions');
-  lines.push('');
-  lines.push(
-    '`type` is `view`, `event` is `submit`. Sent to the bot that opened the form, if `button_click` is enabled; the bot does not need to be in the chat. Respond within 3 seconds: `200` closes the form, `400` with `errors` shows them under the fields.'
-  );
-  lines.push('');
-
-  lines.push('## Links to the bot domains');
-  lines.push('');
-  lines.push(
-    '`type` is `message`, `event` is `link_shared`. Sent from any chat in the workspace when a message has a link to one of `unfurl_domains`; requires the `message_link_shared` event. Answer with `POST /messages/{id}/link_previews`.'
-  );
-  lines.push('');
-
-  lines.push('## Chat member changes');
-  lines.push('');
-  lines.push('Sent when members are added/removed in chats where the bot is a member.');
-  lines.push('');
-
-  lines.push('## Workspace member changes');
-  lines.push('');
-  lines.push(
-    'Global event (does not require the bot to be in a chat). Events: invite, confirm, update, suspend, activate, delete.'
-  );
-  lines.push('');
-
-  lines.push('## Video calls');
-  lines.push('');
-  lines.push('Sent for video calls in chats where the bot is a member.');
-  lines.push(
-    'Field `event` distinguishes: `started`, `finished` (includes participants and duration), `recording_ready` (includes recording file `url`, `size`, `duration`).'
-  );
-  lines.push(
-    'Field `type` is always `video_call`. Common fields: `video_room_id`, `chat_id`, `owner_id`, `thread`.'
-  );
-  lines.push('');
-
-  lines.push('## Security');
-  lines.push('');
-  lines.push('1. Verify signature: `HMAC-SHA256(Signing secret, raw body)` === `Pachca-Signature`');
-  lines.push('2. Verify `webhook_timestamp` — must be within 1 minute');
-  lines.push(
-    '3. Verify sender IP: Pachca sends webhooks from `37.200.70.177`, `185.209.115.174` and `135.106.159.61`'
-  );
-  lines.push('');
-  lines.push('```javascript');
-  lines.push(
-    'const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");'
-  );
-  lines.push("if (signature !== request.headers['pachca-signature']) {");
-  lines.push('  throw "Invalid signature";');
-  lines.push('}');
-  lines.push('```');
-  lines.push('');
-
-  return lines.join('\n');
-}
-
-function generateRouterSkillMd(): string {
-  const lines: string[] = [];
-
-  lines.push('---');
-  lines.push(`name: ${ROUTER_SKILL_CONFIG.name}`);
-  lines.push('description: >');
-  const descLines = ROUTER_SKILL_CONFIG.description.match(/.{1,80}(\s|$)/g) || [
-    ROUTER_SKILL_CONFIG.description,
-  ];
-  for (const dl of descLines) {
-    lines.push(`  ${dl.trim()}`);
-  }
-  lines.push('allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)');
-  lines.push('---');
-  lines.push('');
-  lines.push('# pachca');
-  lines.push('');
-  lines.push('Pachca — corporate messenger with REST API and CLI.');
-  lines.push('');
-  lines.push('## Quick start');
-  lines.push('');
-  lines.push('```bash');
-  lines.push('npx -y @pachca/cli <command> --token <TOKEN>');
-  lines.push('```');
-  lines.push('');
-  lines.push('## For regular use');
-  lines.push('');
-  lines.push('```bash');
-  lines.push('npm install -g @pachca/cli && pachca auth login');
-  lines.push('```');
-  lines.push('');
-  lines.push('## Routing');
-  lines.push('');
-  lines.push('Identify the user task and activate the appropriate skill.');
-  lines.push('');
-  lines.push('| Task | Skill |');
-  lines.push('|------|-------|');
-  for (const config of SKILL_TAG_MAP) {
-    const shortDesc = config.description.split('.')[0];
-    lines.push(`| ${shortDesc} | \`${config.name}\` |`);
-  }
-  lines.push('');
-  lines.push('## CLI commands');
-  lines.push('');
-  lines.push('Full list: `pachca commands`');
-  lines.push('Advanced workflows: references/ in each skill');
-  lines.push('Help: `pachca <command> --help`');
-  lines.push('');
-
-  return lines.join('\n');
+function loadManifestTools(): ManifestTool[] {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(REPO_ROOT, 'packages/spec/mcp-manifest.json'), 'utf8')
+  ) as { tools: ManifestTool[]; service_tools?: ManifestTool[] };
+  return [...manifest.tools, ...(manifest.service_tools ?? [])];
 }
 
 /**
- * Root skill.json manifest for catalogs that require it (OpenAgentSkill).
- * Distinct from the RFC discovery index — this is a single flat manifest
- * describing the repository as one publishable skill package. Fields follow
- * the OpenAgentSkill schema: name, version, description, category, platforms,
- * author. Version tracks the TypeSpec spec package.
+ * Mocked MCP tools of the plugin's eval suite carry the real descriptions and
+ * schemas from the manifest, so an eval run sees the tools as a live session
+ * does. Only the tools some case mocks are listed.
  */
-function generateSkillJson(): string {
-  let version = '1.0.0';
+function evalToolsJson(tools: ManifestTool[], problems: string[]): PublishedFile | null {
+  const evalsDir = path.join(REPO_ROOT, PLUGIN_REL, 'evals');
+  if (!fs.existsSync(evalsDir)) return null;
+  const mocked = new Set<string>();
+  for (const f of listFiles(evalsDir)) {
+    const m = f.match(/(?:^|\/)mocks\/pachca\/(pachca_[a-z0-9_]+)\.md$/);
+    if (m) mocked.add(m[1]);
+  }
+  const byName = new Map(tools.map((t) => [t.name, t]));
+  for (const name of mocked) {
+    if (!byName.has(name))
+      problems.push(`${PLUGIN_REL}/evals: mock for a missing MCP tool ${name}`);
+  }
+  const listed = [...mocked]
+    .filter((n) => byName.has(n))
+    .sort()
+    .map((n) => {
+      const t = byName.get(n)!;
+      return {
+        name: t.name,
+        ...(t.title ? { title: t.title } : {}),
+        description: t.description,
+        inputSchema: t.inputSchema,
+        ...(t.annotations ? { annotations: t.annotations } : {}),
+      };
+    });
+  return {
+    path: `${PLUGIN_REL}/evals/mocks/pachca/_tools.json`,
+    content: JSON.stringify({ tools: listed }, null, 2) + '\n',
+  };
+}
+
+function loadCliCommands(): Set<string> {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(REPO_ROOT, 'packages/cli/oclif.manifest.json'), 'utf8')
+  ) as { commands: Record<string, unknown> };
+  return new Set(Object.keys(manifest.commands));
+}
+
+/** Path on the site → the file that serves it, for links to dev.pachca.com. */
+function sitePathExists(urlPath: string): boolean {
+  const clean = decodeURIComponent(urlPath.replace(/[#?].*$/, '')).replace(/\/$/, '');
+  const candidates = /\.[a-z]+$/.test(clean) ? [clean] : [`${clean}.md`, `${clean}/index.md`];
+  return candidates.some((c) => fs.existsSync(path.join(PUBLIC_DIR, c)));
+}
+
+interface CheckContext {
+  skills: Set<string>;
+  tools: Set<string>;
+  commands: Set<string>;
+  /** Every skill of the plugin, knowledge skills and commands. */
+  pluginSkills: Set<string>;
+  problems: string[];
+}
+
+/** Checks any published Markdown: leaks, site links, tool, CLI and skill names. */
+function checkMarkdown(md: string, label: string, ctx: CheckContext) {
+  const lines = md.split('\n').length;
+  if (lines > MAX_LINES) ctx.problems.push(`${label}: ${lines} lines (max ${MAX_LINES})`);
+
+  for (const [re, what] of LEAKS) {
+    if (re.test(md)) ctx.problems.push(`${label}: ${what}`);
+  }
+
+  for (const m of md.matchAll(/(?<![\w/.])https:\/\/dev\.pachca\.com(\/[^\s)`'"<>,]*)/g)) {
+    const urlPath = m[1].replace(/[.:;]+$/, '');
+    if (!sitePathExists(urlPath)) ctx.problems.push(`${label}: link to a missing page ${m[0]}`);
+  }
+
+  const code = codeText(md);
+  for (const m of code.matchAll(/\bpachca_[a-z0-9_]+/g)) {
+    if (!ctx.tools.has(m[0])) ctx.problems.push(`${label}: no MCP tool ${m[0]}`);
+  }
+  // `pachca` in command position: a line start or after a pipe, `&&`, `;` or `(`.
+  for (const m of code.matchAll(
+    /(?:^|[|;&(])[ \t]*(?:\$[ \t]+)?pachca ([a-z][a-z-]*)(?: ([a-z][a-z-]*))?/gm
+  )) {
+    const [topic, action] = [m[1], m[2]];
+    const ok =
+      (action && ctx.commands.has(`${topic}:${action}`)) ||
+      ctx.commands.has(topic) ||
+      (!action && [...ctx.commands].some((c) => c.startsWith(`${topic}:`)));
+    if (!ok) {
+      ctx.problems.push(`${label}: no CLI command "pachca ${topic}${action ? ` ${action}` : ''}"`);
+    }
+  }
+  for (const m of md.matchAll(/→ `?(pachca(?:-[a-z]+)*)`?/g)) {
+    if (!ctx.skills.has(m[1])) ctx.problems.push(`${label}: points to a missing skill ${m[1]}`);
+  }
+  for (const m of md.matchAll(/\/pachca:([a-z-]+)/g)) {
+    if (!ctx.pluginSkills.has(m[1]))
+      ctx.problems.push(`${label}: no plugin skill or command /pachca:${m[1]}`);
+  }
+}
+
+function checkSkill(skill: Skill, ctx: CheckContext) {
+  const where = (f: string) => `${SOURCE_REL}/${skill.name}/${f}`;
+  const skillMd = skill.files.get('SKILL.md')!.toString('utf8');
+
+  for (const [file, buf] of skill.files) {
+    if (!file.endsWith('.md')) continue;
+    const md = buf.toString('utf8');
+    checkMarkdown(md, where(file), ctx);
+    for (const s of md.matchAll(/`(pachca-[a-z-]+)` skill/g)) {
+      if (!ctx.skills.has(s[1])) ctx.problems.push(`${where(file)}: no skill ${s[1]}`);
+    }
+
+    for (const m of md.matchAll(/\]\(([^)\s]+)\)/g)) {
+      const target = m[1];
+      if (target.startsWith('#') || /^(?:https?|mailto):/.test(target)) continue;
+      const resolved = path.posix.normalize(
+        path.posix.join(path.posix.dirname(file), target.replace(/#.*$/, ''))
+      );
+      if (!skill.files.has(resolved)) ctx.problems.push(`${where(file)}: broken link ${target}`);
+    }
+  }
+
+  for (const file of skill.files.keys()) {
+    if (file !== 'SKILL.md' && file !== OPENAI_YAML && !skillMd.includes(`](${file}`)) {
+      ctx.problems.push(`${where(file)}: not linked from SKILL.md`);
+    }
+  }
+  for (const m of skill.description.matchAll(/→ (pachca(?:-[a-z]+)*)/g)) {
+    if (!ctx.skills.has(m[1])) {
+      ctx.problems.push(
+        `${SOURCE_REL}/${skill.name}: description points to a missing skill ${m[1]}`
+      );
+    }
+  }
+
+  let implicit: unknown;
+  const openai = skill.files.get(OPENAI_YAML);
+  if (openai) {
+    try {
+      implicit = at(yaml.load(openai.toString('utf8')), 'policy', 'allow_implicit_invocation');
+    } catch (e) {
+      ctx.problems.push(
+        `${where(OPENAI_YAML)}: not valid YAML (${(e as Error).message.split('\n')[0]})`
+      );
+    }
+  }
+  if (skill.command) {
+    if (implicit !== false) {
+      ctx.problems.push(
+        `${where(OPENAI_YAML)}: a command needs policy.allow_implicit_invocation: false, or Codex starts it on its own`
+      );
+    }
+    if (/\$(?:ARGUMENTS\b|\d)/.test(skillMd)) {
+      ctx.problems.push(
+        `${where('SKILL.md')}: $ARGUMENTS and $1 are filled in by only some programs; say in words what the user gives with the command`
+      );
+    }
+  } else if (implicit === false) {
+    ctx.problems.push(`${where(OPENAI_YAML)}: a knowledge skill must stay available to the agent`);
+  }
+}
+
+function readJson(abs: string, label: string, problems: string[]): Json | null {
+  if (!fs.existsSync(abs)) {
+    problems.push(`${label}: missing`);
+    return null;
+  }
   try {
-    const specPkg = JSON.parse(
-      fs.readFileSync(path.join(REPO_ROOT, 'packages/spec/package.json'), 'utf8')
+    return JSON.parse(fs.readFileSync(abs, 'utf8')) as Json;
+  } catch (e) {
+    problems.push(`${label}: not valid JSON (${(e as Error).message})`);
+    return null;
+  }
+}
+
+/**
+ * Marketplaces at the repository root: each lists the one plugin folder and leaves
+ * the version to the plugin manifests (Claude Code silently prefers plugin.json).
+ * Returns the Codex category, which the Codex interface must repeat.
+ */
+function checkMarketplaces(description: unknown, problems: string[]): unknown {
+  const read = (rel: string) => readJson(path.join(REPO_ROOT, rel), rel, problems);
+  const entry = (m: Json | null, label: string): Json | undefined => {
+    if (!m) return undefined;
+    if (m.name !== 'pachca') problems.push(`${label}: name is not pachca`);
+    const plugins = Array.isArray(m.plugins) ? (m.plugins as Json[]) : [];
+    if (plugins.length !== 1 || plugins[0].name !== 'pachca') {
+      problems.push(`${label}: one plugin entry named pachca expected`);
+      return undefined;
+    }
+    if ('version' in m || 'version' in plugins[0] || at(m, 'metadata', 'version') !== undefined) {
+      problems.push(`${label}: no version here, the plugin manifests carry it`);
+    }
+    return plugins[0];
+  };
+  for (const rel of ['.claude-plugin/marketplace.json', '.cursor-plugin/marketplace.json']) {
+    const m = read(rel);
+    const e = entry(m, rel);
+    if (e && e.source !== PLUGIN_SOURCE) problems.push(`${rel}: source is not ${PLUGIN_SOURCE}`);
+    if (e && description !== undefined && 'description' in e && e.description !== description) {
+      problems.push(`${rel}: the plugin entry description differs from the plugin manifests`);
+    }
+    const top = m && (m.description ?? at(m, 'metadata', 'description'));
+    if (typeof top === 'string' && /claude code/i.test(top)) {
+      problems.push(`${rel}: the description names one program, every host shows it`);
+    }
+  }
+  const codexRel = '.agents/plugins/marketplace.json';
+  const codex = entry(read(codexRel), codexRel);
+  if (codex && !isDeepStrictEqual(codex.source, { source: 'local', path: PLUGIN_SOURCE })) {
+    problems.push(`${codexRel}: source is not {source: local, path: ${PLUGIN_SOURCE}}`);
+  }
+  if (
+    codex &&
+    (typeof at(codex, 'policy', 'installation') !== 'string' ||
+      typeof at(codex, 'policy', 'authentication') !== 'string' ||
+      typeof codex.category !== 'string')
+  ) {
+    problems.push(
+      `${codexRel}: Codex wants policy.installation, policy.authentication and category`
     );
-    if (specPkg.version) version = specPkg.version;
+  }
+  return codex?.category;
+}
+
+/**
+ * A hash of what the plugin ships (everything but `evals/`), with `version` cut
+ * out of the manifests first, so writing the version back changes nothing.
+ */
+function pluginHash(): string {
+  const files = [...PLUGIN_ROOT_FILES, ...listFiles(SOURCE_DIR).map((f) => `skills/${f}`)].sort();
+  const hash = crypto.createHash('sha256');
+  for (const f of files) {
+    const abs = path.join(PLUGIN_DIR, f);
+    if (!fs.existsSync(abs)) continue; // reported by checkPlugin
+    let data = fs.readFileSync(abs);
+    if (VERSIONED_MANIFESTS.includes(f)) {
+      try {
+        const { version: _version, ...rest } = JSON.parse(data.toString('utf8')) as Json;
+        data = Buffer.from(JSON.stringify(rest));
+      } catch {
+        continue; // reported by checkPlugin
+      }
+    }
+    hash.update(`${f}\0${data.length}\0`);
+    hash.update(data);
+  }
+  return hash.digest('hex').slice(0, 12);
+}
+
+/** A file as committed at HEAD; null when it is not there or there is no git checkout. */
+function committedFile(rel: string): string | null {
+  try {
+    return execFileSync('git', ['show', `HEAD:${rel}`], {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
   } catch {
-    // fall back to the default version
+    return null;
+  }
+}
+
+/**
+ * The version record to count from: the committed one, so rebuilding before a
+ * commit, or reverting a change, does not move the version. Before the first
+ * record, the committed `plugin.json` version. Outside a git checkout (the
+ * Docker build has no `.git`) the files on disk stand in.
+ */
+function baseVersionRecord(problems: string[]): Json | null {
+  const parse = (text: string, label: string): Json | null => {
+    try {
+      return JSON.parse(text) as Json;
+    } catch (e) {
+      problems.push(`${label}: not valid JSON (${(e as Error).message})`);
+      return null;
+    }
+  };
+  const record = committedFile(PLUGIN_VERSION_REL);
+  if (record !== null) return parse(record, `${PLUGIN_VERSION_REL} at HEAD`);
+  const manifest = committedFile(`${PLUGIN_REL}/plugin.json`);
+  if (manifest !== null)
+    return { version: parse(manifest, `${PLUGIN_REL}/plugin.json at HEAD`)?.version };
+  const recordAbs = path.join(REPO_ROOT, PLUGIN_VERSION_REL);
+  if (fs.existsSync(recordAbs)) return readJson(recordAbs, PLUGIN_VERSION_REL, problems);
+  return {
+    version: readJson(path.join(PLUGIN_DIR, 'plugin.json'), `${PLUGIN_REL}/plugin.json`, [])
+      ?.version,
+  };
+}
+
+/**
+ * The plugin version: the committed one while the plugin files match the committed
+ * content, the next patch once they differ, so it only grows for clients that
+ * compare versions by order and moves once per commit that changes the plugin.
+ * Semver without pre-release or build metadata: every client keeps it intact.
+ */
+function pluginVersion(problems: string[]): { version: string; record: PublishedFile } {
+  const hash = pluginHash();
+  const recorded = baseVersionRecord(problems);
+  const last = /^(\d+)\.(\d+)\.(\d+)$/.exec(String(recorded?.version));
+  const [major, minor] = PLUGIN_VERSION_BASE.split('.').map(Number);
+  let version = `${PLUGIN_VERSION_BASE}.0`;
+  if (last) {
+    const [lastMajor, lastMinor, lastPatch] = last.slice(1).map(Number);
+    if (lastMajor === major && lastMinor === minor) {
+      version = recorded?.hash === hash ? last[0] : `${PLUGIN_VERSION_BASE}.${lastPatch + 1}`;
+    } else if (lastMajor > major || (lastMajor === major && lastMinor > minor)) {
+      problems.push(
+        `${PLUGIN_VERSION_REL}: version ${last[0]} is above PLUGIN_VERSION_BASE ${PLUGIN_VERSION_BASE}; the version only grows`
+      );
+    }
+  }
+  return {
+    version,
+    record: {
+      path: PLUGIN_VERSION_REL,
+      content: JSON.stringify({ hash, version }, null, 2) + '\n',
+    },
+  };
+}
+
+/** Writes the version into one manifest, touching nothing but that line. */
+function stampVersion(f: string, version: string, problems: string[]): PublishedFile | null {
+  const abs = path.join(PLUGIN_DIR, f);
+  if (!fs.existsSync(abs)) return null; // reported by checkPlugin
+  const text = fs.readFileSync(abs, 'utf8');
+  const versionLine = /^([ \t]*)"version":[ \t]*"[^"\n]*"/m;
+  const nameLine = /^([ \t]*)"name":[ \t]*"pachca",[ \t]*\n/m;
+  const next = versionLine.test(text)
+    ? text.replace(versionLine, `$1"version": "${version}"`)
+    : text.replace(
+        nameLine,
+        (line, indent: string) => `${line}${indent}"version": "${version}",\n`
+      );
+  let ok = false;
+  try {
+    const { version: _old, ...before } = JSON.parse(text) as Json;
+    const { version: written, ...after } = JSON.parse(next) as Json;
+    // JSON.parse keeps the last of two "version" keys, stricter parsers reject the file.
+    const once = (next.match(/"version"[ \t]*:/g) ?? []).length === 1;
+    ok = once && written === version && isDeepStrictEqual(before, after);
+  } catch {
+    // reported by checkPlugin
+  }
+  if (!ok) {
+    problems.push(
+      `${PLUGIN_REL}/${f}: cannot write the version; keep "name": "pachca", on its own line and one "version" at the top level`
+    );
+    return null;
+  }
+  return { path: `${PLUGIN_REL}/${f}`, content: next };
+}
+
+/**
+ * The plugin around the skills: layout, the three manifests in step, one MCP
+ * address, no secret outside Cursor's header, the marketplaces. Returns the
+ * manifests with the version written in, and the version record.
+ */
+function checkPlugin(problems: string[]): PublishedFile[] {
+  const rel = (p: string) => `${PLUGIN_REL}/${p}`;
+  for (const e of fs.readdirSync(PLUGIN_DIR)) {
+    if (PLUGIN_LAYOUT.has(e) || e === '.DS_Store') continue;
+    problems.push(`${rel(e)}: not part of the plugin layout (${[...PLUGIN_LAYOUT].join(', ')})`);
+  }
+  for (const dir of ['.claude-plugin', '.cursor-plugin']) {
+    const abs = path.join(PLUGIN_DIR, dir);
+    if (!fs.existsSync(abs)) continue; // reported as a missing manifest below
+    for (const f of listFiles(abs)) {
+      if (f !== 'plugin.json')
+        problems.push(`${rel(`${dir}/${f}`)}: only plugin.json belongs here`);
+    }
+  }
+  if (!fs.existsSync(path.join(PLUGIN_DIR, 'README.md')))
+    problems.push(`${rel('README.md')}: missing`);
+
+  const json = new Map<string, Json>();
+  for (const f of [...VERSIONED_MANIFESTS, '.mcp.json', 'mcp.json']) {
+    const v = readJson(path.join(PLUGIN_DIR, f), rel(f), problems);
+    if (v) json.set(f, v);
+  }
+  const portable = json.get('plugin.json');
+  const claude = json.get('.claude-plugin/plugin.json');
+  const cursor = json.get('.cursor-plugin/plugin.json');
+
+  if (portable && claude && cursor) {
+    const all = [portable, claude, cursor];
+    for (const key of ['name', 'description', 'homepage', 'repository', 'license', 'keywords']) {
+      if (new Set(all.map((m) => JSON.stringify(m[key]))).size > 1)
+        problems.push(`${PLUGIN_REL}: "${key}" differs between the three plugin manifests`);
+    }
+    if (new Set(all.map((m) => at(m, 'author', 'name'))).size > 1)
+      problems.push(`${PLUGIN_REL}: author.name differs between the three plugin manifests`);
+    const shown = [
+      claude.displayName,
+      cursor.displayName,
+      at(portable, 'extensions', 'com.openai', 'interface', 'displayName'),
+    ];
+    if (new Set(shown).size > 1)
+      problems.push(
+        `${PLUGIN_REL}: displayName differs (Codex shows extensions.com.openai.interface.displayName)`
+      );
   }
 
-  const manifest = {
-    name: 'pachca',
-    version,
-    description:
-      'Agent skills and CLI for the Pachca corporate messenger REST API — messages, chats, employees, threads, tasks, bots, and webhooks.',
-    category: 'communication',
-    platforms: ['claude-code', 'cursor', 'codex', 'gemini-cli'],
-    author: { name: 'Pachca', github: 'pachca' },
-    homepage: 'https://dev.pachca.com',
-    repository: 'https://github.com/pachca/openapi',
-    license: 'MIT',
-  };
+  if (portable) {
+    if (portable.name !== 'pachca')
+      problems.push(`${rel('plugin.json')}: the plugin is named pachca`);
+    if (/claude code/i.test(String(portable.description)))
+      problems.push(
+        `${rel('plugin.json')}: the description names one program, every host shows it`
+      );
+    if (portable.$schema !== AGENT_PLUGINS_SCHEMA)
+      problems.push(`${rel('plugin.json')}: $schema is not ${AGENT_PLUGINS_SCHEMA}`);
+    for (const k of Object.keys(portable)) {
+      if (!AGENT_PLUGINS_KEYS.has(k))
+        problems.push(`${rel('plugin.json')}: "${k}" is not an Agent Plugins 1.0.0 field`);
+    }
+    for (const k of Object.keys((portable.author as Json | undefined) ?? {})) {
+      if (!['name', 'email', 'url'].includes(k))
+        problems.push(`${rel('plugin.json')}: author.${k} is not allowed`);
+    }
+    const ui = at(portable, 'extensions', 'com.openai', 'interface') as Json | undefined;
+    for (const k of [
+      'displayName',
+      'shortDescription',
+      'developerName',
+      'category',
+      'websiteURL',
+    ]) {
+      if (typeof ui?.[k] !== 'string' || !(ui[k] as string).trim())
+        problems.push(`${rel('plugin.json')}: extensions.com.openai.interface.${k} is empty`);
+    }
+    const prompts = ui?.defaultPrompt;
+    if (
+      !Array.isArray(prompts) ||
+      prompts.length < 1 ||
+      prompts.length > 3 ||
+      prompts.some((p) => typeof p !== 'string' || !p.trim() || Buffer.byteLength(p, 'utf8') > 128)
+    ) {
+      problems.push(
+        `${rel('plugin.json')}: defaultPrompt takes 1 to 3 prompts of at most 128 bytes`
+      );
+    }
+    if (
+      at(portable, 'extensions', 'com.openai', 'onboardingSkill') !==
+      `./skills/${ENTRY_SKILL}/SKILL.md`
+    )
+      problems.push(`${rel('plugin.json')}: onboardingSkill is ./skills/${ENTRY_SKILL}/SKILL.md`);
+  }
+  const category = checkMarketplaces(portable?.description, problems);
+  const uiCategory = at(portable, 'extensions', 'com.openai', 'interface', 'category');
+  if (portable && category !== undefined && uiCategory !== category)
+    problems.push(
+      `${rel('plugin.json')}: interface.category differs from .agents/plugins/marketplace.json`
+    );
 
-  return JSON.stringify(manifest, null, 2) + '\n';
+  const claudeMcp = json.get('.mcp.json');
+  if (
+    claudeMcp &&
+    !isDeepStrictEqual(claudeMcp, { mcpServers: { pachca: { type: 'http', url: MCP_URL } } })
+  )
+    problems.push(`${rel('.mcp.json')}: only the pachca server, type http, ${MCP_URL}, no headers`);
+  const portableMcp = json.get('mcp.json');
+  if (
+    portableMcp &&
+    !isDeepStrictEqual(portableMcp, {
+      $schema: AGENT_PLUGINS_MCP_SCHEMA,
+      mcpServers: { pachca: { type: 'streamable-http', url: MCP_URL } },
+    })
+  )
+    problems.push(
+      `${rel('mcp.json')}: only the pachca server, type streamable-http, ${MCP_URL}, no headers`
+    );
+  if (claude && 'mcpServers' in claude)
+    problems.push(
+      `${rel('.claude-plugin/plugin.json')}: no mcpServers here, Claude reads .mcp.json`
+    );
+  if (cursor) {
+    // A plain string: Cursor fills in the variable, not this module.
+    const expected = {
+      pachca: { url: MCP_URL, headers: { Authorization: 'Bearer ${PACHCA_TOKEN}' } },
+    };
+    if (!isDeepStrictEqual(cursor.mcpServers, expected))
+      problems.push(
+        `${rel('.cursor-plugin/plugin.json')}: mcpServers is the pachca server with the PACHCA_TOKEN header`
+      );
+    const declared = Object.keys((at(cursor, 'variables', 'properties') as Json | undefined) ?? {});
+    for (const m of JSON.stringify(cursor.mcpServers ?? {}).matchAll(
+      /\$\{([A-Za-z0-9_]+)(?::-[^}]*)?\}/g
+    )) {
+      if (!declared.includes(m[1]))
+        problems.push(
+          `${rel('.cursor-plugin/plugin.json')}: \${${m[1]}} is not declared in variables`
+        );
+    }
+    const required = at(cursor, 'variables', 'required');
+    if (Array.isArray(required) && required.includes('PACHCA_TOKEN'))
+      problems.push(
+        `${rel('.cursor-plugin/plugin.json')}: PACHCA_TOKEN stays optional, Cursor reads the environment first`
+      );
+  }
+
+  const { version, record } = pluginVersion(problems);
+  const stamped = VERSIONED_MANIFESTS.map((f) => stampVersion(f, version, problems)).filter(
+    (f): f is PublishedFile => f !== null
+  );
+  return [...stamped, record];
+}
+
+// ---------------------------------------------------------------------------
+// Deterministic .tar.gz: fixed mode, owner and time, stored (uncompressed)
+// deflate blocks, so the bytes and the digest depend on the content alone and
+// the generated-files check passes on any machine and zlib build.
+// ---------------------------------------------------------------------------
+
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32(buf: Buffer): number {
+  let c = 0xffffffff;
+  for (const byte of buf) c = CRC_TABLE[(c ^ byte) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function tarHeader(name: string, size: number): Buffer {
+  const h = Buffer.alloc(512);
+  const put = (value: string, offset: number, length: number) =>
+    h.write(value, offset, Math.min(length, Buffer.byteLength(value)), 'utf8');
+  put(name, 0, 100);
+  put('0000644\0', 100, 8);
+  put('0000000\0', 108, 8);
+  put('0000000\0', 116, 8);
+  put(size.toString(8).padStart(11, '0') + '\0', 124, 12);
+  put('00000000000\0', 136, 12);
+  h.fill(' ', 148, 156);
+  put('0', 156, 1);
+  put('ustar\0', 257, 6);
+  put('00', 263, 2);
+  let sum = 0;
+  for (const byte of h) sum += byte;
+  put(sum.toString(8).padStart(6, '0') + '\0 ', 148, 8);
+  return h;
+}
+
+function tarGz(files: Map<string, Buffer>): Buffer {
+  const parts: Buffer[] = [];
+  for (const [name, data] of files) {
+    if (Buffer.byteLength(name) > 100) throw new Error(`skill archive: path too long ${name}`);
+    parts.push(tarHeader(name, data.length), data, Buffer.alloc((512 - (data.length % 512)) % 512));
+  }
+  parts.push(Buffer.alloc(1024));
+  const tar = Buffer.concat(parts);
+
+  const blocks: Buffer[] = [Buffer.from([0x1f, 0x8b, 8, 0, 0, 0, 0, 0, 0, 0xff])];
+  for (let off = 0; off < tar.length; off += 0xffff) {
+    const chunk = tar.subarray(off, off + 0xffff);
+    const head = Buffer.alloc(5);
+    head[0] = off + 0xffff >= tar.length ? 1 : 0;
+    head.writeUInt16LE(chunk.length, 1);
+    head.writeUInt16LE(~chunk.length & 0xffff, 3);
+    blocks.push(head, chunk);
+  }
+  const trailer = Buffer.alloc(8);
+  trailer.writeUInt32LE(crc32(tar), 0);
+  trailer.writeUInt32LE(tar.length >>> 0, 4);
+  blocks.push(trailer);
+  return Buffer.concat(blocks);
 }
 
 /**
- * Agent Skills Discovery RFC v0.2.0 index.
- * Schema: https://schemas.agentskills.io/discovery/0.2.0/schema.json
- * Top-level: `$schema` + `skills[]`; each skill: name, type ("skill-md"),
- * description (≤1024), url (path-absolute), digest ("sha256:<64 hex>").
- * SKILL.md files are served under /.well-known/skills/<name>/SKILL.md.
+ * Content version of one skill in the legacy index: Kilo Code and OpenCode
+ * download a skill again only when it changes.
  */
-function generateIndexJson(digests: Map<string, string>): string {
-  const entries = [
-    ...SKILL_TAG_MAP.map((c) => ({ name: c.name, description: c.description })),
-    { name: ROUTER_SKILL_CONFIG.name, description: ROUTER_SKILL_CONFIG.description },
-  ];
-
-  const skills = entries
-    .filter((e) => digests.has(e.name))
-    .map((e) => ({
-      name: e.name,
-      type: 'skill-md' as const,
-      description: e.description.slice(0, 1024),
-      url: `/.well-known/skills/${e.name}/SKILL.md`,
-      digest: digests.get(e.name)!,
-    }));
-
-  const index = {
-    $schema: 'https://schemas.agentskills.io/discovery/0.2.0/schema.json',
-    skills,
-  };
-
-  return JSON.stringify(index, null, 2) + '\n';
+function skillVersion(skill: Skill): string {
+  const hash = crypto.createHash('sha256');
+  for (const [file, data] of skill.files) {
+    hash.update(`${file}\0${data.length}\0`);
+    hash.update(data);
+  }
+  return hash.digest('hex').slice(0, 12);
 }
 
-/** "pachca-group-tags" → "Pachca Group Tags" — readable A2A skill name. */
-function humanizeSkillName(slug: string): string {
-  return slug
-    .split('-')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
+// ---------------------------------------------------------------------------
+// Deterministic ZIP for uploads (the Claude app, Yandex AI Studio): the skill
+// folder at the top, stored entries, a fixed date and Unix modes, so the bytes
+// depend on the content alone, like the .tar.gz above.
+// ---------------------------------------------------------------------------
+
+/** 1980-01-01 00:00, the earliest date a ZIP entry can hold. */
+const ZIP_DOS_TIME = 0;
+const ZIP_DOS_DATE = (1 << 5) | 1;
+
+/** Entries in order; `null` data is a directory (name ends with `/`). */
+function zipStored(entries: [string, Buffer | null][]): Buffer {
+  const local: Buffer[] = [];
+  const central: Buffer[] = [];
+  let offset = 0;
+  for (const [name, data] of entries) {
+    const nameBuf = Buffer.from(name, 'utf8');
+    const body = data ?? Buffer.alloc(0);
+    const crc = data ? crc32(body) : 0;
+    const head = Buffer.alloc(30);
+    head.writeUInt32LE(0x04034b50, 0);
+    head.writeUInt16LE(20, 4); // version needed to extract
+    head.writeUInt16LE(0, 6); // flags
+    head.writeUInt16LE(0, 8); // method: stored
+    head.writeUInt16LE(ZIP_DOS_TIME, 10);
+    head.writeUInt16LE(ZIP_DOS_DATE, 12);
+    head.writeUInt32LE(crc, 14);
+    head.writeUInt32LE(body.length, 18);
+    head.writeUInt32LE(body.length, 22);
+    head.writeUInt16LE(nameBuf.length, 26);
+    head.writeUInt16LE(0, 28); // extra length
+    local.push(head, nameBuf, body);
+
+    const dir = Buffer.alloc(46);
+    dir.writeUInt32LE(0x02014b50, 0);
+    dir.writeUInt16LE(0x0314, 4); // made by Unix, 2.0: the mode bits below apply
+    dir.writeUInt16LE(20, 6);
+    dir.writeUInt16LE(0, 8);
+    dir.writeUInt16LE(0, 10);
+    dir.writeUInt16LE(ZIP_DOS_TIME, 12);
+    dir.writeUInt16LE(ZIP_DOS_DATE, 14);
+    dir.writeUInt32LE(crc, 16);
+    dir.writeUInt32LE(body.length, 20);
+    dir.writeUInt32LE(body.length, 24);
+    dir.writeUInt16LE(nameBuf.length, 28);
+    // extra, comment, disk number and internal attributes stay 0 (offsets 30–37)
+    dir.writeUInt32LE(data ? (0o100644 << 16) >>> 0 : ((0o40755 << 16) | 0x10) >>> 0, 38);
+    dir.writeUInt32LE(offset, 42);
+    central.push(dir, nameBuf);
+    offset += head.length + nameBuf.length + body.length;
+  }
+  const cd = Buffer.concat(central);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(entries.length, 8);
+  end.writeUInt16LE(entries.length, 10);
+  end.writeUInt32LE(cd.length, 12);
+  end.writeUInt32LE(offset, 16);
+  return Buffer.concat([...local, cd, end]);
+}
+
+/** `<name>/` with the skill inside, each directory entry right before its first file. */
+function skillZip(skill: Skill): Buffer {
+  const entries: [string, Buffer | null][] = [];
+  const dirs = new Set<string>();
+  const addDir = (d: string) => {
+    if (!dirs.has(d)) {
+      dirs.add(d);
+      entries.push([`${d}/`, null]);
+    }
+  };
+  addDir(skill.name);
+  for (const [file, data] of skill.files) {
+    const parts = file.split('/');
+    for (let i = 1; i < parts.length; i++) addDir(`${skill.name}/${parts.slice(0, i).join('/')}`);
+    entries.push([`${skill.name}/${file}`, data]);
+  }
+  return zipStored(entries);
+}
+
+// ---------------------------------------------------------------------------
+
+/**
+ * Links into the entry skill's own files, made absolute for `/skill.md`. A sibling
+ * skill named in backticks becomes a link to its published SKILL.md: on the site
+ * the agent has no plugin next to it, so a bare name leads nowhere. Code blocks
+ * stay as they are.
+ */
+function absolutizeEntryLinks(md: string, skillNames: Set<string>): string {
+  return md
+    .split(/(^```[\s\S]*?^```)/m)
+    .map((part) =>
+      part.startsWith('```')
+        ? part
+        : part
+            .replace(
+              /\]\((?!https?:|#)([^)\s]+)\)/g,
+              (_, target: string) => `](${SITE_URL}/.well-known/skills/${ENTRY_SKILL}/${target})`
+            )
+            .replace(/(?<!\[)`(pachca-[a-z-]+)`(?!\])/g, (whole, name: string) =>
+              skillNames.has(name) && name !== ENTRY_SKILL
+                ? `[\`${name}\`](${SITE_URL}/.well-known/skills/${name}/SKILL.md)`
+                : whole
+            )
+    )
+    .join('');
 }
 
 /**
- * A2A (Agent2Agent) Agent Card, schema v0.2.0, served at
- * /.well-known/agent-card.json. Re-projects the same skill set as the
- * agentskills.io discovery index into the A2A shape so A2A-aware orchestrators
- * can discover the docs as an agent. Does NOT require an MCP server.
+ * Reads, checks and publishes the skills, checks the plugin around them and
+ * returns its manifests with the version written in. Runs after the page `.md`
+ * files are written: the links of every skill are checked against them. Throws
+ * with the full list of problems, so one build shows them all.
  */
-function generateAgentCardJson(digests: Map<string, string>): string {
-  const SITE = 'https://dev.pachca.com';
-  const configs = [...SKILL_TAG_MAP, ROUTER_SKILL_CONFIG].filter((c) => digests.has(c.name));
-
-  const card = {
-    schemaVersion: '0.2.0',
-    name: 'Pachca API Documentation',
-    description:
-      'Документация и agent-ready навыки для REST API мессенджера Пачка: сообщения, чаты, сотрудники, треды, задачи, боты, вебхуки.',
-    url: SITE,
-    version: '1.0.0',
-    documentationUrl: `${SITE}/llms.txt`,
-    capabilities: { streaming: false },
-    skills: configs.map((c) => ({
-      id: c.name,
-      name: humanizeSkillName(c.name),
-      description: c.description.slice(0, 1024),
-      tags: c.tags ?? [],
-      url: `${SITE}/.well-known/skills/${c.name}/SKILL.md`,
-    })),
+export function publishSkills(): PublishedFile[] {
+  const problems: string[] = [];
+  const all = readSkills(problems);
+  /** Published on the site: knowledge skills only. Commands ship in the plugin. */
+  const skills = all.filter((s) => !s.command);
+  const names = new Set(skills.map((s) => s.name));
+  const manifestTools = loadManifestTools();
+  const evalTools = evalToolsJson(manifestTools, problems);
+  const ctx: CheckContext = {
+    skills: names,
+    tools: new Set(manifestTools.map((t) => t.name)),
+    commands: loadCliCommands(),
+    pluginSkills: new Set(all.map((s) => s.name)),
+    problems,
   };
 
-  return JSON.stringify(card, null, 2) + '\n';
+  for (const skill of all) checkSkill(skill, ctx);
+  const readme = path.join(PLUGIN_DIR, 'README.md');
+  if (fs.existsSync(readme))
+    checkMarkdown(fs.readFileSync(readme, 'utf8'), `${PLUGIN_REL}/README.md`, ctx);
+  const pluginFiles = checkPlugin(problems);
+
+  const entry = skills.find((s) => s.name === ENTRY_SKILL);
+  if (!entry) problems.push(`${SOURCE_REL}/${ENTRY_SKILL}: the entry skill is missing`);
+  else {
+    const entryMd = entry.files.get('SKILL.md')!.toString('utf8');
+    for (const s of skills) {
+      if (s.name !== ENTRY_SKILL && !entryMd.includes(`\`${s.name}\``)) {
+        problems.push(`${SOURCE_REL}/${ENTRY_SKILL}/SKILL.md: does not route to ${s.name}`);
+      }
+    }
+  }
+  for (const s of skills) {
+    if (!SKILL_SUMMARIES[s.name])
+      problems.push(`${SOURCE_REL}/${s.name}: no line in SKILL_SUMMARIES`);
+  }
+  for (const name of Object.keys(SKILL_SUMMARIES)) {
+    if (!names.has(name)) problems.push(`SKILL_SUMMARIES: no skill ${name}`);
+  }
+
+  if (problems.length > 0) {
+    throw new Error(`Agent skills failed the checks:\n  - ${problems.join('\n  - ')}`);
+  }
+
+  const out: PublishedFile[] = [];
+  const pub = (p: string) => `apps/docs/public/${p}`;
+  const v2Entries: object[] = [];
+  const v1Entries: object[] = [];
+
+  for (const skill of skills) {
+    for (const [file, data] of skill.files) {
+      out.push({ path: pub(`.well-known/skills/${skill.name}/${file}`), content: data });
+    }
+    v1Entries.push({
+      name: skill.name,
+      description: skill.description,
+      version: skillVersion(skill),
+      files: [...skill.files.keys()],
+    });
+
+    if (skill.files.size === 1) {
+      const data = skill.files.get('SKILL.md')!;
+      out.push({ path: pub(`.well-known/agent-skills/${skill.name}/SKILL.md`), content: data });
+      v2Entries.push({
+        name: skill.name,
+        type: 'skill-md',
+        description: skill.description,
+        url: `/.well-known/agent-skills/${skill.name}/SKILL.md`,
+        digest: sha256(data),
+      });
+    } else {
+      const archive = tarGz(skill.files);
+      out.push({ path: pub(`.well-known/agent-skills/${skill.name}.tar.gz`), content: archive });
+      v2Entries.push({
+        name: skill.name,
+        type: 'archive',
+        description: skill.description,
+        url: `/.well-known/agent-skills/${skill.name}.tar.gz`,
+        digest: sha256(archive),
+      });
+    }
+    out.push({ path: pub(`skills/${skill.name}.zip`), content: skillZip(skill) });
+  }
+
+  const json = (value: unknown) => JSON.stringify(value, null, 2) + '\n';
+  out.push({
+    path: pub('.well-known/agent-skills/index.json'),
+    content: json({ $schema: DISCOVERY_SCHEMA, skills: v2Entries }),
+  });
+  out.push({ path: pub('.well-known/skills/index.json'), content: json({ skills: v1Entries }) });
+  out.push({
+    path: pub('skill.md'),
+    content: absolutizeEntryLinks(entry!.files.get('SKILL.md')!.toString('utf8'), names),
+  });
+  out.push({ path: 'AGENTS.md', content: generateAgentsMd() });
+  out.push(...pluginFiles);
+  if (evalTools) out.push(evalTools);
+
+  return out;
 }
 
 /**
  * AGENTS.md (agents.md / AAIF standard): instructions for AI coding agents
  * working ON this repository — not for agents consuming the Pachca API
- * (that lives in skill.md / llms.txt / skills/). Generated so it stays in
+ * (that lives in skill.md / llms.txt / plugins/pachca/). Generated so it stays in
  * sync; keep it concise and factual.
  */
 function generateAgentsMd(): string {
   return `# AGENTS.md
 
 Guidance for AI coding agents working in this repository. (Using the Pachca
-API instead of contributing here? See \`skill.md\`, \`/llms.txt\`, or the
-\`skills/\` directory — not this file.)
+API instead of contributing here? See https://dev.pachca.com/skill.md,
+https://dev.pachca.com/llms.txt, the MCP server https://mcp.pachca.com/mcp,
+or the plugin in \`plugins/pachca/\` — not this file.)
 
 ## What this repo is
 
@@ -874,12 +1103,13 @@ single source of truth; everything else is generated from it.
 
 | Path | What |
 |------|------|
-| \`packages/spec\` | TypeSpec (\`typespec.tsp\`) → \`openapi.yaml\`; English overlay → \`openapi.en.yaml\`; MCP tool manifest (\`mcp-manifest.json\`); \`workflows.ts\`, examples |
+| \`packages/spec\` | TypeSpec (\`typespec.tsp\`) → \`openapi.yaml\`; English overlay → \`openapi.en.yaml\`; MCP tool manifest (\`mcp-manifest.json\`), examples |
 | \`packages/cli\` | oclif CLI \`@pachca/cli\`, generated from OpenAPI |
 | \`packages/generator\` | Multi-language SDK generator |
 | \`packages/openapi-parser\` | Shared OpenAPI parser |
 | \`packages/mcp-manifest\` | npm package \`@pachca/mcp-manifest\`: the MCP tool manifest and its JSON Schema, copied from \`packages/spec\` by the build |
 | \`apps/docs\` | Next.js 16 docs site (dev.pachca.com): \`content/\` MDX, \`lib/\`, \`scripts/\` generators, \`public/\` generated artifacts |
+| \`plugins/pachca\` | The Pachca plugin for Claude Code, the Claude app, Codex, VS Code and GitHub Copilot, and Cursor: hand-written skills (knowledge skills and slash-only commands), MCP configs and one manifest per host |
 | \`integrations/n8n\` | n8n community node |
 
 ## Build & check
@@ -902,7 +1132,8 @@ review generated diffs → commit. Branch from \`origin/main\`; open a PR
 | \`packages/spec/openapi.en.yaml\` | \`packages/spec/overlay.en.yaml\` + \`scripts/apply-overlay.ts\` (a changed Russian text also needs \`bun run overlay:fingerprints\` in \`packages/spec\`) |
 | \`packages/spec/mcp-manifest.json\` | the spec + \`packages/spec/mcp-core.ts\`, \`mcp-tools.ts\`, \`scripts/generate-mcp-manifest.ts\` (then \`bun run generate-mcp\` in \`packages/spec\`) |
 | \`packages/mcp-manifest/mcp-manifest.json\`, \`mcp-manifest.schema.json\` | copies of \`packages/spec/mcp-manifest.json\` and \`mcp-manifest.schema.json\` (\`npx turbo build --filter=@pachca/mcp-manifest\`); a changed manifest needs a new version on top of \`packages/mcp-manifest/CHANGELOG.md\` and in its \`package.json\` (the package is not in \`releases.json\`) |
-| \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, \`public/skill.md\`, \`public/.well-known/**\`, \`public/workflows.arazzo.yaml\`, Postman collection, root \`SKILL.md\` + \`skill.json\` | \`apps/docs/scripts/generate-llms.ts\` + \`scripts/skills/\` |
+| \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, Postman collection | \`apps/docs/scripts/generate-llms.ts\` |
+| \`apps/docs/public/skill.md\`, \`public/.well-known/**\`, \`public/skills/*.zip\`, \`plugins/pachca/evals/mocks/pachca/_tools.json\`, and the \`version\` in \`plugins/pachca/plugin.json\`, \`.claude-plugin/plugin.json\`, \`.cursor-plugin/plugin.json\` (recorded in \`apps/docs/scripts/skills/plugin-version.json\`) | the hand-written plugin in \`plugins/pachca/\`, checked and published by \`apps/docs/scripts/skills/generate.ts\` (links, MCP tool and CLI command names, size, manifests in step; the version is one patch above the committed one once the plugin files change) |
 | \`packages/cli/src/commands/**\` (except \`auth\`/\`config\`), \`packages/cli/CHANGELOG.md\` | \`packages/cli/scripts/generate-cli.ts\`; \`src/data/changelog.json\` |
 | n8n node files | \`integrations/n8n/scripts/generate-n8n.ts\` |
 | \`AGENTS.md\` (this file) | \`apps/docs/scripts/skills/generate.ts\` (\`generateAgentsMd()\`) |
@@ -920,6 +1151,7 @@ change to a published package ships with a release entry (and vice versa).
 - Snapshot regeneration for \`packages/generator\` is a bulk snapshot rewrite. Use \`cd packages/generator && npm run regen-snapshots\` (backed by top-level \`scripts/regen-generator-snapshots.ts\`) instead of ad-hoc \`bun -e\` one-offs or the old \`bin/\` / \`tests/\` helpers.
 - Restart the docs dev server after changing component registrations or new TS/TSX files (Turbopack HMR misses them).
 - Hand-written files must stay out of a turbo task's \`outputs\` globs. On a cache **hit** turbo restores every declared output over the working tree, silently reverting hand edits — the package script alone keeps them, so it looks intermittent. \`generate-n8n\` declares \`nodes/**/*.ts\`, so \`nodes/Pachca/GenericFunctions.ts\` and \`nodes/Pachca/V1/**\` are excluded by negation in \`turbo.json\`; keep new hand-written node files excluded too.
+- Never type the plugin \`version\`: once \`plugins/pachca\` (all but \`evals/\`) differs from the committed plugin, the docs build sets it one patch above the committed version and writes it into the three plugin manifests and \`apps/docs/scripts/skills/plugin-version.json\`. Rebuilding before the commit does not raise it again. After changing the plugin, run \`npx turbo build\` and commit those files with the change. If the version did not change after you changed the plugin, rerun with \`--force\`.
 
 ## Deep-dive docs (read before the relevant task)
 

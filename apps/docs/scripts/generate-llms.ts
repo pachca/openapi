@@ -16,9 +16,7 @@ import { TAG_TRANSLATIONS } from '../lib/tag-translations';
 import { getOrderedPages } from '../lib/ordered-pages';
 import type { Endpoint } from '../lib/openapi/types';
 import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
-import { generateAllSkills } from './skills/generate';
-import { SKILL_TAG_MAP, ROUTER_SKILL_CONFIG } from './skills/config';
-import { WORKFLOWS } from '@pachca/spec/workflows';
+import { publishSkills, SKILL_SUMMARIES } from './skills/generate';
 import {
   loadUpdates,
   loadTimeline,
@@ -30,6 +28,10 @@ import { groupBySeason, HOME_SEASON_LIMIT } from '../lib/seasons';
 import { getSdkExamples, getValidSdkSymbols } from '../lib/sdk-examples';
 
 const SITE_URL = 'https://dev.pachca.com';
+/** Update entries listed in the root llms.txt; the rest are in /updates/llms.txt. */
+const ROOT_UPDATES = 5;
+/** The root llms.txt must fit an agent's read: AFDocs warns above 50 000 characters. */
+const LLMS_TXT_MAX_CHARS = 50_000;
 
 function groupByTag(endpoints: Endpoint[]) {
   const grouped = new Map<string, Endpoint[]>();
@@ -74,7 +76,8 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += `> English-only: [llms-en.txt](${SITE_URL}/llms-en.txt) (~${sizes.llmsEnKTokens}K токенов).\n\n`;
   content +=
     `> Индексы разделов (только нужный срез): [/api/llms.txt](${SITE_URL}/api/llms.txt) — методы и основы API, ` +
-    `[/guides/llms.txt](${SITE_URL}/guides/llms.txt) — руководства.\n\n`;
+    `[/guides/llms.txt](${SITE_URL}/guides/llms.txt) — руководства, ` +
+    `[/updates/llms.txt](${SITE_URL}/updates/llms.txt) — обновления по датам.\n\n`;
 
   // Compact self-contained essentials so an agent reading only llms.txt
   // (without fetching sub-pages) still has the core rules. Summary-level
@@ -83,12 +86,19 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // agent that skims only the top of the file.
   content += '## Основное\n\n';
   content +=
-    '- **Авторизация:** `Authorization: Bearer <TOKEN>`. Два типа токена: **личный** — ' +
-    'работает от имени человека и видит ровно то же, что видит он; **бот** — работает от ' +
-    'имени бота, видит открытые каналы пространства и закрытые чаты, куда бота добавили. ' +
+    '- **Авторизация:** `Authorization: Bearer <TOKEN>`. Два типа токена. **Личный** ' +
+    'работает от имени сотрудника и видит ровно то же, что видит он. **Бот** работает от ' +
+    'имени бота, видит все открытые беседы и каналы пространства и закрытые чаты и треды, куда бота добавили. ' +
     'Скоупы открывают методы, но не расширяют круг данных за границы типа токена. Личный ' +
     'токен из интерфейса бессрочный, полученный входом через CLI живёт час и продлевается ' +
     'сам.\n';
+  content +=
+    '- **MCP-сервер:** `https://mcp.pachca.com/mcp`, права те же, что у токена. ' +
+    'Подробнее — в разделе «MCP-сервер» ниже.\n';
+  content +=
+    '- **Способы работы:** MCP-сервер для программ с агентом, CLI для агента с терминалом, ' +
+    'скриптов и CI, REST API и SDK для своей интеграции, бот для агента, который живёт в ' +
+    `Пачке, и нода n8n. Что выбрать — [Как подключить Пачку к агенту](${SITE_URL}/guides/ai-agents/overview.md).\n`;
   content +=
     '- **Пагинация (курсорная):** `limit` (1–50, дефолт 50) + `cursor`. Передавай `limit` явно.\n';
   content +=
@@ -150,16 +160,17 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '## Просьбы без отдельного метода\n\n';
   content += 'Эти задачи закрываются тем, что в API уже есть:\n\n';
   content +=
-    '- **Отправить сообщение позже, к нужному времени** — напоминание `POST /tasks` с ' +
-    '`kind: reminder` и `due_at`, либо планировщик снаружи (cron, n8n), который в нужный ' +
-    'момент вызовет `POST /messages`.\n';
+    '- **Отправить сообщение позже, к нужному времени** — с личным токеном это отложенное ' +
+    'сообщение: `POST /drafts` с `schedule`, однократно или с повтором. Токен бота отложенных ' +
+    'не создаёт: напоминание `POST /tasks` с `kind: reminder` и `due_at` либо планировщик ' +
+    'снаружи (cron, n8n), который в нужный момент вызовет `POST /messages`.\n';
   content +=
     '- **Опрос, голосование** — сообщение с вариантами, голоса собираются реакциями: ' +
     '`GET /messages/{id}/reactions` отдаёт, кто за какой вариант. Для строгого подсчёта — ' +
     '`buttons` в сообщении бота и свой обработчик исходящего вебхука.\n';
   content +=
-    '- **Когда человек последний раз был активен** — поле `last_activity_at` в `GET /users`. ' +
-    'Режим «Нет на месте» — `is_away` в `GET /users/{user_id}/status`; поле `user_status` — ' +
+    '- **Когда сотрудник последний раз был активен** — поле `last_activity_at` в `GET /users`. ' +
+    'Режим «Нет на месте» — `is_away` в `GET /users/{user_id}/status`. Поле `user_status` — ' +
     'это статус, который сотрудник ставит себе сам, к присутствию отношения не имеет.\n';
   content +=
     '- **Созвониться с коллегой** — `meet_room_url` объекта чата, постоянная ссылка на ' +
@@ -168,16 +179,15 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
 
   content += '## CLI Quick Start\n\n';
   content += '```bash\n';
-  content += '# Zero-install (npx)\n';
-  content += 'npx -y @pachca/cli <command> --token <TOKEN>\n';
+  content += '# Zero-install (npx), token from the environment\n';
+  content += 'PACHCA_TOKEN=<TOKEN> npx -y @pachca/cli <command>\n';
   content += '\n';
   content += '# For regular use\n';
   content += 'npm install -g @pachca/cli\n';
   content += 'pachca auth login\n';
   content += 'pachca messages create --entity-id=<chat_id> --content="Hello"\n';
-  content += 'pachca guide "отправить сообщение"  # CLI guide for humans\n';
   content += '\n';
-  content += '# Docs for any endpoint — without loading llms-full.txt\n';
+  content += '# Docs for any endpoint, no sign-in or token needed\n';
   content += 'npx -y @pachca/cli api ls                         # list every endpoint\n';
   content += 'npx -y @pachca/cli api POST /messages --describe  # params, body, scope\n';
   content += 'npx -y @pachca/cli api GET /messages --spec       # OpenAPI fragment\n';
@@ -192,8 +202,9 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |\n';
   content += '| Python | `pachca-sdk` | `pip install pachca-sdk` |\n';
   content +=
-    '| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
-  content += '| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |\n';
+    '| Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
+  content +=
+    '| Kotlin | `com.pachca:pachca-sdk` | `implementation("com.pachca:pachca-sdk:latest.release")` |\n';
   content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n';
   content += '| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |\n\n';
   content += 'Конвенции:\n';
@@ -214,21 +225,68 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     'C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessageAsync(...)\n';
   content += '```\n\n';
 
-  content += '## Agent Skills\n\n';
-  content += 'Скиллы для AI-агентов (Claude Code, Cursor и др.):\n\n';
-  content += '| Скилл | Описание |\n';
-  content += '|-------|---------|\n';
-  for (const config of SKILL_TAG_MAP) {
-    const shortDesc = config.description.split('.')[0];
-    content += `| ${config.name} | ${shortDesc} |\n`;
+  content += '## MCP-сервер\n\n';
+  content +=
+    'Адрес: `https://mcp.pachca.com/mcp` (Streamable HTTP). Инструмент на каждый метод API, ' +
+    'список зависит от роли, тарифа и типа токена. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex ' +
+    'и приложение ChatGPT на компьютере входят через браузер с экраном согласия (OAuth Client ID Metadata Document). Остальные программы ' +
+    'передают персональный токен или токен бота в заголовке `Authorization: Bearer <TOKEN>`. ' +
+    'Codex и приложение ChatGPT на компьютере (подключение у них общее): ' +
+    '`codex mcp add pachca --url https://mcp.pachca.com/mcp` добавляет сервер и сразу открывает вход. ' +
+    'На компьютере без браузера войдите командой `codex mcp login pachca --no-browser`, она выведет ссылку. ' +
+    'В CI добавьте к `codex mcp add` флаг `--bearer-token-env-var PACHCA_TOKEN`: токен Codex возьмёт из переменной. ' +
+    'Агенты в Yandex AI Studio и на GigaChat (GigaChain, `langchain-mcp-adapters`) подключаются токеном ' +
+    'бота в том же заголовке. Claude Code с плагином «Пачка»: сервер уже есть и называется ' +
+    '`plugin:pachca:pachca`, вход через `/mcp` или `claude mcp login plugin:pachca:pachca`. ' +
+    'Без плагина: `claude mcp add --transport http pachca https://mcp.pachca.com/mcp`, затем `/mcp` для входа. ' +
+    `Как устроен: [MCP-сервер](${SITE_URL}/guides/mcp/overview.md), подключение программ: ` +
+    `[Подключение к MCP](${SITE_URL}/guides/mcp/connect.md), все инструменты: ` +
+    `[Инструменты MCP](${SITE_URL}/guides/mcp/tools.md).\n\n`;
+
+  content += '## Плагин и скиллы\n\n';
+  content +=
+    'Знание о том, как правильно делать задачи в Пачке: куда писать, что подтверждать, какой токен взять, ' +
+    'как устроены права. Справочник по аргументам — в описаниях инструментов MCP, `pachca <команда> --help` ' +
+    'и страницах методов. Вход — скилл `pachca`, он же отдаётся по адресу ' +
+    `\`${SITE_URL}/skill.md\`.\n\n`;
+  content += '| Скилл | О чём |\n';
+  content += '|-------|-------|\n';
+  for (const [name, summary] of Object.entries(SKILL_SUMMARIES)) {
+    content += `| [${name}](${SITE_URL}/.well-known/skills/${name}/SKILL.md) | ${summary} |\n`;
   }
-  content += `| ${ROUTER_SKILL_CONFIG.name} | ${ROUTER_SKILL_CONFIG.description.split('.')[0]} |\n`;
   content += '\n';
-  content += 'Установка: `npx skills add pachca/openapi`\n\n';
+  content +=
+    'Установка. Плагин «Пачка» ставит MCP-сервер, скиллы и команды:\n\n' +
+    '- Claude Code: `claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins`, ' +
+    'затем `claude plugin install pachca@pachca`. Вход: `/mcp` или `claude mcp login plugin:pachca:pachca`. ' +
+    'Сервер, добавленный вручную по тому же адресу, заменяет сервер плагина, поэтому с плагином `claude mcp add` не нужен.\n' +
+    '- Codex: `codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca`, ' +
+    'затем `codex plugin add pachca@pachca`. Вход: `codex mcp login pachca`. Где входить некому, сервер с персональным токеном ' +
+    '`codex mcp add pachca --url https://mcp.pachca.com/mcp --bearer-token-env-var PACHCA_TOKEN` заменяет сервер плагина.\n' +
+    '- GitHub Copilot CLI и VS Code: `copilot plugin marketplace add pachca/openapi`, затем ' +
+    '`copilot plugin install pachca@pachca`. Вход в Copilot CLI: `/mcp auth pachca`.\n' +
+    '- Cursor: `agent plugin marketplace add https://github.com/pachca/openapi`, затем `/plugin` в сессии агента. ' +
+    'Сервер плагина берёт персональный токен из переменной окружения `PACHCA_TOKEN`, после её задания Cursor нужно перезапустить.\n\n';
+  content +=
+    `Только скиллы, для остальных агентов: \`npx skills add ${SITE_URL} -g -a <агент> -y\`, где \`<агент>\` — это ` +
+    '`opencode`, `devin`, `cline`, `kilo`, `qwen-code`, `gemini-cli`, `cursor`, `codex`, `github-copilot`, `claude-code` и другие. ' +
+    'Нужен Node.js 22.20 или новее. Если команду запускает агент, флаги `-a` и `-y` обязательны: без `-a` она может без вопросов ' +
+    'поставить скиллы во все найденные агенты. В агент, где уже стоит плагин, скиллы этой командой не ставьте: у него окажется ' +
+    'по две копии каждого скилла. ' +
+    'С `-g` скиллы ложатся в общие папки `~/.agents/skills/` и `~/.claude/skills/`, без `-g` в `.agents/skills/` или `.claude/skills/` проекта. ' +
+    'Эти папки читают и программы с плагином: Claude Code, Codex, Cursor, VS Code. Если плагин стоит в одной из них, ' +
+    'распакуйте скиллы архивом в папку, которую читает только нужный агент, например `~/.config/opencode/skills/` для OpenCode. ' +
+    'Команды плагина ставятся только с плагином. ' +
+    `Без Node.js архив \`${SITE_URL}/.well-known/agent-skills/<скилл>.tar.gz\` распаковывается в папку ` +
+    '`<папка скиллов агента>/<скилл>/`, общей папки в архиве нет. ' +
+    `ZIP с папкой скилла для Yandex AI Studio и приложения Claude: \`${SITE_URL}/skills/<скилл>.zip\`. ` +
+    `Подробнее: [Плагин и скиллы](${SITE_URL}/guides/mcp/plugin.md).\n\n`;
   // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
   // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
-  content += `Индекс скиллов: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
-  content += `Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.\n\n`;
+  content +=
+    `Индекс скиллов (Agent Skills Discovery 0.2.0): \`${SITE_URL}/.well-known/agent-skills/index.json\`, ` +
+    `прежний формат и файлы скиллов по отдельности: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
+  content += `Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman), доками (HTML, llms.txt) и метаданными.\n\n`;
 
   content += '## Руководства\n';
   for (const guide of guidePages) {
@@ -252,9 +310,11 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   }
 
   content += '## Обновления\n';
-  for (const u of loadUpdates()) {
+  const updates = loadUpdates();
+  for (const u of updates.slice(0, ROOT_UPDATES)) {
     content += `- [${u.displayDate} — ${u.title}](${SITE_URL}/updates/${u.date}.md)\n`;
   }
+  content += `- Все записи по датам: [/updates/llms.txt](${SITE_URL}/updates/llms.txt)\n`;
   content += '\n';
 
   content += '## Дополнительно\n';
@@ -262,8 +322,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // и коллекции для инструментов, а не doc-страницы (иначе их сэмплят как страницы).
   content += `- OpenAPI 3.0 spec: \`${SITE_URL}/openapi.yaml\` — машиночитаемая спецификация API для кодогенерации и инструментов\n`;
   content += `- Postman collection: \`${SITE_URL}/pachca.postman_collection.json\` — готовая коллекция для импорта в Postman/Bruno/Insomnia\n`;
-  content += `- Arazzo 1.0.1: \`${SITE_URL}/workflows.arazzo.yaml\` — многошаговые сценарии API, порядок вызовов для агентов\n`;
-  content += `- [Agent Skill](${SITE_URL}/skill.md): Описание API для AI-агентов (SKILL.md)\n`;
+  content += `- [Скилл pachca](${SITE_URL}/skill.md): вход для AI-агента, подключение к Пачке, выбор токена и куда идти дальше\n`;
   content += '- [Веб-сайт](https://pachca.com/)\n';
   content += '- [Получить помощь](mailto:team@pachca.com)\n';
   content += '\n____\n';
@@ -285,12 +344,13 @@ function insertLlmsDocumentMap(content: string): string {
 
   const cliIdx = idxOf('## CLI Quick Start');
   const sdkIdx = idxOf('## SDK');
-  const skillsIdx = idxOf('## Agent Skills');
+  const mcpIdx = idxOf('## MCP-сервер');
+  const skillsIdx = idxOf('## Плагин и скиллы');
   const coreIdx = idxOf('## Основное');
   const guidesIdx = idxOf('## Руководства');
   const updIdx = idxOf('## Обновления');
   const addIdx = idxOf('## Дополнительно');
-  if ([cliIdx, sdkIdx, skillsIdx, coreIdx, guidesIdx, updIdx, addIdx].some((i) => i < 0))
+  if ([cliIdx, sdkIdx, mcpIdx, skillsIdx, coreIdx, guidesIdx, updIdx, addIdx].some((i) => i < 0))
     return content;
 
   // First API tag section: first `## ` header after Руководства that is not Дополнительно
@@ -309,7 +369,8 @@ function insertLlmsDocumentMap(content: string): string {
     { name: 'Основное', desc: 'Авторизация, пагинация, лимиты, ошибки, файлы', idx: coreIdx },
     { name: 'CLI Quick Start', desc: 'Установка, команды, точечная справка по API', idx: cliIdx },
     { name: 'SDK', desc: 'Типизированные клиенты для 6 языков', idx: sdkIdx },
-    { name: 'Agent Skills', desc: 'Скиллы для AI-агентов и установка', idx: skillsIdx },
+    { name: 'MCP-сервер', desc: 'Адрес, вход и инструменты MCP', idx: mcpIdx },
+    { name: 'Плагин и скиллы', desc: 'Скиллы для AI-агентов, установка плагина', idx: skillsIdx },
     { name: 'Руководства', desc: 'Страницы-руководства (Markdown по `.md`)', idx: guidesIdx },
     { name: 'API-методы', desc: 'Все эндпоинты, сгруппированы по разделам', idx: apiIdx },
     { name: 'Обновления', desc: 'Журнал обновлений по датам', idx: updIdx },
@@ -363,16 +424,19 @@ function generateLibraryRules(): string {
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
 - Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
 - A personal token issued in the interface does not expire; one obtained by \`pachca auth login\` lives an hour and renews itself
+- MCP server: \`https://mcp.pachca.com/mcp\`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex and the ChatGPT desktop app (it shares the Codex setup) sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in \`Authorization: Bearer <TOKEN>\`. Setup per client: ${SITE_URL}/guides/mcp/connect.md (Russian), in English: ${SITE_URL}/skill.md and ${SITE_URL}/.well-known/skills/pachca/references/mcp-clients.md. Plugin with the server and skills: ${SITE_URL}/guides/mcp/plugin.md (Russian)
+- Pachca plugin (MCP server, skills and commands in one install): Claude Code — \`claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins\`, then \`claude plugin install pachca@pachca\`; Codex — \`codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca\`, then \`codex plugin add pachca@pachca\`; GitHub Copilot CLI and VS Code — \`copilot plugin marketplace add pachca/openapi\`, then \`copilot plugin install pachca@pachca\`; Cursor — \`agent plugin marketplace add https://github.com/pachca/openapi\`, then \`/plugin\` in an agent session, with a personal token in the \`PACHCA_TOKEN\` environment variable
+- Ways to work with Pachca: the MCP server for agent apps, the CLI for agents with a terminal, scripts and CI, the REST API and SDKs for your own integration, a bot for an agent that lives in Pachca, the n8n node. Which to pick (Russian): ${SITE_URL}/guides/ai-agents/overview.md
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: \`const client = new PachcaClient("YOUR_TOKEN")\`
 - Python SDK: \`client = PachcaClient("YOUR_TOKEN")\`
 
 ## Rate limits
 - Sending messages (POST /messages): about 4 per second per chat, 30 requests per 5 seconds across all chats, and 7,500 messages per chat per rolling day from one sender. Hitting the daily cap pauses that chat for an hour and every further attempt doubles the pause. Editing and deleting messages fall under the general limit
-- Reading messages (GET methods under /messages): about 10 per second per token. Event history (GET /webhooks/events): about 5 per 2 seconds per token. Other endpoints: about 50 per second per token
+- Reading messages (GET methods under /messages and GET /important_messages, one shared counter): about 10 per second per token. Marking and unmarking important (POST and DELETE /important_messages): about 30 per 5 seconds per token. Event history (GET /webhooks/events and GET /webhooks/events/stream): about 5 per 2 seconds per token. Other endpoints: about 50 per second per token
 - Incoming webhooks: about 10 per second per webhook id (counted by the identifier in the path, e.g. \`/webhooks/user123\`)
 - A \`429\` comes as ordinary JSON with the code \`rate_limit\` and a \`Retry-After\` header, from the per-second limits and the daily cap alike. Incoming webhooks answer \`429\` with plain text
-- Retries: never wait less than \`Retry-After\` and add jitter upward only. Do not retry pauses longer than a minute (the daily cap, overload protection): return the error with \`Retry-After\` instead. Retry \`5xx\` with exponential backoff and jitter, at most 3 times. The SDK (@pachca/sdk, pachca-sdk), CLI and n8n node retry by themselves
+- Retries: never wait less than \`Retry-After\` and add jitter upward only. Do not retry pauses longer than a minute (the daily cap, overload protection): return the error with \`Retry-After\` instead. Retry \`500\`, \`502\`, \`503\` and \`504\` with backoff and jitter, at most 3 times, and only for \`GET\`, \`HEAD\`, \`OPTIONS\`, \`PUT\` and \`DELETE\`: a \`POST\` after a \`5xx\` may already be applied, so it is never retried blind. A \`504\` with the code \`timeout\` is a search that did not finish in time: it comes back at once, and the same query would time out again. The SDK (@pachca/sdk, pachca-sdk), CLI and n8n node retry by these rules themselves
 
 ## Pagination
 - Cursor-based: use \`limit\` (1–50, default 50) and \`cursor\` query parameters. Always set \`limit\` explicitly — do not rely on the default
@@ -419,8 +483,8 @@ function generateLibraryRules(): string {
 - \`404\`: not found
 - \`409\`: conflict (duplicate)
 - \`422\`: unprocessable — \`{ errors: [{ key, value, message, code }] }\`
-- \`429\`: rate limited — respect \`Retry-After\` header, use exponential backoff with jitter
-- SDK auto-retries \`429\` and \`5xx\` errors (3 attempts with exponential backoff)
+- \`429\`: rate limited — wait at least \`Retry-After\` and add jitter upward only, back off exponentially when the header is missing
+- SDK auto-retries \`429\` on every method after \`Retry-After\`, when the pause is a minute or shorter. \`500\`, \`502\`, \`503\` and \`504\` are retried only for \`GET\`, \`HEAD\`, \`OPTIONS\`, \`PUT\` and \`DELETE\`, never for \`POST\`. A \`504\` with the code \`timeout\` (the search did not finish in time) comes back at once. At most 3 retries
 
 ## Idempotency and Reliability
 - Pachca API operations are NOT idempotent by default — duplicate POST requests create duplicate resources
@@ -439,13 +503,13 @@ function generateLibraryRules(): string {
 |----------|---------|---------|
 | TypeScript | \`@pachca/sdk\` | \`npm install @pachca/sdk\` |
 | Python | \`pachca-sdk\` | \`pip install pachca-sdk\` |
-| Go | \`github.com/pachca/go-sdk\` | \`go get github.com/pachca/openapi/sdk/go/generated\` |
-| Kotlin | \`com.pachca:sdk\` | \`implementation("com.pachca:pachca-sdk:1.0.1")\` |
+| Go | \`github.com/pachca/openapi/sdk/go/generated\` | \`go get github.com/pachca/openapi/sdk/go/generated\` |
+| Kotlin | \`com.pachca:pachca-sdk\` | \`implementation("com.pachca:pachca-sdk:latest.release")\` |
 | Swift | \`PachcaSDK\` | SPM: \`https://github.com/pachca/openapi\` |
 | C# | \`Pachca.Sdk\` | \`dotnet add package Pachca.Sdk\` |
 
 ## CLI (Command-Line Interface)
-- Zero-install: \`npx -y @pachca/cli <command> --token <TOKEN>\` (always latest). Or \`npm install -g @pachca/cli\`
+- Zero-install: \`PACHCA_TOKEN=<TOKEN> npx -y @pachca/cli <command>\` (always latest). Or \`npm install -g @pachca/cli\`
 - Every API endpoint is a typed command: \`pachca <section> <action> --flags\` (e.g. \`pachca messages create --entity-id=123 --content="Hi"\`)
 - Non-interactive by default in pipes/CI: emits JSON, no prompts or spinner; a missing required flag returns an error instead of prompting
 - Token via \`PACHCA_TOKEN\` env or \`--token\` flag — nothing is written to disk
@@ -456,7 +520,8 @@ function generateLibraryRules(): string {
   - \`npx -y @pachca/cli api <METHOD> <path> --spec\` — OpenAPI fragment (request/response schemas)
   - \`npx -y @pachca/cli api <METHOD> <path> --docs\` — full Markdown reference for that one endpoint
 - Arbitrary request to any endpoint: \`npx -y @pachca/cli api <METHOD> <path> -f field=value\` (or \`-F\` typed, \`--input body.json\`, \`--data '{...}'\`)
-- Any documentation page is also available as Markdown — append \`.md\` to its URL (e.g. \`${SITE_URL}/guides/webhook/overview.md\`)
+- Any documentation page is also available as Markdown — append \`.md\` to its URL (e.g. \`${SITE_URL}/guides/webhook/overview.md\`) or send \`Accept: text/markdown\`
+- Machine-readable spec: ${SITE_URL}/openapi.yaml (OpenAPI 3.0), Postman collection: ${SITE_URL}/pachca.postman_collection.json
 
 `;
 }
@@ -841,7 +906,7 @@ for (const event of events.data) {
   // Q5: Rate limiting + retry
   content += `## How to handle rate limits and implement retry logic
 
-Both SDKs handle retry automatically — 3 retries with exponential backoff for \`429\` and \`5xx\` errors. No extra code needed:
+Both SDKs handle retry automatically, at most 3 retries. \`429\` is retried on every method after \`Retry-After\`, when the pause is a minute or shorter. \`500\`, \`502\`, \`503\` and \`504\` are retried with backoff only for \`GET\`, \`HEAD\`, \`OPTIONS\`, \`PUT\` and \`DELETE\`: a \`POST\` (sending a message, creating a chat) is never retried after a \`5xx\`, because it may already be applied. A \`504\` with the code \`timeout\` (the search did not finish in time) comes back at once. No extra code needed:
 
 ### TypeScript SDK
 \`\`\`typescript
@@ -849,18 +914,18 @@ import { PachcaClient, ApiError } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
-// SDK retries 429 and 5xx automatically (3 attempts, exponential backoff)
+// SDK retries 429 on every method, and 500/502/503/504 on GET, HEAD, OPTIONS, PUT and DELETE
 // Just call methods normally — retries are transparent
 const users = await client.users.listUsersAll()
 
-// If all retries are exhausted, ApiError is thrown
+// A POST is not retried after a 5xx: ApiError is thrown at once, and the message may already be sent
 try {
   await client.messages.createMessage({
     message: { entityId: 12345, content: "Hello" }
   })
 } catch (error) {
   if (error instanceof ApiError) {
-    // After 3 retries, the error is surfaced — check error.errors for details
+    // After a 429 the error comes when the retries run out or the pause is longer than a minute — check error.errors for details
     for (const e of error.errors ?? []) {
       console.error(e.key, e.message)
     }
@@ -875,15 +940,15 @@ from pachca.models import ApiError
 
 client = PachcaClient("YOUR_TOKEN")
 
-# SDK retries 429 and 5xx automatically (3 attempts, exponential backoff)
+# SDK retries 429 on every method, and 500/502/503/504 on GET, HEAD, OPTIONS, PUT and DELETE
 # Just call methods normally — retries are transparent
 users = await client.users.list_users_all()
 
-# If all retries are exhausted, ApiError is raised
+# A POST is not retried after a 5xx: ApiError is raised at once, and the message may already be sent
 try:
     await client.messages.create_message(request)
 except ApiError as e:
-    # After 3 retries, the error is surfaced — check e.errors for details
+    # After a 429 the error comes when the retries run out or the pause is longer than a minute — check e.errors for details
     for err in e.errors:
         print(err.key, err.message)
 \`\`\`
@@ -894,7 +959,7 @@ Rate limits by endpoint category:
 - All other endpoints: ~50 req/sec per token
 - Webhook events read (GET /webhooks/events): ~5 req / 2 sec per token
 - Incoming webhooks: ~10 req/sec per webhook id (counted by path identifier)
-- On 429: SDK respects \`Retry-After\` header automatically
+- On 429: SDK respects \`Retry-After\` header automatically. A pause longer than a minute (the daily cap, overload protection) is not waited out: the error comes back with \`Retry-After\`
 
 `;
 
@@ -1267,7 +1332,7 @@ setInterval(() => reconcileUsers(externalDb), 15 * 60 * 1000) // Every 15 minute
 - **Use saga pattern with compensating actions** — for multi-step workflows where partial completion is worse than full rollback
 - **Implement periodic reconciliation** — webhooks can be missed; polling + reconciliation ensures eventual consistency
 - **Track operation state externally** — store saga progress in your database, not in memory, for crash recovery
-- **SDK auto-retry handles transient failures** — 429 and 5xx are retried 3 times automatically, so sagas should only compensate on permanent failures (4xx)
+- **SDK auto-retry handles transient failures** — \`429\` is retried on every method, and \`500\`, \`502\`, \`503\`, \`504\` only on \`GET\`, \`HEAD\`, \`OPTIONS\`, \`PUT\` and \`DELETE\`, at most 3 times. A \`POST\` that fails with a \`5xx\` comes back at once and may already be applied: check its result before compensating
 
 `;
 
@@ -1437,310 +1502,6 @@ function insertDocumentMap(content: string): string {
   const block = [...headRows, ...rows, ''];
   const out = [...lines.slice(0, libIdx), ...block, ...lines.slice(libIdx)];
   return out.join('\n');
-}
-
-function generateWorkflowsSection(): string {
-  let content = '## Common Workflows\n\n';
-  content += '### CLI Quick Start\n\n';
-  content += '```bash\n';
-  content += 'npx -y @pachca/cli <command> --token <TOKEN>\n';
-  content += '```\n\n';
-
-  // English workflow summaries for skill.md (source workflows are in Russian)
-  const featured: { title: string; steps: { desc: string; cmd?: string; note?: string }[] }[] = [
-    {
-      title: 'Find chat by name and send message',
-      steps: [
-        {
-          desc: 'List all chats, find by `name` field',
-          cmd: 'pachca chats list --all',
-          note: 'GET /chats does not support name search — paginate through all',
-        },
-        {
-          desc: 'Send message to the chat',
-          cmd: 'pachca messages create --entity-id=<chat_id> --content="Hello"',
-        },
-      ],
-    },
-    {
-      title: 'Find active chats in a date range',
-      steps: [
-        {
-          desc: 'List chats with activity after a date',
-          cmd: 'pachca chats list --last-message-at-after=<date> --all',
-          note: 'Add `--last-message-at-before` for range. Date in ISO-8601 UTC',
-        },
-      ],
-    },
-    {
-      title: 'Set up a bot with outgoing webhook',
-      steps: [
-        { desc: 'Create bot in Pachca UI: Integrations → Bots → Create bot' },
-        { desc: 'Create a token on the API tab of the bot — its value is shown once' },
-        { desc: 'On the Outgoing webhook tab, press Enable, give the URL and pick the events' },
-      ],
-    },
-    {
-      title: 'Show interactive form to user',
-      steps: [
-        {
-          desc: 'Send message with button',
-          cmd: `pachca messages create --entity-id=<chat_id> --content="Fill the form" --buttons='[[{"text":"Open","data":"open_form"}]]'`,
-        },
-        { desc: 'On button click — receive webhook event with `trigger_id`' },
-        {
-          desc: 'Open form immediately',
-          cmd: `pachca views open --type=modal --trigger-id=<trigger_id> --title="Request" --blocks='[...]'`,
-          note: '`trigger_id` expires in 3 seconds — prepare form object in advance',
-        },
-        { desc: 'On form submit — receive webhook, process data' },
-      ],
-    },
-  ];
-
-  for (const wf of featured) {
-    content += `### ${wf.title}\n\n`;
-    for (let i = 0; i < wf.steps.length; i++) {
-      const step = wf.steps[i];
-      content += `${i + 1}. ${step.desc}`;
-      if (step.cmd) content += `: \`${step.cmd}\``;
-      content += '\n';
-      if (step.note) content += `   > ${step.note}\n`;
-    }
-    content += '\n';
-  }
-
-  return content;
-}
-
-function generateEnglishTitle(ep: Endpoint): string {
-  // Derive English title from operationId: "MessageOperations_createMessage" → "Create message"
-  const parts = ep.id.split('_');
-  const action = parts.length > 1 ? parts[1] : ep.id;
-  // camelCase → words: "createMessage" → "create message", "listChatMessages" → "list chat messages"
-  const words = action
-    .replace(/([A-Z])/g, ' $1')
-    .trim()
-    .toLowerCase();
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
-
-function generateModularSkillsSection(): string {
-  let section = '## Modular Skills\n\n';
-  section +=
-    'For AI agents that support modular skills, install specialized skills for better context efficiency:\n\n';
-  section += '```bash\nnpx skills add pachca/openapi\n```\n\n';
-  section += '| Skill | Description |\n';
-  section += '|-------|-------------|\n';
-  for (const config of SKILL_TAG_MAP) {
-    const shortDesc = config.description.split('.')[0];
-    section += `| ${config.name} | ${shortDesc} |\n`;
-  }
-  section += `\nSkills index: \`${SITE_URL}/.well-known/skills/index.json\`\n`;
-  section += `API catalog (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — single JSON with all API descriptions (OpenAPI, Postman, Arazzo), docs (HTML, llms.txt) and metadata.\n`;
-  return section;
-}
-
-function generateLegacySkillMd(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
-  const baseUrl = api.servers[0]?.url;
-  const grouped = groupByTag(api.endpoints);
-  const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
-  const guidePages = getOrderedPages();
-
-  const FRONTMATTER = `---
-name: pachca
-description: Interact with the Pachca corporate messenger API — send messages, manage chats, users, tags, tasks, handle webhooks, upload files, and build bots. Use when integrating with Pachca or automating team communication workflows.
-metadata:
-  author: pachca
-  version: "1.0"
----`;
-
-  const STATIC_SECTIONS = `## CLI (recommended)
-
-\`\`\`bash
-# Zero-install
-npx -y @pachca/cli <command> --token <TOKEN>
-
-# For regular use
-npm install -g @pachca/cli && pachca auth login
-\`\`\`
-
-## Authentication
-
-All requests require a Bearer token. With CLI, use \`--token\` flag or \`PACHCA_TOKEN\` env var.
-
-For direct API calls, add the \`Authorization\` header:
-
-\`\`\`
-Authorization: Bearer <access_token>
-\`\`\`
-
-**Token types:**
-- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Integrations → API, where you pick its scopes; also obtainable with \`pachca auth login\`, which takes the whole catalogue trimmed by your role.
-- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created in the API tab of the bot, under Integrations → Bots; a bot can hold several tokens, each with its own scopes.
-
-Scopes decide which methods a token may call; they never widen the data beyond the boundary of the token type. What a token may do also follows the current role of its owner, and that is checked on every request — a lowered role starts answering 403 without the token being touched.
-
-A personal token issued in the interface does not expire. One obtained by \`pachca auth login\` lives an hour and renews itself. Some methods answer only to a bot token: opening a form, creating link previews, self-registering a bot webhook, deleting a webhook event.`;
-
-  const workflowsSection = generateWorkflowsSection();
-
-  const CONSTRAINTS = `## Constraints
-
-### Rate Limits
-- **Message send/edit/delete:** ~4 req/sec per chat (burst: 30/sec for 5s)
-- **Message read:** ~10 req/sec
-- **Other endpoints:** ~50 req/sec
-- **Webhooks:** ~4 req/sec per webhook ID
-- On \`429\` response, respect the \`Retry-After\` header.
-
-### Pagination
-- **Cursor-based** (preferred): use \`limit\` (1–50) and \`cursor\` parameters. Response includes \`meta.paginate\` with \`next_page\`, \`prev_page\`, \`has_next\`, \`has_prev\`.
-- Use \`has_next\` / \`has_prev\` to detect end of data. Use \`prev_page\` to poll for new records "above" the list.
-- Search endpoints (\`/search/users\`, \`/search/chats\`, \`/search/messages\`) return only \`next_page\` and \`total\`.
-- **Offset-based** (legacy): use \`per\` (1–50) and \`page\` parameters.
-
-### Permissions
-- User management, tag management, and message deletion require an **admin** token.
-- Audit events and data export require an **owner** token and **Corporation** pricing plan.
-- Link preview (unfurling) requires a dedicated unfurling bot token with whitelisted domains.
-- \`POST /direct_url\` is the only endpoint that does not require authentication.
-
-### Error Handling
-- \`400\` — validation error
-- \`401\` — missing or invalid token
-- \`403\` — insufficient permissions
-- \`404\` — resource not found
-- \`429\` — rate limited (check \`Retry-After\`)
-
-Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] }\``;
-
-  let capabilities = '## Capabilities\n\n';
-  for (const tag of sortedTags) {
-    capabilities += `### ${tag}\n`;
-    for (const ep of grouped.get(tag)!) {
-      capabilities += `- \`${ep.method} ${ep.path}\` — ${generateEnglishTitle(ep)}\n`;
-    }
-    capabilities += '\n';
-  }
-
-  let guides = '## Guides\n\nDetailed documentation on specific topics is available at:\n\n';
-  for (const guide of guidePages) {
-    if (guide.path === '/') continue;
-    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}, ${guide.title}` : guide.title;
-    guides += `- [${displayTitle}](${SITE_URL}${guide.path}) — ${guide.description}\n`;
-  }
-
-  return [
-    FRONTMATTER,
-    '',
-    `# Pachca API`,
-    '',
-    'Pachca is a corporate messenger for teams. The REST API lets you automate communication workflows: send and manage messages, organize chats and channels, manage users and permissions, build interactive bots, handle file uploads, and react to real-time events via webhooks.',
-    '',
-    `**Base URL:** \`${baseUrl}\``,
-    '',
-    '## Accessing Documentation',
-    '',
-    '| Format | URL | Best for |',
-    '|--------|-----|----------|',
-    `| LLM-friendly summary | \`${SITE_URL}/llms.txt\` | Quick overview with links |`,
-    `| Full documentation | \`${SITE_URL}/llms-full.txt\` | Complete reference in one file |`,
-    `| OpenAPI 3.0 spec | \`${SITE_URL}/openapi.yaml\` | Programmatic parsing and code generation |`,
-    `| Arazzo workflows | \`${SITE_URL}/workflows.arazzo.yaml\` | Multi-step call sequences for chained operations |`,
-    '| CLI (per-endpoint, on demand) | `npx -y @pachca/cli api <METHOD> <path> --docs` | One endpoint without loading the full file |',
-    '| Markdown page | append `.md` to any page URL | Reading a single guide page as Markdown |',
-    '',
-    'For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt` — or, to avoid loading the whole file, pull just the endpoint you need with `npx -y @pachca/cli api <METHOD> <path> --describe` (or `--spec` / `--docs`; list all endpoints: `npx -y @pachca/cli api ls`).',
-    '',
-    STATIC_SECTIONS,
-    '',
-    capabilities,
-    workflowsSection,
-    '',
-    CONSTRAINTS,
-    '',
-    guides,
-    '',
-    generateModularSkillsSection(),
-  ].join('\n');
-}
-
-/**
- * Arazzo 1.0.1 description of the common multi-step workflows, referencing
- * the Pachca OpenAPI description. OpenAPI alone does not make an API
- * agent-ready for chained calls; Arazzo expresses the call sequences
- * (Bump.sh / OAI Workflows guidance, 2026). Source of truth: WORKFLOWS in
- * @pachca/spec; only API-backed steps become Arazzo steps (manual UI steps
- * are folded into the workflow description).
- */
-function generateArazzo(api: Awaited<ReturnType<typeof parseOpenAPI>>): string {
-  const opByKey = new Map<string, string>();
-  for (const ep of api.endpoints) opByKey.set(`${ep.method} ${ep.path}`, ep.id);
-
-  const slug = (s: string) =>
-    s
-      .toLowerCase()
-      .normalize('NFKD')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 56);
-
-  const usedWfIds = new Set<string>();
-  const workflows: Record<string, unknown>[] = [];
-
-  for (const [skill, list] of Object.entries(WORKFLOWS)) {
-    for (const wf of list) {
-      const steps: Record<string, unknown>[] = [];
-      const manual: string[] = [];
-      for (const st of wf.steps) {
-        const desc = st.descriptionEn || st.description;
-        if (!st.apiMethod || !st.apiPath) {
-          manual.push(desc);
-          continue;
-        }
-        const opId = opByKey.get(`${st.apiMethod} ${st.apiPath}`);
-        if (!opId) continue;
-        const sid = `${slug(wf.titleEn || wf.title) || skill}-${steps.length + 1}`;
-        steps.push({
-          stepId: sid,
-          description: st.notesEn || st.notes ? `${desc} (${st.notesEn || st.notes})` : desc,
-          operationId: opId,
-        });
-      }
-      if (steps.length === 0) continue;
-
-      let wid = slug(wf.titleEn || wf.title) || skill;
-      const base = wid;
-      for (let n = 2; usedWfIds.has(wid); n++) wid = `${base}-${n}`;
-      usedWfIds.add(wid);
-
-      const descParts: string[] = [];
-      if (wf.notesEn || wf.notes) descParts.push(wf.notesEn || wf.notes || '');
-      if (manual.length) descParts.push(`Manual prerequisites: ${manual.join('; ')}.`);
-
-      workflows.push({
-        workflowId: wid,
-        summary: wf.titleEn || wf.title,
-        ...(descParts.length ? { description: descParts.join(' ') } : {}),
-        steps,
-      });
-    }
-  }
-
-  const doc = {
-    arazzo: '1.0.1',
-    info: {
-      title: 'Pachca API Workflows',
-      version: '1.0.0',
-      summary:
-        'Multi-step recipes for common Pachca API tasks, referencing the Pachca OpenAPI description.',
-    },
-    sourceDescriptions: [{ name: 'pachca', url: `${SITE_URL}/openapi.yaml`, type: 'openapi' }],
-    workflows,
-  };
-
-  return yaml.dump(doc, { lineWidth: 100, noRefs: true });
 }
 
 function generatePostmanCollection(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
@@ -2186,7 +1947,8 @@ function generateEnglishApiReference(): string {
 }
 
 /**
- * Generate an English-only documentation file for Context7 indexing.
+ * Generate the English-only documentation file for agents that read English
+ * (Context7 also indexes it through context7.json).
  * Combines: Library Rules + How-to Guides (with SDK examples) + English API Reference.
  * Must stay under ~1M chars to avoid Context7's "File too large" filter.
  */
@@ -2253,19 +2015,12 @@ function writeFile(filePath: string, content: string) {
   fs.writeFileSync(fullPath, data, 'utf-8');
 }
 
-function writeFileFromRoot(filePath: string, content: string) {
-  const fullPath = path.join(REPO_ROOT, filePath);
-  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  const resolved = RESOLVE_LINKS_IN.test(filePath) ? resolveMethodLinksForText(content) : content;
-  fs.writeFileSync(fullPath, resolved, 'utf-8');
-}
-
 /** Agent preamble at the top of every page `.md` (one blockquote, up to three
  *  lines): location in the IA, a one-line summary, and the imperative directive
  *  to load /llms.txt for the broader API overview. Mirrors the tone of
  *  /llms.txt and the HTML <body> directive in app/layout.tsx. llms-full.txt is
- *  intentionally not advertised here (~329K tokens; referenced only from
- *  /llms.txt). Location/summary are omitted when not available. */
+ *  intentionally not advertised here (far too large for one context;
+ *  referenced only from /llms.txt). Location/summary are omitted when not available. */
 /** One-line `> Краткое содержание:` summary from an endpoint description body.
  *  Most descriptions lead with the purpose ("Метод для …"), but some open with
  *  a caveat ("Данный метод доступен только…", "На данный момент…"); prefer the
@@ -2332,6 +2087,21 @@ function generateApiSectionLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   return c;
 }
 
+/** Section sub-index served at `/updates/llms.txt` — every update entry by
+ *  date. The root index keeps only the latest ones to stay small. */
+function generateUpdatesSectionLlmsTxt(): string {
+  let c = '# Пачка — обновления\n\n';
+  c +=
+    '> Индекс раздела «Обновления»: все записи об изменениях API и инструментов по датам, новые сверху. ' +
+    'Каждая ссылка ведёт на `.md`.\n\n';
+  c += `[Родительский индекс](${SITE_URL}/llms.txt)\n\n`;
+  for (const u of loadUpdates()) {
+    c += `- [${u.displayDate} — ${u.title}](${SITE_URL}/updates/${u.date}.md)\n`;
+  }
+  c += '\n';
+  return c;
+}
+
 /** Section sub-index served at `/guides/llms.txt` — every guide page, linking
  *  back to the root index. */
 function generateGuidesSectionLlmsTxt(): string {
@@ -2339,7 +2109,7 @@ function generateGuidesSectionLlmsTxt(): string {
 
   let c = '# Пачка — руководства\n\n';
   c +=
-    '> Индекс раздела «Руководства»: гайды по интеграции (боты, вебхуки, формы, SDK, CLI, n8n, AI-агенты). ' +
+    '> Индекс раздела «Руководства»: гайды по интеграции (боты, вебхуки, формы, SDK, CLI, n8n, MCP, AI-агенты). ' +
     'Каждая ссылка ведёт на `.md` (или добавь `Accept: text/markdown`).\n\n';
   c += `[Родительский индекс](${SITE_URL}/llms.txt)\n\n`;
 
@@ -2366,8 +2136,15 @@ async function main() {
     llmsFullKTokens: Math.round(llmsFullTxt.length / 4 / 1000),
     llmsEnKTokens: Math.round(llmsEnTxt.length / 4 / 1000),
   });
+  // Agents and checkers (AFDocs) truncate a root index above 50 000 characters.
+  const llmsTxtChars = llmsTxt.replace(/^\uFEFF/, '').length;
+  if (llmsTxtChars > LLMS_TXT_MAX_CHARS) {
+    throw new Error(
+      `public/llms.txt is ${llmsTxtChars} characters, over ${LLMS_TXT_MAX_CHARS}: move a block into a section index`
+    );
+  }
   writeFile('public/llms.txt', llmsTxt);
-  console.log('✓ public/llms.txt');
+  console.log(`✓ public/llms.txt (${llmsTxtChars} chars)`);
 
   writeFile('public/api/llms.txt', generateApiSectionLlmsTxt(api));
   console.log('✓ public/api/llms.txt');
@@ -2375,37 +2152,18 @@ async function main() {
   writeFile('public/guides/llms.txt', generateGuidesSectionLlmsTxt());
   console.log('✓ public/guides/llms.txt');
 
+  writeFile('public/updates/llms.txt', generateUpdatesSectionLlmsTxt());
+  console.log('✓ public/updates/llms.txt');
+
   writeFile('public/llms-full.txt', llmsFullTxt);
   console.log('✓ public/llms-full.txt');
 
   writeFile('public/llms-en.txt', llmsEnTxt);
   console.log(`✓ public/llms-en.txt (${llmsEnTxt.length} chars)`);
 
-  const skillMd = generateLegacySkillMd(api);
-  writeFile('public/skill.md', skillMd);
-  console.log('✓ public/skill.md');
-
-  const skillFiles = generateAllSkills(api);
-  for (const file of skillFiles) {
-    writeFileFromRoot(file.path, file.content);
-  }
-  console.log(`✓ ${skillFiles.length} skill files`);
-
-  const removedSkillDirs = sweepOrphanSkillDirs(skillFiles);
-  if (removedSkillDirs.length > 0)
-    console.log(
-      `✓ removed ${removedSkillDirs.length} orphan skill dirs: ${removedSkillDirs.join(', ')}`
-    );
-
-  // scenarios.json removed — its role is covered by the n8n node (n8n-nodes-pachca)
-
   const postmanCollection = generatePostmanCollection(api);
   writeFile('public/pachca.postman_collection.json', JSON.stringify(postmanCollection, null, 2));
   console.log('✓ public/pachca.postman_collection.json');
-
-  const arazzo = generateArazzo(api);
-  writeFile('public/workflows.arazzo.yaml', arazzo);
-  console.log('✓ public/workflows.arazzo.yaml');
 
   const endpointFiles = await generateEndpointMdFiles(api);
   for (const file of endpointFiles) {
@@ -2440,10 +2198,26 @@ async function main() {
   if (removed.length > 0)
     console.log(`✓ removed ${removed.length} orphan .md: ${removed.join(', ')}`);
 
+  // Skills last: their links are checked against the page .md files written above.
+  const skillFiles = publishSkills();
+  for (const dir of [
+    'public/.well-known/skills',
+    'public/.well-known/agent-skills',
+    'public/skills',
+  ]) {
+    fs.rmSync(path.join(process.cwd(), dir), { recursive: true, force: true });
+  }
+  for (const file of skillFiles) {
+    const fullPath = path.join(REPO_ROOT, file.path);
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+    fs.writeFileSync(fullPath, file.content);
+  }
+  console.log(`✓ ${skillFiles.length} skill files`);
+
   assertGeneratedMarkdownIntegrity(llmsTxt);
 
   console.log(
-    `\nTotal: ${8 + skillFiles.length + endpointFiles.length + guideFiles.length + updateFiles.length} files generated`
+    `\nTotal: ${7 + skillFiles.length + endpointFiles.length + guideFiles.length + updateFiles.length} files generated`
   );
 }
 
@@ -2474,32 +2248,6 @@ function sweepOrphanMarkdown(dirs: string[], writtenPaths: string[]): string[] {
 }
 
 /**
- * Delete whole generated skill directories that the current run did NOT produce
- * (orphans left behind when a skill is renamed/removed, e.g. after an IA retag).
- * Dir-level on purpose: hand-written references inside a still-valid skill dir are
- * preserved. Scoped to our own `pachca*` skill dirs only — never other assets.
- */
-function sweepOrphanSkillDirs(skillFiles: { path: string }[]): string[] {
-  const valid = new Set<string>();
-  for (const f of skillFiles) {
-    const m = f.path.match(/(?:^|\/)skills\/([^/]+)\//);
-    if (m) valid.add(m[1]);
-  }
-  const removed: string[] = [];
-  for (const base of ['skills', 'apps/docs/public/.well-known/skills']) {
-    const abs = path.join(REPO_ROOT, base);
-    if (!fs.existsSync(abs)) continue;
-    for (const e of fs.readdirSync(abs, { withFileTypes: true })) {
-      if (e.isDirectory() && e.name.startsWith('pachca') && !valid.has(e.name)) {
-        fs.rmSync(path.join(abs, e.name), { recursive: true, force: true });
-        removed.push(`${base}/${e.name}`);
-      }
-    }
-  }
-  return removed;
-}
-
-/**
  * Build-time guards (afdocs regressions): every generated page .md must have
  * balanced code fences and no leaked registered MDX component tag, and every
  * same-origin .md link in llms.txt must resolve to a generated file.
@@ -2517,7 +2265,7 @@ function assertGeneratedMarkdownIntegrity(llmsTxt: string) {
   walk(publicDir);
 
   const LEAK_TAGS =
-    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero)\b/;
+    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero|McpTools|CliCommands)\b/;
   const errors: string[] = [];
 
   for (const file of mdFiles) {

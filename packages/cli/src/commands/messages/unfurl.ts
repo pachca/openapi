@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class MessagesUnfurl extends BaseCommand {
   static override description = "Unfurl (разворачивание ссылок)";
-
-  static override examples = [
-      "Разворачивание ссылок (unfurling) — Отправь превью-данные:\n  $ pachca messages unfurl"
-  ];
-
   static override hiddenAliases = ["link-previews:add"];
   static scope = "link_previews:write";
   static apiMethod = "POST";

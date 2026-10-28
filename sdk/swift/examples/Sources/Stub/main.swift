@@ -22,7 +22,8 @@ class FakeMessages: MessagesService {
             thread: nil,
             forwarding: nil,
             parentMessageId: nil,
-            displayAvatarUrl: nil
+            displayAvatarUrl: nil,
+            important: false
         )
     }
 }

@@ -1,0 +1,21 @@
+schema_version: "1.1"
+name: route-pachca-admin-02
+description: "Routes to pachca-admin, no sibling skill fires"
+tags: [routing, pachca-admin]
+runs: 3
+execution:
+  prompt: "Сотрудник уволился, отключи его в Пачке"
+  max_turns: 3
+  allowed_tools: [Skill]
+graders:
+  - name: fires
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?(?:pachca-admin)\""
+  - name: no-sibling
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?pachca-(?!admin\")[a-z-]+\""
+    min: 0
+    max: 0
+    arm: both

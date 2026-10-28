@@ -21,6 +21,11 @@ export interface TabConfig {
 export interface SidebarSection {
   title: string;
   items: SidebarPageItem[];
+  /**
+   * Prefix for the titles of the section's pages outside the sidebar (browser
+   * tab, llms.txt), as a group gives its children: «MCP, Обзор».
+   */
+  titlePrefix?: string;
 }
 
 export interface SidebarPageItem {
@@ -109,6 +114,16 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
     ],
   },
   {
+    title: 'MCP',
+    titlePrefix: 'MCP',
+    items: [
+      { title: 'Обзор', path: '/guides/mcp/overview' },
+      { title: 'Подключение', path: '/guides/mcp/connect' },
+      { title: 'Инструменты', path: '/guides/mcp/tools' },
+      { title: 'Плагин и скиллы', path: '/guides/mcp/plugin' },
+    ],
+  },
+  {
     title: 'Боты и автоматизации',
     items: [
       {
@@ -174,7 +189,6 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
     items: [
       { title: 'Права и роли', path: '/guides/permissions' },
       { title: 'Форматирование текста', path: '/guides/markdown' },
-      { title: 'Сценарии', path: '/guides/workflows' },
     ],
   },
 ];
@@ -194,7 +208,6 @@ export const CLI_SECTIONS: SidebarSection[] = [
     items: [
       { title: 'Вывод', path: '/guides/cli/output' },
       { title: 'Флаги и скрипты', path: '/guides/cli/scripting' },
-      { title: 'Сценарии', path: '/guides/cli/workflows' },
       { title: 'Файлы', path: '/guides/cli/files' },
       { title: 'Прямые запросы', path: '/guides/cli/api-requests' },
     ],
@@ -292,7 +305,10 @@ export function getNestedParentTitle(pathname: string): string | null {
   const allSections = [...GUIDE_SECTIONS, ...CLI_SECTIONS, ...SDK_SECTIONS, ...N8N_SECTIONS];
   for (const section of allSections) {
     for (const item of section.items) {
-      if (!item.children) continue;
+      if (!item.children) {
+        if (section.titlePrefix && item.path === pathname) return section.titlePrefix;
+        continue;
+      }
       if (item.path === pathname) return item.title;
       for (const child of item.children) {
         if (child.path === pathname) return item.title;
@@ -300,6 +316,20 @@ export function getNestedParentTitle(pathname: string): string | null {
     }
   }
   return null;
+}
+
+/**
+ * Page title for places outside the sidebar (browser tab, search results): the
+ * parent group, section prefix or CLI/SDK/n8n tab goes first, so a shared title
+ * like "Обзор" reads as «MCP, Обзор» or «CLI, Обзор». Other pages keep their own title.
+ */
+export function getContextualTitle(pathname: string, title: string): string {
+  const parent = getNestedParentTitle(pathname);
+  if (parent) return `${parent}, ${title}`;
+  const tab = getActiveTab(pathname);
+  const tabTitle =
+    tab === 'cli' || tab === 'sdk' || tab === 'n8n' ? TABS.find((t) => t.id === tab)?.title : null;
+  return tabTitle ? `${tabTitle}, ${title}` : title;
 }
 
 /**

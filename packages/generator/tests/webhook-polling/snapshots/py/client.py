@@ -109,10 +109,9 @@ class BotsServiceImpl(BotsService):
             "/webhooks/events",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(GetWebhookEventsResponse, body)
+                return deserialize(GetWebhookEventsResponse, response.json())
             case _:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"

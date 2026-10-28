@@ -17,7 +17,6 @@ export default class PachcaHelp extends Help {
 
     this.log('ДОКУМЕНТАЦИЯ');
     this.log('  Руководства и справочник API  https://dev.pachca.com');
-    this.log('  Сценарии в терминале          pachca guide');
     this.log('');
   }
 }

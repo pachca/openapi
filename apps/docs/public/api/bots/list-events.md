@@ -18,6 +18,8 @@
 
 Сам журнал не очищается: прочитанные события удаляйте методом [Удаление события истории](/api/bots/remove-event), иначе они придут снова при повторном запросе.
 
+Те же события можно получать сразу, как они происходят, по ссылке из метода [Поток событий](/api/bots/get-stream).
+
 ## Параметры
 
 ### Query параметры
@@ -272,6 +274,26 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
 
 **Пример ответа:**
 

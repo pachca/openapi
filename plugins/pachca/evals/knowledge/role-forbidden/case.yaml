@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-role-forbidden
+description: "What pachca adds: answered with the plugin and without it"
+tags: [knowledge, pachca]
+runs: 3
+execution:
+  prompt: "Агент в Пачке получает 403 с кодом role_forbidden. Поможет ли перевыпустить токен?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer says reissuing will not help because the scope is present but the role of the token owner forbids the action, and only changing the role (by an admin) helps. FAIL if it suggests reissuing the token or adding scopes as the fix."

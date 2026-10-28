@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-admin-closed-chat
+description: "What pachca-admin adds: answered with the plugin and without it"
+tags: [knowledge, pachca-admin]
+runs: 3
+execution:
+  prompt: "Я администратор пространства в Пачке. Почему я не вижу закрытый канал отдела продаж?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer says closed chats are visible only to their members, for every role including admins, and that being added by a participant (an Owner or Administrator added this way becomes chat Admin) or asking a member is the way in. Saying that the Owner alone, never an Administrator, can see a closed chat's members and, on the Corporation plan, find it in the list of all workspace chats or export its messages without joining is correct and does not contradict this; so is saying that being given a tag bound to the chat also brings one in. FAIL if it says admins see all chats, says the Owner or an Administrator can add themselves to a closed chat directly or open it by their role without a participant adding them or such a tag, or blames a bug."

@@ -7,6 +7,13 @@ private func pachcaNotImplemented(_ method: String) -> Error {
     NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
 }
 
+/// An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in statusCode.
+func pachcaErrorFromResponse(_ statusCode: Int, _ data: Data) -> Error {
+    var apiError = (try? deserialize(ApiError.self, from: data)) ?? ApiError(errors: [])
+    apiError.statusCode = statusCode
+    return apiError
+}
+
 open class ItemsService {
     public init() {}
 
@@ -39,7 +46,7 @@ public final class ItemsServiceImpl: ItemsService {
         case 200:
             return try deserialize(ItemDataWrapper.self, from: data).data
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }

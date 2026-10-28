@@ -88,7 +88,8 @@ type ApiErrorItem struct {
 }
 
 type ApiError struct {
-	Errors []ApiErrorItem `json:"errors,omitempty"`
+	Errors     []ApiErrorItem `json:"errors,omitempty"`
+	StatusCode int            `json:"-"` // HTTP status code of the answer
 }
 
 func (m ApiError) MarshalJSON() ([]byte, error) {
@@ -109,6 +110,9 @@ func (m ApiError) MarshalJSON() ([]byte, error) {
 
 func (e *ApiError) Error() string {
 	if len(e.Errors) == 0 {
+		if e.StatusCode != 0 {
+			return fmt.Sprintf("HTTP %d", e.StatusCode)
+		}
 		return "api error"
 	}
 	parts := make([]string, 0, len(e.Errors))

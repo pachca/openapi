@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class MessagesUnpin extends BaseCommand {
   static override description = "Открепление сообщения";
-
-  static override examples = [
-      "Закрепить/открепить сообщение — Открепить сообщение:\n  $ pachca messages unpin"
-  ];
-
   static scope = "pins:write";
   static apiMethod = "DELETE";
   static apiPath = "/messages/{id}/pin";

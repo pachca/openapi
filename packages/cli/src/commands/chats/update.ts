@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsUpdate extends BaseCommand {
   static override description = "Редактирование чата";
-
-  static override examples = [
-      "Переименовать или обновить чат — Обнови чат:\n  $ pachca chats update"
-  ];
-
   static scope = "chats:update";
   static apiMethod = "PUT";
   static apiPath = "/chats/{id}";

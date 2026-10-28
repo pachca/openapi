@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsMarkUnread extends BaseCommand {
   static override description = "Отметка чата непрочитанным";
-
   static scope = "chats:mark_unread";
   static apiMethod = "PUT";
   static apiPath = "/chats/{id}/unread";

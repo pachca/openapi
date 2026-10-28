@@ -35,6 +35,7 @@ from .models import (
     GetWebhookEventsResponse,
     WebhookEvent,
     WebhookPayloadUnion,
+    WebhookEventsStream,
     BotSelfTokenResponse,
     BotCreateRequest,
     BotCreateResponse,
@@ -85,9 +86,11 @@ from .models import (
     GetTagUsersParams,
     GetTagUsersResponse,
     GroupTagRequest,
+    ListImportantMessagesParams,
+    ListImportantMessagesResponse,
+    Message,
     ListChatMessagesParams,
     ListChatMessagesResponse,
-    Message,
     MessageSortField,
     MessageCreateRequest,
     LinkPreviewsRequest,
@@ -140,12 +143,30 @@ def _form_data(fields: dict) -> dict[str, str]:
     return {k: str(v).lower() if isinstance(v, bool) else str(v) for k, v in fields.items() if v is not None}
 
 
-def _error_from_body(body: object) -> Exception:
+def _error_body(response: httpx.Response) -> object:
+    # The body of an error answer, or None when it is empty or not JSON (a 404 without a body, a proxy page).
+    try:
+        return response.json()
+    except ValueError:
+        return None
+
+
+def _error_from_response(response: httpx.Response) -> Exception:
     # An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
     # which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
+    # An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in status_code.
+    body = _error_body(response)
     if isinstance(body, dict) and isinstance(body.get("error"), str) and "errors" not in body:
-        return OAuthError(OAuthErrorCode(body["error"]), str(body.get("error_description") or ""))
-    return deserialize(ApiError, body)
+        return OAuthError(error=OAuthErrorCode(body["error"]), error_description=str(body.get("error_description") or ""))
+    error = ApiError(errors=[])
+    errors = body.get("errors") if isinstance(body, dict) else None
+    if isinstance(errors, list) and all(isinstance(item, dict) for item in errors):
+        try:
+            error = deserialize(ApiError, body)
+        except (TypeError, ValueError):
+            pass  # errors of another shape: the status code still says what happened
+    error.status_code = response.status_code
+    return error
 
 
 PACHCA_AUTHORIZE_URL = "https://app.pachca.com/apps/authorize"
@@ -231,14 +252,11 @@ class SecurityServiceImpl(SecurityService):
             "/audit_events",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(GetAuditEventsResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(GetAuditEventsResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def get_audit_events_all(
         self,
@@ -385,6 +403,10 @@ class BotsService:
             if payload_type is None or isinstance(event.payload, payload_type):
                 yield event.payload
 
+    async def get_webhook_events_stream(
+        self) -> WebhookEventsStream:
+        raise NotImplementedError("Bots.getWebhookEventsStream is not implemented")
+
     async def self_recreate_bot_token(
         self) -> BotSelfTokenResponse:
         raise NotImplementedError("Bots.selfRecreateBotToken is not implemented")
@@ -494,14 +516,11 @@ class BotsServiceImpl(BotsService):
             "/bots",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListBotsResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListBotsResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_bots_all(
         self,
@@ -530,14 +549,11 @@ class BotsServiceImpl(BotsService):
         response = await self._client.get(
             f"/bots/{id}",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(BotResponse, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(BotResponse, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def get_bot_scopes(
         self,
@@ -546,14 +562,11 @@ class BotsServiceImpl(BotsService):
         response = await self._client.get(
             f"/bots/{id}/scopes",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(BotScopeCatalog, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(BotScopeCatalog, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_bot_tokens(
         self,
@@ -569,14 +582,11 @@ class BotsServiceImpl(BotsService):
             f"/bots/{id}/tokens",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListBotTokensResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListBotTokensResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_bot_tokens_all(
         self,
@@ -614,14 +624,11 @@ class BotsServiceImpl(BotsService):
             "/company/bots",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListCompanyBotsResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListCompanyBotsResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_company_bots_all(
         self,
@@ -656,14 +663,11 @@ class BotsServiceImpl(BotsService):
             "/webhooks/events",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(GetWebhookEventsResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(GetWebhookEventsResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def get_webhook_events_all(
         self,
@@ -685,19 +689,27 @@ class BotsServiceImpl(BotsService):
             has_next = True if reported_has_next is None else reported_has_next
         return items
 
+    async def get_webhook_events_stream(
+        self) -> WebhookEventsStream:
+        response = await self._client.get(
+            "/webhooks/events/stream",
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(WebhookEventsStream, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
     async def self_recreate_bot_token(
         self) -> BotSelfTokenResponse:
         response = await self._client.post(
             "/bot/recreate_token",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(BotSelfTokenResponse, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(BotSelfTokenResponse, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def create_bot(
         self,
@@ -707,14 +719,11 @@ class BotsServiceImpl(BotsService):
             "/bots",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(BotCreateResponse, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(BotCreateResponse, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def recreate_bot_token(
         self,
@@ -723,14 +732,11 @@ class BotsServiceImpl(BotsService):
         response = await self._client.post(
             f"/bots/{id}/recreate_token",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(BotCreateResponse, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(BotCreateResponse, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def rotate_bot_client_secret(
         self,
@@ -739,14 +745,11 @@ class BotsServiceImpl(BotsService):
         response = await self._client.post(
             f"/bots/{id}/rotate_client_secret",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(BotResponse, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(BotResponse, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def create_bot_token(
         self,
@@ -757,14 +760,11 @@ class BotsServiceImpl(BotsService):
             f"/bots/{id}/tokens",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(BotAccessToken, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(BotAccessToken, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def reissue_bot_token(
         self,
@@ -774,14 +774,11 @@ class BotsServiceImpl(BotsService):
         response = await self._client.post(
             f"/bots/{id}/tokens/{token_id}/reissue",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(BotAccessToken, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(BotAccessToken, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def self_update_bot_webhook(
         self,
@@ -791,14 +788,11 @@ class BotsServiceImpl(BotsService):
             "/bot/webhook",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(BotSelfResponse, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(BotSelfResponse, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_bot(
         self,
@@ -809,14 +803,11 @@ class BotsServiceImpl(BotsService):
             f"/bots/{id}",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(BotResponse, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(BotResponse, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_bot_avatar(
         self,
@@ -829,14 +820,11 @@ class BotsServiceImpl(BotsService):
             data=data,
             files={"image": image},
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(AvatarData, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(AvatarData, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_bot_token(
         self,
@@ -848,14 +836,11 @@ class BotsServiceImpl(BotsService):
             f"/bots/{id}/tokens/{token_id}",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(BotAccessToken, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(BotAccessToken, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def delete_bot(
         self,
@@ -867,10 +852,8 @@ class BotsServiceImpl(BotsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def delete_bot_avatar(
         self,
@@ -882,10 +865,8 @@ class BotsServiceImpl(BotsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def delete_bot_token(
         self,
@@ -898,10 +879,8 @@ class BotsServiceImpl(BotsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def delete_webhook_event(
         self,
@@ -913,10 +892,8 @@ class BotsServiceImpl(BotsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
 
 class ChatsService:
@@ -1039,14 +1016,11 @@ class ChatsServiceImpl(ChatsService):
             "/chats",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListChatsResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListChatsResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_chats_all(
         self,
@@ -1075,14 +1049,11 @@ class ChatsServiceImpl(ChatsService):
         response = await self._client.get(
             f"/chats/{id}",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Chat, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Chat, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def download_export(
         self,
@@ -1100,10 +1071,8 @@ class ChatsServiceImpl(ChatsService):
                         "Missing Location header in redirect response"
                     )
                 return location
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def list_company_chats(
         self,
@@ -1120,14 +1089,11 @@ class ChatsServiceImpl(ChatsService):
             "/company/chats",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListCompanyChatsResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListCompanyChatsResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_company_chats_all(
         self,
@@ -1157,14 +1123,11 @@ class ChatsServiceImpl(ChatsService):
             "/chats",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(CreateChatResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(CreateChatResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def request_export(
         self,
@@ -1175,14 +1138,11 @@ class ChatsServiceImpl(ChatsService):
             headers={"Prefer": "return=representation"},
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 202:
-                return deserialize(ChatExport, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ChatExport, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_chat(
         self,
@@ -1193,14 +1153,11 @@ class ChatsServiceImpl(ChatsService):
             f"/chats/{id}",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Chat, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Chat, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def archive_chat(
         self,
@@ -1212,10 +1169,8 @@ class ChatsServiceImpl(ChatsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def update_chat_avatar(
         self,
@@ -1228,14 +1183,11 @@ class ChatsServiceImpl(ChatsService):
             data=data,
             files={"image": image},
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(AvatarData, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(AvatarData, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def unarchive_chat(
         self,
@@ -1247,10 +1199,8 @@ class ChatsServiceImpl(ChatsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def mark_chat_unread(
         self,
@@ -1264,10 +1214,8 @@ class ChatsServiceImpl(ChatsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def delete_chat_avatar(
         self,
@@ -1279,10 +1227,8 @@ class ChatsServiceImpl(ChatsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
 
 class MembersService:
@@ -1363,14 +1309,11 @@ class MembersServiceImpl(MembersService):
             f"/chats/{id}/members",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListMembersResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListMembersResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_members_all(
         self,
@@ -1405,10 +1348,8 @@ class MembersServiceImpl(MembersService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def add_members(
         self,
@@ -1422,10 +1363,8 @@ class MembersServiceImpl(MembersService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def update_member_role(
         self,
@@ -1440,10 +1379,8 @@ class MembersServiceImpl(MembersService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def remove_tag(
         self,
@@ -1456,10 +1393,8 @@ class MembersServiceImpl(MembersService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def leave_chat(
         self,
@@ -1471,10 +1406,8 @@ class MembersServiceImpl(MembersService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def remove_member(
         self,
@@ -1487,10 +1420,8 @@ class MembersServiceImpl(MembersService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
 
 class CustomPropertiesService:
@@ -1515,14 +1446,11 @@ class CustomPropertiesServiceImpl(CustomPropertiesService):
             "/custom_properties",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListPropertiesResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListPropertiesResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
 
 class FilesService:
@@ -1564,10 +1492,8 @@ class FilesServiceImpl(FilesService):
         match response.status_code:
             case 200:
                 return response.content
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def upload_file(
         self,
@@ -1596,21 +1522,18 @@ class FilesServiceImpl(FilesService):
             case 204:
                 return
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def get_upload_params(
         self) -> UploadParams:
         response = await self._client.post(
             "/uploads",
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(UploadParams, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(UploadParams, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
 
 class DraftsService:
@@ -1675,14 +1598,11 @@ class DraftsServiceImpl(DraftsService):
             "/drafts",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListDraftsResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListDraftsResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_drafts_all(
         self,
@@ -1711,14 +1631,11 @@ class DraftsServiceImpl(DraftsService):
         response = await self._client.get(
             f"/drafts/{id}",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Draft, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Draft, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def create_draft(
         self,
@@ -1728,14 +1645,11 @@ class DraftsServiceImpl(DraftsService):
             "/drafts",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(Draft, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Draft, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_draft(
         self,
@@ -1746,14 +1660,11 @@ class DraftsServiceImpl(DraftsService):
             f"/drafts/{id}",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Draft, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Draft, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def delete_draft(
         self,
@@ -1765,10 +1676,8 @@ class DraftsServiceImpl(DraftsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
 
 class GroupTagsService:
@@ -1844,14 +1753,11 @@ class GroupTagsServiceImpl(GroupTagsService):
             "/group_tags",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListTagsResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListTagsResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_tags_all(
         self,
@@ -1880,14 +1786,11 @@ class GroupTagsServiceImpl(GroupTagsService):
         response = await self._client.get(
             f"/group_tags/{id}",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(GroupTag, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(GroupTag, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def get_tag_users(
         self,
@@ -1903,14 +1806,11 @@ class GroupTagsServiceImpl(GroupTagsService):
             f"/group_tags/{id}/users",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(GetTagUsersResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(GetTagUsersResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def get_tag_users_all(
         self,
@@ -1941,14 +1841,11 @@ class GroupTagsServiceImpl(GroupTagsService):
             "/group_tags",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(GroupTag, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(GroupTag, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_tag(
         self,
@@ -1959,14 +1856,11 @@ class GroupTagsServiceImpl(GroupTagsService):
             f"/group_tags/{id}",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(GroupTag, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(GroupTag, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def delete_tag(
         self,
@@ -1978,10 +1872,105 @@ class GroupTagsServiceImpl(GroupTagsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
+
+
+class ImportantMessagesService:
+    async def list_important_messages(
+        self,
+        params: ListImportantMessagesParams | None = None,
+    ) -> ListImportantMessagesResponse:
+        raise NotImplementedError("Important messages.listImportantMessages is not implemented")
+
+    async def list_important_messages_all(
+        self,
+        params: ListImportantMessagesParams | None = None,
+    ) -> list[Message]:
+        raise NotImplementedError("Important messages.listImportantMessagesAll is not implemented")
+
+    async def add_message_to_important(
+        self,
+        message_id: int,
+    ) -> None:
+        raise NotImplementedError("Important messages.addMessageToImportant is not implemented")
+
+    async def remove_message_from_important(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Important messages.removeMessageFromImportant is not implemented")
+
+
+class ImportantMessagesServiceImpl(ImportantMessagesService):
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+
+    async def list_important_messages(
+        self,
+        params: ListImportantMessagesParams | None = None,
+    ) -> ListImportantMessagesResponse:
+        query: dict[str, str] = {}
+        if params is not None and params.limit is not None:
+            query["limit"] = str(params.limit)
+        if params is not None and params.cursor is not None:
+            query["cursor"] = params.cursor
+        response = await self._client.get(
+            "/important_messages",
+            params=query,
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(ListImportantMessagesResponse, response.json())
+            case _:
+                raise _error_from_response(response)
+
+    async def list_important_messages_all(
+        self,
+        params: ListImportantMessagesParams | None = None,
+    ) -> list[Message]:
+        items: list[Message] = []
+        cursor: str | None = None
+        has_next = True
+        while has_next:
+            if params is None:
+                params = ListImportantMessagesParams()
+            params.cursor = cursor
+            response = await self.list_important_messages(params=params)
+            items.extend(response.data)
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
+        return items
+
+    async def add_message_to_important(
+        self,
+        message_id: int,
+    ) -> None:
+        response = await self._client.post(
+            "/important_messages",
+            json={"message_id": message_id},
+        )
+        match response.status_code:
+            case 204:
+                return
+            case _:
+                raise _error_from_response(response)
+
+    async def remove_message_from_important(
+        self,
+        id: int,
+    ) -> None:
+        response = await self._client.delete(
+            f"/important_messages/{id}",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case _:
+                raise _error_from_response(response)
 
 
 class MessagesService:
@@ -2064,14 +2053,11 @@ class MessagesServiceImpl(MessagesService):
             "/messages",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListChatMessagesResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListChatMessagesResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_chat_messages_all(
         self,
@@ -2100,14 +2086,11 @@ class MessagesServiceImpl(MessagesService):
         response = await self._client.get(
             f"/messages/{id}",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Message, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Message, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def create_message(
         self,
@@ -2117,14 +2100,11 @@ class MessagesServiceImpl(MessagesService):
             "/messages",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(Message, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Message, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def unfurl(
         self,
@@ -2138,10 +2118,8 @@ class MessagesServiceImpl(MessagesService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def pin_message(
         self,
@@ -2153,10 +2131,8 @@ class MessagesServiceImpl(MessagesService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def update_message(
         self,
@@ -2167,14 +2143,11 @@ class MessagesServiceImpl(MessagesService):
             f"/messages/{id}",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Message, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Message, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def delete_message(
         self,
@@ -2186,10 +2159,8 @@ class MessagesServiceImpl(MessagesService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def unpin_message(
         self,
@@ -2201,10 +2172,8 @@ class MessagesServiceImpl(MessagesService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
 
 class ReactionsService:
@@ -2255,14 +2224,11 @@ class ReactionsServiceImpl(ReactionsService):
             f"/messages/{id}/reactions",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListReactionsResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListReactionsResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_reactions_all(
         self,
@@ -2294,14 +2260,11 @@ class ReactionsServiceImpl(ReactionsService):
             f"/messages/{id}/reactions",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(Reaction, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Reaction, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def remove_reaction(
         self,
@@ -2319,10 +2282,8 @@ class ReactionsServiceImpl(ReactionsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
 
 class ReadMembersService:
@@ -2352,14 +2313,11 @@ class ReadMembersServiceImpl(ReadMembersService):
             f"/messages/{id}/read_member_ids",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(object, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(object, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
 
 class ThreadsService:
@@ -2413,14 +2371,11 @@ class ThreadsServiceImpl(ThreadsService):
             "/threads",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListThreadsResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListThreadsResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_threads_all(
         self,
@@ -2449,14 +2404,11 @@ class ThreadsServiceImpl(ThreadsService):
         response = await self._client.get(
             f"/threads/{id}",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Thread, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Thread, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def create_thread(
         self,
@@ -2465,28 +2417,22 @@ class ThreadsServiceImpl(ThreadsService):
         response = await self._client.post(
             f"/messages/{id}/thread",
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(Thread, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Thread, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def create_standalone_thread(
         self) -> Thread:
         response = await self._client.post(
             "/threads",
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(Thread, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Thread, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
 
 class OAuthService:
@@ -2516,14 +2462,11 @@ class OAuthServiceImpl(OAuthService):
         response = await self._client.get(
             "/oauth/token/info",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(AccessTokenInfo, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(AccessTokenInfo, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def revoke_token(
         self,
@@ -2536,10 +2479,8 @@ class OAuthServiceImpl(OAuthService):
         match response.status_code:
             case 200:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def exchange_token(
         self,
@@ -2550,14 +2491,11 @@ class OAuthServiceImpl(OAuthService):
                 "/oauth/token",
                 data=_form_data(serialize(request)),
             )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(OAuthToken, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(OAuthToken, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
 
 class ProfileService:
@@ -2603,28 +2541,22 @@ class ProfileServiceImpl(ProfileService):
         response = await self._client.get(
             "/profile",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(User, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(User, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def get_status(
         self) -> UserStatus:
         response = await self._client.get(
             "/profile/status",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(UserStatus, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(UserStatus, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_profile_avatar(
         self,
@@ -2636,14 +2568,11 @@ class ProfileServiceImpl(ProfileService):
             data=data,
             files={"image": image},
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(AvatarData, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(AvatarData, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_status(
         self,
@@ -2653,14 +2582,11 @@ class ProfileServiceImpl(ProfileService):
             "/profile/status",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(UserStatus, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(UserStatus, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def delete_profile_avatar(
         self) -> None:
@@ -2670,10 +2596,8 @@ class ProfileServiceImpl(ProfileService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def delete_status(
         self) -> None:
@@ -2683,24 +2607,19 @@ class ProfileServiceImpl(ProfileService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def get_token_info(
         self) -> AccessTokenInfo:
         response = await self._client.get(
             "/oauth/token/info",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(AccessTokenInfo, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(AccessTokenInfo, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
 
 class SearchService:
@@ -2772,14 +2691,11 @@ class SearchServiceImpl(SearchService):
             "/search/chats",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(SearchChatsResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(SearchChatsResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def search_chats_all(
         self,
@@ -2829,14 +2745,11 @@ class SearchServiceImpl(SearchService):
             "/search/messages",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(SearchMessagesResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(SearchMessagesResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def search_messages_all(
         self,
@@ -2881,14 +2794,11 @@ class SearchServiceImpl(SearchService):
             "/search/users",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(SearchUsersResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(SearchUsersResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def search_users_all(
         self,
@@ -2974,14 +2884,11 @@ class TasksServiceImpl(TasksService):
             "/tasks",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListTasksResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListTasksResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_tasks_all(
         self,
@@ -3010,14 +2917,11 @@ class TasksServiceImpl(TasksService):
         response = await self._client.get(
             f"/tasks/{id}",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Task, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Task, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def create_task(
         self,
@@ -3027,14 +2931,11 @@ class TasksServiceImpl(TasksService):
             "/tasks",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(Task, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Task, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_task(
         self,
@@ -3045,14 +2946,11 @@ class TasksServiceImpl(TasksService):
             f"/tasks/{id}",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Task, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(Task, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def delete_task(
         self,
@@ -3064,10 +2962,8 @@ class TasksServiceImpl(TasksService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
 
 class UsersService:
@@ -3160,14 +3056,11 @@ class UsersServiceImpl(UsersService):
             "/users",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListUsersResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListUsersResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def list_users_all(
         self,
@@ -3196,14 +3089,11 @@ class UsersServiceImpl(UsersService):
         response = await self._client.get(
             f"/users/{id}",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(User, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(User, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def get_user_status(
         self,
@@ -3212,14 +3102,11 @@ class UsersServiceImpl(UsersService):
         response = await self._client.get(
             f"/users/{user_id}/status",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(UserStatus, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(UserStatus, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def create_user(
         self,
@@ -3229,14 +3116,11 @@ class UsersServiceImpl(UsersService):
             "/users",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(User, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(User, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_user(
         self,
@@ -3247,14 +3131,11 @@ class UsersServiceImpl(UsersService):
             f"/users/{id}",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(User, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(User, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_user_avatar(
         self,
@@ -3267,14 +3148,11 @@ class UsersServiceImpl(UsersService):
             data=data,
             files={"image": image},
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(AvatarData, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(AvatarData, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def update_user_status(
         self,
@@ -3285,14 +3163,11 @@ class UsersServiceImpl(UsersService):
             f"/users/{user_id}/status",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(UserStatus, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(UserStatus, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def delete_user(
         self,
@@ -3304,10 +3179,8 @@ class UsersServiceImpl(UsersService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def delete_user_avatar(
         self,
@@ -3319,10 +3192,8 @@ class UsersServiceImpl(UsersService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def delete_user_status(
         self,
@@ -3334,10 +3205,8 @@ class UsersServiceImpl(UsersService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
 
 class ViewsService:
@@ -3368,14 +3237,11 @@ class ViewsServiceImpl(ViewsService):
             f"/views/{view_id}/submit_response",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(SubmitViewResponseResult, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(SubmitViewResponseResult, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def open_view(
         self,
@@ -3388,10 +3254,8 @@ class ViewsServiceImpl(ViewsService):
         match response.status_code:
             case 201:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
 
 # Deprecated: CommonService is kept for backward compatibility — use the new service(s).
@@ -3435,14 +3299,11 @@ class CommonServiceImpl(CommonService):
         response = await self._client.post(
             "/uploads",
         )
-        body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(UploadParams, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(UploadParams, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def upload_file(
         self,
@@ -3471,7 +3332,7 @@ class CommonServiceImpl(CommonService):
             case 204:
                 return
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
     async def list_properties(
         self,
@@ -3483,14 +3344,11 @@ class CommonServiceImpl(CommonService):
             "/custom_properties",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListPropertiesResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ListPropertiesResponse, response.json())
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def request_export(
         self,
@@ -3501,14 +3359,11 @@ class CommonServiceImpl(CommonService):
             headers={"Prefer": "return=representation"},
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 202:
-                return deserialize(ChatExport, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
+                return deserialize(ChatExport, response.json()["data"])
             case _:
-                raise _error_from_body(body)
+                raise _error_from_response(response)
 
     async def download_export(
         self,
@@ -3526,10 +3381,8 @@ class CommonServiceImpl(CommonService):
                         "Missing Location header in redirect response"
                     )
                 return location
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
 
 # Deprecated: LinkPreviewsService is kept for backward compatibility — use the new service(s).
@@ -3558,17 +3411,15 @@ class LinkPreviewsServiceImpl(LinkPreviewsService):
         match response.status_code:
             case 204:
                 return
-            case 401:
-                raise deserialize(OAuthError, response.json())
             case _:
-                raise _error_from_body(response.json())
+                raise _error_from_response(response)
 
 
 PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, custom_properties: CustomPropertiesService | None = None, drafts: DraftsService | None = None, files: FilesService | None = None, group_tags: GroupTagsService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, oauth: OAuthService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, custom_properties: CustomPropertiesService | None = None, drafts: DraftsService | None = None, files: FilesService | None = None, group_tags: GroupTagsService | None = None, important_messages: ImportantMessagesService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, oauth: OAuthService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
@@ -3581,6 +3432,7 @@ class PachcaClient:
         self.drafts: DraftsService = drafts or DraftsServiceImpl(self._client)
         self.files: FilesService = files or FilesServiceImpl(self._client)
         self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(self._client)
+        self.important_messages: ImportantMessagesService = important_messages or ImportantMessagesServiceImpl(self._client)
         self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(self._client)
         self.members: MembersService = members or MembersServiceImpl(self._client)
         self.messages: MessagesService = messages or MessagesServiceImpl(self._client)
@@ -3609,6 +3461,7 @@ class PachcaClient:
         drafts: DraftsService | None = None,
         files: FilesService | None = None,
         group_tags: GroupTagsService | None = None,
+        important_messages: ImportantMessagesService | None = None,
         link_previews: LinkPreviewsService | None = None,
         members: MembersService | None = None,
         messages: MessagesService | None = None,
@@ -3632,6 +3485,7 @@ class PachcaClient:
         self.drafts: DraftsService = drafts or DraftsServiceImpl(client)
         self.files: FilesService = files or FilesServiceImpl(client)
         self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(client)
+        self.important_messages: ImportantMessagesService = important_messages or ImportantMessagesServiceImpl(client)
         self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(client)
         self.members: MembersService = members or MembersServiceImpl(client)
         self.messages: MessagesService = messages or MessagesServiceImpl(client)
@@ -3657,6 +3511,7 @@ class PachcaClient:
         drafts: DraftsService | None = None,
         files: FilesService | None = None,
         group_tags: GroupTagsService | None = None,
+        important_messages: ImportantMessagesService | None = None,
         link_previews: LinkPreviewsService | None = None,
         members: MembersService | None = None,
         messages: MessagesService | None = None,
@@ -3680,6 +3535,7 @@ class PachcaClient:
         self.drafts = drafts or DraftsService()
         self.files = files or FilesService()
         self.group_tags = group_tags or GroupTagsService()
+        self.important_messages = important_messages or ImportantMessagesService()
         self.link_previews = link_previews or LinkPreviewsService()
         self.members = members or MembersService()
         self.messages = messages or MessagesService()

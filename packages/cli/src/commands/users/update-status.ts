@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class UsersUpdateStatus extends BaseCommand {
   static override description = "Новый статус сотрудника";
-
-  static override examples = [
-      "Управление статусом сотрудника — Установить статус:\n  $ pachca users update-status"
-  ];
-
   static scope = "user_status:write";
   static apiMethod = "PUT";
   static apiPath = "/users/{user_id}/status";
@@ -24,7 +19,7 @@ export default class UsersUpdateStatus extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'emoji': Flags.string({
-      description: "Emoji символ статуса. Обязателен, если статуса ещё нет.",
+      description: "Emoji символ статуса. Обязателен, если статуса ещё нет. Эмодзи в текстовой форме (без U+FE0F или с U+FE0E) сохраняется и возвращается с U+FE0F. Пустое значение отвечает `400` с кодом `blank`, несколько эмодзи — с кодом `invalid`, текст вместо эмодзи или рядом с ним — с кодом `wrong_emoji`.",
     }),
     'title': Flags.string({
       description: "Текст статуса. Обязателен, если статуса ещё нет. (макс. 50 символов)",

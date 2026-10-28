@@ -2,6 +2,7 @@ package com.pachca.sdk
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 data class LinkPreview(
@@ -24,6 +25,8 @@ data class ApiErrorItem(
 @Serializable
 data class ApiError(
     val errors: List<ApiErrorItem>? = null,
+    /** HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty. */
+    @Transient val statusCode: Int? = null,
 ) : Exception()
 
 @Serializable

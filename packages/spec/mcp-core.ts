@@ -228,6 +228,22 @@ export const STANDALONE_STEPS: Record<OperationKey, string> = {
 };
 
 /**
+ * Operations that are no tool, each with the reason.
+ *
+ * Every operation becomes a tool by construction, so a method added to the
+ * contract cannot end up nowhere; the steps above and the steps of the OAuth
+ * flow are the exceptions that have a shape of their own, and this table is the
+ * one for an operation whose answer only a program can use. A link to such an
+ * operation in the spec keeps its words, as a link to a chain step does. The
+ * build fails when a key here is no operation of the spec or has no reason.
+ */
+export const NOT_TOOLS: Record<OperationKey, string> = {
+  'GET /webhooks/events/stream':
+    'The answer is a link for a program to hold open as a stream of events. A model holds no connection, and the ' +
+    'link, which lets whoever has it read the bot’s events with no token, would only sit in its context.',
+};
+
+/**
  * Fields that take keys of uploads already made, lifted out to an argument of
  * their own that the server fills by uploading.
  *
@@ -270,7 +286,8 @@ export const WITHHELD: Partial<Record<OperationKey, Array<{ at: string; drop: Re
   'POST /chats/exports': [
     {
       at: 'webhook_url',
-      drop: /\s*When the archive is ready, a webhook with the identifier in the `export_id` field arrives at the\s+address from\s+`webhook_url`\./g,
+      // The sentence on the webhook, and the paragraph on which addresses it accepts.
+      drop: /\s*When the archive is ready, a webhook with the identifier in the `export_id` field arrives at the\s+address from\s+`webhook_url`\.|\s*The address in `webhook_url` must be reachable from the internet[\s\S]*?can be sent only after it\./g,
       reason:
         'Pachca posts to this address itself once the archive is ready, so an address with data in it, written ' +
         'on an injection, carries the data out with no click. An agent needs no webhook: the answer carries the ' +
@@ -348,6 +365,7 @@ export const ADDITIVE: Record<OperationKey, string> = {
   'POST /threads': 'A new thread tied to no message.',
   'POST /messages/{id}/reactions': 'One more reaction; one already there is not added twice.',
   'POST /messages/{id}/pin': 'Pinned messages have no limit, so pinning one unpins nothing.',
+  'POST /important_messages': "Marks a message in the caller's own «Important»; one already there stays as it is.",
   'POST /chats': 'A new chat.',
   'POST /chats/{id}/members': 'New members; those already there are skipped, and a bot held to one chat is refused, not moved.',
   'POST /chats/{id}/group_tags': 'Links tags and brings their members in; nothing is unlinked and nobody leaves.',
@@ -600,10 +618,14 @@ export const WEB_LINKS = {
  * message or a thread by its words across the caller's chats; a date alone
  * makes a task, even with no subject; talking a matter over separately is
  * posting it for colleagues in the thread of the message it continues, else in
- * an unattached one, not a talk with the model — and ends with the closed list
- * of what only the person has, and that a destructive request is carried out at
- * once, since small models re-ask before one and the client already asks
- * approval. Last, that facts of the workspace and of the token come from
+ * an unattached one, not a talk with the model — and ends with when to ask at
+ * all: for what only the person has, and before a change only when its target
+ * is a guess (two found, or inferred), when it is final while a reversible one
+ * would do, when it touches many at once, or when it sends words the model
+ * chose for the person. Every other change is carried out:
+ * the client asks its own approval, as the protocol has a client do, and small
+ * models told to confirm re-ask before every change. Last, that facts of the
+ * workspace and of the token come from
  * responses rather than from the catalogue or memory, and where to send a
  * question about how Pachca works.
  *
@@ -634,12 +656,12 @@ export const SERVER_INSTRUCTIONS = [
   '',
   'Get on with it: load the tool before asking. A request is an instruction about Pachca: find a chat, a person ' +
     'or a task by name, a message or a thread by its words across your chats — ids come from tools and pasted ' +
-    'links. Take the obvious default, word the text, pick the emoji, act, and say in a line what you did and ' +
+    'links. Take the obvious default, pick the emoji, act; say in a line what you did and ' +
     'assumed. A bare date is enough for a task. To talk a matter over separately is to post it for ' +
     'colleagues in the thread of the message it continues, else an unattached one; a chat is a lasting place with ' +
-    'a name. Ask only if a search finds none or two you cannot tell apart, or for what only the person has: their ' +
-    'server’s address, or the words of a message when they name only where it goes. Carry out a destructive ' +
-    'request at once: the client asks approval.',
+    'a name. Ask only for what only the person has (their server’s address, a message’s words when they name ' +
+    'only where it goes), or before a change to a guessed target, a final one with a reversible option, or many ' +
+    'at once, or sending words you chose; else act: the client asks approval.',
   '',
   'Workspace and token facts come from responses, and how Pachca works from dev.pachca.com: give that address, ' +
     'not an answer from memory.',
@@ -1234,6 +1256,12 @@ export const COMPACT_OMIT: Record<string, Array<{ fields: string[]; why: string 
       why: 'Where the original lies, for opening it rather than for reading what it says.',
     },
     { fields: ['display_avatar_url'], why: 'An avatar link is for the app.' },
+    {
+      fields: ['important'],
+      why:
+        'Whether the caller marked the message as important: false on nearly every line of a chat, and true on every ' +
+        'line of list_important_messages, the one list of the marked ones, where it says what the tool already says.',
+    },
   ],
   Chat: [
     { fields: ['created_at'], why: 'When the chat was made; last_message_at says whether it is alive.' },

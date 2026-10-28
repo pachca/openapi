@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class DraftsUpdate extends BaseCommand {
   static override description = "Редактирование черновика";
-
   static scope = "drafts:write";
   static apiMethod = "PUT";
   static apiPath = "/drafts/{id}";
@@ -20,7 +19,7 @@ export default class DraftsUpdate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'content': Flags.string({
-      description: "Текст черновика. До 40 000 байт в UTF-8, а у отложенного сообщения в пространстве с продвинутым шифрованием — до 27 000.",
+      description: "Текст черновика. До 40 000 байт в UTF-8.",
     }),
     'parent-message-id': Flags.integer({
       description: "Идентификатор сообщения, ответом на которое уйдёт черновик. `null` снимает ответ.",

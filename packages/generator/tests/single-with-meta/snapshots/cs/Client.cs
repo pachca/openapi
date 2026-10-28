@@ -55,10 +55,8 @@ public sealed class ChatsServiceImpl : ChatsService
         {
             case 200:
                 return PachcaUtils.Deserialize<ChatDataWrapper>(json).Data;
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.ErrorFromJson(json);
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }
     }
 
@@ -73,10 +71,8 @@ public sealed class ChatsServiceImpl : ChatsService
         {
             case 201:
                 return PachcaUtils.Deserialize<CreateChatResponse>(json);
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.ErrorFromJson(json);
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }
     }
 
@@ -94,10 +90,8 @@ public sealed class ChatsServiceImpl : ChatsService
         {
             case 200:
                 return PachcaUtils.Deserialize<UpdateChatResponse>(json);
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.ErrorFromJson(json);
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }
     }
 }

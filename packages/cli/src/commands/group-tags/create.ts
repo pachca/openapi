@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class GroupTagsCreate extends BaseCommand {
   static override description = "Новый тег";
-
-  static override examples = [
-      "Массовое создание сотрудников с тегами — Создай тег (если нужен):\n  $ pachca group-tags create"
-  ];
-
   static scope = "group_tags:write";
   static apiMethod = "POST";
   static apiPath = "/group_tags";

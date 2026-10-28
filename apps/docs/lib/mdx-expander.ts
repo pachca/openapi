@@ -21,8 +21,6 @@ import { getOrderedPages } from './ordered-pages';
 import { generateNavigation, compareEndpointsForNav } from './navigation';
 import { sortTagsByOrder } from './guides-config';
 import { SCOPE_ROLES, SCOPE_ROLE_LABELS } from './scope-roles';
-import { WORKFLOWS } from '@pachca/spec/workflows';
-import { SKILL_TAG_MAP } from '../scripts/skills/config';
 
 // ============================================
 // Helper functions
@@ -45,7 +43,8 @@ const JSX_PROP_MARKDOWN: Record<string, string> = {
   ApiIntroNotes:
     'Если только начинаете, загляните в [руководства](/) с пошаговыми примерами. ' +
     'Можно обойтись и без написания кода: соберите интеграции из визуальных блоков ' +
-    'в no-code инструменте [n8n](/guides/n8n/overview).',
+    'в no-code инструменте [n8n](/guides/n8n/overview). AI-агенту в Claude Code, Cursor и других ' +
+    'программах весь API доступен через [MCP-сервер](/guides/mcp/overview).',
 };
 
 function formatSchemaWithTitle(schema: Schema, title?: string): string {
@@ -80,7 +79,8 @@ function guideCardsToMarkdown(): string {
 
   let md = '';
   for (const guide of guides) {
-    md += `- [${guide.title}](${guide.path})`;
+    const title = guide.sectionTitle ? `${guide.sectionTitle}, ${guide.title}` : guide.title;
+    md += `- [${title}](${guide.path})`;
     if (guide.description) {
       md += ` — ${guide.description}`;
     }
@@ -753,26 +753,6 @@ export async function expandMdxComponents(content: string): Promise<string> {
     }
   }
 
-  // <AgentSkillsWorkflows /> -> markdown list of skills and workflows
-  if (result.includes('<AgentSkillsWorkflows')) {
-    let md = '';
-    for (const skill of SKILL_TAG_MAP) {
-      const workflows = WORKFLOWS[skill.name] ?? [];
-      if (!workflows.length) continue;
-      md += `### ${skill.name}\n\n`;
-      for (const wf of workflows) {
-        md += `**${wf.title}**\n\n`;
-        wf.steps.forEach((step, i) => {
-          const text = typeof step === 'string' ? step : step.description;
-          md += `${i + 1}. ${text}\n`;
-        });
-        if (wf.notes) md += `\n> ${wf.notes}\n`;
-        md += '\n';
-      }
-    }
-    result = result.replace(/<AgentSkillsWorkflows\s*\/>/g, md);
-  }
-
   // <NpmBadge package="..." version="..." date="..." /> -> markdown link
   result = result.replace(/<NpmBadge\s+([\s\S]*?)\/>/g, (_, attrs) => {
     const pkg = attrs.match(/package="([^"]+)"/)?.[1] ?? '';
@@ -799,6 +779,29 @@ export async function expandMdxComponents(content: string): Promise<string> {
     }
     md += '\n';
     result = result.replace(/<CliCommands\s*\/>/g, md);
+  }
+
+  // <McpTools /> -> one markdown table in the order of the API sidebar, as on the
+  // page: tool name, the method it calls as an endpoint link (resolved at write),
+  // who gets the tool and whether it reads or changes data.
+  // Source: packages/spec/mcp-manifest.json.
+  if (result.includes('<McpTools')) {
+    const { getMcpToolGroups, MCP_ACTION_LABELS } = await import('./mcp-data');
+    const { parseOpenAPI } = await import('./openapi/parser');
+    const { generateTitle } = await import('./openapi/mapper');
+    const api = await parseOpenAPI();
+    const endpoints = new Map(api.endpoints.map((ep) => [`${ep.method} ${ep.path}`, ep]));
+    let md =
+      '| Инструмент | Метод API | Кому доступен | Действие |\n|------------|-----------|---------------|----------|\n';
+    for (const group of getMcpToolGroups((operation) => endpoints.get(operation)?.tags[0])) {
+      for (const tool of group.tools) {
+        const ep = endpoints.get(tool.operation);
+        const link = ep ? `[${generateTitle(ep)}](${tool.operation})` : `\`${tool.operation}\``;
+        md += `| \`${tool.name}\` | ${link} | ${tool.audience} | ${MCP_ACTION_LABELS[tool.action]} |\n`;
+      }
+    }
+    md += '\n';
+    result = result.replace(/<McpTools\s*\/>/g, md);
   }
 
   // <GlobalFlags /> -> markdown table of global CLI flags (D3 single source)

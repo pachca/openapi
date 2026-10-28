@@ -8,13 +8,24 @@ import {
 } from "./types.js";
 import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
 
+/** The body of an error answer, or undefined when it is empty or not JSON (a 404 without a body, a proxy page). */
+async function errorBody(response: Response): Promise<any> {
+  try {
+    return JSON.parse(await response.text());
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * An error body is either `{ errors: [...] }` or the OAuth form `{ error, error_description }`,
  * which also comes with 400 and 403 (`insufficient_scope`, `invalid_grant`). The body decides the class.
+ * An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in `status`.
  */
-function errorFromBody(body: any): Error {
+async function errorFromResponse(response: Response): Promise<Error> {
+  const body = await errorBody(response);
   if (body && typeof body.error === "string" && body.errors === undefined) return new OAuthError(body.error);
-  return new ApiError(body?.errors);
+  return new ApiError(Array.isArray(body?.errors) ? body.errors : [], response.status);
 }
 
 export class MembersService {
@@ -47,14 +58,13 @@ export class MembersServiceImpl extends MembersService {
     const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as ListMembersResponse;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 
@@ -64,14 +74,13 @@ export class MembersServiceImpl extends MembersService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("MemberUpdateRequest", request)),
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserializeType("Member", body.data) as Member;
-      case 401:
-        throw new OAuthError(body.error);
+      }
       default:
-        throw errorFromBody(body);
+        throw await errorFromResponse(response);
     }
   }
 }

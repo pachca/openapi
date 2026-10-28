@@ -47,10 +47,9 @@ class EventsServiceImpl(EventsService):
             "/events",
             params=query,
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListEventsResponse, body)
+                return deserialize(ListEventsResponse, response.json())
             case _:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"
@@ -65,10 +64,9 @@ class EventsServiceImpl(EventsService):
             f"/events/{id}/publish",
             json={"scope": scope},
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Event, body["data"])
+                return deserialize(Event, response.json()["data"])
             case _:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"

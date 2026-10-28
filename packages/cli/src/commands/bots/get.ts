@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class BotsGet extends BaseCommand {
   static override description = "Информация о боте";
-
   static scope = "bots:read";
   static apiMethod = "GET";
   static apiPath = "/bots/{id}";

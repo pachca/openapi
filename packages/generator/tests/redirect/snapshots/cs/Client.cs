@@ -43,10 +43,8 @@ public sealed class CommonServiceImpl : CommonService
             case 302:
                 return response.Headers.Location?.ToString()
                     ?? throw new InvalidOperationException("Missing Location header in redirect response");
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.ErrorFromJson(json);
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }
     }
 }

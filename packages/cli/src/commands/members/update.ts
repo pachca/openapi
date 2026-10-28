@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class MembersUpdate extends BaseCommand {
   static override description = "Редактирование роли участника";
-
-  static override examples = [
-      "Архивация и управление чатом — Изменить роль участника:\n  $ pachca members update"
-  ];
-
   static scope = "chat_members:write";
   static apiMethod = "PUT";
   static apiPath = "/chats/{id}/members/{user_id}";

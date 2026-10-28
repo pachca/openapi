@@ -6,11 +6,6 @@ import * as path from 'node:path';
 
 export default class ChatsUpdateAvatar extends BaseCommand {
   static override description = "Загрузка аватара чата";
-
-  static override examples = [
-      "Поставить или убрать аватар чата — Загрузи аватар беседы или канала:\n  $ pachca chats update-avatar"
-  ];
-
   static scope = "chats:update";
   static apiMethod = "PUT";
   static apiPath = "/chats/{id}/avatar";

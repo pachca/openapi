@@ -5,13 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class TasksCreate extends BaseCommand {
   static override description = "Новое напоминание";
-
-  static override examples = [
-      "Форма заявки/запроса — При submit: создай задачу или отправь уведомление ответственному:\n  $ pachca tasks create",
-      "Создать напоминание — Создай задачу:\n  $ pachca tasks create",
-      "Создать серию напоминаний — Для каждой даты: создай задачу:\n  $ pachca tasks create"
-  ];
-
   static scope = "tasks:create";
   static apiMethod = "POST";
   static apiPath = "/tasks";
@@ -43,7 +36,7 @@ export default class TasksCreate extends BaseCommand {
       description: "Идентификатор чата, к которому привязывается напоминание (pachca chats list)",
     }),
     'all-day': Flags.boolean({
-      description: "Напоминание на весь день (без указания времени)",
+      description: "Напоминание на весь день. Вместе с ним передайте `due_at` ровно на 23:59:59 нужного дня с местным смещением сотрудника, например `2026-10-29T23:59:59+03:00`. Веб-версия Пачки показывает напоминание без времени только по такому сроку, а при другом времени срока показывает это время и с `all_day: true`.",
       allowNo: true,
     }),
     'custom-properties': Flags.string({

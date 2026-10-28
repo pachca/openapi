@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsListCompany extends BaseCommand {
   static override description = "Список чатов пространства";
-
-  static override examples = [
-      "Выгрузить все чаты пространства, включая закрытые — Получи беседы и каналы всего пространства, включая закрытые, где владелец токена не состоит:\n  $ pachca chats list-company"
-  ];
-
   static scope = "company_chats:read";
   static plan = "corporation";
   static apiMethod = "GET";

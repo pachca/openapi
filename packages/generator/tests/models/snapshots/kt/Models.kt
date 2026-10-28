@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
@@ -145,6 +146,8 @@ data class ApiErrorItem(
 @Serializable
 data class ApiError(
     val errors: List<ApiErrorItem>? = null,
+    /** HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty. */
+    @Transient val statusCode: Int? = null,
 ) : Exception()
 
 @Serializable

@@ -75,7 +75,7 @@ export const draftFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 4 },
 				default: "",
-				description: 'Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Up to 40,000 bytes in UTF-8, and for a scheduled message in a workspace with advanced encryption — up to 27,000.',
+				description: 'Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Up to 40,000 bytes in UTF-8.',
 				placeholder: 'Weekly report: sales are up 10%',
 			},
 			{
@@ -138,7 +138,7 @@ export const draftFields: INodeProperties[] = [
 							name: 'size',
 							type: 'number',
 							default: 0,
-							description: 'File size in bytes, displayed to the user',
+							description: 'File size in bytes, displayed to the user. If it is not passed or is 0, Pachca takes the size from the storage shortly after saving.',
 						},
 						{
 							displayName: 'Waveform',
@@ -272,7 +272,7 @@ export const draftFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 4 },
 				default: "",
-				description: 'Draft text. Up to 40,000 bytes in UTF-8, and for a scheduled message in a workspace with advanced encryption — up to 27,000.',
+				description: 'Draft text. Up to 40,000 bytes in UTF-8.',
 				placeholder: 'Weekly report: sales are up 10%',
 			},
 			{
@@ -335,7 +335,7 @@ export const draftFields: INodeProperties[] = [
 							name: 'size',
 							type: 'number',
 							default: 0,
-							description: 'File size in bytes, displayed to the user',
+							description: 'File size in bytes, displayed to the user. If it is not passed or is 0, Pachca takes the size from the storage shortly after saving.',
 						},
 						{
 							displayName: 'Waveform',

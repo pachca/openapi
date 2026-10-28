@@ -78,6 +78,12 @@ const MAX_RETRIES = 3;
 // Only the daily chat limit and the hour-long ban wait longer than a minute.
 const MAX_RETRY_AFTER_MS = 60_000;
 const RETRYABLE_5XX = new Set([500, 502, 503, 504]);
+// A 5xx says nothing about whether the server already applied the request.
+// These methods are safe to repeat. A retried POST or PATCH could apply
+// twice: POST /messages would send the message again, and the API has no
+// idempotency key. 429 is safe for any method: the request was rejected
+// before it was processed.
+const IDEMPOTENT_METHODS = new Set(["GET", "HEAD", "OPTIONS", "PUT", "DELETE"]);
 
 // Retry-After is a minimum, not an estimate: waiting less lands the retry
 // inside a window that is still closed. Jitter only upwards.
@@ -85,7 +91,23 @@ function jitter(delay: number): number {
   return delay * (1 + Math.random() * 0.25);
 }
 
+// A 504 with the code `timeout` is a search the server stopped because the
+// query is too heavy: the same query would time out again, so it goes back
+// to the caller at once. A 504 from a proxy has no such code and is retried.
+// The body is read from a clone, so the caller can still read it.
+async function isQueryTimeout(response: Response): Promise<boolean> {
+  if (response.status !== 504) return false;
+  try {
+    const body = (await response.clone().json()) as { errors?: unknown } | null;
+    const errors = body?.errors;
+    return Array.isArray(errors) && errors.some((error) => (error as { code?: unknown } | null)?.code === "timeout");
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const method = (init?.method ?? (typeof input === "object" && "method" in input ? input.method : "GET")).toUpperCase();
   for (let attempt = 0; ; attempt++) {
     const response = await fetch(input, init);
     if (response.status === 429 && attempt < MAX_RETRIES) {
@@ -101,7 +123,12 @@ export async function fetchWithRetry(input: RequestInfo | URL, init?: RequestIni
       await new Promise((r) => setTimeout(r, jitter(delay)));
       continue;
     }
-    if (RETRYABLE_5XX.has(response.status) && attempt < MAX_RETRIES) {
+    if (
+      RETRYABLE_5XX.has(response.status) &&
+      IDEMPOTENT_METHODS.has(method) &&
+      attempt < MAX_RETRIES &&
+      !(await isQueryTimeout(response))
+    ) {
       const delay = 1000 * (attempt + 1);
       await new Promise((r) => setTimeout(r, jitter(delay)));
       continue;

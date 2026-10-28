@@ -50,7 +50,7 @@ public sealed class ItemsServiceImpl : ItemsService
             case 200:
                 return PachcaUtils.Deserialize<ItemDataWrapper>(json).Data;
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }
     }
 }

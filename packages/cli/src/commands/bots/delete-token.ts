@@ -5,7 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class BotsDeleteToken extends BaseCommand {
   static override description = "Удаление токена бота";
-
   static scope = "bots:write";
   static apiMethod = "DELETE";
   static apiPath = "/bots/{id}/tokens/{token_id}";

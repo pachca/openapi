@@ -41,9 +41,20 @@ tasks.register<JavaExec>("runExample") {
     mainClass.set(System.getProperty("example", "examples.echobot.MainKt"))
 }
 
+tasks.register<JavaExec>("runRetryTests") {
+    classpath = sourceSets["tests"].runtimeClasspath
+    mainClass.set("tests.retries.Retries")
+}
+
+tasks.register<JavaExec>("runErrorBodyTests") {
+    classpath = sourceSets["tests"].runtimeClasspath
+    mainClass.set("tests.errorbodies.ErrorBodies")
+}
+
 tasks.register<JavaExec>("runTests") {
     classpath = sourceSets["tests"].runtimeClasspath
     mainClass.set("tests.OpenEnums")
+    dependsOn("runRetryTests", "runErrorBodyTests")
 }
 
 val ktorVersion = "3.2.3"

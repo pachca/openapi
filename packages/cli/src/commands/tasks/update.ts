@@ -4,12 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class TasksUpdate extends BaseCommand {
   static override description = "Редактирование напоминания";
-
-  static override examples = [
-      "Отметить задачу выполненной — Обнови статус задачи:\n  $ pachca tasks update",
-      "Обновить задачу (перенести срок, сменить ответственных) — Обнови нужные поля задачи:\n  $ pachca tasks update"
-  ];
-
   static scope = "tasks:update";
   static apiMethod = "PUT";
   static apiPath = "/tasks/{id}";
@@ -37,13 +31,13 @@ export default class TasksUpdate extends BaseCommand {
       description: "Приоритет: 1, 2 (важно) или 3 (очень важно)",
     }),
     'performer-ids': Flags.string({
-      description: "Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные»",
+      description: "Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные». Список заменяет прежний целиком.",
     }),
     'status': Flags.string({
       description: "Статус",
     }),
     'all-day': Flags.boolean({
-      description: "Напоминание на весь день (без указания времени)",
+      description: "Напоминание на весь день. При правке поле не применяется: напоминание на весь день задаёт срок `due_at` ровно на 23:59:59 нужного дня с местным смещением сотрудника, например `2026-10-29T23:59:59+03:00`.",
       allowNo: true,
     }),
     'done-at': Flags.string({

@@ -61,13 +61,13 @@ next-env.d.ts
 .DS_Store
 Thumbs.db
 
-# Evals
-evals/results/
-
 # Agent / AI tooling
 .claude/
 .cursor/
 .mcp.json
+# The plugin ships its MCP server config: a public address, no token.
+!plugins/pachca/.mcp.json
+plugins/pachca/evals/results/
 .playwright-mcp/
 .pi/tmp/
 

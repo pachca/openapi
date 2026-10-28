@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class UsersGetStatus extends BaseCommand {
   static override description = "Статус сотрудника";
-
-  static override examples = [
-      "Управление статусом сотрудника — Получить текущий статус:\n  $ pachca users get-status"
-  ];
-
   static scope = "user_status:read";
   static apiMethod = "GET";
   static apiPath = "/users/{user_id}/status";

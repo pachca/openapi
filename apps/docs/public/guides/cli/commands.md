@@ -34,6 +34,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca bots delete` | `DELETE` Удаление бота |
 | `pachca bots delete-token` | `DELETE` Удаление токена бота |
 | `pachca bots get` | `GET` Информация о боте |
+| `pachca bots get-stream` | `GET` Поток событий |
 | `pachca bots list` | `GET` Список ботов |
 | `pachca bots list-company` | `GET` Список ботов пространства |
 | `pachca bots list-events` | `GET` История событий |
@@ -82,7 +83,9 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca group-tags list` | `GET` Список тегов |
 | `pachca group-tags list-users` | `GET` Список сотрудников тега |
 | `pachca group-tags update` | `PUT` Редактирование тега |
-| `pachca guide` | Поиск сценариев использования |
+| `pachca important-messages create` | `POST` Добавление сообщения в важные |
+| `pachca important-messages delete` | `DELETE` Удаление сообщения из важных |
+| `pachca important-messages list` | `GET` Список важных сообщений |
 | `pachca introspect` | Метаданные команды в машиночитаемом формате |
 | `pachca members add` | `POST` Добавление участников |
 | `pachca members add-group-tags` | `POST` Добавление тегов |

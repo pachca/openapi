@@ -10,9 +10,19 @@
 
 > Русская версия: [README.md](README.md)
 
-Unified Developer Experience Platform for the [Pachca API](https://dev.pachca.com) — the REST API of Pachca, a corporate messenger. A single source (TypeSpec + workflows.ts + examples.ts) generates artifacts for every channel: web docs, CLI, SDKs, an n8n node, agent skills, and LLM context.
+Unified Developer Experience Platform for the [Pachca API](https://dev.pachca.com) — the REST API of Pachca, a corporate messenger. A single source (TypeSpec) generates artifacts for every channel: web docs, CLI, SDKs, an n8n node, the MCP server tool manifest, and LLM context. Agent Skills are written by hand and published by the same build.
 
 **Docs**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Authorization**: https://dev.pachca.com/api/authorization · **Changelog**: https://dev.pachca.com/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
+
+## MCP server
+
+`https://mcp.pachca.com/mcp` — one tool per API method, with the rights of the token. Claude Code, Claude, VS Code and GitHub Copilot, Codex and the ChatGPT desktop app sign in through the browser, other clients send a token in a header. In Claude Code, the Claude app, Codex, VS Code with GitHub Copilot and Cursor the Pachca plugin from [`plugins/pachca`](plugins/pachca) installs the server together with skills and commands.
+
+```bash
+claude mcp add --transport http pachca https://mcp.pachca.com/mcp
+```
+
+**Docs (Russian)**: [dev.pachca.com/guides/mcp](https://dev.pachca.com/guides/mcp/overview) · **Connecting clients (Russian)**: [dev.pachca.com/guides/mcp/connect](https://dev.pachca.com/guides/mcp/connect), in English: [mcp-clients.md](https://dev.pachca.com/.well-known/skills/pachca/references/mcp-clients.md) · **Tool manifest**: [`@pachca/mcp-manifest`](packages/mcp-manifest)
 
 ## CLI
 
@@ -24,7 +34,6 @@ npx @pachca/cli messages create --entity-id=123 --content="Hello!" --token $PACH
 npm install -g @pachca/cli
 pachca auth login
 pachca messages create --entity-id=123 --content="Hello!"
-pachca guide "send a message"  # CLI guide
 
 # Built-in API reference right in the terminal (for agents)
 pachca api ls                          # list every endpoint
@@ -36,47 +45,45 @@ Every API method is available as a command: typed flags, validation, four output
 
 **Docs**: https://dev.pachca.com/guides/cli
 
-## Agent Skills
+## Plugin and skills
 
-AI agents use CLI-first skills with step-by-step workflows, zero-friction authorization, and automatic permission checks.
-
-### Install (40+ agents)
+Skills are know-how for doing things in Pachca the right way: where to post and what to confirm, how to find and summarize, which token to pick, why a permission is missing. The argument reference comes from the MCP tool descriptions, `pachca <command> --help` and the method pages, so the skills do not repeat it. They work with any access path: MCP, CLI or API.
 
 ```bash
-npx skills add pachca/openapi
+# Claude Code
+claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins
+claude plugin install pachca@pachca
+
+# Codex
+codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca
+codex plugin add pachca@pachca
+
+# GitHub Copilot CLI and VS Code
+copilot plugin marketplace add pachca/openapi
+copilot plugin install pachca@pachca
+
+# Skills only, for OpenCode, Devin, Cline, Kilo Code, Qwen Code and other agents (Node.js 22.20+)
+npx skills add https://dev.pachca.com -g -a opencode -y
 ```
 
-### Compatibility
+The plugin installs the MCP server, skills and commands. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app, signing in to Pachca and installing skills without Node.js are covered on the [Plugin and skills](https://dev.pachca.com/guides/mcp/plugin) page.
 
-| Agent | Path |
-|-------|------|
-| Claude Code | `CLAUDE.md` → `AGENTS.md` |
-| Codex CLI | `AGENTS.md` |
-| OpenCode | `skills/` |
-| Cursor, Windsurf, Continue, 40+ more | Auto-detected |
-| Manual install | `cp -r skills/pachca-* <path>` |
+| Skill | Use it for |
+|-------|------------|
+| `pachca` | Connecting over MCP, CLI or API, picking a token, a missing permission or tool |
+| `pachca-messaging` | Writing, replying in a thread, mentions, drafts, scheduled messages, files |
+| `pachca-search` | Finding a discussion, chat or employee, summarizing a thread, digests, tasks from a discussion |
+| `pachca-admin` | Employees, tags, chat members, API access, audit log, export, DLP |
+| `pachca-bots` | A bot or integration: webhooks, events, tokens, buttons, forms, link unfurling |
+| `pachca-ai-agent` | An AI agent that lives in Pachca and answers in threads |
+| `pachca-oauth` | An app acting on behalf of each employee |
+| `pachca-api` | Scripts, SDKs and CI: pagination, limits, errors, files |
 
-### Available skills
-
-| Skill | Description |
-|-------|-------------|
-| `pachca-profile` | Profile, status, custom fields |
-| `pachca-users` | Employees and tags (groups) |
-| `pachca-chats` | Channels, conversations, members, export |
-| `pachca-messages` | Messages, files, reactions, buttons |
-| `pachca-bots` | Bots, webhooks, unfurling |
-| `pachca-forms` | Interactive forms |
-| `pachca-tasks` | Reminders (tasks) |
-| `pachca-search` | Full-text search |
-| `pachca-security` | Audit events, DLP |
-| `pachca-oauth` | Current token info: scopes, owner, timestamps |
-| `pachca` | Router skill — routes to the right skill |
-
-Skills are generated automatically from the OpenAPI spec on `bun turbo build`. Install only from the official repository — skills contain instructions only (no executable code).
+The skills are written by hand in `plugins/pachca/skills/<name>/`. The build publishes the eight knowledge skills on dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) and checks their links and the MCP tool and CLI command names. The plugin's commands are not published on the site. Skills hold instructions only, no executable code.
 
 ## n8n
 
-A community node for [n8n](https://n8n.io/) — 17 resources, 87 operations, and a Pachca Trigger with automatic webhook registration.
+A community node for [n8n](https://n8n.io/) — 19 resources, more than 100 operations, and a Pachca Trigger with automatic webhook registration.
 
 ```bash
 # In n8n: Settings > Community Nodes > n8n-nodes-pachca
@@ -93,8 +100,8 @@ Generated automatically from the OpenAPI spec, fully backward-compatible with v1
 |----------|---------|----------|
 | [TypeScript](sdk/typescript/README.md) | `@pachca/sdk` | npm |
 | [Python](sdk/python/generated/README.md) | `pachca-sdk` | PyPI |
-| [Go](sdk/go/README.md) | `github.com/pachca/go-sdk` | Go modules |
-| [Kotlin](sdk/kotlin/README.md) | `com.pachca:sdk` | JitPack |
+| [Go](sdk/go/README.md) | `github.com/pachca/openapi/sdk/go/generated` | Go modules |
+| [Kotlin](sdk/kotlin/README.md) | `com.pachca:pachca-sdk` | JitPack |
 | [Swift](sdk/swift/README.md) | `PachcaSDK` | SPM |
 | [C#](sdk/csharp/generated/README.md) | `Pachca.Sdk` | NuGet |
 
@@ -147,19 +154,19 @@ npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,sw
 
 | File | Contents |
 |------|----------|
-| [`/llms.txt`](https://dev.pachca.com/llms.txt) | Short index: every endpoint with links + a line map |
+| [`/llms.txt`](https://dev.pachca.com/llms.txt) | Short index: core rules, ways to work, every endpoint with links + a line map |
+| [`/api/llms.txt`](https://dev.pachca.com/api/llms.txt), [`/guides/llms.txt`](https://dev.pachca.com/guides/llms.txt), [`/updates/llms.txt`](https://dev.pachca.com/updates/llms.txt) | Section indexes: methods, guides, updates |
 | [`/llms-full.txt`](https://dev.pachca.com/llms-full.txt) | Full docs: guides + endpoints with parameters |
-| [`/llms-en.txt`](https://dev.pachca.com/llms-en.txt) | English version of the full docs (for Context7) |
-| [`/skill.md`](https://dev.pachca.com/skill.md) | AI-agent skill: workflows, capabilities, links |
-| [`/workflows.arazzo.yaml`](https://dev.pachca.com/workflows.arazzo.yaml) | Multi-step API workflows in Arazzo 1.0.1 |
+| [`/llms-en.txt`](https://dev.pachca.com/llms-en.txt) | API rules, guides and the method reference in English |
+| [`/skill.md`](https://dev.pachca.com/skill.md) | Entry skill for AI agents: connecting and links |
 | `/api/{section}/{action}.md` | A standalone .md for each endpoint and guide |
 | `<any page>.md` | Markdown version of any page (or the `Accept: text/markdown` header) |
-| `/.well-known/agent-skills/index.json` | Agent Skills discovery index (Cloudflare RFC) |
-| `/.well-known/agent-card.json` | Agent Card — service description for agent clients |
+| `/.well-known/agent-skills/index.json` | Skills index (Agent Skills Discovery 0.2.0), with `.tar.gz` archives next to it. ZIP for upload — `/skills/<skill>.zip` |
+| `/.well-known/api-catalog` | API catalog (RFC 9727): descriptions, docs and metadata in one JSON |
 
-[Context7](https://context7.com/pachca/openapi) — AI-native document discovery. Through the CLI, the API reference is available without the website too: `pachca api ls`, `pachca api <METHOD> <path> --describe`.
+Through the CLI, the API reference is available without the website, without signing in and without a token: `pachca api ls`, `pachca api <METHOD> <path> --describe`.
 
-All files are served with `Access-Control-Allow-Origin: *`, marked `X-Robots-Tag: noindex`, and cached through a CDN.
+All files are served with `Access-Control-Allow-Origin: *` and cached through a CDN. Page `.md` versions, `llms-full.txt`, `llms-en.txt` and the skill files are marked `X-Robots-Tag: noindex`, while `/llms.txt` stays indexable so agents can find it through search.
 
 ## Development
 

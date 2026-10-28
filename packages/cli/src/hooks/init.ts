@@ -15,6 +15,7 @@ import {
 import { ensureFreshToken, isSessionExpired } from '../token-refresh.js';
 import { outputError } from '../output.js';
 import { defaultOutputFormat, isInteractive } from '../utils.js';
+import { detectIntrospectMode } from '../api-introspect.js';
 
 /**
  * Resolve output format from argv before flags are parsed by oclif.
@@ -46,7 +47,6 @@ const SKIP_AUTH = new Set([
   'doctor',
   'autocomplete',
   'commands',
-  'guide',
   'introspect',
   'changelog',
   'upgrade',
@@ -109,6 +109,10 @@ const hook: Hook<'init'> = async function (opts) {
 
   // Skip auth for exempt commands
   if (SKIP_AUTH.has(commandId)) return;
+
+  // `api ls` and `api <METHOD> <path> --describe|--spec|--docs` read the bundled
+  // spec and never call the API, so an agent can study the API before signing in.
+  if (commandId === 'api' && (opts.argv[0] === 'ls' || detectIntrospectMode(opts.argv))) return;
 
   // Skip auth when --help, --version, or --dry-run flag is passed
   if (process.argv.includes('--help') || process.argv.includes('-h')) return;

@@ -76,7 +76,7 @@ public sealed class SearchServiceImpl : SearchService
             case 200:
                 return PachcaUtils.Deserialize<SearchMessagesResponse>(json);
             case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
+                throw PachcaUtils.OAuthErrorFromResponse((int)response.StatusCode, json);
             default:
                 throw new InvalidOperationException($"Unexpected status code: {(int)response.StatusCode}");
         }

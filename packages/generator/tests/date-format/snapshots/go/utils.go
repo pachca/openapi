@@ -1,6 +1,9 @@
 package pachca
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -24,6 +27,49 @@ func (e NotImplementedError) Error() string {
 const maxRetries = 3
 
 var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}
+
+// isIdempotent reports whether a request is safe to repeat after a 5xx. A 5xx
+// says nothing about whether the server already applied the request: a
+// retried POST or PATCH could apply twice, POST /messages would send the
+// message again, and the API has no idempotency key. 429 is safe for any
+// method: the request was rejected before it was processed.
+func isIdempotent(method string) bool {
+	switch method {
+	case "", http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodPut, http.MethodDelete:
+		return true
+	}
+	return false
+}
+
+// isQueryTimeout reports whether a 504 carries the error code "timeout": the
+// server stopped a search because the query is too heavy, and the same query
+// would time out again, so it goes back to the caller at once. A 504 from a
+// proxy has no such code and is retried. The body is put back for the caller.
+func isQueryTimeout(resp *http.Response) bool {
+	if resp.StatusCode != http.StatusGatewayTimeout {
+		return false
+	}
+	body, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	resp.Body = io.NopCloser(bytes.NewReader(body))
+	if err != nil {
+		return false
+	}
+	var parsed struct {
+		Errors []struct {
+			Code string `json:"code"`
+		} `json:"errors"`
+	}
+	if json.Unmarshal(body, &parsed) != nil {
+		return false
+	}
+	for _, e := range parsed.Errors {
+		if e.Code == "timeout" {
+			return true
+		}
+	}
+	return false
+}
 
 // Retry-After is a minimum, not an estimate: waiting less lands the retry
 // inside a window that is still closed. Jitter only upwards.
@@ -60,7 +106,7 @@ func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error)
 			time.Sleep(jitter(delay))
 			continue
 		}
-		if retryable5xx[resp.StatusCode] && attempt < maxRetries {
+		if retryable5xx[resp.StatusCode] && isIdempotent(req.Method) && attempt < maxRetries && !isQueryTimeout(resp) {
 			resp.Body.Close()
 			delay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)
 			time.Sleep(delay)

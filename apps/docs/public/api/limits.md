@@ -19,13 +19,16 @@
 **Отправка сообщений — ~4 запроса / 1 секунда** Считается отдельно по `entity_id`. Действует на `POST /messages`. Считаем по токену авторизации (заголовок `HTTP_AUTHORIZATION`), отдельно по каждому `entity_id` из тела запроса — то есть по беседе, треду или собеседнику, кому пишете. Дополнительно действует общий предел по всем адресатам сразу — 30 запросов за 5 секунд: он допускает короткие ускорения выше посекундного лимита, но не даёт держать такой темп долго. Изменение и удаление сообщений под этот лимит не подпадают и работают в рамках общего.
 
 
-**Чтение сообщений — ~10 запросов / 1 секунда** Действует на методы чтения, путь которых начинается с `/messages`: список сообщений, отдельное сообщение, его реакции и список прочитавших. Считаем по токену авторизации (заголовок `HTTP_AUTHORIZATION`). Один токен — один лимит.
+**Чтение сообщений — ~10 запросов / 1 секунда** Действует на методы чтения, путь которых начинается с `/messages` (список сообщений, отдельное сообщение, его реакции и список прочитавших), и на список важных сообщений `GET /important_messages`. Счётчик у них общий. Считаем по токену авторизации (заголовок `HTTP_AUTHORIZATION`). Один токен — один лимит.
+
+
+**Добавление в важные и удаление из важных — ~30 запросов / 5 секунд** Действует на `POST /important_messages` и `DELETE /important_messages/{id}`. Считаем по токену авторизации.
 
 
 **Остальные методы API — ~50 запросов / 1 секунда** Считаем по токену авторизации (заголовок `HTTP_AUTHORIZATION`). Один токен — один лимит.
 
 
-**Чтение истории событий бота — ~5 запросов / 2 секунды** Действует на `GET /webhooks/events`. Считаем по токену авторизации.
+**Чтение истории событий бота — ~5 запросов / 2 секунды** Действует на `GET /webhooks/events` и `GET /webhooks/events/stream`, счётчик у них общий. Считаем по токену авторизации. События, которые приходят по ссылке на поток, в лимит не входят: считается только запрос ссылки.
 
 
 **Инвентаризация пространства — ~30 запросов / 1 минута** Действует на `GET /company/chats` и `GET /company/bots`. Считаем по токену авторизации. Лимит заметно строже общего: при странице в 50 записей за минуту получится обойти около 1500 чатов или ботов.
@@ -42,13 +45,17 @@
 
 Если за секунду будет больше указанных запросов с одним токеном, API вернёт `429 Too Many Requests`. В заголовке `Retry-After` мы укажем, через сколько секунд можно попробовать снова. В теле придёт обычный ответ об ошибке: код `rate_limit` в `errors[].code` и причина в `message`.
 
-Превышение суточного предела отвечает так же — `429` с кодом `rate_limit` в `errors[].code` и заголовком `Retry-After`. Отправка в этот чат приостанавливается на час, и каждая следующая попытка во время паузы удваивает её: 1, 2, 4, 8, 16 и до 24 часов. Дождитесь срока из `Retry-After` — он учитывает и паузу, и момент, когда в окне освободится место. Отправка, прошедшая после паузы, возвращает шкалу к началу.
+Превышение суточного предела отвечает так же — `429` с кодом `rate_limit` в `errors[].code` и заголовком `Retry-After`. Отправка в этот чат приостанавливается на час. Каждая попытка во время паузы, пока квота за 24 часа ещё выбрана, удлиняет паузу на ступень: 1, 2, 4, 8, 16 и до 24 часов. Когда старые сообщения выпадают из окна и место освобождается, остаток паузы просто истекает и попытки его уже не удлиняют. Дождитесь срока из `Retry-After` — он учитывает и паузу, и момент, когда в окне освободится место. Отправка, прошедшая после паузы, возвращает шкалу к началу.
 
 Лимит писем-приглашений отвечает иначе: `422` с кодом `daily_invites_limit`, а остаток и время, когда в окне освободится место, приходят в `payload`. Запрос при этом не применяется: сотрудник не создаётся, почта не меняется. В платном пространстве этого лимита нет.
 
 - **Лимиты гибкие:** они ориентировочные и могут меняться, чтобы всё работало гладко;
 - **Должно хватать на всё:** мы настроили их так, чтобы вам было комфортно в любых сценариях;
 - **Если упёрлись в лимит:** при ошибке `429` смотрите заголовок `Retry-After` — он подскажет, через сколько секунд повторить запрос (или используйте экспоненциальный `backoff`, если хотите перестраховаться).
+
+## MCP-сервер
+
+У MCP-сервера свои пределы на вызовы инструментов и запросы к серверу — в разделе [MCP-сервер](/guides/mcp/overview#predely). Каждый вызов инструмента — запрос к API, и лимиты выше действуют и на него.
 
 ## Защита от перегрузки
 
@@ -60,89 +67,129 @@
 
 ## Повторные запросы (Retry)
 
-[SDK](/guides/sdk/overview) ([TypeScript](/guides/sdk/typescript), [Python](/guides/sdk/python)), CLI и нода n8n повторяют запрос сами. Ниже — реализация для кастомных HTTP-клиентов.
+[SDK](/guides/sdk/overview) ([TypeScript](/guides/sdk/typescript), [Python](/guides/sdk/python)), CLI и нода n8n повторяют запрос сами, поэтому их вызовы во второй цикл повторов не оборачивайте: каждая внешняя попытка снова запустит их собственные повторы. Ниже — реализация для кастомных HTTP-клиентов.
 
-Если пишете свой клиент, соблюдайте два правила.
+Если пишете свой клиент, соблюдайте три правила.
 
 **Не ждите меньше, чем сказано в `Retry-After`.** Это минимум ожидания, а не оценка: срок уже округлён вверх, чтобы клиент, выждавший его честно, не пришёл в ещё закрытое окно. Джиттер добавляйте вверх, а не вниз.
 
-**Не повторяйте долгие паузы.** `Retry-After` дольше минуты приходит только там, где повтор не поможет: суточный предел сообщений в чат и блокировка отправки при перегрузке. Повтор внутри такой паузы бесполезен, а у суточного предела ещё и продлевает её: каждая попытка удваивает срок, от часа до суток. Отдайте ошибку вызывающему коду вместе с `Retry-After`, и пусть он вернётся к работе позже. Наши клиенты так и делают.
+**Не повторяйте долгие паузы.** `Retry-After` дольше минуты приходит только там, где повтор не поможет: суточный предел сообщений в чат и блокировка отправки при перегрузке. Повтор внутри такой паузы бесполезен, а у суточного предела ещё и продлевает её, пока квота за 24 часа выбрана: каждая попытка поднимает срок на ступень, от часа до суток. Отдайте ошибку вызывающему коду вместе с `Retry-After`, и пусть он вернётся к работе позже. Наши клиенты такие ответы не повторяют и сразу отдают ошибку.
+
+**Повторяйте `5xx` только для идемпотентных методов.** Запросы GET, PUT и DELETE можно повторить без побочных эффектов. Запрос POST сервер мог выполнить до сбоя, и повтор `POST /messages` отправит сообщение дважды. Исключение — `504` с кодом `timeout`: так отвечают методы поиска и [Список сотрудников](/api/users/list) с параметром `query`, когда запрос не уложился по времени. Тот же запрос, скорее всего, снова не уложится, поэтому его не повторяют, а сужают: короче период, меньше чатов, точнее фраза.
 
 ### TypeScript
 
 ```typescript
-async function withRetry<T>(
-  fn: () => Promise<T>,
+const RETRYABLE_5XX = new Set([500, 502, 503, 504])
+const IDEMPOTENT = new Set(["GET", "PUT", "DELETE"])
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+// Джиттер только вверх: ждать меньше Retry-After нельзя
+const withJitter = (ms: number) => ms * (1 + Math.random() * 0.25)
+// 504 с кодом timeout: поиск не уложился по времени, повтор не поможет
+const isSearchTimeout = async (response: Response) =>
+  response.status === 504 &&
+  ((await response.clone().json().catch(() => null))?.errors ?? []).some(
+    (e: { code?: string }) => e.code === "timeout"
+  )
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit = {},
   maxRetries = 3
-): Promise<T> {
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      return await fn()
-    } catch (error: any) {
-      // 429 Too Many Requests — ждём Retry-After или backoff
-      if (error.status === 429) {
-        const retryAfter = error.headers?.["retry-after"]
-        const delay = retryAfter
-          ? parseInt(retryAfter) * 1000
-          : Math.pow(2, attempt) * 1000 * (0.5 + Math.random())
-        await new Promise(r => setTimeout(r, delay))
-        continue
-      }
-      // 5xx — серверная ошибка, backoff с jitter
-      if (error.status >= 500 && attempt < maxRetries) {
-        const delay = Math.pow(2, attempt) * 1000 * (0.5 + Math.random())
-        await new Promise(r => setTimeout(r, delay))
-        continue
-      }
-      // 4xx (кроме 429) — не повторяем
-      throw error
+): Promise<Response> {
+  const method = (init.method ?? "GET").toUpperCase()
+  for (let attempt = 0; ; attempt++) {
+    const response = await fetch(url, init)
+    if (attempt >= maxRetries) return response
+
+    if (response.status === 429) {
+      const retryAfter = Number(response.headers.get("retry-after"))
+      // Пауза дольше минуты: суточный предел или блокировка, повтор не поможет
+      if (retryAfter > 60) return response
+      await sleep(withJitter(retryAfter > 0 ? retryAfter * 1000 : 1000 * 2 ** attempt))
+      continue
     }
+    // 5xx повторяем только у идемпотентных методов: повтор POST может создать дубль
+    if (RETRYABLE_5XX.has(response.status) && IDEMPOTENT.has(method) && !(await isSearchTimeout(response))) {
+      await sleep(withJitter(1000 * 2 ** attempt))
+      continue
+    }
+    return response
   }
-  throw new Error("Max retries exceeded")
 }
 
 // Использование
-const users = await withRetry(() => client.users.listUsers())
+const response = await fetchWithRetry("https://api.pachca.com/api/shared/v1/users", {
+  headers: { Authorization: `Bearer ${token}` },
+})
 ```
 
 ### Python
 
 ```python
-import time, random
+import random
+import time
 
-async def with_retry(fn, max_retries=3):
+import httpx
+
+RETRYABLE_5XX = {500, 502, 503, 504}
+IDEMPOTENT = {"GET", "PUT", "DELETE"}
+
+
+def with_jitter(seconds: float) -> float:
+    # Джиттер только вверх: ждать меньше Retry-After нельзя
+    return seconds * (1 + random.random() * 0.25)
+
+
+def is_search_timeout(response: httpx.Response) -> bool:
+    # 504 с кодом timeout: поиск не уложился по времени, повтор не поможет
+    if response.status_code != 504:
+        return False
+    try:
+        return any(e.get("code") == "timeout" for e in response.json().get("errors", []))
+    except ValueError:
+        return False
+
+
+def request_with_retry(client: httpx.Client, method: str, url: str, max_retries: int = 3, **kwargs) -> httpx.Response:
     for attempt in range(max_retries + 1):
-        try:
-            return await fn()
-        except Exception as e:
-            status = getattr(e, "status_code", getattr(e, "status", 0))
-            headers = getattr(e, "headers", {})
-            # 429 Too Many Requests
-            if status == 429:
-                retry_after = headers.get("Retry-After")
-                delay = int(retry_after) if retry_after else (2 ** attempt) * (0.5 + random.random())
-                time.sleep(delay)
-                continue
-            # 5xx — серверная ошибка
-            if status >= 500 and attempt < max_retries:
-                time.sleep((2 ** attempt) * (0.5 + random.random()))
-                continue
-            raise
-    raise Exception("Max retries exceeded")
+        response = client.request(method, url, **kwargs)
+        if attempt == max_retries:
+            return response
+
+        if response.status_code == 429:
+            retry_after = int(response.headers.get("Retry-After", 0))
+            # Пауза дольше минуты: суточный предел или блокировка, повтор не поможет
+            if retry_after > 60:
+                return response
+            time.sleep(with_jitter(retry_after or 2 ** attempt))
+            continue
+        # 5xx повторяем только у идемпотентных методов: повтор POST может создать дубль
+        if response.status_code in RETRYABLE_5XX and method.upper() in IDEMPOTENT and not is_search_timeout(response):
+            time.sleep(with_jitter(2 ** attempt))
+            continue
+        return response
+
 
 # Использование
-users = await with_retry(lambda: client.users.list_users())
+with httpx.Client(
+    base_url="https://api.pachca.com/api/shared/v1",
+    headers={"Authorization": f"Bearer {token}"},
+) as client:
+    users = request_with_retry(client, "GET", "/users").json()
 ```
 
 ### Стратегия повторов
 
 | Код | Действие | Задержка |
 | --- | --- | --- |
-| `429` | Повторить | `Retry-After` header или exponential backoff: 1с, 2с, 4с × jitter |
-| `500`, `502`, `503`, `504` | Повторить | Exponential backoff с jitter: ~1с, ~2с, ~4с |
+| `429` с `Retry-After` до минуты | Повторить | Не меньше `Retry-After`, без заголовка — 1 с, 2 с, 4 с |
+| `429` с `Retry-After` дольше минуты | **Не повторять** | Отдать ошибку вызывающему коду вместе с `Retry-After` |
+| `500`, `502`, `503` и `504` без кода `timeout` | Повторить только GET, PUT и DELETE | Exponential backoff: 1 с, 2 с, 4 с |
+| `504` с кодом `timeout` | **Не повторять** | Сузить запрос: короче период, меньше чатов, точнее фраза |
 | `400`, `401`, `403`, `404`, `422` | **Не повторять** | Ошибка клиента — нужно [исправить запрос](/api/errors) |
 
-> Максимум **3 повтора** на каждый запрос. Jitter (случайный множитель 0.5–1.5) предотвращает «thundering herd» при массовых 429.
+> Максимум **3 повтора** на каждый запрос. Jitter (случайная добавка до 25% сверху к задержке) предотвращает «thundering herd» при массовых 429 и никогда не сокращает ожидание меньше `Retry-After`.
 
 
 

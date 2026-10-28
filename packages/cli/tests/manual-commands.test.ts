@@ -300,6 +300,82 @@ describe('manual commands — functional tests', () => {
       const { stdout } = await runCommand(['auth', 'logout', 'test', '--json'], { root: CLI_ROOT });
       expect(JSON.parse(stdout).token_revoked).toBe(false);
     });
+
+    describe('after a browser login', () => {
+      function setupOAuthProfile(expiresAt: string) {
+        const configDir = path.join(tmpDir, 'pachca');
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(configDir, 'config.toml'),
+          [
+            'active_profile = "test"',
+            '',
+            '[profiles.test]',
+            'type = "user"',
+            'token = "saved-access"',
+            'user = "Test User"',
+            'auth = "oauth"',
+            'refresh_token = "saved-refresh"',
+            `expires_at = "${expiresAt}"`,
+          ].join('\n') + '\n',
+        );
+      }
+
+      const expired = () => new Date(Date.now() - 60_000).toISOString();
+
+      function oauthAnswer(status: number, body: unknown) {
+        return { ok: status < 400, status, text: () => Promise.resolve(JSON.stringify(body)) };
+      }
+
+      it('renews an expired token and revokes the fresh one', async () => {
+        setupOAuthProfile(expired());
+        const fetchMock = vi.fn().mockImplementation(async (url: string) =>
+          String(url).endsWith('/oauth/revoke')
+            ? oauthAnswer(200, {})
+            : oauthAnswer(200, { access_token: 'fresh-access', refresh_token: 'fresh-refresh', expires_in: 3600 }),
+        );
+        globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+        const { stdout } = await runCommand(['auth', 'logout', 'test', '--json'], { root: CLI_ROOT });
+
+        const parsed = JSON.parse(stdout);
+        expect(parsed).toMatchObject({ deleted_profile: 'test', auth: 'oauth', token_revoked: true });
+        expect(fetchMock.mock.calls.map(([url]) => String(url).split('/oauth/')[1])).toEqual(['token', 'revoke']);
+        expect(fetchMock.mock.calls[1][1].body).toBe('token=fresh-access');
+        const content = fs.readFileSync(path.join(tmpDir, 'pachca', 'config.toml'), 'utf-8');
+        expect(content).not.toContain('[profiles.test]');
+      });
+
+      it('says the login was already closed when the refresh token is dead', async () => {
+        setupOAuthProfile(expired());
+        globalThis.fetch = vi.fn().mockResolvedValue(oauthAnswer(400, { error: 'invalid_grant' })) as unknown as typeof fetch;
+
+        const { stderr } = await runCommand(['auth', 'logout', 'test', '-o', 'table'], { root: CLI_ROOT });
+
+        expect(stderr).toContain('уже был закрыт');
+        expect(stderr).not.toContain('Вход закрыт на сервере');
+        expect(stderr).not.toContain('Токены CLI');
+
+        // The login is closed on the server, so JSON says so too: nothing is
+        // left for the user to revoke in the «Токены CLI» list.
+        setupOAuthProfile(expired());
+        const json = await runCommand(['auth', 'logout', 'test', '--json'], { root: CLI_ROOT });
+        expect(JSON.parse(json.stdout).token_revoked).toBe(true);
+      });
+
+      it('does not claim a revocation it could not make', async () => {
+        setupOAuthProfile(expired());
+        globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('fetch failed')) as unknown as typeof fetch;
+
+        const json = await runCommand(['auth', 'logout', 'test', '--json'], { root: CLI_ROOT });
+        expect(JSON.parse(json.stdout).token_revoked).toBe(false);
+
+        setupOAuthProfile(expired());
+        const table = await runCommand(['auth', 'logout', 'test', '-o', 'table'], { root: CLI_ROOT });
+        expect(table.stderr).toContain('закрыть вход на сервере не удалось');
+        expect(table.stderr).toContain('Токены CLI');
+      });
+    });
   });
 
   describe('auth status', () => {
@@ -597,27 +673,6 @@ describe('manual commands — functional tests', () => {
       const tokenCheck = JSON.parse(stdout).checks.find((c: { name: string }) => c.name === 'token');
 
       expect(tokenCheck?.status).toBe('error');
-    });
-  });
-
-  describe('guide', () => {
-    it('no query → list all workflows', async () => {
-      const { stdout } = await runCommand(['guide', '--json'], { root: CLI_ROOT });
-      const parsed = JSON.parse(stdout);
-      expect(Array.isArray(parsed)).toBe(true);
-      expect(parsed.length).toBeGreaterThan(0);
-    });
-
-    it('query "сообщение" → found workflows', async () => {
-      const { stdout } = await runCommand(['guide', 'сообщение', '--json'], { root: CLI_ROOT });
-      const parsed = JSON.parse(stdout);
-      expect(Array.isArray(parsed)).toBe(true);
-    });
-
-    it('query "xyznonexistent" → empty array', async () => {
-      const { stdout } = await runCommand(['guide', 'xyznonexistent123', '--json'], { root: CLI_ROOT });
-      const parsed = JSON.parse(stdout);
-      expect(parsed).toEqual([]);
     });
   });
 

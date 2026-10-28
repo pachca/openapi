@@ -45,6 +45,10 @@
       "WebhookPayloadUnion"
     ]
   },
+  "BotOperations_getWebhookEventsStream": {
+    "usage": "var response = await client.Bots.GetWebhookEventsStreamAsync();",
+    "output": "WebhookEventsStream(Url: string, ExpiresAt: DateTimeOffset)"
+  },
   "BotOperations_selfRecreateBotToken": {
     "usage": "var response = await client.Bots.SelfRecreateBotTokenAsync();",
     "output": "BotSelfTokenResponse(Id: int, OauthClient: BotOAuthClient(ClientId: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: List<string>, Scopes: List<string>)?, Webhook: BotSelfWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd), AccessToken: string)"
@@ -157,7 +161,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "var request = new ChatCreateRequest\n{\n    Chat = new ChatCreateRequestChat\n    {\n        Name = \"🤿 aqua\",\n        MemberIds = new List<int> { 123 },\n        GroupTagIds = new List<int> { 123 },\n        Channel = true,\n        @Public = false\n    }\n};\nvar response = await client.Chats.CreateChatAsync(request);",
-    "output": "CreateChatResponse(Data: Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?), Meta: CreateChatResponseMeta(NotFoundMemberIds: List<int>))",
+    "output": "CreateChatResponse(Data: Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?), Meta: CreateChatResponseMeta(NotFoundMemberIds: List<int>, NotFoundGroupTagIds: List<int>))",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -325,6 +329,16 @@
   "GroupTagOperations_deleteTag": {
     "usage": "await client.GroupTags.DeleteTagAsync(9111);"
   },
+  "ImportantMessageOperations_listImportantMessages": {
+    "usage": "var response = await client.ImportantMessages.ListImportantMessagesAsync(25, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListImportantMessagesResponse(Data: List<Message>, Meta: PaginationMeta)"
+  },
+  "ImportantMessageOperations_addMessageToImportant": {
+    "usage": "await client.ImportantMessages.AddMessageToImportantAsync(194275);"
+  },
+  "ImportantMessageOperations_removeMessageFromImportant": {
+    "usage": "await client.ImportantMessages.RemoveMessageFromImportantAsync(194275);"
+  },
   "ChatMessageOperations_listChatMessages": {
     "usage": "var response = await client.Messages.ListChatMessagesAsync(198, MessageSortField.Id, SortOrder.Desc, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
     "output": "ListChatMessagesResponse(Data: List<Message>, Meta: PaginationMeta)",
@@ -335,11 +349,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "var response = await client.Messages.GetMessageAsync(194275);",
-    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)"
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?, Important: bool)"
   },
   "MessageOperations_createMessage": {
     "usage": "var request = new MessageCreateRequest\n{\n    Message = new MessageCreateRequestMessage\n    {\n        EntityType = MessageEntityType.Discussion,\n        EntityId = 334,\n        Content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        Files = new List<MessageCreateRequestFile> { new MessageCreateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345L,\n            Width = 800,\n            Height = 600,\n            DurationMs = 5400,\n            Waveform = \"4,8,12,20,16,10,6,3\"\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        ParentMessageId = 194270,\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\",\n        SkipInviteMentions = false\n    },\n    LinkPreview = false\n};\nvar response = await client.Messages.CreateMessageAsync(request);",
-    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?, Important: bool)",
     "imports": [
       "Button",
       "FileType",
@@ -362,7 +376,7 @@
   },
   "MessageOperations_updateMessage": {
     "usage": "var request = new MessageUpdateRequest\n{\n    Message = new MessageUpdateRequestMessage\n    {\n        Content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        Files = new List<MessageUpdateRequestFile> { new MessageUpdateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345L,\n            Width = 800,\n            Height = 600,\n            DurationMs = 5400,\n            Waveform = \"4,8,12,20,16,10,6,3\"\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\"\n    }\n};\nvar response = await client.Messages.UpdateMessageAsync(194275, request);",
-    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?, Important: bool)",
     "imports": [
       "Button",
       "FileType",
@@ -382,14 +396,14 @@
     "output": "ListReactionsResponse(Data: List<Reaction>, Meta: PaginationMeta)"
   },
   "ReactionOperations_addReaction": {
-    "usage": "var request = new ReactionRequest { Code = \"👍\", Name = \":+1:\" };\nvar response = await client.Reactions.AddReactionAsync(7231942, request);",
+    "usage": "var request = new ReactionRequest { Code = \"👍\", Name = \"agent-thinking\" };\nvar response = await client.Reactions.AddReactionAsync(7231942, request);",
     "output": "Reaction(UserId: int, CreatedAt: DateTimeOffset, Code: string, Name: string)",
     "imports": [
       "ReactionRequest"
     ]
   },
   "ReactionOperations_removeReaction": {
-    "usage": "await client.Reactions.RemoveReactionAsync(7231942, \"👍\", \":+1:\");"
+    "usage": "await client.Reactions.RemoveReactionAsync(7231942, \"👍\", \"agent-thinking\");"
   },
   "ReadMemberOperations_listReadMembers": {
     "usage": "var response = await client.ReadMembers.ListReadMembersAsync(194275, 300, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
@@ -538,7 +552,7 @@
     ]
   },
   "UserOperations_updateUser": {
-    "usage": "var request = new UserUpdateRequest\n{\n    User = new UserUpdateRequestUser\n    {\n        FirstName = \"Олег\",\n        LastName = \"Петров\",\n        Email = \"olegpetrov@example.com\",\n        PhoneNumber = \"+79001234567\",\n        Nickname = \"olegpetrov\",\n        Department = \"Отдел разработки\",\n        Title = \"Старший разработчик\",\n        Role = UserRoleInput.User,\n        Suspended = false,\n        ListTags = new List<string> { \"example\" },\n        CustomProperties = new List<UserUpdateRequestCustomProperty> { new UserUpdateRequestCustomProperty { Id = 1678, Value = \"Санкт-Петербург\" } }\n    }\n};\nvar response = await client.Users.UpdateUserAsync(12, request);",
+    "usage": "var request = new UserUpdateRequest\n{\n    User = new UserUpdateRequestUser\n    {\n        FirstName = \"Олег\",\n        LastName = \"Петров\",\n        Email = \"olegpetrov@example.com\",\n        PhoneNumber = \"+79001234567\",\n        Nickname = \"olegpetrov\",\n        Department = \"Отдел разработки\",\n        Title = \"Старший разработчик\",\n        Role = UserRoleInput.User,\n        ChatIds = new List<int> { 123 },\n        Suspended = false,\n        ListTags = new List<string> { \"example\" },\n        CustomProperties = new List<UserUpdateRequestCustomProperty> { new UserUpdateRequestCustomProperty { Id = 1678, Value = \"Санкт-Петербург\" } }\n    }\n};\nvar response = await client.Users.UpdateUserAsync(12, request);",
     "output": "User(Id: int, FirstName: string?, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)",
     "imports": [
       "UserRoleInput",

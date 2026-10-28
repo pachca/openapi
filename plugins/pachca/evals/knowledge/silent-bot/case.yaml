@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-silent-bot
+description: "What pachca-bots adds: answered with the plugin and without it"
+tags: [knowledge, pachca-bots]
+runs: 3
+execution:
+  prompt: "Я создал бота в Пачке, добавил исходящий вебхук, но он не получает сообщения из чата. Что не так?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer names at least one of: the message mode left on commands with an empty command list (a new bot hears nothing until the mode is set to all messages), or the bot not being a member of that chat. FAIL if it names neither."

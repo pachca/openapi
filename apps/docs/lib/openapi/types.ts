@@ -144,6 +144,8 @@ export interface SecurityRequirement {
 export interface NavigationSection {
   title: string;
   originalTitle?: string;
+  /** Group-like prefix for the section's pages, see SidebarSection.titlePrefix */
+  titlePrefix?: string;
   items: NavigationItem[];
 }
 

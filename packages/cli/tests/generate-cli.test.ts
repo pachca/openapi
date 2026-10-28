@@ -103,13 +103,6 @@ describe('generate-cli', () => {
   });
 
   describe('data files', () => {
-    it('should generate workflows.json', () => {
-      const filePath = path.join(DATA_DIR, 'workflows.json');
-      expect(fs.existsSync(filePath)).toBe(true);
-      const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-      expect(Array.isArray(data)).toBe(true);
-    });
-
     it('should generate alternatives.json', () => {
       const filePath = path.join(DATA_DIR, 'alternatives.json');
       expect(fs.existsSync(filePath)).toBe(true);

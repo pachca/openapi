@@ -1,0 +1,31 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "pachca",
+  "version": "1.0.4",
+  "description": "Pachca corporate messenger for AI agents: the MCP server with a tool per API method, skills on doing things right in Pachca, and commands to catch up, summarize a thread, build a digest, draft an announcement and turn a discussion into tasks.",
+  "author": {
+    "name": "Pachca",
+    "url": "https://dev.pachca.com"
+  },
+  "homepage": "https://dev.pachca.com/guides/mcp/plugin",
+  "repository": "https://github.com/pachca/openapi",
+  "license": "MIT",
+  "keywords": ["pachca", "messenger", "chat", "mcp", "team"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Pachca",
+        "shortDescription": "Messages, search, summaries and tasks in Pachca",
+        "developerName": "Pachca",
+        "category": "Productivity",
+        "websiteURL": "https://dev.pachca.com/guides/mcp/plugin",
+        "defaultPrompt": [
+          "Что я пропустил в Пачке со вчерашнего дня?",
+          "Найди в Пачке, где обсуждали переезд на новый сервер",
+          "Подготовь черновик объявления в канал «Новости» о переезде офиса"
+        ]
+      },
+      "onboardingSkill": "./skills/pachca/SKILL.md"
+    }
+  }
+}

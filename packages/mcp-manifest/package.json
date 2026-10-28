@@ -1,6 +1,6 @@
 {
   "name": "@pachca/mcp-manifest",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Tool manifest of the Pachca MCP server and the JSON Schema it is validated against",
   "license": "MIT",
   "author": {

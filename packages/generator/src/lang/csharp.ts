@@ -597,10 +597,15 @@ function emitModel(
     const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
     const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
 
+    lines.push('');
+    lines.push('    /// <summary>HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves Errors empty.</summary>');
+    lines.push('    [JsonIgnore]');
+    lines.push('    public int? StatusCode { get; set; }');
+
     if (hasMessage) {
       lines.push('');
       lines.push('    public override string Message => Errors is not { Count: > 0 }');
-      lines.push('        ? "api error"');
+      lines.push('        ? StatusCode is { } status ? $"HTTP {status}" : "api error"');
       lines.push('        : Errors.Count == 1 ? Errors[0].Message');
       lines.push('        : $"Errors: {string.Join("; ", Errors.Select(t => t.Message))}";');
     }
@@ -664,6 +669,16 @@ internal static class PachcaUtils
 {
     private const int MaxRetries = 3;
     private static readonly HashSet<int> Retryable5xx = new() { 500, 502, 503, 504 };
+
+    // A 5xx says nothing about whether the server already applied the request.
+    // These methods are safe to repeat. A retried POST or PATCH could apply
+    // twice: POST /messages would send the message again, and the API has no
+    // idempotency key. 429 is safe for any method: the request was rejected
+    // before it was processed.
+    private static readonly HashSet<HttpMethod> IdempotentMethods = new()
+    {
+        HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Put, HttpMethod.Delete,
+    };
     private static readonly Random JitterRandom = new();
 
     internal static readonly JsonSerializerOptions JsonOptions = new()
@@ -719,7 +734,10 @@ internal static class PachcaUtils
                 continue;
             }
 
-            if (Retryable5xx.Contains((int)response.StatusCode) && attempt < MaxRetries)
+            if (Retryable5xx.Contains((int)response.StatusCode)
+                && IdempotentMethods.Contains(request.Method)
+                && attempt < MaxRetries
+                && !await IsQueryTimeoutAsync(response, cancellationToken).ConfigureAwait(false))
             {
                 var delay = AddJitter(TimeSpan.FromSeconds(10 * Math.Pow(2, attempt)));
                 await System.Threading.Tasks.Task.Delay(delay, cancellationToken).ConfigureAwait(false);
@@ -733,6 +751,48 @@ internal static class PachcaUtils
         return await client.SendAsync(
             await CloneRequestAsync(request).ConfigureAwait(false),
             cancellationToken).ConfigureAwait(false);
+    }
+
+    // A 504 with the code timeout is a search the server stopped because the
+    // query is too heavy: the same query would time out again, so it goes back
+    // to the caller at once. A 504 from a proxy has no such code and is retried.
+    // The content is buffered, so the caller can still read it.
+    private static async Task<bool> IsQueryTimeoutAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        if (response.StatusCode != HttpStatusCode.GatewayTimeout)
+        {
+            return false;
+        }
+
+        try
+        {
+            await response.Content.LoadIntoBufferAsync().ConfigureAwait(false);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            using var document = JsonDocument.Parse(body);
+            if (document.RootElement.ValueKind != JsonValueKind.Object
+                || !document.RootElement.TryGetProperty("errors", out var errors)
+                || errors.ValueKind != JsonValueKind.Array)
+            {
+                return false;
+            }
+
+            foreach (var error in errors.EnumerateArray())
+            {
+                if (error.ValueKind == JsonValueKind.Object
+                    && error.TryGetProperty("code", out var code)
+                    && code.ValueKind == JsonValueKind.String
+                    && code.GetString() == "timeout")
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 
     private static async Task<HttpRequestMessage> CloneRequestAsync(HttpRequestMessage request)
@@ -761,7 +821,7 @@ internal static class PachcaUtils
 
     internal static string EnumToApiString<T>(T value) where T : struct, Enum =>
         JsonSerializer.Serialize(value, JsonOptions).Trim('"');
-${csHasFormBody(ir) ? CS_FORM_HELPER : ''}${ir.services.length > 0 && csPicksErrorByBody(ir) ? csErrorHelper(ir) : ''}${csNoAuthHelper(ir)}}
+${csHasFormBody(ir) ? CS_FORM_HELPER : ''}${ir.services.length > 0 ? csErrorHelpers(ir) : ''}${csNoAuthHelper(ir)}}
 `;
 }
 
@@ -822,37 +882,72 @@ function csOAuthErrorFromCode(ir: IR): string {
   return 'return new OAuthError { Error = code.GetString()!, ErrorDescription = description };';
 }
 
-function csErrorHelper(ir: IR): string {
-  return CS_ERROR_HELPER.replace('__OAUTH_ERROR_FROM_CODE__', csOAuthErrorFromCode(ir));
+/** Only OAuthError exists: a 401 is read by its own helper, other errors stay an InvalidOperationException. */
+function csReadsOAuthErrorAlone(ir: IR): boolean {
+  return !hasApiErrorModel(ir) && ir.services.some((s) => s.operations.some((op) => op.hasOAuthError));
 }
 
-const CS_ERROR_HELPER = `
-    // An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
-    // which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
-    internal static Exception ErrorFromJson(string json)
+function csErrorHelpers(ir: IR): string {
+  if (hasApiErrorModel(ir)) {
+    const picks = csPicksErrorByBody(ir);
+    const lines: string[] = [''];
+    if (picks) {
+      lines.push('    // An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
+      lines.push('    // which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.');
+    }
+    lines.push('    // An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in StatusCode.');
+    lines.push('    internal static Exception ErrorFromResponse(int statusCode, string json)');
+    lines.push('    {');
+    lines.push('        ApiError? error = null;');
+    lines.push('        try');
+    lines.push('        {');
+    lines.push('            using var document = JsonDocument.Parse(json);');
+    lines.push('            var root = document.RootElement;');
+    if (picks) {
+      lines.push('            if (root.ValueKind == JsonValueKind.Object');
+      lines.push('                && !root.TryGetProperty("errors", out _)');
+      lines.push('                && root.TryGetProperty("error", out var code)');
+      lines.push('                && code.ValueKind == JsonValueKind.String)');
+      lines.push('            {');
+      lines.push('                var description = root.TryGetProperty("error_description", out var text)');
+      lines.push('                    && text.ValueKind == JsonValueKind.String');
+      lines.push('                    ? text.GetString()!');
+      lines.push('                    : "";');
+      lines.push(`                ${csOAuthErrorFromCode(ir)}`);
+      lines.push('            }');
+    }
+    lines.push('            if (root.ValueKind == JsonValueKind.Object)');
+    lines.push('                error = Deserialize<ApiError>(json);');
+    lines.push('        }');
+    lines.push('        catch (JsonException)');
+    lines.push('        {');
+    lines.push('        }');
+    lines.push('        error ??= new ApiError();');
+    lines.push('        error.Errors ??= new();');
+    lines.push('        error.StatusCode = statusCode;');
+    lines.push('        return error;');
+    lines.push('    }');
+    lines.push('');
+    return lines.join('\n');
+  }
+  if (csReadsOAuthErrorAlone(ir)) {
+    return `
+    // A 401 body that is empty or not the OAuth form gives an InvalidOperationException with the status code.
+    internal static Exception OAuthErrorFromResponse(int statusCode, string json)
     {
         try
         {
-            using var document = JsonDocument.Parse(json);
-            var root = document.RootElement;
-            if (root.ValueKind == JsonValueKind.Object
-                && !root.TryGetProperty("errors", out _)
-                && root.TryGetProperty("error", out var code)
-                && code.ValueKind == JsonValueKind.String)
-            {
-                var description = root.TryGetProperty("error_description", out var text)
-                    && text.ValueKind == JsonValueKind.String
-                    ? text.GetString()!
-                    : "";
-                __OAUTH_ERROR_FROM_CODE__
-            }
+            return Deserialize<OAuthError>(json);
         }
-        catch (JsonException)
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException)
         {
+            return new InvalidOperationException($"Unexpected status code: {statusCode}");
         }
-        return Deserialize<ApiError>(json);
     }
 `;
+  }
+  return '';
+}
 
 // ── Client.cs ────────────────────────────────────────────────────────
 
@@ -1470,17 +1565,15 @@ function emitResponseHandling(
     lines.push(`${indent2}        return PachcaUtils.Deserialize<${csClientTypeRef(resp.dataRef ?? 'object')}>(json);`);
   }
 
-  if (op.hasOAuthError) {
+  // With both error models the body decides the class, a 401 included.
+  if (op.hasOAuthError && !globalHasApiError) {
     lines.push(`${indent2}    case 401:`);
-    lines.push(`${indent2}        throw PachcaUtils.Deserialize<OAuthError>(${json});`);
+    lines.push(`${indent2}        throw PachcaUtils.OAuthErrorFromResponse((int)response.StatusCode, ${json});`);
   }
 
-  if (csPicksErrorByBody(ir)) {
+  if (globalHasApiError) {
     lines.push(`${indent2}    default:`);
-    lines.push(`${indent2}        throw PachcaUtils.ErrorFromJson(${json});`);
-  } else if (op.hasApiError || globalHasApiError) {
-    lines.push(`${indent2}    default:`);
-    lines.push(`${indent2}        throw PachcaUtils.Deserialize<ApiError>(${json});`);
+    lines.push(`${indent2}        throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, ${json});`);
   } else {
     lines.push(`${indent2}    default:`);
     lines.push(`${indent2}        throw new InvalidOperationException($"Unexpected status code: {(int)response.StatusCode}");`);

@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ProfileGetStatus extends BaseCommand {
   static override description = "Свой статус";
-
   static scope = "profile_status:read";
   static apiMethod = "GET";
   static apiPath = "/profile/status";

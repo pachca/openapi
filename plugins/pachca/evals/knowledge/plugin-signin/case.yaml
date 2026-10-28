@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-plugin-signin
+description: "What pachca adds: answered with the plugin and without it"
+tags: [knowledge, pachca]
+runs: 3
+execution:
+  prompt: "Поставил плагин Пачки в Claude Code, а инструментов Пачки нет. Что сделать?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer says the plugin already brings the server and only a sign-in is needed: `/mcp`, or `claude mcp login plugin:pachca:pachca` in the terminal. It may first suggest `/reload-plugins` or a new session. It may also suggest checking `claude mcp list` for a server added by hand at the same address, which hides the plugin's server, then removing it with `claude mcp remove` or signing in to that hand-added server. FAIL if it tells the user to add the server with `claude mcp add`, or gives `claude mcp login pachca` as the sign-in for the plugin's server."

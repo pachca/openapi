@@ -42,10 +42,9 @@ class TasksServiceImpl(TasksService):
         response = await self._client.get(
             f"/projects/{project_id}/tasks/{task_id}",
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Task, body["data"])
+                return deserialize(Task, response.json()["data"])
             case _:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"
@@ -61,10 +60,9 @@ class TasksServiceImpl(TasksService):
             f"/projects/{project_id}/tasks/{task_id}",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Task, body["data"])
+                return deserialize(Task, response.json()["data"])
             case _:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"

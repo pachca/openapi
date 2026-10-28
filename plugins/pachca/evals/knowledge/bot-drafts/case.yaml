@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-bot-drafts
+description: "What pachca-ai-agent adds: answered with the plugin and without it"
+tags: [knowledge, pachca-ai-agent]
+runs: 3
+execution:
+  prompt: "Может ли бот-агент в Пачке создать черновик сообщения в поле ввода сотрудника?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer says no: drafts and scheduled messages need the employee's own access (personal token, CLI login or MCP browser sign-in); a bot token gets 403, and the employee's OAuth authorization of the bot cannot add the drafts scopes either. It may suggest posting the proposed text for the employee to send. FAIL if it says the bot can create drafts with its own token or through OAuth on behalf of the employee."

@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class GroupTagsGet extends BaseCommand {
   static override description = "Информация о теге";
-
   static scope = "group_tags:read";
   static apiMethod = "GET";
   static apiPath = "/group_tags/{id}";

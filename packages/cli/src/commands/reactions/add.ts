@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class ReactionsAdd extends BaseCommand {
   static override description = "Добавление реакции";
-
-  static override examples = [
-      "Добавить реакцию на сообщение — Добавь реакцию:\n  $ pachca reactions add"
-  ];
-
   static scope = "reactions:write";
   static apiMethod = "POST";
   static apiPath = "/messages/{id}/reactions";
@@ -26,10 +21,10 @@ export default class ReactionsAdd extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'code': Flags.string({
-      description: "Emoji символ реакции. Именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи.",
+      description: "Emoji символ реакции. Без `name` нужен именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи. С `name` подходит любое непустое значение: оно сохраняется как передано.",
     }),
     'name': Flags.string({
-      description: "Текстовое имя эмодзи (используется для кастомных эмодзи)",
+      description: "Имя кастомного эмодзи пространства. С ним реакцией ставится этот эмодзи, а если его в пространстве нет, ответ `404`.",
     }),
   };
 
@@ -38,7 +33,7 @@ export default class ReactionsAdd extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'code', label: "Emoji символ реакции. Именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи.", type: 'string' },
+      { flag: 'code', label: "Emoji символ реакции. Без `name` нужен именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи. С `name` подходит любое непустое значение: оно сохраняется как передано.", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {

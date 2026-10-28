@@ -4,9 +4,7 @@
  *
  * Sources:
  * - @pachca/openapi-parser → ParsedAPI (endpoints, schemas, tags)
- * - packages/spec/workflows.ts → English descriptions
  * - packages/generator/src/naming.ts → case conversion utilities
- * - apps/docs/lib/openapi/mapper.ts → groupEndpointsByTag
  *
  * Output:
  * - nodes/Pachca/*Description.ts (16 resource files)
@@ -20,8 +18,6 @@ import { parseOpenAPI, resolveAllOf, getSchemaType } from '@pachca/openapi-parse
 import type { Endpoint, Schema, Parameter } from '@pachca/openapi-parser';
 import { snakeToCamel, snakeToPascal } from '../../../packages/generator/src/naming.js';
 import { extractBodyFields, getWrapperKey, type BodyField } from './utils.js';
-import { generateUrlFromOperation } from '../../../apps/docs/lib/openapi/mapper.js';
-import { generateExample } from '../../../apps/docs/lib/openapi/example-generator.js';
 
 // ============================================================================
 // PATHS
@@ -175,7 +171,6 @@ const V1_EXTRA_BODY_FIELDS: Record<string, Record<string, [string, string][]>> =
 };
 
 /** Resources only visible in v2 (new, not in v1) */
-const V2_ONLY_RESOURCES = new Set(['member', 'readMember', 'search', 'security', 'oauth', 'draft']);
 
 /** Resources whose endpoints are sub-paths of another resource but should use standard CRUD names */
 const STANDARD_CRUD_SUBRESOURCES = new Set(['reaction', 'member', 'readMember', 'linkPreview', 'thread', 'export']);
@@ -452,7 +447,6 @@ let enParamDescs = new Map<string, string>();     // key: `${endpointId}:${param
 let enBodyDescs = new Map<string, string>();      // key: `${endpointId}:${fieldName}`
 let enSubFieldDescs = new Map<string, string>();  // key: `${endpointId}:${fieldName}:${subName}`
 let enEnumDescs = new Map<string, Record<string, string>>();  // key: `${endpointId}:${fieldName}`
-let enEndpoints = new Map<string, Endpoint>();    // key: endpointId
 
 /** Get English enum descriptions for a field from EN spec */
 function getEnumDescriptions(fieldName: string, endpointId: string): Record<string, string> | undefined {
@@ -496,6 +490,7 @@ function tagToResource(tag: string): string {
     'Custom Properties': 'customProperty',
     'Files': 'file',
     'Drafts': 'draft',
+    'Important messages': 'importantMessage',
   };
   if (MAP[tag]) return MAP[tag];
   // Fallback for an unmapped tag. Must produce a valid camelCase identifier:
@@ -515,6 +510,7 @@ function resourceDisplayName(resource: string): string {
     profile: 'Profile', customProperty: 'Custom Property', task: 'Task',
     bot: 'Bot', file: 'File', form: 'Form', readMember: 'Read Member',
     oauth: 'OAuth', search: 'Search', security: 'Security', draft: 'Draft',
+    importantMessage: 'Important Message',
   };
   return MAP[resource] || snakeToPascal(resource);
 }
@@ -890,7 +886,6 @@ interface OperationInfo {
   pathParams: Parameter[];
   hasPagination: boolean;
   wrapperKey: string | null;
-  description: string;
 }
 
 function generateResourceDescription(
@@ -2090,90 +2085,6 @@ export class PachcaApi implements ICredentialType {
 \t};
 }
 `;
-}
-
-// ============================================================================
-// WORKFLOW DESCRIPTIONS (English, from packages/spec/workflows.ts)
-// ============================================================================
-
-interface WorkflowStep {
-  descriptionEn?: string;
-  apiMethod?: string;
-  apiPath?: string;
-  notesEn?: string;
-}
-
-interface Workflow {
-  titleEn?: string;
-  steps: WorkflowStep[];
-}
-
-interface SkillConfig {
-  name: string;
-  tags: string[];
-}
-
-let WORKFLOWS: Record<string, Workflow[]> = {};
-let SKILL_TAG_MAP: SkillConfig[] = [];
-
-async function loadWorkflowsAndSkills(): Promise<void> {
-  try {
-    const workflowsPath = path.join(ROOT, 'packages', 'spec', 'workflows.ts');
-    if (fs.existsSync(workflowsPath)) {
-      const mod = await import(workflowsPath);
-      WORKFLOWS = mod.WORKFLOWS ?? {};
-    }
-  } catch { /* workflows optional */ }
-
-  try {
-    const configPath = path.join(ROOT, 'apps', 'docs', 'scripts', 'skills', 'config.ts');
-    if (fs.existsSync(configPath)) {
-      const mod = await import(configPath);
-      SKILL_TAG_MAP = mod.SKILL_TAG_MAP ?? [];
-    }
-  } catch { /* skill config optional */ }
-}
-
-/**
- * Get English description from workflows.ts for a given tag + API path.
- * Falls back to undefined if no matching workflow found.
- */
-function getWorkflowDescription(tag: string, operationPath: string): string | undefined {
-  const skill = SKILL_TAG_MAP.find(s => s.tags.includes(tag));
-  if (!skill) return undefined;
-
-  const workflows = WORKFLOWS[skill.name] ?? [];
-  for (const wf of workflows) {
-    for (const step of wf.steps) {
-      if (step.apiPath === operationPath && step.descriptionEn) {
-        return step.descriptionEn;
-      }
-    }
-  }
-  return undefined;
-}
-
-/**
- * Get a documentation URL for an endpoint (links to dev.pachca.com).
- */
-function getDocUrl(endpoint: Endpoint): string {
-  try {
-    return `https://dev.pachca.com${generateUrlFromOperation(endpoint)}`;
-  } catch {
-    return '';
-  }
-}
-
-/**
- * Get a schema-aware default value using example-generator.
- */
-function getSchemaDefault(schema: Schema | undefined): unknown {
-  if (!schema) return undefined;
-  try {
-    return generateExample(schema as any, 0, { requiredOnly: true, minimal: true });
-  } catch {
-    return undefined;
-  }
 }
 
 // ============================================================================
@@ -3581,10 +3492,6 @@ async function executeRoute(
 }
 
 async function main() {
-  console.log('Loading workflows and skill config...');
-  await loadWorkflowsAndSkills();
-  console.log(`Loaded ${Object.keys(WORKFLOWS).length} workflow groups, ${SKILL_TAG_MAP.length} skills`);
-
   console.log('Parsing EN OpenAPI spec...');
   const api = parseOpenAPI(EN_SPEC_PATH);
   console.log(`Found ${api.endpoints.length} endpoints, ${api.tags.length} tags`);
@@ -3592,7 +3499,6 @@ async function main() {
   // Also parse EN spec into lookup maps for getFieldDescription/getEnumDescriptions
   const enApi = api;
   for (const ep of enApi.endpoints) {
-    enEndpoints.set(ep.id, ep);
     for (const param of ep.parameters) {
       if (param.description) enParamDescs.set(`${ep.id}:${param.name}`, param.description);
     }
@@ -3677,16 +3583,10 @@ async function main() {
       const pathParams = ep.parameters.filter(p => p.in === 'path');
       const hasPagination = queryParams.some(p => p.name === 'cursor');
       const wrapperKey = getWrapperKey(ep.requestBody);
-      const epTag = ep.tags[0] || tag;
-      const workflowDesc = getWorkflowDescription(epTag, ep.path);
-      const docUrl = getDocUrl(ep);
-      const enEp = enEndpoints.get(ep.id);
-      const baseDesc = workflowDesc ?? enEp?.summary ?? enEp?.description ?? ep.summary ?? ep.description ?? '';
-      const description = docUrl ? `${baseDesc}. <a href="${docUrl}">API docs</a>` : baseDesc;
 
       operations.push({
         v2Op, v1Op, endpoint: ep, fields, queryParams, pathParams,
-        hasPagination, wrapperKey, description,
+        hasPagination, wrapperKey,
       });
     }
 

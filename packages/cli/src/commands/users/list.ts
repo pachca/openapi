@@ -4,13 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class UsersList extends BaseCommand {
   static override description = "Список сотрудников";
-
-  static override examples = [
-      "Проверить, кто прочитал сообщение — При необходимости сопоставь с именами сотрудников:\n  $ pachca users list",
-      "Разослать уведомление нескольким пользователям — Определи список `user_id` получателей:\n  $ pachca users list",
-      "Найти сотрудника по имени или email — Поиск по имени/email (частичное совпадение):\n  $ pachca users list"
-  ];
-
   static scope = "users:read";
   static apiMethod = "GET";
   static apiPath = "/users";

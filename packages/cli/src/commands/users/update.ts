@@ -4,12 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class UsersUpdate extends BaseCommand {
   static override description = "Редактирование сотрудника";
-
-  static override examples = [
-      "Массовое создание сотрудников с тегами — Или обнови существующего:\n  $ pachca users update",
-      "Offboarding сотрудника — Заблокировать доступ:\n  $ pachca users update"
-  ];
-
   static scope = "users:update";
   static apiMethod = "PUT";
   static apiPath = "/users/{id}";
@@ -47,6 +41,9 @@ export default class UsersUpdate extends BaseCommand {
     }),
     'role': Flags.string({
       description: "Уровень доступа",
+    }),
+    'chat-ids': Flags.string({
+      description: "Чат, в котором останется сотрудник при переводе в гости (`role: \"guest\"`): ровно одна активная беседа или канал, куда у токена есть право добавлять участников. Без такого чата ответ `400` по этому полю, и не меняется ничего. При других ролях и у того, кто уже гость, поле не учитывается.",
     }),
     'suspended': Flags.boolean({
       description: "Деактивация пользователя",
@@ -96,6 +93,7 @@ export default class UsersUpdate extends BaseCommand {
       department: flags['department'],
       title: flags['title'],
       role: flags['role'],
+      chat_ids: flags['chat-ids'] ? this.parseJSON(flags['chat-ids'], 'chat-ids') : undefined,
       suspended: flags['suspended'],
       list_tags: flags['list-tags'] ? this.parseJSON(flags['list-tags'], 'list-tags') : undefined,
       custom_properties: flags['custom-properties'] ? this.parseJSON(flags['custom-properties'], 'custom-properties') : undefined,

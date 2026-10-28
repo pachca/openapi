@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsGet extends BaseCommand {
   static override description = "Информация о чате";
-
   static scope = "chats:read";
   static apiMethod = "GET";
   static apiPath = "/chats/{id}";

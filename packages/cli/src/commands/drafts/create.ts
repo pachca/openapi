@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class DraftsCreate extends BaseCommand {
   static override description = "Новый черновик";
-
-  static override examples = [
-      "Отправить сообщение позже или по расписанию — Создай отложенное сообщение: `schedule.start_date` — когда отправить, `schedule.repetition.interval` — как повторять (`once`, если один раз):\n  $ pachca drafts create"
-  ];
-
   static scope = "drafts:write";
   static apiMethod = "POST";
   static apiPath = "/drafts";
@@ -29,7 +24,7 @@ export default class DraftsCreate extends BaseCommand {
       description: "Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника (pachca chats list | pachca users list)",
     }),
     'content': Flags.string({
-      description: "Текст черновика. Можно не передавать, если есть вложения, но пустым черновик быть не может. До 40 000 байт в UTF-8, а у отложенного сообщения в пространстве с продвинутым шифрованием — до 27 000.",
+      description: "Текст черновика. Можно не передавать, если есть вложения, но пустым черновик быть не может. До 40 000 байт в UTF-8.",
     }),
     'parent-message-id': Flags.integer({
       description: "Идентификатор сообщения, ответом на которое уйдёт черновик. Сообщение должно быть в том же чате.",

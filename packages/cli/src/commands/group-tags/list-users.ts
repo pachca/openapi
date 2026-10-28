@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class GroupTagsListUsers extends BaseCommand {
   static override description = "Список сотрудников тега";
-
-  static override examples = [
-      "Получить всех сотрудников тега/департамента — Получи всех участников тега:\n  $ pachca group-tags list-users"
-  ];
-
   static scope = "group_tags:read";
   static apiMethod = "GET";
   static apiPath = "/group_tags/{id}/users";

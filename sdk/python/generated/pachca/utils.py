@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import json
 import keyword
 import types
 from dataclasses import asdict, fields
@@ -214,6 +215,12 @@ def serialize(obj: object) -> dict:
 
 _MAX_RETRIES = 3
 _RETRYABLE_5XX = {500, 502, 503, 504}
+# A 5xx says nothing about whether the server already applied the request.
+# These methods are safe to repeat. A retried POST or PATCH could apply
+# twice: POST /messages would send the message again, and the API has no
+# idempotency key. 429 is safe for any method: the request was rejected
+# before it was processed.
+_IDEMPOTENT_METHODS = {"GET", "HEAD", "OPTIONS", "PUT", "DELETE"}
 # Only the daily chat limit and the hour-long ban wait longer than a minute.
 _MAX_RETRY_AFTER = 60
 
@@ -225,8 +232,25 @@ def _add_jitter(delay: float) -> float:
     return delay * (1 + random.random() * 0.25)
 
 
+async def _is_query_timeout(response: httpx.Response) -> bool:
+    """A 504 with the code timeout is a search the server stopped because the
+    query is too heavy: the same query would time out again, so it goes back to
+    the caller at once. A 504 from a proxy has no such code and is retried. The
+    body stays on the response, so the caller can still read it."""
+    if response.status_code != 504:
+        return False
+    try:
+        body = json.loads(await response.aread())
+    except ValueError:
+        return False
+    errors = body.get("errors") if isinstance(body, dict) else None
+    return isinstance(errors, list) and any(
+        isinstance(error, dict) and error.get("code") == "timeout" for error in errors
+    )
+
+
 class RetryTransport(httpx.AsyncBaseTransport):
-    """Wraps an httpx transport with retry on 429 Too Many Requests and 5xx errors."""
+    """Wraps an httpx transport with retry on 429, and on 5xx for idempotent methods."""
 
     def __init__(self, transport: httpx.AsyncBaseTransport, max_retries: int = _MAX_RETRIES) -> None:
         self._transport = transport
@@ -247,7 +271,12 @@ class RetryTransport(httpx.AsyncBaseTransport):
                 delay = seconds if seconds is not None else 2 ** attempt
                 await asyncio.sleep(_add_jitter(delay))
                 continue
-            if response.status_code in _RETRYABLE_5XX and attempt < self._max_retries:
+            if (
+                response.status_code in _RETRYABLE_5XX
+                and request.method in _IDEMPOTENT_METHODS
+                and attempt < self._max_retries
+                and not await _is_query_timeout(response)
+            ):
                 delay = attempt + 1
                 await asyncio.sleep(_add_jitter(delay))
                 continue

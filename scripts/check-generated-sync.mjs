@@ -11,6 +11,8 @@
 //   - packages/cli/src/data/changelog.json → packages/cli/CHANGELOG.md
 //   - apps/docs/content/**.mdx + apps/docs/data/releases.json
 //                                          → apps/docs/public/**, llms*.txt
+//   - plugins/pachca/** (by hand)          → apps/docs/public/.well-known/**, skills/*.zip, skill.md
+//                                            and the version in the plugin manifests
 //   - apps/docs/scripts/skills/generate.ts → AGENTS.md (template-driven)
 //
 // The deployment Docker image always regenerates these on build, so prod
@@ -53,10 +55,13 @@ const GENERATED_PATHS = [
   'packages/cli/oclif.manifest.json',
   // Docs — root + agent indices
   'AGENTS.md',
-  'SKILL.md',
-  'skill.json',
-  'skills/**',
-  'apps/docs/public/.well-known/agent-card.json',
+  'plugins/pachca/evals/mocks/pachca/_tools.json',
+  // The version field of the plugin manifests (the rest of each file is hand-written)
+  // and the record of the plugin content it was given for
+  'plugins/pachca/plugin.json',
+  'plugins/pachca/.claude-plugin/plugin.json',
+  'plugins/pachca/.cursor-plugin/plugin.json',
+  'apps/docs/scripts/skills/plugin-version.json',
   'apps/docs/public/index.md',
   'apps/docs/public/llms.txt',
   'apps/docs/public/llms-full.txt',
@@ -64,13 +69,13 @@ const GENERATED_PATHS = [
   'apps/docs/public/skill.md',
   'apps/docs/public/updates.md',
   'apps/docs/public/pachca.postman_collection.json',
-  'apps/docs/public/workflows.arazzo.yaml',
   // Docs — per-page MD twins
   'apps/docs/public/api/**',
   'apps/docs/public/guides/**',
   'apps/docs/public/updates/**',
   'apps/docs/public/.well-known/skills/**',
   'apps/docs/public/.well-known/agent-skills/**',
+  'apps/docs/public/skills/**',
 ];
 
 function sh(cmd) {
@@ -85,7 +90,7 @@ const BUILD_FILTERS = ['@pachca/spec', '@pachca/mcp-manifest', '@pachca/cli', '@
 
 console.error('[check-generated-sync] regenerating artefacts via `bun turbo build`…');
 try {
-  // --force: several outputs (root AGENTS.md / SKILL.md / skill.json / skills/,
+  // --force: several outputs (root AGENTS.md,
   // packages/cli/CHANGELOG.md) live outside any task's declared `outputs`, so a
   // warm turbo cache would skip regenerating them and this gate would compare a
   // file nothing had rebuilt. This is the one caller that needs a guaranteed

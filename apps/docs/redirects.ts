@@ -15,6 +15,26 @@ const redirects: Redirect[] = [
     permanent: true,
   },
 
+  // Страницы сценариев убраны: знание о том, как делать задачи в Пачке, теперь
+  // в скиллах для агентов, а `pachca guide` из CLI удалён.
+  { source: '/guides/workflows', destination: '/guides/ai-agents/overview', permanent: true },
+  { source: '/guides/workflows.md', destination: '/guides/ai-agents/overview.md', permanent: true },
+  { source: '/guides/cli/workflows', destination: '/guides/cli/overview', permanent: true },
+  { source: '/guides/cli/workflows.md', destination: '/guides/cli/overview.md', permanent: true },
+
+  // Семь прежних скиллов убраны 28.10.2026, их роль взяли новые. Старые адреса
+  // ведут на скилл-вход: в нём таблица, какой скилл за что отвечает.
+  {
+    source:
+      '/.well-known/skills/:name(pachca-chats|pachca-forms|pachca-messages|pachca-profile|pachca-security|pachca-tasks|pachca-users)/:path*',
+    destination: '/skill.md',
+    permanent: true,
+  },
+
+  // Короткий адрес раздела MCP: его можно назвать вслух и напечатать.
+  { source: '/mcp', destination: '/guides/mcp/overview', permanent: false },
+  { source: '/mcp.md', destination: '/guides/mcp/overview.md', permanent: false },
+
   // ===== Корни разделов → стартовые страницы (иначе 404) =====
   { source: '/api', destination: '/api/authorization', permanent: false },
   { source: '/guides', destination: '/guides/quickstart', permanent: false },
@@ -69,6 +89,8 @@ const redirects: Redirect[] = [
   { source: '/guides/cli.md', destination: '/guides/cli/overview.md' },
   { source: '/guides/ai-agents', destination: '/guides/ai-agents/overview' },
   { source: '/guides/ai-agents.md', destination: '/guides/ai-agents/overview.md' },
+  { source: '/guides/mcp', destination: '/guides/mcp/overview', permanent: false },
+  { source: '/guides/mcp.md', destination: '/guides/mcp/overview.md', permanent: false },
   { source: '/guides/bots', destination: '/guides/bots/overview' },
   { source: '/guides/bots.md', destination: '/guides/bots/overview.md' },
   { source: '/guides/webhook', destination: '/guides/webhook/overview' },

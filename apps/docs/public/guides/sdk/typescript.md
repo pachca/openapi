@@ -123,6 +123,9 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.reactions.addReaction()` | [Добавление реакции](/api/reactions/add) |
 | `client.reactions.listReactions()` | [Список реакций](/api/reactions/list) |
 | `client.reactions.removeReaction()` | [Удаление реакции](/api/reactions/remove) |
+| `client.importantMessages.addMessageToImportant()` | [Добавление сообщения в важные](/api/important-messages/create) |
+| `client.importantMessages.listImportantMessages()` | [Список важных сообщений](/api/important-messages/list) |
+| `client.importantMessages.removeMessageFromImportant()` | [Удаление сообщения из важных](/api/important-messages/delete) |
 | `client.search.searchChats()` | [Поиск чатов](/api/search/list-chats) |
 | `client.search.searchMessages()` | [Поиск сообщений](/api/search/list-messages) |
 | `client.search.searchUsers()` | [Поиск сотрудников](/api/search/list-users) |
@@ -150,6 +153,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.bots.getBotScopes()` | [Каталог прав бота](/api/bots/list-scopes) |
 | `client.bots.listBotTokens()` | [Список токенов бота](/api/bots/list-tokens) |
+| `client.bots.getWebhookEventsStream()` | [Поток событий](/api/bots/get-stream) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.updateBotAvatar()` | [Загрузка аватара бота](/api/bots/update-avatar) |
@@ -206,7 +210,7 @@ const request: ChatCreateRequest = {
   }
 }
 const response = client.chats.createChat(request)
-// → CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[] }) })
+// → CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[], notFoundGroupTagIds: number[] }) })
 ```
 
 
@@ -305,6 +309,8 @@ try {
 | `code` | `ValidationErrorCode` | Код валидации (`blank`, `invalid`, `taken`, ...) |
 | `payload` | `string \| null` | Дополнительные данные |
 
+Код статуса ответа — в поле `status`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже выбрасывает `ApiError`: с кодом статуса и пустым `errors`. Так бывает с ответом `404` без тела от метода [Поток событий](/api/bots/get-stream), когда история событий выключена, и со страницей прокси при `502`.
+
 ### OAuthError
 
 Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
@@ -325,11 +331,15 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
+SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
 - **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
+- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
+- **5xx:** линейная пауза 1 сек, 2 сек, 3 сек
+- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
+- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
+- Каждая пауза удлиняется на случайную величину до 25%, поэтому SDK никогда не ждёт меньше `Retry-After`
 - Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Сериализация
@@ -413,7 +423,7 @@ const request: MessageCreateRequest = {
   linkPreview: false
 }
 const response = client.messages.createMessage(request)
-// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })
+// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean })
 
 // Список сотрудников
 const response = client.users.listUsers({

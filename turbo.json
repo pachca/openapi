@@ -17,6 +17,7 @@
         "openapi.yaml",
         "generated/**",
         "!generated/build.gradle.kts",
+        "!generated/README.md",
         "src/generated/**"
       ],
       "cache": true
@@ -27,16 +28,27 @@
     "generate-llms": {
       "dependsOn": [
         "@pachca/spec#generate",
-        "@pachca/spec#overlay:apply"
+        "@pachca/spec#overlay:apply",
+        "@pachca/spec#generate-mcp"
       ],
       "inputs": [
         "scripts/generate-llms.ts",
         "scripts/skills/**",
+        "../../plugins/pachca/**",
+        "../../plugins/pachca/.claude-plugin/**",
+        "../../plugins/pachca/.cursor-plugin/**",
+        "../../plugins/pachca/.mcp.json",
+        "../../.claude-plugin/**",
+        "../../.cursor-plugin/**",
+        "../../.agents/plugins/**",
+        "!../../plugins/pachca/evals/results/**",
+        "!../../plugins/pachca/evals/mocks/pachca/_tools.json",
+        "../../packages/cli/oclif.manifest.json",
         "lib/**",
         "content/**",
         "data/releases.json",
         "../../packages/cli/src/data/*.json",
-        "../../packages/spec/workflows.ts"
+        "../../packages/spec/mcp-manifest.json"
       ],
       "outputs": [
         "public/llms.txt",
@@ -45,10 +57,11 @@
         "public/skill.md",
         "public/index.md",
         "public/guides/**",
+        "public/**/llms.txt",
         "public/**/*.md",
         "public/.well-known/**",
-        "public/pachca.postman_collection.json",
-        "public/workflows.arazzo.yaml"
+        "public/skills/**",
+        "public/pachca.postman_collection.json"
       ],
       "cache": true
     },
@@ -56,16 +69,27 @@
       "dependsOn": [
         "@pachca/spec#generate",
         "@pachca/spec#overlay:apply",
-        "@pachca/cli#build"
+        "@pachca/cli#build",
+        "@pachca/spec#generate-mcp"
       ],
       "inputs": [
         "scripts/generate-llms.ts",
         "scripts/skills/**",
+        "../../plugins/pachca/**",
+        "../../plugins/pachca/.claude-plugin/**",
+        "../../plugins/pachca/.cursor-plugin/**",
+        "../../plugins/pachca/.mcp.json",
+        "../../.claude-plugin/**",
+        "../../.cursor-plugin/**",
+        "../../.agents/plugins/**",
+        "!../../plugins/pachca/evals/results/**",
+        "!../../plugins/pachca/evals/mocks/pachca/_tools.json",
+        "../../packages/cli/oclif.manifest.json",
         "lib/**",
         "content/**",
         "data/releases.json",
         "../../packages/cli/src/data/*.json",
-        "../../packages/spec/workflows.ts"
+        "../../packages/spec/mcp-manifest.json"
       ],
       "outputs": [
         "public/llms.txt",
@@ -74,10 +98,11 @@
         "public/skill.md",
         "public/index.md",
         "public/guides/**",
+        "public/**/llms.txt",
         "public/**/*.md",
         "public/.well-known/**",
-        "public/pachca.postman_collection.json",
-        "public/workflows.arazzo.yaml"
+        "public/skills/**",
+        "public/pachca.postman_collection.json"
       ],
       "cache": true
     },
@@ -89,9 +114,7 @@
         "../../packages/spec/openapi.yaml",
         "scripts/generate-cli.ts",
         "src/base-command.ts",
-        "../../apps/docs/lib/**",
-        "../../packages/spec/workflows.ts",
-        "../../apps/docs/scripts/skills/config.ts"
+        "../../apps/docs/lib/**"
       ],
       "outputs": [
         "src/commands/*/*.ts",
@@ -143,13 +166,8 @@
       "inputs": [
         "../../packages/spec/openapi.yaml",
         "../../packages/spec/openapi.en.yaml",
-        "../../packages/spec/workflows.ts",
-        "../../packages/spec/examples.ts",
         "../../packages/openapi-parser/src/**",
         "../../packages/generator/src/naming.ts",
-        "../../apps/docs/lib/openapi/mapper.ts",
-        "../../apps/docs/lib/openapi/example-generator.ts",
-        "../../apps/docs/scripts/skills/config.ts",
         "scripts/**"
       ],
       "outputs": [
@@ -301,6 +319,19 @@
         "^build",
         "generate-cli",
         "generate-n8n"
+      ],
+      "inputs": [
+        "src/**",
+        "tests/**"
+      ],
+      "cache": true
+    },
+    "@pachca/cli#test": {
+      "dependsOn": [
+        "^build",
+        "generate-cli",
+        "generate-n8n",
+        "build"
       ],
       "inputs": [
         "src/**",

@@ -8,7 +8,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	pachca "github.com/pachca/openapi/sdk/go/generated"
@@ -77,10 +76,11 @@ func TestOpenEnums(t *testing.T) {
 		t.Errorf("ApiError keeps the unlisted code, got %q", apiErr.Errors[0].Code)
 	}
 
-	// A 401 body that does not decode is no OAuth error: it comes back wrapped.
+	// A 401 body that does not decode is no OAuth error: it is an ApiError with the status code.
 	_, err = client.Oauth.GetTokenInfo(ctx)
 	var notOAuth *pachca.OAuthError
-	if err == nil || errors.As(err, &notOAuth) || !strings.HasPrefix(err.Error(), "HTTP 401: ") {
-		t.Errorf("an undecodable 401 comes back as a wrapped error, got %v", err)
+	var unauthorized *pachca.ApiError
+	if errors.As(err, &notOAuth) || !errors.As(err, &unauthorized) || unauthorized.StatusCode != http.StatusUnauthorized {
+		t.Errorf("an undecodable 401 comes back as an ApiError with 401, got %v", err)
 	}
 }

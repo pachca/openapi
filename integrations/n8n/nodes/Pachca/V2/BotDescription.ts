@@ -64,6 +64,11 @@ export const botOperations: INodeProperties[] = [
 				action: 'Get bot scope catalog',
 			},
 			{
+				name: 'Get Stream',
+				value: 'getStream',
+				action: 'Get bot stream',
+			},
+			{
 				name: 'Recreate Token',
 				value: 'recreateToken',
 				action: 'Recreate bot token',
@@ -957,6 +962,21 @@ export const botFields: INodeProperties[] = [
 		default: true,
 		description: 'Whether to return a simplified version of the response instead of all fields',
 		displayOptions: { show: { resource: ['bot'], operation: ['getAllEvents'] } },
+	},
+	{
+		displayName: 'Requires bot roles',
+		name: 'botGetStreamNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: { show: { resource: ['bot'], operation: ['getStream'] } },
+	},
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: true,
+		description: 'Whether to return a simplified version of the response instead of all fields',
+		displayOptions: { show: { resource: ['bot'], operation: ['getStream'] } },
 	},
 	{
 		displayName: 'ID',

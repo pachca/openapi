@@ -5,7 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class BotsRemoveAvatar extends BaseCommand {
   static override description = "Удаление аватара бота";
-
   static scope = "bots:write";
   static apiMethod = "DELETE";
   static apiPath = "/bots/{id}/avatar";

@@ -35,13 +35,15 @@ func pachcaFormBody<T: Encodable>(_ value: T) throws -> Data {
 
 /// An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
 /// which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the type.
-func pachcaErrorFromBody(_ data: Data) -> Error {
+/// An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in statusCode.
+func pachcaErrorFromResponse(_ statusCode: Int, _ data: Data) -> Error {
     if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
        object["errors"] == nil, let code = object["error"] as? String {
         return OAuthError(error: OAuthErrorCode(code), errorDescription: object["error_description"] as? String ?? "")
     }
-    if let apiError = try? deserialize(ApiError.self, from: data) { return apiError }
-    return URLError(.badServerResponse)
+    var apiError = (try? deserialize(ApiError.self, from: data)) ?? ApiError(errors: [])
+    apiError.statusCode = statusCode
+    return apiError
 }
 
 /// The authorization link and the PKCE pair of the OAuth flow.
@@ -143,10 +145,8 @@ public final class SecurityServiceImpl: SecurityService {
         switch statusCode {
         case 200:
             return try deserialize(GetAuditEventsResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -292,6 +292,10 @@ open class BotsService {
         }
     }
 
+    open func getWebhookEventsStream() async throws -> WebhookEventsStream {
+        throw pachcaNotImplemented("Bots.getWebhookEventsStream")
+    }
+
     open func selfRecreateBotToken() async throws -> BotSelfTokenResponse {
         throw pachcaNotImplemented("Bots.selfRecreateBotToken")
     }
@@ -375,10 +379,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(ListBotsResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -404,10 +406,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(BotResponseDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -419,10 +419,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(BotScopeCatalog.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -439,10 +437,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(ListBotTokensResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -474,10 +470,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(ListCompanyBotsResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -508,10 +502,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(GetWebhookEventsResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -529,6 +521,19 @@ public final class BotsServiceImpl: BotsService {
         return items
     }
 
+    public override func getWebhookEventsStream() async throws -> WebhookEventsStream {
+        var request = URLRequest(url: URL(string: "\(baseURL)/webhooks/events/stream")!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(WebhookEventsStreamDataWrapper.self, from: data).data
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
     public override func selfRecreateBotToken() async throws -> BotSelfTokenResponse {
         var request = URLRequest(url: URL(string: "\(baseURL)/bot/recreate_token")!)
         request.httpMethod = "POST"
@@ -538,10 +543,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(BotSelfTokenResponseDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -556,10 +559,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 201:
             return try deserialize(BotCreateResponseDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -572,10 +573,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(BotCreateResponseDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -588,10 +587,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(BotResponseDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -606,10 +603,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 201:
             return try deserialize(BotAccessTokenDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -622,10 +617,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(BotAccessTokenDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -640,10 +633,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(BotSelfResponseDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -658,10 +649,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(BotResponseDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -689,10 +678,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(AvatarDataDataWrapper.self, from: responseData).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: responseData)
         default:
-            throw pachcaErrorFromBody(responseData)
+            throw pachcaErrorFromResponse(statusCode, responseData)
         }
     }
 
@@ -707,10 +694,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(BotAccessTokenDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -723,10 +708,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -739,10 +722,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -755,10 +736,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -771,10 +750,8 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -871,10 +848,8 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 200:
             return try deserialize(ListChatsResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -900,10 +875,8 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 200:
             return try deserialize(ChatDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -919,10 +892,8 @@ public final class ChatsServiceImpl: ChatsService {
                 throw URLError(.badServerResponse)
             }
             return location
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -940,10 +911,8 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 200:
             return try deserialize(ListCompanyChatsResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -972,10 +941,8 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 201:
             return try deserialize(CreateChatResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -991,10 +958,8 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 202:
             return try deserialize(ChatExportDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1009,10 +974,8 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 200:
             return try deserialize(ChatDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1025,10 +988,8 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1056,10 +1017,8 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 200:
             return try deserialize(AvatarDataDataWrapper.self, from: responseData).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: responseData)
         default:
-            throw pachcaErrorFromBody(responseData)
+            throw pachcaErrorFromResponse(statusCode, responseData)
         }
     }
 
@@ -1072,10 +1031,8 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1090,10 +1047,8 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1106,10 +1061,8 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -1176,10 +1129,8 @@ public final class MembersServiceImpl: MembersService {
         switch statusCode {
         case 200:
             return try deserialize(ListMembersResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1208,10 +1159,8 @@ public final class MembersServiceImpl: MembersService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1226,10 +1175,8 @@ public final class MembersServiceImpl: MembersService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1244,10 +1191,8 @@ public final class MembersServiceImpl: MembersService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1260,10 +1205,8 @@ public final class MembersServiceImpl: MembersService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1276,10 +1219,8 @@ public final class MembersServiceImpl: MembersService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1292,10 +1233,8 @@ public final class MembersServiceImpl: MembersService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -1332,10 +1271,8 @@ public final class CustomPropertiesServiceImpl: CustomPropertiesService {
         switch statusCode {
         case 200:
             return try deserialize(ListPropertiesResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -1380,10 +1317,8 @@ public final class FilesServiceImpl: FilesService {
         switch statusCode {
         case 200:
             return data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1420,7 +1355,7 @@ public final class FilesServiceImpl: FilesService {
         case 204:
             return
         default:
-            throw pachcaErrorFromBody(responseData)
+            throw pachcaErrorFromResponse(statusCode, responseData)
         }
     }
 
@@ -1433,10 +1368,8 @@ public final class FilesServiceImpl: FilesService {
         switch statusCode {
         case 201:
             return try deserialize(UploadParams.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -1497,10 +1430,8 @@ public final class DraftsServiceImpl: DraftsService {
         switch statusCode {
         case 200:
             return try deserialize(ListDraftsResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1526,10 +1457,8 @@ public final class DraftsServiceImpl: DraftsService {
         switch statusCode {
         case 200:
             return try deserialize(DraftDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1544,10 +1473,8 @@ public final class DraftsServiceImpl: DraftsService {
         switch statusCode {
         case 201:
             return try deserialize(DraftDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1562,10 +1489,8 @@ public final class DraftsServiceImpl: DraftsService {
         switch statusCode {
         case 200:
             return try deserialize(DraftDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1578,10 +1503,8 @@ public final class DraftsServiceImpl: DraftsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -1648,10 +1571,8 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         switch statusCode {
         case 200:
             return try deserialize(ListTagsResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1677,10 +1598,8 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         switch statusCode {
         case 200:
             return try deserialize(GroupTagDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1697,10 +1616,8 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         switch statusCode {
         case 200:
             return try deserialize(GetTagUsersResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1729,10 +1646,8 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         switch statusCode {
         case 201:
             return try deserialize(GroupTagDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1747,10 +1662,8 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         switch statusCode {
         case 200:
             return try deserialize(GroupTagDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1763,10 +1676,103 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+}
+
+open class ImportantMessagesService {
+    public init() {}
+
+    open func listImportantMessages(limit: Int? = nil, cursor: String? = nil) async throws -> ListImportantMessagesResponse {
+        throw pachcaNotImplemented("Important messages.listImportantMessages")
+    }
+
+    open func listImportantMessagesAll(limit: Int? = nil) async throws -> [Message] {
+        throw pachcaNotImplemented("Important messages.listImportantMessagesAll")
+    }
+
+    open func addMessageToImportant(messageId: Int) async throws -> Void {
+        throw pachcaNotImplemented("Important messages.addMessageToImportant")
+    }
+
+    open func removeMessageFromImportant(id: Int) async throws -> Void {
+        throw pachcaNotImplemented("Important messages.removeMessageFromImportant")
+    }
+}
+
+public final class ImportantMessagesServiceImpl: ImportantMessagesService {
+    let baseURL: String
+    let headers: [String: String]
+    let session: URLSession
+
+    init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        self.baseURL = baseURL
+        self.headers = headers
+        self.session = session
+        super.init()
+    }
+
+    public override func listImportantMessages(limit: Int? = nil, cursor: String? = nil) async throws -> ListImportantMessagesResponse {
+        var components = URLComponents(string: "\(baseURL)/important_messages")!
+        var queryItems: [URLQueryItem] = []
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ListImportantMessagesResponse.self, from: data)
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
+    public override func listImportantMessagesAll(limit: Int? = nil) async throws -> [Message] {
+        var items: [Message] = []
+        var cursor: String? = nil
+        var hasNext = true
+        while hasNext {
+            let response = try await listImportantMessages(limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
+        return items
+    }
+
+    public override func addMessageToImportant(messageId: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/important_messages")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["message_id": messageId])
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
+    public override func removeMessageFromImportant(id: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/important_messages/\(id)")!)
+        request.httpMethod = "DELETE"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -1839,10 +1845,8 @@ public final class MessagesServiceImpl: MessagesService {
         switch statusCode {
         case 200:
             return try deserialize(ListChatMessagesResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1868,10 +1872,8 @@ public final class MessagesServiceImpl: MessagesService {
         switch statusCode {
         case 200:
             return try deserialize(MessageDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1886,10 +1888,8 @@ public final class MessagesServiceImpl: MessagesService {
         switch statusCode {
         case 201:
             return try deserialize(MessageDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1904,10 +1904,8 @@ public final class MessagesServiceImpl: MessagesService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1920,10 +1918,8 @@ public final class MessagesServiceImpl: MessagesService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1938,10 +1934,8 @@ public final class MessagesServiceImpl: MessagesService {
         switch statusCode {
         case 200:
             return try deserialize(MessageDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1954,10 +1948,8 @@ public final class MessagesServiceImpl: MessagesService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -1970,10 +1962,8 @@ public final class MessagesServiceImpl: MessagesService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -2023,10 +2013,8 @@ public final class ReactionsServiceImpl: ReactionsService {
         switch statusCode {
         case 200:
             return try deserialize(ListReactionsResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2055,10 +2043,8 @@ public final class ReactionsServiceImpl: ReactionsService {
         switch statusCode {
         case 201:
             return try deserialize(Reaction.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2076,10 +2062,8 @@ public final class ReactionsServiceImpl: ReactionsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -2117,10 +2101,8 @@ public final class ReadMembersServiceImpl: ReadMembersService {
         switch statusCode {
         case 200:
             return try deserialize(String.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -2176,10 +2158,8 @@ public final class ThreadsServiceImpl: ThreadsService {
         switch statusCode {
         case 200:
             return try deserialize(ListThreadsResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2205,10 +2185,8 @@ public final class ThreadsServiceImpl: ThreadsService {
         switch statusCode {
         case 200:
             return try deserialize(ThreadDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2221,10 +2199,8 @@ public final class ThreadsServiceImpl: ThreadsService {
         switch statusCode {
         case 201:
             return try deserialize(ThreadDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2237,10 +2213,8 @@ public final class ThreadsServiceImpl: ThreadsService {
         switch statusCode {
         case 201:
             return try deserialize(ThreadDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -2281,10 +2255,8 @@ public final class OAuthServiceImpl: OAuthService {
         switch statusCode {
         case 200:
             return try deserialize(AccessTokenInfoDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2299,10 +2271,8 @@ public final class OAuthServiceImpl: OAuthService {
         switch statusCode {
         case 200:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2316,10 +2286,8 @@ public final class OAuthServiceImpl: OAuthService {
         switch statusCode {
         case 200:
             return try deserialize(OAuthToken.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -2376,10 +2344,8 @@ public final class ProfileServiceImpl: ProfileService {
         switch statusCode {
         case 200:
             return try deserialize(UserDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2391,10 +2357,8 @@ public final class ProfileServiceImpl: ProfileService {
         switch statusCode {
         case 200:
             return try deserialize(UserStatusDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2422,10 +2386,8 @@ public final class ProfileServiceImpl: ProfileService {
         switch statusCode {
         case 200:
             return try deserialize(AvatarDataDataWrapper.self, from: responseData).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: responseData)
         default:
-            throw pachcaErrorFromBody(responseData)
+            throw pachcaErrorFromResponse(statusCode, responseData)
         }
     }
 
@@ -2440,10 +2402,8 @@ public final class ProfileServiceImpl: ProfileService {
         switch statusCode {
         case 200:
             return try deserialize(UserStatusDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2456,10 +2416,8 @@ public final class ProfileServiceImpl: ProfileService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2472,10 +2430,8 @@ public final class ProfileServiceImpl: ProfileService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2487,10 +2443,8 @@ public final class ProfileServiceImpl: ProfileService {
         switch statusCode {
         case 200:
             return try deserialize(AccessTokenInfoDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -2555,10 +2509,8 @@ public final class SearchServiceImpl: SearchService {
         switch statusCode {
         case 200:
             return try deserialize(SearchChatsResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2595,10 +2547,8 @@ public final class SearchServiceImpl: SearchService {
         switch statusCode {
         case 200:
             return try deserialize(SearchMessagesResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2633,10 +2583,8 @@ public final class SearchServiceImpl: SearchService {
         switch statusCode {
         case 200:
             return try deserialize(SearchUsersResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2710,10 +2658,8 @@ public final class TasksServiceImpl: TasksService {
         switch statusCode {
         case 200:
             return try deserialize(ListTasksResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2739,10 +2685,8 @@ public final class TasksServiceImpl: TasksService {
         switch statusCode {
         case 200:
             return try deserialize(TaskDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2757,10 +2701,8 @@ public final class TasksServiceImpl: TasksService {
         switch statusCode {
         case 201:
             return try deserialize(TaskDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2775,10 +2717,8 @@ public final class TasksServiceImpl: TasksService {
         switch statusCode {
         case 200:
             return try deserialize(TaskDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2791,10 +2731,8 @@ public final class TasksServiceImpl: TasksService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -2873,10 +2811,8 @@ public final class UsersServiceImpl: UsersService {
         switch statusCode {
         case 200:
             return try deserialize(ListUsersResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2902,10 +2838,8 @@ public final class UsersServiceImpl: UsersService {
         switch statusCode {
         case 200:
             return try deserialize(UserDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2917,10 +2851,8 @@ public final class UsersServiceImpl: UsersService {
         switch statusCode {
         case 200:
             return try deserialize(UserStatusDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2935,10 +2867,8 @@ public final class UsersServiceImpl: UsersService {
         switch statusCode {
         case 201:
             return try deserialize(UserDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2953,10 +2883,8 @@ public final class UsersServiceImpl: UsersService {
         switch statusCode {
         case 200:
             return try deserialize(UserDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -2984,10 +2912,8 @@ public final class UsersServiceImpl: UsersService {
         switch statusCode {
         case 200:
             return try deserialize(AvatarDataDataWrapper.self, from: responseData).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: responseData)
         default:
-            throw pachcaErrorFromBody(responseData)
+            throw pachcaErrorFromResponse(statusCode, responseData)
         }
     }
 
@@ -3002,10 +2928,8 @@ public final class UsersServiceImpl: UsersService {
         switch statusCode {
         case 200:
             return try deserialize(UserStatusDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -3018,10 +2942,8 @@ public final class UsersServiceImpl: UsersService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -3034,10 +2956,8 @@ public final class UsersServiceImpl: UsersService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -3050,10 +2970,8 @@ public final class UsersServiceImpl: UsersService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -3093,10 +3011,8 @@ public final class ViewsServiceImpl: ViewsService {
         switch statusCode {
         case 200:
             return try deserialize(SubmitViewResponseResult.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -3111,10 +3027,8 @@ public final class ViewsServiceImpl: ViewsService {
         switch statusCode {
         case 201:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -3164,10 +3078,8 @@ public final class CommonServiceImpl: CommonService {
         switch statusCode {
         case 201:
             return try deserialize(UploadParams.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -3204,7 +3116,7 @@ public final class CommonServiceImpl: CommonService {
         case 204:
             return
         default:
-            throw pachcaErrorFromBody(responseData)
+            throw pachcaErrorFromResponse(statusCode, responseData)
         }
     }
 
@@ -3220,10 +3132,8 @@ public final class CommonServiceImpl: CommonService {
         switch statusCode {
         case 200:
             return try deserialize(ListPropertiesResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -3239,10 +3149,8 @@ public final class CommonServiceImpl: CommonService {
         switch statusCode {
         case 202:
             return try deserialize(ChatExportDataWrapper.self, from: data).data
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 
@@ -3258,10 +3166,8 @@ public final class CommonServiceImpl: CommonService {
                 throw URLError(.badServerResponse)
             }
             return location
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -3297,10 +3203,8 @@ public final class LinkPreviewsServiceImpl: LinkPreviewsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw pachcaErrorFromBody(data)
+            throw pachcaErrorFromResponse(statusCode, data)
         }
     }
 }
@@ -3327,6 +3231,7 @@ public struct PachcaClient {
     public let drafts: DraftsService
     public let files: FilesService
     public let groupTags: GroupTagsService
+    public let importantMessages: ImportantMessagesService
     public let linkPreviews: LinkPreviewsService
     public let members: MembersService
     public let messages: MessagesService
@@ -3341,7 +3246,7 @@ public struct PachcaClient {
     public let users: UsersService
     public let views: ViewsService
 
-    private init(bots: BotsService, chats: ChatsService, common: CommonService, customProperties: CustomPropertiesService, drafts: DraftsService, files: FilesService, groupTags: GroupTagsService, linkPreviews: LinkPreviewsService, members: MembersService, messages: MessagesService, oauth: OAuthService, profile: ProfileService, reactions: ReactionsService, readMembers: ReadMembersService, search: SearchService, security: SecurityService, tasks: TasksService, threads: ThreadsService, users: UsersService, views: ViewsService) {
+    private init(bots: BotsService, chats: ChatsService, common: CommonService, customProperties: CustomPropertiesService, drafts: DraftsService, files: FilesService, groupTags: GroupTagsService, importantMessages: ImportantMessagesService, linkPreviews: LinkPreviewsService, members: MembersService, messages: MessagesService, oauth: OAuthService, profile: ProfileService, reactions: ReactionsService, readMembers: ReadMembersService, search: SearchService, security: SecurityService, tasks: TasksService, threads: ThreadsService, users: UsersService, views: ViewsService) {
         self.bots = bots
         self.chats = chats
         self.common = common
@@ -3349,6 +3254,7 @@ public struct PachcaClient {
         self.drafts = drafts
         self.files = files
         self.groupTags = groupTags
+        self.importantMessages = importantMessages
         self.linkPreviews = linkPreviews
         self.members = members
         self.messages = messages
@@ -3364,7 +3270,7 @@ public struct PachcaClient {
         self.views = views
     }
 
-    public init(token: String, baseURL: String = pachcaAPIURL, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, drafts: DraftsService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, drafts: DraftsService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, importantMessages: ImportantMessagesService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             bots: bots ?? BotsServiceImpl(baseURL: baseURL, headers: headers),
@@ -3374,6 +3280,7 @@ public struct PachcaClient {
             drafts: drafts ?? DraftsServiceImpl(baseURL: baseURL, headers: headers),
             files: files ?? FilesServiceImpl(baseURL: baseURL, headers: headers),
             groupTags: groupTags ?? GroupTagsServiceImpl(baseURL: baseURL, headers: headers),
+            importantMessages: importantMessages ?? ImportantMessagesServiceImpl(baseURL: baseURL, headers: headers),
             linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers),
             members: members ?? MembersServiceImpl(baseURL: baseURL, headers: headers),
             messages: messages ?? MessagesServiceImpl(baseURL: baseURL, headers: headers),
@@ -3390,7 +3297,7 @@ public struct PachcaClient {
         )
     }
 
-    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, drafts: DraftsService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, drafts: DraftsService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, importantMessages: ImportantMessagesService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
         self.init(
             bots: bots ?? BotsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers, session: session),
@@ -3399,6 +3306,7 @@ public struct PachcaClient {
             drafts: drafts ?? DraftsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             files: files ?? FilesServiceImpl(baseURL: baseURL, headers: headers, session: session),
             groupTags: groupTags ?? GroupTagsServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            importantMessages: importantMessages ?? ImportantMessagesServiceImpl(baseURL: baseURL, headers: headers, session: session),
             linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             members: members ?? MembersServiceImpl(baseURL: baseURL, headers: headers, session: session),
             messages: messages ?? MessagesServiceImpl(baseURL: baseURL, headers: headers, session: session),
@@ -3415,7 +3323,7 @@ public struct PachcaClient {
         )
     }
 
-    public static func stub(bots: BotsService = BotsService(), chats: ChatsService = ChatsService(), common: CommonService = CommonService(), customProperties: CustomPropertiesService = CustomPropertiesService(), drafts: DraftsService = DraftsService(), files: FilesService = FilesService(), groupTags: GroupTagsService = GroupTagsService(), linkPreviews: LinkPreviewsService = LinkPreviewsService(), members: MembersService = MembersService(), messages: MessagesService = MessagesService(), oauth: OAuthService = OAuthService(), profile: ProfileService = ProfileService(), reactions: ReactionsService = ReactionsService(), readMembers: ReadMembersService = ReadMembersService(), search: SearchService = SearchService(), security: SecurityService = SecurityService(), tasks: TasksService = TasksService(), threads: ThreadsService = ThreadsService(), users: UsersService = UsersService(), views: ViewsService = ViewsService()) -> PachcaClient {
+    public static func stub(bots: BotsService = BotsService(), chats: ChatsService = ChatsService(), common: CommonService = CommonService(), customProperties: CustomPropertiesService = CustomPropertiesService(), drafts: DraftsService = DraftsService(), files: FilesService = FilesService(), groupTags: GroupTagsService = GroupTagsService(), importantMessages: ImportantMessagesService = ImportantMessagesService(), linkPreviews: LinkPreviewsService = LinkPreviewsService(), members: MembersService = MembersService(), messages: MessagesService = MessagesService(), oauth: OAuthService = OAuthService(), profile: ProfileService = ProfileService(), reactions: ReactionsService = ReactionsService(), readMembers: ReadMembersService = ReadMembersService(), search: SearchService = SearchService(), security: SecurityService = SecurityService(), tasks: TasksService = TasksService(), threads: ThreadsService = ThreadsService(), users: UsersService = UsersService(), views: ViewsService = ViewsService()) -> PachcaClient {
         PachcaClient(
             bots: bots,
             chats: chats,
@@ -3424,6 +3332,7 @@ public struct PachcaClient {
             drafts: drafts,
             files: files,
             groupTags: groupTags,
+            importantMessages: importantMessages,
             linkPreviews: linkPreviews,
             members: members,
             messages: messages,

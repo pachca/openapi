@@ -253,6 +253,17 @@ export function sanitizeBaseUrl(url: string): string {
 // EXECUTE() MODE HELPERS
 // ============================================================================
 
+const RETRYABLE_5XX = new Set([500, 502, 503, 504]);
+
+function isQueryTimeout(response: IN8nHttpFullResponse): boolean {
+  if (response.statusCode !== 504) return false;
+  const errors = (response.body as IDataObject | null | undefined)?.errors;
+  return (
+    Array.isArray(errors) &&
+    errors.some((error) => typeof error === 'object' && error !== null && (error as IDataObject).code === 'timeout')
+  );
+}
+
 /**
  * Make an authenticated API request to Pachca.
  * Handles error responses with rich context (field names, status hints).
@@ -323,13 +334,19 @@ export async function makeApiRequest(
       }
     }
 
-    // Auto-retry on 429 (rate limit) and, for idempotent methods only, 5xx.
-    // A 5xx from a proxy or a draining load balancer says nothing about whether
-    // the backend already committed the write, so replaying POST /messages
-    // there posts the message up to four times. 429 is safe for any method:
-    // the request was rejected before it was processed.
+    // Auto-retry on 429 (rate limit) and, for idempotent methods only, on
+    // 500, 502, 503 and 504, the same set as in the SDKs and the CLI. A 5xx from
+    // a proxy or a draining load balancer says nothing about whether the backend
+    // already committed the write, so replaying POST /messages there posts the
+    // message up to four times. 429 is safe for any method: the request was
+    // rejected before it was processed. A 504 with the code `timeout` is a search
+    // the server stopped because the query is too heavy: the same query would
+    // time out again, so it goes back to the caller at once. OPTIONS is missing
+    // here only because IHttpRequestMethods has no such method.
     const idempotent = method === 'GET' || method === 'HEAD' || method === 'PUT' || method === 'DELETE';
-    const retryable = response.statusCode === 429 || (response.statusCode >= 500 && idempotent);
+    const retryable =
+      response.statusCode === 429 ||
+      (RETRYABLE_5XX.has(response.statusCode) && idempotent && !isQueryTimeout(response));
     if (retryable && attempt < MAX_RETRIES) {
       const respHeaders = response.headers as Record<string, string> | undefined;
       const retryAfter = parseInt(respHeaders?.['retry-after'] ?? '', 10);

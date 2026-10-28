@@ -14,31 +14,33 @@ npx -y @pachca/cli users list
 ## Быстрый старт
 
 ```
-pachca auth login          # сохранить токен
+pachca auth login          # вход через браузер
 pachca users list          # список сотрудников
 pachca messages create --entity-id 123 --content "Привет!"
 ```
 
-Получить токен: https://dev.pachca.com/guides/authorization
+Какой токен выбрать: https://dev.pachca.com/api/authorization
 
 ## Использование в агентах (Claude, Cursor и др.)
 
-Если агент устанавливает CLI по просьбе пользователя и токена ещё нет — агент должен запросить его у пользователя:
+Вход запускает сотрудник в своём терминале командой `pachca auth login` и подтверждает в браузере. Агент проверяет вход командой `pachca auth status`. Токен в разговоре агенту не передают.
 
 ```
-# Агент спрашивает: "Нужен API-токен Пачки."
-# "Получите его на https://dev.pachca.com/guides/authorization"
-pachca auth login --token <токен от пользователя>
-
-# Дальше команды работают без токена в каждой строке
-pachca users list
-pachca messages create --entity-id 123 --content "Привет!"
+pachca auth status                       # есть ли вход и под кем
+pachca api ls                            # справка по API без входа и без токена
+pachca api POST /messages --describe
 ```
 
-Если токен уже есть в окружении — `auth login` не нужен:
+В CI и у агентов без сотрудника токен приходит из переменной окружения, `auth login` не нужен:
 
 ```
-PACHCA_TOKEN=$TOKEN pachca users list
+PACHCA_TOKEN=$TOKEN pachca users list --no-input
+```
+
+Готовый токен сохраняют через stdin, а не аргументом: аргумент остаётся в истории оболочки и в списке процессов.
+
+```
+pbpaste | pachca auth login --token -
 ```
 
 ## Профили (несколько токенов)
@@ -52,18 +54,7 @@ pachca auth list
 pachca auth switch bot-notify
 ```
 
-Токены хранятся в `~/.config/pachca/config.toml` (chmod 600).
-В CI — через переменную окружения PACHCA_TOKEN.
-
-## Поиск по сценариям
-
-Не знаете какую команду использовать? Поищите по задаче:
-
-```
-pachca guide "отправить файл"
-pachca guide "создать беседу и добавить участников"
-pachca guide            # список всех сценариев
-```
+Токен хранится в хранилище ключей ОС, в `~/.config/pachca/config.toml` только имя, почта и права. Где хранилища нет, токен лежит в этом файле, CLI говорит об этом при входе.
 
 <!-- AUTO:COMMANDS -->
 ## Команды
@@ -97,6 +88,7 @@ pachca guide            # список всех сценариев
 | `pachca bots reissue-token` | Перевыпуск токена бота |
 | `pachca bots list-company` | Список ботов пространства |
 | `pachca bots list-events` | История событий |
+| `pachca bots get-stream` | Поток событий |
 | `pachca bots remove-event` | Удаление события истории |
 
 ### chats
@@ -162,6 +154,14 @@ pachca guide            # список всех сценариев
 | `pachca group-tags update` | Редактирование тега |
 | `pachca group-tags delete` | Удаление тега |
 | `pachca group-tags list-users` | Список сотрудников тега |
+
+### important-messages
+
+| Команда | Описание |
+|---------|---------|
+| `pachca important-messages list` | Список важных сообщений |
+| `pachca important-messages create` | Добавление сообщения в важные |
+| `pachca important-messages delete` | Удаление сообщения из важных |
 
 ### messages
 
@@ -275,7 +275,7 @@ pachca guide            # список всех сценариев
 | `--no-input` |  | Отключить интерактивные промпты |
 | `--dry-run` |  | Показать запрос без отправки |
 | `--timeout <value>` |  | Таймаут запроса в секундах (по умолчанию 30) |
-| `--no-retry` |  | Отключить авто-retry при 429/503 |
+| `--no-retry` |  | Отключить автоповтор при 429, 5xx и сетевых ошибках |
 | `--plain` |  | Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов) |
 
 <!-- AUTO:FLAGS:END -->

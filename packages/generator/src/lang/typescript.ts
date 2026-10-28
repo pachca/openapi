@@ -160,9 +160,12 @@ function emitErrorClass(lines: string[], m: IRModel): void {
   if (m.name === 'ApiError') {
     lines.push('export class ApiError extends Error {');
     lines.push('  errors?: ApiErrorItem[];');
-    lines.push('  constructor(errors?: ApiErrorItem[]) {');
-    lines.push('    super(errors?.map((e) => `${e.key}: ${e.value}`).join(", "));');
+    lines.push('  /** HTTP status code of the response. An answer with an empty body or one that is not JSON comes with `errors` empty. */');
+    lines.push('  status?: number;');
+    lines.push('  constructor(errors?: ApiErrorItem[], status?: number) {');
+    lines.push('    super(errors?.length ? errors.map((e) => `${e.key}: ${e.value}`).join(", ") : status !== undefined ? `HTTP ${status}` : "");');
     lines.push('    this.errors = errors;');
+    lines.push('    this.status = status;');
     lines.push('  }');
     lines.push('}');
     return;
@@ -351,9 +354,17 @@ function hasFormBody(ir: IR): boolean {
   return ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'form'));
 }
 
+function hasApiErrorModel(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError');
+}
+
+function hasOAuthErrorModel(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'OAuthError');
+}
+
 /** Both error models exist, so an error's class is read off its body. */
 function picksErrorByBody(ir: IR): boolean {
-  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+  return hasApiErrorModel(ir) && hasOAuthErrorModel(ir);
 }
 
 /** The authorization link and the PKCE pair for the OAuth flow (`x-oauth-authorize-url`). */
@@ -540,15 +551,33 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
     emitWebhookPollingPrelude(lines);
   }
 
-  if (hasServices && picksErrorByBody(ir)) {
+  if (hasServices && (hasApiErrorModel(ir) || hasOAuthErrorModel(ir))) {
+    lines.push('');
+    lines.push('/** The body of an error answer, or undefined when it is empty or not JSON (a 404 without a body, a proxy page). */');
+    lines.push('async function errorBody(response: Response): Promise<any> {');
+    lines.push('  try {');
+    lines.push('    return JSON.parse(await response.text());');
+    lines.push('  } catch {');
+    lines.push('    return undefined;');
+    lines.push('  }');
+    lines.push('}');
+  }
+
+  if (hasServices && hasApiErrorModel(ir)) {
     lines.push('');
     lines.push('/**');
-    lines.push(' * An error body is either `{ errors: [...] }` or the OAuth form `{ error, error_description }`,');
-    lines.push(' * which also comes with 400 and 403 (`insufficient_scope`, `invalid_grant`). The body decides the class.');
+    if (picksErrorByBody(ir)) {
+      lines.push(' * An error body is either `{ errors: [...] }` or the OAuth form `{ error, error_description }`,');
+      lines.push(' * which also comes with 400 and 403 (`insufficient_scope`, `invalid_grant`). The body decides the class.');
+    }
+    lines.push(' * An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in `status`.');
     lines.push(' */');
-    lines.push('function errorFromBody(body: any): Error {');
-    lines.push('  if (body && typeof body.error === "string" && body.errors === undefined) return new OAuthError(body.error);');
-    lines.push('  return new ApiError(body?.errors);');
+    lines.push('async function errorFromResponse(response: Response): Promise<Error> {');
+    lines.push('  const body = await errorBody(response);');
+    if (picksErrorByBody(ir)) {
+      lines.push('  if (body && typeof body.error === "string" && body.errors === undefined) return new OAuthError(body.error);');
+    }
+    lines.push('  return new ApiError(Array.isArray(body?.errors) ? body.errors : [], response.status);');
     lines.push('}');
   }
 
@@ -815,9 +844,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     if (!op.noAuth) lines.push('      headers: this.headers,');
     lines.push('      body: form,');
     lines.push('    });');
-    const preloadBody = op.successResponse.hasBody && !op.successResponse.isRedirect;
-    if (preloadBody) lines.push('    const body = await response.json();');
-    emitResponseSwitch(lines, op, ir, preloadBody);
+    emitResponseSwitch(lines, op, ir);
     lines.push('  }');
     return;
   }
@@ -899,9 +926,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   }
   lines.push('    });');
 
-  const preloadBody = op.successResponse.hasBody && !op.successResponse.isRedirect;
-  if (preloadBody) lines.push('    const body = await response.json();');
-  emitResponseSwitch(lines, op, ir, preloadBody);
+  emitResponseSwitch(lines, op, ir);
   lines.push('  }');
 }
 
@@ -966,65 +991,59 @@ function responseNeedsTypedDataItems(op: IROperation, ir: IR): boolean {
   return !!model && hasDirectCustomUnionField(model, customUnionNames);
 }
 
-function emitResponseSwitch(
-  lines: string[],
-  op: IROperation,
-  ir: IR,
-  preloadBody: boolean,
-): void {
+function emitResponseSwitch(lines: string[], op: IROperation, ir: IR): void {
+  const success = op.successResponse;
+  const returnsBody = (expr: string): void => {
+    // Only the success answer is parsed strictly: an error body may be empty or not JSON.
+    lines.push(`      case ${success.statusCode}: {`);
+    lines.push('        const body = await response.json();');
+    lines.push(`        return ${expr};`);
+    lines.push('      }');
+  };
   lines.push('    switch (response.status) {');
-  if (op.successResponse.isRedirect) {
-    lines.push(`      case ${op.successResponse.statusCode}: {`);
+  if (success.isRedirect) {
+    lines.push(`      case ${success.statusCode}: {`);
     lines.push('        const location = response.headers.get("location");');
     lines.push('        if (!location) {');
     lines.push('          throw new Error("Missing Location header in redirect response");');
     lines.push('        }');
     lines.push('        return location;');
     lines.push('      }');
-  } else if (op.successResponse.isBinary) {
-    lines.push(`      case ${op.successResponse.statusCode}:`);
+  } else if (success.isBinary) {
+    lines.push(`      case ${success.statusCode}:`);
     lines.push('        return await response.blob();');
-  } else if (!op.successResponse.hasBody) {
-    lines.push(`      case ${op.successResponse.statusCode}:`);
+  } else if (!success.hasBody) {
+    lines.push(`      case ${success.statusCode}:`);
     lines.push('        return;');
-  } else if (op.successResponse.isList) {
-    lines.push(`      case ${op.successResponse.statusCode}:`);
-    if (responseNeedsTypedDataItems(op, ir) && op.successResponse.dataRef) {
-      lines.push(`        return { ...(deserialize(body) as ${responseTypeName(op, ir)}), data: Array.isArray(body.data) ? body.data.map((item: unknown) => deserializeType(${JSON.stringify(op.successResponse.dataRef)}, item) as ${op.successResponse.dataRef}) : [] } as ${responseTypeName(op, ir)};`);
+  } else if (success.isList) {
+    if (responseNeedsTypedDataItems(op, ir) && success.dataRef) {
+      returnsBody(`{ ...(deserialize(body) as ${responseTypeName(op, ir)}), data: Array.isArray(body.data) ? body.data.map((item: unknown) => deserializeType(${JSON.stringify(success.dataRef)}, item) as ${success.dataRef}) : [] } as ${responseTypeName(op, ir)}`);
     } else {
-      lines.push(`        return deserialize(body) as ${responseTypeName(op, ir)};`);
+      returnsBody(`deserialize(body) as ${responseTypeName(op, ir)}`);
     }
-  } else if (op.successResponse.isSingleWithMeta && op.successResponse.dataRef) {
+  } else if (success.isSingleWithMeta && success.dataRef) {
     // The response whole: `meta` as is, the object in `data` decoded by its type.
-    lines.push(`      case ${op.successResponse.statusCode}:`);
-    lines.push(`        return { ...(deserialize(body) as ${responseTypeName(op, ir)}), data: deserializeType(${JSON.stringify(op.successResponse.dataRef)}, body.data) as ${op.successResponse.dataRef} };`);
-  } else if (op.successResponse.isUnwrap && op.successResponse.dataRef) {
-    lines.push(`      case ${op.successResponse.statusCode}:`);
-    lines.push(`        return deserializeType(${JSON.stringify(op.successResponse.dataRef)}, body.data) as ${op.successResponse.dataRef};`);
+    returnsBody(`{ ...(deserialize(body) as ${responseTypeName(op, ir)}), data: deserializeType(${JSON.stringify(success.dataRef)}, body.data) as ${success.dataRef} }`);
+  } else if (success.isUnwrap && success.dataRef) {
+    returnsBody(`deserializeType(${JSON.stringify(success.dataRef)}, body.data) as ${success.dataRef}`);
   } else {
-    lines.push(`      case ${op.successResponse.statusCode}:`);
-    lines.push(`        return deserializeType(${JSON.stringify(responseTypeName(op, ir))}, body) as ${responseTypeName(op, ir)};`);
+    returnsBody(`deserializeType(${JSON.stringify(responseTypeName(op, ir))}, body) as ${responseTypeName(op, ir)}`);
   }
 
-  if (op.hasOAuthError) {
-    lines.push('      case 401:');
-    lines.push(
-      `        throw new OAuthError(${preloadBody ? 'body.error' : '((await response.json()) as any).error'});`,
-    );
+  // With both error models the body decides the class, a 401 included.
+  if (op.hasOAuthError && !picksErrorByBody(ir)) {
+    // A 401 body that is empty or not the OAuth form is the plain error with the status code.
+    lines.push('      case 401: {');
+    lines.push('        const body = await errorBody(response);');
+    lines.push('        throw typeof body?.error === "string" ? new OAuthError(body.error) : new Error(`HTTP ${response.status}`);');
+    lines.push('      }');
   }
 
-  const hasApiError = op.hasApiError || ir.models.some((m) => m.name === 'ApiError');
   lines.push('      default:');
-  if (picksErrorByBody(ir)) {
-    lines.push(`        throw errorFromBody(${preloadBody ? 'body' : 'await response.json()'});`);
-  } else if (hasApiError) {
-    lines.push(
-      `        throw new ApiError(${preloadBody ? 'body.errors' : '((await response.json()) as any).errors'});`,
-    );
+  if (hasApiErrorModel(ir)) {
+    lines.push('        throw await errorFromResponse(response);');
   } else {
-    lines.push(
-      `        throw new Error(\`HTTP \${response.status}${preloadBody ? ': ${JSON.stringify(body)}' : ''}\`);`,
-    );
+    lines.push('        throw new Error(`HTTP ${response.status}`);');
   }
   lines.push('    }');
 }
@@ -1240,6 +1259,12 @@ function generateUtils(ir: IR): string {
     '// Only the daily chat limit and the hour-long ban wait longer than a minute.',
     'const MAX_RETRY_AFTER_MS = 60_000;',
     'const RETRYABLE_5XX = new Set([500, 502, 503, 504]);',
+    '// A 5xx says nothing about whether the server already applied the request.',
+    '// These methods are safe to repeat. A retried POST or PATCH could apply',
+    '// twice: POST /messages would send the message again, and the API has no',
+    '// idempotency key. 429 is safe for any method: the request was rejected',
+    '// before it was processed.',
+    'const IDEMPOTENT_METHODS = new Set(["GET", "HEAD", "OPTIONS", "PUT", "DELETE"]);',
     '',
     '// Retry-After is a minimum, not an estimate: waiting less lands the retry',
     '// inside a window that is still closed. Jitter only upwards.',
@@ -1247,7 +1272,23 @@ function generateUtils(ir: IR): string {
     '  return delay * (1 + Math.random() * 0.25);',
     '}',
     '',
+    '// A 504 with the code `timeout` is a search the server stopped because the',
+    '// query is too heavy: the same query would time out again, so it goes back',
+    '// to the caller at once. A 504 from a proxy has no such code and is retried.',
+    '// The body is read from a clone, so the caller can still read it.',
+    'async function isQueryTimeout(response: Response): Promise<boolean> {',
+    '  if (response.status !== 504) return false;',
+    '  try {',
+    '    const body = (await response.clone().json()) as { errors?: unknown } | null;',
+    '    const errors = body?.errors;',
+    '    return Array.isArray(errors) && errors.some((error) => (error as { code?: unknown } | null)?.code === "timeout");',
+    '  } catch {',
+    '    return false;',
+    '  }',
+    '}',
+    '',
     'export async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {',
+    '  const method = (init?.method ?? (typeof input === "object" && "method" in input ? input.method : "GET")).toUpperCase();',
     '  for (let attempt = 0; ; attempt++) {',
     '    const response = await fetch(input, init);',
     '    if (response.status === 429 && attempt < MAX_RETRIES) {',
@@ -1263,7 +1304,12 @@ function generateUtils(ir: IR): string {
     '      await new Promise((r) => setTimeout(r, jitter(delay)));',
     '      continue;',
     '    }',
-    '    if (RETRYABLE_5XX.has(response.status) && attempt < MAX_RETRIES) {',
+    '    if (',
+    '      RETRYABLE_5XX.has(response.status) &&',
+    '      IDEMPOTENT_METHODS.has(method) &&',
+    '      attempt < MAX_RETRIES &&',
+    '      !(await isQueryTimeout(response))',
+    '    ) {',
     '      const delay = 1000 * (attempt + 1);',
     '      await new Promise((r) => setTimeout(r, jitter(delay)));',
     '      continue;',

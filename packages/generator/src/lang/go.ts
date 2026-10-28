@@ -163,6 +163,11 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
   });
   const infos = sorted.map((f) => goFieldInfo(f, m.name));
   const rows = infos.map((fi) => [fi.name, fi.typeName, `${fi.tag}${fi.comment}`]);
+  if (m.name === 'ApiError') {
+    // Not in the body: the client sets it. An answer with an empty body or one
+    // that is not JSON comes with Errors empty.
+    rows.push(['StatusCode', 'int', '`json:"-"` // HTTP status code of the answer']);
+  }
   for (const line of goAligned(rows)) lines.push(line);
   lines.push('}');
 
@@ -203,6 +208,9 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
     lines.push('');
     lines.push('func (e *ApiError) Error() string {');
     lines.push('\tif len(e.Errors) == 0 {');
+    lines.push('\t\tif e.StatusCode != 0 {');
+    lines.push('\t\t\treturn fmt.Sprintf("HTTP %d", e.StatusCode)');
+    lines.push('\t\t}');
     lines.push('\t\treturn "api error"');
     lines.push('\t}');
     lines.push('\tparts := make([]string, 0, len(e.Errors))');
@@ -532,11 +540,6 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     if (!returnsValue) return 'return &e';
     return 'return nil, &e';
   };
-  const retApi = (): string => {
-    if (op.successResponse.isRedirect) return 'return "", &e';
-    if (!returnsValue) return 'return &e';
-    return 'return nil, &e';
-  };
   // An error body that does not decode comes back wrapped with its status.
   const retDecodeFailure = (): string => {
     const wrapped = 'fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)';
@@ -758,7 +761,8 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\t\treturn &result, nil');
   }
 
-  if (op.hasOAuthError) {
+  // With both error models the body decides the type, a 401 included.
+  if (op.hasOAuthError && !goPicksErrorByBody(ir)) {
     lines.push('\tcase http.StatusUnauthorized:');
     lines.push('\t\tvar e OAuthError');
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&e); err != nil {');
@@ -769,20 +773,12 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push(`\t\t${retOAuth()}`);
   }
 
-  if (goPicksErrorByBody(ir)) {
-    lines.push('\tdefault:');
-    if (op.successResponse.isRedirect) lines.push('\t\treturn "", errorFromBody(resp)');
-    else if (!returnsValue) lines.push('\t\treturn errorFromBody(resp)');
-    else lines.push('\t\treturn nil, errorFromBody(resp)');
-  } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
-    lines.push('\tdefault:');
-    lines.push('\t\tvar e ApiError');
-    lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&e); err != nil {');
-    lines.push(`\t\t\t${retDecodeFailure()}`);
-    lines.push('\t\t}');
-    lines.push(`\t\t${retApi()}`);
+  lines.push('\tdefault:');
+  if (goHasApiError(ir)) {
+    if (op.successResponse.isRedirect) lines.push('\t\treturn "", errorFromResponse(resp)');
+    else if (!returnsValue) lines.push('\t\treturn errorFromResponse(resp)');
+    else lines.push('\t\treturn nil, errorFromResponse(resp)');
   } else {
-    lines.push('\tdefault:');
     lines.push(`\t\t${retUnexpected()}`);
   }
 
@@ -790,9 +786,13 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
   lines.push('}');
 }
 
+function goHasApiError(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError');
+}
+
 /** Both error models exist, so an error's class is read off its body. */
 function goPicksErrorByBody(ir: IR): boolean {
-  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+  return goHasApiError(ir) && ir.models.some((m) => m.name === 'OAuthError');
 }
 
 function emitGoFormValues(lines: string[]): void {
@@ -818,29 +818,38 @@ function emitGoFormValues(lines: string[]): void {
   lines.push('');
 }
 
-function emitGoErrorFromBody(lines: string[]): void {
-  lines.push('// errorFromBody reads an error answer. Its body is either {"errors": [...]} or the');
-  lines.push('// OAuth form {"error", "error_description"}, which also comes with 400 and 403');
-  lines.push('// (insufficient_scope, invalid_grant): the body decides the type.');
-  lines.push('func errorFromBody(resp *http.Response) error {');
+function emitGoErrorFromResponse(lines: string[], picksByBody: boolean): void {
+  if (picksByBody) {
+    lines.push('// errorFromResponse reads an error answer. Its body is either {"errors": [...]} or');
+    lines.push('// the OAuth form {"error", "error_description"}, which also comes with 400 and 403');
+    lines.push('// (insufficient_scope, invalid_grant): the body decides the type. An empty body or');
+  } else {
+    lines.push('// errorFromResponse reads an error answer, an ApiError. An empty body or');
+  }
+  lines.push('// one that is not JSON (a 404 without a body, a proxy page) gives an ApiError with');
+  lines.push('// no errors. The status code stays in StatusCode.');
+  lines.push('func errorFromResponse(resp *http.Response) error {');
   lines.push('\tdata, err := io.ReadAll(resp.Body)');
   lines.push('\tif err != nil {');
   lines.push('\t\treturn fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)');
   lines.push('\t}');
-  lines.push('\tvar probe struct {');
-  lines.push('\t\tErrors json.RawMessage `json:"errors"`');
-  lines.push('\t\tError  *string         `json:"error"`');
-  lines.push('\t}');
-  lines.push('\tif json.Unmarshal(data, &probe) == nil && probe.Errors == nil && probe.Error != nil {');
-  lines.push('\t\tvar e OAuthError');
-  lines.push('\t\tif err := json.Unmarshal(data, &e); err == nil {');
-  lines.push('\t\t\treturn &e');
-  lines.push('\t\t}');
-  lines.push('\t}');
+  if (picksByBody) {
+    lines.push('\tvar probe struct {');
+    lines.push('\t\tErrors json.RawMessage `json:"errors"`');
+    lines.push('\t\tError  *string         `json:"error"`');
+    lines.push('\t}');
+    lines.push('\tif json.Unmarshal(data, &probe) == nil && probe.Errors == nil && probe.Error != nil {');
+    lines.push('\t\tvar e OAuthError');
+    lines.push('\t\tif err := json.Unmarshal(data, &e); err == nil {');
+    lines.push('\t\t\treturn &e');
+    lines.push('\t\t}');
+    lines.push('\t}');
+  }
   lines.push('\tvar e ApiError');
-  lines.push('\tif err := json.Unmarshal(data, &e); err != nil {');
-  lines.push('\t\treturn fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)');
+  lines.push('\tif json.Unmarshal(data, &e) != nil {');
+  lines.push('\t\te = ApiError{}');
   lines.push('\t}');
+  lines.push('\te.StatusCode = resp.StatusCode');
   lines.push('\treturn &e');
   lines.push('}');
   lines.push('');
@@ -1205,7 +1214,7 @@ function generateClient(ir: IR): string {
   const needMultipart = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'multipart'));
   const needForm = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'form'));
   const needIO =
-    needMultipart || goPicksErrorByBody(ir) || ir.services.some((s) => s.operations.some((o) => o.successResponse.isBinary));
+    needMultipart || goHasApiError(ir) || ir.services.some((s) => s.operations.some((o) => o.successResponse.isBinary));
   const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"net/http"', '"time"'];
   if (needBytes) imports.push('"bytes"');
   if (needURL || needForm || ir.oauthAuthorizeUrl) imports.push('"net/url"');
@@ -1222,7 +1231,7 @@ function generateClient(ir: IR): string {
   lines.push('');
 
   if (needForm) emitGoFormValues(lines);
-  if (goPicksErrorByBody(ir)) emitGoErrorFromBody(lines);
+  if (goHasApiError(ir)) emitGoErrorFromResponse(lines, goPicksErrorByBody(ir));
   if (ir.oauthAuthorizeUrl) emitGoOAuthHelpers(lines, ir.oauthAuthorizeUrl);
 
   lines.push('type authTransport struct {');
@@ -1401,6 +1410,9 @@ function generateUtils(): string {
     'package pachca',
     '',
     'import (',
+    '\t"bytes"',
+    '\t"encoding/json"',
+    '\t"io"',
     '\t"math/rand"',
     '\t"net/http"',
     '\t"strconv"',
@@ -1424,6 +1436,49 @@ function generateUtils(): string {
     'const maxRetries = 3',
     '',
     'var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}',
+    '',
+    '// isIdempotent reports whether a request is safe to repeat after a 5xx. A 5xx',
+    '// says nothing about whether the server already applied the request: a',
+    '// retried POST or PATCH could apply twice, POST /messages would send the',
+    '// message again, and the API has no idempotency key. 429 is safe for any',
+    '// method: the request was rejected before it was processed.',
+    'func isIdempotent(method string) bool {',
+    '\tswitch method {',
+    '\tcase "", http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodPut, http.MethodDelete:',
+    '\t\treturn true',
+    '\t}',
+    '\treturn false',
+    '}',
+    '',
+    '// isQueryTimeout reports whether a 504 carries the error code "timeout": the',
+    '// server stopped a search because the query is too heavy, and the same query',
+    '// would time out again, so it goes back to the caller at once. A 504 from a',
+    '// proxy has no such code and is retried. The body is put back for the caller.',
+    'func isQueryTimeout(resp *http.Response) bool {',
+    '\tif resp.StatusCode != http.StatusGatewayTimeout {',
+    '\t\treturn false',
+    '\t}',
+    '\tbody, err := io.ReadAll(resp.Body)',
+    '\tresp.Body.Close()',
+    '\tresp.Body = io.NopCloser(bytes.NewReader(body))',
+    '\tif err != nil {',
+    '\t\treturn false',
+    '\t}',
+    '\tvar parsed struct {',
+    '\t\tErrors []struct {',
+    '\t\t\tCode string `json:"code"`',
+    '\t\t} `json:"errors"`',
+    '\t}',
+    '\tif json.Unmarshal(body, &parsed) != nil {',
+    '\t\treturn false',
+    '\t}',
+    '\tfor _, e := range parsed.Errors {',
+    '\t\tif e.Code == "timeout" {',
+    '\t\t\treturn true',
+    '\t\t}',
+    '\t}',
+    '\treturn false',
+    '}',
     '',
     '// Retry-After is a minimum, not an estimate: waiting less lands the retry',
     '// inside a window that is still closed. Jitter only upwards.',
@@ -1460,7 +1515,7 @@ function generateUtils(): string {
     '\t\t\ttime.Sleep(jitter(delay))',
     '\t\t\tcontinue',
     '\t\t}',
-    '\t\tif retryable5xx[resp.StatusCode] && attempt < maxRetries {',
+    '\t\tif retryable5xx[resp.StatusCode] && isIdempotent(req.Method) && attempt < maxRetries && !isQueryTimeout(resp) {',
     '\t\t\tresp.Body.Close()',
     '\t\t\tdelay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)',
     '\t\t\ttime.Sleep(delay)',

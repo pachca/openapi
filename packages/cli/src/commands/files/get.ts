@@ -6,7 +6,6 @@ import { formatSize } from '../../utils.js';
 
 export default class FilesGet extends BaseCommand {
   static override description = "Скачивание файла";
-
   static scope = "files:read";
   static apiMethod = "GET";
   static apiPath = "/files/{id}";

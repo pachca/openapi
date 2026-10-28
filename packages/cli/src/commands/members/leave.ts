@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class MembersLeave extends BaseCommand {
   static override description = "Выход из чата";
-
-  static override examples = [
-      "Архивация и управление чатом — Покинуть чат:\n  $ pachca members leave"
-  ];
-
   static scope = "chats:leave";
   static apiMethod = "DELETE";
   static apiPath = "/chats/{id}/leave";

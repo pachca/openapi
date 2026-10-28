@@ -1262,11 +1262,15 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case draftsRead
     /// Создание, изменение и удаление черновиков и отложенных сообщений
     case draftsWrite
+    /// Просмотр важных сообщений
+    case importantMessagesRead
+    /// Добавление сообщений в важные и удаление из важных
+    case importantMessagesWrite
     /// A value this SDK version does not list yet
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .filesWrite, .uploadsWrite, .viewsWrite, .webhooksRead, .webhooksWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite]
+    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .filesWrite, .uploadsWrite, .viewsWrite, .webhooksRead, .webhooksWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -1328,6 +1332,8 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case "search:messages": self = .searchMessages
         case "drafts:read": self = .draftsRead
         case "drafts:write": self = .draftsWrite
+        case "important_messages:read": self = .importantMessagesRead
+        case "important_messages:write": self = .importantMessagesWrite
         default: self = .unknown(rawValue)
         }
     }
@@ -1396,6 +1402,8 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case .searchMessages: return "search:messages"
         case .draftsRead: return "drafts:read"
         case .draftsWrite: return "drafts:write"
+        case .importantMessagesRead: return "important_messages:read"
+        case .importantMessagesWrite: return "important_messages:write"
         case .unknown(let value): return value
         }
     }
@@ -1699,6 +1707,8 @@ public enum UserRoleInput: String, Codable, CaseIterable {
     case user
     /// Мульти-гость
     case multiGuest = "multi_guest"
+    /// Гость
+    case guest
 }
 
 public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
@@ -1732,7 +1742,7 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
     case invalidWebhookUrl
     /// Достигнут лимит запросов
     case rateLimit
-    /// Превышен лимит активных сотрудников (пояснения вы получите в поле message)
+    /// Превышен лимит активных сотрудников. Больше не возвращается
     case licensesLimit
     /// Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
     case userLimit
@@ -1768,7 +1778,7 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
     case scheduledMessagesLimit
     /// Отложенное сообщение нельзя превратить обратно в черновик
     case draftTypeChangeForbidden
-    /// Скачивание файла запрещено: нужен запрос из безопасного контура
+    /// Скачивание файла запрещено: нужен запрос из безопасного контура или в файле найден вирус
     case confidentialDownloadDenied
     /// Не удалось расшифровать файл
     case decryptionFailed
@@ -2124,15 +2134,22 @@ public struct AddTagsRequest: Codable {
 
 public struct ApiError: Codable, Error {
     public let errors: [ApiErrorItem]
+    /// HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty.
+    public var statusCode: Int?
 
-    public init(errors: [ApiErrorItem]) {
+    public init(errors: [ApiErrorItem], statusCode: Int? = nil) {
         self.errors = errors
+        self.statusCode = statusCode
     }
 
     public var localizedDescription: String {
-        guard !errors.isEmpty else { return "api error" }
+        guard !errors.isEmpty else { return statusCode.map { "HTTP \($0)" } ?? "api error" }
         if errors.count == 1 { return errors[0].message }
         return "Errors: " + errors.map(\.message).joined(separator: "; ")
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case errors
     }
 }
 
@@ -2546,10 +2563,10 @@ public struct AuditDetailsSearch: Codable {
     public let searchType: String
     public let queryPresent: Bool
     public let cursorPresent: Bool
-    public let limit: Int
+    public let limit: Int?
     public let filters: [String: AnyCodable]
 
-    public init(searchType: String, queryPresent: Bool, cursorPresent: Bool, limit: Int, filters: [String: AnyCodable]) {
+    public init(searchType: String, queryPresent: Bool, cursorPresent: Bool, limit: Int? = nil, filters: [String: AnyCodable]) {
         self.searchType = searchType
         self.queryPresent = queryPresent
         self.cursorPresent = cursorPresent
@@ -2595,13 +2612,15 @@ public struct AuditDetailsToken: Codable {
     public let resourceOwnerId: Int
     public let scopes: [String]
     public let botId: Int?
+    public let reason: String?
 
-    public init(tokenKind: String, tokenName: String? = nil, resourceOwnerId: Int, scopes: [String], botId: Int? = nil) {
+    public init(tokenKind: String, tokenName: String? = nil, resourceOwnerId: Int, scopes: [String], botId: Int? = nil, reason: String? = nil) {
         self.tokenKind = tokenKind
         self.tokenName = tokenName
         self.resourceOwnerId = resourceOwnerId
         self.scopes = scopes
         self.botId = botId
+        self.reason = reason
     }
 
     enum CodingKeys: String, CodingKey {
@@ -2610,6 +2629,7 @@ public struct AuditDetailsToken: Codable {
         case resourceOwnerId = "resource_owner_id"
         case scopes
         case botId = "bot_id"
+        case reason
     }
 }
 
@@ -4186,6 +4206,18 @@ public struct GroupTagRequest: Codable {
     }
 }
 
+public struct ImportantMessageRequest: Codable {
+    public let messageId: Int
+
+    public init(messageId: Int) {
+        self.messageId = messageId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case messageId = "message_id"
+    }
+}
+
 public struct LinkPreviewImage: Codable {
     public let key: String
     public let name: String
@@ -4320,8 +4352,9 @@ public struct Message: Codable {
     public let displayName: String?
     public let changedAt: String?
     public let deletedAt: String?
+    public let important: Bool
 
-    public init(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File], voiceContent: VoiceContent? = nil, buttons: [[Button]]? = nil, thread: MessageThread? = nil, forwarding: Forwarding? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, changedAt: String? = nil, deletedAt: String? = nil) {
+    public init(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File], voiceContent: VoiceContent? = nil, buttons: [[Button]]? = nil, thread: MessageThread? = nil, forwarding: Forwarding? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, changedAt: String? = nil, deletedAt: String? = nil, important: Bool) {
         self.id = id
         self.entityType = entityType
         self.entityId = entityId
@@ -4341,6 +4374,7 @@ public struct Message: Codable {
         self.displayName = displayName
         self.changedAt = changedAt
         self.deletedAt = deletedAt
+        self.important = important
     }
 
     enum CodingKeys: String, CodingKey {
@@ -4363,6 +4397,7 @@ public struct Message: Codable {
         case displayName = "display_name"
         case changedAt = "changed_at"
         case deletedAt = "deleted_at"
+        case important
     }
 }
 
@@ -5287,11 +5322,12 @@ public struct UserUpdateRequestUser: Codable {
     public let department: String?
     public let title: String?
     public let role: UserRoleInput?
+    public let chatIds: [Int]?
     public let suspended: Bool?
     public let listTags: [String]?
     public let customProperties: [UserUpdateRequestCustomProperty]?
 
-    public init(firstName: String? = nil, lastName: String? = nil, email: String? = nil, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserRoleInput? = nil, suspended: Bool? = nil, listTags: [String]? = nil, customProperties: [UserUpdateRequestCustomProperty]? = nil) {
+    public init(firstName: String? = nil, lastName: String? = nil, email: String? = nil, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserRoleInput? = nil, chatIds: [Int]? = nil, suspended: Bool? = nil, listTags: [String]? = nil, customProperties: [UserUpdateRequestCustomProperty]? = nil) {
         self.firstName = firstName
         self.lastName = lastName
         self.email = email
@@ -5300,6 +5336,7 @@ public struct UserUpdateRequestUser: Codable {
         self.department = department
         self.title = title
         self.role = role
+        self.chatIds = chatIds
         self.suspended = suspended
         self.listTags = listTags
         self.customProperties = customProperties
@@ -5314,6 +5351,7 @@ public struct UserUpdateRequestUser: Codable {
         case department
         case title
         case role
+        case chatIds = "chat_ids"
         case suspended
         case listTags = "list_tags"
         case customProperties = "custom_properties"
@@ -5741,6 +5779,21 @@ public struct WebhookEvent: Codable {
     }
 }
 
+public struct WebhookEventsStream: Codable {
+    public let url: String
+    public let expiresAt: String
+
+    public init(url: String, expiresAt: String) {
+        self.url = url
+        self.expiresAt = expiresAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case url
+        case expiresAt = "expires_at"
+    }
+}
+
 public struct WebhookLink: Codable {
     public let url: String
     public let domain: String
@@ -5817,13 +5870,16 @@ public struct UpdateBotAvatarRequest: Codable {
 
 public struct CreateChatResponseMeta: Codable {
     public let notFoundMemberIds: [Int]
+    public let notFoundGroupTagIds: [Int]
 
-    public init(notFoundMemberIds: [Int]) {
+    public init(notFoundMemberIds: [Int], notFoundGroupTagIds: [Int]) {
         self.notFoundMemberIds = notFoundMemberIds
+        self.notFoundGroupTagIds = notFoundGroupTagIds
     }
 
     enum CodingKeys: String, CodingKey {
         case notFoundMemberIds = "not_found_member_ids"
+        case notFoundGroupTagIds = "not_found_group_tag_ids"
     }
 }
 
@@ -5897,12 +5953,12 @@ public enum AuditEventDetailsUnion: Codable {
             self = .auditDetailsVideoCallRecording(value)
             return
         }
-        if let value = try? AuditDetailsSearch(from: decoder) {
-            self = .auditDetailsSearch(value)
-            return
-        }
         if let value = try? AuditDetailsBotOAuthClientDisabled(from: decoder) {
             self = .auditDetailsBotOAuthClientDisabled(value)
+            return
+        }
+        if let value = try? AuditDetailsSearch(from: decoder) {
+            self = .auditDetailsSearch(value)
             return
         }
         if let value = try? AuditDetailsBotTokenUpdated(from: decoder) {
@@ -6359,6 +6415,16 @@ public struct GetTagUsersResponse: Codable {
     }
 }
 
+public struct ListImportantMessagesResponse: Codable {
+    public let data: [Message]
+    public let meta: PaginationMeta
+
+    public init(data: [Message], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
+}
+
 public struct ListChatMessagesResponse: Codable {
     public let data: [Message]
     public let meta: PaginationMeta
@@ -6451,6 +6517,10 @@ public struct GetWebhookEventsResponse: Codable {
 
 struct BotResponseDataWrapper: Codable {
     let data: BotResponse
+}
+
+struct WebhookEventsStreamDataWrapper: Codable {
+    let data: WebhookEventsStream
 }
 
 struct BotSelfTokenResponseDataWrapper: Codable {

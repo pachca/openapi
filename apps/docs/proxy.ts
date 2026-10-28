@@ -129,9 +129,8 @@ export function proxy(request: NextRequest) {
       `<${mdUrl}>; rel="alternate"; type="text/markdown"`,
       '</llms.txt>; rel="llms-txt"; type="text/plain"',
       '</llms-full.txt>; rel="llms-full-txt"; type="text/plain"',
-      '</.well-known/skills/index.json>; rel="service-meta"; type="application/json"',
+      '</.well-known/agent-skills/index.json>; rel="service-meta"; type="application/json"',
       '</.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"',
-      '</.well-known/agent-card.json>; rel="agent-card"; type="application/json"',
     ].join(', ')
   );
   response.headers.set('X-Llms-Txt', '/llms.txt');
@@ -147,14 +146,14 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // All pages except static files, the docs site's own route handlers
-    // (under /internal/: search + OG image), .well-known discovery files, and
-    // .md/feeds. .well-known/* is excluded so each file's Content-Type /
+    // (under /internal/: search + OG image), .well-known discovery files,
+    // .md/feeds, and the skill ZIPs under /skills/. .well-known/* is excluded so each file's Content-Type /
     // Cache-Control from next.config wins (no middleware override of headers on
     // RFC 9727 api-catalog, skills/agent-skills indexes etc.).
     // `/internal/*` are the site's own machinery (NOT Pachca API docs), so they
     // stay out of /api/ — that keeps /api/ a clean documentation namespace and
     // removes the prefix-collision that used to drop /api/search/<method> doc
     // pages from middleware, the sitemap, and robots.
-    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|internal/|.*\\.(?:ico|svg|png|jpg|webp|md|yaml|json)).*)',
+    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|internal/|.*\\.(?:ico|svg|png|jpg|webp|md|txt|yaml|json|zip)).*)',
   ],
 };

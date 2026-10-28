@@ -22,14 +22,14 @@
 
 ### Query параметры
 
-- `code: string` (required) — Emoji символ реакции. Именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи.
-- `name: string` — Текстовое имя эмодзи (используется для кастомных эмодзи)
+- `code: string` (required) — Emoji символ реакции. Без `name` нужен именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи.
+- `name: string` — Имя реакции, как в её поле `name`. С ним реакция ищется по имени, так снимается и кастомный эмодзи пространства.
 
 
 ## Пример запроса
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/7231942/reactions?code=👍&name=:+1:" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/7231942/reactions?code=👍&name=agent-thinking" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

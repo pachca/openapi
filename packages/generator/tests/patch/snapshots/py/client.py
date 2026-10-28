@@ -5,6 +5,28 @@ import httpx
 from .models import ItemPatchRequest, Item, ApiError
 from .utils import deserialize, serialize, RetryTransport
 
+
+def _error_body(response: httpx.Response) -> object:
+    # The body of an error answer, or None when it is empty or not JSON (a 404 without a body, a proxy page).
+    try:
+        return response.json()
+    except ValueError:
+        return None
+
+
+def _error_from_response(response: httpx.Response) -> Exception:
+    # An empty body or one that is not JSON gives an ApiError with no errors. The status code stays in status_code.
+    body = _error_body(response)
+    error = ApiError(errors=[])
+    errors = body.get("errors") if isinstance(body, dict) else None
+    if isinstance(errors, list) and all(isinstance(item, dict) for item in errors):
+        try:
+            error = deserialize(ApiError, body)
+        except (TypeError, ValueError):
+            pass  # errors of another shape: the status code still says what happened
+    error.status_code = response.status_code
+    return error
+
 class ItemsService:
     async def patch_item(
         self,
@@ -27,12 +49,11 @@ class ItemsServiceImpl(ItemsService):
             f"/items/{id}",
             json=serialize(request),
         )
-        body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(Item, body["data"])
+                return deserialize(Item, response.json()["data"])
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_response(response)
 
 
 PACHCA_API_URL = "https://api.example.com/v1"

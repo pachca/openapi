@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Digest'
+  short_description: 'Digest of Pachca chats for a period'
+policy:
+  allow_implicit_invocation: false

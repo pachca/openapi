@@ -97,5 +97,12 @@ async def main() -> None:
         pass
     print("open enums ok")
 
+    # The retry and error body checks need the same stubbed httpx: they run in this process.
+    import error_bodies
+    import retries
+
+    await retries.main()
+    await error_bodies.main()
+
 
 asyncio.run(main())

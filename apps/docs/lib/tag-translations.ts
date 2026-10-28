@@ -1,6 +1,6 @@
 /**
  * English OpenAPI tag → Russian display label.
- * Shared between sidebar navigation and workflow badges.
+ * Shared by the sidebar navigation, the MCP tool pages (lib/mcp-data.ts) and the llms.txt generator.
  */
 export const TAG_TRANSLATIONS: Record<string, string> = {
   OAuth: 'OAuth и токены',
@@ -13,6 +13,7 @@ export const TAG_TRANSLATIONS: Record<string, string> = {
   Messages: 'Сообщения',
   'Read members': 'Прочтение сообщения',
   Reactions: 'Реакции на сообщения',
+  'Important messages': 'Важное',
   Drafts: 'Черновики',
   Tasks: 'Напоминания',
   Views: 'Формы',

@@ -4,13 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class SecurityList extends BaseCommand {
   static override description = "Журнал аудита событий";
-
-  static override examples = [
-      "Получить журнал аудита событий — Получи журнал аудита:\n  $ pachca security list",
-      "Мониторинг подозрительных входов — Получи события неудачных 2FA за период:\n  $ pachca security list",
-      "Мониторинг подозрительных входов — Повтори запрос с `--event-key=user_2fa_disabled` — отключение второго фактора у сотрудника:\n  $ pachca security list"
-  ];
-
   static scope = "audit_events:read";
   static plan = "corporation";
   static apiMethod = "GET";

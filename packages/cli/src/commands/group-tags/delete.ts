@@ -5,7 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class GroupTagsDelete extends BaseCommand {
   static override description = "Удаление тега";
-
   static scope = "group_tags:write";
   static apiMethod = "DELETE";
   static apiPath = "/group_tags/{id}";

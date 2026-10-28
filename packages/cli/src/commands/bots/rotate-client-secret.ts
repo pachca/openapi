@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class BotsRotateClientSecret extends BaseCommand {
   static override description = "Ротация секрета клиента";
-
   static scope = "bots:write";
   static apiMethod = "POST";
   static apiPath = "/bots/{id}/rotate_client_secret";

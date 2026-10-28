@@ -19,12 +19,13 @@ export class EventsServiceImpl extends EventsService {
     const response = await fetchWithRetry(`${this.baseUrl}/events`, {
       headers: this.headers,
     });
-    const body = await response.json();
     switch (response.status) {
-      case 200:
+      case 200: {
+        const body = await response.json();
         return deserialize(body) as GetEventsResponse;
+      }
       default:
-        throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
+        throw new Error(`HTTP ${response.status}`);
     }
   }
 }

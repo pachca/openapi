@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class BotsListEvents extends BaseCommand {
   static override description = "История событий";
-
-  static override examples = [
-      "Обработка событий через историю (polling) — Получи накопленные события:\n  $ pachca bots list-events"
-  ];
-
   static scope = "webhooks:events:read";
   static apiMethod = "GET";
   static apiPath = "/webhooks/events";

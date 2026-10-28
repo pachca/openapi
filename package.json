@@ -6,9 +6,9 @@
     "sdk:build": "bash scripts/build-sdks.sh",
     "check:changelog": "node scripts/check-changelog-sync.mjs",
     "check:generated": "node scripts/check-generated-sync.mjs",
-    "check:docs-format": "prettier --check --config apps/docs/prettier.config.mjs \"docs/**/*.md\" \"integrations/**/*.md\" \"packages/mcp-manifest/*.md\"",
-    "format:docs": "prettier --write --config apps/docs/prettier.config.mjs \"docs/**/*.md\" \"integrations/**/*.md\" \"packages/mcp-manifest/*.md\"",
-    "check:markdown": "markdownlint-cli2 \"docs/**/*.md\" \"integrations/**/*.md\" \"packages/mcp-manifest/*.md\" \"!**/node_modules/**\" \"!integrations/n8n/e2e/**\"",
+    "check:docs-format": "prettier --check --config apps/docs/prettier.config.mjs \"docs/**/*.md\" \"integrations/**/*.md\" \"packages/mcp-manifest/*.md\" \"plugins/pachca/skills/**/*.md\" \"plugins/pachca/README.md\"",
+    "format:docs": "prettier --write --config apps/docs/prettier.config.mjs \"docs/**/*.md\" \"integrations/**/*.md\" \"packages/mcp-manifest/*.md\" \"plugins/pachca/skills/**/*.md\" \"plugins/pachca/README.md\"",
+    "check:markdown": "markdownlint-cli2 \"docs/**/*.md\" \"integrations/**/*.md\" \"packages/mcp-manifest/*.md\" \"plugins/pachca/skills/**/*.md\" \"plugins/pachca/README.md\" \"!**/node_modules/**\" \"!integrations/n8n/e2e/**\"",
     "check:mcp-manifest": "node scripts/check-mcp-manifest.mjs"
   },
   "workspaces": [

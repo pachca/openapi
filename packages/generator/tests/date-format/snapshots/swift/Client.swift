@@ -7,6 +7,12 @@ private func pachcaNotImplemented(_ method: String) -> Error {
     NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
 }
 
+/// A 401 body that is empty or not the OAuth form gives URLError(.badServerResponse).
+func pachcaOAuthErrorFromBody(_ data: Data) -> Error {
+    if let oauthError = try? deserialize(OAuthError.self, from: data) { return oauthError }
+    return URLError(.badServerResponse)
+}
+
 open class ExportService {
     public init() {}
 
@@ -63,7 +69,7 @@ public final class ExportServiceImpl: ExportService {
         case 201:
             return try deserialize(ExportDataWrapper.self, from: data).data
         case 401:
-            throw try deserialize(OAuthError.self, from: data)
+            throw pachcaOAuthErrorFromBody(data)
         default:
             throw URLError(.badServerResponse)
         }

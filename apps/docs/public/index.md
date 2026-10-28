@@ -1,15 +1,16 @@
-> Краткое содержание: Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n и Agent Skills для AI-агентов
+> Краткое содержание: Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n, MCP-сервер, плагин и скиллы для AI-агентов
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
 
 # Обзор
 
-Автоматизируйте рабочие процессы и стройте интеграции с Пачкой: уведомления из мониторинга и CRM, боты и AI-агенты, реакция на события в реальном времени. Работайте через REST API, CLI, типизированные SDK, n8n или Agent Skills.
+Автоматизируйте рабочие процессы и стройте интеграции с Пачкой: уведомления из мониторинга и CRM, боты и AI-агенты, реакция на события в реальном времени. Работайте через REST API, CLI, типизированные SDK, n8n или MCP-сервер.
 
 - [Быстрый старт](/guides/quickstart)
 - [Авторизация](/api/authorization)
 - [Модели API](/api/models)
 - [AI-агенты](/guides/ai-agents/overview)
+- [MCP-сервер](/guides/mcp/overview)
 - [CLI](/guides/cli/overview)
 - [SDK](/guides/sdk/overview)
 - [n8n](/guides/n8n/overview)
@@ -96,7 +97,6 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 - [OpenAPI-спецификация](/openapi.yaml) — Описание всех методов в YAML
 - [Коллекция Postman](/pachca.postman_collection.json) — Все методы с примерами
-- [Arazzo-сценарии](/workflows.arazzo.yaml) — Многошаговые сценарии API для агентов
 - [llms.txt](/llms.txt) — Краткое описание API для LLM
 - [llms-full.txt](/llms-full.txt) — Полное описание API для LLM
 - [llms-en.txt](/llms-en.txt) — English API documentation for LLM

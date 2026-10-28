@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-my-tasks
+description: "What pachca-search adds: answered with the plugin and without it"
+tags: [knowledge, pachca-search]
+runs: 3
+execution:
+  prompt: "Покажи мои задачи в Пачке на этой неделе. Какой фильтр нужен в списке задач?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS only if both hold: it states that the task list without a performer filter also returns colleagues' tasks from the chats the user is in (wording like 'shared chats' or 'общие чаты' counts), and it names the performer_ids parameter with the user's own id as the filter for the user's tasks (also mentioning author_id for tasks the user set is fine). Mentioning chat_ids is not required. FAIL if it only advises picking 'me' as the assignee without saying the unfiltered list holds colleagues' tasks, if it does not name performer_ids, or if it says the default list holds only the user's own tasks."

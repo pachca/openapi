@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class BotsListScopes extends BaseCommand {
   static override description = "Каталог прав бота";
-
-  static override examples = [
-      "Выпустить боту отдельный токен — Пользовательским токеном (создатель бота или администратор, если бот открыт администраторам) получи каталог прав, которые можно выдать этому боту:\n  $ pachca bots list-scopes"
-  ];
-
   static scope = "bots:read";
   static apiMethod = "GET";
   static apiPath = "/bots/{id}/scopes";

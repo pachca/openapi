@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-public-channel
+description: "What pachca-search adds: answered with the plugin and without it"
+tags: [knowledge, pachca-search]
+runs: 3
+execution:
+  prompt: "Поиск по сообщениям Пачки не находит обсуждение из публичного канала, хотя я его вижу. Почему?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer says message search does not cover public channels the user has not joined, and suggests reading that channel's feed by its chat id or joining it. FAIL if it blames indexing delays or typos only."

@@ -29,7 +29,11 @@ function guidePathToFile(pagePath: string): string {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const api = await parseOpenAPI();
   const guidePages = getOrderedPages();
-  const specMtime = getFileMtime(join(process.cwd(), 'openapi.yaml'));
+  // The hand-written TypeSpec source: the generated openapi.yaml is rebuilt on
+  // every build, so its mtime would always be the build time.
+  const specMtime = getFileMtime(
+    join(process.cwd(), '..', '..', 'packages', 'spec', 'typespec.tsp')
+  );
 
   const entries: MetadataRoute.Sitemap = [];
 

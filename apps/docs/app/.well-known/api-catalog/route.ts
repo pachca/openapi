@@ -67,14 +67,14 @@ export async function GET(): Promise<Response> {
         ],
         'service-meta': [
           {
-            href: `${SITE_URL}/.well-known/skills/index.json`,
+            href: `${SITE_URL}/.well-known/agent-skills/index.json`,
             type: 'application/json',
             title: 'Pachca Skills discovery (agentskills.io 0.2.0)',
           },
           {
-            href: `${SITE_URL}/.well-known/agent-skills/index.json`,
+            href: `${SITE_URL}/.well-known/skills/index.json`,
             type: 'application/json',
-            title: 'Pachca Skills discovery (agent-skills, legacy alias)',
+            title: 'Pachca Skills discovery (earlier format, read by npx skills)',
           },
         ],
       },

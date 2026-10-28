@@ -22,6 +22,15 @@ const redirects: Redirect[] = [
   { source: '/guides/cli/workflows', destination: '/guides/cli/overview', permanent: true },
   { source: '/guides/cli/workflows.md', destination: '/guides/cli/overview.md', permanent: true },
 
+  // Семь прежних скиллов убраны 28.10.2026, их роль взяли новые. Старые адреса
+  // ведут на скилл-вход: в нём таблица, какой скилл за что отвечает.
+  {
+    source:
+      '/.well-known/skills/:name(pachca-chats|pachca-forms|pachca-messages|pachca-profile|pachca-security|pachca-tasks|pachca-users)/:path*',
+    destination: '/skill.md',
+    permanent: true,
+  },
+
   // Короткий адрес раздела MCP: его можно назвать вслух и напечатать.
   { source: '/mcp', destination: '/guides/mcp/overview', permanent: false },
   { source: '/mcp.md', destination: '/guides/mcp/overview.md', permanent: false },

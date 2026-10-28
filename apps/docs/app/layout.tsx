@@ -127,7 +127,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             each page's generateMetadata() (alternates.types['text/markdown'])
             so it points to that page's own .md twin. Do NOT add a global one
             here — it would shadow the per-page tag with a constant href. */}
-        <link rel="skills" href="/.well-known/skills/index.json" />
+        <link rel="skills" href="/.well-known/agent-skills/index.json" />
         <link
           rel="alternate"
           type="application/vnd.oai.openapi"

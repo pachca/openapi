@@ -48,8 +48,8 @@ Every path calls the same API methods with the same rights.
 | ---------------------------------------------------------------------------- | ------------------------------ |
 | An employee, from an agent app (Claude, Claude Code, Cursor, VS Code, Codex) | MCP server                     |
 | An agent that runs terminal commands and needs to save context               | CLI                            |
-| Your own integration or service                                              | REST API or SDK → `pachca-api` |
-| An agent that lives in Pachca and is called by @mention or in a DM           | a bot → `pachca-ai-agent`      |
+| Your own integration or service                                              | REST API or SDK → [`pachca-api`](https://dev.pachca.com/.well-known/skills/pachca-api/SKILL.md) |
+| An agent that lives in Pachca and is called by @mention or in a DM           | a bot → [`pachca-ai-agent`](https://dev.pachca.com/.well-known/skills/pachca-ai-agent/SKILL.md)      |
 
 If MCP tools are already connected, use them. The CLI is the terminal alternative: it spends less context
 (the agent learns commands from `--help`) but needs a shell.
@@ -146,7 +146,7 @@ npx -y @pachca/cli users list             # one-off run without installing, toke
 
 Base URL `https://api.pachca.com/api/shared/v1`, header `Authorization: Bearer <token>`, JSON bodies. Personal
 token: **Интеграции > API**; bot token: the **API** tab of the bot card. The value is shown once. Response
-shapes, pagination, limits, errors, uploads and SDKs → `pachca-api`.
+shapes, pagination, limits, errors, uploads and SDKs → [`pachca-api`](https://dev.pachca.com/.well-known/skills/pachca-api/SKILL.md).
 
 ## Which token
 
@@ -155,7 +155,7 @@ shapes, pagination, limits, errors, uploads and SDKs → `pachca-api`.
 | You or your agent on your own machine, an MCP client app               | personal: CLI login, MCP browser sign-in, or a personal token in the header |
 | A script or personal automation acting as you                          | personal, created in the UI                                                 |
 | No employee present: CI, server, cloud worker, chat bot, notifications | bot, with only the scopes it needs                                          |
-| A bot that needs an employee's own data: their tasks, their chats      | by authorization (OAuth) → `pachca-oauth`                                   |
+| A bot that needs an employee's own data: their tasks, their chats      | by authorization (OAuth) → [`pachca-oauth`](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md)                                   |
 
 ## Who may connect
 
@@ -164,7 +164,7 @@ workspace setting **Кто может создавать персональны�
 personal tokens, CLI login, browser MCP sign-in and bot authorization on the consent screen for everyone else.
 Bots and their tokens fall under a separate setting, **Кто может создавать интеграции**, open to employees by
 default. If the consent screen says «Доступ к API ограничен администраторами пространства», an admin must
-switch the personal-token setting to **Все сотрудники** (→ `pachca-admin`). Do not look for another sign-in
+switch the personal-token setting to **Все сотрудники** (→ [`pachca-admin`](https://dev.pachca.com/.well-known/skills/pachca-admin/SKILL.md)). Do not look for another sign-in
 way around it.
 
 ## Check the connection
@@ -235,7 +235,7 @@ result through other tools. Owner privileges, multi-guest limits and role change
 - The agent does the work; the person who called it answers for it. A clear request is carried out, and the
   program asks its own approval for a change. Ask in chat first only when the target is a guess, the step
   cannot be undone while a reversible one would do, it changes many objects at once, or text you wrote would
-  go out on the person's behalf: show it and wait for a yes (→ `pachca-messaging`).
+  go out on the person's behalf: show it and wait for a yes (→ [`pachca-messaging`](https://dev.pachca.com/.well-known/skills/pachca-messaging/SKILL.md)).
 - Take ids, names and roles from responses, and how Pachca works from dev.pachca.com, not from memory. Any
   docs page opens as Markdown when you append `.md`; `llms-full.txt` rarely fits whole, take sections.
 
@@ -254,20 +254,20 @@ result through other tools. Owner privileges, multi-guest limits and role change
   `~/.config/pachca/config.toml`. In CI pass `PACHCA_TOKEN` instead of logging in.
 - Claude chat (web, desktop, mobile) cannot send a file from disk: its code sandbox cannot read the user's
   disk, and its network reaches package managers at most, not Pachca's file storage. It sends small text as
-  content (→ `pachca-messaging`).
-- OAuth authorization steps are not MCP tools (→ `pachca-oauth`).
+  content (→ [`pachca-messaging`](https://dev.pachca.com/.well-known/skills/pachca-messaging/SKILL.md)).
+- OAuth authorization steps are not MCP tools (→ [`pachca-oauth`](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md)).
 
 ## Where to go next
 
 | Task                                                                                             | Skill              |
 | ------------------------------------------------------------------------------------------------ | ------------------ |
-| Write, reply, mention, draft, schedule, send files, reactions, pins, «Важное»                    | `pachca-messaging` |
-| Find messages, chats, people; read a thread; digests; decisions and tasks from a discussion      | `pachca-search`    |
-| Owner or admin: employees, tags, channels, roles, API access, all tokens, audit log, export, DLP | `pachca-admin`     |
-| Build a bot or integration: webhooks, events, tokens, scopes, buttons, forms, unfurling          | `pachca-bots`      |
-| An AI agent that lives in Pachca as a bot and answers in threads                                 | `pachca-ai-agent`  |
-| An app acting for each employee: OAuth with PKCE, refresh, revocation                            | `pachca-oauth`     |
-| Direct API, SDK, CLI in scripts and CI: pagination, limits, errors, uploads                      | `pachca-api`       |
+| Write, reply, mention, draft, schedule, send files, reactions, pins, «Важное»                    | [`pachca-messaging`](https://dev.pachca.com/.well-known/skills/pachca-messaging/SKILL.md) |
+| Find messages, chats, people; read a thread; digests; decisions and tasks from a discussion      | [`pachca-search`](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md)    |
+| Owner or admin: employees, tags, channels, roles, API access, all tokens, audit log, export, DLP | [`pachca-admin`](https://dev.pachca.com/.well-known/skills/pachca-admin/SKILL.md)     |
+| Build a bot or integration: webhooks, events, tokens, scopes, buttons, forms, unfurling          | [`pachca-bots`](https://dev.pachca.com/.well-known/skills/pachca-bots/SKILL.md)      |
+| An AI agent that lives in Pachca as a bot and answers in threads                                 | [`pachca-ai-agent`](https://dev.pachca.com/.well-known/skills/pachca-ai-agent/SKILL.md)  |
+| An app acting for each employee: OAuth with PKCE, refresh, revocation                            | [`pachca-oauth`](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md)     |
+| Direct API, SDK, CLI in scripts and CI: pagination, limits, errors, uploads                      | [`pachca-api`](https://dev.pachca.com/.well-known/skills/pachca-api/SKILL.md)       |
 
 ## Read more
 

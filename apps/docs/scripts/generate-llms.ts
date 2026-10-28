@@ -28,6 +28,10 @@ import { groupBySeason, HOME_SEASON_LIMIT } from '../lib/seasons';
 import { getSdkExamples, getValidSdkSymbols } from '../lib/sdk-examples';
 
 const SITE_URL = 'https://dev.pachca.com';
+/** Update entries listed in the root llms.txt; the rest are in /updates/llms.txt. */
+const ROOT_UPDATES = 5;
+/** The root llms.txt must fit an agent's read: AFDocs warns above 50 000 characters. */
+const LLMS_TXT_MAX_CHARS = 50_000;
 
 function groupByTag(endpoints: Endpoint[]) {
   const grouped = new Map<string, Endpoint[]>();
@@ -72,7 +76,8 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += `> English-only: [llms-en.txt](${SITE_URL}/llms-en.txt) (~${sizes.llmsEnKTokens}K токенов).\n\n`;
   content +=
     `> Индексы разделов (только нужный срез): [/api/llms.txt](${SITE_URL}/api/llms.txt) — методы и основы API, ` +
-    `[/guides/llms.txt](${SITE_URL}/guides/llms.txt) — руководства.\n\n`;
+    `[/guides/llms.txt](${SITE_URL}/guides/llms.txt) — руководства, ` +
+    `[/updates/llms.txt](${SITE_URL}/updates/llms.txt) — обновления по датам.\n\n`;
 
   // Compact self-contained essentials so an agent reading only llms.txt
   // (without fetching sub-pages) still has the core rules. Summary-level
@@ -81,15 +86,19 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // agent that skims only the top of the file.
   content += '## Основное\n\n';
   content +=
-    '- **Авторизация:** `Authorization: Bearer <TOKEN>`. Два типа токена: **личный** — ' +
-    'работает от имени человека и видит ровно то же, что видит он; **бот** — работает от ' +
-    'имени бота, видит открытые каналы пространства и закрытые чаты, куда бота добавили. ' +
+    '- **Авторизация:** `Authorization: Bearer <TOKEN>`. Два типа токена. **Личный** ' +
+    'работает от имени сотрудника и видит ровно то же, что видит он. **Бот** работает от ' +
+    'имени бота, видит все открытые беседы и каналы пространства и закрытые чаты и треды, куда бота добавили. ' +
     'Скоупы открывают методы, но не расширяют круг данных за границы типа токена. Личный ' +
     'токен из интерфейса бессрочный, полученный входом через CLI живёт час и продлевается ' +
     'сам.\n';
   content +=
     '- **MCP-сервер:** `https://mcp.pachca.com/mcp`, права те же, что у токена. ' +
     'Подробнее — в разделе «MCP-сервер» ниже.\n';
+  content +=
+    '- **Способы работы:** MCP-сервер для программ с агентом, CLI для агента с терминалом, ' +
+    'скриптов и CI, REST API и SDK для своей интеграции, бот для агента, который живёт в ' +
+    `Пачке, и нода n8n. Что выбрать — [Как подключить Пачку к агенту](${SITE_URL}/guides/ai-agents/overview.md).\n`;
   content +=
     '- **Пагинация (курсорная):** `limit` (1–50, дефолт 50) + `cursor`. Передавай `limit` явно.\n';
   content +=
@@ -151,16 +160,17 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '## Просьбы без отдельного метода\n\n';
   content += 'Эти задачи закрываются тем, что в API уже есть:\n\n';
   content +=
-    '- **Отправить сообщение позже, к нужному времени** — напоминание `POST /tasks` с ' +
-    '`kind: reminder` и `due_at`, либо планировщик снаружи (cron, n8n), который в нужный ' +
-    'момент вызовет `POST /messages`.\n';
+    '- **Отправить сообщение позже, к нужному времени** — с личным токеном это отложенное ' +
+    'сообщение: `POST /drafts` с `schedule`, однократно или с повтором. Токен бота отложенных ' +
+    'не создаёт: напоминание `POST /tasks` с `kind: reminder` и `due_at` либо планировщик ' +
+    'снаружи (cron, n8n), который в нужный момент вызовет `POST /messages`.\n';
   content +=
     '- **Опрос, голосование** — сообщение с вариантами, голоса собираются реакциями: ' +
     '`GET /messages/{id}/reactions` отдаёт, кто за какой вариант. Для строгого подсчёта — ' +
     '`buttons` в сообщении бота и свой обработчик исходящего вебхука.\n';
   content +=
-    '- **Когда человек последний раз был активен** — поле `last_activity_at` в `GET /users`. ' +
-    'Режим «Нет на месте» — `is_away` в `GET /users/{user_id}/status`; поле `user_status` — ' +
+    '- **Когда сотрудник последний раз был активен** — поле `last_activity_at` в `GET /users`. ' +
+    'Режим «Нет на месте» — `is_away` в `GET /users/{user_id}/status`. Поле `user_status` — ' +
     'это статус, который сотрудник ставит себе сам, к присутствию отношения не имеет.\n';
   content +=
     '- **Созвониться с коллегой** — `meet_room_url` объекта чата, постоянная ссылка на ' +
@@ -169,16 +179,15 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
 
   content += '## CLI Quick Start\n\n';
   content += '```bash\n';
-  content += '# Zero-install (npx)\n';
-  content += 'npx -y @pachca/cli <command> --token <TOKEN>\n';
+  content += '# Zero-install (npx), token from the environment\n';
+  content += 'PACHCA_TOKEN=<TOKEN> npx -y @pachca/cli <command>\n';
   content += '\n';
   content += '# For regular use\n';
   content += 'npm install -g @pachca/cli\n';
   content += 'pachca auth login\n';
   content += 'pachca messages create --entity-id=<chat_id> --content="Hello"\n';
-  content += 'pachca guide "отправить сообщение"  # CLI guide for humans\n';
   content += '\n';
-  content += '# Docs for any endpoint — without loading llms-full.txt\n';
+  content += '# Docs for any endpoint, no sign-in or token needed\n';
   content += 'npx -y @pachca/cli api ls                         # list every endpoint\n';
   content += 'npx -y @pachca/cli api POST /messages --describe  # params, body, scope\n';
   content += 'npx -y @pachca/cli api GET /messages --spec       # OpenAPI fragment\n';
@@ -193,8 +202,9 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |\n';
   content += '| Python | `pachca-sdk` | `pip install pachca-sdk` |\n';
   content +=
-    '| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
-  content += '| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |\n';
+    '| Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
+  content +=
+    '| Kotlin | `com.pachca:pachca-sdk` | `implementation("com.pachca:pachca-sdk:latest.release")` |\n';
   content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n';
   content += '| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |\n\n';
   content += 'Конвенции:\n';
@@ -233,7 +243,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     `[Подключение к MCP](${SITE_URL}/guides/mcp/connect.md), все инструменты: ` +
     `[Инструменты MCP](${SITE_URL}/guides/mcp/tools.md).\n\n`;
 
-  content += '## Agent Skills\n\n';
+  content += '## Плагин и скиллы\n\n';
   content +=
     'Знание о том, как правильно делать задачи в Пачке: куда писать, что подтверждать, какой токен взять, ' +
     'как устроены права. Справочник по аргументам — в описаниях инструментов MCP, `pachca <команда> --help` ' +
@@ -275,7 +285,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
   content +=
     `Индекс скиллов (Agent Skills Discovery 0.2.0): \`${SITE_URL}/.well-known/agent-skills/index.json\`, ` +
-    `прежний формат: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
+    `прежний формат и файлы скиллов по отдельности: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
   content += `Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman), доками (HTML, llms.txt) и метаданными.\n\n`;
 
   content += '## Руководства\n';
@@ -300,9 +310,11 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   }
 
   content += '## Обновления\n';
-  for (const u of loadUpdates()) {
+  const updates = loadUpdates();
+  for (const u of updates.slice(0, ROOT_UPDATES)) {
     content += `- [${u.displayDate} — ${u.title}](${SITE_URL}/updates/${u.date}.md)\n`;
   }
+  content += `- Все записи по датам: [/updates/llms.txt](${SITE_URL}/updates/llms.txt)\n`;
   content += '\n';
 
   content += '## Дополнительно\n';
@@ -333,7 +345,7 @@ function insertLlmsDocumentMap(content: string): string {
   const cliIdx = idxOf('## CLI Quick Start');
   const sdkIdx = idxOf('## SDK');
   const mcpIdx = idxOf('## MCP-сервер');
-  const skillsIdx = idxOf('## Agent Skills');
+  const skillsIdx = idxOf('## Плагин и скиллы');
   const coreIdx = idxOf('## Основное');
   const guidesIdx = idxOf('## Руководства');
   const updIdx = idxOf('## Обновления');
@@ -358,7 +370,7 @@ function insertLlmsDocumentMap(content: string): string {
     { name: 'CLI Quick Start', desc: 'Установка, команды, точечная справка по API', idx: cliIdx },
     { name: 'SDK', desc: 'Типизированные клиенты для 6 языков', idx: sdkIdx },
     { name: 'MCP-сервер', desc: 'Адрес, вход и инструменты MCP', idx: mcpIdx },
-    { name: 'Agent Skills', desc: 'Плагин и скиллы для AI-агентов, установка', idx: skillsIdx },
+    { name: 'Плагин и скиллы', desc: 'Скиллы для AI-агентов, установка плагина', idx: skillsIdx },
     { name: 'Руководства', desc: 'Страницы-руководства (Markdown по `.md`)', idx: guidesIdx },
     { name: 'API-методы', desc: 'Все эндпоинты, сгруппированы по разделам', idx: apiIdx },
     { name: 'Обновления', desc: 'Журнал обновлений по датам', idx: updIdx },
@@ -412,7 +424,9 @@ function generateLibraryRules(): string {
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
 - Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
 - A personal token issued in the interface does not expire; one obtained by \`pachca auth login\` lives an hour and renews itself
-- MCP server: \`https://mcp.pachca.com/mcp\`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex and the ChatGPT desktop app (it shares the Codex setup) sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in \`Authorization: Bearer <TOKEN>\`. Setup per client: ${SITE_URL}/guides/mcp/connect.md (Russian), in English: ${SITE_URL}/skill.md and ${SITE_URL}/.well-known/skills/pachca/references/mcp-clients.md. Plugin with the server and skills: ${SITE_URL}/guides/mcp/plugin.md
+- MCP server: \`https://mcp.pachca.com/mcp\`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex and the ChatGPT desktop app (it shares the Codex setup) sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in \`Authorization: Bearer <TOKEN>\`. Setup per client: ${SITE_URL}/guides/mcp/connect.md (Russian), in English: ${SITE_URL}/skill.md and ${SITE_URL}/.well-known/skills/pachca/references/mcp-clients.md. Plugin with the server and skills: ${SITE_URL}/guides/mcp/plugin.md (Russian)
+- Pachca plugin (MCP server, skills and commands in one install): Claude Code — \`claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins\`, then \`claude plugin install pachca@pachca\`; Codex — \`codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca\`, then \`codex plugin add pachca@pachca\`; GitHub Copilot CLI and VS Code — \`copilot plugin marketplace add pachca/openapi\`, then \`copilot plugin install pachca@pachca\`; Cursor — \`agent plugin marketplace add https://github.com/pachca/openapi\`, then \`/plugin\` in an agent session, with a personal token in the \`PACHCA_TOKEN\` environment variable
+- Ways to work with Pachca: the MCP server for agent apps, the CLI for agents with a terminal, scripts and CI, the REST API and SDKs for your own integration, a bot for an agent that lives in Pachca, the n8n node. Which to pick (Russian): ${SITE_URL}/guides/ai-agents/overview.md
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: \`const client = new PachcaClient("YOUR_TOKEN")\`
 - Python SDK: \`client = PachcaClient("YOUR_TOKEN")\`
@@ -489,13 +503,13 @@ function generateLibraryRules(): string {
 |----------|---------|---------|
 | TypeScript | \`@pachca/sdk\` | \`npm install @pachca/sdk\` |
 | Python | \`pachca-sdk\` | \`pip install pachca-sdk\` |
-| Go | \`github.com/pachca/go-sdk\` | \`go get github.com/pachca/openapi/sdk/go/generated\` |
-| Kotlin | \`com.pachca:sdk\` | \`implementation("com.pachca:pachca-sdk:1.0.1")\` |
+| Go | \`github.com/pachca/openapi/sdk/go/generated\` | \`go get github.com/pachca/openapi/sdk/go/generated\` |
+| Kotlin | \`com.pachca:pachca-sdk\` | \`implementation("com.pachca:pachca-sdk:latest.release")\` |
 | Swift | \`PachcaSDK\` | SPM: \`https://github.com/pachca/openapi\` |
 | C# | \`Pachca.Sdk\` | \`dotnet add package Pachca.Sdk\` |
 
 ## CLI (Command-Line Interface)
-- Zero-install: \`npx -y @pachca/cli <command> --token <TOKEN>\` (always latest). Or \`npm install -g @pachca/cli\`
+- Zero-install: \`PACHCA_TOKEN=<TOKEN> npx -y @pachca/cli <command>\` (always latest). Or \`npm install -g @pachca/cli\`
 - Every API endpoint is a typed command: \`pachca <section> <action> --flags\` (e.g. \`pachca messages create --entity-id=123 --content="Hi"\`)
 - Non-interactive by default in pipes/CI: emits JSON, no prompts or spinner; a missing required flag returns an error instead of prompting
 - Token via \`PACHCA_TOKEN\` env or \`--token\` flag — nothing is written to disk
@@ -506,7 +520,8 @@ function generateLibraryRules(): string {
   - \`npx -y @pachca/cli api <METHOD> <path> --spec\` — OpenAPI fragment (request/response schemas)
   - \`npx -y @pachca/cli api <METHOD> <path> --docs\` — full Markdown reference for that one endpoint
 - Arbitrary request to any endpoint: \`npx -y @pachca/cli api <METHOD> <path> -f field=value\` (or \`-F\` typed, \`--input body.json\`, \`--data '{...}'\`)
-- Any documentation page is also available as Markdown — append \`.md\` to its URL (e.g. \`${SITE_URL}/guides/webhook/overview.md\`)
+- Any documentation page is also available as Markdown — append \`.md\` to its URL (e.g. \`${SITE_URL}/guides/webhook/overview.md\`) or send \`Accept: text/markdown\`
+- Machine-readable spec: ${SITE_URL}/openapi.yaml (OpenAPI 3.0), Postman collection: ${SITE_URL}/pachca.postman_collection.json
 
 `;
 }
@@ -1932,7 +1947,8 @@ function generateEnglishApiReference(): string {
 }
 
 /**
- * Generate an English-only documentation file for Context7 indexing.
+ * Generate the English-only documentation file for agents that read English
+ * (Context7 also indexes it through context7.json).
  * Combines: Library Rules + How-to Guides (with SDK examples) + English API Reference.
  * Must stay under ~1M chars to avoid Context7's "File too large" filter.
  */
@@ -2003,8 +2019,8 @@ function writeFile(filePath: string, content: string) {
  *  lines): location in the IA, a one-line summary, and the imperative directive
  *  to load /llms.txt for the broader API overview. Mirrors the tone of
  *  /llms.txt and the HTML <body> directive in app/layout.tsx. llms-full.txt is
- *  intentionally not advertised here (~329K tokens; referenced only from
- *  /llms.txt). Location/summary are omitted when not available. */
+ *  intentionally not advertised here (far too large for one context;
+ *  referenced only from /llms.txt). Location/summary are omitted when not available. */
 /** One-line `> Краткое содержание:` summary from an endpoint description body.
  *  Most descriptions lead with the purpose ("Метод для …"), but some open with
  *  a caveat ("Данный метод доступен только…", "На данный момент…"); prefer the
@@ -2071,6 +2087,21 @@ function generateApiSectionLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   return c;
 }
 
+/** Section sub-index served at `/updates/llms.txt` — every update entry by
+ *  date. The root index keeps only the latest ones to stay small. */
+function generateUpdatesSectionLlmsTxt(): string {
+  let c = '# Пачка — обновления\n\n';
+  c +=
+    '> Индекс раздела «Обновления»: все записи об изменениях API и инструментов по датам, новые сверху. ' +
+    'Каждая ссылка ведёт на `.md`.\n\n';
+  c += `[Родительский индекс](${SITE_URL}/llms.txt)\n\n`;
+  for (const u of loadUpdates()) {
+    c += `- [${u.displayDate} — ${u.title}](${SITE_URL}/updates/${u.date}.md)\n`;
+  }
+  c += '\n';
+  return c;
+}
+
 /** Section sub-index served at `/guides/llms.txt` — every guide page, linking
  *  back to the root index. */
 function generateGuidesSectionLlmsTxt(): string {
@@ -2105,14 +2136,24 @@ async function main() {
     llmsFullKTokens: Math.round(llmsFullTxt.length / 4 / 1000),
     llmsEnKTokens: Math.round(llmsEnTxt.length / 4 / 1000),
   });
+  // Agents and checkers (AFDocs) truncate a root index above 50 000 characters.
+  const llmsTxtChars = llmsTxt.replace(/^\uFEFF/, '').length;
+  if (llmsTxtChars > LLMS_TXT_MAX_CHARS) {
+    throw new Error(
+      `public/llms.txt is ${llmsTxtChars} characters, over ${LLMS_TXT_MAX_CHARS}: move a block into a section index`
+    );
+  }
   writeFile('public/llms.txt', llmsTxt);
-  console.log('✓ public/llms.txt');
+  console.log(`✓ public/llms.txt (${llmsTxtChars} chars)`);
 
   writeFile('public/api/llms.txt', generateApiSectionLlmsTxt(api));
   console.log('✓ public/api/llms.txt');
 
   writeFile('public/guides/llms.txt', generateGuidesSectionLlmsTxt());
   console.log('✓ public/guides/llms.txt');
+
+  writeFile('public/updates/llms.txt', generateUpdatesSectionLlmsTxt());
+  console.log('✓ public/updates/llms.txt');
 
   writeFile('public/llms-full.txt', llmsFullTxt);
   console.log('✓ public/llms-full.txt');

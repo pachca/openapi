@@ -62,7 +62,7 @@ Edit **only** the source; never hand-edit generated output:
 | `packages/spec/mcp-manifest.json` | the spec + `packages/spec/mcp-core.ts`, `mcp-tools.ts`, `scripts/generate-mcp-manifest.ts` |
 | `packages/mcp-manifest/mcp-manifest.json`, `mcp-manifest.schema.json` | copies of `packages/spec/mcp-manifest.json` and `mcp-manifest.schema.json` |
 | `apps/docs/public/llms*.txt`, `public/**/*.md`, Postman collection | `apps/docs/scripts/generate-llms.ts` + `apps/docs/content/**` |
-| `apps/docs/public/skill.md`, `public/.well-known/**`, `public/skills/*.zip`, `skill.json`, the `version` in the plugin manifests and `apps/docs/scripts/skills/plugin-version.json` | `plugins/pachca/**` (hand-written) via `apps/docs/scripts/skills/generate.ts` |
+| `apps/docs/public/skill.md`, `public/.well-known/**`, `public/skills/*.zip`, the `version` in the plugin manifests and `apps/docs/scripts/skills/plugin-version.json` | `plugins/pachca/**` (hand-written) via `apps/docs/scripts/skills/generate.ts` |
 | `packages/cli/src/commands/**` (except `auth/`, `config/`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
 | `AGENTS.md` | `apps/docs/scripts/skills/generate.ts` |
 | n8n node files | n8n generator |

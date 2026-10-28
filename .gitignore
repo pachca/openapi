@@ -61,9 +61,6 @@ next-env.d.ts
 .DS_Store
 Thumbs.db
 
-# Evals
-evals/results/
-
 # Agent / AI tooling
 .claude/
 .cursor/

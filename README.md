@@ -10,9 +10,19 @@
 
 > English version: [README.en.md](README.en.md)
 
-Unified Developer Experience Platform для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Один источник (TypeSpec) генерирует артефакты для всех каналов: web docs, CLI, SDK, n8n node, LLM context. Agent Skills пишутся руками и публикуются той же сборкой.
+Unified Developer Experience Platform для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Один источник (TypeSpec) генерирует артефакты для всех каналов: web docs, CLI, SDK, n8n node, манифест инструментов MCP-сервера, LLM context. Agent Skills пишутся руками и публикуются той же сборкой.
 
 **Документация**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Авторизация**: https://dev.pachca.com/api/authorization · **Changelog**: https://dev.pachca.com/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
+
+## MCP-сервер
+
+`https://mcp.pachca.com/mcp` — инструмент на каждый метод API с правами токена. Claude Code, Claude, VS Code и GitHub Copilot, Codex и приложение ChatGPT входят через браузер, остальные программы передают токен в заголовке. В Claude Code, приложении Claude, Codex, VS Code с GitHub Copilot и Cursor сервер вместе со скиллами и командами ставит плагин «Пачка» из [`plugins/pachca`](plugins/pachca).
+
+```bash
+claude mcp add --transport http pachca https://mcp.pachca.com/mcp
+```
+
+**Документация**: [dev.pachca.com/guides/mcp](https://dev.pachca.com/guides/mcp/overview) · **Подключение программ**: [dev.pachca.com/guides/mcp/connect](https://dev.pachca.com/guides/mcp/connect) · **Манифест инструментов**: [`@pachca/mcp-manifest`](packages/mcp-manifest)
 
 ## CLI
 
@@ -35,7 +45,7 @@ pachca api POST /messages -f message[content]="Привет"  # прямой з�
 
 **Документация**: https://dev.pachca.com/guides/cli
 
-## Agent Skills
+## Плагин и скиллы
 
 Скиллы — знание о том, как правильно делать задачи в Пачке: куда писать и что подтверждать, как искать и пересказывать, какой токен выбрать, почему не хватает прав. Справочник по аргументам агент берёт из описаний инструментов MCP-сервера, `pachca <команда> --help` и страниц методов, поэтому скиллы его не повторяют. Работают с любым способом подключения: MCP, CLI или API.
 
@@ -73,7 +83,7 @@ npx skills add https://dev.pachca.com -g -a opencode -y
 
 ## n8n
 
-Community node для [n8n](https://n8n.io/) — 17 ресурсов, 87 операций, Pachca Trigger с авторегистрацией вебхука.
+Community node для [n8n](https://n8n.io/) — 19 ресурсов, больше 100 операций, Pachca Trigger с авторегистрацией вебхука.
 
 ```bash
 # В n8n: Settings > Community Nodes > n8n-nodes-pachca
@@ -90,8 +100,8 @@ npm install n8n-nodes-pachca
 |------|-------|--------|
 | [TypeScript](sdk/typescript/README.md) | `@pachca/sdk` | npm |
 | [Python](sdk/python/generated/README.md) | `pachca-sdk` | PyPI |
-| [Go](sdk/go/README.md) | `github.com/pachca/go-sdk` | Go modules |
-| [Kotlin](sdk/kotlin/README.md) | `com.pachca:sdk` | JitPack |
+| [Go](sdk/go/README.md) | `github.com/pachca/openapi/sdk/go/generated` | Go modules |
+| [Kotlin](sdk/kotlin/README.md) | `com.pachca:pachca-sdk` | JitPack |
 | [Swift](sdk/swift/README.md) | `PachcaSDK` | SPM |
 | [C#](sdk/csharp/generated/README.md) | `Pachca.Sdk` | NuGet |
 
@@ -144,18 +154,19 @@ npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,sw
 
 | Файл | Содержимое |
 |------|------------|
-| [`/llms.txt`](https://dev.pachca.com/llms.txt) | Краткий индекс: все endpoint'ы со ссылками + карта строк |
+| [`/llms.txt`](https://dev.pachca.com/llms.txt) | Краткий индекс: основные правила, способы работы, все endpoint'ы со ссылками + карта строк |
+| [`/api/llms.txt`](https://dev.pachca.com/api/llms.txt), [`/guides/llms.txt`](https://dev.pachca.com/guides/llms.txt), [`/updates/llms.txt`](https://dev.pachca.com/updates/llms.txt) | Индексы разделов: методы, руководства, обновления |
 | [`/llms-full.txt`](https://dev.pachca.com/llms-full.txt) | Полная документация: гайды + endpoint'ы с параметрами |
-| [`/llms-en.txt`](https://dev.pachca.com/llms-en.txt) | Английская версия полной документации (для Context7) |
+| [`/llms-en.txt`](https://dev.pachca.com/llms-en.txt) | Правила API, руководства и справочник методов на английском |
 | [`/skill.md`](https://dev.pachca.com/skill.md) | Скилл-вход для AI-агентов: подключение и ссылки |
 | `/api/{section}/{action}.md` | Отдельный .md для каждого endpoint'а и гайда |
 | `<любая страница>.md` | Markdown-версия любой страницы (или заголовок `Accept: text/markdown`) |
-| `/.well-known/agent-skills/index.json` | Discovery-индекс Agent Skills (Cloudflare RFC) |
-| `/.well-known/agent-card.json` | Agent Card — описание сервиса для агентных клиентов |
+| `/.well-known/agent-skills/index.json` | Индекс скиллов (Agent Skills Discovery 0.2.0) с архивами `.tar.gz` рядом. ZIP для загрузки — `/skills/<скилл>.zip` |
+| `/.well-known/api-catalog` | Каталог API (RFC 9727): описания, документация и метаданные одним JSON |
 
-[Context7](https://context7.com/pachca/openapi) — AI-native document discovery. Через CLI справочник по API доступен и без сайта: `pachca api ls`, `pachca api <МЕТОД> <путь> --describe`.
+Через CLI справочник по API доступен и без сайта, без входа и без токена: `pachca api ls`, `pachca api <МЕТОД> <путь> --describe`.
 
-Все файлы доступны с `Access-Control-Allow-Origin: *`, помечены `X-Robots-Tag: noindex` и кешируются через CDN.
+Все файлы доступны с `Access-Control-Allow-Origin: *` и кешируются через CDN. `.md`-версии страниц, `llms-full.txt`, `llms-en.txt` и файлы скиллов помечены `X-Robots-Tag: noindex`, а `/llms.txt` индексируется, чтобы агенты находили его через поиск.
 
 ## Разработка
 
@@ -227,7 +238,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 ├── Package.swift          # Корневой Swift Package (копируется из sdk/swift при CI)
 ├── jitpack.yml            # JitPack конфиг для Kotlin (JDK 17)
 ├── Dockerfile             # Multi-stage Docker-сборка docs
-├── context7.json          # Context7 AI document discovery
+├── context7.json          # закрепляет библиотеку pachca/openapi в Context7
 ├── turbo.json             # Turborepo пайплайн
 └── package.json           # Корневой (workspaces: apps/*, apps/*/*, packages/*, sdk/*, integrations/*)
 ```
@@ -271,7 +282,7 @@ apps/docs
 | `overlay:apply` | `@pachca/spec#generate` | да (→ openapi.en.yaml) |
 | `overlay:validate` | `@pachca/spec#generate`, `overlay:apply` | да |
 | `generate-mcp` | `@pachca/spec#generate`, `overlay:apply`, `overlay:validate` | да (→ mcp-manifest.json) |
-| `generate-llms` | `@pachca/spec#generate`, `overlay:apply` | да (→ llms.txt, llms-full.txt, skill.md, *.md, Agent Skills) |
+| `generate-llms` | `@pachca/spec#generate`, `overlay:apply`, `generate-mcp` (у docs ещё `@pachca/cli#build`) | да (→ llms.txt, llms-full.txt, skill.md, *.md, скиллы, `/skills/*.zip`) |
 | `generate-cli` | `@pachca/spec#generate` | да (→ CLI commands, data/*.json) |
 | `generate-n8n` | `@pachca/spec#generate`, `overlay:apply` | да (→ n8n nodes, credentials) |
 | `test` | `generate-cli`, `generate-n8n` | да |
@@ -350,7 +361,7 @@ FlexSearch с `tokenize: 'forward'`. Русский язык: синонимы (
 ### Требования к методам (x-requirements)
 
 Ограничения эндпоинтов описываются через `@extension("x-requirements", ...)` в TypeSpec.
-Попадают в OpenAPI YAML как `x-requirements` и рендерятся в трёх местах: в UI как бейджи, в Agent Skills рядом с каждой операцией, в per-endpoint `.md`-файлах.
+Попадают в OpenAPI YAML как `x-requirements` и рендерятся в UI как бейджи и в per-endpoint `.md`-файлах, а из `scope` и `roles` собираются права инструментов в MCP-манифесте.
 
 Поля:
 - `scope` — требуемый скоуп токена (например `"messages:read"`). `null` — метод отвечает на любой действующий токен и скоупа не требует. Метод без `scope`, без `scope: null` и без `auth: false` валит сборку MCP-манифеста, как и скоуп, которого нет в `x-scope-roles`

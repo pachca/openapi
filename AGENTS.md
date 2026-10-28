@@ -1,8 +1,9 @@
 # AGENTS.md
 
 Guidance for AI coding agents working in this repository. (Using the Pachca
-API instead of contributing here? See `skill.md`, `/llms.txt`, or the
-plugin in `plugins/pachca/` — not this file.)
+API instead of contributing here? See https://dev.pachca.com/skill.md,
+https://dev.pachca.com/llms.txt, the MCP server https://mcp.pachca.com/mcp,
+or the plugin in `plugins/pachca/` — not this file.)
 
 ## What this repo is
 
@@ -41,7 +42,7 @@ review generated diffs → commit. Branch from `origin/main`; open a PR
 | `packages/spec/mcp-manifest.json` | the spec + `packages/spec/mcp-core.ts`, `mcp-tools.ts`, `scripts/generate-mcp-manifest.ts` (then `bun run generate-mcp` in `packages/spec`) |
 | `packages/mcp-manifest/mcp-manifest.json`, `mcp-manifest.schema.json` | copies of `packages/spec/mcp-manifest.json` and `mcp-manifest.schema.json` (`npx turbo build --filter=@pachca/mcp-manifest`); a changed manifest needs a new version on top of `packages/mcp-manifest/CHANGELOG.md` and in its `package.json` (the package is not in `releases.json`) |
 | `apps/docs/public/llms*.txt`, `public/**/*.md`, Postman collection | `apps/docs/scripts/generate-llms.ts` |
-| `apps/docs/public/skill.md`, `public/.well-known/**`, `public/skills/*.zip`, root `skill.json`, `plugins/pachca/evals/mocks/pachca/_tools.json`, and the `version` in `plugins/pachca/plugin.json`, `.claude-plugin/plugin.json`, `.cursor-plugin/plugin.json` (recorded in `apps/docs/scripts/skills/plugin-version.json`) | the hand-written plugin in `plugins/pachca/`, checked and published by `apps/docs/scripts/skills/generate.ts` (links, MCP tool and CLI command names, size, manifests in step; the version is one patch above the committed one once the plugin files change) |
+| `apps/docs/public/skill.md`, `public/.well-known/**`, `public/skills/*.zip`, `plugins/pachca/evals/mocks/pachca/_tools.json`, and the `version` in `plugins/pachca/plugin.json`, `.claude-plugin/plugin.json`, `.cursor-plugin/plugin.json` (recorded in `apps/docs/scripts/skills/plugin-version.json`) | the hand-written plugin in `plugins/pachca/`, checked and published by `apps/docs/scripts/skills/generate.ts` (links, MCP tool and CLI command names, size, manifests in step; the version is one patch above the committed one once the plugin files change) |
 | `packages/cli/src/commands/**` (except `auth`/`config`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
 | n8n node files | `integrations/n8n/scripts/generate-n8n.ts` |
 | `AGENTS.md` (this file) | `apps/docs/scripts/skills/generate.ts` (`generateAgentsMd()`) |

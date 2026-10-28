@@ -48,6 +48,10 @@
         "description": "Из `--help` команд убран блок примеров со сценариями"
       },
       {
+        "type": "~",
+        "description": "`pachca api ls` и справка `pachca api <МЕТОД> <путь>` с флагами `--describe`, `--spec` и `--docs` работают без входа и без токена: они читают встроенную спецификацию и в API не обращаются"
+      },
+      {
         "type": "+",
         "description": "`pachca important-messages list`, `important-messages create` и `important-messages delete` — раздел «Важное» владельца токена: список отмеченных сообщений, добавление и удаление"
       },

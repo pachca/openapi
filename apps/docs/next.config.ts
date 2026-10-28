@@ -49,6 +49,19 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Section indexes /api/llms.txt, /guides/llms.txt, /updates/llms.txt: the
+        // proxy skips .txt, so their headers come from here, as for /llms.txt.
+        source: '/:section(api|guides|updates)/llms\\.txt',
+        headers: [
+          { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
         // llms-full.txt + llms-en.txt are full mirrors of HTML content —
         // keep noindex to avoid duplicate-content ranking.
         source: '/:path(llms-full\\.txt|llms-en\\.txt)',
@@ -105,19 +118,6 @@ const nextConfig: NextConfig = {
         source: '/skills/:file(.*\\.zip)',
         headers: [
           { key: 'Content-Type', value: 'application/zip' },
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
-          },
-          { key: 'X-Robots-Tag', value: 'noindex' },
-        ],
-      },
-      {
-        // A2A Agent Card (Agent2Agent discovery).
-        source: '/.well-known/agent-card.json',
-        headers: [
-          { key: 'Content-Type', value: 'application/json' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
           {
             key: 'Cache-Control',

@@ -48,8 +48,9 @@ client's name, for example `opencode`, `devin`, `cline`, `kilo`, `qwen-code`, `g
 `github-copilot` or `claude-code`. Always pass `-a` and `-y`: run by an agent without them, it installs into
 every agent it finds. Not in a program that has the Pachca plugin: each skill would load twice. With `-g` the
 skills also land in folders several programs read: `~/.agents/skills/` is read by Codex, Cursor and VS Code,
-`~/.claude/skills/` by Cursor, VS Code and OpenCode. If one of them has the plugin, install for the other agent
-into the project, without `-g`.
+`~/.claude/skills/` by Claude Code, Cursor, VS Code and OpenCode. Without `-g` the same happens in the project
+folders `.agents/skills/` and `.claude/skills/`. If one of these programs has the plugin, unpack the archives by
+hand into a folder only the other agent reads, for example `~/.config/opencode/skills/` for OpenCode.
 
 - SourceCraft Code Assistant has no agent name: `npx skills add https://dev.pachca.com -a universal -y`
   installs into the project. With `-g` the skills land in a folder it does not read: for all projects, unpack

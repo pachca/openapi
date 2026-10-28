@@ -129,9 +129,8 @@ export function proxy(request: NextRequest) {
       `<${mdUrl}>; rel="alternate"; type="text/markdown"`,
       '</llms.txt>; rel="llms-txt"; type="text/plain"',
       '</llms-full.txt>; rel="llms-full-txt"; type="text/plain"',
-      '</.well-known/skills/index.json>; rel="service-meta"; type="application/json"',
+      '</.well-known/agent-skills/index.json>; rel="service-meta"; type="application/json"',
       '</.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"',
-      '</.well-known/agent-card.json>; rel="agent-card"; type="application/json"',
     ].join(', ')
   );
   response.headers.set('X-Llms-Txt', '/llms.txt');
@@ -155,6 +154,6 @@ export const config = {
     // stay out of /api/ — that keeps /api/ a clean documentation namespace and
     // removes the prefix-collision that used to drop /api/search/<method> doc
     // pages from middleware, the sitemap, and robots.
-    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|internal/|.*\\.(?:ico|svg|png|jpg|webp|md|yaml|json|zip)).*)',
+    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|internal/|.*\\.(?:ico|svg|png|jpg|webp|md|txt|yaml|json|zip)).*)',
   ],
 };

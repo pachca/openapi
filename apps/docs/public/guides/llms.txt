@@ -5,7 +5,7 @@
 [Родительский индекс](https://dev.pachca.com/llms.txt)
 
 - [Быстрый старт](https://dev.pachca.com/guides/quickstart.md): Первый запрос к API Пачки за 5 минут: получение персонального токена, проверка авторизации и отправка сообщения через cURL, Postman или официальный CLI
-- [AI-агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview.md): Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — MCP-сервер Пачки, CLI, llms.txt, Agent Skills, OpenAPI, Context7
+- [AI-агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview.md): Готовность Пачки к AI-агентам: агент как участник тредов, все способы подключения и что выбрать — MCP-сервер, CLI, API и SDK, плагин и скиллы, n8n, а также документация для агента: llms.txt, Markdown-версии страниц, OpenAPI
 - [AI-агенты, Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction.md): Как устроен AI-агент в Пачке: агент — это бот, которого зовут по нику в треде или пишут ему в личные сообщения. Как агент собирает контекст треда, показывает, что работает, реакцией agent-thinking с таймером и отвечает
 - [AI-агенты, Черновик вместо отправки](https://dev.pachca.com/guides/ai-agents/drafts.md): Агент готовит сообщение черновиком, а отправляет сотрудник: зачем это нужно, почему работает только личным токеном, один черновик на чат и чем от черновика отличается отложенное сообщение
 - [AI-агенты, Оформление ответов](https://dev.pachca.com/guides/ai-agents/markdown.md): Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чеклисты, подсветка кода, diff, диаграммы Mermaid. Файлы .html открываются просмотром прямо в переписке
@@ -61,7 +61,7 @@
 - [SDK, C#](https://dev.pachca.com/guides/sdk/csharp.md): Типизированный клиент для Pachca API на C#: .NET 8+ с async/await, CancellationToken, автопагинацией и обработкой retry. NuGet-пакет Pachca.Sdk
 - [n8n, Обзор](https://dev.pachca.com/guides/n8n/overview.md): Расширение Пачки для n8n со статусом verified by n8n: 19 ресурсов, триггер событий и AI-агент. Визуальные workflow без кода для CRM, CI/CD и уведомлений
 - [n8n, Начало работы](https://dev.pachca.com/guides/n8n/setup.md): Установка расширения Пачки для n8n из официальной витрины: верифицированная нода, установка через Nodes panel, n8n Cloud и self-hosted, настройка Credentials и первый workflow
-- [n8n, Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources.md): 19 ресурсов и более 65 операций расширения Пачки для n8n: сообщения, важные сообщения, черновики, чаты, задачи, сотрудники, боты, теги и вебхуки в модели Resource → Operation
+- [n8n, Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources.md): 19 ресурсов и больше 100 операций расширения Пачки для n8n: сообщения, важные сообщения, черновики, чаты, задачи, сотрудники, боты, теги и вебхуки в модели Resource → Operation
 - [n8n, Триггер](https://dev.pachca.com/guides/n8n/trigger.md): Триггер Pachca Trigger для n8n: 16 типов событий Пачки, автоматическая и ручная регистрация вебхука, проверка подписи запроса и IP-фильтр для безопасности
 - [n8n, Тестирование](https://dev.pachca.com/guides/n8n/testing.md): Тестирование n8n-узлов Пачки: Listen for test event, Pin Data и Execute Step для экшн-узлов, защита webhook-слота бота и локальная разработка через туннель
 - [n8n, Примеры workflow](https://dev.pachca.com/guides/n8n/workflows.md): Готовые сценарии автоматизации Пачки в n8n: приветствие сотрудника, пересылка сообщений, задачи из обсуждений, согласование, мониторинг и заявки на отпуск

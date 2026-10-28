@@ -7,7 +7,7 @@ import * as yaml from 'js-yaml';
 
 /**
  * The Pachca plugin is hand-written in `plugins/pachca`: skills, MCP configs and one
- * manifest per host (`plugin.json` for Codex, VS Code, Copilot and Cline,
+ * manifest per host (`plugin.json` for Codex, VS Code and Copilot,
  * `.claude-plugin/plugin.json` for Claude Code and the Claude app,
  * `.cursor-plugin/plugin.json` for Cursor). This module checks all of it and
  * publishes the skills on the docs site.
@@ -28,12 +28,13 @@ import * as yaml from 'js-yaml';
  * - `/.well-known/agent-skills/index.json` — discovery index v0.2.0; a skill with
  *   references goes as a `.tar.gz` archive next to it, a single file as `SKILL.md`;
  * - `/.well-known/skills/index.json` and `/.well-known/skills/<name>/**` — the
- *   earlier index format (a `files` list and a content `version`) that
- *   `npx skills add`, Kilo Code and OpenCode read, and the files themselves;
+ *   earlier index format (a `files` list and a content `version`), which
+ *   `npx skills` falls back to after `agent-skills`, and the plain files that
+ *   llms.txt and the docs link to;
  * - `/skills/<name>.zip` — the skill folder zipped with `<name>/` at the top, for
  *   upload to the Claude app and Yandex AI Studio;
  * - `/skill.md` — the entry skill, with links into its references made absolute;
- * - `/.well-known/agent-card.json`, root `skill.json` and `AGENTS.md`.
+ * - `AGENTS.md`.
  *
  * There is no root `SKILL.md`: `npx skills add pachca/openapi` installs a root
  * skill alone and skips the rest. It finds the plugin's skills through
@@ -68,7 +69,7 @@ const AGENT_PLUGINS_KEYS = new Set([
 ]);
 /**
  * One manifest per host, all with the same version: Agent Plugins (Codex, VS Code,
- * Copilot, Cline), Claude (Claude Code, the Claude app), Cursor.
+ * Copilot), Claude (Claude Code, the Claude app), Cursor.
  */
 const VERSIONED_MANIFESTS = [
   'plugin.json',
@@ -948,12 +949,30 @@ function skillZip(skill: Skill): Buffer {
 
 // ---------------------------------------------------------------------------
 
-/** Links into the entry skill's own files, made absolute for `/skill.md`. */
-function absolutizeEntryLinks(md: string): string {
-  return md.replace(
-    /\]\((?!https?:|#)([^)\s]+)\)/g,
-    (_, target: string) => `](${SITE_URL}/.well-known/skills/${ENTRY_SKILL}/${target})`
-  );
+/**
+ * Links into the entry skill's own files, made absolute for `/skill.md`. A sibling
+ * skill named in backticks becomes a link to its published SKILL.md: on the site
+ * the agent has no plugin next to it, so a bare name leads nowhere. Code blocks
+ * stay as they are.
+ */
+function absolutizeEntryLinks(md: string, skillNames: Set<string>): string {
+  return md
+    .split(/(^```[\s\S]*?^```)/m)
+    .map((part) =>
+      part.startsWith('```')
+        ? part
+        : part
+            .replace(
+              /\]\((?!https?:|#)([^)\s]+)\)/g,
+              (_, target: string) => `](${SITE_URL}/.well-known/skills/${ENTRY_SKILL}/${target})`
+            )
+            .replace(/(?<!\[)`(pachca-[a-z-]+)`(?!\])/g, (whole, name: string) =>
+              skillNames.has(name) && name !== ENTRY_SKILL
+                ? `[\`${name}\`](${SITE_URL}/.well-known/skills/${name}/SKILL.md)`
+                : whole
+            )
+    )
+    .join('');
 }
 
 /**
@@ -1052,12 +1071,10 @@ export function publishSkills(): PublishedFile[] {
     content: json({ $schema: DISCOVERY_SCHEMA, skills: v2Entries }),
   });
   out.push({ path: pub('.well-known/skills/index.json'), content: json({ skills: v1Entries }) });
-  out.push({ path: pub('.well-known/agent-card.json'), content: json(agentCard(skills)) });
   out.push({
     path: pub('skill.md'),
-    content: absolutizeEntryLinks(entry!.files.get('SKILL.md')!.toString('utf8')),
+    content: absolutizeEntryLinks(entry!.files.get('SKILL.md')!.toString('utf8'), names),
   });
-  out.push({ path: 'skill.json', content: json(skillJson()) });
   out.push({ path: 'AGENTS.md', content: generateAgentsMd() });
   out.push(...pluginFiles);
   if (evalTools) out.push(evalTools);
@@ -1066,70 +1083,18 @@ export function publishSkills(): PublishedFile[] {
 }
 
 /**
- * A2A (Agent2Agent) Agent Card, schema v0.2.0, served at
- * /.well-known/agent-card.json: the same skills in the A2A shape, so A2A-aware
- * orchestrators can discover the docs as an agent.
- */
-function agentCard(skills: Skill[]) {
-  return {
-    schemaVersion: '0.2.0',
-    name: 'Pachca API Documentation',
-    description:
-      'Документация и скиллы для AI-агентов мессенджера Пачка: подключение через MCP, CLI и API, сообщения, поиск, администрирование, боты, AI-агенты, OAuth.',
-    url: SITE_URL,
-    version: '2.0.0',
-    documentationUrl: `${SITE_URL}/llms.txt`,
-    capabilities: { streaming: false },
-    skills: skills.map((s) => ({
-      id: s.name,
-      name: SKILL_SUMMARIES[s.name].split(':')[0],
-      description: s.description,
-      tags: ['pachca', ...s.name.split('-').slice(1)],
-      url: `${SITE_URL}/.well-known/skills/${s.name}/SKILL.md`,
-    })),
-  };
-}
-
-/**
- * Root skill.json for catalogs that want one flat manifest of the repository
- * (OpenAgentSkill). Version tracks the TypeSpec spec package.
- */
-function skillJson() {
-  let version = '1.0.0';
-  try {
-    const specPkg = JSON.parse(
-      fs.readFileSync(path.join(REPO_ROOT, 'packages/spec/package.json'), 'utf8')
-    );
-    if (specPkg.version) version = specPkg.version;
-  } catch {
-    // fall back to the default version
-  }
-  return {
-    name: 'pachca',
-    version,
-    description:
-      'Agent skills for the Pachca corporate messenger: connecting over MCP, CLI or API, writing, search, administration, bots, AI agents in Pachca, OAuth and API scripts.',
-    category: 'communication',
-    platforms: ['claude-code', 'cursor', 'codex', 'gemini-cli', 'opencode'],
-    author: { name: 'Pachca', github: 'pachca' },
-    homepage: SITE_URL,
-    repository: 'https://github.com/pachca/openapi',
-    license: 'MIT',
-  };
-}
-
-/**
  * AGENTS.md (agents.md / AAIF standard): instructions for AI coding agents
  * working ON this repository — not for agents consuming the Pachca API
- * (that lives in skill.md / llms.txt / skills/). Generated so it stays in
+ * (that lives in skill.md / llms.txt / plugins/pachca/). Generated so it stays in
  * sync; keep it concise and factual.
  */
 function generateAgentsMd(): string {
   return `# AGENTS.md
 
 Guidance for AI coding agents working in this repository. (Using the Pachca
-API instead of contributing here? See \`skill.md\`, \`/llms.txt\`, or the
-plugin in \`plugins/pachca/\` — not this file.)
+API instead of contributing here? See https://dev.pachca.com/skill.md,
+https://dev.pachca.com/llms.txt, the MCP server https://mcp.pachca.com/mcp,
+or the plugin in \`plugins/pachca/\` — not this file.)
 
 ## What this repo is
 
@@ -1168,7 +1133,7 @@ review generated diffs → commit. Branch from \`origin/main\`; open a PR
 | \`packages/spec/mcp-manifest.json\` | the spec + \`packages/spec/mcp-core.ts\`, \`mcp-tools.ts\`, \`scripts/generate-mcp-manifest.ts\` (then \`bun run generate-mcp\` in \`packages/spec\`) |
 | \`packages/mcp-manifest/mcp-manifest.json\`, \`mcp-manifest.schema.json\` | copies of \`packages/spec/mcp-manifest.json\` and \`mcp-manifest.schema.json\` (\`npx turbo build --filter=@pachca/mcp-manifest\`); a changed manifest needs a new version on top of \`packages/mcp-manifest/CHANGELOG.md\` and in its \`package.json\` (the package is not in \`releases.json\`) |
 | \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, Postman collection | \`apps/docs/scripts/generate-llms.ts\` |
-| \`apps/docs/public/skill.md\`, \`public/.well-known/**\`, \`public/skills/*.zip\`, root \`skill.json\`, \`plugins/pachca/evals/mocks/pachca/_tools.json\`, and the \`version\` in \`plugins/pachca/plugin.json\`, \`.claude-plugin/plugin.json\`, \`.cursor-plugin/plugin.json\` (recorded in \`apps/docs/scripts/skills/plugin-version.json\`) | the hand-written plugin in \`plugins/pachca/\`, checked and published by \`apps/docs/scripts/skills/generate.ts\` (links, MCP tool and CLI command names, size, manifests in step; the version is one patch above the committed one once the plugin files change) |
+| \`apps/docs/public/skill.md\`, \`public/.well-known/**\`, \`public/skills/*.zip\`, \`plugins/pachca/evals/mocks/pachca/_tools.json\`, and the \`version\` in \`plugins/pachca/plugin.json\`, \`.claude-plugin/plugin.json\`, \`.cursor-plugin/plugin.json\` (recorded in \`apps/docs/scripts/skills/plugin-version.json\`) | the hand-written plugin in \`plugins/pachca/\`, checked and published by \`apps/docs/scripts/skills/generate.ts\` (links, MCP tool and CLI command names, size, manifests in step; the version is one patch above the committed one once the plugin files change) |
 | \`packages/cli/src/commands/**\` (except \`auth\`/\`config\`), \`packages/cli/CHANGELOG.md\` | \`packages/cli/scripts/generate-cli.ts\`; \`src/data/changelog.json\` |
 | n8n node files | \`integrations/n8n/scripts/generate-n8n.ts\` |
 | \`AGENTS.md\` (this file) | \`apps/docs/scripts/skills/generate.ts\` (\`generateAgentsMd()\`) |

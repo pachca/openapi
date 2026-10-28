@@ -14,7 +14,9 @@
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
 - Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
 - A personal token issued in the interface does not expire; one obtained by `pachca auth login` lives an hour and renews itself
-- MCP server: `https://mcp.pachca.com/mcp`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex and the ChatGPT desktop app (it shares the Codex setup) sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in `Authorization: Bearer <TOKEN>`. Setup per client: https://dev.pachca.com/guides/mcp/connect.md (Russian), in English: https://dev.pachca.com/skill.md and https://dev.pachca.com/.well-known/skills/pachca/references/mcp-clients.md. Plugin with the server and skills: https://dev.pachca.com/guides/mcp/plugin.md
+- MCP server: `https://mcp.pachca.com/mcp`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex and the ChatGPT desktop app (it shares the Codex setup) sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in `Authorization: Bearer <TOKEN>`. Setup per client: https://dev.pachca.com/guides/mcp/connect.md (Russian), in English: https://dev.pachca.com/skill.md and https://dev.pachca.com/.well-known/skills/pachca/references/mcp-clients.md. Plugin with the server and skills: https://dev.pachca.com/guides/mcp/plugin.md (Russian)
+- Pachca plugin (MCP server, skills and commands in one install): Claude Code — `claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins`, then `claude plugin install pachca@pachca`; Codex — `codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca`, then `codex plugin add pachca@pachca`; GitHub Copilot CLI and VS Code — `copilot plugin marketplace add pachca/openapi`, then `copilot plugin install pachca@pachca`; Cursor — `agent plugin marketplace add https://github.com/pachca/openapi`, then `/plugin` in an agent session, with a personal token in the `PACHCA_TOKEN` environment variable
+- Ways to work with Pachca: the MCP server for agent apps, the CLI for agents with a terminal, scripts and CI, the REST API and SDKs for your own integration, a bot for an agent that lives in Pachca, the n8n node. Which to pick (Russian): https://dev.pachca.com/guides/ai-agents/overview.md
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: `const client = new PachcaClient("YOUR_TOKEN")`
 - Python SDK: `client = PachcaClient("YOUR_TOKEN")`
@@ -91,13 +93,13 @@
 |----------|---------|---------|
 | TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |
 | Python | `pachca-sdk` | `pip install pachca-sdk` |
-| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |
-| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |
+| Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |
+| Kotlin | `com.pachca:pachca-sdk` | `implementation("com.pachca:pachca-sdk:latest.release")` |
 | Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
 | C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
 
 ## CLI (Command-Line Interface)
-- Zero-install: `npx -y @pachca/cli <command> --token <TOKEN>` (always latest). Or `npm install -g @pachca/cli`
+- Zero-install: `PACHCA_TOKEN=<TOKEN> npx -y @pachca/cli <command>` (always latest). Or `npm install -g @pachca/cli`
 - Every API endpoint is a typed command: `pachca <section> <action> --flags` (e.g. `pachca messages create --entity-id=123 --content="Hi"`)
 - Non-interactive by default in pipes/CI: emits JSON, no prompts or spinner; a missing required flag returns an error instead of prompting
 - Token via `PACHCA_TOKEN` env or `--token` flag — nothing is written to disk
@@ -108,7 +110,8 @@
   - `npx -y @pachca/cli api <METHOD> <path> --spec` — OpenAPI fragment (request/response schemas)
   - `npx -y @pachca/cli api <METHOD> <path> --docs` — full Markdown reference for that one endpoint
 - Arbitrary request to any endpoint: `npx -y @pachca/cli api <METHOD> <path> -f field=value` (or `-F` typed, `--input body.json`, `--data '{...}'`)
-- Any documentation page is also available as Markdown — append `.md` to its URL (e.g. `https://dev.pachca.com/guides/webhook/overview.md`)
+- Any documentation page is also available as Markdown — append `.md` to its URL (e.g. `https://dev.pachca.com/guides/webhook/overview.md`) or send `Accept: text/markdown`
+- Machine-readable spec: https://dev.pachca.com/openapi.yaml (OpenAPI 3.0), Postman collection: https://dev.pachca.com/pachca.postman_collection.json
 
 ---
 

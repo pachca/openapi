@@ -212,6 +212,12 @@ npx skills add https://dev.pachca.com -g -a opencode -y
 npx skills update
 ```
 
+Семи прежних скиллов Пачки больше нет. Если они у вас стоят, удалите их, а новые поставьте командой из начала раздела. Без `-g` команда удалит скиллы из текущего проекта.
+
+```bash
+npx skills remove pachca-chats pachca-forms pachca-messages pachca-profile pachca-security pachca-tasks pachca-users -g -y
+```
+
 У SourceCraft Code Assistant своего имени в команде нет. Он читает папки `.agents/skills/` проекта и `~/.agents/skills/`. В проект скиллы ставит команда:
 
 ```bash

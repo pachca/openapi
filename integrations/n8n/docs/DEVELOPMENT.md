@@ -56,13 +56,11 @@ These files were captured by `scripts/freeze-v1.ts` and must not be modified. Th
 
 ### Source Data
 
-| Source                             | What it provides                                        |
-| ---------------------------------- | ------------------------------------------------------- |
-| `@pachca/openapi-parser`           | API endpoints, schemas, parameters                      |
-| `packages/spec/workflows.ts`       | English descriptions for operations                     |
-| `packages/spec/examples.ts`        | Form templates (Feedback, Time Off, Survey, Bug Report) |
-| `packages/generator/src/naming.ts` | Case conversion utilities                               |
-| `apps/docs/lib/openapi/mapper.ts`  | URL generation for API docs                             |
+| Source                             | What it provides                         |
+| ---------------------------------- | ---------------------------------------- |
+| `@pachca/openapi-parser`           | API endpoints, schemas, parameters       |
+| `packages/spec/openapi.en.yaml`    | English summaries and field descriptions |
+| `packages/generator/src/naming.ts` | Case conversion utilities                |
 
 ## Local Development
 
@@ -109,11 +107,12 @@ pkill -f n8n; npx n8n start
 ## Adding New API Endpoints
 
 1. Add the endpoint to `packages/spec/typespec.tsp`
-2. Run `npx turbo build --filter=@pachca/spec --force` to regenerate OpenAPI YAML
-3. Run `bun run integrations/n8n/scripts/generate-n8n.ts` to regenerate V2 node files
-4. Add English descriptions to `packages/spec/workflows.ts` if needed
-5. Run tests: `cd integrations/n8n && npx vitest run`
-6. Run full check: `npx turbo check`
+2. Run `bun run generate` in `packages/spec` to regenerate `openapi.yaml`
+3. Add the English texts to `packages/spec/overlay.en.yaml`, then run `bun run overlay:fingerprints` in `packages/spec`
+4. Run `npx turbo build --filter=@pachca/spec --force`: it applies the overlay to `openapi.en.yaml`, validates it and rebuilds the MCP manifest
+5. Run `bun run integrations/n8n/scripts/generate-n8n.ts` to regenerate V2 node files
+6. Run tests: `cd integrations/n8n && npx vitest run`
+7. Run full check: `npx turbo check`
 
 > V1 files are frozen and never regenerated. New endpoints appear only in V2.
 

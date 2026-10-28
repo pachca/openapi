@@ -57,6 +57,7 @@
         "public/skill.md",
         "public/index.md",
         "public/guides/**",
+        "public/**/llms.txt",
         "public/**/*.md",
         "public/.well-known/**",
         "public/skills/**",
@@ -97,6 +98,7 @@
         "public/skill.md",
         "public/index.md",
         "public/guides/**",
+        "public/**/llms.txt",
         "public/**/*.md",
         "public/.well-known/**",
         "public/skills/**",
@@ -164,11 +166,8 @@
       "inputs": [
         "../../packages/spec/openapi.yaml",
         "../../packages/spec/openapi.en.yaml",
-        "../../packages/spec/examples.ts",
         "../../packages/openapi-parser/src/**",
         "../../packages/generator/src/naming.ts",
-        "../../apps/docs/lib/openapi/mapper.ts",
-        "../../apps/docs/lib/openapi/example-generator.ts",
         "scripts/**"
       ],
       "outputs": [

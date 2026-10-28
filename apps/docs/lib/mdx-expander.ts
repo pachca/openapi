@@ -781,25 +781,26 @@ export async function expandMdxComponents(content: string): Promise<string> {
     result = result.replace(/<CliCommands\s*\/>/g, md);
   }
 
-  // <McpTools /> -> one markdown table per area of the API: tool name, the
-  // method it calls as an endpoint link (resolved at write), who gets the tool
-  // and whether it reads or changes data. Source: packages/spec/mcp-manifest.json.
+  // <McpTools /> -> one markdown table in the order of the API sidebar, as on the
+  // page: tool name, the method it calls as an endpoint link (resolved at write),
+  // who gets the tool and whether it reads or changes data.
+  // Source: packages/spec/mcp-manifest.json.
   if (result.includes('<McpTools')) {
     const { getMcpToolGroups, MCP_ACTION_LABELS } = await import('./mcp-data');
     const { parseOpenAPI } = await import('./openapi/parser');
     const { generateTitle } = await import('./openapi/mapper');
     const api = await parseOpenAPI();
     const endpoints = new Map(api.endpoints.map((ep) => [`${ep.method} ${ep.path}`, ep]));
-    let md = '';
+    let md =
+      '| Инструмент | Метод API | Кому доступен | Действие |\n|------------|-----------|---------------|----------|\n';
     for (const group of getMcpToolGroups((operation) => endpoints.get(operation)?.tags[0])) {
-      md += `**${group.title}**\n\n| Инструмент | Метод API | Кому доступен | Действие |\n|------------|-----------|---------------|----------|\n`;
       for (const tool of group.tools) {
         const ep = endpoints.get(tool.operation);
         const link = ep ? `[${generateTitle(ep)}](${tool.operation})` : `\`${tool.operation}\``;
         md += `| \`${tool.name}\` | ${link} | ${tool.audience} | ${MCP_ACTION_LABELS[tool.action]} |\n`;
       }
-      md += '\n';
     }
+    md += '\n';
     result = result.replace(/<McpTools\s*\/>/g, md);
   }
 

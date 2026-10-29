@@ -503,8 +503,8 @@ export async function ScopeRoles() {
 
 // Update manually when a new product release goes out
 const LATEST_PRODUCT_UPDATE = {
-  date: '15 октября 2026',
-  title: 'Большое обновление ботов 🤖',
+  date: '28 октября 2026',
+  title: 'MCP-сервер Пачки 🔌',
 };
 
 export function ProductUpdatesLink() {

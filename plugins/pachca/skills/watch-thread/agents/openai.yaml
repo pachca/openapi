@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Watch thread'
+  short_description: 'Watch a Pachca thread and reply in it'
+policy:
+  allow_implicit_invocation: false

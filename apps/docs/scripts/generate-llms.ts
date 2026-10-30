@@ -24,6 +24,7 @@ import {
   type ParsedRelease,
   type DateGroup,
 } from '../lib/updates-parser';
+import { PRODUCT_TITLES } from '../lib/feed-content';
 import { groupBySeason, HOME_SEASON_LIMIT } from '../lib/seasons';
 import { getSdkExamples, getValidSdkSymbols } from '../lib/sdk-examples';
 
@@ -1815,18 +1816,9 @@ async function generateEndpointMdFiles(api: Awaited<ReturnType<typeof parseOpenA
   return files;
 }
 
-const RELEASE_PRODUCT_TITLES: Record<ParsedRelease['product'], string> = {
-  mcp: 'MCP-инструменты',
-  plugin: 'MCP-плагин и скиллы',
-  cli: 'CLI',
-  sdk: 'SDK',
-  generator: 'Generator',
-  n8n: 'n8n Node',
-};
-
 function generateReleaseBlock(release: ParsedRelease): string {
   const lines: string[] = [];
-  lines.push(`### ${RELEASE_PRODUCT_TITLES[release.product]} v${release.version}\n`);
+  lines.push(`### ${PRODUCT_TITLES[release.product]} v${release.version}\n`);
   for (const change of release.changes) {
     lines.push(`- ${change.description}`);
   }

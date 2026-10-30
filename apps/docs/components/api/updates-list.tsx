@@ -18,8 +18,8 @@ const PRODUCT_LABELS: Record<ReleaseProduct, string> = {
   mcp: 'MCP-инструменты',
   plugin: 'MCP-плагин и скиллы',
   cli: 'CLI',
-  sdk: 'SDK',
-  generator: 'Generator',
+  sdk: 'SDK-библиотеки',
+  generator: 'SDK-генератор',
   n8n: 'n8n',
 };
 

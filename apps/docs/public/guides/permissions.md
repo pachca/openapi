@@ -277,11 +277,14 @@ GET /api/shared/v1/company/bots
 
 Что добавить к набору по задаче:
 
-- забирать события без вебхука — `webhooks:events:read`, а удалять обработанные — `webhooks:events:delete`, только с токеном бота
-- разворачивать ссылки — `link_previews:write`, только с токеном бота
-- выбирать сотрудника из списка в узле n8n — `users:read` и `search:users`
-- готовить [черновики](/guides/ai-agents/drafts) и отложенные сообщения — `drafts:read` и `drafts:write`, только с персональным токеном
-- работать с напоминаниями — `tasks:read`, `tasks:create`, `tasks:update`
+| Задача | Права | Ограничение |
+|---|---|---|
+| Забирать события без вебхука | `webhooks:events:read` | Только с токеном бота |
+| Удалять обработанные события | `webhooks:events:delete` | Только с токеном бота |
+| Разворачивать ссылки | `link_previews:write` | Только с токеном бота |
+| Выбирать сотрудника из списка в узле n8n | `users:read` и `search:users` | |
+| Готовить [черновики](/guides/ai-agents/drafts) и отложенные сообщения | `drafts:read` и `drafts:write` | Только с персональным токеном |
+| Работать с напоминаниями | `tasks:read`, `tasks:create`, `tasks:update` | |
 
 Входу в CLI и программе, подключённой к MCP через браузер, права вручную не выбирают, подробнее в разделе [Скоупы](/api/authorization#skoupy). Если методу не хватает права, он отвечает `403` с кодом `insufficient_scope`, а недостающий скоуп назван в заголовке `WWW-Authenticate` и в шапке страницы метода. Добавьте право в меню токена: новые права действуют сразу. Права для отдельных операций n8n — в разделе [Недостаточно прав (403 Forbidden)](/guides/n8n/troubleshooting#nedostatochno-prav-403-forbidden).
 

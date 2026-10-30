@@ -105,6 +105,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
         children: [
           { title: 'Обзор', path: '/guides/ai-agents/overview' },
           { title: 'Взаимодействие с агентом', path: '/guides/ai-agents/interaction' },
+          { title: 'Агент следит за тредом', path: '/guides/ai-agents/watch-thread' },
           { title: 'Черновик вместо отправки', path: '/guides/ai-agents/drafts' },
           { title: 'Оформление ответов', path: '/guides/ai-agents/markdown' },
         ],

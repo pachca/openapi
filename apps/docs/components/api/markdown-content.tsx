@@ -197,9 +197,7 @@ const components = {
 
   // Other
   hr: () => <hr className="my-8 border-glass-border" />,
-  em: ({ children }: { children: React.ReactNode }) => (
-    <em className="text-text-secondary not-italic">{children}</em>
-  ),
+  em: ({ children }: { children: React.ReactNode }) => <em className="italic">{children}</em>,
   strong: ({ children }: { children: React.ReactNode }) => (
     <strong className="font-semibold">{children}</strong>
   ),

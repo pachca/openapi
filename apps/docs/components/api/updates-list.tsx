@@ -14,8 +14,8 @@ import { InlineCodeText } from './inline-code-text';
 import { ArrowUpRight, Package } from 'lucide-react';
 
 const PRODUCT_LABELS: Record<ReleaseProduct, string> = {
-  mcp: 'MCP-сервер',
-  plugin: 'Плагин и скиллы',
+  mcp: 'MCP-инструменты',
+  plugin: 'MCP-плагин и скиллы',
   cli: 'CLI',
   sdk: 'SDK',
   generator: 'Generator',
@@ -47,8 +47,10 @@ type PackageInfo = { href: (v: string) => string; title: string };
 
 const PRODUCT_PACKAGES: Record<ReleaseProduct, PackageInfo[]> = {
   // The version of an MCP release is the version of the tool set the server runs.
-  mcp: [{ href: () => 'https://dev.pachca.com/guides/mcp/overview', title: 'MCP-сервер' }],
-  plugin: [{ href: () => 'https://dev.pachca.com/guides/mcp/plugin', title: 'Плагин и скиллы' }],
+  mcp: [{ href: () => 'https://dev.pachca.com/guides/mcp/overview', title: 'MCP-инструменты' }],
+  plugin: [
+    { href: () => 'https://dev.pachca.com/guides/mcp/plugin', title: 'MCP-плагин и скиллы' },
+  ],
   cli: [{ href: (v) => `https://www.npmjs.com/package/@pachca/cli/v/${v}`, title: 'CLI' }],
   sdk: [
     { href: (v) => `https://www.npmjs.com/package/@pachca/sdk/v/${v}`, title: 'TypeScript' },

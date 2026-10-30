@@ -3,7 +3,7 @@
   "name": "com.pachca/mcp",
   "title": "Pachca",
   "description": "A tool for each Pachca API method: messages, chats, threads, tasks, users and more",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "websiteUrl": "https://dev.pachca.com/guides/mcp/overview",
   "icons": [
     {

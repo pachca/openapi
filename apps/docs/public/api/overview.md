@@ -40,9 +40,10 @@ go get github.com/pachca/openapi/sdk/go/generated
 **Kotlin** — [документация](/guides/sdk/kotlin)
 
 ```kotlin
+// settings.gradle.kts: repositories { maven("https://jitpack.io") }
 // build.gradle.kts
 dependencies {
-    implementation("com.pachca:pachca-sdk:latest.release")
+    implementation("com.github.pachca:openapi:1.8.0")
 }
 ```
 
@@ -51,7 +52,7 @@ dependencies {
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
+    .package(url: "https://github.com/pachca/openapi", from: "1.8.0")
 ]
 ```
 

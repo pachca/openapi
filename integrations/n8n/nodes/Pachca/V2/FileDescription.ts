@@ -25,6 +25,60 @@ export const fileOperations: INodeProperties[] = [
 
 export const fileFields: INodeProperties[] = [
 	{
+		displayName: 'File Source',
+		name: 'fileSource',
+		type: 'options',
+		options: [
+			{ name: 'Binary Data', value: 'binary' },
+			{ name: 'URL', value: 'url' },
+		],
+		default: 'binary',
+		description: 'Where to get the file to upload',
+		displayOptions: { show: { resource: ['file'], operation: ['create'] } },
+	},
+	{
+		displayName: 'File URL',
+		name: 'fileUrl',
+		type: 'string',
+		required: true,
+		default: '',
+		description: 'URL of the file to upload',
+		displayOptions: { show: { resource: ['file'], operation: ['create'], fileSource: ['url'] } },
+	},
+	{
+		displayName: 'Input Binary Field',
+		name: 'binaryProperty',
+		type: 'string',
+		required: true,
+		default: 'data',
+		hint: 'The name of the input binary field containing the file to be uploaded',
+		displayOptions: { show: { resource: ['file'], operation: ['create'], fileSource: ['binary'] } },
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: { show: { resource: ['file'], operation: ['create'] } },
+		options: [
+			{
+				displayName: 'Content Type',
+				name: 'contentType',
+				type: 'string',
+				default: '',
+				description: 'MIME type of the file (e.g. image/png). If not set, auto-detected from file extension.',
+			},
+			{
+				displayName: 'File Name',
+				name: 'fileName',
+				type: 'string',
+				default: '',
+				description: 'Name of the file. If not set, auto-detected from source.',
+			},
+		],
+	},
+	{
 		displayName: 'ID',
 		name: 'id',
 		type: 'number',

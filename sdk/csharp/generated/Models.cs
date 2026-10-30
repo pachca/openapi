@@ -2439,7 +2439,7 @@ public class AuditDetailsKms : AuditEventDetailsUnion
 public class AuditDetailsDlp : AuditEventDetailsUnion
 {
     [JsonPropertyName("dlp_rule_id")]
-    public int DlpRuleId { get; set; } = default!;
+    public string DlpRuleId { get; set; } = default!;
     [JsonPropertyName("dlp_rule_name")]
     public string DlpRuleName { get; set; } = default!;
     [JsonPropertyName("message_id")]

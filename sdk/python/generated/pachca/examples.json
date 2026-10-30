@@ -6,7 +6,7 @@
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "params = GetAuditEventsParams(\n    start_time=datetime.fromisoformat(\"2025-05-01T09:11:00.000Z\"),\n    end_time=datetime.fromisoformat(\"2025-05-02T09:11:00.000Z\"),\n    event_key=AuditEventKey.USER_LOGIN,\n    actor_id=\"98765\",\n    actor_type=\"User\",\n    entity_id=\"98765\",\n    entity_type=\"User\",\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.security.get_audit_events(params=params)",
+    "usage": "params = GetAuditEventsParams(\n    start_time=datetime.fromisoformat(\"2025-05-01T09:11:00.000+00:00\"),\n    end_time=datetime.fromisoformat(\"2025-05-02T09:11:00.000+00:00\"),\n    event_key=AuditEventKey.USER_LOGIN,\n    actor_id=\"98765\",\n    actor_type=\"User\",\n    entity_id=\"98765\",\n    entity_type=\"User\",\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.security.get_audit_events(params=params)",
     "output": "GetAuditEventsResponse(data: list[AuditEvent], meta: PaginationMeta)",
     "imports": [
       "AuditEventKey",
@@ -146,7 +146,7 @@
     "usage": "await client.bots.delete_webhook_event(id=\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "params = ListChatsParams(\n    sort=ChatSortField.ID,\n    order=SortOrder.DESC,\n    availability=ChatAvailability.IS_MEMBER,\n    archived=True,\n    last_message_at_after=datetime.fromisoformat(\"2025-01-01T00:00:00.000Z\"),\n    last_message_at_before=datetime.fromisoformat(\"2025-02-01T00:00:00.000Z\"),\n    personal=False,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.chats.list_chats(params=params)",
+    "usage": "params = ListChatsParams(\n    sort=ChatSortField.ID,\n    order=SortOrder.DESC,\n    availability=ChatAvailability.IS_MEMBER,\n    archived=True,\n    last_message_at_after=datetime.fromisoformat(\"2025-01-01T00:00:00.000+00:00\"),\n    last_message_at_before=datetime.fromisoformat(\"2025-02-01T00:00:00.000+00:00\"),\n    personal=False,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.chats.list_chats(params=params)",
     "output": "ListChatsResponse(data: list[Chat], meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
@@ -285,7 +285,7 @@
     "output": "Draft(id: int, entity_type: MessageEntityType | None, entity_id: int | None, chat_id: int | None, content: str, parent_message_id: int | None, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, schedule: DraftSchedule(start_date: datetime, end_date: datetime | None, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: list[int] | None, nth_day: int | None)) | None, next_send_at: datetime | None, created_at: datetime, updated_at: datetime)"
   },
   "DraftOperations_createDraft": {
-    "usage": "request = DraftCreateRequest(\n    draft=DraftCreateRequestDraft(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=334,\n        content=\"Отчёт за неделю: продажи выросли на 10%\",\n        parent_message_id=196093,\n        files=[DraftFileRequest(\n            id=3560,\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        schedule=DraftScheduleRequest(\n            start_date=datetime.fromisoformat(\"2026-09-17T12:00:00.000Z\"),\n            end_date=datetime.fromisoformat(\"2026-12-31T12:00:00.000Z\"),\n            repetition=DraftRepetitionRequest(\n                interval=DraftRepetitionInterval.WEEKLY,\n                days=[123],\n                nth_day=2\n            )\n        )\n    )\n)\nresponse = await client.drafts.create_draft(request=request)",
+    "usage": "request = DraftCreateRequest(\n    draft=DraftCreateRequestDraft(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=334,\n        content=\"Отчёт за неделю: продажи выросли на 10%\",\n        parent_message_id=196093,\n        files=[DraftFileRequest(\n            id=3560,\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        schedule=DraftScheduleRequest(\n            start_date=datetime.fromisoformat(\"2026-09-17T12:00:00.000+00:00\"),\n            end_date=datetime.fromisoformat(\"2026-12-31T12:00:00.000+00:00\"),\n            repetition=DraftRepetitionRequest(\n                interval=DraftRepetitionInterval.WEEKLY,\n                days=[123],\n                nth_day=2\n            )\n        )\n    )\n)\nresponse = await client.drafts.create_draft(request=request)",
     "output": "Draft(id: int, entity_type: MessageEntityType | None, entity_id: int | None, chat_id: int | None, content: str, parent_message_id: int | None, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, schedule: DraftSchedule(start_date: datetime, end_date: datetime | None, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: list[int] | None, nth_day: int | None)) | None, next_send_at: datetime | None, created_at: datetime, updated_at: datetime)",
     "imports": [
       "DraftCreateRequest",
@@ -299,7 +299,7 @@
     ]
   },
   "DraftOperations_updateDraft": {
-    "usage": "request = DraftUpdateRequest(\n    draft=DraftUpdateRequestDraft(\n        content=\"Отчёт за неделю: продажи выросли на 10%\",\n        parent_message_id=196093,\n        files=[DraftFileRequest(\n            id=3560,\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        schedule=DraftScheduleRequest(\n            start_date=datetime.fromisoformat(\"2026-09-17T12:00:00.000Z\"),\n            end_date=datetime.fromisoformat(\"2026-12-31T12:00:00.000Z\"),\n            repetition=DraftRepetitionRequest(\n                interval=DraftRepetitionInterval.WEEKLY,\n                days=[123],\n                nth_day=2\n            )\n        )\n    )\n)\nresponse = await client.drafts.update_draft(id=4821, request=request)",
+    "usage": "request = DraftUpdateRequest(\n    draft=DraftUpdateRequestDraft(\n        content=\"Отчёт за неделю: продажи выросли на 10%\",\n        parent_message_id=196093,\n        files=[DraftFileRequest(\n            id=3560,\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        schedule=DraftScheduleRequest(\n            start_date=datetime.fromisoformat(\"2026-09-17T12:00:00.000+00:00\"),\n            end_date=datetime.fromisoformat(\"2026-12-31T12:00:00.000+00:00\"),\n            repetition=DraftRepetitionRequest(\n                interval=DraftRepetitionInterval.WEEKLY,\n                days=[123],\n                nth_day=2\n            )\n        )\n    )\n)\nresponse = await client.drafts.update_draft(id=4821, request=request)",
     "output": "Draft(id: int, entity_type: MessageEntityType | None, entity_id: int | None, chat_id: int | None, content: str, parent_message_id: int | None, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, schedule: DraftSchedule(start_date: datetime, end_date: datetime | None, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: list[int] | None, nth_day: int | None)) | None, next_send_at: datetime | None, created_at: datetime, updated_at: datetime)",
     "imports": [
       "DraftFileRequest",
@@ -445,7 +445,7 @@
     ]
   },
   "ThreadOperations_listThreads": {
-    "usage": "params = ListThreadsParams(\n    last_message_at_after=datetime.fromisoformat(\"2025-01-01T00:00:00.000Z\"),\n    last_message_at_before=datetime.fromisoformat(\"2025-02-01T00:00:00.000Z\"),\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.threads.list_threads(params=params)",
+    "usage": "params = ListThreadsParams(\n    last_message_at_after=datetime.fromisoformat(\"2025-01-01T00:00:00.000+00:00\"),\n    last_message_at_before=datetime.fromisoformat(\"2025-02-01T00:00:00.000+00:00\"),\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.threads.list_threads(params=params)",
     "output": "ListThreadsResponse(data: list[Thread], meta: PaginationMeta)",
     "imports": [
       "ListThreadsParams"
@@ -494,7 +494,7 @@
     "output": "AvatarData(image_url: str)"
   },
   "ProfileOperations_updateStatus": {
-    "usage": "request = StatusUpdateRequest(\n    status=StatusUpdateRequestStatus(\n        emoji=\"🎮\",\n        title=\"Очень занят\",\n        expires_at=datetime.fromisoformat(\"2024-04-08T10:00:00.000Z\"),\n        is_away=True,\n        away_message=\"Вернусь после 15:00\"\n    )\n)\nresponse = await client.profile.update_status(request=request)",
+    "usage": "request = StatusUpdateRequest(\n    status=StatusUpdateRequestStatus(\n        emoji=\"🎮\",\n        title=\"Очень занят\",\n        expires_at=datetime.fromisoformat(\"2024-04-08T10:00:00.000+00:00\"),\n        is_away=True,\n        away_message=\"Вернусь после 15:00\"\n    )\n)\nresponse = await client.profile.update_status(request=request)",
     "output": "UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)",
     "imports": [
       "StatusUpdateRequest",
@@ -508,7 +508,7 @@
     "usage": "await client.profile.delete_status()"
   },
   "SearchOperations_searchChats": {
-    "usage": "params = SearchChatsParams(\n    query=\"Разработка\",\n    limit=10,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n    order=SortOrder.DESC,\n    created_from=datetime.fromisoformat(\"2025-01-01T00:00:00.000Z\"),\n    created_to=datetime.fromisoformat(\"2025-02-01T00:00:00.000Z\"),\n    active=True,\n    chat_subtype=ChatSubtype.DISCUSSION,\n    personal=False\n)\nresponse = await client.search.search_chats(params=params)",
+    "usage": "params = SearchChatsParams(\n    query=\"Разработка\",\n    limit=10,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n    order=SortOrder.DESC,\n    created_from=datetime.fromisoformat(\"2025-01-01T00:00:00.000+00:00\"),\n    created_to=datetime.fromisoformat(\"2025-02-01T00:00:00.000+00:00\"),\n    active=True,\n    chat_subtype=ChatSubtype.DISCUSSION,\n    personal=False\n)\nresponse = await client.search.search_chats(params=params)",
     "output": "SearchChatsResponse(data: list[Chat], meta: SearchPaginationMeta)",
     "imports": [
       "ChatSubtype",
@@ -517,7 +517,7 @@
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "params = SearchMessagesParams(\n    query=\"футболки\",\n    limit=10,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n    order=SortOrder.DESC,\n    sort=MessageSearchSort.CREATED_AT,\n    created_from=datetime.fromisoformat(\"2025-01-01T00:00:00.000Z\"),\n    created_to=datetime.fromisoformat(\"2025-02-01T00:00:00.000Z\"),\n    chat_ids=[123],\n    user_ids=[123],\n    active=True\n)\nresponse = await client.search.search_messages(params=params)",
+    "usage": "params = SearchMessagesParams(\n    query=\"футболки\",\n    limit=10,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n    order=SortOrder.DESC,\n    sort=MessageSearchSort.CREATED_AT,\n    created_from=datetime.fromisoformat(\"2025-01-01T00:00:00.000+00:00\"),\n    created_to=datetime.fromisoformat(\"2025-02-01T00:00:00.000+00:00\"),\n    chat_ids=[123],\n    user_ids=[123],\n    active=True\n)\nresponse = await client.search.search_messages(params=params)",
     "output": "SearchMessagesResponse(data: list[Message], meta: SearchPaginationMeta)",
     "imports": [
       "MessageSearchSort",
@@ -526,7 +526,7 @@
     ]
   },
   "SearchOperations_searchUsers": {
-    "usage": "params = SearchUsersParams(\n    query=\"Олег\",\n    limit=10,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n    sort=SearchSortOrder.BY_SCORE,\n    order=SortOrder.DESC,\n    created_from=datetime.fromisoformat(\"2025-01-01T00:00:00.000Z\"),\n    created_to=datetime.fromisoformat(\"2025-02-01T00:00:00.000Z\"),\n    company_roles=[UserRole.ADMIN]\n)\nresponse = await client.search.search_users(params=params)",
+    "usage": "params = SearchUsersParams(\n    query=\"Олег\",\n    limit=10,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n    sort=SearchSortOrder.BY_SCORE,\n    order=SortOrder.DESC,\n    created_from=datetime.fromisoformat(\"2025-01-01T00:00:00.000+00:00\"),\n    created_to=datetime.fromisoformat(\"2025-02-01T00:00:00.000+00:00\"),\n    company_roles=[UserRole.ADMIN]\n)\nresponse = await client.search.search_users(params=params)",
     "output": "SearchUsersResponse(data: list[User], meta: SearchPaginationMeta)",
     "imports": [
       "SearchSortOrder",
@@ -558,7 +558,7 @@
     ]
   },
   "TaskOperations_updateTask": {
-    "usage": "request = TaskUpdateRequest(\n    task=TaskUpdateRequestTask(\n        kind=TaskKind.REMINDER,\n        content=\"Забрать со склада 21 заказ\",\n        due_at=datetime.fromisoformat(\"2020-06-05T12:00:00.000+03:00\"),\n        priority=2,\n        performer_ids=[123],\n        status=TaskStatus.DONE,\n        all_day=False,\n        done_at=datetime.fromisoformat(\"2020-06-05T12:00:00.000Z\"),\n        custom_properties=[TaskUpdateRequestCustomProperty(id=78, value=\"Синий склад\")]\n    )\n)\nresponse = await client.tasks.update_task(id=22283, request=request)",
+    "usage": "request = TaskUpdateRequest(\n    task=TaskUpdateRequestTask(\n        kind=TaskKind.REMINDER,\n        content=\"Забрать со склада 21 заказ\",\n        due_at=datetime.fromisoformat(\"2020-06-05T12:00:00.000+03:00\"),\n        priority=2,\n        performer_ids=[123],\n        status=TaskStatus.DONE,\n        all_day=False,\n        done_at=datetime.fromisoformat(\"2020-06-05T12:00:00.000+00:00\"),\n        custom_properties=[TaskUpdateRequestCustomProperty(id=78, value=\"Синий склад\")]\n    )\n)\nresponse = await client.tasks.update_task(id=22283, request=request)",
     "output": "Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)])",
     "imports": [
       "TaskKind",
@@ -611,7 +611,7 @@
     "output": "AvatarData(image_url: str)"
   },
   "UserStatusOperations_updateUserStatus": {
-    "usage": "request = StatusUpdateRequest(\n    status=StatusUpdateRequestStatus(\n        emoji=\"🎮\",\n        title=\"Очень занят\",\n        expires_at=datetime.fromisoformat(\"2024-04-08T10:00:00.000Z\"),\n        is_away=True,\n        away_message=\"Вернусь после 15:00\"\n    )\n)\nresponse = await client.users.update_user_status(user_id=12, request=request)",
+    "usage": "request = StatusUpdateRequest(\n    status=StatusUpdateRequestStatus(\n        emoji=\"🎮\",\n        title=\"Очень занят\",\n        expires_at=datetime.fromisoformat(\"2024-04-08T10:00:00.000+00:00\"),\n        is_away=True,\n        away_message=\"Вернусь после 15:00\"\n    )\n)\nresponse = await client.users.update_user_status(user_id=12, request=request)",
     "output": "UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)",
     "imports": [
       "StatusUpdateRequest",

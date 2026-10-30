@@ -204,7 +204,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content +=
     '| Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
   content +=
-    '| Kotlin | `com.pachca:pachca-sdk` | `implementation("com.pachca:pachca-sdk:latest.release")` |\n';
+    '| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.8.0")`, репозиторий `maven("https://jitpack.io")` |\n';
   content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n';
   content += '| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |\n\n';
   content += 'Конвенции:\n';
@@ -504,7 +504,7 @@ function generateLibraryRules(): string {
 | TypeScript | \`@pachca/sdk\` | \`npm install @pachca/sdk\` |
 | Python | \`pachca-sdk\` | \`pip install pachca-sdk\` |
 | Go | \`github.com/pachca/openapi/sdk/go/generated\` | \`go get github.com/pachca/openapi/sdk/go/generated\` |
-| Kotlin | \`com.pachca:pachca-sdk\` | \`implementation("com.pachca:pachca-sdk:latest.release")\` |
+| Kotlin | \`com.github.pachca:openapi\` | \`implementation("com.github.pachca:openapi:1.8.0")\`, repository \`maven("https://jitpack.io")\` |
 | Swift | \`PachcaSDK\` | SPM: \`https://github.com/pachca/openapi\` |
 | C# | \`Pachca.Sdk\` | \`dotnet add package Pachca.Sdk\` |
 

@@ -1,6 +1,62 @@
 [
   {
     "product": "n8n",
+    "version": "2.2.3",
+    "date": "2026-10-30",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`File`: в операции `Create` есть поля загрузки `File Source`, `File URL`, `Input Binary Field` и `Additional Fields` с `File Name` и `Content Type`, так что файл загружается по ссылке или из бинарных данных любого поля"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.10.4",
+    "date": "2026-10-30",
+    "changes": [
+      {
+        "type": "-",
+        "description": "Справка `pachca api … --describe` показывает `dlp_rule_id` в деталях события `dlp_violation_detected` строкой, как его отдаёт API"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.8.0",
+    "date": "2026-10-30",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Поле `dlp_rule_id` в деталях события `dlp_violation_detected` (`AuditDetailsDlp`) стало строкой, как его отдаёт API, например `pasport-rf`"
+      },
+      {
+        "type": "~",
+        "description": "Python: пакет работает на Python 3.10 и новее"
+      },
+      {
+        "type": "~",
+        "description": "Swift: пакет ставится через Swift Package Manager по адресу репозитория `https://github.com/pachca/openapi`"
+      },
+      {
+        "type": "~",
+        "description": "Kotlin: библиотека собрана под Java 11 и работает на Java 11 и новее, координаты на JitPack — `com.github.pachca:openapi:1.8.0`"
+      }
+    ]
+  },
+  {
+    "product": "generator",
+    "version": "1.3.2",
+    "date": "2026-10-30",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Python: сгенерированный клиент работает на Python 3.10, где нет `enum.StrEnum`, а `datetime.fromisoformat` не принимает время с суффиксом `Z`"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
     "version": "2.2.2",
     "date": "2026-10-28",
     "changes": [

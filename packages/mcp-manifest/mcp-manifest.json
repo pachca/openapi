@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "e3348f3b7fddde2b"
+    "digest": "6820848e1abe6002"
   },
   "server": {
     "name": "pachca",
@@ -545,8 +545,8 @@
                       "description": "AuditDetailsKms: Operation reason. AuditDetailsToken: Reason for the revocation. `guest_downgrade` means the token was revoked automatically when the employee was made a guest. Present only in such records. AuditDetailsLoginGrantDenied: Rejection reason. Values: denied — The employee rejected the sign-in; verification_failed — The employee entered digits other than the ones the device showed."
                     },
                     "dlp_rule_id": {
-                      "type": "integer",
-                      "description": "DLP rule ID"
+                      "type": "string",
+                      "description": "DLP rule ID: a string made from the rule name, for example `pasport-rf`. It stays the same when the rule is renamed."
                     },
                     "dlp_rule_name": {
                       "type": "string",
@@ -781,6 +781,7 @@
         "data[].details.new_name",
         "data[].details.tag_name",
         "data[].details.reason",
+        "data[].details.dlp_rule_id",
         "data[].details.dlp_rule_name",
         "data[].details.action_message",
         "data[].details.filters",

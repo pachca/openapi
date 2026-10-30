@@ -9,10 +9,20 @@ Kotlin клиент для [Pachca API](https://dev.pachca.com).
 
 ## Установка
 
+Пакет публикуется через [JitPack](https://jitpack.io/#pachca/openapi):
+
 ```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+
 // build.gradle.kts
 dependencies {
-    implementation("com.pachca:pachca-sdk:latest.release")
+    implementation("com.github.pachca:openapi:1.8.0")
 }
 ```
 

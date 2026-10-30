@@ -1,10 +1,15 @@
 {
-  "name": "Мониторинг + алерт",
+  "name": "Мониторинг и алерт",
   "nodes": [
     {
       "parameters": {
         "rule": {
-          "interval": [{ "field": "minutes", "minutesInterval": 5 }]
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
         }
       },
       "name": "Schedule Trigger",
@@ -14,29 +19,46 @@
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "https://YOUR_SERVICE/health",
-        "options": { "timeout": 10000 }
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
       },
       "name": "HTTP Request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [220, 0]
+      "position": [220, 0],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
           "conditions": [
             {
               "id": "1",
-              "leftValue": "={{ $response.statusCode }}",
-              "rightValue": "200",
-              "operator": { "type": "number", "operation": "notEquals" }
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
             }
           ],
           "combinator": "and"
-        }
+        },
+        "options": {}
       },
       "name": "IF не 200",
       "type": "n8n-nodes-base.if",
@@ -47,8 +69,12 @@
       "parameters": {
         "resource": "message",
         "operation": "create",
-        "entityId": "CHAT_ID_МОНИТОРИНГА",
-        "content": "**Алерт:** сервис недоступен!\n\nСтатус: {{ $('HTTP Request').item.json.statusCode }}\nВремя: {{ $now.format('HH:mm:ss') }}"
+        "entityId": {
+          "__rl": true,
+          "value": "CHAT_ID_МОНИТОРИНГА",
+          "mode": "id"
+        },
+        "content": "=**Алерт:** сервис недоступен!\n\nСтатус: {{ $('HTTP Request').item.json.statusCode ?? 'нет ответа' }}\nВремя: {{ $now.format('HH:mm:ss') }}"
       },
       "name": "Алерт в Пачку",
       "type": "n8n-nodes-pachca.pachca",
@@ -57,10 +83,42 @@
     }
   ],
   "connections": {
-    "Schedule Trigger": { "main": [[{ "node": "HTTP Request", "type": "main", "index": 0 }]] },
-    "HTTP Request": { "main": [[{ "node": "IF не 200", "type": "main", "index": 0 }]] },
-    "IF не 200": { "main": [[{ "node": "Алерт в Пачку", "type": "main", "index": 0 }]] }
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "IF не 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF не 200": {
+      "main": [
+        [
+          {
+            "node": "Алерт в Пачку",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "pinData": {}
 }

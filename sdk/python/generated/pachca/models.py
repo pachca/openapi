@@ -2,8 +2,20 @@ from __future__ import annotations
 
 from datetime import datetime
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import Any, Union
+
+try:
+    from enum import StrEnum
+except ImportError:  # Python 3.10
+    from enum import Enum
+
+    class StrEnum(str, Enum):  # noqa: UP042
+        def __str__(self) -> str:
+            return self._value_
+
+        def __format__(self, format_spec: str) -> str:
+            return self._value_.__format__(format_spec)
+
 
 class OpenStrEnum(StrEnum):
     """An enum of responses: a value this SDK does not list yet becomes a member that keeps it, with is_known False."""
@@ -680,7 +692,7 @@ class AuditDetailsDeviceAuthorizationDenied:
 
 @dataclass
 class AuditDetailsDlp:
-    dlp_rule_id: int
+    dlp_rule_id: str
     dlp_rule_name: str
     message_id: int
     chat_id: int

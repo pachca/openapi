@@ -15,11 +15,16 @@
 
   ### Шаг 1. Установка
 
-Добавьте пакет в `Package.swift`:
+Добавьте пакет и его продукт `PachcaSDK` в `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
+    .package(url: "https://github.com/pachca/openapi", from: "1.8.0")
+],
+targets: [
+    .target(name: "MyApp", dependencies: [
+        .product(name: "PachcaSDK", package: "openapi")
+    ])
 ]
 ```
 

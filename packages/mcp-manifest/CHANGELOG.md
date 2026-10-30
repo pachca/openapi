@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.0 (2026-10-30)
+
+The DLP rule ID in audit details is a string; schema_version stays 1.2.0.
+
+- `pachca_get_audit_events`: `details.dlp_rule_id` of `dlp_violation_detected` is a string made from the rule name, for example `pasport-rf`, as the API returns it, and it is listed among the untrusted fields.
+
 ## 1.4.0 (2026-10-28)
 
 Tools for the «Important» section, making an employee a guest, and tool texts that follow what the server actually does; schema_version stays 1.2.0.

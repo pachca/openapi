@@ -4345,8 +4345,8 @@ model AuditDetailsKms {
 
 @doc("При: dlp_violation_detected")
 model AuditDetailsDlp {
-  @doc("Идентификатор правила DLP")
-  dlp_rule_id: int32;
+  @doc("Идентификатор правила DLP: строка из названия правила, например `pasport-rf`. При переименовании правила не меняется.")
+  dlp_rule_id: string;
   @doc("Название правила DLP")
   dlp_rule_name: string;
   @doc("Идентификатор сообщения")

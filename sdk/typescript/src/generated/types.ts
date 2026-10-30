@@ -1015,7 +1015,7 @@ export interface AuditDetailsDeviceAuthorizationDenied {
 }
 
 export interface AuditDetailsDlp {
-  dlpRuleId: number;
+  dlpRuleId: string;
   dlpRuleName: string;
   messageId: number;
   chatId: number;

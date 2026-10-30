@@ -78,7 +78,7 @@
 		"$.components.schemas.AuditDetailsDlp.properties.action_message.description": "dce304e9d139d521",
 		"$.components.schemas.AuditDetailsDlp.properties.chat_id.description": "2d3cb5f27d84053b",
 		"$.components.schemas.AuditDetailsDlp.properties.conditions_matched.description": "4f88f810e0fb698e",
-		"$.components.schemas.AuditDetailsDlp.properties.dlp_rule_id.description": "31e9c68b20c9260f",
+		"$.components.schemas.AuditDetailsDlp.properties.dlp_rule_id.description": "01275f0edf9b0ec7",
 		"$.components.schemas.AuditDetailsDlp.properties.dlp_rule_name.description": "e5436efd7cf9cb26",
 		"$.components.schemas.AuditDetailsDlp.properties.message_id.description": "2c648ec092bfab7c",
 		"$.components.schemas.AuditDetailsDlp.properties.user_id.description": "9cdb042039366879",

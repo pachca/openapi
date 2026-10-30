@@ -5,7 +5,7 @@
 
 # Kotlin
 
-- [com.pachca:pachca-sdk](https://github.com/pachca/openapi/tree/main/sdk/kotlin) JitPack
+- [com.github.pachca:openapi](https://github.com/pachca/openapi/tree/main/sdk/kotlin) JitPack
 
 
 Типизированный клиент для Pachca API на Kotlin. Построен на Ktor с корутинами (`suspend`), kotlinx.serialization и встроенным retry. Требуется Kotlin 2.2+ и Java 11+.
@@ -15,13 +15,26 @@
 
   ### Шаг 1. Установка
 
-Добавьте зависимость в `build.gradle.kts`:
+Пакет публикуется через JitPack. Добавьте его репозиторий в `settings.gradle.kts`:
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+```
+
+И зависимость в `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.pachca:pachca-sdk:latest.release")
+    implementation("com.github.pachca:openapi:1.8.0")
 }
 ```
+
+Версия — номер выпуска SDK, все выпуски перечислены в [обновлениях](/updates).
 
 
   ### Шаг 2. Создание клиента

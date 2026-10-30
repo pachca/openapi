@@ -9013,9 +9013,8 @@ components:
         - conditions_matched
       properties:
         dlp_rule_id:
-          type: integer
-          format: int32
-          description: Идентификатор правила DLP
+          type: string
+          description: 'Идентификатор правила DLP: строка из названия правила, например `pasport-rf`. При переименовании правила не меняется.'
         dlp_rule_name:
           type: string
           description: Название правила DLP

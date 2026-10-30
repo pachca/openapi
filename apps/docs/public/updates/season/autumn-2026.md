@@ -2,6 +2,27 @@
 
 # 🍁 Осень 2026
 
+### 30 октября 2026
+
+### n8n Node v2.2.3
+
+- `File`: в операции `Create` есть поля загрузки `File Source`, `File URL`, `Input Binary Field` и `Additional Fields` с `File Name` и `Content Type`, так что файл загружается по ссылке или из бинарных данных любого поля
+
+### CLI v2026.10.4
+
+- Справка `pachca api … --describe` показывает `dlp_rule_id` в деталях события `dlp_violation_detected` строкой, как его отдаёт API
+
+### SDK v1.8.0
+
+- Поле `dlp_rule_id` в деталях события `dlp_violation_detected` (`AuditDetailsDlp`) стало строкой, как его отдаёт API, например `pasport-rf`
+- Python: пакет работает на Python 3.10 и новее
+- Swift: пакет ставится через Swift Package Manager по адресу репозитория `https://github.com/pachca/openapi`
+- Kotlin: библиотека собрана под Java 11 и работает на Java 11 и новее, координаты на JitPack — `com.github.pachca:openapi:1.8.0`
+
+### Generator v1.3.2
+
+- Python: сгенерированный клиент работает на Python 3.10, где нет `enum.StrEnum`, а `datetime.fromisoformat` не принимает время с суффиксом `Z`
+
 ### MCP-сервер, плагин «Пачка», раздел «Важное» и перевод в гости
 
 _28 октября 2026_

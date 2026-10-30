@@ -101,7 +101,7 @@ npm install n8n-nodes-pachca
 | [TypeScript](sdk/typescript/README.md) | `@pachca/sdk` | npm |
 | [Python](sdk/python/generated/README.md) | `pachca-sdk` | PyPI |
 | [Go](sdk/go/README.md) | `github.com/pachca/openapi/sdk/go/generated` | Go modules |
-| [Kotlin](sdk/kotlin/README.md) | `com.pachca:pachca-sdk` | JitPack |
+| [Kotlin](sdk/kotlin/README.md) | `com.github.pachca:openapi` | JitPack |
 | [Swift](sdk/swift/README.md) | `PachcaSDK` | SPM |
 | [C#](sdk/csharp/generated/README.md) | `Pachca.Sdk` | NuGet |
 

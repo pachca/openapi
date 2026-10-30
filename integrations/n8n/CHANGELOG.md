@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 2.2.3 (2026-10-30)
+
+### Improvements
+
+- File: `Create` has its upload fields — `File Source`, `File URL`, `Input Binary Field` and `Additional Fields` with `File Name` and `Content Type` — so a file uploads from a URL or from any binary field
+
 ## 2.2.2 (2026-10-28)
 
 ### Features

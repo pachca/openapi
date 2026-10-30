@@ -14,6 +14,11 @@ import httpx
 T = TypeVar("T")
 
 
+def parse_datetime(value: str) -> datetime:
+    """Parse an ISO 8601 time. Before Python 3.11 `fromisoformat` does not accept the `Z` suffix."""
+    return datetime.fromisoformat(value[:-1] + "+00:00" if value.endswith("Z") else value)
+
+
 def _is_dataclass_type(tp: object) -> bool:
     return isinstance(tp, type) and dataclasses.is_dataclass(tp)
 
@@ -109,7 +114,7 @@ def _deserialize_instance(tp: object, value: object) -> object:
                     raw_tp = arg
                     break
         if raw_tp is datetime:
-            return datetime.fromisoformat(value)
+            return parse_datetime(value)
         if isinstance(raw_tp, type) and issubclass(raw_tp, Enum):
             # An open enum keeps a value it does not list in a member with is_known False;
             # a closed one refuses it, and the raw string is kept as is.

@@ -246,6 +246,7 @@
         "check-models",
         "check-commands",
         "check-n8n-resources",
+        "check-sdk-install",
         "check-examples",
         "check-anchors",
         "@pachca/spec#enum:check"
@@ -259,6 +260,9 @@
       "cache": true
     },
     "check-n8n-resources": {
+      "cache": false
+    },
+    "check-sdk-install": {
       "cache": false
     },
     "check-commands": {

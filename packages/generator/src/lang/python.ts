@@ -125,6 +125,24 @@ function oauthErrorCodeEnum(ir: IR): string | undefined {
 }
 
 /**
+ * `StrEnum` appeared in Python 3.11, and the package supports 3.10: there it is a
+ * `str` mixin whose `str()` and f-strings give the value, as `StrEnum` does.
+ */
+function emitStrEnumImport(lines: string[]): void {
+  lines.push('try:');
+  lines.push('    from enum import StrEnum');
+  lines.push('except ImportError:  # Python 3.10');
+  lines.push('    from enum import Enum');
+  lines.push('');
+  lines.push('    class StrEnum(str, Enum):  # noqa: UP042');
+  lines.push('        def __str__(self) -> str:');
+  lines.push('            return self._value_');
+  lines.push('');
+  lines.push('        def __format__(self, format_spec: str) -> str:');
+  lines.push('            return self._value_.__format__(format_spec)');
+}
+
+/**
  * Base of the open enums: a value the SDK does not list yet becomes a member that
  * keeps it, instead of a `ValueError`. That member is not registered on the
  * class, so `is_known` tells it apart even when the enum lists `unknown` itself;
@@ -288,17 +306,17 @@ function generateModels(ir: IR): string {
   lines.push('from __future__ import annotations');
   lines.push('');
   if (needDatetime) lines.push('from datetime import datetime');
-  if (needDataclass) {
-    lines.push('from dataclasses import dataclass');
-    if (needEnum) lines.push('from enum import StrEnum');
-  } else if (needEnum) {
-    lines.push('from enum import StrEnum');
-  }
+  if (needDataclass) lines.push('from dataclasses import dataclass');
   const typingImports: string[] = [];
   if (needAny) typingImports.push('Any');
   if (needUnion) typingImports.push('Union');
   if (typingImports.length > 0) lines.push(`from typing import ${typingImports.join(', ')}`);
   if (needDataclass || needEnum) lines.push('');
+  if (needEnum) {
+    emitStrEnumImport(lines);
+    lines.push('');
+    lines.push('');
+  }
 
   const unionMembers = new Set<string>();
   for (const u of ir.unions) for (const ref of u.memberRefs) unionMembers.add(ref);
@@ -1229,6 +1247,11 @@ function generateUtils(ir: IR): string {
     'T = TypeVar("T")',
     '',
     '',
+    'def parse_datetime(value: str) -> datetime:',
+    '    """Parse an ISO 8601 time. Before Python 3.11 `fromisoformat` does not accept the `Z` suffix."""',
+    '    return datetime.fromisoformat(value[:-1] + "+00:00" if value.endswith("Z") else value)',
+    '',
+    '',
     'def _is_dataclass_type(tp: object) -> bool:',
     '    return isinstance(tp, type) and dataclasses.is_dataclass(tp)',
     '',
@@ -1324,7 +1347,7 @@ function generateUtils(ir: IR): string {
     '                    raw_tp = arg',
     '                    break',
     '        if raw_tp is datetime:',
-    '            return datetime.fromisoformat(value)',
+    '            return parse_datetime(value)',
     '        if isinstance(raw_tp, type) and issubclass(raw_tp, Enum):',
     '            # An open enum keeps a value it does not list in a member with is_known False;',
     '            # a closed one refuses it, and the raw string is kept as is.',
@@ -1519,7 +1542,7 @@ function pyLiteral(
       if ((ft.primitive === 'integer' || ft.primitive === 'number') && typeof ft.example === 'number') return String(ft.example);
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return ft.example ? 'True' : 'False';
       if (ft.primitive === 'string' && typeof ft.example === 'string') {
-        if (ft.format === 'date-time') return `datetime.fromisoformat(${JSON.stringify(ft.example)})`;
+        if (ft.format === 'date-time') return `datetime.fromisoformat(${JSON.stringify(ft.example.replace(/Z$/, '+00:00'))})`;
         return JSON.stringify(ft.example);
       }
     }
@@ -1536,7 +1559,7 @@ function pyLiteral(
       if (ft.primitive === 'boolean') return 'True';
       if (ft.primitive === 'any') return '{}';
       if (ft.primitive === 'string') {
-        if (ft.format === 'date-time') return 'datetime.fromisoformat("2024-01-01T00:00:00Z")';
+        if (ft.format === 'date-time') return 'datetime.fromisoformat("2024-01-01T00:00:00+00:00")';
         if (ft.format === 'date') return '"2024-01-01"';
       }
       return '"example"';

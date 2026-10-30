@@ -1547,7 +1547,7 @@ data class AuditDetailsKms(
 
 @Serializable
 data class AuditDetailsDlp(
-    @SerialName("dlp_rule_id") val dlpRuleId: Int,
+    @SerialName("dlp_rule_id") val dlpRuleId: String,
     @SerialName("dlp_rule_name") val dlpRuleName: String,
     @SerialName("message_id") val messageId: Int,
     @SerialName("chat_id") val chatId: Int,

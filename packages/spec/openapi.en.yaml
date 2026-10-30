@@ -10026,9 +10026,10 @@ components:
         - conditions_matched
       properties:
         dlp_rule_id:
-          type: integer
-          format: int32
-          description: DLP rule ID
+          type: string
+          description: >-
+            DLP rule ID: a string made from the rule name, for example `pasport-rf`. It stays the same when the rule is
+            renamed.
         dlp_rule_name:
           type: string
           description: DLP rule name

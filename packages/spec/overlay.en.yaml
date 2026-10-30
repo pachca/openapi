@@ -1602,7 +1602,7 @@ actions:
       description: 'For: dlp_violation_detected'
   - target: $.components.schemas.AuditDetailsDlp.properties.dlp_rule_id
     update:
-      description: DLP rule ID
+      description: 'DLP rule ID: a string made from the rule name, for example `pasport-rf`. It stays the same when the rule is renamed.'
   - target: $.components.schemas.AuditDetailsDlp.properties.dlp_rule_name
     update:
       description: DLP rule name

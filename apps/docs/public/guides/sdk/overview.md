@@ -90,7 +90,7 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 
 | | TypeScript | Python | Go | Kotlin | Swift | C# |
 |---|---|---|---|---|---|---|
-| **Пакет** | `@pachca/sdk` | `pachca-sdk` | `go get ...` | `com.pachca:pachca-sdk` | `PachcaSDK` | `Pachca.Sdk` |
+| **Пакет** | `@pachca/sdk` | `pachca-sdk` | `go get ...` | `com.github.pachca:openapi` | `PachcaSDK` | `Pachca.Sdk` |
 | **Менеджер** | npm | PyPI | Go modules | JitPack (Gradle) | SPM | NuGet |
 | **Async** | `await` | `await` (asyncio) | синхронный | `suspend` (coroutines) | `try await` | `await` |
 | **HTTP** | fetch | httpx | net/http | Ktor | URLSession | HttpClient |

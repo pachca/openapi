@@ -683,7 +683,7 @@ type AuditDetailsDeviceAuthorizationDenied struct {
 }
 
 type AuditDetailsDlp struct {
-	DlpRuleID         int32   `json:"dlp_rule_id"`
+	DlpRuleID         string  `json:"dlp_rule_id"`
 	DlpRuleName       string  `json:"dlp_rule_name"`
 	MessageID         int32   `json:"message_id"`
 	ChatID            int32   `json:"chat_id"`

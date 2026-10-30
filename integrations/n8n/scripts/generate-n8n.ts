@@ -2164,9 +2164,9 @@ function injectFileUploadFields(outputDir: string): void {
 
   let code = fs.readFileSync(filePath, 'utf-8');
 
-  // Replace empty fileFields with actual upload fields
-  const fieldsCode = `export const fileFields: INodeProperties[] = [
-\t{
+  // Upload fields of Create go first in fileFields: the generated array already
+  // holds the fields of the other File operations (Get), so it is never empty.
+  const uploadFields = `\t{
 \t\tdisplayName: 'File Source',
 \t\tname: 'fileSource',
 \t\ttype: 'options',
@@ -2220,12 +2220,13 @@ function injectFileUploadFields(outputDir: string): void {
 \t\t\t},
 \t\t],
 \t},
-];`;
+`;
 
-  code = code.replace(
-    /export const fileFields: INodeProperties\[\] = \[\n\];/,
-    fieldsCode,
-  );
+  const arrayStart = 'export const fileFields: INodeProperties[] = [\n';
+  if (!code.includes(arrayStart)) {
+    throw new Error('FileDescription.ts: fileFields array not found, file upload fields not injected');
+  }
+  code = code.replace(arrayStart, arrayStart + uploadFields);
 
   fs.writeFileSync(filePath, code);
   console.log('  Injected file upload fields into FileDescription.ts');

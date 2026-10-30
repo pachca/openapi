@@ -1,5 +1,16 @@
 [
   {
+    "version": "2026.10.4",
+    "date": "30 октября 2026",
+    "changes": [
+      {
+        "type": "-",
+        "command": "api",
+        "description": "Справка `--describe` показывает `dlp_rule_id` в деталях события `dlp_violation_detected` строкой, как его отдаёт API"
+      }
+    ]
+  },
+  {
     "version": "2026.10.3",
     "date": "28 октября 2026",
     "changes": [

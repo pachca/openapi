@@ -3,19 +3,23 @@
   "nodes": [
     {
       "parameters": {
-        "events": ["chat_member_added"]
+        "event": "chat_member_added"
       },
       "name": "Pachca Trigger",
       "type": "n8n-nodes-pachca.pachcaTrigger",
-      "typeVersion": 2,
+      "typeVersion": 1,
       "position": [0, 0]
     },
     {
       "parameters": {
         "resource": "message",
         "operation": "create",
-        "entityId": "={{ $json.chat_id }}",
-        "content": "Добро пожаловать в команду! Если есть вопросы — пишите в этот чат."
+        "entityId": {
+          "__rl": true,
+          "value": "={{ $json.chat_id }}",
+          "mode": "id"
+        },
+        "content": "=Добро пожаловать в команду, {{ $json.user_ids.map(id => '<@' + id + '>').join(', ') }}! Если есть вопросы, пишите в этот чат."
       },
       "name": "Приветствие",
       "type": "n8n-nodes-pachca.pachca",

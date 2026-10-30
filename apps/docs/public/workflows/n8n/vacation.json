@@ -3,53 +3,373 @@
   "nodes": [
     {
       "parameters": {
-        "events": ["new_message"]
+        "event": "*"
       },
       "name": "Pachca Trigger",
       "type": "n8n-nodes-pachca.pachcaTrigger",
-      "typeVersion": 2,
-      "position": [0, 0]
+      "typeVersion": 1,
+      "position": [0, 200]
     },
     {
       "parameters": {
-        "conditions": {
-          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
-          "conditions": [
+        "rules": {
+          "values": [
             {
-              "id": "1",
-              "leftValue": "={{ $json.content }}",
-              "rightValue": "/отпуск",
-              "operator": { "type": "string", "operation": "contains" }
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "message",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "2",
+                    "leftValue": "={{ $json.event }}",
+                    "rightValue": "new",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "3",
+                    "leftValue": "={{ $json.content }}",
+                    "rightValue": "/отпуск",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Команда /отпуск"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "button",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "5",
+                    "leftValue": "={{ $json.data }}",
+                    "rightValue": "vacation_request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Кнопка заявки"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "view",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "7",
+                    "leftValue": "={{ $json.callback_id }}",
+                    "rightValue": "vacation_form",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Форма отправлена"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "button",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "9",
+                    "leftValue": "={{ $json.data }}",
+                    "rightValue": "vacation_decision:",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Решение"
             }
-          ],
-          "combinator": "and"
-        }
+          ]
+        },
+        "options": {}
       },
-      "name": "IF /отпуск",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [260, 0]
+      "name": "Тип события",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [220, 200]
     },
     {
       "parameters": {
         "resource": "message",
         "operation": "create",
-        "entityId": "={{ $(\"Pachca Trigger\").item.json.chat_id }}",
+        "entityId": {
+          "__rl": true,
+          "value": "={{ $json.chat_id }}",
+          "mode": "id"
+        },
         "content": "Нажмите кнопку, чтобы оформить заявку на отпуск:",
-        "additionalFields": {
-          "buttons": "[[{\"text\": \"Создать заявку\", \"data\": \"vacation_request\"}]]"
-        }
+        "buttonLayout": "raw_json",
+        "rawJsonButtons": "[[{\"text\":\"Создать заявку\",\"data\":\"vacation_request\"}]]"
       },
       "name": "Кнопка заявки",
       "type": "n8n-nodes-pachca.pachca",
       "typeVersion": 2,
-      "position": [520, 0]
+      "position": [480, 0]
+    },
+    {
+      "parameters": {
+        "resource": "form",
+        "operation": "create",
+        "formTitle": "Заявка на отпуск",
+        "triggerId": "={{ $json.trigger_id }}",
+        "additionalFields": {
+          "callbackId": "vacation_form",
+          "submitText": "Отправить"
+        },
+        "formBuilderMode": "json",
+        "formBlocks": "[{\"type\":\"date\",\"name\":\"date_from\",\"label\":\"Дата начала\",\"required\":true},{\"type\":\"date\",\"name\":\"date_to\",\"label\":\"Дата окончания\",\"required\":true},{\"type\":\"input\",\"name\":\"comment\",\"label\":\"Комментарий\",\"multiline\":true}]"
+      },
+      "name": "Форма заявки",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [480, 133]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityId": {
+          "__rl": true,
+          "value": "CHAT_ID_HR",
+          "mode": "id"
+        },
+        "content": "=**Заявка на отпуск** от <@{{ $json.user_id }}>\n\n**С:** {{ $json.data.date_from }}\n**По:** {{ $json.data.date_to }}\n**Комментарий:** {{ $json.data.comment || '—' }}",
+        "buttonLayout": "single_row",
+        "buttons": {
+          "button": [
+            {
+              "text": "Согласовать",
+              "type": "data",
+              "data": "=vacation_decision:approve:{{ $json.user_id }}"
+            },
+            {
+              "text": "Отклонить",
+              "type": "data",
+              "data": "=vacation_decision:reject:{{ $json.user_id }}"
+            }
+          ]
+        }
+      },
+      "name": "Заявка руководителю",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [480, 266]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "update",
+        "id": "={{ $json.message_id }}",
+        "buttonLayout": "raw_json",
+        "rawJsonButtons": "[]"
+      },
+      "name": "Убрать кнопки",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [480, 400]
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "create",
+        "threadMessageId": "={{ $('Pachca Trigger').item.json.message_id }}"
+      },
+      "name": "Тред к заявке",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [720, 400]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityType": "thread",
+        "entityId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "content": "={{ $('Pachca Trigger').item.json.data.split(':')[1] === 'approve' ? 'Согласовано' : 'Отклонено' }}, решение: <@{{ $('Pachca Trigger').item.json.user_id }}>"
+      },
+      "name": "Решение в тред",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [960, 400]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityType": "user",
+        "entityId": {
+          "__rl": true,
+          "value": "={{ $('Pachca Trigger').item.json.data.split(':')[2] }}",
+          "mode": "id"
+        },
+        "content": "={{ $('Pachca Trigger').item.json.data.split(':')[1] === 'approve' ? 'Ваша заявка на отпуск согласована' : 'Ваша заявка на отпуск отклонена' }}"
+      },
+      "name": "Ответ сотруднику",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [1200, 400]
     }
   ],
   "connections": {
-    "Pachca Trigger": { "main": [[{ "node": "IF /отпуск", "type": "main", "index": 0 }]] },
-    "IF /отпуск": { "main": [[{ "node": "Кнопка заявки", "type": "main", "index": 0 }]] }
+    "Pachca Trigger": {
+      "main": [
+        [
+          {
+            "node": "Тип события",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Тип события": {
+      "main": [
+        [
+          {
+            "node": "Кнопка заявки",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Форма заявки",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Заявка руководителю",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Убрать кнопки",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Убрать кнопки": {
+      "main": [
+        [
+          {
+            "node": "Тред к заявке",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Тред к заявке": {
+      "main": [
+        [
+          {
+            "node": "Решение в тред",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Решение в тред": {
+      "main": [
+        [
+          {
+            "node": "Ответ сотруднику",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "pinData": {}
 }

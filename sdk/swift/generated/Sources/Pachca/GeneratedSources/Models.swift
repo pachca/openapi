@@ -2389,7 +2389,7 @@ public struct AuditDetailsDeviceAuthorizationDenied: Codable {
 }
 
 public struct AuditDetailsDlp: Codable {
-    public let dlpRuleId: Int
+    public let dlpRuleId: String
     public let dlpRuleName: String
     public let messageId: Int
     public let chatId: Int
@@ -2397,7 +2397,7 @@ public struct AuditDetailsDlp: Codable {
     public let actionMessage: String?
     public let conditionsMatched: Bool
 
-    public init(dlpRuleId: Int, dlpRuleName: String, messageId: Int, chatId: Int, userId: Int, actionMessage: String? = nil, conditionsMatched: Bool) {
+    public init(dlpRuleId: String, dlpRuleName: String, messageId: Int, chatId: Int, userId: Int, actionMessage: String? = nil, conditionsMatched: Bool) {
         self.dlpRuleId = dlpRuleId
         self.dlpRuleName = dlpRuleName
         self.messageId = messageId

@@ -65,7 +65,7 @@ export const API_CLIENTS: ApiClient[] = [
     label: 'Kotlin',
     lang: 'kotlin',
     install:
-      '// build.gradle.kts\ndependencies {\n    implementation("com.pachca:pachca-sdk:latest.release")\n}',
+      '// settings.gradle.kts: repositories { maven("https://jitpack.io") }\n// build.gradle.kts\ndependencies {\n    implementation("com.github.pachca:openapi:1.8.0")\n}',
     blurb: 'Установка через Gradle, клиент на корутинах и сериализация моделей',
     href: '/guides/sdk/kotlin',
   },
@@ -74,7 +74,7 @@ export const API_CLIENTS: ApiClient[] = [
     label: 'Swift',
     lang: 'swift',
     install:
-      '// Package.swift\ndependencies: [\n    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")\n]',
+      '// Package.swift\ndependencies: [\n    .package(url: "https://github.com/pachca/openapi", from: "1.8.0")\n]',
     blurb: 'Установка через SPM, клиент на async/await и модели Codable',
     href: '/guides/sdk/swift',
   },

@@ -16,7 +16,7 @@
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 115–223 |
 | How-to Guides — рецепты задач с кодом TS/Python | 224–916 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 917–15582 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 917–15588 |
 | · Обзор | 922–1026 |
 | · Быстрый старт | 1027–1117 |
 | · AI-агенты | 1118–1267 |
@@ -70,47 +70,47 @@
 | · TypeScript | 8401–8861 |
 | · Python | 8862–9315 |
 | · Go | 9316–9794 |
-| · Kotlin | 9795–10265 |
-| · Swift | 10266–10704 |
-| · C# | 10705–11205 |
-| · n8n | 11206–11281 |
-| · Начало работы | 11282–11513 |
-| · Ресурсы и операции | 11514–11946 |
-| · Триггер | 11947–12198 |
-| · Тестирование | 12199–12472 |
-| · Примеры workflow | 12473–12687 |
-| · Продвинутые функции | 12688–12924 |
-| · Устранение ошибок | 12925–13106 |
-| · Миграция с v1 | 13107–13227 |
-| · Последние обновления | 13228–13237 |
-| · Обзор | 13238–13339 |
-| · Авторизация | 13340–13638 |
-| · Запросы и ответы | 13639–13835 |
-| · Пагинация | 13836–14076 |
-| · Загрузка файлов | 14077–14336 |
-| · Ошибки | 14337–14417 |
-| · Лимиты | 14418–14617 |
-| · Модели | 14618–15582 |
-| API-методы — все эндпоинты со схемами и примерами | 15583–38663 |
-| · OAuth | 15585–15984 |
-| · Chats | 15985–18268 |
-| · Profile | 18269–19208 |
-| · Users | 19209–21553 |
-| · Group tags | 21554–22783 |
-| · Members | 22784–24171 |
-| · Threads | 24172–24852 |
-| · Messages | 24853–26969 |
-| · Read members | 26970–27181 |
-| · Reactions | 27182–27805 |
-| · Important messages | 27806–28369 |
-| · Search | 28370–29213 |
-| · Tasks | 29214–30401 |
-| · Drafts | 30402–31867 |
-| · Views | 31868–32638 |
-| · Bots | 32639–37689 |
-| · Security | 37690–38075 |
-| · Custom Properties | 38076–38256 |
-| · Files | 38257–38663 |
+| · Kotlin | 9795–10278 |
+| · Swift | 10279–10722 |
+| · C# | 10723–11223 |
+| · n8n | 11224–11299 |
+| · Начало работы | 11300–11531 |
+| · Ресурсы и операции | 11532–11964 |
+| · Триггер | 11965–12216 |
+| · Тестирование | 12217–12490 |
+| · Примеры workflow | 12491–12692 |
+| · Продвинутые функции | 12693–12929 |
+| · Устранение ошибок | 12930–13111 |
+| · Миграция с v1 | 13112–13232 |
+| · Последние обновления | 13233–13242 |
+| · Обзор | 13243–13345 |
+| · Авторизация | 13346–13644 |
+| · Запросы и ответы | 13645–13841 |
+| · Пагинация | 13842–14082 |
+| · Загрузка файлов | 14083–14342 |
+| · Ошибки | 14343–14423 |
+| · Лимиты | 14424–14623 |
+| · Модели | 14624–15588 |
+| API-методы — все эндпоинты со схемами и примерами | 15589–38669 |
+| · OAuth | 15591–15990 |
+| · Chats | 15991–18274 |
+| · Profile | 18275–19214 |
+| · Users | 19215–21559 |
+| · Group tags | 21560–22789 |
+| · Members | 22790–24177 |
+| · Threads | 24178–24858 |
+| · Messages | 24859–26975 |
+| · Read members | 26976–27187 |
+| · Reactions | 27188–27811 |
+| · Important messages | 27812–28375 |
+| · Search | 28376–29219 |
+| · Tasks | 29220–30407 |
+| · Drafts | 30408–31873 |
+| · Views | 31874–32644 |
+| · Bots | 32645–37695 |
+| · Security | 37696–38081 |
+| · Custom Properties | 38082–38262 |
+| · Files | 38263–38669 |
 
 # LIBRARY RULES
 
@@ -200,7 +200,7 @@
 | TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |
 | Python | `pachca-sdk` | `pip install pachca-sdk` |
 | Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |
-| Kotlin | `com.pachca:pachca-sdk` | `implementation("com.pachca:pachca-sdk:latest.release")` |
+| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.8.0")`, repository `maven("https://jitpack.io")` |
 | Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
 | C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
 
@@ -6379,7 +6379,7 @@ await bot.oauth.revokeToken({
 
 Для срабатывания DLP-правила в `details` приходит:
 
-- `dlp_rule_id: integer, int32` (required) — Идентификатор правила DLP
+- `dlp_rule_id: string` (required) — Идентификатор правила DLP: строка из названия правила, например `pasport-rf`. При переименовании правила не меняется.
 - `dlp_rule_name: string` (required) — Название правила DLP
 - `message_id: integer, int32` (required) — Идентификатор сообщения
 - `chat_id: integer, int32` (required) — Идентификатор чата
@@ -8377,7 +8377,7 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 
 | | TypeScript | Python | Go | Kotlin | Swift | C# |
 |---|---|---|---|---|---|---|
-| **Пакет** | `@pachca/sdk` | `pachca-sdk` | `go get ...` | `com.pachca:pachca-sdk` | `PachcaSDK` | `Pachca.Sdk` |
+| **Пакет** | `@pachca/sdk` | `pachca-sdk` | `go get ...` | `com.github.pachca:openapi` | `PachcaSDK` | `Pachca.Sdk` |
 | **Менеджер** | npm | PyPI | Go modules | JitPack (Gradle) | SPM | NuGet |
 | **Async** | `await` | `await` (asyncio) | синхронный | `suspend` (coroutines) | `try await` | `await` |
 | **HTTP** | fetch | httpx | net/http | Ktor | URLSession | HttpClient |
@@ -9047,8 +9047,8 @@ params = ListChatsParams(
     order=SortOrder.DESC,
     availability=ChatAvailability.IS_MEMBER,
     archived=True,
-    last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
-    last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
+    last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000+00:00"),
+    last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000+00:00"),
     personal=False,
     limit=1,
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
@@ -9794,7 +9794,7 @@ response, err := client.Tasks.CreateTask(ctx, request)
 
 # Kotlin
 
-- [com.pachca:pachca-sdk](https://github.com/pachca/openapi/tree/main/sdk/kotlin) JitPack
+- [com.github.pachca:openapi](https://github.com/pachca/openapi/tree/main/sdk/kotlin) JitPack
 
 
 Типизированный клиент для Pachca API на Kotlin. Построен на Ktor с корутинами (`suspend`), kotlinx.serialization и встроенным retry. Требуется Kotlin 2.2+ и Java 11+.
@@ -9804,13 +9804,26 @@ response, err := client.Tasks.CreateTask(ctx, request)
 
   ### Шаг 1. Установка
 
-Добавьте зависимость в `build.gradle.kts`:
+Пакет публикуется через JitPack. Добавьте его репозиторий в `settings.gradle.kts`:
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+```
+
+И зависимость в `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.pachca:pachca-sdk:latest.release")
+    implementation("com.github.pachca:openapi:1.8.0")
 }
 ```
+
+Версия — номер выпуска SDK, все выпуски перечислены в [обновлениях](/updates).
 
 
   ### Шаг 2. Создание клиента
@@ -10275,11 +10288,16 @@ val response = client.tasks.createTask(request = request)
 
   ### Шаг 1. Установка
 
-Добавьте пакет в `Package.swift`:
+Добавьте пакет и его продукт `PachcaSDK` в `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
+    .package(url: "https://github.com/pachca/openapi", from: "1.8.0")
+],
+targets: [
+    .target(name: "MyApp", dependencies: [
+        .product(name: "PachcaSDK", package: "openapi")
+    ])
 ]
 ```
 
@@ -12474,6 +12492,9 @@ sequenceDiagram
 
 Ниже — готовые сценарии, которые можно воспроизвести в n8n. Каждый пример использует узлы **Pachca** и **Pachca Trigger** из расширения.
 
+> **Внимание:** У бота один адрес исходящего вебхука, поэтому каждому workflow с Pachca Trigger нужен свой бот. Подробнее — в разделе [Как работают вебхуки в Пачке](/guides/n8n/trigger#kak-rabotayut-vebhuki-v-pachke).
+
+
 ## Приветствие нового сотрудника
 
 Автоматическое приветственное сообщение при добавлении сотрудника в канал.
@@ -12486,7 +12507,7 @@ sequenceDiagram
 **Как работает:**
 
 1. **Pachca Trigger** — событие `Chat Member Added`
-2. **Pachca** (Message > Create) — отправка приветствия в тот же чат: `entityId` берётся из `chat_id` события
+2. **Pachca** (Message > Create) — отправка приветствия в тот же чат: `entityId` берётся из `chat_id` события, новые участники упоминаются по `user_ids`
 
 **Что можно добавить:** отправка личного сообщения с полезными ссылками, добавление сотрудника в рабочие каналы.
 
@@ -12510,7 +12531,7 @@ sequenceDiagram
 **Как работает:**
 
 1. **Pachca Trigger** — событие `New Message` (в исходном канале)
-2. **IF** — фильтрация: пропускать сервисные сообщения, пересылать только пользовательские
+2. **IF** — пропускает только сообщения из исходного чата
 3. **Pachca** (Message > Create) — отправка в целевой канал с указанием автора
 
 **Когда полезно:** дублирование важных новостей в общие каналы, агрегация обсуждений.
@@ -12536,15 +12557,15 @@ sequenceDiagram
 
 1. **Schedule Trigger** — ежедневный запуск (например, в 10:00)
 2. **Pachca** (Task > Get Many) — получение списка задач
-3. **IF** — фильтр: только просроченные (дедлайн < сегодня)
-4. **Pachca** (Message > Create) — уведомление в чат со списком задач
+3. **IF** — фильтр: только невыполненные и просроченные (дедлайн раньше текущего момента)
+4. **Pachca** (Message > Create) — сообщение в чат о каждой просроченной задаче
 
-**Что можно добавить:** личные уведомления ответственным, группировка по проектам.
+**Что можно добавить:** одно сообщение со списком через узел Aggregate, личные уведомления ответственным, группировка по проектам.
 
 [reminder.json](/workflows/n8n/reminder.json) — Готовый workflow для импорта в n8n
 
 
-> После импорта замените Credentials и `CHAT_ID` во всех узлах Pachca.
+> После импорта замените Credentials и `CHAT_ID` во всех узлах Pachca. Task > Get Many возвращает напоминания, доступные владельцу токена: с токеном бота в списке только напоминания бота.
 
 
 ---
@@ -12564,7 +12585,7 @@ sequenceDiagram
 2. **Pachca** (Message > Create) — отправка сообщения с кнопками «Согласовать» / «Отклонить»
 3. **Pachca Trigger** (в отдельном workflow) — событие `Button Pressed`
 4. **Switch** — маршрутизация по `data` из нажатой кнопки
-5. **Pachca** (Message > Update) — обновление исходного сообщения с результатом
+5. **Pachca** (Message > Update) — обновление исходного сообщения с результатом: кнопки убираются пустым списком `[]` в **Button Layout** > **Raw JSON**
 
 **Пример кнопок:**
 
@@ -12577,7 +12598,7 @@ sequenceDiagram
 ]
 ```
 
-Подробнее о кнопках — в разделе [Продвинутые функции](/guides/n8n/advanced#knopki-v-soobscheniyah).
+Этот JSON вставляется в поле **Buttons (JSON)** при **Button Layout** = **Raw JSON**. Подробнее о кнопках — в разделе [Продвинутые функции](/guides/n8n/advanced#knopki-v-soobscheniyah).
 
 - [approval.json](/workflows/n8n/approval.json) — Отправка запроса с кнопками
 - [approval-handler.json](/workflows/n8n/approval-handler.json) — Обработка нажатий кнопок
@@ -12601,7 +12622,7 @@ sequenceDiagram
 
 1. **Schedule Trigger** — проверка каждые 5 минут
 2. **HTTP Request** — запрос к внешнему API или сервису
-3. **IF** — проверка: статус не 200 или метрика выше порога
+3. **IF** — проверка: статус не 200 или сервис не ответил. В HTTP Request включены **Full Response** и **Never Error**, а при ошибке соединения узел продолжает работу, поэтому до IF доходит любой исход
 4. **Pachca** (Message > Create) — отправка алерта в канал мониторинга
 
 **Что можно добавить:** проверка нескольких сервисов, графики через разворачивание ссылок, эскалация в личные сообщения.
@@ -12616,40 +12637,24 @@ sequenceDiagram
 
 ## Заявка на отпуск
 
-Полноценный сценарий с кнопками, формой и согласованием в треде — бот принимает заявку через модальную форму и отправляет на согласование руководителю.
+Сценарий с кнопками, формой и согласованием в треде: бот принимает заявку через модальную форму и отправляет её руководителю на согласование.
 
-![Workflow заявки на отпуск с кнопками, формой и согласованием](/images/n8n/workflow-vacation.avif)
+**Как работает:** у бота один адрес вебхука, поэтому весь сценарий — один workflow с одним **Pachca Trigger** на событие `All Events`. Узел **Switch** разводит события по четырём веткам:
 
-*Заявка на отпуск: триггер → кнопка → форма → тред → согласование*
-
-
-**Как работает (два workflow):**
-
-**Workflow 1 — Приём заявки:**
-
-1. **Pachca Trigger** — событие `New Message`, фильтр по команде `/отпуск`
-2. **Pachca** (Message > Create) — отправка сообщения с Data-кнопкой «Создать заявку»
-3. **Pachca Trigger** (событие `Button Pressed`) — пользователь нажимает кнопку
-4. **Pachca** (Form > Create) — открытие модальной формы с полями «Дата начала», «Дата окончания», «Комментарий»
-
-**Workflow 2 — Обработка и согласование:**
-
-1. **Pachca Trigger** — событие `Form Submitted`
-2. **Pachca** (Thread > Create) — создание треда с деталями заявки
-3. **Pachca** (Message > Create) — отправка в тред кнопок «Согласовать» / «Отклонить»
-4. **Pachca Trigger** (событие `Button Pressed`) — руководитель нажимает кнопку
-5. **Pachca** (Message > Create) — уведомление сотрудника о результате
+1. **Команда `/отпуск`** (новое сообщение) — **Pachca** (Message > Create) отправляет в тот же чат сообщение с Data-кнопкой «Создать заявку»
+2. **Нажатие «Создать заявку»** — **Pachca** (Form > Create) открывает форму с полями «Дата начала», «Дата окончания», «Комментарий». `trigger_id` берётся из события кнопки, `callbackId` формы — `vacation_form`
+3. **Отправка формы** (`callback_id` = `vacation_form`) — **Pachca** (Message > Create) отправляет заявку в чат руководителя с кнопками «Согласовать» и «Отклонить». В `data` кнопок записан id сотрудника
+4. **Решение руководителя** — **Pachca** (Message > Update) убирает кнопки, **Pachca** (Thread > Create) заводит тред под заявкой, **Pachca** (Message > Create) пишет решение в тред, ещё один Message > Create сообщает его сотруднику в личные сообщения
 
 **Что задействовано:** триггер, кнопки, формы, треды, условная логика.
 
 > Подробнее о кнопках — в разделе [Кнопки в сообщениях](/guides/n8n/advanced#knopki-v-soobscheniyah), о формах — в разделе [Формы](/guides/n8n/advanced#formy).
 
 
-- [vacation.json](/workflows/n8n/vacation.json) — Приём команды и кнопка заявки
-- [vacation-handler.json](/workflows/n8n/vacation-handler.json) — Форма, тред и согласование
+[vacation.json](/workflows/n8n/vacation.json) — Команда, форма, заявка руководителю и решение в треде
 
 
-> После импорта замените Credentials и `CHAT_ID_HR` во всех узлах Pachca.
+> После импорта замените Credentials и `CHAT_ID_HR` во всех узлах Pachca. Боту нужен доступ к чату руководителя.
 
 
 ---
@@ -13272,9 +13277,10 @@ go get github.com/pachca/openapi/sdk/go/generated
 **Kotlin** — [документация](/guides/sdk/kotlin)
 
 ```kotlin
+// settings.gradle.kts: repositories { maven("https://jitpack.io") }
 // build.gradle.kts
 dependencies {
-    implementation("com.pachca:pachca-sdk:latest.release")
+    implementation("com.github.pachca:openapi:1.8.0")
 }
 ```
 
@@ -13283,7 +13289,7 @@ dependencies {
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
+    .package(url: "https://github.com/pachca/openapi", from: "1.8.0")
 ]
 ```
 
@@ -15461,7 +15467,7 @@ with httpx.Client(
     - `message_id: integer, int32` (required) — Идентификатор сообщения
     - `reason: string` (required) — Причина операции
   - **AuditDetailsDlp**: При: dlp_violation_detected
-    - `dlp_rule_id: integer, int32` (required) — Идентификатор правила DLP
+    - `dlp_rule_id: string` (required) — Идентификатор правила DLP: строка из названия правила, например `pasport-rf`. При переименовании правила не меняется.
     - `dlp_rule_name: string` (required) — Название правила DLP
     - `message_id: integer, int32` (required) — Идентификатор сообщения
     - `chat_id: integer, int32` (required) — Идентификатор чата
@@ -16511,8 +16517,8 @@ params = ListChatsParams(
     order=SortOrder.DESC,
     availability=ChatAvailability.IS_MEMBER,
     archived=True,
-    last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
-    last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
+    last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000+00:00"),
+    last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000+00:00"),
     personal=False,
     limit=1,
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
@@ -19094,7 +19100,7 @@ request = StatusUpdateRequest(
     status=StatusUpdateRequestStatus(
         emoji="🎮",
         title="Очень занят",
-        expires_at=datetime.fromisoformat("2024-04-08T10:00:00.000Z"),
+        expires_at=datetime.fromisoformat("2024-04-08T10:00:00.000+00:00"),
         is_away=True,
         away_message="Вернусь после 15:00"
     )
@@ -21410,7 +21416,7 @@ request = StatusUpdateRequest(
     status=StatusUpdateRequestStatus(
         emoji="🎮",
         title="Очень занят",
-        expires_at=datetime.fromisoformat("2024-04-08T10:00:00.000Z"),
+        expires_at=datetime.fromisoformat("2024-04-08T10:00:00.000+00:00"),
         is_away=True,
         away_message="Вернусь после 15:00"
     )
@@ -24680,8 +24686,8 @@ from pachca.models import ListThreadsParams
 client = PachcaClient("YOUR_TOKEN")
 
 params = ListThreadsParams(
-    last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
-    last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
+    last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000+00:00"),
+    last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000+00:00"),
     limit=1,
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
 )
@@ -28603,8 +28609,8 @@ params = SearchChatsParams(
     limit=10,
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9",
     order=SortOrder.DESC,
-    created_from=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
-    created_to=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
+    created_from=datetime.fromisoformat("2025-01-01T00:00:00.000+00:00"),
+    created_to=datetime.fromisoformat("2025-02-01T00:00:00.000+00:00"),
     active=True,
     chat_subtype=ChatSubtype.DISCUSSION,
     personal=False
@@ -28915,8 +28921,8 @@ params = SearchMessagesParams(
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9",
     order=SortOrder.DESC,
     sort=MessageSearchSort.CREATED_AT,
-    created_from=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
-    created_to=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
+    created_from=datetime.fromisoformat("2025-01-01T00:00:00.000+00:00"),
+    created_to=datetime.fromisoformat("2025-02-01T00:00:00.000+00:00"),
     chat_ids=[123],
     user_ids=[123],
     active=True
@@ -29201,8 +29207,8 @@ params = SearchUsersParams(
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9",
     sort=SearchSortOrder.BY_SCORE,
     order=SortOrder.DESC,
-    created_from=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
-    created_to=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
+    created_from=datetime.fromisoformat("2025-01-01T00:00:00.000+00:00"),
+    created_to=datetime.fromisoformat("2025-02-01T00:00:00.000+00:00"),
     company_roles=[UserRole.ADMIN]
 )
 response = await client.search.search_users(params=params)
@@ -30257,7 +30263,7 @@ request = TaskUpdateRequest(
         performer_ids=[123],
         status=TaskStatus.DONE,
         all_day=False,
-        done_at=datetime.fromisoformat("2020-06-05T12:00:00.000Z"),
+        done_at=datetime.fromisoformat("2020-06-05T12:00:00.000+00:00"),
         custom_properties=[TaskUpdateRequestCustomProperty(id=78, value="Синий склад")]
     )
 )
@@ -30822,8 +30828,8 @@ request = DraftCreateRequest(
             waveform="4,8,12,20,16,10,6,3"
         )],
         schedule=DraftScheduleRequest(
-            start_date=datetime.fromisoformat("2026-09-17T12:00:00.000Z"),
-            end_date=datetime.fromisoformat("2026-12-31T12:00:00.000Z"),
+            start_date=datetime.fromisoformat("2026-09-17T12:00:00.000+00:00"),
+            end_date=datetime.fromisoformat("2026-12-31T12:00:00.000+00:00"),
             repetition=DraftRepetitionRequest(
                 interval=DraftRepetitionInterval.WEEKLY,
                 days=[123],
@@ -31719,8 +31725,8 @@ request = DraftUpdateRequest(
             waveform="4,8,12,20,16,10,6,3"
         )],
         schedule=DraftScheduleRequest(
-            start_date=datetime.fromisoformat("2026-09-17T12:00:00.000Z"),
-            end_date=datetime.fromisoformat("2026-12-31T12:00:00.000Z"),
+            start_date=datetime.fromisoformat("2026-09-17T12:00:00.000+00:00"),
+            end_date=datetime.fromisoformat("2026-12-31T12:00:00.000+00:00"),
             repetition=DraftRepetitionRequest(
                 interval=DraftRepetitionInterval.WEEKLY,
                 days=[123],
@@ -37780,7 +37786,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `message_id: integer, int32` (required) — Идентификатор сообщения
       - `reason: string` (required) — Причина операции
     - **AuditDetailsDlp**: При: dlp_violation_detected
-      - `dlp_rule_id: integer, int32` (required) — Идентификатор правила DLP
+      - `dlp_rule_id: string` (required) — Идентификатор правила DLP: строка из названия правила, например `pasport-rf`. При переименовании правила не меняется.
       - `dlp_rule_name: string` (required) — Название правила DLP
       - `message_id: integer, int32` (required) — Идентификатор сообщения
       - `chat_id: integer, int32` (required) — Идентификатор чата
@@ -38057,8 +38063,8 @@ from pachca.models import AuditEventKey, GetAuditEventsParams
 client = PachcaClient("YOUR_TOKEN")
 
 params = GetAuditEventsParams(
-    start_time=datetime.fromisoformat("2025-05-01T09:11:00.000Z"),
-    end_time=datetime.fromisoformat("2025-05-02T09:11:00.000Z"),
+    start_time=datetime.fromisoformat("2025-05-01T09:11:00.000+00:00"),
+    end_time=datetime.fromisoformat("2025-05-02T09:11:00.000+00:00"),
     event_key=AuditEventKey.USER_LOGIN,
     actor_id="98765",
     actor_type="User",

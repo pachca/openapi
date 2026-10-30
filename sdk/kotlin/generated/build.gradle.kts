@@ -69,13 +69,18 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 }
 
+// The library runs on Java 11+, though JitPack builds it with JDK 17 (jitpack.yml):
+// -Xjdk-release also refuses JDK APIs newer than 11.
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
-        freeCompilerArgs.add("-opt-in=kotlinx.serialization.ExperimentalSerializationApi")
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        freeCompilerArgs.addAll("-opt-in=kotlinx.serialization.ExperimentalSerializationApi", "-Xjdk-release=11")
     }
 }
 
 java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
     withSourcesJar()
 }
 

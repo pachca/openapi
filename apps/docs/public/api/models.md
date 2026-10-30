@@ -849,7 +849,7 @@
     - `message_id: integer, int32` (required) — Идентификатор сообщения
     - `reason: string` (required) — Причина операции
   - **AuditDetailsDlp**: При: dlp_violation_detected
-    - `dlp_rule_id: integer, int32` (required) — Идентификатор правила DLP
+    - `dlp_rule_id: string` (required) — Идентификатор правила DLP: строка из названия правила, например `pasport-rf`. При переименовании правила не меняется.
     - `dlp_rule_name: string` (required) — Название правила DLP
     - `message_id: integer, int32` (required) — Идентификатор сообщения
     - `chat_id: integer, int32` (required) — Идентификатор чата

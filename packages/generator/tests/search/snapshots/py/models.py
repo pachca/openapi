@@ -2,7 +2,19 @@ from __future__ import annotations
 
 from datetime import datetime
 from dataclasses import dataclass
-from enum import StrEnum
+
+try:
+    from enum import StrEnum
+except ImportError:  # Python 3.10
+    from enum import Enum
+
+    class StrEnum(str, Enum):  # noqa: UP042
+        def __str__(self) -> str:
+            return self._value_
+
+        def __format__(self, format_spec: str) -> str:
+            return self._value_.__format__(format_spec)
+
 
 class SearchSort(StrEnum):
     RELEVANCE = "relevance"  # По релевантности

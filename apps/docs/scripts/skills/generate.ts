@@ -20,8 +20,8 @@ import * as yaml from 'js-yaml';
  *   when the user calls them; they ship in the plugin only.
  *
  * Written into the plugin: the `version` of the three manifests, one patch above
- * the committed version once the plugin files (all but `evals/`) differ from the
- * committed ones (the content hash and version are kept in `plugin-version.json`
+ * the version in `main` once the plugin files (all but `evals/`) differ from the
+ * ones in `main` (the content hash and version are kept in `plugin-version.json`
  * next to this module), and `evals/mocks/pachca/_tools.json` for the eval suite.
  *
  * Published, knowledge skills only:
@@ -249,6 +249,11 @@ function readSkills(problems: string[]): Skill[] {
       problems.push(
         `${SOURCE_REL}/${e.name}: < or > in the description, the Claude app rejects it`
       );
+    // The plugin list shows the start of the description, and the people reading it
+    // speak Russian: the first sentence is Russian, the trigger phrases of both
+    // languages follow it.
+    if (description && !/[А-Яа-яЁё]/.test(description.split(/[.:]/)[0]))
+      problems.push(`${SOURCE_REL}/${e.name}: the description must start in Russian`);
     skills.push({ name: e.name, description, command, files });
   }
   return skills.sort((a, b) =>
@@ -528,10 +533,28 @@ function pluginHash(): string {
   return hash.digest('hex').slice(0, 12);
 }
 
-/** A file as committed at HEAD; null when it is not there or there is no git checkout. */
+/**
+ * The commit the plugin version counts from: where this branch left `main`, so a
+ * branch with several commits that change the plugin still releases the next
+ * version after the one users have. On `main` itself that is HEAD. Without
+ * `origin/main` (a shallow clone) HEAD stands in.
+ */
+function versionBaseRef(): string {
+  try {
+    return execFileSync('git', ['merge-base', 'origin/main', 'HEAD'], {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return 'HEAD';
+  }
+}
+
+/** A file at the version base; null when it is not there or there is no git checkout. */
 function committedFile(rel: string): string | null {
   try {
-    return execFileSync('git', ['show', `HEAD:${rel}`], {
+    return execFileSync('git', ['show', `${versionBaseRef()}:${rel}`], {
       cwd: REPO_ROOT,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
@@ -542,8 +565,8 @@ function committedFile(rel: string): string | null {
 }
 
 /**
- * The version record to count from: the committed one, so rebuilding before a
- * commit, or reverting a change, does not move the version. Before the first
+ * The version record to count from: the one in `main` (see `versionBaseRef`), so
+ * rebuilding, a second commit or a reverted change does not move the version. Before the first
  * record, the committed `plugin.json` version. Outside a git checkout (the
  * Docker build has no `.git`) the files on disk stand in.
  */
@@ -557,10 +580,10 @@ function baseVersionRecord(problems: string[]): Json | null {
     }
   };
   const record = committedFile(PLUGIN_VERSION_REL);
-  if (record !== null) return parse(record, `${PLUGIN_VERSION_REL} at HEAD`);
+  if (record !== null) return parse(record, `${PLUGIN_VERSION_REL} in main`);
   const manifest = committedFile(`${PLUGIN_REL}/plugin.json`);
   if (manifest !== null)
-    return { version: parse(manifest, `${PLUGIN_REL}/plugin.json at HEAD`)?.version };
+    return { version: parse(manifest, `${PLUGIN_REL}/plugin.json in main`)?.version };
   const recordAbs = path.join(REPO_ROOT, PLUGIN_VERSION_REL);
   if (fs.existsSync(recordAbs)) return readJson(recordAbs, PLUGIN_VERSION_REL, problems);
   return {
@@ -570,9 +593,9 @@ function baseVersionRecord(problems: string[]): Json | null {
 }
 
 /**
- * The plugin version: the committed one while the plugin files match the committed
- * content, the next patch once they differ, so it only grows for clients that
- * compare versions by order and moves once per commit that changes the plugin.
+ * The plugin version: the one in `main` while the plugin files match it, the next
+ * patch once they differ, so it only grows for clients that compare versions by
+ * order and moves once per release, however many commits a branch has.
  * Semver without pre-release or build metadata: every client keeps it intact.
  */
 function pluginVersion(problems: string[]): { version: string; record: PublishedFile } {
@@ -1133,7 +1156,7 @@ review generated diffs → commit. Branch from \`origin/main\`; open a PR
 | \`packages/spec/mcp-manifest.json\` | the spec + \`packages/spec/mcp-core.ts\`, \`mcp-tools.ts\`, \`scripts/generate-mcp-manifest.ts\` (then \`bun run generate-mcp\` in \`packages/spec\`) |
 | \`packages/mcp-manifest/mcp-manifest.json\`, \`mcp-manifest.schema.json\` | copies of \`packages/spec/mcp-manifest.json\` and \`mcp-manifest.schema.json\` (\`npx turbo build --filter=@pachca/mcp-manifest\`); a changed manifest needs a new version on top of \`packages/mcp-manifest/CHANGELOG.md\` and in its \`package.json\` (the package is not in \`releases.json\`) |
 | \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, Postman collection | \`apps/docs/scripts/generate-llms.ts\` |
-| \`apps/docs/public/skill.md\`, \`public/.well-known/**\`, \`public/skills/*.zip\`, \`plugins/pachca/evals/mocks/pachca/_tools.json\`, and the \`version\` in \`plugins/pachca/plugin.json\`, \`.claude-plugin/plugin.json\`, \`.cursor-plugin/plugin.json\` (recorded in \`apps/docs/scripts/skills/plugin-version.json\`) | the hand-written plugin in \`plugins/pachca/\`, checked and published by \`apps/docs/scripts/skills/generate.ts\` (links, MCP tool and CLI command names, size, manifests in step; the version is one patch above the committed one once the plugin files change) |
+| \`apps/docs/public/skill.md\`, \`public/.well-known/**\`, \`public/skills/*.zip\`, \`plugins/pachca/evals/mocks/pachca/_tools.json\`, and the \`version\` in \`plugins/pachca/plugin.json\`, \`.claude-plugin/plugin.json\`, \`.cursor-plugin/plugin.json\` (recorded in \`apps/docs/scripts/skills/plugin-version.json\`) | the hand-written plugin in \`plugins/pachca/\`, checked and published by \`apps/docs/scripts/skills/generate.ts\` (links, MCP tool and CLI command names, size, manifests in step; the version is one patch above the one in \`main\` once the plugin files change) |
 | \`packages/cli/src/commands/**\` (except \`auth\`/\`config\`), \`packages/cli/CHANGELOG.md\` | \`packages/cli/scripts/generate-cli.ts\`; \`src/data/changelog.json\` |
 | n8n node files | \`integrations/n8n/scripts/generate-n8n.ts\` |
 | \`AGENTS.md\` (this file) | \`apps/docs/scripts/skills/generate.ts\` (\`generateAgentsMd()\`) |
@@ -1151,7 +1174,7 @@ change to a published package ships with a release entry (and vice versa).
 - Snapshot regeneration for \`packages/generator\` is a bulk snapshot rewrite. Use \`cd packages/generator && npm run regen-snapshots\` (backed by top-level \`scripts/regen-generator-snapshots.ts\`) instead of ad-hoc \`bun -e\` one-offs or the old \`bin/\` / \`tests/\` helpers.
 - Restart the docs dev server after changing component registrations or new TS/TSX files (Turbopack HMR misses them).
 - Hand-written files must stay out of a turbo task's \`outputs\` globs. On a cache **hit** turbo restores every declared output over the working tree, silently reverting hand edits — the package script alone keeps them, so it looks intermittent. \`generate-n8n\` declares \`nodes/**/*.ts\`, so \`nodes/Pachca/GenericFunctions.ts\` and \`nodes/Pachca/V1/**\` are excluded by negation in \`turbo.json\`; keep new hand-written node files excluded too.
-- Never type the plugin \`version\`: once \`plugins/pachca\` (all but \`evals/\`) differs from the committed plugin, the docs build sets it one patch above the committed version and writes it into the three plugin manifests and \`apps/docs/scripts/skills/plugin-version.json\`. Rebuilding before the commit does not raise it again. After changing the plugin, run \`npx turbo build\` and commit those files with the change. If the version did not change after you changed the plugin, rerun with \`--force\`.
+- Never type the plugin \`version\`: once \`plugins/pachca\` (all but \`evals/\`) differs from the plugin in \`main\`, the docs build sets it one patch above the version in \`main\` and writes it into the three plugin manifests and \`apps/docs/scripts/skills/plugin-version.json\`. Rebuilding or a second commit does not raise it further. After changing the plugin, run \`npx turbo build\` and commit those files with the change. If the version did not change after you changed the plugin, rerun with \`--force\`.
 
 ## Deep-dive docs (read before the relevant task)
 

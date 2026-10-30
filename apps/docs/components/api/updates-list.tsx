@@ -14,6 +14,8 @@ import { InlineCodeText } from './inline-code-text';
 import { ArrowUpRight, Package } from 'lucide-react';
 
 const PRODUCT_LABELS: Record<ReleaseProduct, string> = {
+  mcp: 'MCP-сервер',
+  plugin: 'Плагин и скиллы',
   cli: 'CLI',
   sdk: 'SDK',
   generator: 'Generator',
@@ -24,13 +26,17 @@ const PRODUCT_LABELS: Record<ReleaseProduct, string> = {
 // package badges row below them). Don't rely on JSON order in
 // `data/releases.json` — entries get added in different sequences.
 const PRODUCT_ORDER: Record<ReleaseProduct, number> = {
-  n8n: 0,
-  cli: 1,
-  sdk: 2,
-  generator: 3,
+  mcp: 0,
+  plugin: 1,
+  n8n: 2,
+  cli: 3,
+  sdk: 4,
+  generator: 5,
 };
 
 const PRODUCT_COLORS: Record<ReleaseProduct, string> = {
+  mcp: 'bg-primary/10 text-primary',
+  plugin: 'bg-primary/10 text-primary',
   cli: 'bg-method-get/10 text-method-get',
   sdk: 'bg-method-post/10 text-method-post',
   generator: 'bg-method-post/10 text-method-post',
@@ -40,6 +46,9 @@ const PRODUCT_COLORS: Record<ReleaseProduct, string> = {
 type PackageInfo = { href: (v: string) => string; title: string };
 
 const PRODUCT_PACKAGES: Record<ReleaseProduct, PackageInfo[]> = {
+  // The version of an MCP release is the version of the tool set the server runs.
+  mcp: [{ href: () => 'https://dev.pachca.com/guides/mcp/overview', title: 'MCP-сервер' }],
+  plugin: [{ href: () => 'https://dev.pachca.com/guides/mcp/plugin', title: 'Плагин и скиллы' }],
   cli: [{ href: (v) => `https://www.npmjs.com/package/@pachca/cli/v/${v}`, title: 'CLI' }],
   sdk: [
     { href: (v) => `https://www.npmjs.com/package/@pachca/sdk/v/${v}`, title: 'TypeScript' },

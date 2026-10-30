@@ -85,13 +85,16 @@ The marketplaces at the repository root (`.claude-plugin/`, `.cursor-plugin/`,
 `.agents/plugins/`) all point at `./plugins/pachca`.
 
 Everything in the plugin is written by hand except the `version` of its three
-manifests. Once the plugin files (all but `evals/`) differ from the committed
-ones, the docs build sets it one patch above the committed version, so it grows
-once per commit that changes the plugin, and rebuilding or reverting before the
-commit does not move it. The build keeps the content hash and version in
-`apps/docs/scripts/skills/plugin-version.json`. Do not edit either. Run
-`npx turbo build` and commit the manifests and that file with your change; if
-the version did not change, rerun with `--force`.
+manifests. Once the plugin files (all but `evals/`) differ from the ones in
+`main`, the docs build sets it one patch above the version in `main`, so a
+release gets the next version however many commits of the branch change the
+plugin, and rebuilding or reverting does not move it. The build keeps the
+content hash and version in `apps/docs/scripts/skills/plugin-version.json`. Do
+not edit either. Run `npx turbo build` and commit the manifests and that file
+with your change; if the version did not change, rerun with `--force`. A changed
+plugin also needs a release entry with product `plugin` and that version in
+`apps/docs/data/releases.json`: `scripts/check-changelog-sync.mjs` fails
+without it.
 
 Skills live in `skills/<name>/`. Knowledge skills are named `pachca` or
 `pachca-<topic>`, keep only `name` and `description` in the frontmatter, and the

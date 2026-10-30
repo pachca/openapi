@@ -404,7 +404,7 @@ Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex и приложение 
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 
 ## Обновления
-- [30 октября 2026 — Сквозные руководства по ботам, наборы прав и изменения API](https://dev.pachca.com/updates/2026-10-30.md)
+- [31 октября 2026 — Сквозные руководства по ботам, наборы прав и изменения API](https://dev.pachca.com/updates/2026-10-31.md)
 - [28 октября 2026 — MCP-сервер, плагин «Пачка», раздел «Важное» и перевод в гости](https://dev.pachca.com/updates/2026-10-28.md)
 - [21 октября 2026 — Вход по QR-коду в журнале аудита](https://dev.pachca.com/updates/2026-10-21.md)
 - [20 октября 2026 — Номер выгрузки в ответе, аватар бота и OAuth в SDK](https://dev.pachca.com/updates/2026-10-20.md)

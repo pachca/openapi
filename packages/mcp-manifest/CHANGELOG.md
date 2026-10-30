@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.5.0 (2026-10-30)
+## 1.5.0 (2026-10-31)
 
 Reminders named as in the Pachca app, deleting an incoming webhook, the output of opening a form, audit details as the API writes them, and rules for mentions and missing scopes; schema_version stays 1.2.0.
 

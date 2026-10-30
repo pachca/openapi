@@ -1816,6 +1816,8 @@ async function generateEndpointMdFiles(api: Awaited<ReturnType<typeof parseOpenA
 }
 
 const RELEASE_PRODUCT_TITLES: Record<ParsedRelease['product'], string> = {
+  mcp: 'MCP-сервер',
+  plugin: 'Плагин и скиллы',
   cli: 'CLI',
   sdk: 'SDK',
   generator: 'Generator',

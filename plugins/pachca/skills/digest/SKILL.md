@@ -1,6 +1,6 @@
 ---
 name: digest
-description: 'Digest of Pachca channels or chats for a period, ready to read or to post after review'
+description: 'Собрать дайджест каналов или чатов Пачки за период, чтобы прочитать его или отправить после проверки. Когда: «дайджест канала за неделю», «что было в этих чатах за неделю», «сводка по каналам», "channel digest", "weekly digest of these chats". Not for: what you missed across all your chats → catch-up; one thread → thread-summary.'
 argument-hint: '<chats> [period]'
 disable-model-invocation: true
 ---

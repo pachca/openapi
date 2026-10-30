@@ -1,6 +1,6 @@
 ---
 name: catch-up
-description: 'What I missed in Pachca: mentions, moved threads and busy chats for a period, with links'
+description: 'Собрать, что я пропустил в Пачке за период: упоминания, треды и чаты с новыми сообщениями, со ссылками. Когда: «что я пропустил», «что было, пока меня не было», «что нового со вчера», «что было за выходные», "what did I miss", "catch me up on Pachca". Not for: a digest of the chats you name → digest; one thread → thread-summary.'
 argument-hint: '[period, e.g. "since yesterday" or "this week"]'
 disable-model-invocation: true
 ---

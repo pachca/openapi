@@ -125,6 +125,8 @@ async function generateMethodImage(path: string) {
 }
 
 const OG_PRODUCT_TITLES: Record<string, string> = {
+  mcp: 'MCP-сервер',
+  plugin: 'Плагин и скиллы',
   cli: 'CLI',
   sdk: 'SDK',
   generator: 'Generator',

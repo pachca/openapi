@@ -1,6 +1,6 @@
 ---
 name: thread-summary
-description: 'Retell a whole Pachca thread: context, decisions, open questions and action items with links'
+description: 'Пересказать тред Пачки целиком: контекст, решения, открытые вопросы и поручения, со ссылками. Когда: «перескажи тред», «о чём договорились в треде», «кратко по треду», "summarize this thread", "what was decided in the thread". Not for: turning action items into reminders → tasks-from; a digest of chats for a period → digest.'
 argument-hint: '<thread link, message link or thread id>'
 disable-model-invocation: true
 ---

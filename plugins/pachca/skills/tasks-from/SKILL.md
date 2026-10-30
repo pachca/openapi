@@ -1,6 +1,6 @@
 ---
 name: tasks-from
-description: 'Turn a Pachca discussion into reminders: action items with assignees and due dates, created after review'
+description: 'Разобрать обсуждение в Пачке на поручения с исполнителями и сроками и после проверки создать по ним напоминания. Когда: «поставь задачи по итогам треда», «разбери тред на задачи», «сделай напоминания из обсуждения», «раздай поручения по итогам треда», "action items from this thread", "turn the discussion into reminders". Not for: a summary without reminders → thread-summary.'
 argument-hint: '<thread or message link>'
 disable-model-invocation: true
 ---

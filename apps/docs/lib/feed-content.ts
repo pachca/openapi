@@ -7,6 +7,8 @@ import type { ParsedRelease } from './updates-parser';
  */
 
 export const PRODUCT_TITLES: Record<ParsedRelease['product'], string> = {
+  mcp: 'MCP-сервер',
+  plugin: 'Плагин и скиллы',
   cli: 'CLI',
   sdk: 'SDK',
   generator: 'Generator',

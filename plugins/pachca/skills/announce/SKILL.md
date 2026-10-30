@@ -1,6 +1,6 @@
 ---
 name: announce
-description: 'Draft an announcement for a Pachca chat in the right format and leave it as a draft or post it after review'
+description: 'Подготовить объявление для чата Пачки в нужном формате и оставить его черновиком или отправить после проверки. Когда: «подготовь объявление», «объяви в канале», «анонс для команды», "draft an announcement", "post an announcement to a Pachca chat". Not for: a regular message or reply → pachca-messaging; a digest of chats for a period → digest.'
 argument-hint: '<chat> <what to announce>'
 disable-model-invocation: true
 ---

@@ -278,7 +278,7 @@ export const API_GUIDE_PAGES: SidebarPageItem[] = [
   { title: 'Авторизация', path: '/api/authorization' },
   { title: 'Запросы и ответы', path: '/api/requests-responses' },
   { title: 'Пагинация', path: '/api/pagination' },
-  { title: 'Загрузка файлов', path: '/api/file-uploads' },
+  { title: 'Файлы', path: '/api/file-uploads' },
   { title: 'Ошибки', path: '/api/errors' },
   { title: 'Лимиты', path: '/api/limits' },
   { title: 'Модели', path: '/api/models' },

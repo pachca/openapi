@@ -97,6 +97,16 @@
         "type": "-",
         "command": "api",
         "description": "Справка `--docs` и схема `--spec` описывают `scopes` в деталях бота журнала аудита так, как его писал API до 7 октября 2026 года: список прав у `bot_token_created` и объект с `previous` и `new` у `bot_token_updated`"
+      },
+      {
+        "type": "~",
+        "command": "search",
+        "description": "С `--all` команды поиска останавливаются по `has_next` и показывают в терминале, сколько результатов загружено из общего числа найденных"
+      },
+      {
+        "type": "~",
+        "command": "api",
+        "description": "Справка `--docs` и схема `--spec` методов поиска показывают поле `has_next` в `meta.paginate`"
       }
     ]
   },

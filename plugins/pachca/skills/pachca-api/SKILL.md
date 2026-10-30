@@ -91,11 +91,11 @@ Before a long job, check what the current token can do: `pachca_get_token_info` 
 
 Cursor-based everywhere, in groups with different `meta`:
 
-| Group                           | `meta`                                                                       | End of data                     |
-| ------------------------------- | ---------------------------------------------------------------------------- | ------------------------------- |
-| List methods                    | `paginate`: `next_page`, `prev_page`, `has_next`, `has_prev`, always present | `has_next: false`               |
-| Search (users, chats, messages) | `total` and `paginate.next_page` only                                        | empty `data` (never on `total`) |
-| Employee list with `query`      | `paginate`: `next_page`, `has_next` only                                     | `has_next: false`               |
+| Group                           | `meta`                                                                       | End of data                          |
+| ------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------ |
+| List methods                    | `paginate`: `next_page`, `prev_page`, `has_next`, `has_prev`, always present | `has_next: false`                    |
+| Search (users, chats, messages) | `total`, and `paginate` with `next_page` and `has_next`                      | `has_next: false` (never on `total`) |
+| Employee list with `query`      | `paginate`: `next_page`, `has_next` only                                     | `has_next: false`                    |
 
 - Always pass `limit` explicitly; the maximum differs by method.
 - Page with `limit` and `cursor` only. `page`, `per` and `offset` are not documented parameters, so do not send them. The chat list ignores `page` and returns the first page on every request, so a loop over page numbers repeats the same chats and never reaches an empty page.

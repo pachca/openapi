@@ -955,9 +955,10 @@ export const RESPONSE_FORMAT = {
    * Say where you are and how to go on. Without this an agent either stops at
    * the first page believing it saw everything, or pages blindly to the end. The
    * API hands out a next cursor even on its last page, so only has_next tells the
-   * end. A search has no has_next: a page holding at least the total it names is
-   * its end — the total is the whole result, or, after a cursor in a search of
-   * messages by date, what is left of it — and otherwise the first empty page is.
+   * end, in a search as in a list. An answer without has_next ends on a page
+   * holding at least the total it names — the total is the whole result, or,
+   * after a cursor in a search of messages by date, what is left of it — and
+   * otherwise on the first empty page.
    * «Showing 7 of 7.» followed by a cursor sent a model for a page that was not
    * there.
    */

@@ -343,6 +343,21 @@
       ],
       "cache": true
     },
+    "n8n-nodes-pachca#test": {
+      "dependsOn": [
+        "^build",
+        "generate-cli",
+        "generate-n8n"
+      ],
+      "inputs": [
+        "nodes/**",
+        "credentials/**",
+        "tests/**",
+        "vitest.config.mjs",
+        "$TURBO_ROOT$/apps/docs/public/workflows/n8n/**"
+      ],
+      "cache": true
+    },
     "start": {
       "dependsOn": [
         "build"

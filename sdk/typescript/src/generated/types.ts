@@ -1944,6 +1944,7 @@ export interface SearchPaginationMeta {
   total: number;
   paginate: {
     nextPage: string;
+    hasNext: boolean;
   };
 }
 

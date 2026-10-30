@@ -95,6 +95,6 @@
 
 ## Связанные разделы
 
-- [Загрузка файлов](/api/file-uploads)
+- [Файлы](/api/file-uploads)
 - [Журнал аудита событий](/guides/audit-events)
 - [DLP-система](/guides/dlp)

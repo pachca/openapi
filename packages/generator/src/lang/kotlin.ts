@@ -13,6 +13,7 @@ import {
   type IRValueUnion,
   jsonKindOf,
   valueUnionMemberName,
+  paginateHasNext,
 } from '../ir.js';
 import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
@@ -1182,11 +1183,16 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     : `${op.methodName}(\n${callArgs.map(a => `${indent2}        ${a},`).join('\n')}\n${indent2}    )`;
 
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const useHasNext = rt?.metaRef === 'PaginationMeta';
+  const hasNextForm = paginateHasNext(ir, rt?.metaRef);
+  const useHasNext = hasNextForm !== undefined;
 
   if (useHasNext) {
     const cursorExpr = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate?.nextPage';
-    const hasNextExpr = rt?.metaIsRequired ? 'response.meta.paginate.hasNext ?: true' : 'response.meta?.paginate?.hasNext ?: true';
+    const hasNextExpr = !rt?.metaIsRequired
+      ? 'response.meta?.paginate?.hasNext ?: true'
+      : hasNextForm === 'required'
+        ? 'response.meta.paginate.hasNext'
+        : 'response.meta.paginate.hasNext ?: true';
     lines.push(`${indent2}var hasNext = true`);
     lines.push(`${indent2}while (hasNext) {`);
     lines.push(`${indent2}    val response = ${callStr}`);

@@ -76,8 +76,7 @@ class SearchServiceImpl internal constructor(
     ): List<MessageResult> {
         val items = mutableListOf<MessageResult>()
         var cursor: String? = null
-        var hasNext = true
-        while (hasNext) {
+        do {
             val response = searchMessages(
                 query = query,
                 chatIds = chatIds,
@@ -88,8 +87,7 @@ class SearchServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-            hasNext = response.meta.paginate.hasNext ?: true
-        }
+        } while (true)
         return items
     }
 }

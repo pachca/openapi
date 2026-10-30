@@ -6,7 +6,7 @@
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~466K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~467K токенов — обычно не помещается в контекст целиком).
 
 > English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~33K токенов).
 
@@ -49,7 +49,7 @@
 - [Создать чат или канал](https://dev.pachca.com/api/chats/create.md)
 - [Добавить участников в чат](https://dev.pachca.com/api/members/add.md)
 - [Создать тред к сообщению](https://dev.pachca.com/api/threads/add.md)
-- [Загрузка файлов](https://dev.pachca.com/api/file-uploads.md)
+- [Файлы](https://dev.pachca.com/api/file-uploads.md)
 - [Пагинация по спискам](https://dev.pachca.com/api/pagination.md)
 - [Обработка ошибок и коды](https://dev.pachca.com/api/errors.md)
 - [Лимиты запросов](https://dev.pachca.com/api/limits.md)
@@ -256,7 +256,7 @@ Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex и приложение 
 - [Основы API, Авторизация](https://dev.pachca.com/api/authorization.md): Авторизация в API Пачки: какой токен выбрать, персональный токен и токен бота, токен по авторизации для ботов и программ с MCP…
 - [Основы API, Запросы и ответы](https://dev.pachca.com/api/requests-responses.md): Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, запросы с сервера вместо браузера…
 - [Основы API, Пагинация](https://dev.pachca.com/api/pagination.md): Пагинация в API Пачки по курсору: две группы методов (списочные и поиск) с разной структурой meta, поля next_page, prev_page, has_next…
-- [Основы API, Загрузка файлов](https://dev.pachca.com/api/file-uploads.md): Файлы в API Пачки: трёхшаговая загрузка через presigned URL S3, типы вложений и их поля…
+- [Основы API, Файлы](https://dev.pachca.com/api/file-uploads.md): Файлы в API Пачки: трёхшаговая загрузка через presigned URL S3, типы вложений и их поля…
 - [Основы API, Ошибки](https://dev.pachca.com/api/errors.md): Коды ошибок HTTP в API Пачки и структуры тела ответа…
 - [Основы API, Лимиты](https://dev.pachca.com/api/limits.md): Лимиты запросов (rate limits) в API Пачки: общий предел и лимиты по типам операций, ответ 429 и заголовок Retry-After…
 - [Основы API, Модели](https://dev.pachca.com/api/models.md): Справочник моделей данных Pachca API (сотрудники, чаты, сообщения, черновики, напоминания, теги, вебхуки и другие сущности)…
@@ -404,7 +404,7 @@ Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex и приложение 
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 
 ## Обновления
-- [30 октября 2026 — Сквозные руководства по ботам, наборы прав и уточнения API](https://dev.pachca.com/updates/2026-10-30.md)
+- [30 октября 2026 — Сквозные руководства по ботам, наборы прав и изменения API](https://dev.pachca.com/updates/2026-10-30.md)
 - [28 октября 2026 — MCP-сервер, плагин «Пачка», раздел «Важное» и перевод в гости](https://dev.pachca.com/updates/2026-10-28.md)
 - [21 октября 2026 — Вход по QR-коду в журнале аудита](https://dev.pachca.com/updates/2026-10-21.md)
 - [20 октября 2026 — Номер выгрузки в ответе, аватар бота и OAuth в SDK](https://dev.pachca.com/updates/2026-10-20.md)

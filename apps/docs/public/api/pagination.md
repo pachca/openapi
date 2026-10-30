@@ -12,7 +12,7 @@ API Пачки использует **cursor-based** пагинацию для �
 В API существует две группы методов, **возвращающих разную структуру `meta`** — алгоритмы обхода и условия конца данных у них отличаются. Перед интеграцией убедитесь, что вы знаете, к какой группе относится используемый метод.
 
 - [Списочные методы](#spisochnye-metody) — возвращают `meta.paginate` с четырьмя полями: `next_page`, `prev_page`, `has_next`, `has_prev`.
-- [Методы поиска](#metody-poiska) — возвращают `meta` с полем `total` и `paginate.next_page` (только курсор «вперёд», без `prev_page`/`has_next`/`has_prev`). Отдельно стоит [Список сотрудников](/api/users/list) с заданным параметром `query`: в его `meta.paginate` есть только `next_page` и `has_next`.
+- [Методы поиска](#metody-poiska) — возвращают `meta` с полем `total` и `paginate` с полями `next_page` и `has_next` (только курсор «вперёд», без `prev_page`/`has_prev`). Отдельно стоит [Список сотрудников](/api/users/list) с заданным параметром `query`: в его `meta.paginate` есть только `next_page` и `has_next`.
 
 ## Параметры запроса
 
@@ -100,13 +100,14 @@ API Пачки использует **cursor-based** пагинацию для �
 
 ## Методы поиска
 
-Методы поиска используют отдельный формат `meta` — без `prev_page` и без флагов `has_next`/`has_prev`. Вместо них возвращается `total` — общее количество найденных результатов:
+Методы поиска используют отдельный формат `meta` — без `prev_page` и `has_prev`, зато с `total` — общим количеством найденных результатов:
 
 #### SearchPaginationMeta
 
 - `total: integer, int32` (required) — Общее количество найденных результатов. Пример: `42`
 - `paginate: object` (required) — Вспомогательная информация
   - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`
+  - `has_next: boolean` (required) — Есть ли ещё данные на следующей странице. На последней странице — `false`. Пример: `true`
 
 
 ```json title="Пример ответа метода поиска"
@@ -115,7 +116,8 @@ API Пачки использует **cursor-based** пагинацию для �
   "meta": {
     "total": 42,
     "paginate": {
-      "next_page": "eyJpZCI6MTAsIl9rZCI6Im4ifQ"
+      "next_page": "eyJpZCI6MTAsIl9rZCI6Im4ifQ",
+      "has_next": true
     }
   }
 }
@@ -125,6 +127,7 @@ API Пачки использует **cursor-based** пагинацию для �
 |------|-----|----------|
 | `total` | integer | Общее количество найденных результатов по запросу. |
 | `paginate.next_page` | string | Курсор на следующую страницу. Доступен только курсор «вперёд», без `prev_page`. |
+| `paginate.has_next` | boolean | Есть ли следующая страница. На последней странице — `false`, а `next_page` приходит и на ней. |
 
 К этой группе относятся:
 
@@ -132,7 +135,7 @@ API Пачки использует **cursor-based** пагинацию для �
 - [Поиск чатов](/api/search/list-chats)
 - [Поиск сообщений](/api/search/list-messages)
 
-> В методах поиска **нет полей `prev_page`, `has_next`, `has_prev`** — поэтому polling новых результатов через `prev_page` здесь не работает. Конец данных — пустой `data` в очередном ответе. По `total` конец не определяйте: на больших выборках он бывает неточным, а в методе [Поиск сообщений](/api/search/list-messages) с сортировкой по дате (так по умолчанию) каждая следующая страница считает в `total` только совпадения после курсора. Курсор `next_page` — непрозрачный токен, всегда указывайте `limit` явно.
+> В методах поиска **нет полей `prev_page` и `has_prev`** — поэтому polling новых результатов через `prev_page` здесь не работает. Конец данных — `has_next: false`. По `total` конец не определяйте: на больших выборках он бывает неточным, а в методе [Поиск сообщений](/api/search/list-messages) с сортировкой по дате (так по умолчанию) каждая следующая страница считает в `total` только совпадения после курсора. Курсор `next_page` — непрозрачный токен, всегда указывайте `limit` явно.
 
 
 Выдача по релевантности, в том числе у метода [Список сотрудников](/api/users/list) с `query`, листается по одному снимку данных. Пока следующую страницу запрашивают в течение минуты после предыдущей, записи между страницами не сдвигаются, а `total` у методов поиска не меняется. После паузы подольше обход продолжается по свежим данным. Признак конца от этого не зависит.
@@ -143,7 +146,7 @@ API Пачки использует **cursor-based** пагинацию для �
 
 ## Обход всех записей
 
-Передайте `next_page` в параметр `cursor` следующего запроса. Условие остановки зависит от группы метода: для списочных — `has_next: false`, для методов поиска — пустой `data`.
+Передайте `next_page` в параметр `cursor` следующего запроса и остановитесь на `has_next: false`. Это условие одинаково для обеих групп методов.
 
 ### Для списочных методов
 
@@ -181,8 +184,9 @@ const headers = { Authorization: `Bearer ${TOKEN}` };
 
 const allMessages = [];
 let cursor;
+let hasNext = true;
 
-while (true) {
+while (hasNext) {
   const url = new URL(`${BASE}/search/messages`);
   url.searchParams.set('query', 'отчёт');
   url.searchParams.set('limit', '200');
@@ -190,11 +194,11 @@ while (true) {
 
   const res = await fetch(url, { headers });
   const json = await res.json();
-
-  // Конец поиска — пустая страница, а не сравнение с meta.total
-  if (json.data.length === 0) break;
   allMessages.push(...json.data);
+
+  // Конец поиска — has_next: false, а не сравнение с meta.total
   cursor = json.meta.paginate.next_page;
+  hasNext = json.meta.paginate.has_next;
 }
 
 console.log(`Всего найдено: ${allMessages.length}`);

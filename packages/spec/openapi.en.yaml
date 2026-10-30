@@ -15232,8 +15232,13 @@ components:
               type: string
               description: Next page pagination cursor
               example: eyJxZCO2MiwiZGlyIjomSNYjIn3
+            has_next:
+              type: boolean
+              description: Whether more data exists on the next page. `false` on the last page
+              example: true
           required:
             - next_page
+            - has_next
           description: Helper information
       description: Pagination metadata for search results
     SearchSortOrder:

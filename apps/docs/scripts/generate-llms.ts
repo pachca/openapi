@@ -176,7 +176,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     ['Создать чат или канал', '/api/chats/create.md'],
     ['Добавить участников в чат', '/api/members/add.md'],
     ['Создать тред к сообщению', '/api/threads/add.md'],
-    ['Загрузка файлов', '/api/file-uploads.md'],
+    ['Файлы', '/api/file-uploads.md'],
     ['Пагинация по спискам', '/api/pagination.md'],
     ['Обработка ошибок и коды', '/api/errors.md'],
     ['Лимиты запросов', '/api/limits.md'],

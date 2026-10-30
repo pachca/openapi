@@ -3111,13 +3111,15 @@ public sealed class SearchServiceImpl : SearchService
     {
         var items = new List<Chat>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await SearchChatsAsync(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, active: active, chatSubtype: chatSubtype, personal: personal, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext;
+        }
         return items;
     }
 
@@ -3184,13 +3186,15 @@ public sealed class SearchServiceImpl : SearchService
     {
         var items = new List<Message>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await SearchMessagesAsync(query: query, limit: limit, cursor: cursor, order: order, sort: sort, createdFrom: createdFrom, createdTo: createdTo, chatIds: chatIds, userIds: userIds, active: active, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext;
+        }
         return items;
     }
 
@@ -3248,13 +3252,15 @@ public sealed class SearchServiceImpl : SearchService
     {
         var items = new List<User>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await SearchUsersAsync(query: query, limit: limit, cursor: cursor, sort: sort, order: order, createdFrom: createdFrom, createdTo: createdTo, companyRoles: companyRoles, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext;
+        }
         return items;
     }
 }

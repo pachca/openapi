@@ -2089,6 +2089,7 @@ type ReactionWebhookPayload struct {
 
 type SearchPaginationMetaPaginate struct {
 	NextPage string `json:"next_page"`
+	HasNext  bool   `json:"has_next"`
 }
 
 type SearchPaginationMeta struct {

@@ -48,6 +48,6 @@ pachca files get 3560 --target pdf_preview --save ./preview.pdf
 
 ## Связанные разделы
 
-- [Загрузка файлов](/api/file-uploads)
+- [Основы API: Файлы](/api/file-uploads)
 - [Команды](/guides/cli/commands)
 - [Прямые запросы](/guides/cli/api-requests)

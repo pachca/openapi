@@ -3700,7 +3700,8 @@ func (s *SearchServiceImpl) SearchChatsAll(ctx context.Context, params *SearchCh
 	}
 	var items []Chat
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.SearchChats(ctx, params)
 		if err != nil {
@@ -3712,7 +3713,9 @@ func (s *SearchServiceImpl) SearchChatsAll(ctx context.Context, params *SearchCh
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		hasNext = result.Meta.Paginate.HasNext
 	}
+	return items, nil
 }
 
 func (s *SearchServiceImpl) SearchMessages(ctx context.Context, params *SearchMessagesParams) (*SearchMessagesResponse, error) {
@@ -3783,7 +3786,8 @@ func (s *SearchServiceImpl) SearchMessagesAll(ctx context.Context, params *Searc
 	}
 	var items []Message
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.SearchMessages(ctx, params)
 		if err != nil {
@@ -3795,7 +3799,9 @@ func (s *SearchServiceImpl) SearchMessagesAll(ctx context.Context, params *Searc
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		hasNext = result.Meta.Paginate.HasNext
 	}
+	return items, nil
 }
 
 func (s *SearchServiceImpl) SearchUsers(ctx context.Context, params *SearchUsersParams) (*SearchUsersResponse, error) {
@@ -3858,7 +3864,8 @@ func (s *SearchServiceImpl) SearchUsersAll(ctx context.Context, params *SearchUs
 	}
 	var items []User
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.SearchUsers(ctx, params)
 		if err != nil {
@@ -3870,7 +3877,9 @@ func (s *SearchServiceImpl) SearchUsersAll(ctx context.Context, params *SearchUs
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		hasNext = result.Meta.Paginate.HasNext
 	}
+	return items, nil
 }
 
 type TasksService interface {

@@ -3756,6 +3756,9 @@ actions:
   - target: $.components.schemas.SearchPaginationMeta.properties.paginate.properties.next_page
     update:
       description: Next page pagination cursor
+  - target: $.components.schemas.SearchPaginationMeta.properties.paginate.properties.has_next
+    update:
+      description: Whether more data exists on the next page. `false` on the last page
   - target: $.components.schemas.SearchSortOrder
     update:
       description: Search results sort order

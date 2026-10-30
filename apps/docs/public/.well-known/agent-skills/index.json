@@ -13,7 +13,7 @@
       "type": "archive",
       "description": "Администрирование пространства Пачки: сотрудники (пригласить, сменить роль, приостановить, удалить), теги и участники чатов, доступ к API и «Все токены», журнал аудита, экспорт, DLP, безопасный контур и шифрование; что требует владельца, администратора или «Корпорации». Load before a tool call that changes an employee: delete only after a yes to your question. Use when: «пригласи сотрудника», «уволь / удали сотрудника», «сделай администратором», «добавь в тег», «добавь / удали участника чата», «кто в закрытом канале, где я не состою», «доступ к API ограничен», «отзови доступ сотрудника к API», «журнал аудита», «выгрузи переписку», «правило DLP»; \"invite an employee\", \"offboard a user\", \"change role\", \"add or remove chat members\", \"let employees create tokens\", \"export messages\". Not for: a missing tool or a general 401/403 → pachca; who is in a tag or chat → pachca-search; writing messages → pachca-messaging; a bot's own token → pachca-bots; an app acting for employees → pachca-oauth; scripts → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-admin.tar.gz",
-      "digest": "sha256:e1ab6fd9d6da5304444296cf5273c63beed15efe4acd9bc7e00fb4dbe6cd95f9"
+      "digest": "sha256:0ee96ed53b97c80f5c06ddbd284e53b9746f79c5c5a93eefb83d705cfe28db93"
     },
     {
       "name": "pachca-ai-agent",
@@ -27,7 +27,7 @@
       "type": "archive",
       "description": "API Пачки из кода, скриптов и CI: токен и скоупы для скрипта или сервиса, курсорная пагинация, ошибки и повторы без дублей (401/403/422, 429, 5xx), файлы в коде, SDK и генератор, CLI в скриптах, массовые выгрузки, поиск метода. Когда: «напиши скрипт для API Пачки», «какой токен дать скрипту, сервису или CI», «мой код получает 401/403/422 от API», «упёрлись в 429», «поиск вернул 504 timeout, повторить?», «обойти все страницы», «скрипт, который выгружает всех сотрудников», «загрузка файла из кода», «SDK Пачки», «какой метод API»; \"call the Pachca API from code\", \"token for a script or CI job\", \"401/403/422 in my code\", \"cursor pagination\", \"429 Retry-After\", \"upload a file from my code\", \"Pachca SDK\", \"pachca CLI in CI\", \"which endpoint\". Not for: connecting an agent or MCP client, a 401/403 from an MCP tool → pachca; writing messages, a file to a chat now → pachca-messaging; bots, webhooks, events → pachca-bots; OAuth for employees → pachca-oauth; token policy, all-tokens tab, message export → pachca-admin.",
       "url": "/.well-known/agent-skills/pachca-api.tar.gz",
-      "digest": "sha256:5172f78ce12d32c299842c81de280ca152a7d3240279662a398417fce400b5e9"
+      "digest": "sha256:4a57e8a1c5eb726b30a835c220243b79ffbb4868df63549c805db4c8522fa737"
     },
     {
       "name": "pachca-bots",
@@ -55,7 +55,7 @@
       "type": "archive",
       "description": "Finding, summarizing and reminders in Pachca: which search covers what, reading a whole thread, channel and thread digests for a period, decisions and action items turned into reminders, a reminder at a set time for you or a colleague (Pachca notifies then), listing reminders and your «Важное», who is in a tag or chat. Use when: «найди, где обсуждали», «кто писал про», «где меня упоминали», «найди чат», «найди сотрудника», «перескажи тред», «что было в канале за неделю», «дайджест», «какие решения приняли», «поставь задачи по итогам», «напомни мне завтра в 9:00», «мои напоминания», «что у меня в важном», «кто в теге», «кто в чате»; \"find where we discussed\", \"summarize this thread\", \"channel digest\", \"remind me tomorrow at 9\", \"my reminders\". Not for: posting, pinning, reacting to or editing a message, including finding it first, or one sent later at a set time → pachca-messaging; changing employees, tags or chat members → pachca-admin; a bot that answers in threads → pachca-ai-agent; scripts → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-search.tar.gz",
-      "digest": "sha256:536c4154bae29053052ec87402d992277a139c1b75ce2f6d7d5f9eb39182f7b0"
+      "digest": "sha256:461e61e7153ea60ccae52ac9b11ec54f4a5284d94606a923ab8bfdf7ae32dca7"
     }
   ]
 }

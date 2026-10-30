@@ -65,6 +65,7 @@ export default class SearchListMessages extends BaseCommand {
       let nextCursor: string | undefined = undefined;
       let pages = 0;
       const seenCursors = new Set<string>();
+      let total: unknown;
 
       while (pages < 500) {
         const query: Record<string, string | number | boolean | string[] | undefined> = {
@@ -87,7 +88,7 @@ export default class SearchListMessages extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
-        // Условие конца: списочные методы и /users?query= — has_next === false; методы поиска (без has_next) — пустой data
+        // Условие конца: has_next === false, а в ответе без has_next — пустой data
         const hasNext = paginate?.has_next;
         if (typeof hasNext === 'boolean') {
           if (!hasNext) break;
@@ -96,7 +97,8 @@ export default class SearchListMessages extends BaseCommand {
         }
 
         if (process.stderr.isTTY) {
-          const total = (paginate as Record<string, unknown> | undefined)?.total;
+          // total лежит в meta у методов поиска. Берём его с первой страницы: при поиске сообщений по дате следующие страницы считают только остаток
+          total ??= meta?.total;
           const progress = total ? `${allData.length} / ${total}` : String(allData.length);
           process.stderr.write(`\r  Загружено: ${progress}...`);
         }

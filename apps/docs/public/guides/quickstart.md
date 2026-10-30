@@ -93,4 +93,4 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 - [Ошибки](/api/errors)
 - [Лимиты](/api/limits)
 - [Пагинация](/api/pagination)
-- [Загрузка файлов](/api/file-uploads)
+- [Файлы](/api/file-uploads)

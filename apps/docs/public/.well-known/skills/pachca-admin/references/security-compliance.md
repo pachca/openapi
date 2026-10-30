@@ -14,8 +14,9 @@ Tool `pachca_get_audit_events`, CLI `pachca security list`, scope
 What to know before answering from it:
 
 - Events are recorded only while the workspace is on Corporation; nothing is
-  backfilled after switching. Records are kept 90 days. For anything longer,
-  the security team must export them regularly.
+  backfilled after switching. No retention period is documented, so do not
+  promise one: for long-term records the security team exports the log
+  regularly.
 - Every event has an actor (an employee or a bot); `oauth_token_revoked` is the
   exception, its actor is the app.
 - `event_key` takes one type per request, so several types mean several

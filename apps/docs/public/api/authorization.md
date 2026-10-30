@@ -77,7 +77,7 @@
 Authorization: Bearer YOUR_ACCESS_TOKEN
 ```
 
-Без токена в заголовке работают методы [Загрузка файла](/api/files/direct-url) и [Обмен кода на токен](/api/oauth/exchange-token). Первый принимает параметры, полученные при подготовке загрузки, во втором приложение подтверждает себя секретом `client_secret` или проверочным кодом PKCE. Метод [Отзыв токена](/api/oauth/revoke-token) серверное приложение вызывает с `client_id` и `client_secret`, а приложение без секрета передаёт отзываемый токен и в заголовке. Подробнее — в разделах [Загрузка файлов](/api/file-uploads) и [Получение токена сотрудника](/guides/oauth/flow).
+Без токена в заголовке работают методы [Загрузка файла](/api/files/direct-url) и [Обмен кода на токен](/api/oauth/exchange-token). Первый принимает параметры, полученные при подготовке загрузки, во втором приложение подтверждает себя секретом `client_secret` или проверочным кодом PKCE. Метод [Отзыв токена](/api/oauth/revoke-token) серверное приложение вызывает с `client_id` и `client_secret`, а приложение без секрета передаёт отзываемый токен и в заголовке. Подробнее — в разделах [Файлы](/api/file-uploads) и [Получение токена сотрудника](/guides/oauth/flow).
 
 ## Создание персонального токена
 
@@ -323,4 +323,4 @@ WWW-Authenticate: Bearer error="insufficient_scope", error_description="Insuffic
 - [Запросы и ответы](/api/requests-responses)
 - [Ошибки](/api/errors)
 - [Лимиты](/api/limits)
-- [Загрузка файлов](/api/file-uploads)
+- [Файлы](/api/file-uploads)

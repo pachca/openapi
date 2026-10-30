@@ -4620,6 +4620,8 @@ public class SearchPaginationMetaPaginate
 {
     [JsonPropertyName("next_page")]
     public string NextPage { get; set; } = default!;
+    [JsonPropertyName("has_next")]
+    public bool HasNext { get; set; } = default!;
 }
 
 public class SearchPaginationMeta

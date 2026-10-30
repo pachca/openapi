@@ -2970,6 +2970,7 @@ data class ReactionRequest(
 @Serializable
 data class SearchPaginationMetaPaginate(
     @SerialName("next_page") val nextPage: String,
+    @SerialName("has_next") val hasNext: Boolean,
 )
 
 @Serializable

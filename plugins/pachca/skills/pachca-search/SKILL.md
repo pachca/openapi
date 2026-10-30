@@ -142,9 +142,8 @@ that feed. Starting points, ids and the full procedure:
 
 - Pages are short. Follow the cursor to the end: in MCP until the page says
   "End of list." instead of "Continue with cursor=…", in the CLI with
-  `--all`. In code, a list ends at `has_next: false`, a search at an empty
-  page or once you hold the `total` of its first page (pachca-api). Never
-  retell page one as the whole thread.
+  `--all`. In code, a list and a search both end at `has_next: false`
+  (pachca-api). Never retell page one as the whole thread.
 - Read in chronological order. In a chat feed (`pachca_list_chat_messages`)
   pass `sort=id` together with `order=asc` on every call, cursor pages
   included (`order` alone is ignored there). In message search

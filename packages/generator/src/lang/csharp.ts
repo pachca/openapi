@@ -14,6 +14,7 @@ import {
   jsonKindOf,
   unionRequiredShapes,
   valueUnionMemberName,
+  paginateHasNext,
 } from '../ir.js';
 import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
@@ -1447,11 +1448,16 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, modifier
 
   const baseName = `${snakeToPascal(op.methodName)}Async`;
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const useHasNext = rt?.metaRef === 'PaginationMeta';
+  const hasNextForm = paginateHasNext(ir, rt?.metaRef);
+  const useHasNext = hasNextForm !== undefined;
 
   if (useHasNext) {
     const cursorExpr = rt?.metaIsRequired ? 'response.Meta.Paginate.NextPage' : 'response.Meta?.Paginate?.NextPage';
-    const hasNextExpr = rt?.metaIsRequired ? 'response.Meta.Paginate.HasNext ?? true' : 'response.Meta?.Paginate?.HasNext ?? true';
+    const hasNextExpr = !rt?.metaIsRequired
+      ? 'response.Meta?.Paginate?.HasNext ?? true'
+      : hasNextForm === 'required'
+        ? 'response.Meta.Paginate.HasNext'
+        : 'response.Meta.Paginate.HasNext ?? true';
     lines.push(`${indent2}var hasNext = true;`);
     lines.push(`${indent2}while (hasNext)`);
     lines.push(`${indent2}{`);

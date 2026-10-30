@@ -18,6 +18,7 @@ Reminders named as in the Pachca app, deleting an incoming webhook, the output o
 - `pachca_update_user`: `list_tags` names the "Who can add the bot to chats" values that lead to `restricted_bot_tag_denied`, "Creator" and "Creator and Administrators".
 - `pachca_send_message` and `pachca_update_message`: `content` says to take a nickname from a tool's answer and a `user_id` from data, since a nickname made up from a name mentions nobody.
 - A `403` with `insufficient_scope` tells the model not to retry: a person connected through the browser signs in again without narrowing the scopes, a personal token gets the scope in its menu, a bot's creator adds it to the bot's token.
+- `pachca_search_users`, `pachca_search_chats` and `pachca_search_messages`: the output `meta.paginate` has `has_next`, `false` on the last page, where `next_page` still comes.
 
 ## 1.4.0 (2026-10-28)
 

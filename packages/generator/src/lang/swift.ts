@@ -12,6 +12,7 @@ import {
   type IRValueUnion,
   jsonKindOf,
   valueUnionMemberName,
+  paginateHasNext,
 } from '../ir.js';
 import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, tagToProperty, tagToServiceName, serviceToImplName } from '../naming.js';
@@ -792,11 +793,16 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, fnPrefix
   }
 
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const useHasNext = rt?.metaRef === 'PaginationMeta';
+  const hasNextForm = paginateHasNext(ir, rt?.metaRef);
+  const useHasNext = hasNextForm !== undefined;
 
   if (useHasNext) {
     const cursorExpr = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate.nextPage';
-    const hasNextExpr = rt?.metaIsRequired ? 'response.meta.paginate.hasNext ?? true' : 'response.meta?.paginate.hasNext ?? true';
+    const hasNextExpr = !rt?.metaIsRequired
+      ? 'response.meta?.paginate.hasNext ?? true'
+      : hasNextForm === 'required'
+        ? 'response.meta.paginate.hasNext'
+        : 'response.meta.paginate.hasNext ?? true';
     lines.push('        var hasNext = true');
     lines.push('        while hasNext {');
     lines.push(`            let response = try await ${op.methodName}(${callArgs.join(', ')})`);

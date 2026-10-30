@@ -13,6 +13,7 @@ import {
   jsonKindOf,
   unionRequiredShapes,
   valueUnionMemberName,
+  paginateModel,
 } from '../ir.js';
 import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, snakeToPascal, tagToServiceName, serviceToImplName, serviceToStubName } from '../naming.js';
@@ -1166,7 +1167,7 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   const hasNextField = paginate?.fields.find((f) => f.name === 'has_next');
   const nextPageField = paginate?.fields.find((f) => f.name === 'next_page');
   const nextPageIsPointer = nextPageField ? isOptionalField(nextPageField) : false;
-  const useHasNext = rt?.metaRef === 'PaginationMeta' && hasNextField !== undefined;
+  const useHasNext = hasNextField !== undefined;
   const pushNextCursor = (indent: string): void => {
     if (nextPageIsPointer) {
       lines.push(`${indent}if result.Meta.Paginate.NextPage == nil {`);
@@ -1221,15 +1222,6 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\t}');
   }
   lines.push('}');
-}
-
-/** The model behind `meta.paginate` of a list response, if the spec declares one. */
-function paginateModel(ir: IR, metaRef: string | undefined): IRModel | undefined {
-  if (!metaRef) return undefined;
-  const allModels = ir.models.flatMap((m) => [...m.inlineObjects, m]);
-  const meta = allModels.find((m) => m.name === metaRef);
-  const ref = meta?.fields.find((f) => f.name === 'paginate')?.type.ref;
-  return ref ? allModels.find((m) => m.name === ref) : undefined;
 }
 
 function hasWebhookPolling(svc: IRService): boolean {

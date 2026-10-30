@@ -849,6 +849,7 @@
 		"$.components.schemas.SearchEntityType.x-enum-descriptions": "7184f89158cf33df",
 		"$.components.schemas.SearchPaginationMeta.description": "318693935c6f3a20",
 		"$.components.schemas.SearchPaginationMeta.properties.paginate.description": "2d25237b85be071e",
+		"$.components.schemas.SearchPaginationMeta.properties.paginate.properties.has_next.description": "1532704114952c64",
 		"$.components.schemas.SearchPaginationMeta.properties.paginate.properties.next_page.description": "fa136ae0bfe5176b",
 		"$.components.schemas.SearchPaginationMeta.properties.total.description": "5a4edb215fc5e08d",
 		"$.components.schemas.SearchSortOrder.description": "7c8b472ff13f1155",

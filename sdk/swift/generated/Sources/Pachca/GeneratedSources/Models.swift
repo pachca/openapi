@@ -5224,13 +5224,16 @@ public struct ReactionWebhookPayload: Codable {
 
 public struct SearchPaginationMetaPaginate: Codable {
     public let nextPage: String
+    public let hasNext: Bool
 
-    public init(nextPage: String) {
+    public init(nextPage: String, hasNext: Bool) {
         self.nextPage = nextPage
+        self.hasNext = hasNext
     }
 
     enum CodingKeys: String, CodingKey {
         case nextPage = "next_page"
+        case hasNext = "has_next"
     }
 }
 

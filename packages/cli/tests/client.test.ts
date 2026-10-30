@@ -851,7 +851,13 @@ describe('client', () => {
         });
       });
 
-      await request({ method: 'GET', path: '/profile', token: 'test' }, { quiet: true });
+      const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      try {
+        await request({ method: 'GET', path: '/profile', token: 'test' }, { quiet: true });
+        expect(stderr).toHaveBeenCalledWith('Warning: invalid PACHCA_API_URL, using default\n');
+      } finally {
+        stderr.mockRestore();
+      }
       expect(capturedUrl).toBe('https://api.pachca.com/api/shared/v1/profile');
     });
 

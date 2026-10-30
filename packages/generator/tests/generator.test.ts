@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 import ts from 'typescript';
 import { generate, SUPPORTED_LANGS } from '../src/index.js';
 import { classifyEnumUsage, transform } from '../src/transform.js';
-import { unionRequiredShapes, type IRField, type IRFieldType, type IRModel } from '../src/ir.js';
+import { paginateHasNext, unionRequiredShapes, type IRField, type IRFieldType, type IRModel } from '../src/ir.js';
 import { parseOpenAPI } from '@pachca/openapi-parser';
 
 const TESTS_DIR = path.resolve(__dirname, '.');
@@ -1309,5 +1309,18 @@ describe('Go snapshots compile', () => {
     } finally {
       fs.rmSync(mod, { recursive: true, force: true });
     }
+  });
+});
+
+// The `*All()` helpers stop on `meta.paginate.has_next` wherever the spec declares
+// it, search included, and on an empty page where the meta has no such field.
+describe('has_next in pagination meta', () => {
+  it('finds the flag by the paginate model, not by the meta name', () => {
+    const pachca = transform(parseOpenAPI(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml')));
+    expect(paginateHasNext(pachca, 'PaginationMeta')).toBe('optional');
+    expect(paginateHasNext(pachca, 'SearchPaginationMeta')).toBe('required');
+
+    const crud = transform(parseOpenAPI(path.join(TESTS_DIR, 'crud', 'fixture.yaml')));
+    expect(paginateHasNext(crud, 'PaginationMeta')).toBeUndefined();
   });
 });

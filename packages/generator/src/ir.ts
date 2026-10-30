@@ -401,3 +401,23 @@ export interface IR {
    */
   oauthAuthorizeUrl?: string;
 }
+
+/** The model behind `meta.paginate` of a list response, if the spec declares one. */
+export function paginateModel(ir: IR, metaRef: string | undefined): IRModel | undefined {
+  if (!metaRef) return undefined;
+  const allModels = ir.models.flatMap((m) => [...m.inlineObjects, m]);
+  const meta = allModels.find((m) => m.name === metaRef);
+  const ref = meta?.fields.find((f) => f.name === 'paginate')?.type.ref;
+  return ref ? allModels.find((m) => m.name === ref) : undefined;
+}
+
+/**
+ * Whether `meta.paginate` of a list response carries `has_next`, and in which
+ * form. The `*All()` helpers stop on it where it exists and on an empty page
+ * otherwise; a required flag is read without a fallback.
+ */
+export function paginateHasNext(ir: IR, metaRef: string | undefined): 'required' | 'optional' | undefined {
+  const field = paginateModel(ir, metaRef)?.fields.find((f) => f.name === 'has_next');
+  if (!field) return undefined;
+  return field.required && !field.nullable ? 'required' : 'optional';
+}

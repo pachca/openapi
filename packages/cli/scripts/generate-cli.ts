@@ -810,6 +810,7 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`      let nextCursor: string | undefined = undefined;`);
     runBodyLines.push(`      let pages = 0;`);
     runBodyLines.push(`      const seenCursors = new Set<string>();`);
+    runBodyLines.push(`      let total: unknown;`);
     runBodyLines.push('');
     runBodyLines.push(`      while (pages < 500) {`);
     runBodyLines.push(`        const query: Record<string, string | number | boolean | string[] | undefined> = {`);
@@ -826,7 +827,7 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`        const paginate = meta?.paginate as Record<string, unknown> | undefined;`);
     runBodyLines.push(`        nextCursor = paginate?.next_page as string | undefined;`);
     runBodyLines.push(`        pages++;`);
-    runBodyLines.push(`        // Условие конца: списочные методы и /users?query= — has_next === false; методы поиска (без has_next) — пустой data`);
+    runBodyLines.push(`        // Условие конца: has_next === false, а в ответе без has_next — пустой data`);
     runBodyLines.push(`        const hasNext = paginate?.has_next;`);
     runBodyLines.push(`        if (typeof hasNext === 'boolean') {`);
     runBodyLines.push(`          if (!hasNext) break;`);
@@ -835,7 +836,8 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`        }`);
     runBodyLines.push('');
     runBodyLines.push(`        if (process.stderr.isTTY) {`);
-    runBodyLines.push(`          const total = (paginate as Record<string, unknown> | undefined)?.total;`);
+    runBodyLines.push(`          // total лежит в meta у методов поиска. Берём его с первой страницы: при поиске сообщений по дате следующие страницы считают только остаток`);
+    runBodyLines.push(`          total ??= meta?.total;`);
     runBodyLines.push(`          const progress = total ? \`\${allData.length} / \${total}\` : String(allData.length);`);
     runBodyLines.push(`          process.stderr.write(\`\\r  Загружено: \${progress}...\`);`);
     runBodyLines.push(`        }`);

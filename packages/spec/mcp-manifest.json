@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "cf1c94df9a1693fd"
+    "digest": "0178e539ee7031eb"
   },
   "server": {
     "name": "pachca",
@@ -14216,6 +14216,10 @@
                   "next_page": {
                     "type": "string",
                     "description": "Next page pagination cursor"
+                  },
+                  "has_next": {
+                    "type": "boolean",
+                    "description": "Whether more data exists on the next page. `false` on the last page"
                   }
                 }
               }
@@ -14676,6 +14680,10 @@
                   "next_page": {
                     "type": "string",
                     "description": "Next page pagination cursor"
+                  },
+                  "has_next": {
+                    "type": "boolean",
+                    "description": "Whether more data exists on the next page. `false` on the last page"
                   }
                 }
               }
@@ -15060,6 +15068,10 @@
                   "next_page": {
                     "type": "string",
                     "description": "Next page pagination cursor"
+                  },
+                  "has_next": {
+                    "type": "boolean",
+                    "description": "Whether more data exists on the next page. `false` on the last page"
                   }
                 }
               }

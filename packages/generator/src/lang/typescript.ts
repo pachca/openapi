@@ -10,6 +10,7 @@ import {
   type IROperation,
   type IRParam,
   type IRResponseType,
+  paginateHasNext,
 } from '../ir.js';
 import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
@@ -964,7 +965,8 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
 
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
   const metaOpt = rt?.metaIsRequired ? '' : '?';
-  const useHasNext = rt?.metaRef === 'PaginationMeta';
+  const hasNextForm = paginateHasNext(ir, rt?.metaRef);
+  const useHasNext = hasNextForm !== undefined;
 
   if (useHasNext) {
     lines.push('    let hasNext = true;');
@@ -973,7 +975,11 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     lines.push('      items.push(...response.data);');
     lines.push('      if (response.data.length === 0) break;');
     lines.push(`      cursor = response.meta${metaOpt}.paginate.nextPage;`);
-    lines.push(`      hasNext = response.meta${metaOpt}.paginate.hasNext ?? true;`);
+    lines.push(
+      hasNextForm === 'required' && rt?.metaIsRequired
+        ? '      hasNext = response.meta.paginate.hasNext;'
+        : `      hasNext = response.meta${metaOpt}.paginate.hasNext ?? true;`,
+    );
     lines.push('    }');
   } else {
     lines.push('    do {');

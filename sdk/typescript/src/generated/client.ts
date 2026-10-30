@@ -2412,12 +2412,14 @@ export class SearchServiceImpl extends SearchService {
   async searchChatsAll(params?: Omit<SearchChatsParams, 'cursor'>): Promise<Chat[]> {
     const items: Chat[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.searchChats({ ...params, cursor } as SearchChatsParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext;
+    }
     return items;
   }
 
@@ -2454,12 +2456,14 @@ export class SearchServiceImpl extends SearchService {
   async searchMessagesAll(params?: Omit<SearchMessagesParams, 'cursor'>): Promise<Message[]> {
     const items: Message[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.searchMessages({ ...params, cursor } as SearchMessagesParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext;
+    }
     return items;
   }
 
@@ -2492,12 +2496,14 @@ export class SearchServiceImpl extends SearchService {
   async searchUsersAll(params?: Omit<SearchUsersParams, 'cursor'>): Promise<User[]> {
     const items: User[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.searchUsers({ ...params, cursor } as SearchUsersParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext;
+    }
     return items;
   }
 }

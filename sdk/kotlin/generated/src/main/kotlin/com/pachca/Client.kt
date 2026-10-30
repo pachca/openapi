@@ -2162,7 +2162,8 @@ class SearchServiceImpl internal constructor(
     ): List<Chat> {
         val items = mutableListOf<Chat>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = searchChats(
                 query = query,
                 limit = limit,
@@ -2177,7 +2178,8 @@ class SearchServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext
+        }
         return items
     }
 
@@ -2224,7 +2226,8 @@ class SearchServiceImpl internal constructor(
     ): List<Message> {
         val items = mutableListOf<Message>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = searchMessages(
                 query = query,
                 limit = limit,
@@ -2240,7 +2243,8 @@ class SearchServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext
+        }
         return items
     }
 
@@ -2281,7 +2285,8 @@ class SearchServiceImpl internal constructor(
     ): List<User> {
         val items = mutableListOf<User>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = searchUsers(
                 query = query,
                 limit = limit,
@@ -2295,7 +2300,8 @@ class SearchServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext
+        }
         return items
     }
 }

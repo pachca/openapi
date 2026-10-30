@@ -1755,6 +1755,7 @@ class ReactionWebhookPayload:
 @dataclass
 class SearchPaginationMetaPaginate:
     next_page: str
+    has_next: bool
 
 
 @dataclass

@@ -9,6 +9,7 @@ import {
   type IRResponseType,
   type IRService,
   type IRUnion,
+  paginateHasNext,
 } from '../ir.js';
 import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
@@ -789,7 +790,7 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push(`        items: list[${itemType}] = []`);
   lines.push('        cursor: str | None = None');
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const useHasNext = rt?.metaRef === 'PaginationMeta';
+  const useHasNext = paginateHasNext(ir, rt?.metaRef) !== undefined;
 
   const callParts: string[] = [];
   if (op.externalUrl) callParts.push(camelToSnake(op.externalUrl));

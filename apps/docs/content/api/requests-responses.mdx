@@ -31,7 +31,7 @@ https://api.pachca.com/api/shared/v1
 
 - Загрузка аватара сотрудника, бота или чата (например, [Загрузка своего аватара](PUT /profile/avatar)) — форма `multipart/form-data`
 - [Обмен кода на токен](POST /oauth/token) и [Отзыв токена](POST /oauth/revoke) — `application/x-www-form-urlencoded`, как требует OAuth 2.0, а приложение подтверждает себя секретом клиента
-- [Получение подписи, ключа и других параметров](POST /uploads) вызывается без тела, а сам файл уходит в хранилище на адрес `direct_url` формой `multipart/form-data` и без заголовка `Authorization`: подробнее — в разделе [Загрузка файлов](/api/file-uploads)
+- [Получение подписи, ключа и других параметров](POST /uploads) вызывается без тела, а сам файл уходит в хранилище на адрес `direct_url` формой `multipart/form-data` и без заголовка `Authorization`: подробнее — в разделе [Файлы](/api/file-uploads)
 
 ## Запросы из браузера
 

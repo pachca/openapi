@@ -99,4 +99,4 @@ pachca api GET /users --query limit=20 | jq -r '.meta.paginate.next_page'
 pachca users list --limit 20 --cursor <next_page>
 ```
 
-Курсор следующей страницы у всех методов лежит в `meta.paginate.next_page`. Признак последней страницы у списочных методов и методов поиска разный, он описан в разделе [Две группы методов с пагинацией](/api/pagination#dve-gruppy-metodov-s-paginatsiey).
+Курсор следующей страницы у всех методов лежит в `meta.paginate.next_page`, а признак последней страницы — `meta.paginate.has_next: false`. Чем отличаются ответы списочных методов и методов поиска, описано в разделе [Две группы методов с пагинацией](/api/pagination#dve-gruppy-metodov-s-paginatsiey).

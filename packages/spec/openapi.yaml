@@ -13848,8 +13848,13 @@ components:
               type: string
               description: Курсор пагинации следующей страницы
               example: eyJxZCO2MiwiZGlyIjomSNYjIn3
+            has_next:
+              type: boolean
+              description: Есть ли ещё данные на следующей странице. На последней странице — `false`.
+              example: true
           required:
             - next_page
+            - has_next
           description: Вспомогательная информация
       description: Мета-информация для пагинации поисковых результатов
     SearchSortOrder:

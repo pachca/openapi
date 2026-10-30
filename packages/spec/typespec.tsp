@@ -1673,6 +1673,10 @@ model SearchPaginationMeta {
     @doc("Курсор пагинации следующей страницы")
     @example("eyJxZCO2MiwiZGlyIjomSNYjIn3")
     next_page: string;
+
+    @doc("Есть ли ещё данные на следующей странице. На последней странице — `false`.")
+    @example(true)
+    has_next: boolean;
   };
 }
 

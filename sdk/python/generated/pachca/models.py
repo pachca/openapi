@@ -614,7 +614,7 @@ class AuditDetailsBot:
     application_id: int | None = None
     access_token_id: int | None = None
     access_token_preview: str | None = None
-    scopes: list[str] | None = None
+    scopes: list[str] | AuditDetailsTokenScopesChange | None = None
     name: AuditDetailsTokenNameChange | None = None
 
 

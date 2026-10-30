@@ -10,6 +10,10 @@ import {
   type IROperation,
   type IRParam,
   type IRResponseType,
+  type IRValueUnion,
+  jsonKindOf,
+  unionRequiredShapes,
+  valueUnionMemberName,
 } from '../ir.js';
 import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
@@ -103,7 +107,7 @@ function csType(ft: IRFieldType): string {
     case 'record':
       return `Dictionary<string, ${csType(ft.valueType!)}>`;
     case 'union':
-      return ft.ref ?? 'object';
+      return ft.valueUnion ?? ft.ref ?? 'object';
     case 'literal':
       return 'string';
     case 'binary':
@@ -249,6 +253,16 @@ function generateModels(ir: IR): string {
     lines.push('');
     emitUnion(lines, u, ir);
   }
+  if (ir.unions.some((u) => !u.discriminatorField)) {
+    lines.push('');
+    emitUnionRequiredKeys(lines, ir);
+  }
+
+  // Value unions
+  for (const vu of ir.valueUnions) {
+    lines.push('');
+    emitValueUnion(lines, vu);
+  }
 
   // Models (skip union members)
   for (const m of ir.models) {
@@ -387,6 +401,137 @@ function emitEnumConverter(lines: string[], e: IREnum): void {
   lines.push('}');
 }
 
+/**
+ * A field that takes values of different JSON kinds is a wrapper with a property
+ * per member: the one the value fills is set, the others are null. The JSON
+ * token picks the member, and an object that does not fit its model throws, so
+ * a union member gives way to the next.
+ */
+function emitValueUnion(lines: string[], vu: IRValueUnion): void {
+  const typeOf = (m: IRFieldType) => csType(m);
+  const nullableOf = (m: IRFieldType) => `${typeOf(m)}?`;
+  if (vu.description) {
+    lines.push('/// <summary>');
+    for (const line of vu.description.split('\n')) lines.push(`/// ${line}`);
+    lines.push('/// </summary>');
+  }
+  lines.push(`[JsonConverter(typeof(${vu.name}Converter))]`);
+  lines.push(`public sealed class ${vu.name}`);
+  lines.push('{');
+  for (const m of vu.members) lines.push(`    public ${nullableOf(m)} ${valueUnionMemberName(m)} { get; }`);
+  lines.push('');
+  for (const m of vu.members) {
+    lines.push(`    public ${vu.name}(${typeOf(m)} value) { ${valueUnionMemberName(m)} = value; }`);
+  }
+  lines.push('');
+  for (const m of vu.members) {
+    lines.push(`    public static implicit operator ${vu.name}(${typeOf(m)} value) => new(value);`);
+  }
+  lines.push('}');
+  lines.push('');
+  const expected = vu.members.map((m) => valueUnionMemberName(m)).join(' or ');
+  lines.push(`internal sealed class ${vu.name}Converter : JsonConverter<${vu.name}>`);
+  lines.push('{');
+  lines.push(`    public override ${vu.name} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)`);
+  lines.push('    {');
+  lines.push('        switch (reader.TokenType)');
+  lines.push('        {');
+  const tokens: Record<string, string[]> = {
+    array: ['StartArray'],
+    object: ['StartObject'],
+    string: ['String'],
+    number: ['Number'],
+    boolean: ['True', 'False'],
+  };
+  for (const m of vu.members) {
+    for (const token of tokens[jsonKindOf(m)!]) lines.push(`            case JsonTokenType.${token}:`);
+    lines.push(`                return new ${vu.name}(JsonSerializer.Deserialize<${typeOf(m)}>(ref reader, options)!);`);
+  }
+  lines.push('            default:');
+  lines.push(`                throw new JsonException($"${vu.name} takes ${expected}, got {reader.TokenType}");`);
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('');
+  lines.push(`    public override void Write(Utf8JsonWriter writer, ${vu.name} value, JsonSerializerOptions options)`);
+  lines.push('    {');
+  for (const m of vu.members) {
+    const name = valueUnionMemberName(m);
+    lines.push(`        if (value.${name} != null)`);
+    lines.push('        {');
+    lines.push(`            JsonSerializer.Serialize(writer, value.${name}, options);`);
+    lines.push('            return;');
+    lines.push('        }');
+  }
+  lines.push('        writer.WriteNullValue();');
+  lines.push('    }');
+  lines.push('}');
+}
+
+/**
+ * The required keys of the members of unions without a discriminator and of the
+ * models nested in them, and the check every such union runs before it takes a
+ * member. Emitted once, keyed by the model name (the class name).
+ */
+function emitUnionRequiredKeys(lines: string[], ir: IR): void {
+  const shapes = unionRequiredShapes(ir.unions, ir.models);
+  lines.push('// UnionRequiredKeys lists, for a model a union without a discriminator may hold');
+  lines.push('// or nest, the keys it cannot do without and the fields that hold a model (or a');
+  lines.push('// list of them) with required keys of its own. A required field that may hold');
+  lines.push('// null is not listed: its key may be missing. System.Text.Json fills a missing');
+  lines.push('// field with its default, so a union checks the keys before it takes a member;');
+  lines.push('// decoding a model on its own stays as lenient as System.Text.Json.');
+  lines.push('internal static class UnionRequiredKeys');
+  lines.push('{');
+  lines.push('    private static readonly Dictionary<string, (string[] Keys, (string Key, string Model)[] Nested)> Shapes = new()');
+  lines.push('    {');
+  for (const shape of shapes) {
+    const keys = shape.required.length > 0 ? `new[] { ${shape.required.map((k) => JSON.stringify(k)).join(', ')} }` : 'Array.Empty<string>()';
+    const nested = shape.nested.length > 0
+      ? `new[] { ${shape.nested.map((n) => `(${JSON.stringify(n.key)}, ${JSON.stringify(n.model)})`).join(', ')} }`
+      : 'Array.Empty<(string, string)>()';
+    lines.push(`        [${JSON.stringify(shape.model)}] = (${keys}, ${nested}),`);
+  }
+  lines.push('    };');
+  lines.push('');
+  lines.push('    // Missing names the first required key the payload of a model lacks, in the');
+  lines.push('    // model or in a model nested in it, or returns null when nothing is missing.');
+  lines.push('    public static string? Missing(string model, JsonElement value)');
+  lines.push('    {');
+  lines.push('        if (!Shapes.TryGetValue(model, out var shape)) return null;');
+  lines.push('        var isObject = value.ValueKind == JsonValueKind.Object;');
+  lines.push('        foreach (var key in shape.Keys)');
+  lines.push('        {');
+  lines.push('            if (!isObject || !value.TryGetProperty(key, out _)) return $"{model} requires \\"{key}\\"";');
+  lines.push('        }');
+  lines.push('        if (!isObject) return null;');
+  lines.push('        foreach (var (key, nested) in shape.Nested)');
+  lines.push('        {');
+  lines.push('            if (value.TryGetProperty(key, out var inner) && MissingIn(nested, inner) is { } missing) return missing;');
+  lines.push('        }');
+  lines.push('        return null;');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    // A field value: an object of the model, a list of them, or a value of another');
+  lines.push('    // kind, which the converter itself takes or refuses.');
+  lines.push('    private static string? MissingIn(string model, JsonElement value)');
+  lines.push('    {');
+  lines.push('        switch (value.ValueKind)');
+  lines.push('        {');
+  lines.push('            case JsonValueKind.Object:');
+  lines.push('                return Missing(model, value);');
+  lines.push('            case JsonValueKind.Array:');
+  lines.push('                foreach (var item in value.EnumerateArray())');
+  lines.push('                {');
+  lines.push('                    if (MissingIn(model, item) is { } missing) return missing;');
+  lines.push('                }');
+  lines.push('                return null;');
+  lines.push('            default:');
+  lines.push('                return null;');
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('}');
+}
+
 /** Union whose members share no discriminator: decode by matching the payload shape. */
 function emitStructuralUnion(lines: string[], u: IRUnion, memberModels: IRModel[]): void {
   lines.push(`[JsonConverter(typeof(${u.name}Converter))]`);
@@ -399,6 +544,7 @@ function emitStructuralUnion(lines: string[], u: IRUnion, memberModels: IRModel[
   lines.push('// fewest declared), and the first one that decodes wins.');
   lines.push(`internal sealed class ${u.name}Converter : JsonConverter<${u.name}>`);
   lines.push('{');
+  // The required keys a member cannot do without are in UnionRequiredKeys.
   lines.push('    private static readonly (Type Type, HashSet<string> Keys)[] Shapes =');
   lines.push('    {');
   for (const memberModel of memberModels) {
@@ -427,6 +573,15 @@ function emitStructuralUnion(lines: string[], u: IRUnion, memberModels: IRModel[
   lines.push('        JsonException? firstError = null;');
   lines.push('        foreach (var candidate in ranked)');
   lines.push('        {');
+  lines.push('            // System.Text.Json fills a missing field with its default: a member that');
+  lines.push('            // misses a required key, in itself or in a model nested in it, gives way');
+  lines.push('            // to the next one here.');
+  lines.push('            var missing = UnionRequiredKeys.Missing(candidate.Type.Name, root);');
+  lines.push('            if (missing != null)');
+  lines.push('            {');
+  lines.push('                firstError ??= new JsonException(missing);');
+  lines.push('                continue;');
+  lines.push('            }');
   lines.push('            try');
   lines.push('            {');
   lines.push(`                return (${u.name})JsonSerializer.Deserialize(raw, candidate.Type, options)!;`);
@@ -1883,6 +2038,9 @@ function csLiteral(
     case 'record':
       return `new Dictionary<string, ${csExampleType(ft.valueType!)}> { ["key"] = ${csLiteral(ft.valueType!, ir, models, visited, indent)} }`;
     case 'union': {
+      if (ft.valueUnion && ft.members) {
+        return `new ${csExampleTypeRef(ft.valueUnion)}(${csLiteral(ft.members[0], ir, models, visited, indent)})`;
+      }
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
         return csModelLiteral(u.memberRefs[0], ir, models, visited, indent);
@@ -1957,7 +2115,7 @@ function csFingerprint(
     case 'record':
       return `Dictionary<string, ${csFingerprint(ft.valueType!, ir, models, visited)}>`;
     case 'union':
-      return ft.ref ?? 'object';
+      return ft.valueUnion ?? ft.ref ?? 'object';
     case 'literal':
       return 'string';
     case 'binary':

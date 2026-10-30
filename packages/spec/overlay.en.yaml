@@ -1756,7 +1756,7 @@ actions:
       description: "Masked token: the first and last characters. Present for bot token events, `null` if the value is unavailable."
   - target: $.components.schemas.AuditDetailsBot.properties.scopes
     update:
-      description: "Token scopes. Present for bot_token_created."
+      description: "Token scopes in records made before October 7, 2026: an array for bot_token_created, an object with the `previous` and `new` fields for bot_token_updated if the scopes were passed in the request."
   - target: $.components.schemas.AuditDetailsBot.properties.name
     update:
       description: "Token name change for bot_token_updated. Present if the name was passed in the request."

@@ -9,6 +9,9 @@ import {
   type IRResponseType,
   type IRService,
   type IRUnion,
+  type IRValueUnion,
+  jsonKindOf,
+  valueUnionMemberName,
 } from '../ir.js';
 import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, tagToProperty, tagToServiceName, serviceToImplName } from '../naming.js';
@@ -40,7 +43,7 @@ function swiftType(ft: IRFieldType, opts: { nullable?: boolean } = {}): string {
     case 'enum':
     case 'model':
     case 'union':
-      base = ft.ref ?? 'String';
+      base = ft.valueUnion ?? ft.ref ?? 'String';
       break;
     case 'array':
       base = `[${swiftType(ft.items!)}]`;
@@ -347,6 +350,73 @@ function emitStructuralUnion(lines: string[], u: IRUnion, models: IRModel[]): vo
   lines.push('}');
 }
 
+function valueUnionCase(m: IRFieldType): string {
+  const name = valueUnionMemberName(m);
+  return swiftIdentifier(name.charAt(0).toLowerCase() + name.slice(1));
+}
+
+/**
+ * A field that takes values of different JSON kinds is an enum with a case per
+ * member. The kind of the JSON value picks the case: a list, an object, then a
+ * plain value, so an object that does not fit its model reports its own error.
+ */
+function emitValueUnion(lines: string[], vu: IRValueUnion): void {
+  if (vu.description) lines.push(`/// ${vu.description.replace(/\n/g, ' ')}`);
+  lines.push(`public enum ${vu.name}: Codable {`);
+  for (const m of vu.members) lines.push(`    case ${valueUnionCase(m)}(${swiftType(m)})`);
+  lines.push('');
+  const object = vu.members.find((m) => jsonKindOf(m) === 'object');
+  if (object) {
+    lines.push('    private struct AnyKey: CodingKey {');
+    lines.push('        let stringValue: String');
+    lines.push('        var intValue: Int? { nil }');
+    lines.push('        init?(stringValue: String) { self.stringValue = stringValue }');
+    lines.push('        init?(intValue: Int) { nil }');
+    lines.push('    }');
+    lines.push('');
+  }
+  lines.push('    public init(from decoder: Decoder) throws {');
+  const list = vu.members.find((m) => jsonKindOf(m) === 'array');
+  if (list) {
+    lines.push('        if (try? decoder.unkeyedContainer()) != nil {');
+    lines.push(`            self = .${valueUnionCase(list)}(try ${swiftType(list)}(from: decoder))`);
+    lines.push('            return');
+    lines.push('        }');
+  }
+  if (object) {
+    lines.push('        if (try? decoder.container(keyedBy: AnyKey.self)) != nil {');
+    lines.push(`            self = .${valueUnionCase(object)}(try ${swiftType(object)}(from: decoder))`);
+    lines.push('            return');
+    lines.push('        }');
+  }
+  const plain = vu.members.filter((m) => m !== list && m !== object);
+  if (plain.length > 0) {
+    lines.push('        let container = try decoder.singleValueContainer()');
+    for (const m of plain) {
+      lines.push(`        if let value = try? container.decode(${swiftType(m)}.self) {`);
+      lines.push(`            self = .${valueUnionCase(m)}(value)`);
+      lines.push('            return');
+      lines.push('        }');
+    }
+  }
+  const expected = vu.members.map((m) => swiftType(m)).join(' or ');
+  lines.push('        throw DecodingError.typeMismatch(');
+  lines.push(`            ${vu.name}.self,`);
+  lines.push(`            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Expected ${expected}")`);
+  lines.push('        )');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    public func encode(to encoder: Encoder) throws {');
+  lines.push('        switch self {');
+  for (const m of vu.members) {
+    lines.push(`        case .${valueUnionCase(m)}(let value):`);
+    lines.push('            try value.encode(to: encoder)');
+  }
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('}');
+}
+
 function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   const discField = u.discriminatorField;
   if (!discField) {
@@ -454,6 +524,10 @@ function generateModels(ir: IR): string {
   }
   for (const u of ir.unions) {
     emitUnion(lines, u, ir.models);
+    lines.push('');
+  }
+  for (const vu of ir.valueUnions) {
+    emitValueUnion(lines, vu);
     lines.push('');
   }
   for (const rt of ir.responses) {
@@ -1336,6 +1410,9 @@ function swiftLiteral(
     case 'record':
       return `["key": ${swiftLiteral(ft.valueType!, ir, models, visited, indent)}]`;
     case 'union': {
+      if (ft.valueUnion && ft.members) {
+        return `.${valueUnionCase(ft.members[0])}(${swiftLiteral(ft.members[0], ir, models, visited, indent)})`;
+      }
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
         return swiftUnionLiteral(u.memberRefs[0], ir, models, visited, indent);
@@ -1426,7 +1503,7 @@ function swiftFingerprint(
     case 'record':
       return `[String: ${swiftFingerprint(ft.valueType!, ir, models, visited)}]`;
     case 'union':
-      return ft.ref ?? 'String';
+      return ft.valueUnion ?? ft.ref ?? 'String';
     case 'literal':
       return 'String';
     case 'binary':

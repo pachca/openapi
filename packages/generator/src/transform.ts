@@ -11,6 +11,7 @@ import type {
   IREnumMember,
   IRModel,
   IRUnion,
+  IRValueUnion,
   IRField,
   IRFieldType,
   IRService,
@@ -25,6 +26,7 @@ import type {
   IRResponseType,
   UnwrapMode,
 } from './ir.js';
+import { jsonKindOf } from './ir.js';
 import {
   refName,
   snakeToCamel,
@@ -162,6 +164,31 @@ function resolveFieldType(schema: Schema): IRFieldType {
   };
 }
 
+// ----- Value unions -----
+
+/**
+ * Value unions met while transforming the models, and the component names they
+ * must not take. Set for the length of one transform() call.
+ */
+let valueUnionScope: { unions: IRValueUnion[]; taken: Set<string> } | undefined;
+
+/**
+ * A field union whose members are of different JSON kinds (`string[] |
+ * ScopesChange`) becomes a value union named after the model and the field.
+ * A union whose members share a JSON kind (two models) stays as it was: the
+ * kind of the value cannot pick its member.
+ */
+function asValueUnion(ft: IRFieldType, parentName: string, propName: string, description?: string): IRFieldType {
+  if (!valueUnionScope || ft.kind !== 'union' || ft.ref || !ft.members || ft.members.length < 2) return ft;
+  const kinds = ft.members.map(jsonKindOf);
+  if (kinds.some((k) => k === undefined) || new Set(kinds).size !== kinds.length) return ft;
+  let name = parentName + snakeToPascal(propName);
+  if (valueUnionScope.taken.has(name)) name += 'Value';
+  valueUnionScope.taken.add(name);
+  valueUnionScope.unions.push({ name, members: ft.members, description });
+  return { ...ft, valueUnion: name };
+}
+
 // ----- Model extraction -----
 
 /** Singularize a PascalCase or camelCase name for inline model naming */
@@ -284,7 +311,7 @@ function extractFields(
       continue;
     }
 
-    const fieldType = resolveFieldType(propSchema);
+    const fieldType = asValueUnion(resolveFieldType(propSchema), parentName, propName, propSchema.description);
     if (propSchema.example !== undefined) fieldType.example = propSchema.example;
     fields.push({
       name: propName,
@@ -914,7 +941,9 @@ export function transform(spec: ParsedAPI): IR {
   const enums: IREnum[] = [];
   const models: IRModel[] = [];
   const unions: IRUnion[] = [];
+  const valueUnions: IRValueUnion[] = [];
   const enumUsage = classifyEnumUsage(spec);
+  valueUnionScope = { unions: valueUnions, taken: new Set(Object.keys(spec.schemas)) };
 
   // Classify and transform schemas
   for (const [name, schema] of Object.entries(spec.schemas)) {
@@ -1020,6 +1049,7 @@ export function transform(spec: ParsedAPI): IR {
     profileSvc.operations.push(tokenInfoAlias);
   }
 
+  valueUnionScope = undefined;
   const baseUrl = spec.servers[0]?.url;
   const oauthAuthorizeUrl = spec.endpoints.find((e) => e.oauthAuthorizeUrl)?.oauthAuthorizeUrl;
 
@@ -1031,6 +1061,7 @@ export function transform(spec: ParsedAPI): IR {
     enums,
     models,
     unions,
+    valueUnions,
     services,
     params,
     responses,

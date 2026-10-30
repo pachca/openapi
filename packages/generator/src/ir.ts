@@ -24,6 +24,12 @@ export interface IRFieldType {
   valueType?: IRFieldType;
   /** For union: member types */
   members?: IRFieldType[];
+  /**
+   * For union: the name of the value union this field takes (see IRValueUnion).
+   * Set when the members are of different JSON kinds (a list and an object, for
+   * instance): the SDK decodes such a field by the kind of the JSON value.
+   */
+  valueUnion?: string;
   /** For literal: the literal string value */
   literalValue?: string;
   /** Example value from the OpenAPI spec */
@@ -87,6 +93,144 @@ export interface IRUnion {
   discriminatorField?: string;
   /** Optional named custom deserializer strategy from spec extension */
   unionDeserializer?: string;
+}
+
+/**
+ * A field that takes values of different JSON kinds: `string[] | ScopesChange`
+ * is a list or an object. Each member is of its own JSON kind (array, object,
+ * string, number, boolean), so the kind of the JSON value picks the member, and
+ * no discriminator or key matching is needed. Named after the model and the
+ * field (`DetailsBotScopes`), with `Value` appended when a schema has that name.
+ */
+export interface IRValueUnion {
+  name: string;
+  /** Members in spec order, each of a distinct JSON kind */
+  members: IRFieldType[];
+  description?: string;
+}
+
+/** The JSON kind of a value union member. */
+export type IRJsonKind = 'array' | 'object' | 'string' | 'number' | 'boolean';
+
+export function jsonKindOf(ft: IRFieldType): IRJsonKind | undefined {
+  switch (ft.kind) {
+    case 'array':
+      return 'array';
+    case 'model':
+      return 'object';
+    case 'enum':
+    case 'literal':
+      return 'string';
+    case 'primitive':
+      if (ft.primitive === 'string') return 'string';
+      if (ft.primitive === 'integer' || ft.primitive === 'number') return 'number';
+      if (ft.primitive === 'boolean') return 'boolean';
+      return undefined;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * The name a member takes inside its value union: the case of a Swift enum, the
+ * variant of a Kotlin sealed interface, the property of a Go or C# wrapper.
+ * `string[]` → StringList, `ScopesChange` → ScopesChange, `integer` → Int.
+ */
+export function valueUnionMemberName(ft: IRFieldType): string {
+  switch (ft.kind) {
+    case 'array':
+      return `${valueUnionMemberName(ft.items!)}List`;
+    case 'model':
+    case 'enum':
+      return ft.ref ?? 'Object';
+    case 'literal':
+      return 'String';
+    case 'primitive':
+      if (ft.primitive === 'integer') return 'Int';
+      if (ft.primitive === 'number') return 'Double';
+      if (ft.primitive === 'boolean') return 'Bool';
+      return 'String';
+    default:
+      return 'Value';
+  }
+}
+
+/**
+ * What a union without a discriminator checks in a payload before it takes a
+ * member, in Go and C#: their decoders fill a missing field with its zero value,
+ * where Kotlin, Python and Swift fail and try the next member. `required` lists
+ * the keys a model cannot do without (a required field that may hold null is
+ * left out: its key may be missing), `nested` the fields that hold a model, a
+ * list of models, or a value union with a model member (a list or an object),
+ * whose own keys are checked in turn when the value is there.
+ */
+export interface IRRequiredShape {
+  model: string;
+  required: string[];
+  nested: { key: string; model: string }[];
+}
+
+/**
+ * The model a field holds for the required-key check: the model itself, the item
+ * model of a list (of lists), or the one model a value union holds. A union that
+ * is a type of its own decodes and checks itself, a record holds open values.
+ */
+function nestedModelOf(ft: IRFieldType, models: Map<string, IRModel>): string | undefined {
+  switch (ft.kind) {
+    case 'model':
+      return ft.ref && models.has(ft.ref) ? ft.ref : undefined;
+    case 'array':
+      return ft.items ? nestedModelOf(ft.items, models) : undefined;
+    case 'union': {
+      if (!ft.valueUnion) return undefined;
+      const held = new Set((ft.members ?? []).map((m) => nestedModelOf(m, models)).filter((m) => m !== undefined));
+      return held.size === 1 ? [...held][0] : undefined;
+    }
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * The required-key shapes of the members of every union without a discriminator
+ * and of the models nested in them, each model once, members first. A model with
+ * nothing to check, here or deeper, is left out.
+ */
+export function unionRequiredShapes(unions: IRUnion[], models: IRModel[]): IRRequiredShape[] {
+  const byName = new Map(models.flatMap((m) => [...m.inlineObjects, m]).map((m) => [m.name, m]));
+  const order: string[] = [];
+  const queue = unions.filter((u) => !u.discriminatorField).flatMap((u) => u.memberRefs);
+  while (queue.length > 0) {
+    const name = queue.shift()!;
+    const model = byName.get(name);
+    if (!model || order.includes(name)) continue;
+    order.push(name);
+    for (const f of model.fields) {
+      const nested = nestedModelOf(f.type, byName);
+      if (nested) queue.push(nested);
+    }
+  }
+  const requiredOf = (name: string) => byName.get(name)!.fields.filter((f) => f.required && !f.nullable).map((f) => f.name);
+  const nestedOf = (name: string) =>
+    byName.get(name)!.fields.flatMap((f) => {
+      const model = nestedModelOf(f.type, byName);
+      return model ? [{ key: f.name, model }] : [];
+    });
+  // A model has something to check when it has required keys, or holds one that
+  // does: grown until nothing changes, so a model that holds itself ends.
+  const checked = new Set(order.filter((name) => requiredOf(name).length > 0));
+  for (let grown = true; grown; ) {
+    grown = false;
+    for (const name of order) {
+      if (!checked.has(name) && nestedOf(name).some((n) => checked.has(n.model))) {
+        checked.add(name);
+        grown = true;
+      }
+    }
+  }
+  return order
+    .filter((name) => checked.has(name))
+    .map((name) => ({ model: name, required: requiredOf(name), nested: nestedOf(name).filter((n) => checked.has(n.model)) }));
 }
 
 // ----- Operations -----
@@ -246,6 +390,8 @@ export interface IR {
   enums: IREnum[];
   models: IRModel[];
   unions: IRUnion[];
+  /** Fields that take values of different JSON kinds, one type per field */
+  valueUnions: IRValueUnion[];
   services: IRService[];
   params: IRParamsType[];
   responses: IRResponseType[];

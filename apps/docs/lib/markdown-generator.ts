@@ -206,7 +206,7 @@ export function schemaToMarkdown(
           const resolvedVariant = resolveSchema(variant);
           const variantName = variant.$ref
             ? variant.$ref.split('/').pop()
-            : resolvedVariant.title || 'Вариант';
+            : resolvedVariant.title || unnamedVariantLabel(resolvedVariant) || 'Вариант';
           content += `${indent}  - **${variantName}**`;
           if (resolvedVariant.description) {
             content += `: ${resolvedVariant.description}`;
@@ -290,6 +290,16 @@ const SELF_DESCRIBING_FORMATS = new Set(['date', 'date-time', 'uri', 'email', 'u
  * The type of a union whose variants are bare types, e.g. `string | number |
  * array | object`; null when any variant is a named or structured schema.
  */
+/** Type label for an inline union variant without a name: `array of string`, `string`. */
+function unnamedVariantLabel(variant: Schema): string | null {
+  if (variant.properties) return null;
+  if (variant.type === 'array') {
+    const items = resolveSchema(variant.items ?? {});
+    return items.properties ? null : `array of ${items.type || 'any'}`;
+  }
+  return typeof variant.type === 'string' ? variant.type : null;
+}
+
 function plainUnionLabel(variants: Schema[]): string | null {
   const types: string[] = [];
   for (const variant of variants) {

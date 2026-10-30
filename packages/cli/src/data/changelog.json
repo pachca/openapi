@@ -6,7 +6,7 @@
       {
         "type": "-",
         "command": "api",
-        "description": "Справка `--describe` показывает `dlp_rule_id` в деталях события `dlp_violation_detected` строкой, как его отдаёт API"
+        "description": "Справка `--docs` и схема `--spec` показывают `dlp_rule_id` в деталях события `dlp_violation_detected` строкой, как его отдаёт API"
       },
       {
         "type": "+",
@@ -92,6 +92,11 @@
       {
         "type": "~",
         "description": "Справка команд следует обновлённым описаниям API: удаление входящего вебхука, правило совпадения команд бота, правило упоминаний в тексте сообщения, `duration_ms` и `file_type` у файлов, срок ссылки на поток событий, напоминания вместо задач, поле `scopes` у `bot_token_updated` и другие поля деталей журнала аудита, значения настройки бота у `restricted_bot_tag_denied` в подсказке `--list-tags`"
+      },
+      {
+        "type": "-",
+        "command": "api",
+        "description": "Справка `--docs` и схема `--spec` описывают `scopes` в деталях бота журнала аудита так, как его писал API до 7 октября 2026 года: список прав у `bot_token_created` и объект с `previous` и `new` у `bot_token_updated`"
       }
     ]
   },

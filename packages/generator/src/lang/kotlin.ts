@@ -10,6 +10,9 @@ import {
   type IROperation,
   type IRParam,
   type IRResponseType,
+  type IRValueUnion,
+  jsonKindOf,
+  valueUnionMemberName,
 } from '../ir.js';
 import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
@@ -49,12 +52,93 @@ function ktType(ft: IRFieldType): string {
     case 'record':
       return `Map<String, ${ktType(ft.valueType!)}>`;
     case 'union':
-      return ft.ref ?? 'Any';
+      return ft.valueUnion ?? ft.ref ?? 'Any';
     case 'literal':
       return 'String';
     case 'binary':
       return 'ByteArray';
   }
+}
+
+/**
+ * A type spelled in full: inside a value union its variants (`String`,
+ * `ScopesChange`) shadow the types of the same name.
+ */
+function ktQualifiedType(ft: IRFieldType): string {
+  switch (ft.kind) {
+    case 'primitive':
+      if (ft.primitive === 'integer') return ft.format === 'int64' ? 'kotlin.Long' : 'kotlin.Int';
+      if (ft.primitive === 'number') return 'kotlin.Double';
+      if (ft.primitive === 'boolean') return 'kotlin.Boolean';
+      if (ft.primitive === 'any') return 'kotlinx.serialization.json.JsonElement';
+      return 'kotlin.String';
+    case 'enum':
+    case 'model':
+      return ft.ref ? `com.pachca.sdk.${ft.ref}` : 'kotlin.String';
+    case 'array':
+      return `kotlin.collections.List<${ktQualifiedType(ft.items!)}>`;
+    case 'record':
+      return `kotlin.collections.Map<kotlin.String, ${ktQualifiedType(ft.valueType!)}>`;
+    default:
+      return 'kotlin.String';
+  }
+}
+
+/**
+ * A field that takes values of different JSON kinds is a sealed interface with a
+ * variant per member. The kind of the JSON value picks the variant, and an
+ * object that does not fit its model fails, so a union member gives way.
+ */
+function emitValueUnion(lines: string[], vu: IRValueUnion): void {
+  if (vu.description) {
+    lines.push('/**');
+    for (const line of vu.description.split('\n')) lines.push(` * ${line}`);
+    lines.push(' */');
+  }
+  lines.push(`@Serializable(with = ${vu.name}Serializer::class)`);
+  lines.push(`sealed interface ${vu.name} {`);
+  for (const m of vu.members) {
+    lines.push(`    data class ${valueUnionMemberName(m)}(val value: ${ktQualifiedType(m)}) : ${vu.name}`);
+  }
+  lines.push('}');
+  lines.push('');
+  const expected = vu.members.map((m) => valueUnionMemberName(m)).join(' or ');
+  lines.push(`object ${vu.name}Serializer : KSerializer<${vu.name}> {`);
+  lines.push(`    override val descriptor = buildClassSerialDescriptor(${JSON.stringify(vu.name)})`);
+  lines.push('');
+  lines.push(`    override fun serialize(encoder: Encoder, value: ${vu.name}) {`);
+  lines.push(`        val jsonEncoder = encoder as? JsonEncoder ?: error("${vu.name}Serializer only supports JSON")`);
+  lines.push('        val element = when (value) {');
+  for (const m of vu.members) {
+    lines.push(`            is ${vu.name}.${valueUnionMemberName(m)} -> jsonEncoder.json.encodeToJsonElement(value.value)`);
+  }
+  lines.push('        }');
+  lines.push('        jsonEncoder.encodeJsonElement(element)');
+  lines.push('    }');
+  lines.push('');
+  lines.push(`    override fun deserialize(decoder: Decoder): ${vu.name} {`);
+  lines.push(`        val jsonDecoder = decoder as? JsonDecoder ?: error("${vu.name}Serializer only supports JSON")`);
+  lines.push('        val element = jsonDecoder.decodeJsonElement()');
+  lines.push('        val json = jsonDecoder.json');
+  lines.push('        return when {');
+  const kindCheck: Record<string, string> = {
+    array: 'element is JsonArray',
+    object: 'element is JsonObject',
+    string: 'element is JsonPrimitive && element.isString',
+    boolean: 'element is JsonPrimitive && !element.isString && (element.content == "true" || element.content == "false")',
+    number: 'element is JsonPrimitive && !element.isString && element.content != "null"',
+  };
+  // A boolean is checked before a number: both are bare JSON primitives.
+  const order = ['array', 'object', 'string', 'boolean', 'number'];
+  for (const kind of order) {
+    const m = vu.members.find((x) => jsonKindOf(x) === kind);
+    if (!m) continue;
+    lines.push(`            ${kindCheck[kind]} -> ${vu.name}.${valueUnionMemberName(m)}(json.decodeFromJsonElement<${ktQualifiedType(m)}>(element))`);
+  }
+  lines.push(`            else -> throw SerializationException("${vu.name} takes ${expected}, got $element")`);
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('}');
 }
 
 function needsSerialName(field: IRField): boolean {
@@ -237,6 +321,11 @@ function generateModels(ir: IR): string {
   lines.push('package com.pachca.sdk');
   lines.push('');
 
+  // Value unions: the JSON kinds their members take decide the imports.
+  const valueKinds = new Set(ir.valueUnions.flatMap((vu) => vu.members.map(jsonKindOf)));
+  const needValueUnion = ir.valueUnions.length > 0;
+  const needValuePrimitive = valueKinds.has('string') || valueKinds.has('number') || valueKinds.has('boolean');
+
   const needDateTime = ir.models.some((m) => m.fields.some((f) => f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time'))
     || ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
 
@@ -246,25 +335,28 @@ function generateModels(ir: IR): string {
   const needCustomUnionSerializer = needWebhookPayloadUnionSerializer || needStructuralUnionSerializer;
   const needCustomSerializer = needCustomUnionSerializer || needNullFields;
   if (needNullFields) imports.push('import kotlinx.serialization.KeepGeneratedSerializer');
-  if (needDateTime || needCustomSerializer) imports.push('import kotlinx.serialization.KSerializer');
+  if (needDateTime || needCustomSerializer || needValueUnion) imports.push('import kotlinx.serialization.KSerializer');
   if (needSerialName) imports.push('import kotlinx.serialization.SerialName');
   imports.push('import kotlinx.serialization.Serializable');
-  if (needNullFields) imports.push('import kotlinx.serialization.SerializationException');
+  if (needNullFields || needValueUnion) imports.push('import kotlinx.serialization.SerializationException');
   if (needTransient) imports.push('import kotlinx.serialization.Transient');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveKind');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor');
   if (needNullFields) imports.push('import kotlinx.serialization.descriptors.SerialDescriptor');
-  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.descriptors.buildClassSerialDescriptor');
-  if (needDateTime || needCustomSerializer) imports.push('import kotlinx.serialization.encoding.Decoder');
-  if (needDateTime || needCustomSerializer) imports.push('import kotlinx.serialization.encoding.Encoder');
+  if (needCustomUnionSerializer || needValueUnion) imports.push('import kotlinx.serialization.descriptors.buildClassSerialDescriptor');
+  if (needDateTime || needCustomSerializer || needValueUnion) imports.push('import kotlinx.serialization.encoding.Decoder');
+  if (needDateTime || needCustomSerializer || needValueUnion) imports.push('import kotlinx.serialization.encoding.Encoder');
   if (needStructuralUnionSerializer) imports.push('import kotlinx.serialization.json.Json');
-  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.JsonDecoder');
+  if (valueKinds.has('array')) imports.push('import kotlinx.serialization.json.JsonArray');
+  if (needCustomUnionSerializer || needValueUnion) imports.push('import kotlinx.serialization.json.JsonDecoder');
   if (needJsonElement) imports.push('import kotlinx.serialization.json.JsonElement');
-  if (needCustomSerializer) imports.push('import kotlinx.serialization.json.JsonEncoder');
+  if (needCustomSerializer || needValueUnion) imports.push('import kotlinx.serialization.json.JsonEncoder');
   if (needNullFields) imports.push('import kotlinx.serialization.json.JsonNull');
-  if (needNullFields) imports.push('import kotlinx.serialization.json.JsonObject');
+  if (needNullFields || valueKinds.has('object')) imports.push('import kotlinx.serialization.json.JsonObject');
+  if (needValuePrimitive) imports.push('import kotlinx.serialization.json.JsonPrimitive');
   if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.contentOrNull');
-  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.decodeFromJsonElement');
+  if (needCustomUnionSerializer || needValueUnion) imports.push('import kotlinx.serialization.json.decodeFromJsonElement');
+  if (needValueUnion) imports.push('import kotlinx.serialization.json.encodeToJsonElement');
   if (needCustomSerializer) imports.push('import kotlinx.serialization.json.jsonObject');
   if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.jsonPrimitive');
   lines.push(imports.join('\n'));
@@ -321,6 +413,12 @@ function generateModels(ir: IR): string {
   for (const u of ir.unions) {
     lines.push('');
     emitUnion(lines, u, ir);
+  }
+
+  // Value unions
+  for (const vu of ir.valueUnions) {
+    lines.push('');
+    emitValueUnion(lines, vu);
   }
 
   // Models (skip union members)
@@ -1693,6 +1791,9 @@ function ktLiteral(
     case 'record':
       return `mapOf("key" to ${ktLiteral(ft.valueType!, ir, models, visited, indent)})`;
     case 'union': {
+      if (ft.valueUnion && ft.members) {
+        return `${ft.valueUnion}.${valueUnionMemberName(ft.members[0])}(${ktLiteral(ft.members[0], ir, models, visited, indent)})`;
+      }
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
         return ktModelLiteral(u.memberRefs[0], ir, models, visited, indent);
@@ -1766,7 +1867,7 @@ function ktFingerprint(
     case 'record':
       return `Map<String, ${ktFingerprint(ft.valueType!, ir, models, visited)}>`;
     case 'union':
-      return ft.ref ?? 'Any';
+      return ft.valueUnion ?? ft.ref ?? 'Any';
     case 'literal':
       return 'String';
     case 'binary':

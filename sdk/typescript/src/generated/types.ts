@@ -949,7 +949,7 @@ export interface AuditDetailsBot {
   applicationId?: number | null;
   accessTokenId?: number;
   accessTokenPreview?: string | null;
-  scopes?: string[];
+  scopes?: string[] | AuditDetailsTokenScopesChange;
   name?: AuditDetailsTokenNameChange;
 }
 

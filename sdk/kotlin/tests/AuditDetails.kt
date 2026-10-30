@@ -1,7 +1,9 @@
 /**
  * Audit event details carry no discriminator: a required field that holds null
- * decodes, and a record whose keys fit a member but whose types do not (an older
- * format) decodes into the next member that fits. One record never breaks the page.
+ * decodes, and a record whose keys fit a member but whose types do not decodes
+ * into the next member that fits. One record never breaks the page. Records from
+ * before 7 October 2026 keep scopes as an object in bot_token_updated and as a
+ * list in bot_token_created: AuditDetailsBot takes both.
  *
  * Usage (from sdk/kotlin/generated):
  *
@@ -12,6 +14,7 @@
 package tests.auditdetails
 
 import com.pachca.sdk.AuditDetailsBot
+import com.pachca.sdk.AuditDetailsBotScopesValue
 import com.pachca.sdk.AuditDetailsBotTokenUpdated
 import com.pachca.sdk.AuditDetailsChatId
 import com.pachca.sdk.AuditDetailsDlp
@@ -64,6 +67,13 @@ private val BOT_TOKEN_SCOPES_UPDATED = event(
         """"access_token_id":4827,"access_token_preview":null,"webhook_id":31}""",
 )
 
+// bot_token_created before 7 October 2026: scopes is a list, no token_kind.
+private val OLD_BOT_TOKEN_CREATED = event(
+    "7", "bot_token_created",
+    """{"actor_id":12,"bot_id":7,"webhook_id":31,"application_id":null,"access_token_id":4827,""" +
+        """"access_token_preview":"cH5k...x7Qp","scopes":["messages:read","chats:read"]}""",
+)
+
 private fun check(condition: Boolean, message: String) {
     if (!condition) {
         System.err.println("audit details failed: $message")
@@ -72,7 +82,7 @@ private fun check(condition: Boolean, message: String) {
 }
 
 fun main() {
-    val page = """{"data":[$OLD_BOT_TOKEN_UPDATED,$BOT_TOKEN_UPDATED,$DLP,$CHAT_JOIN,$ACCESS_TOKEN_CREATED,$BOT_TOKEN_SCOPES_UPDATED],"meta":{"paginate":{"next_page":"eyJpZCI6NH0"}}}"""
+    val page = """{"data":[$OLD_BOT_TOKEN_UPDATED,$BOT_TOKEN_UPDATED,$DLP,$CHAT_JOIN,$ACCESS_TOKEN_CREATED,$BOT_TOKEN_SCOPES_UPDATED,$OLD_BOT_TOKEN_CREATED],"meta":{"paginate":{"next_page":"eyJpZCI6NH0"}}}"""
     val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
     server.createContext("/") { exchange ->
         val bytes = page.toByteArray()
@@ -86,8 +96,13 @@ fun main() {
     try {
         runBlocking {
             val events = client.security.getAuditEvents().data
-            check(events.size == 6, "the page keeps every record, got ${events.size}")
-            check(events[0].details !is AuditDetailsBot, "AuditDetailsBot takes scopes as a list: it must give way, got ${events[0].details}")
+            check(events.size == 7, "the page keeps every record, got ${events.size}")
+            val old = events[0].details
+            val change = ((old as? AuditDetailsBot)?.scopes as? AuditDetailsBotScopesValue.AuditDetailsTokenScopesChange)?.value
+            check(
+                change != null && change.previous == listOf("messages:read") && change.new == listOf("messages:read", "chats:read"),
+                "an old bot_token_updated decodes into AuditDetailsBot with scopes as an object, got $old",
+            )
             val updated = events[1].details
             check(
                 updated is AuditDetailsBotTokenUpdated && updated.tokenName == null && updated.actorId == null && updated.accessTokenPreview == null,
@@ -103,6 +118,16 @@ fun main() {
             check(
                 scopesUpdated is AuditDetailsBotTokenUpdated && scopesUpdated.currentScopes == listOf("messages:read", "chats:read"),
                 "a change of the bot token scopes decodes as bot_token_updated, got $scopesUpdated",
+            )
+            val created = events[6].details
+            check(
+                created is AuditDetailsBot && created.scopes == AuditDetailsBotScopesValue.StringList(listOf("messages:read", "chats:read")),
+                "an old bot_token_created decodes into AuditDetailsBot with scopes as a list, got $created",
+            )
+            val written = kotlinx.serialization.json.Json.encodeToString(AuditDetailsBot.serializer(), old as AuditDetailsBot)
+            check(
+                written.contains(""""scopes":{"previous":["messages:read"],"new":["messages:read","chats:read"]}"""),
+                "scopes goes back out as an object, got $written",
             )
         }
         println("audit details ok")

@@ -15,6 +15,7 @@ import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
@@ -22,6 +23,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -1603,7 +1605,7 @@ data class AuditDetailsBot(
     @SerialName("application_id") val applicationId: Int? = null,
     @SerialName("access_token_id") val accessTokenId: Int? = null,
     @SerialName("access_token_preview") val accessTokenPreview: String? = null,
-    val scopes: List<String>? = null,
+    val scopes: AuditDetailsBotScopesValue? = null,
     val name: AuditDetailsTokenNameChange? = null,
 ) : AuditEventDetailsUnion
 
@@ -2083,6 +2085,39 @@ data class VideoCallWebhookPayload(
     val size: Long? = null,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion
+
+/**
+ * Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
+ */
+@Serializable(with = AuditDetailsBotScopesValueSerializer::class)
+sealed interface AuditDetailsBotScopesValue {
+    data class StringList(val value: kotlin.collections.List<kotlin.String>) : AuditDetailsBotScopesValue
+    data class AuditDetailsTokenScopesChange(val value: com.pachca.sdk.AuditDetailsTokenScopesChange) : AuditDetailsBotScopesValue
+}
+
+object AuditDetailsBotScopesValueSerializer : KSerializer<AuditDetailsBotScopesValue> {
+    override val descriptor = buildClassSerialDescriptor("AuditDetailsBotScopesValue")
+
+    override fun serialize(encoder: Encoder, value: AuditDetailsBotScopesValue) {
+        val jsonEncoder = encoder as? JsonEncoder ?: error("AuditDetailsBotScopesValueSerializer only supports JSON")
+        val element = when (value) {
+            is AuditDetailsBotScopesValue.StringList -> jsonEncoder.json.encodeToJsonElement(value.value)
+            is AuditDetailsBotScopesValue.AuditDetailsTokenScopesChange -> jsonEncoder.json.encodeToJsonElement(value.value)
+        }
+        jsonEncoder.encodeJsonElement(element)
+    }
+
+    override fun deserialize(decoder: Decoder): AuditDetailsBotScopesValue {
+        val jsonDecoder = decoder as? JsonDecoder ?: error("AuditDetailsBotScopesValueSerializer only supports JSON")
+        val element = jsonDecoder.decodeJsonElement()
+        val json = jsonDecoder.json
+        return when {
+            element is JsonArray -> AuditDetailsBotScopesValue.StringList(json.decodeFromJsonElement<kotlin.collections.List<kotlin.String>>(element))
+            element is JsonObject -> AuditDetailsBotScopesValue.AuditDetailsTokenScopesChange(json.decodeFromJsonElement<com.pachca.sdk.AuditDetailsTokenScopesChange>(element))
+            else -> throw SerializationException("AuditDetailsBotScopesValue takes StringList or AuditDetailsTokenScopesChange, got $element")
+        }
+    }
+}
 
 @Serializable
 data class AccessTokenInfo(

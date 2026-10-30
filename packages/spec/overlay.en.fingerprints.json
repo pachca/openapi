@@ -32,7 +32,7 @@
 		"$.components.schemas.AuditDetailsBot.properties.application_id.description": "67e68151e0763347",
 		"$.components.schemas.AuditDetailsBot.properties.bot_id.description": "7f144ab93d026143",
 		"$.components.schemas.AuditDetailsBot.properties.name.description": "bd5fee510cabc427",
-		"$.components.schemas.AuditDetailsBot.properties.scopes.description": "b6eccc38268a555a",
+		"$.components.schemas.AuditDetailsBot.properties.scopes.description": "daa5d58638e215c0",
 		"$.components.schemas.AuditDetailsBot.properties.webhook_id.description": "c350570fd77df803",
 		"$.components.schemas.AuditDetailsBotOAuthClient.description": "857ea59a4963574d",
 		"$.components.schemas.AuditDetailsBotOAuthClient.properties.access_token_id.description": "3ebdc279c4fdf126",

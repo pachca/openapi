@@ -1,8 +1,10 @@
 """Audit event details carry no discriminator: the first member that decodes wins.
 
 A record whose keys fit a member that misses a required field, or whose values
-do not fit the member's types (scopes as an object where the member takes a
-list), decodes into the next member that fits. One record never breaks the page.
+do not fit the member's types, here or in a nested model, decodes into the next
+member that fits. One record never breaks the page. Records from before
+7 October 2026 keep scopes as an object in bot_token_updated and as a list in
+bot_token_created: AuditDetailsBot takes both.
 Run by open_enums.py, or on its own:
 
     python3 sdk/python/tests/audit_details.py
@@ -23,9 +25,10 @@ from pachca.models import (  # noqa: E402
     AuditDetailsBotTokenUpdated,
     AuditDetailsChatId,
     AuditDetailsToken,
+    AuditDetailsTokenScopesChange,
     GetAuditEventsResponse,
 )
-from pachca.utils import deserialize  # noqa: E402
+from pachca.utils import deserialize, serialize  # noqa: E402
 
 
 def event(id_: str, key: str, details: dict) -> dict:
@@ -52,6 +55,18 @@ OLD_BOT_TOKEN_UPDATED = {
     "access_token_preview": "cH5k...x7Qp",
     "scopes": {"previous": ["messages:read"], "new": ["messages:read", "chats:read"]},
 }
+# bot_token_created before 7 October 2026: scopes is a list, no token_kind.
+OLD_BOT_TOKEN_CREATED = {
+    "actor_id": 12,
+    "bot_id": 7,
+    "webhook_id": 31,
+    "application_id": None,
+    "access_token_id": 4827,
+    "access_token_preview": "cH5k...x7Qp",
+    "scopes": ["messages:read", "chats:read"],
+}
+# scopes.new is not a list: the nested model does not fit, AuditDetailsBot gives way.
+BROKEN_SCOPES = {"actor_id": 12, "bot_id": 7, "scopes": {"previous": [], "new": "chats:read"}}
 BOT_TOKEN_UPDATED = {
     "token_kind": "bot",
     "token_name": None,
@@ -100,13 +115,18 @@ def main() -> None:
                 event("3", "message_deleted", CHAT_AND_MESSAGE),
                 event("4", "access_token_created", ACCESS_TOKEN_CREATED),
                 event("5", "bot_token_updated", BOT_TOKEN_SCOPES_UPDATED),
+                event("6", "bot_token_created", OLD_BOT_TOKEN_CREATED),
+                event("7", "bot_token_updated", BROKEN_SCOPES),
             ],
             "meta": {"paginate": {"next_page": "eyJpZCI6M30"}},
         },
     )
-    assert len(page.data) == 5, f"the page keeps every record, got {len(page.data)}"
+    assert len(page.data) == 7, f"the page keeps every record, got {len(page.data)}"
     old = page.data[0].details
-    assert not isinstance(old, AuditDetailsBot), f"AuditDetailsBot takes scopes as a list: it must give way, got {old}"
+    assert isinstance(old, AuditDetailsBot), f"an old bot_token_updated decodes into AuditDetailsBot, got {old}"
+    assert isinstance(old.scopes, AuditDetailsTokenScopesChange), old.scopes
+    assert old.scopes.previous == ["messages:read"] and old.scopes.new == ["messages:read", "chats:read"], old.scopes
+    assert serialize(old)["scopes"] == OLD_BOT_TOKEN_UPDATED["scopes"], serialize(old)
     updated = page.data[1].details
     assert isinstance(updated, AuditDetailsBotTokenUpdated), updated
     assert updated.token_name is None and updated.actor_id is None, updated
@@ -117,6 +137,11 @@ def main() -> None:
     scopes_updated = page.data[4].details
     assert isinstance(scopes_updated, AuditDetailsBotTokenUpdated), scopes_updated
     assert scopes_updated.current_scopes == ["messages:read", "chats:read"], scopes_updated
+    created = page.data[5].details
+    assert isinstance(created, AuditDetailsBot), f"an old bot_token_created decodes into AuditDetailsBot, got {created}"
+    assert created.scopes == ["messages:read", "chats:read"], created.scopes
+    broken = page.data[6].details
+    assert not isinstance(broken, AuditDetailsBot), f"a nested value of another type sends the record on, got {broken}"
     print("audit details ok")
 
 

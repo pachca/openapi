@@ -88,6 +88,8 @@ function pyType(ft: IRFieldType): string {
     case 'enum':
     case 'model':
     case 'union':
+      // A value union is the union of its members: `list[str] | ScopesChange`.
+      if (ft.kind === 'union' && ft.valueUnion && ft.members) return ft.members.map(pyType).join(' | ');
       return ft.ref ?? 'object';
     case 'array':
       return `list[${pyType(ft.items!)}]`;
@@ -1369,7 +1371,10 @@ function generateUtils(ir: IR): string {
     'CustomUnionDeserializer = Callable[[dict], object]',
     '',
     '',
-    'def _deserialize_instance(tp: object, value: object) -> object:',
+    'def _deserialize_instance(tp: object, value: object, strict: bool = False) -> object:',
+    '    """Decode a JSON value into a field type. With strict, a nested model or a list',
+    '    of models checks its value types too, so a union member gives way to the next',
+    '    one when a value deep inside it has another type."""',
     '    custom = _CUSTOM_UNION_DESERIALIZERS.get(tp)',
     '    if custom is not None and isinstance(value, dict):',
     '        return custom(value)',
@@ -1384,7 +1389,7 @@ function generateUtils(ir: IR): string {
     '                field_name, by_value = disc',
     '                chosen = by_value.get(value.get(field_name))',
     '                if chosen is not None:',
-    '                    return _deserialize_dataclass(chosen, value)',
+    '                    return _deserialize_dataclass(chosen, value, strict)',
     '            # The first member that decodes wins: one that fits the keys best but',
     '            # misses a required field, or holds a value of another type (a list',
     '            # where it takes an object), gives way to the next.',
@@ -1397,11 +1402,11 @@ function generateUtils(ir: IR): string {
     '            raise errors[0]',
     '        nested = _resolve_type(tp)',
     '        if nested is not None:',
-    '            return _deserialize_dataclass(nested, value)',
+    '            return _deserialize_dataclass(nested, value, strict)',
     '    if isinstance(value, list):',
     '        item_tp = _resolve_list_item_type(tp)',
     '        if item_tp is not None:',
-    '            return [_deserialize_instance(item_tp, item) for item in value]',
+    '            return [_deserialize_instance(item_tp, item, strict) for item in value]',
     '    if isinstance(value, str):',
     '        raw_tp = tp',
     '        if get_origin(tp) is not None:',
@@ -1423,7 +1428,8 @@ function generateUtils(ir: IR): string {
     '',
     'def _deserialize_dataclass(cls: Type[T], data: dict, strict: bool = False) -> T:',
     '    """Build a dataclass from a dict. With strict, a value whose type does not',
-    '    fit its field raises TypeError, so a union tries its next member."""',
+    '    fit its field raises TypeError, here or in a nested model, so a union tries',
+    '    its next member."""',
     '    field_map = {f.name: f for f in fields(cls)}',
     '    hints = get_type_hints(cls)',
     '    norm = {k.replace("-", "_").lower(): v for k, v in data.items()}',
@@ -1436,7 +1442,7 @@ function generateUtils(ir: IR): string {
     '        f = field_map[k]',
     '        if strict and not _fits(hints[f.name], v):',
     '            raise TypeError(f"{cls.__name__}.{f.name} does not take {type(v).__name__}")',
-    '        kwargs[k] = _deserialize_instance(hints[f.name], v)',
+    '        kwargs[k] = _deserialize_instance(hints[f.name], v, strict)',
     '    return cls(**kwargs)',
     ''
   );
@@ -1689,6 +1695,7 @@ function pyLiteral(
     case 'record':
       return `{"key": ${pyLiteral(ft.valueType!, ir, models, visited, indent)}}`;
     case 'union': {
+      if (ft.valueUnion && ft.members) return pyLiteral(ft.members[0], ir, models, visited, indent);
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
         return pyModelLiteral(u.memberRefs[0], ir, models, visited, indent);
@@ -1762,6 +1769,7 @@ function pyFingerprint(
     case 'record':
       return `dict[str, ${pyFingerprint(ft.valueType!, ir, models, visited)}]`;
     case 'union':
+      if (ft.valueUnion && ft.members) return ft.members.map((m) => pyFingerprint(m, ir, models, visited)).join(' | ');
       return ft.ref ?? 'object';
     case 'literal':
       return 'str';

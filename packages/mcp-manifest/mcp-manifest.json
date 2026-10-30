@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "cf8fb16d2f9451dc"
+    "digest": "cf1c94df9a1693fd"
   },
   "server": {
     "name": "pachca",
@@ -553,7 +553,7 @@
                         "array",
                         "object"
                       ],
-                      "description": "AuditDetailsTokenScopes and AuditDetailsToken: Token scopes. AuditDetailsBot: Token scopes. Present for bot_token_created. AuditDetailsBotOAuthClient and AuditDetailsBotOAuthClientDisabled: Scopes the bot requests from an employee on the consent screen. AuditDetailsOAuthAuthorizationGranted: Scopes the access was granted for. AuditDetailsDeviceAuthorizationApproved: Scopes the employee agreed to. AuditDetailsDeviceAuthorizationDenied: Scopes the client requested. AuditDetailsBotOAuthClientSecretRotated: Scopes the bot requests from an employee on the consent screen. Present for bot_oauth_client_secret_issued. AuditDetailsBotTokenUpdated: Token scopes change. Present if the scopes were passed in the request.",
+                      "description": "AuditDetailsTokenScopes and AuditDetailsToken: Token scopes. AuditDetailsBot: Token scopes in records made before October 7, 2026: an array for bot_token_created, an object with the `previous` and `new` fields for bot_token_updated if the scopes were passed in the request. AuditDetailsBotOAuthClient and AuditDetailsBotOAuthClientDisabled: Scopes the bot requests from an employee on the consent screen. AuditDetailsOAuthAuthorizationGranted: Scopes the access was granted for. AuditDetailsDeviceAuthorizationApproved: Scopes the employee agreed to. AuditDetailsDeviceAuthorizationDenied: Scopes the client requested. AuditDetailsBotOAuthClientSecretRotated: Scopes the bot requests from an employee on the consent screen. Present for bot_oauth_client_secret_issued. AuditDetailsBotTokenUpdated: Token scopes change. Present if the scopes were passed in the request.",
                       "items": {
                         "type": "string"
                       },
@@ -887,6 +887,8 @@
         "data[].details.filters",
         "data[].details.access_token_preview",
         "data[].details.scopes[]",
+        "data[].details.scopes.previous[]",
+        "data[].details.scopes.new[]",
         "data[].details.name.previous",
         "data[].details.name.new",
         "data[].details.bot_name",
@@ -899,8 +901,6 @@
         "data[].details.token_name",
         "data[].details.client_id",
         "data[].details.source",
-        "data[].details.scopes.previous[]",
-        "data[].details.scopes.new[]",
         "data[].details.device.name",
         "data[].details.device.os_version",
         "data[].details.device.app_version",

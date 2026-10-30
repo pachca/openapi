@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "let client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "getEvents": {
+    "usage": "let response = try await client.events.getEvents()",
+    "output": "GetEventsResponse(data: [Event])"
+  }
+}

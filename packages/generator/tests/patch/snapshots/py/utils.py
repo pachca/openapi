@@ -118,7 +118,10 @@ def _resolve_list_item_type(tp: object) -> object | None:
 CustomUnionDeserializer = Callable[[dict], object]
 
 
-def _deserialize_instance(tp: object, value: object) -> object:
+def _deserialize_instance(tp: object, value: object, strict: bool = False) -> object:
+    """Decode a JSON value into a field type. With strict, a nested model or a list
+    of models checks its value types too, so a union member gives way to the next
+    one when a value deep inside it has another type."""
     custom = _CUSTOM_UNION_DESERIALIZERS.get(tp)
     if custom is not None and isinstance(value, dict):
         return custom(value)
@@ -133,7 +136,7 @@ def _deserialize_instance(tp: object, value: object) -> object:
                 field_name, by_value = disc
                 chosen = by_value.get(value.get(field_name))
                 if chosen is not None:
-                    return _deserialize_dataclass(chosen, value)
+                    return _deserialize_dataclass(chosen, value, strict)
             # The first member that decodes wins: one that fits the keys best but
             # misses a required field, or holds a value of another type (a list
             # where it takes an object), gives way to the next.
@@ -146,11 +149,11 @@ def _deserialize_instance(tp: object, value: object) -> object:
             raise errors[0]
         nested = _resolve_type(tp)
         if nested is not None:
-            return _deserialize_dataclass(nested, value)
+            return _deserialize_dataclass(nested, value, strict)
     if isinstance(value, list):
         item_tp = _resolve_list_item_type(tp)
         if item_tp is not None:
-            return [_deserialize_instance(item_tp, item) for item in value]
+            return [_deserialize_instance(item_tp, item, strict) for item in value]
     if isinstance(value, str):
         raw_tp = tp
         if get_origin(tp) is not None:
@@ -172,7 +175,8 @@ def _deserialize_instance(tp: object, value: object) -> object:
 
 def _deserialize_dataclass(cls: Type[T], data: dict, strict: bool = False) -> T:
     """Build a dataclass from a dict. With strict, a value whose type does not
-    fit its field raises TypeError, so a union tries its next member."""
+    fit its field raises TypeError, here or in a nested model, so a union tries
+    its next member."""
     field_map = {f.name: f for f in fields(cls)}
     hints = get_type_hints(cls)
     norm = {k.replace("-", "_").lower(): v for k, v in data.items()}
@@ -185,7 +189,7 @@ def _deserialize_dataclass(cls: Type[T], data: dict, strict: bool = False) -> T:
         f = field_map[k]
         if strict and not _fits(hints[f.name], v):
             raise TypeError(f"{cls.__name__}.{f.name} does not take {type(v).__name__}")
-        kwargs[k] = _deserialize_instance(hints[f.name], v)
+        kwargs[k] = _deserialize_instance(hints[f.name], v, strict)
     return cls(**kwargs)
 
 _CUSTOM_UNION_DESERIALIZERS: dict[object, CustomUnionDeserializer] = {

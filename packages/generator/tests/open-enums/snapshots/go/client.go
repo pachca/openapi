@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"time"
 )
 
 // errorFromResponse reads an error answer. Its body is either {"errors": [...]} or

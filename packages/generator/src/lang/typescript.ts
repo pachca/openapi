@@ -63,6 +63,10 @@ function tsType(
     case 'enum':
     case 'model':
     case 'union':
+      // A value union is the union of its members: `string[] | ScopesChange`.
+      if (ft.kind === 'union' && ft.valueUnion && ft.members) {
+        return ft.members.map((m) => tsType(m, opts)).join(' | ');
+      }
       if (ft.ref && opts.parent && opts.inlineAsObject.has(ft.ref)) {
         const inl = opts.parent.inlineObjects.find((m) => m.name === ft.ref);
         if (inl) return inlineObjectType(inl, opts);
@@ -1086,6 +1090,17 @@ function renderTransformExpr(
   switch (ft.kind) {
     case 'model':
     case 'union':
+      // A value union takes the member of the JSON kind the value has.
+      if (ft.kind === 'union' && ft.valueUnion && ft.members) {
+        const list = ft.members.find((m) => m.kind === 'array');
+        const object = ft.members.find((m) => m.kind === 'model');
+        let expr = `${valueFn}(${valueName})`;
+        if (object) {
+          expr = `(${valueName} !== null && typeof ${valueName} === "object" && !Array.isArray(${valueName}) ? ${renderTransformExpr(object, mode, valueName, customUnionNames)} : ${expr})`;
+        }
+        if (list) expr = `(Array.isArray(${valueName}) ? ${renderTransformExpr(list, mode, valueName, customUnionNames)} : ${expr})`;
+        return expr;
+      }
       if (ft.ref && customUnionNames.has(ft.ref)) return `${valueFn}(${valueName})`;
       return ft.ref ? `${typeFn}(${JSON.stringify(ft.ref)}, ${valueName})` : `${valueFn}(${valueName})`;
     case 'array':
@@ -1375,6 +1390,7 @@ function tsLiteral(
     case 'record':
       return `{ key: ${tsLiteral(ft.valueType!, ir, models, visited, indent)} }`;
     case 'union': {
+      if (ft.valueUnion && ft.members) return tsLiteral(ft.members[0], ir, models, visited, indent);
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
         return tsModelLiteral(u.memberRefs[0], ir, models, visited, indent);
@@ -1448,6 +1464,7 @@ function tsFingerprint(
     case 'record':
       return `Record<string, ${tsFingerprint(ft.valueType!, ir, models, visited)}>`;
     case 'union':
+      if (ft.valueUnion && ft.members) return ft.members.map((m) => tsFingerprint(m, ir, models, visited)).join(' | ');
       return ft.ref ?? 'unknown';
     case 'literal':
       return 'string';

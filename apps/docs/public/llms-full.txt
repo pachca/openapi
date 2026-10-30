@@ -16,7 +16,7 @@
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 119–231 |
 | How-to Guides — рецепты задач с кодом TS/Python | 232–949 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 950–17980 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 950–17986 |
 | · Обзор | 955–1036 |
 | · Быстрый старт | 1037–1134 |
 | · AI-агенты | 1135–1286 |
@@ -94,27 +94,27 @@
 | · Загрузка файлов | 16484–16736 |
 | · Ошибки | 16737–16819 |
 | · Лимиты | 16820–17033 |
-| · Модели | 17034–17980 |
-| API-методы — все эндпоинты со схемами и примерами | 17981–40891 |
-| · OAuth | 17983–18380 |
-| · Chats | 18381–20664 |
-| · Profile | 20665–21606 |
-| · Users | 21607–23953 |
-| · Group tags | 23954–25183 |
-| · Members | 25184–26571 |
-| · Threads | 26572–27254 |
-| · Messages | 27255–29217 |
-| · Read members | 29218–29429 |
-| · Reactions | 29430–30053 |
-| · Important messages | 30054–30617 |
-| · Search | 30618–31467 |
-| · Tasks | 31468–32659 |
-| · Drafts | 32660–34033 |
-| · Views | 34034–34818 |
-| · Bots | 34819–39837 |
-| · Security | 39838–40303 |
-| · Custom Properties | 40304–40484 |
-| · Files | 40485–40891 |
+| · Модели | 17034–17986 |
+| API-методы — все эндпоинты со схемами и примерами | 17987–40903 |
+| · OAuth | 17989–18386 |
+| · Chats | 18387–20670 |
+| · Profile | 20671–21612 |
+| · Users | 21613–23959 |
+| · Group tags | 23960–25189 |
+| · Members | 25190–26577 |
+| · Threads | 26578–27260 |
+| · Messages | 27261–29223 |
+| · Read members | 29224–29435 |
+| · Reactions | 29436–30059 |
+| · Important messages | 30060–30623 |
+| · Search | 30624–31473 |
+| · Tasks | 31474–32665 |
+| · Drafts | 32666–34039 |
+| · Views | 34040–34824 |
+| · Bots | 34825–39843 |
+| · Security | 39844–40315 |
+| · Custom Properties | 40316–40496 |
+| · Files | 40497–40903 |
 
 # LIBRARY RULES
 
@@ -17803,7 +17803,13 @@ with httpx.Client(
     - `application_id: integer, int32` (nullable) — Идентификатор приложения бота. `null`, если приложения у бота нет.
     - `access_token_id: integer, int32` — Идентификатор токена. Есть у bot_token_created, bot_token_reissued и bot_token_updated.
     - `access_token_preview: string` (nullable) — Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, `null`, если значение недоступно.
-    - `scopes: array of string` — Скоупы токена. Есть у bot_token_created.
+    - `scopes: anyOf` — Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
+      **Возможные варианты:**
+
+      - **array of string**
+      - **AuditDetailsTokenScopesChange**: Смена скоупов токена в журнале аудита
+        - `previous: array of string` (required) — Скоупы токена до изменения
+        - `new: array of string` (required) — Скоупы токена после изменения
     - `name: object` — Смена названия токена у bot_token_updated. Есть, если название передали в запросе.
       - `previous: string` (required, nullable) — Прежнее название. `null`, если названия не было.
       - `new: string` (required, nullable) — Новое название. `null`, если название убрали.
@@ -39950,7 +39956,13 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `application_id: integer, int32` (nullable) — Идентификатор приложения бота. `null`, если приложения у бота нет.
       - `access_token_id: integer, int32` — Идентификатор токена. Есть у bot_token_created, bot_token_reissued и bot_token_updated.
       - `access_token_preview: string` (nullable) — Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, `null`, если значение недоступно.
-      - `scopes: array of string` — Скоупы токена. Есть у bot_token_created.
+      - `scopes: anyOf` — Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
+        **Возможные варианты:**
+
+        - **array of string**
+        - **AuditDetailsTokenScopesChange**: Смена скоупов токена в журнале аудита
+          - `previous: array of string` (required) — Скоупы токена до изменения
+          - `new: array of string` (required) — Скоупы токена после изменения
       - `name: object` — Смена названия токена у bot_token_updated. Есть, если название передали в запросе.
         - `previous: string` (required, nullable) — Прежнее название. `null`, если названия не было.
         - `new: string` (required, nullable) — Новое название. `null`, если название убрали.

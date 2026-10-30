@@ -4445,8 +4445,8 @@ model AuditDetailsBot {
   access_token_id?: int32;
   @doc("Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, `null`, если значение недоступно.")
   access_token_preview?: string | null;
-  @doc("Скоупы токена. Есть у bot_token_created.")
-  scopes?: string[];
+  @doc("Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.")
+  scopes?: string[] | AuditDetailsTokenScopesChange;
   @doc("Смена названия токена у bot_token_updated. Есть, если название передали в запросе.")
   name?: AuditDetailsTokenNameChange;
 }

@@ -617,26 +617,8 @@ type AuditDetailsBot struct {
 	ApplicationID      *int32                       `json:"application_id,omitempty"`
 	AccessTokenID      *int32                       `json:"access_token_id,omitempty"`
 	AccessTokenPreview *string                      `json:"access_token_preview,omitempty"`
-	Scopes             []string                     `json:"scopes,omitempty"`
+	Scopes             *AuditDetailsBotScopesValue  `json:"scopes,omitempty"`
 	Name               *AuditDetailsTokenNameChange `json:"name,omitempty"`
-}
-
-func (m AuditDetailsBot) MarshalJSON() ([]byte, error) {
-	type Alias AuditDetailsBot
-	data, err := json.Marshal(Alias(m))
-	if err != nil {
-		return nil, err
-	}
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil, err
-	}
-	if m.Scopes != nil {
-		if raw["scopes"], err = json.Marshal(m.Scopes); err != nil {
-			return nil, err
-		}
-	}
-	return json.Marshal(raw)
 }
 
 type AuditDetailsBotOAuthClient struct {
@@ -2667,18 +2649,117 @@ type UpdateUserAvatarRequest struct {
 	Image io.Reader `json:"image"`
 }
 
-// unionMemberShape lists the JSON keys one member of an undiscriminated union declares.
+// unionMemberShape lists the JSON keys one member of an undiscriminated union
+// declares.
 type unionMemberShape struct {
+	name string
 	keys map[string]struct{}
+}
+
+// requiredShape lists the keys a model cannot do without, and the fields that
+// hold a model (or a list of them) with required keys of its own. A required
+// field that may hold null is not listed: its key may be missing.
+type requiredShape struct {
+	keys   []string
+	nested []nestedRequiredShape
+}
+
+type nestedRequiredShape struct {
+	key   string
+	model string
+}
+
+// requiredShapes holds the members of undiscriminated unions and the models
+// nested in them that have a required key, here or deeper.
+var requiredShapes = map[string]requiredShape{
+	"AuditDetailsUserUpdated":                 {keys: []string{"changed_attrs"}},
+	"AuditDetailsRoleChanged":                 {keys: []string{"new_company_role", "previous_company_role", "initiator_id"}},
+	"AuditDetailsTagName":                     {keys: []string{"name"}},
+	"AuditDetailsInitiator":                   {keys: []string{"initiator_id"}},
+	"AuditDetailsInviter":                     {keys: []string{"inviter_id"}},
+	"AuditDetailsChatRenamed":                 {keys: []string{"old_name", "new_name"}},
+	"AuditDetailsChatPermission":              {keys: []string{"public_access"}},
+	"AuditDetailsTagChat":                     {keys: []string{"chat_id", "tag_name"}},
+	"AuditDetailsChatId":                      {keys: []string{"chat_id"}},
+	"AuditDetailsTokenScopes":                 {keys: []string{"scopes"}},
+	"AuditDetailsKms":                         {keys: []string{"chat_id", "message_id", "reason"}},
+	"AuditDetailsDlp":                         {keys: []string{"dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "conditions_matched"}},
+	"AuditDetailsSearch":                      {keys: []string{"search_type", "query_present", "cursor_present", "filters"}},
+	"AuditDetailsBot":                         {keys: []string{"bot_id"}, nested: []nestedRequiredShape{{key: "scopes", model: "AuditDetailsTokenScopesChange"}}},
+	"AuditDetailsBotScopes":                   {keys: []string{"bot_id", "added_scopes", "removed_scopes", "webhook_id", "previous_scopes", "new_scopes"}},
+	"AuditDetailsBotWebhookSettings":          {keys: []string{"bot_id", "changes"}},
+	"AuditDetailsBotOAuthClient":              {keys: []string{"bot_id", "client_id", "changes"}},
+	"AuditDetailsOAuthAuthorizationGranted":   {keys: []string{"scopes", "application_id", "authorization_grant_id"}},
+	"AuditDetailsOAuthAuthorizationRevoked":   {keys: []string{"client_id", "revoked_tokens_count", "application_id"}},
+	"AuditDetailsDeviceAuthorizationApproved": {keys: []string{"client_id", "scopes", "application_id", "device_grant_id"}},
+	"AuditDetailsDeviceAuthorizationDenied":   {keys: []string{"client_id", "scopes", "device_grant_id"}},
+	"AuditDetailsVideoCallStarted":            {keys: []string{"chat_id"}},
+	"AuditDetailsVideoCallFinished":           {keys: []string{"chat_id", "max_members_count"}},
+	"AuditDetailsVideoCallRecording":          {keys: []string{"chat_id", "recording_id", "file_id", "duration", "size"}},
+	"AuditDetailsBotOAuthClientSecretRotated": {keys: []string{"bot_id", "client_id"}},
+	"AuditDetailsBotOAuthClientDisabled":      {keys: []string{"bot_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count"}},
+	"AuditDetailsToken":                       {keys: []string{"token_kind", "resource_owner_id", "scopes", "access_token_id"}},
+	"AuditDetailsBotTokenUpdated":             {keys: []string{"token_kind", "resource_owner_id", "current_scopes", "access_token_id", "webhook_id"}, nested: []nestedRequiredShape{{key: "scopes", model: "AuditDetailsTokenScopesChange"}}},
+	"AuditDetailsUserLoginQr":                 {keys: []string{"method", "login_grant_id"}},
+	"AuditDetailsLoginGrantCreated":           {keys: []string{"login_grant_id"}},
+	"AuditDetailsLoginGrantApproved":          {keys: []string{"login_grant_id", "device"}, nested: []nestedRequiredShape{{key: "device", model: "AuditLoginGrantDevice"}}},
+	"AuditDetailsLoginGrantDenied":            {keys: []string{"login_grant_id", "device", "reason"}, nested: []nestedRequiredShape{{key: "device", model: "AuditLoginGrantDevice"}}},
+	"AuditDetailsTokenScopesChange":           {keys: []string{"previous", "new"}},
+	"AuditLoginGrantDevice":                   {keys: []string{"name", "platform"}},
+}
+
+// missingRequired reports the first required key the payload of a model lacks,
+// in the model or in a model nested in it: encoding/json leaves a missing field
+// at its zero value, so a union member that misses one gives way to the next.
+// It runs only when a union picks a member: decoding a model on its own stays as
+// lenient as encoding/json.
+func missingRequired(model string, raw map[string]json.RawMessage) error {
+	shape := requiredShapes[model]
+	for _, k := range shape.keys {
+		if _, ok := raw[k]; !ok {
+			return fmt.Errorf("%s requires %q", model, k)
+		}
+	}
+	for _, n := range shape.nested {
+		if v, ok := raw[n.key]; ok {
+			if err := missingRequiredIn(n.model, v); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// missingRequiredIn checks a field value: an object of the model, a list of them,
+// or a value of another kind, which the decoder itself takes or refuses.
+func missingRequiredIn(model string, data json.RawMessage) error {
+	switch jsonValueKind(data) {
+	case '{':
+		var raw map[string]json.RawMessage
+		if json.Unmarshal(data, &raw) == nil {
+			return missingRequired(model, raw)
+		}
+	case '[':
+		var items []json.RawMessage
+		if json.Unmarshal(data, &items) == nil {
+			for _, item := range items {
+				if err := missingRequiredIn(model, item); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // rankUnionMembers orders the members by how well they fit the payload: most
 // keys recognised, then fewest unrecognised, then fewest declared, a tie keeping
-// the declared order. Returns nothing when the payload is not a JSON object.
-func rankUnionMembers(data []byte, shapes []unionMemberShape) []int {
+// the declared order. Returns the payload keys too, and nothing when the payload
+// is not a JSON object.
+func rankUnionMembers(data []byte, shapes []unionMemberShape) ([]int, map[string]json.RawMessage) {
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil
+		return nil, nil
 	}
 	matched := make([]int, len(shapes))
 	order := make([]int, len(shapes))
@@ -2698,7 +2779,7 @@ func rankUnionMembers(data []byte, shapes []unionMemberShape) []int {
 		// Same keys recognised means the same number unrecognised.
 		return len(shapes[x].keys) < len(shapes[y].keys)
 	})
-	return order
+	return order, raw
 }
 
 type AuditEventDetailsUnion struct {
@@ -2739,245 +2820,248 @@ type AuditEventDetailsUnion struct {
 }
 
 var auditEventDetailsUnionShapes = []unionMemberShape{
-	{keys: map[string]struct{}{}},
-	{keys: map[string]struct{}{"changed_attrs": {}, "context": {}}},
-	{keys: map[string]struct{}{"new_company_role": {}, "previous_company_role": {}, "initiator_id": {}}},
-	{keys: map[string]struct{}{"name": {}}},
-	{keys: map[string]struct{}{"initiator_id": {}}},
-	{keys: map[string]struct{}{"inviter_id": {}}},
-	{keys: map[string]struct{}{"old_name": {}, "new_name": {}}},
-	{keys: map[string]struct{}{"public_access": {}}},
-	{keys: map[string]struct{}{"chat_id": {}, "tag_name": {}}},
-	{keys: map[string]struct{}{"chat_id": {}}},
-	{keys: map[string]struct{}{"scopes": {}}},
-	{keys: map[string]struct{}{"chat_id": {}, "message_id": {}, "reason": {}}},
-	{keys: map[string]struct{}{"dlp_rule_id": {}, "dlp_rule_name": {}, "message_id": {}, "chat_id": {}, "user_id": {}, "action_message": {}, "conditions_matched": {}}},
-	{keys: map[string]struct{}{"search_type": {}, "query_present": {}, "cursor_present": {}, "limit": {}, "filters": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "webhook_id": {}, "application_id": {}, "access_token_id": {}, "access_token_preview": {}, "scopes": {}, "name": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "added_scopes": {}, "removed_scopes": {}, "bot_name": {}, "webhook_id": {}, "previous_scopes": {}, "new_scopes": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "changes": {}, "bot_name": {}, "webhook_id": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "changes": {}, "application_id": {}, "application_name": {}, "bot_name": {}, "webhook_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "scopes": {}, "application_id": {}, "application_name": {}, "bot_id": {}, "bot_name": {}, "authorization_grant_id": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "revoked_tokens_count": {}, "user_id": {}, "application_id": {}, "application_name": {}, "bot_id": {}, "bot_name": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "scopes": {}, "device_name": {}, "application_id": {}, "application_name": {}, "device_grant_id": {}, "token_kind": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "scopes": {}, "device_name": {}, "application_id": {}, "device_grant_id": {}, "token_kind": {}}},
-	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}}},
-	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "duration": {}, "max_members_count": {}}},
-	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "recording_id": {}, "file_id": {}, "duration": {}, "size": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "application_id": {}, "application_name": {}, "bot_name": {}, "webhook_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "deleted_access_tokens_count": {}, "deleted_access_grants_count": {}, "application_id": {}, "application_name": {}, "bot_name": {}, "webhook_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}}},
-	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}, "application_name": {}, "client_id": {}, "bot_id": {}, "bot_name": {}, "device_name": {}, "actor_id": {}, "webhook_id": {}, "user_id": {}, "source": {}, "reason": {}}},
-	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "current_scopes": {}, "bot_id": {}, "actor_id": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}, "application_name": {}, "client_id": {}, "bot_name": {}, "webhook_id": {}, "name": {}, "scopes": {}}},
-	{keys: map[string]struct{}{"method": {}, "login_grant_id": {}}},
-	{keys: map[string]struct{}{"login_grant_id": {}}},
-	{keys: map[string]struct{}{"login_grant_id": {}, "device": {}}},
-	{keys: map[string]struct{}{"login_grant_id": {}, "device": {}, "reason": {}}},
+	{name: "AuditDetailsEmpty", keys: map[string]struct{}{}},
+	{name: "AuditDetailsUserUpdated", keys: map[string]struct{}{"changed_attrs": {}, "context": {}}},
+	{name: "AuditDetailsRoleChanged", keys: map[string]struct{}{"new_company_role": {}, "previous_company_role": {}, "initiator_id": {}}},
+	{name: "AuditDetailsTagName", keys: map[string]struct{}{"name": {}}},
+	{name: "AuditDetailsInitiator", keys: map[string]struct{}{"initiator_id": {}}},
+	{name: "AuditDetailsInviter", keys: map[string]struct{}{"inviter_id": {}}},
+	{name: "AuditDetailsChatRenamed", keys: map[string]struct{}{"old_name": {}, "new_name": {}}},
+	{name: "AuditDetailsChatPermission", keys: map[string]struct{}{"public_access": {}}},
+	{name: "AuditDetailsTagChat", keys: map[string]struct{}{"chat_id": {}, "tag_name": {}}},
+	{name: "AuditDetailsChatId", keys: map[string]struct{}{"chat_id": {}}},
+	{name: "AuditDetailsTokenScopes", keys: map[string]struct{}{"scopes": {}}},
+	{name: "AuditDetailsKms", keys: map[string]struct{}{"chat_id": {}, "message_id": {}, "reason": {}}},
+	{name: "AuditDetailsDlp", keys: map[string]struct{}{"dlp_rule_id": {}, "dlp_rule_name": {}, "message_id": {}, "chat_id": {}, "user_id": {}, "action_message": {}, "conditions_matched": {}}},
+	{name: "AuditDetailsSearch", keys: map[string]struct{}{"search_type": {}, "query_present": {}, "cursor_present": {}, "limit": {}, "filters": {}}},
+	{name: "AuditDetailsBot", keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "webhook_id": {}, "application_id": {}, "access_token_id": {}, "access_token_preview": {}, "scopes": {}, "name": {}}},
+	{name: "AuditDetailsBotScopes", keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "added_scopes": {}, "removed_scopes": {}, "bot_name": {}, "webhook_id": {}, "previous_scopes": {}, "new_scopes": {}}},
+	{name: "AuditDetailsBotWebhookSettings", keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "changes": {}, "bot_name": {}, "webhook_id": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}}},
+	{name: "AuditDetailsBotOAuthClient", keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "changes": {}, "application_id": {}, "application_name": {}, "bot_name": {}, "webhook_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}}},
+	{name: "AuditDetailsOAuthAuthorizationGranted", keys: map[string]struct{}{"client_id": {}, "scopes": {}, "application_id": {}, "application_name": {}, "bot_id": {}, "bot_name": {}, "authorization_grant_id": {}}},
+	{name: "AuditDetailsOAuthAuthorizationRevoked", keys: map[string]struct{}{"client_id": {}, "revoked_tokens_count": {}, "user_id": {}, "application_id": {}, "application_name": {}, "bot_id": {}, "bot_name": {}}},
+	{name: "AuditDetailsDeviceAuthorizationApproved", keys: map[string]struct{}{"client_id": {}, "scopes": {}, "device_name": {}, "application_id": {}, "application_name": {}, "device_grant_id": {}, "token_kind": {}}},
+	{name: "AuditDetailsDeviceAuthorizationDenied", keys: map[string]struct{}{"client_id": {}, "scopes": {}, "device_name": {}, "application_id": {}, "device_grant_id": {}, "token_kind": {}}},
+	{name: "AuditDetailsVideoCallStarted", keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}}},
+	{name: "AuditDetailsVideoCallFinished", keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "duration": {}, "max_members_count": {}}},
+	{name: "AuditDetailsVideoCallRecording", keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "recording_id": {}, "file_id": {}, "duration": {}, "size": {}}},
+	{name: "AuditDetailsBotOAuthClientSecretRotated", keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "application_id": {}, "application_name": {}, "bot_name": {}, "webhook_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}}},
+	{name: "AuditDetailsBotOAuthClientDisabled", keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "deleted_access_tokens_count": {}, "deleted_access_grants_count": {}, "application_id": {}, "application_name": {}, "bot_name": {}, "webhook_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}}},
+	{name: "AuditDetailsToken", keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}, "application_name": {}, "client_id": {}, "bot_id": {}, "bot_name": {}, "device_name": {}, "actor_id": {}, "webhook_id": {}, "user_id": {}, "source": {}, "reason": {}}},
+	{name: "AuditDetailsBotTokenUpdated", keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "current_scopes": {}, "bot_id": {}, "actor_id": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}, "application_name": {}, "client_id": {}, "bot_name": {}, "webhook_id": {}, "name": {}, "scopes": {}}},
+	{name: "AuditDetailsUserLoginQr", keys: map[string]struct{}{"method": {}, "login_grant_id": {}}},
+	{name: "AuditDetailsLoginGrantCreated", keys: map[string]struct{}{"login_grant_id": {}}},
+	{name: "AuditDetailsLoginGrantApproved", keys: map[string]struct{}{"login_grant_id": {}, "device": {}}},
+	{name: "AuditDetailsLoginGrantDenied", keys: map[string]struct{}{"login_grant_id": {}, "device": {}, "reason": {}}},
 }
 
 // UnmarshalJSON decodes AuditEventDetailsUnion, which carries no discriminator field:
 // members are tried in the order they match the payload keys, and the first one
 // that decodes wins. The raw payload is always kept in Raw, so a payload that is
-// not an object is not a decode error. When no member decodes, the error is the
-// one of the member that fits the keys best.
+// not an object is not a decode error. A member that misses a required key, in
+// itself or in a model nested in it, gives way to the next. When no member
+// decodes, the error is the one of the member that fits the keys best.
 func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
 	u.Raw = append(json.RawMessage(nil), data...)
 	var firstErr error
-	for _, i := range rankUnionMembers(data, auditEventDetailsUnionShapes) {
-		var err error
-		switch i {
-		case 0:
+	order, raw := rankUnionMembers(data, auditEventDetailsUnionShapes)
+	for _, i := range order {
+		err := missingRequired(auditEventDetailsUnionShapes[i].name, raw)
+		switch {
+		case err != nil:
+		case i == 0:
 			v := &AuditDetailsEmpty{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsEmpty = v
 				return nil
 			}
-		case 1:
+		case i == 1:
 			v := &AuditDetailsUserUpdated{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsUserUpdated = v
 				return nil
 			}
-		case 2:
+		case i == 2:
 			v := &AuditDetailsRoleChanged{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsRoleChanged = v
 				return nil
 			}
-		case 3:
+		case i == 3:
 			v := &AuditDetailsTagName{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsTagName = v
 				return nil
 			}
-		case 4:
+		case i == 4:
 			v := &AuditDetailsInitiator{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsInitiator = v
 				return nil
 			}
-		case 5:
+		case i == 5:
 			v := &AuditDetailsInviter{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsInviter = v
 				return nil
 			}
-		case 6:
+		case i == 6:
 			v := &AuditDetailsChatRenamed{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsChatRenamed = v
 				return nil
 			}
-		case 7:
+		case i == 7:
 			v := &AuditDetailsChatPermission{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsChatPermission = v
 				return nil
 			}
-		case 8:
+		case i == 8:
 			v := &AuditDetailsTagChat{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsTagChat = v
 				return nil
 			}
-		case 9:
+		case i == 9:
 			v := &AuditDetailsChatId{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsChatId = v
 				return nil
 			}
-		case 10:
+		case i == 10:
 			v := &AuditDetailsTokenScopes{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsTokenScopes = v
 				return nil
 			}
-		case 11:
+		case i == 11:
 			v := &AuditDetailsKms{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsKms = v
 				return nil
 			}
-		case 12:
+		case i == 12:
 			v := &AuditDetailsDlp{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsDlp = v
 				return nil
 			}
-		case 13:
+		case i == 13:
 			v := &AuditDetailsSearch{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsSearch = v
 				return nil
 			}
-		case 14:
+		case i == 14:
 			v := &AuditDetailsBot{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBot = v
 				return nil
 			}
-		case 15:
+		case i == 15:
 			v := &AuditDetailsBotScopes{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotScopes = v
 				return nil
 			}
-		case 16:
+		case i == 16:
 			v := &AuditDetailsBotWebhookSettings{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotWebhookSettings = v
 				return nil
 			}
-		case 17:
+		case i == 17:
 			v := &AuditDetailsBotOAuthClient{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotOAuthClient = v
 				return nil
 			}
-		case 18:
+		case i == 18:
 			v := &AuditDetailsOAuthAuthorizationGranted{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsOAuthAuthorizationGranted = v
 				return nil
 			}
-		case 19:
+		case i == 19:
 			v := &AuditDetailsOAuthAuthorizationRevoked{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsOAuthAuthorizationRevoked = v
 				return nil
 			}
-		case 20:
+		case i == 20:
 			v := &AuditDetailsDeviceAuthorizationApproved{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsDeviceAuthorizationApproved = v
 				return nil
 			}
-		case 21:
+		case i == 21:
 			v := &AuditDetailsDeviceAuthorizationDenied{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsDeviceAuthorizationDenied = v
 				return nil
 			}
-		case 22:
+		case i == 22:
 			v := &AuditDetailsVideoCallStarted{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsVideoCallStarted = v
 				return nil
 			}
-		case 23:
+		case i == 23:
 			v := &AuditDetailsVideoCallFinished{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsVideoCallFinished = v
 				return nil
 			}
-		case 24:
+		case i == 24:
 			v := &AuditDetailsVideoCallRecording{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsVideoCallRecording = v
 				return nil
 			}
-		case 25:
+		case i == 25:
 			v := &AuditDetailsBotOAuthClientSecretRotated{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotOAuthClientSecretRotated = v
 				return nil
 			}
-		case 26:
+		case i == 26:
 			v := &AuditDetailsBotOAuthClientDisabled{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotOAuthClientDisabled = v
 				return nil
 			}
-		case 27:
+		case i == 27:
 			v := &AuditDetailsToken{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsToken = v
 				return nil
 			}
-		case 28:
+		case i == 28:
 			v := &AuditDetailsBotTokenUpdated{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotTokenUpdated = v
 				return nil
 			}
-		case 29:
+		case i == 29:
 			v := &AuditDetailsUserLoginQr{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsUserLoginQr = v
 				return nil
 			}
-		case 30:
+		case i == 30:
 			v := &AuditDetailsLoginGrantCreated{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsLoginGrantCreated = v
 				return nil
 			}
-		case 31:
+		case i == 31:
 			v := &AuditDetailsLoginGrantApproved{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsLoginGrantApproved = v
 				return nil
 			}
-		case 32:
+		case i == 32:
 			v := &AuditDetailsLoginGrantDenied{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsLoginGrantDenied = v
@@ -3269,6 +3353,49 @@ func (u WebhookPayloadUnion) MarshalJSON() ([]byte, error) {
 		return json.Marshal(u.VideoCallWebhookPayload)
 	}
 	return nil, fmt.Errorf("empty WebhookPayloadUnion")
+}
+
+// jsonValueKind is the first byte of a JSON value: '[', '{', '"', 't' or 'f',
+// or '-' or a digit for a number.
+func jsonValueKind(data []byte) byte {
+	for _, b := range data {
+		if b != ' ' && b != '\t' && b != '\n' && b != '\r' {
+			return b
+		}
+	}
+	return 0
+}
+
+// AuditDetailsBotScopesValue: Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
+// One field is set: the member of the JSON kind the value has.
+type AuditDetailsBotScopesValue struct {
+	StringList                    []string
+	AuditDetailsTokenScopesChange *AuditDetailsTokenScopesChange
+}
+
+func (u *AuditDetailsBotScopesValue) UnmarshalJSON(data []byte) error {
+	if jsonValueKind(data) == 'n' {
+		return nil
+	}
+	*u = AuditDetailsBotScopesValue{}
+	switch jsonValueKind(data) {
+	case '[':
+		return json.Unmarshal(data, &u.StringList)
+	case '{':
+		u.AuditDetailsTokenScopesChange = new(AuditDetailsTokenScopesChange)
+		return json.Unmarshal(data, u.AuditDetailsTokenScopesChange)
+	}
+	return fmt.Errorf("AuditDetailsBotScopesValue takes StringList or AuditDetailsTokenScopesChange, got %s", data)
+}
+
+func (u AuditDetailsBotScopesValue) MarshalJSON() ([]byte, error) {
+	if u.StringList != nil {
+		return json.Marshal(u.StringList)
+	}
+	if u.AuditDetailsTokenScopesChange != nil {
+		return json.Marshal(u.AuditDetailsTokenScopesChange)
+	}
+	return []byte("null"), nil
 }
 
 type GetAuditEventsParams struct {

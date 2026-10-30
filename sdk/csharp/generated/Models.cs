@@ -2329,6 +2329,15 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         JsonException? firstError = null;
         foreach (var candidate in ranked)
         {
+            // System.Text.Json fills a missing field with its default: a member that
+            // misses a required key, in itself or in a model nested in it, gives way
+            // to the next one here.
+            var missing = UnionRequiredKeys.Missing(candidate.Type.Name, root);
+            if (missing != null)
+            {
+                firstError ??= new JsonException(missing);
+                continue;
+            }
             try
             {
                 return (AuditEventDetailsUnion)JsonSerializer.Deserialize(raw, candidate.Type, options)!;
@@ -2478,7 +2487,7 @@ public class AuditDetailsBot : AuditEventDetailsUnion
     [JsonPropertyName("access_token_preview")]
     public string? AccessTokenPreview { get; set; }
     [JsonPropertyName("scopes")]
-    public List<string>? Scopes { get; set; }
+    public AuditDetailsBotScopesValue? Scopes { get; set; }
     [JsonPropertyName("name")]
     public AuditDetailsTokenNameChange? Name { get; set; }
 }
@@ -3205,6 +3214,137 @@ public class VideoCallWebhookPayload : WebhookPayloadUnion
     public long? Size { get; set; }
     [JsonPropertyName("webhook_timestamp")]
     public int WebhookTimestamp { get; set; } = default!;
+}
+
+// UnionRequiredKeys lists, for a model a union without a discriminator may hold
+// or nest, the keys it cannot do without and the fields that hold a model (or a
+// list of them) with required keys of its own. A required field that may hold
+// null is not listed: its key may be missing. System.Text.Json fills a missing
+// field with its default, so a union checks the keys before it takes a member;
+// decoding a model on its own stays as lenient as System.Text.Json.
+internal static class UnionRequiredKeys
+{
+    private static readonly Dictionary<string, (string[] Keys, (string Key, string Model)[] Nested)> Shapes = new()
+    {
+        ["AuditDetailsUserUpdated"] = (new[] { "changed_attrs" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsRoleChanged"] = (new[] { "new_company_role", "previous_company_role", "initiator_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsTagName"] = (new[] { "name" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsInitiator"] = (new[] { "initiator_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsInviter"] = (new[] { "inviter_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsChatRenamed"] = (new[] { "old_name", "new_name" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsChatPermission"] = (new[] { "public_access" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsTagChat"] = (new[] { "chat_id", "tag_name" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsChatId"] = (new[] { "chat_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsTokenScopes"] = (new[] { "scopes" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsKms"] = (new[] { "chat_id", "message_id", "reason" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsDlp"] = (new[] { "dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "conditions_matched" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsSearch"] = (new[] { "search_type", "query_present", "cursor_present", "filters" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBot"] = (new[] { "bot_id" }, new[] { ("scopes", "AuditDetailsTokenScopesChange") }),
+        ["AuditDetailsBotScopes"] = (new[] { "bot_id", "added_scopes", "removed_scopes", "webhook_id", "previous_scopes", "new_scopes" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBotWebhookSettings"] = (new[] { "bot_id", "changes" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBotOAuthClient"] = (new[] { "bot_id", "client_id", "changes" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsOAuthAuthorizationGranted"] = (new[] { "scopes", "application_id", "authorization_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsOAuthAuthorizationRevoked"] = (new[] { "client_id", "revoked_tokens_count", "application_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsDeviceAuthorizationApproved"] = (new[] { "client_id", "scopes", "application_id", "device_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsDeviceAuthorizationDenied"] = (new[] { "client_id", "scopes", "device_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsVideoCallStarted"] = (new[] { "chat_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsVideoCallFinished"] = (new[] { "chat_id", "max_members_count" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsVideoCallRecording"] = (new[] { "chat_id", "recording_id", "file_id", "duration", "size" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBotOAuthClientSecretRotated"] = (new[] { "bot_id", "client_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBotOAuthClientDisabled"] = (new[] { "bot_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsToken"] = (new[] { "token_kind", "resource_owner_id", "scopes", "access_token_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBotTokenUpdated"] = (new[] { "token_kind", "resource_owner_id", "current_scopes", "access_token_id", "webhook_id" }, new[] { ("scopes", "AuditDetailsTokenScopesChange") }),
+        ["AuditDetailsUserLoginQr"] = (new[] { "method", "login_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsLoginGrantCreated"] = (new[] { "login_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsLoginGrantApproved"] = (new[] { "login_grant_id", "device" }, new[] { ("device", "AuditLoginGrantDevice") }),
+        ["AuditDetailsLoginGrantDenied"] = (new[] { "login_grant_id", "device", "reason" }, new[] { ("device", "AuditLoginGrantDevice") }),
+        ["AuditDetailsTokenScopesChange"] = (new[] { "previous", "new" }, Array.Empty<(string, string)>()),
+        ["AuditLoginGrantDevice"] = (new[] { "name", "platform" }, Array.Empty<(string, string)>()),
+    };
+
+    // Missing names the first required key the payload of a model lacks, in the
+    // model or in a model nested in it, or returns null when nothing is missing.
+    public static string? Missing(string model, JsonElement value)
+    {
+        if (!Shapes.TryGetValue(model, out var shape)) return null;
+        var isObject = value.ValueKind == JsonValueKind.Object;
+        foreach (var key in shape.Keys)
+        {
+            if (!isObject || !value.TryGetProperty(key, out _)) return $"{model} requires \"{key}\"";
+        }
+        if (!isObject) return null;
+        foreach (var (key, nested) in shape.Nested)
+        {
+            if (value.TryGetProperty(key, out var inner) && MissingIn(nested, inner) is { } missing) return missing;
+        }
+        return null;
+    }
+
+    // A field value: an object of the model, a list of them, or a value of another
+    // kind, which the converter itself takes or refuses.
+    private static string? MissingIn(string model, JsonElement value)
+    {
+        switch (value.ValueKind)
+        {
+            case JsonValueKind.Object:
+                return Missing(model, value);
+            case JsonValueKind.Array:
+                foreach (var item in value.EnumerateArray())
+                {
+                    if (MissingIn(model, item) is { } missing) return missing;
+                }
+                return null;
+            default:
+                return null;
+        }
+    }
+}
+
+/// <summary>
+/// Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
+/// </summary>
+[JsonConverter(typeof(AuditDetailsBotScopesValueConverter))]
+public sealed class AuditDetailsBotScopesValue
+{
+    public List<string>? StringList { get; }
+    public AuditDetailsTokenScopesChange? AuditDetailsTokenScopesChange { get; }
+
+    public AuditDetailsBotScopesValue(List<string> value) { StringList = value; }
+    public AuditDetailsBotScopesValue(AuditDetailsTokenScopesChange value) { AuditDetailsTokenScopesChange = value; }
+
+    public static implicit operator AuditDetailsBotScopesValue(List<string> value) => new(value);
+    public static implicit operator AuditDetailsBotScopesValue(AuditDetailsTokenScopesChange value) => new(value);
+}
+
+internal sealed class AuditDetailsBotScopesValueConverter : JsonConverter<AuditDetailsBotScopesValue>
+{
+    public override AuditDetailsBotScopesValue Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartArray:
+                return new AuditDetailsBotScopesValue(JsonSerializer.Deserialize<List<string>>(ref reader, options)!);
+            case JsonTokenType.StartObject:
+                return new AuditDetailsBotScopesValue(JsonSerializer.Deserialize<AuditDetailsTokenScopesChange>(ref reader, options)!);
+            default:
+                throw new JsonException($"AuditDetailsBotScopesValue takes StringList or AuditDetailsTokenScopesChange, got {reader.TokenType}");
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, AuditDetailsBotScopesValue value, JsonSerializerOptions options)
+    {
+        if (value.StringList != null)
+        {
+            JsonSerializer.Serialize(writer, value.StringList, options);
+            return;
+        }
+        if (value.AuditDetailsTokenScopesChange != null)
+        {
+            JsonSerializer.Serialize(writer, value.AuditDetailsTokenScopesChange, options);
+            return;
+        }
+        writer.WriteNullValue();
+    }
 }
 
 public class AccessTokenInfo

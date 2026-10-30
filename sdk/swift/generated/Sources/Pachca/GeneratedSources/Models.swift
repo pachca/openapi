@@ -2176,10 +2176,10 @@ public struct AuditDetailsBot: Codable {
     public let applicationId: Int?
     public let accessTokenId: Int?
     public let accessTokenPreview: String?
-    public let scopes: [String]?
+    public let scopes: AuditDetailsBotScopesValue?
     public let name: AuditDetailsTokenNameChange?
 
-    public init(botId: Int, actorId: Int? = nil, webhookId: Int? = nil, applicationId: Int? = nil, accessTokenId: Int? = nil, accessTokenPreview: String? = nil, scopes: [String]? = nil, name: AuditDetailsTokenNameChange? = nil) {
+    public init(botId: Int, actorId: Int? = nil, webhookId: Int? = nil, applicationId: Int? = nil, accessTokenId: Int? = nil, accessTokenPreview: String? = nil, scopes: AuditDetailsBotScopesValue? = nil, name: AuditDetailsTokenNameChange? = nil) {
         self.botId = botId
         self.actorId = actorId
         self.webhookId = webhookId
@@ -6610,6 +6610,43 @@ public enum WebhookPayloadUnion: Codable {
         case .linkSharedWebhookPayload(let value):
             try value.encode(to: encoder)
         case .videoCallWebhookPayload(let value):
+            try value.encode(to: encoder)
+        }
+    }
+}
+
+/// Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
+public enum AuditDetailsBotScopesValue: Codable {
+    case stringList([String])
+    case auditDetailsTokenScopesChange(AuditDetailsTokenScopesChange)
+
+    private struct AnyKey: CodingKey {
+        let stringValue: String
+        var intValue: Int? { nil }
+        init?(stringValue: String) { self.stringValue = stringValue }
+        init?(intValue: Int) { nil }
+    }
+
+    public init(from decoder: Decoder) throws {
+        if (try? decoder.unkeyedContainer()) != nil {
+            self = .stringList(try [String](from: decoder))
+            return
+        }
+        if (try? decoder.container(keyedBy: AnyKey.self)) != nil {
+            self = .auditDetailsTokenScopesChange(try AuditDetailsTokenScopesChange(from: decoder))
+            return
+        }
+        throw DecodingError.typeMismatch(
+            AuditDetailsBotScopesValue.self,
+            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Expected [String] or AuditDetailsTokenScopesChange")
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        switch self {
+        case .stringList(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsTokenScopesChange(let value):
             try value.encode(to: encoder)
         }
     }

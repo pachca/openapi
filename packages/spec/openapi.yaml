@@ -8832,10 +8832,12 @@ components:
           nullable: true
           description: 'Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, `null`, если значение недоступно.'
         scopes:
-          type: array
-          items:
-            type: string
-          description: Скоупы токена. Есть у bot_token_created.
+          anyOf:
+            - type: array
+              items:
+                type: string
+            - $ref: '#/components/schemas/AuditDetailsTokenScopesChange'
+          description: 'Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.'
         name:
           allOf:
             - $ref: '#/components/schemas/AuditDetailsTokenNameChange'

@@ -9850,10 +9850,14 @@ components:
             Masked token: the first and last characters. Present for bot token events, `null` if the value is
             unavailable.
         scopes:
-          type: array
-          items:
-            type: string
-          description: Token scopes. Present for bot_token_created.
+          anyOf:
+            - type: array
+              items:
+                type: string
+            - $ref: '#/components/schemas/AuditDetailsTokenScopesChange'
+          description: >-
+            Token scopes in records made before October 7, 2026: an array for bot_token_created, an object with the
+            `previous` and `new` fields for bot_token_updated if the scopes were passed in the request.
         name:
           allOf:
             - $ref: '#/components/schemas/AuditDetailsTokenNameChange'

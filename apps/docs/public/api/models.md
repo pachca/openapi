@@ -775,7 +775,13 @@
     - `application_id: integer, int32` (nullable) — Идентификатор приложения бота. `null`, если приложения у бота нет.
     - `access_token_id: integer, int32` — Идентификатор токена. Есть у bot_token_created, bot_token_reissued и bot_token_updated.
     - `access_token_preview: string` (nullable) — Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, `null`, если значение недоступно.
-    - `scopes: array of string` — Скоупы токена. Есть у bot_token_created.
+    - `scopes: anyOf` — Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
+      **Возможные варианты:**
+
+      - **array of string**
+      - **AuditDetailsTokenScopesChange**: Смена скоупов токена в журнале аудита
+        - `previous: array of string` (required) — Скоупы токена до изменения
+        - `new: array of string` (required) — Скоупы токена после изменения
     - `name: object` — Смена названия токена у bot_token_updated. Есть, если название передали в запросе.
       - `previous: string` (required, nullable) — Прежнее название. `null`, если названия не было.
       - `new: string` (required, nullable) — Новое название. `null`, если название убрали.

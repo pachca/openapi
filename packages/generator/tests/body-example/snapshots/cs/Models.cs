@@ -78,6 +78,15 @@ internal sealed class ButtonConverter : JsonConverter<Button>
         JsonException? firstError = null;
         foreach (var candidate in ranked)
         {
+            // System.Text.Json fills a missing field with its default: a member that
+            // misses a required key, in itself or in a model nested in it, gives way
+            // to the next one here.
+            var missing = UnionRequiredKeys.Missing(candidate.Type.Name, root);
+            if (missing != null)
+            {
+                firstError ??= new JsonException(missing);
+                continue;
+            }
             try
             {
                 return (Button)JsonSerializer.Deserialize(raw, candidate.Type, options)!;
@@ -110,6 +119,58 @@ public class DataButton : Button
     public string Text { get; set; } = default!;
     [JsonPropertyName("data")]
     public string Data { get; set; } = default!;
+}
+
+// UnionRequiredKeys lists, for a model a union without a discriminator may hold
+// or nest, the keys it cannot do without and the fields that hold a model (or a
+// list of them) with required keys of its own. A required field that may hold
+// null is not listed: its key may be missing. System.Text.Json fills a missing
+// field with its default, so a union checks the keys before it takes a member;
+// decoding a model on its own stays as lenient as System.Text.Json.
+internal static class UnionRequiredKeys
+{
+    private static readonly Dictionary<string, (string[] Keys, (string Key, string Model)[] Nested)> Shapes = new()
+    {
+        ["UrlButton"] = (new[] { "text", "url" }, Array.Empty<(string, string)>()),
+        ["DataButton"] = (new[] { "text", "data" }, Array.Empty<(string, string)>()),
+    };
+
+    // Missing names the first required key the payload of a model lacks, in the
+    // model or in a model nested in it, or returns null when nothing is missing.
+    public static string? Missing(string model, JsonElement value)
+    {
+        if (!Shapes.TryGetValue(model, out var shape)) return null;
+        var isObject = value.ValueKind == JsonValueKind.Object;
+        foreach (var key in shape.Keys)
+        {
+            if (!isObject || !value.TryGetProperty(key, out _)) return $"{model} requires \"{key}\"";
+        }
+        if (!isObject) return null;
+        foreach (var (key, nested) in shape.Nested)
+        {
+            if (value.TryGetProperty(key, out var inner) && MissingIn(nested, inner) is { } missing) return missing;
+        }
+        return null;
+    }
+
+    // A field value: an object of the model, a list of them, or a value of another
+    // kind, which the converter itself takes or refuses.
+    private static string? MissingIn(string model, JsonElement value)
+    {
+        switch (value.ValueKind)
+        {
+            case JsonValueKind.Object:
+                return Missing(model, value);
+            case JsonValueKind.Array:
+                foreach (var item in value.EnumerateArray())
+                {
+                    if (MissingIn(model, item) is { } missing) return missing;
+                }
+                return null;
+            default:
+                return null;
+        }
+    }
 }
 
 public class MessageFile

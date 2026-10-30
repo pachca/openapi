@@ -101,6 +101,9 @@ const PACKAGES = [
     product: 'mcp-manifest',
     label: 'mcp-manifest',
     dirs: ['packages/mcp-manifest'],
+    // The server that runs the manifest is on the portal as product `mcp`: a new
+    // manifest version needs a release entry there with the same version.
+    portalProduct: 'mcp',
     selfVersioned: {
       changelog: 'packages/mcp-manifest/CHANGELOG.md',
       packageJson: 'packages/mcp-manifest/package.json',
@@ -337,6 +340,17 @@ function checkSelfVersioned(pkg) {
       `${pkg.label}: version mismatch — ${changelog} says "${declared}" but ` +
         `${packageJson} says "${version}". Make them agree.`
     );
+  }
+
+  if (changelogWritten && pkg.portalProduct) {
+    const portalVersion = releasesVersion(pkg.portalProduct);
+    if (portalVersion !== declared) {
+      errors.push(
+        `${pkg.label}: ${changelog} declares ${declared} but ${RELEASES} has ` +
+          `"${portalVersion}" for product "${pkg.portalProduct}".\n` +
+          `      Add a release entry with product "${pkg.portalProduct}" and version ${declared}.`
+      );
+    }
   }
 
   if (releasesVersion(pkg.product)) {

@@ -923,12 +923,13 @@ export interface AddTagsRequest {
 }
 
 export class ApiError extends Error {
-  errors?: ApiErrorItem[];
+  errors: ApiErrorItem[];
   /** HTTP status code of the response. An answer with an empty body or one that is not JSON comes with `errors` empty. */
   status?: number;
-  constructor(errors?: ApiErrorItem[], status?: number) {
-    super(errors?.length ? errors.map((e) => `${e.key}: ${e.value}`).join(", ") : status !== undefined ? `HTTP ${status}` : "");
-    this.errors = errors;
+  constructor(errors: ApiErrorItem[] = [], status?: number) {
+    const list = errors ?? [];
+    super(list.length ? list.map((e) => `${e.key}: ${e.value}`).join(", ") : status !== undefined ? `HTTP ${status}` : "");
+    this.errors = list;
     this.status = status;
   }
 }
@@ -944,6 +945,12 @@ export interface ApiErrorItem {
 export interface AuditDetailsBot {
   botId: number;
   actorId: number | null;
+  webhookId?: number;
+  applicationId?: number | null;
+  accessTokenId?: number;
+  accessTokenPreview?: string | null;
+  scopes?: string[];
+  name?: AuditDetailsTokenNameChange;
 }
 
 export interface AuditDetailsBotOAuthClient {
@@ -951,6 +958,13 @@ export interface AuditDetailsBotOAuthClient {
   actorId: number | null;
   clientId: string;
   changes: Record<string, unknown>;
+  applicationId?: number;
+  applicationName?: string;
+  botName?: string;
+  webhookId?: number;
+  scopes?: string[];
+  accessTokenId?: number | null;
+  accessTokenPreview?: string | null;
 }
 
 export interface AuditDetailsBotOAuthClientDisabled {
@@ -959,12 +973,26 @@ export interface AuditDetailsBotOAuthClientDisabled {
   clientId: string;
   deletedAccessTokensCount: number;
   deletedAccessGrantsCount: number;
+  applicationId?: number;
+  applicationName?: string;
+  botName?: string;
+  webhookId?: number;
+  scopes?: string[];
+  accessTokenId?: number | null;
+  accessTokenPreview?: string | null;
 }
 
 export interface AuditDetailsBotOAuthClientSecretRotated {
   botId: number;
   actorId: number | null;
   clientId: string;
+  applicationId?: number;
+  applicationName?: string;
+  botName?: string;
+  webhookId?: number;
+  scopes?: string[];
+  accessTokenId?: number | null;
+  accessTokenPreview?: string | null;
 }
 
 export interface AuditDetailsBotScopes {
@@ -972,6 +1000,10 @@ export interface AuditDetailsBotScopes {
   actorId: number | null;
   addedScopes: string[];
   removedScopes: string[];
+  botName?: string;
+  webhookId: number;
+  previousScopes: string[];
+  newScopes: string[];
 }
 
 export interface AuditDetailsBotTokenUpdated {
@@ -981,12 +1013,25 @@ export interface AuditDetailsBotTokenUpdated {
   currentScopes: string[];
   botId?: number;
   actorId: number | null;
+  accessTokenId: number;
+  accessTokenPreview: string | null;
+  applicationId?: number;
+  applicationName?: string;
+  clientId?: string;
+  botName?: string;
+  webhookId: number;
+  name?: AuditDetailsTokenNameChange;
 }
 
 export interface AuditDetailsBotWebhookSettings {
   botId: number;
   actorId: number | null;
   changes: Record<string, unknown>;
+  botName?: string;
+  webhookId?: number;
+  accessTokenId?: number | null;
+  accessTokenPreview?: string | null;
+  applicationId?: number | null;
 }
 
 export interface AuditDetailsChatId {
@@ -1006,12 +1051,19 @@ export interface AuditDetailsDeviceAuthorizationApproved {
   clientId: string;
   scopes: string[];
   deviceName?: string | null;
+  applicationId: number;
+  applicationName?: string;
+  deviceGrantId: number;
+  tokenKind?: string;
 }
 
 export interface AuditDetailsDeviceAuthorizationDenied {
   clientId: string;
   scopes: string[];
   deviceName?: string | null;
+  applicationId?: number | null;
+  deviceGrantId: number;
+  tokenKind?: string;
 }
 
 export interface AuditDetailsDlp {
@@ -1057,14 +1109,23 @@ export interface AuditDetailsLoginGrantDenied {
 }
 
 export interface AuditDetailsOAuthAuthorizationGranted {
-  clientId: string;
+  clientId: string | null;
   scopes: string[];
+  applicationId: number;
+  applicationName?: string;
+  botId?: number;
+  botName?: string;
+  authorizationGrantId: number;
 }
 
 export interface AuditDetailsOAuthAuthorizationRevoked {
   clientId: string;
   revokedTokensCount: number;
   userId?: number;
+  applicationId: number;
+  applicationName?: string;
+  botId?: number;
+  botName?: string;
 }
 
 export interface AuditDetailsRoleChanged {
@@ -1095,8 +1156,24 @@ export interface AuditDetailsToken {
   tokenName: string | null;
   resourceOwnerId: number;
   scopes: string[];
+  accessTokenId: number;
+  accessTokenPreview: string | null;
+  applicationId?: number;
+  applicationName?: string;
+  clientId?: string;
   botId?: number;
+  botName?: string;
+  deviceName?: string | null;
+  actorId?: number | null;
+  webhookId?: number;
+  userId?: number;
+  source?: string;
   reason?: string;
+}
+
+export interface AuditDetailsTokenNameChange {
+  previous: string | null;
+  new: string | null;
 }
 
 export interface AuditDetailsTokenScopes {
@@ -1360,7 +1437,7 @@ export interface BotUpdateRequest {
     whoCanAdd?: BotWhoCanAdd;
     canEdit?: BotCanEdit[];
     singleChat?: boolean;
-    kind?: BotWebhookKind;
+    kind?: BotWebhookKind | null;
     unfurlDomains?: string[];
   };
   oauthClient?: BotOAuthClientRequest | null;
@@ -1818,6 +1895,10 @@ export interface OpenViewRequest {
     submitText?: string;
     blocks: ViewBlockUnion[];
   };
+}
+
+export interface OpenViewResult {
+  success: boolean;
 }
 
 export interface PaginationMeta {

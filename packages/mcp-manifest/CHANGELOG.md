@@ -2,9 +2,16 @@
 
 ## 1.5.0 (2026-10-30)
 
-The DLP rule ID in audit details is a string; schema_version stays 1.2.0.
+Deleting an incoming webhook, the output of opening a form, and audit details as the API writes them; schema_version stays 1.2.0.
 
 - `pachca_get_audit_events`: `details.dlp_rule_id` of `dlp_violation_detected` is a string made from the rule name, for example `pasport-rf`, as the API returns it, and it is listed among the untrusted fields.
+- `pachca_get_audit_events`: details list the token, application, bot and webhook fields the API writes (including bot token records from before 7 October 2026 and the `null` application of a refused CLI sign-in), the setting keys of `bot_webhook_settings_updated`, and the values of `reason` for `kms_*`.
+- `pachca_update_bot`: `kind` accepts `null`, which deletes the incoming webhook: the address stops working, the template and its settings are reset, and the next enabling gives a new address.
+- `pachca_create_bot` and `pachca_update_bot`: `commands` say how a command matches: the first word of the text, exactly, case included.
+- `pachca_open_form` has an output: `success`, always `true`.
+- `pachca_send_message`: a voice message (`file_type` `voice`) is sent with a personal token, and a bot token gets `403`.
+- `pachca_send_message`, `pachca_update_message`, `pachca_create_draft` and `pachca_update_draft`: `duration_ms` is required for a voice message, optional for a video and not saved for other types. Message and draft outputs describe `duration_ms` the same way.
+- `pachca_download_export`: after 7 days the method still answers with a link, but the archive is gone, so the export is requested again.
 
 ## 1.4.0 (2026-10-28)
 

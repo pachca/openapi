@@ -11,7 +11,7 @@ import {
   type IRParam,
   type IRResponseType,
 } from '../ir.js';
-import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToUpperSnake,
@@ -397,9 +397,9 @@ function emitUnion(
 
   if (structural) {
     lines.push('');
-    lines.push(`// ${u.name} carries no discriminator field: the member is chosen by which one`);
-    lines.push('// best matches the payload keys (most recognised, then fewest unrecognised,');
-    lines.push('// then fewest declared).');
+    lines.push(`// ${u.name} carries no discriminator field: members are tried in the order`);
+    lines.push('// they match the payload keys (most recognised, then fewest unrecognised, then');
+    lines.push('// fewest declared), and the first one that decodes wins.');
     lines.push(`object ${u.name}Serializer : KSerializer<${u.name}> {`);
     lines.push(`    override val descriptor = buildClassSerialDescriptor("${u.name}")`);
     lines.push('');
@@ -428,27 +428,22 @@ function emitUnion(
     lines.push(`        val jsonDecoder = decoder as? JsonDecoder ?: error("${u.name}Serializer only supports JSON")`);
     lines.push('        val element = jsonDecoder.decodeJsonElement()');
     lines.push('        val keys = element.jsonObject.keys');
-    lines.push(`        var best: Pair<Set<String>, (Json, JsonElement) -> ${u.name}>? = null`);
-    lines.push('        var bestMatched = 0');
-    lines.push('        var bestUnknown = 0');
-    lines.push('        var bestDeclared = 0');
-    lines.push('        for (shape in shapes) {');
-    lines.push('            val matched = keys.count { it in shape.first }');
-    lines.push('            val unknown = keys.size - matched');
-    lines.push('            val declared = shape.first.size');
-    lines.push('            val better = best == null ||');
-    lines.push('                matched > bestMatched ||');
-    lines.push('                (matched == bestMatched && unknown < bestUnknown) ||');
-    lines.push('                (matched == bestMatched && unknown == bestUnknown && declared < bestDeclared)');
-    lines.push('            if (better) {');
-    lines.push('                best = shape');
-    lines.push('                bestMatched = matched');
-    lines.push('                bestUnknown = unknown');
-    lines.push('                bestDeclared = declared');
+    lines.push('        // sortedWith is stable: a tie keeps the declared order.');
+    lines.push('        val ranked = shapes.sortedWith(');
+    lines.push('            compareByDescending<Pair<Set<String>, *>> { shape -> keys.count { it in shape.first } }');
+    lines.push('                .thenBy { shape -> keys.count { it !in shape.first } }');
+    lines.push('                .thenBy { shape -> shape.first.size },');
+    lines.push('        )');
+    lines.push('        var firstError: IllegalArgumentException? = null');
+    lines.push('        for (shape in ranked) {');
+    lines.push('            try {');
+    lines.push('                return shape.second(jsonDecoder.json, element)');
+    lines.push('            } catch (e: IllegalArgumentException) {');
+    lines.push('                // SerializationException is one: a wrong type or a missing required field.');
+    lines.push('                if (firstError == null) firstError = e');
     lines.push('            }');
     lines.push('        }');
-    lines.push(`        val chosen = best ?: error("No ${u.name} member matched the payload")`);
-    lines.push('        return chosen.second(jsonDecoder.json, element)');
+    lines.push(`        throw firstError ?: kotlinx.serialization.SerializationException("No ${u.name} member matched the payload")`);
     lines.push('    }');
     lines.push('}');
   }
@@ -521,7 +516,8 @@ function emitUnion(
       }
       const sdkName = fieldSdkName(f);
       const typeName = ktType(f.type);
-      const isOpt = !f.required;
+      // A required nullable field may hold null, as in a plain model.
+      const isOpt = !f.required || f.nullable;
       const fullType = isOpt ? `${typeName}?` : typeName;
       const literalDefault = f.type.kind === 'literal' ? ` = "${f.type.literalValue ?? ''}"` : '';
       const default_ = isOpt ? ' = null' : literalDefault;
@@ -1523,8 +1519,10 @@ function emitPachcaClient(
   lines.push('                    if (retryAfter != null && response?.status?.value == 429) {');
   lines.push('                        (retryAfter * 1000L * jitter).toLong()');
   lines.push('                    } else {');
-  lines.push('                        val base = 10_000L * (1L shl retry)');
-  lines.push('                        (base * jitter).toLong()');
+  lines.push('                        // Ktor counts retries from 1. A 429 without Retry-After waits 1, 2 and 4 s,');
+  lines.push('                        // as in the other SDKs, a 5xx and a network error 10, 20 and 40 s.');
+  lines.push('                        val base = if (response?.status?.value == 429) 1_000L else 10_000L');
+  lines.push('                        (base * (1L shl (retry - 1)) * jitter).toLong()');
   lines.push('                    }');
   lines.push('                }');
   lines.push('            }');
@@ -1560,6 +1558,11 @@ function emitPachcaClient(
 
 // ── Examples ──────────────────────────────────────────────────────────
 
+/** A Kotlin string literal: `$` starts a template there, so it is escaped. */
+function ktString(value: string): string {
+  return JSON.stringify(value).replace(/\$/g, '\\$');
+}
+
 function ktLiteral(
   ft: IRFieldType,
   ir: IR,
@@ -1575,8 +1578,8 @@ function ktLiteral(
       }
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return String(ft.example);
       if (ft.primitive === 'string' && typeof ft.example === 'string') {
-        if (ft.format === 'date-time') return `OffsetDateTime.parse(${JSON.stringify(ft.example)})`;
-        return JSON.stringify(ft.example);
+        if (ft.format === 'date-time') return `OffsetDateTime.parse(${ktString(ft.example)})`;
+        return ktString(ft.example);
       }
     }
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
@@ -1786,13 +1789,14 @@ function buildOperationExample(
 
   if (op.requestBody) {
     const rb = op.requestBody;
+    const body = bodyExample(rb, ir, models);
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = snakeToCamel(rb.unwrapField.name);
-      params.push({ name: sdkName, value: ktLiteral(rb.unwrapField.type, ir, models) });
-      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
+      params.push({ name: sdkName, value: ktLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     } else if (rb.schemaRef) {
-      params.push({ name: 'request', value: ktLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
-      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
+      params.push({ name: 'request', value: ktLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     }
   }
 

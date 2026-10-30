@@ -2431,9 +2431,12 @@ paths:
         download link for the file. Most HTTP clients automatically follow the redirect and download the file.
 
 
-        The link is valid for 5 minutes, so use it right away. The archive itself is stored for 7 days, and only the
-        employee who ordered the export can download it — the method refuses another employee holding the same
-        permission.
+        The link is valid for 5 minutes, so use it right away. Only the employee who ordered the export can download the
+        archive: the method refuses another employee holding the same permission.
+
+
+        The archive itself is stored for 7 days. After that the method still responds `302`, but the storage returns an
+        error at the link, and the export has to be ordered again.
 
 
         While the archive is being assembled, the method responds `404` with the `export_file_not_found` code.
@@ -3995,6 +3998,8 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/FileUploadRequest'
+      security:
+        - {}
       x-external-url: directUrl
       x-requirements:
         auth: false
@@ -4095,6 +4100,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DraftCreateRequest'
+            example:
+              draft:
+                entity_type: discussion
+                entity_id: 334
+                content: 'Weekly report: sales are up 10%'
       x-requirements:
         scope: drafts:write
     get:
@@ -5388,6 +5398,23 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MessageCreateRequest'
+            examples:
+              Минимальный запрос:
+                summary: Minimal request
+                value:
+                  message:
+                    entity_id: 334
+                    content: Yesterday we sold 756 t-shirts (10% more than last Sunday)
+              Сообщение с кнопкой:
+                summary: Message with a button
+                value:
+                  message:
+                    entity_type: discussion
+                    entity_id: 334
+                    content: Yesterday we sold 756 t-shirts (10% more than last Sunday)
+                    buttons:
+                      - - text: Learn more
+                          url: https://example.com/details
       x-requirements:
         scope: messages:create
     get:
@@ -5683,6 +5710,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MessageUpdateRequest'
+            example:
+              message:
+                content: >-
+                  Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur,
+                  liaison, necessary, surveillance, questionnaire.
+                buttons:
+                  - - text: Learn more
+                      url: https://example.com/details
       x-requirements:
         scope: messages:update
     delete:
@@ -6478,6 +6513,9 @@ paths:
               token: pato_bm90X2FfcmVhbF90b2tlbg
               client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
               client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+      security:
+        - BearerAuth: []
+        - {}
       x-oauth-flow: true
   /oauth/token:
     post:
@@ -6559,6 +6597,8 @@ paths:
               client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
               client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
               code_verifier: dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+      security:
+        - {}
       x-oauth-authorize-url: https://app.pachca.com/apps/authorize
       x-oauth-flow: true
       x-requirements:
@@ -9185,6 +9225,10 @@ paths:
       responses:
         '201':
           description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenViewResult'
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -9463,19 +9507,27 @@ paths:
 
 
         The link is opened without a token, for example with `EventSource` or `curl -N`: the link itself grants access,
-        so keep it secret. Each event comes as a history record with the `id`, `event_type`, `payload` and `created_at`
-        fields, and the service messages of the connection are told apart by the `type` field.
+        so keep it secret. Each event comes as an unnamed SSE message carrying a history record with the `id`,
+        `event_type`, `payload` and `created_at` fields. Service messages come as named SSE events and are told apart by
+        the `type` field: `confirm_subscription` confirms the subscription, and `disconnect` reports that the server has
+        closed the connection.
 
 
-        The link works until `expires_at`, and then the stream stops sending events without closing the connection. Get
-        a new link within the last five minutes before `expires_at`: an earlier request returns the same link. Not to
-        miss anything, after connecting wait for the subscription to be confirmed and only then read the [Event
-        history](GET /webhooks/events), and do the same after every reconnection and change of link. Delivery to the
-        stream is not guaranteed: keep deleting processed events with the [Delete history event](DELETE
+        The link works for one to two hours, until `expires_at`. At that moment the server sends `disconnect` over it
+        and closes the connection, and after it `EventSource` does not reconnect by itself. A request within the same
+        UTC hour returns the same link, and a request in the last hour before `expires_at` gives a new one. Change the
+        link about five minutes before `expires_at`: connect with the new one while the old one still works, and close
+        the old connection once the new one confirms the subscription. If `disconnect` does arrive, get a new link and
+        connect again.
+
+
+        Not to miss anything, after every connection, including a reconnection and a change of link, wait for the
+        subscription to be confirmed and only then read the [Event history](GET /webhooks/events). Delivery to the
+        stream is not guaranteed: still delete processed events with the [Delete history event](DELETE
         /webhooks/events/{id}) method, and drop repeats by `id`. If the bot has a webhook address, a repeated delivery
         to it comes to the stream once more with a new `id`: such repeats are dropped by a key from `payload`, as in
-        [Idempotent processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in
-        [Polling](/guides/webhook/polling).
+        [Idempotent processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in [Real-time
+        events](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
       parameters: []
       responses:
         '200':
@@ -9778,6 +9830,34 @@ components:
           format: int32
           nullable: true
           description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+        webhook_id:
+          type: integer
+          format: int32
+          description: ID of the bot's webhook
+        application_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the bot's application. `null` if the bot has no application.
+        access_token_id:
+          type: integer
+          format: int32
+          description: Token ID. Present for bot_token_created, bot_token_reissued and bot_token_updated.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: >-
+            Masked token: the first and last characters. Present for bot token events, `null` if the value is
+            unavailable.
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Token scopes. Present for bot_token_created.
+        name:
+          allOf:
+            - $ref: '#/components/schemas/AuditDetailsTokenNameChange'
+          description: Token name change for bot_token_updated. Present if the name was passed in the request.
       description: >-
         For: bot_deleted, and also bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued in
         records made before October 7, 2026
@@ -9807,6 +9887,34 @@ components:
           description: >-
             Changed client settings. The key is the setting name (confidential, redirect_uris, scopes), the value is an
             object with previous and new fields.
+        application_id:
+          type: integer
+          format: int32
+          description: ID of the bot's application
+        application_name:
+          type: string
+          description: Name of the bot's application
+        bot_name:
+          type: string
+          description: Bot name
+        webhook_id:
+          type: integer
+          format: int32
+          description: ID of the bot's webhook
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes the bot requests from an employee on the consent screen
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the token the action was performed with. `null` if the action was performed in the Pachca interface.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: Masked token the action was performed with. `null` if the action was performed in the Pachca interface.
       description: 'For: bot_oauth_client_updated'
     AuditDetailsBotOAuthClientDisabled:
       type: object
@@ -9837,6 +9945,34 @@ components:
           type: integer
           format: int32
           description: Number of unused authorization codes revoked
+        application_id:
+          type: integer
+          format: int32
+          description: ID of the bot's application
+        application_name:
+          type: string
+          description: Name of the bot's application
+        bot_name:
+          type: string
+          description: Bot name
+        webhook_id:
+          type: integer
+          format: int32
+          description: ID of the bot's webhook
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes the bot requests from an employee on the consent screen
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the token the action was performed with. `null` if the action was performed in the Pachca interface.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: Masked token the action was performed with. `null` if the action was performed in the Pachca interface.
       description: 'For: bot_oauth_client_disabled'
     AuditDetailsBotOAuthClientSecretRotated:
       type: object
@@ -9857,6 +9993,38 @@ components:
         client_id:
           type: string
           description: Bot OAuth client ID
+        application_id:
+          type: integer
+          format: int32
+          description: ID of the bot's application
+        application_name:
+          type: string
+          description: Name of the bot's application
+        bot_name:
+          type: string
+          description: Bot name
+        webhook_id:
+          type: integer
+          format: int32
+          description: ID of the bot's webhook
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes the bot requests from an employee on the consent screen. Present for bot_oauth_client_secret_issued.
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: >-
+            ID of the token the action was performed with. `null` if the action was performed in the Pachca interface.
+            Present for bot_oauth_client_secret_issued.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: >-
+            Masked token the action was performed with. `null` if the action was performed in the Pachca interface.
+            Present for bot_oauth_client_secret_issued.
       description: 'For: bot_oauth_client_secret_rotated, bot_oauth_client_secret_issued'
     AuditDetailsBotScopes:
       type: object
@@ -9865,6 +10033,9 @@ components:
         - actor_id
         - added_scopes
         - removed_scopes
+        - webhook_id
+        - previous_scopes
+        - new_scopes
       properties:
         bot_id:
           type: integer
@@ -9885,6 +10056,23 @@ components:
           items:
             type: string
           description: Scopes revoked from the bot token
+        bot_name:
+          type: string
+          description: Bot name. Absent in records before October 7, 2026.
+        webhook_id:
+          type: integer
+          format: int32
+          description: ID of the bot's webhook
+        previous_scopes:
+          type: array
+          items:
+            type: string
+          description: Bot token scopes before the change
+        new_scopes:
+          type: array
+          items:
+            type: string
+          description: Bot token scopes after the change
       description: 'For: bot_scopes_updated'
     AuditDetailsBotTokenUpdated:
       type: object
@@ -9894,6 +10082,9 @@ components:
         - resource_owner_id
         - current_scopes
         - actor_id
+        - access_token_id
+        - access_token_preview
+        - webhook_id
       properties:
         token_kind:
           type: string
@@ -9920,6 +10111,35 @@ components:
           format: int32
           nullable: true
           description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+        access_token_id:
+          type: integer
+          format: int32
+          description: Token ID
+        access_token_preview:
+          type: string
+          nullable: true
+          description: 'Masked token: the first and last characters. `null` if the value is unavailable.'
+        application_id:
+          type: integer
+          format: int32
+          description: ID of the bot's application
+        application_name:
+          type: string
+          description: Name of the bot's application
+        client_id:
+          type: string
+          description: ID of the bot's OAuth client
+        bot_name:
+          type: string
+          description: Bot name
+        webhook_id:
+          type: integer
+          format: int32
+          description: ID of the bot's webhook
+        name:
+          allOf:
+            - $ref: '#/components/schemas/AuditDetailsTokenNameChange'
+          description: Token name change. Present if the name was passed in the request.
       description: 'For: bot_token_updated'
     AuditDetailsBotWebhookSettings:
       type: object
@@ -9942,7 +10162,30 @@ components:
           additionalProperties: {}
           description: >-
             Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages,
-            events_history_enabled), the value is an object with previous and new fields.
+            events_history_enabled, can_edit, who_can_add), the value is an object with previous and new fields.
+        bot_name:
+          type: string
+          description: Bot name
+        webhook_id:
+          type: integer
+          format: int32
+          description: ID of the bot's webhook
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the token the settings were changed with. `null` if they were changed in the Pachca interface.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: Masked token the settings were changed with. `null` if they were changed in the Pachca interface.
+        application_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: >-
+            ID of the application of the token the settings were changed with. `null` if they were changed in the Pachca
+            interface.
       description: 'For: bot_webhook_settings_updated'
     AuditDetailsChatId:
       type: object
@@ -9981,6 +10224,8 @@ components:
       required:
         - client_id
         - scopes
+        - application_id
+        - device_grant_id
       properties:
         client_id:
           type: string
@@ -9994,12 +10239,27 @@ components:
           type: string
           nullable: true
           description: Name of the device the sign-in is made from. `null` if the app did not pass it.
+        application_id:
+          type: integer
+          format: int32
+          description: ID of the application that was allowed to log in
+        application_name:
+          type: string
+          description: Application name. Absent in records before October 7, 2026.
+        device_grant_id:
+          type: integer
+          format: int32
+          description: ID of the login request
+        token_kind:
+          type: string
+          description: 'Token kind: `cli` — CLI login. Absent in records before October 7, 2026.'
       description: 'For: oauth_device_authorization_approved'
     AuditDetailsDeviceAuthorizationDenied:
       type: object
       required:
         - client_id
         - scopes
+        - device_grant_id
       properties:
         client_id:
           type: string
@@ -10013,6 +10273,20 @@ components:
           type: string
           nullable: true
           description: Name of the device the sign-in was made from. `null` if the app did not pass it.
+        application_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: >-
+            Application ID. When a CLI sign-in is refused, it is `null`: an application is assigned to the sign-in only
+            after it is confirmed.
+        device_grant_id:
+          type: integer
+          format: int32
+          description: ID of the login request
+        token_kind:
+          type: string
+          description: 'Token kind: `cli` — CLI login. Absent in records before October 7, 2026.'
       description: 'For: oauth_device_authorization_denied'
     AuditDetailsDlp:
       type: object
@@ -10097,7 +10371,10 @@ components:
           description: Message ID
         reason:
           type: string
-          description: Operation reason
+          description: >-
+            Operation reason: `message_create` — encrypting the message text, `message_store_for_search` — saving the
+            text for search, `file_upload` — uploading a file (all three with kms_encrypt), `file_download` —
+            downloading a file (with kms_decrypt)
       description: 'For: kms_encrypt, kms_decrypt'
     AuditDetailsLoginGrantApproved:
       type: object
@@ -10146,21 +10423,45 @@ components:
       required:
         - client_id
         - scopes
+        - application_id
+        - authorization_grant_id
       properties:
         client_id:
           type: string
-          description: ID of the OAuth client that was granted access
+          nullable: true
+          description: >-
+            ID of the OAuth client that was granted access. `null` in records before October 7, 2026 about access
+            granted to a bot.
         scopes:
           type: array
           items:
             type: string
           description: Scopes the access was granted for
+        application_id:
+          type: integer
+          format: int32
+          description: ID of the application that was granted access
+        application_name:
+          type: string
+          description: Application name. Absent in records before October 7, 2026.
+        bot_id:
+          type: integer
+          format: int32
+          description: Bot ID. Present when access was granted to a bot.
+        bot_name:
+          type: string
+          description: Bot name. Present together with `bot_id`.
+        authorization_grant_id:
+          type: integer
+          format: int32
+          description: ID of the issued authorization code
       description: 'For: oauth_authorization_granted'
     AuditDetailsOAuthAuthorizationRevoked:
       type: object
       required:
         - client_id
         - revoked_tokens_count
+        - application_id
       properties:
         client_id:
           type: string
@@ -10173,6 +10474,20 @@ components:
           type: integer
           format: int32
           description: ID of the employee whose access was revoked. Present when the access was revoked by an administrator.
+        application_id:
+          type: integer
+          format: int32
+          description: ID of the application whose access was revoked
+        application_name:
+          type: string
+          description: Application name. Absent in records before October 7, 2026.
+        bot_id:
+          type: integer
+          format: int32
+          description: Bot ID. Present when access was revoked from a bot.
+        bot_name:
+          type: string
+          description: Bot name. Present together with `bot_id`.
       description: 'For: oauth_authorization_revoked'
     AuditDetailsRoleChanged:
       type: object
@@ -10255,6 +10570,8 @@ components:
         - token_name
         - resource_owner_id
         - scopes
+        - access_token_id
+        - access_token_preview
       properties:
         token_kind:
           type: string
@@ -10275,10 +10592,57 @@ components:
           items:
             type: string
           description: Token scopes
+        access_token_id:
+          type: integer
+          format: int32
+          description: Token ID
+        access_token_preview:
+          type: string
+          nullable: true
+          description: 'Masked token: the first and last characters. `null` if the value is unavailable.'
+        application_id:
+          type: integer
+          format: int32
+          description: ID of the application the token belongs to
+        application_name:
+          type: string
+          description: Name of the application the token belongs to
+        client_id:
+          type: string
+          description: ID of the application's OAuth client
         bot_id:
           type: integer
           format: int32
           description: Bot ID. Present for bot tokens and for tokens an employee granted to a bot.
+        bot_name:
+          type: string
+          description: Bot name. Present together with `bot_id`.
+        device_name:
+          type: string
+          nullable: true
+          description: Device name. Present for a CLI login, `null` if there is no name.
+        actor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: >-
+            ID of the user who performed the action. Present for bot token events, `null` if the action was performed
+            without an initiator.
+        webhook_id:
+          type: integer
+          format: int32
+          description: ID of the bot's webhook. Present for bot token events.
+        user_id:
+          type: integer
+          format: int32
+          description: >-
+            ID of the employee whose token was revoked. Present when an administrator revoked the token or the employee
+            was moved to guests.
+        source:
+          type: string
+          description: >-
+            Revocation source: `oauth_client` — the application revoked the token itself. Present only for
+            oauth_token_revoked.
         reason:
           type: string
           description: >-
@@ -10287,6 +10651,21 @@ components:
       description: >-
         For: access_token_created, access_token_updated, access_token_destroy, bot_token_created, bot_token_reissued,
         bot_token_recreated, bot_token_deleted, oauth_token_revoked
+    AuditDetailsTokenNameChange:
+      type: object
+      required:
+        - previous
+        - new
+      properties:
+        previous:
+          type: string
+          nullable: true
+          description: Previous name. `null` if there was no name.
+        new:
+          type: string
+          nullable: true
+          description: New name. `null` if the name was removed.
+      description: Token name change in the audit log
     AuditDetailsTokenScopes:
       type: object
       required:
@@ -10818,8 +11197,10 @@ components:
               items:
                 type: string
               description: >-
-                Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the
-                comma-joined commands must not exceed 255 characters.
+                Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot
+                when the first word of the text matches one of the commands exactly, case included. A command can also
+                be set without a leading slash. The combined length of the comma-joined commands must not exceed 255
+                characters.
               example:
                 - /task
                 - /help
@@ -11656,8 +12037,10 @@ components:
               items:
                 type: string
               description: >-
-                Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the
-                comma-joined commands must not exceed 255 characters.
+                Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot
+                when the first word of the text matches one of the commands exactly, case included. A command can also
+                be set without a leading slash. The combined length of the comma-joined commands must not exceed 255
+                characters.
               example:
                 - /task
                 - /help
@@ -11722,7 +12105,11 @@ components:
             kind:
               allOf:
                 - $ref: '#/components/schemas/BotWebhookKind'
-              description: Incoming webhook source. If the bot had no incoming webhook, it is enabled.
+              nullable: true
+              description: >-
+                Incoming webhook source. If the bot had no incoming webhook, it is enabled. `null` deletes the incoming
+                webhook: the address stops working, the template and the incoming webhook settings are reset, and on the
+                next enabling the bot gets a new address.
               example: simple
             unfurl_domains:
               type: array
@@ -12759,8 +13146,9 @@ components:
           type: integer
           format: int32
           description: >-
-            Duration in milliseconds. Required for a voice message (`file_type` is `voice`). A voice message longer than
-            30 minutes (1,800,000 ms) is rejected with `422`.
+            Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved
+            for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice
+            message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.
           example: 5400
         waveform:
           type: string
@@ -13091,7 +13479,7 @@ components:
           format: int32
           nullable: true
           description: >-
-            Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the
+            Duration in milliseconds for a voice message and a video file. `null` for the other files and if the
             duration was not supplied at upload time.
           example: 5400
       description: File
@@ -13657,7 +14045,9 @@ components:
                   file_type:
                     allOf:
                       - $ref: '#/components/schemas/FileType'
-                    description: File type
+                    description: >-
+                      File type. A voice message (`voice`) is sent with a personal token, and with a bot token the
+                      response is `403`.
                     example: image
                   size:
                     type: integer
@@ -13681,8 +14071,9 @@ components:
                     format: int32
                     minimum: 1
                     description: >-
-                      Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other
-                      types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.
+                      Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`),
+                      not saved for the other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected
+                      with `422` and the `wrong_params` code.
                     example: 5400
                   waveform:
                     type: string
@@ -13847,8 +14238,10 @@ components:
                     format: int32
                     minimum: 1
                     description: >-
-                      Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other
-                      types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.
+                      Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`),
+                      not saved for the other types. A file with a duration and no `file_type` is treated as a voice
+                      message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the
+                      `wrong_params` code.
                     example: 5400
                   waveform:
                     type: string
@@ -14628,6 +15021,16 @@ components:
             - blocks
           description: View object
       description: View
+    OpenViewResult:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Whether the window was opened. Always `true` in a successful response.
+          example: true
+      description: View opening result
     PaginationMeta:
       type: object
       required:
@@ -16677,8 +17080,10 @@ components:
         expires_at:
           type: string
           format: date-time
-          description: Date and time until which the link works (ISO-8601, UTC+0)
-          example: '2026-10-27T12:20:00.000Z'
+          description: >-
+            Date and time until which the link works (ISO-8601, UTC+0): one to two hours after the request. At that
+            moment the server sends `disconnect` and closes the connection opened with it.
+          example: '2026-10-27T13:00:00.000Z'
       description: Link to the bot's event stream
     WebhookLink:
       type: object

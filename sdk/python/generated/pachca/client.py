@@ -132,6 +132,7 @@ from .models import (
     SubmitViewResponseRequest,
     SubmitViewResponseResult,
     OpenViewRequest,
+    OpenViewResult,
 )
 from .utils import deserialize, serialize, RetryTransport
 
@@ -3220,7 +3221,7 @@ class ViewsService:
     async def open_view(
         self,
         request: OpenViewRequest,
-    ) -> None:
+    ) -> OpenViewResult:
         raise NotImplementedError("Views.openView is not implemented")
 
 
@@ -3246,14 +3247,14 @@ class ViewsServiceImpl(ViewsService):
     async def open_view(
         self,
         request: OpenViewRequest,
-    ) -> None:
+    ) -> OpenViewResult:
         response = await self._client.post(
             "/views/open",
             json=serialize(request),
         )
         match response.status_code:
             case 201:
-                return
+                return deserialize(OpenViewResult, response.json())
             case _:
                 raise _error_from_response(response)
 

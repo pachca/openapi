@@ -46,10 +46,19 @@ const COMMENT_PREFIX: Record<SdkLanguage, string> = {
   csharp: '//',
 };
 
+// Standard-library names an example may use besides the SDK, detected in its code:
+// the import block has to bring them in for the example to compile as shown.
+const GO_STD_PACKAGES: Array<[string, RegExp]> = [
+  ['bytes', /\bbytes\.NewReader\(/],
+  ['context', /\bcontext\.Background\(/],
+  ['time', /\btime\.(Date|Now|UTC|FixedZone)\b/],
+];
+
 function buildImportBlock(
   lang: SdkLanguage,
   clientImports: string[],
-  modelImports: string[]
+  modelImports: string[],
+  code = ''
 ): string {
   const clientSet = [...new Set(clientImports)].sort();
   const modelSet = [...new Set(modelImports)].sort();
@@ -61,22 +70,32 @@ function buildImportBlock(
     }
     case 'python': {
       const lines: string[] = [];
+      if (/\bdatetime\.fromisoformat\(/.test(code)) lines.push('from datetime import datetime', '');
       if (clientSet.length > 0) lines.push(`from pachca.client import ${clientSet.join(', ')}`);
       if (modelSet.length > 0) lines.push(`from pachca.models import ${modelSet.join(', ')}`);
-      return lines.join('\n');
+      return lines.join('\n').trim();
     }
     case 'go': {
-      return `import pachca "github.com/pachca/openapi/sdk/go/generated"`;
+      const sdk = 'pachca "github.com/pachca/openapi/sdk/go/generated"';
+      const std = GO_STD_PACKAGES.filter(([, re]) => re.test(code)).map(([pkg]) => pkg);
+      if (std.length === 0) return `import ${sdk}`;
+      return `import (\n${std.map((pkg) => `\t"${pkg}"`).join('\n')}\n\n\t${sdk}\n)`;
     }
     case 'kotlin': {
       const all = [...new Set([...clientSet, ...modelSet])].sort();
-      return all.map((i) => `import com.pachca.sdk.${i}`).join('\n');
+      const lines = all.map((i) => `import com.pachca.sdk.${i}`);
+      if (/\bOffsetDateTime\.parse\(/.test(code)) lines.push('import java.time.OffsetDateTime');
+      return lines.join('\n');
     }
     case 'swift': {
-      return `import PachcaSDK`;
+      // Data (file and avatar uploads) is a Foundation type: such an example needs the import.
+      return /\bData\(/.test(code) ? 'import Foundation\nimport PachcaSDK' : 'import PachcaSDK';
     }
     case 'csharp': {
-      return `using Pachca.Sdk;`;
+      // TaskStatus is also a type in System.Threading.Tasks, imported implicitly by .NET projects.
+      const lines = ['using Pachca.Sdk;'];
+      if (/\bTaskStatus\./.test(code)) lines.push('using TaskStatus = Pachca.Sdk.TaskStatus;');
+      return lines.join('\n');
     }
   }
 }
@@ -109,7 +128,11 @@ export function getSdkExampleForLang(
 
   const parts: string[] = [];
 
-  const importBlock = buildImportBlock(sdkLang, clientImports, modelImports);
+  const code = [
+    showInit ? (initEntry?.usage ?? '') : '',
+    ...operations.map((op) => langData[op.id]?.usage ?? ''),
+  ].join('\n');
+  const importBlock = buildImportBlock(sdkLang, clientImports, modelImports, code);
   if (importBlock) parts.push(importBlock);
 
   if (showInit) {
@@ -136,6 +159,26 @@ export function getSdkExampleForLang(
  * Build-time validation: returns all valid SDK symbols (service.method pairs and import names)
  * extracted from examples.json for a given language.
  */
+const MODEL_SOURCES: Partial<Record<SdkLanguage, { file: string; pattern: RegExp }>> = {
+  typescript: {
+    file: path.join('typescript', 'src', 'generated', 'types.ts'),
+    pattern: /^export (?:interface|type|enum|class) (\w+)/gm,
+  },
+  python: {
+    file: path.join('python', 'generated', 'pachca', 'models.py'),
+    pattern: /^class (\w+)/gm,
+  },
+};
+
+function exportedModelNames(lang: SdkLanguage): string[] {
+  const source = MODEL_SOURCES[lang];
+  if (!source) return [];
+  const fullPath = path.join(SDK_ROOT, source.file);
+  if (!fs.existsSync(fullPath)) return [];
+  const code = fs.readFileSync(fullPath, 'utf8');
+  return [...code.matchAll(source.pattern)].map((m) => m[1]);
+}
+
 export function getValidSdkSymbols(lang: string): {
   methods: Map<string, Set<string>>;
   imports: Set<string>;
@@ -176,6 +219,12 @@ export function getValidSdkSymbols(lang: string): {
     }
   }
 
+  // Models the SDK exports but no example imports (a request example may leave
+  // out optional nested types, e.g. MessageCreateRequestFile)
+  for (const name of exportedModelNames(sdkLang)) {
+    imports.add(name);
+  }
+
   // Add *All / *_all pagination variants (auto-generated wrappers not in examples.json)
   for (const methodSet of methods.values()) {
     const variants: string[] = [];
@@ -204,7 +253,8 @@ export function getSdkExamples(operationId: string): Record<string, string> {
       const modelImports = entry.imports ?? [];
       const parts: string[] = [];
 
-      const importBlock = buildImportBlock(lang, clientImports, modelImports);
+      const code = `${initEntry?.usage ?? ''}\n${entry.usage}`;
+      const importBlock = buildImportBlock(lang, clientImports, modelImports, code);
       if (importBlock) parts.push(importBlock);
 
       if (initEntry?.usage) parts.push(initEntry.usage);

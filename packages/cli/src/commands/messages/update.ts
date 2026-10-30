@@ -45,7 +45,8 @@ export default class MessagesUpdate extends BaseCommand {
       for await (const chunk of process.stdin) {
         chunks.push(chunk as Buffer);
       }
-      flags['content'] = Buffer.concat(chunks).toString('utf-8').trimEnd();
+      const piped = Buffer.concat(chunks).toString('utf-8').trimEnd();
+      if (piped) flags['content'] = piped;
     }
 
     const body: Record<string, unknown> = { message: {

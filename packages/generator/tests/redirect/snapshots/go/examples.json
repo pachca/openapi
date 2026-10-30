@@ -1,6 +1,6 @@
 {
   "Client_Init": {
-    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")\nctx := context.Background()",
     "imports": [
       "PachcaClient"
     ]

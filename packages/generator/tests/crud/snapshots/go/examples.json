@@ -1,12 +1,12 @@
 {
   "Client_Init": {
-    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")\nctx := context.Background()",
     "imports": [
       "PachcaClient"
     ]
   },
   "ChatOperations_listChats": {
-    "usage": "params := &ListChatsParams{\n\tAvailability: Ptr(ChatAvailabilityIsMember),\n\tLimit: Ptr(int32(123)),\n\tCursor: Ptr(\"example\"),\n\tSortField: Ptr(\"example\"),\n\tSortOrder: Ptr(SortOrderAsc),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
+    "usage": "params := &pachca.ListChatsParams{\n\tAvailability: pachca.Ptr(pachca.ChatAvailabilityIsMember),\n\tLimit: pachca.Ptr(int32(123)),\n\tCursor: pachca.Ptr(\"example\"),\n\tSortField: pachca.Ptr(\"example\"),\n\tSortOrder: pachca.Ptr(pachca.SortOrderAsc),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
     "output": "ListChatsResponse{Data: []Chat, Meta: *PaginationMeta}",
     "imports": [
       "ChatAvailability",
@@ -16,19 +16,19 @@
   },
   "ChatOperations_getChat": {
     "usage": "response, err := client.Chats.GetChat(ctx, int32(123))",
-    "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: string, MemberIDs: *[]int32}"
+    "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: time.Time, MemberIDs: *[]int32}"
   },
   "ChatOperations_createChat": {
-    "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"example\",\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(true),\n\t\tMemberIDs: []int32{int32(123)},\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
-    "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: string, MemberIDs: *[]int32}",
+    "usage": "request := pachca.ChatCreateRequest{\n\tChat: pachca.ChatCreateRequestChat{\n\t\tName: \"example\",\n\t\tChannel: pachca.Ptr(true),\n\t\tPublic: pachca.Ptr(true),\n\t\tMemberIDs: []int32{int32(123)},\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
+    "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: time.Time, MemberIDs: *[]int32}",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
     ]
   },
   "ChatOperations_updateChat": {
-    "usage": "request := ChatUpdateRequest{\n\tChat: ChatUpdateRequestChat{\n\t\tName: Ptr(\"example\"),\n\t\tPublic: Ptr(true),\n\t},\n}\nresponse, err := client.Chats.UpdateChat(ctx, int32(123), request)",
-    "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: string, MemberIDs: *[]int32}",
+    "usage": "request := pachca.ChatUpdateRequest{\n\tChat: pachca.ChatUpdateRequestChat{\n\t\tName: pachca.Ptr(\"example\"),\n\t\tPublic: pachca.Ptr(true),\n\t},\n}\nresponse, err := client.Chats.UpdateChat(ctx, int32(123), request)",
+    "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: time.Time, MemberIDs: *[]int32}",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

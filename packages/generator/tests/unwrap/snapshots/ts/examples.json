@@ -6,17 +6,16 @@
     ]
   },
   "MemberOperations_addMembers": {
-    "usage": "const memberIds = [123]\nclient.members.addMembers(123, memberIds)"
+    "usage": "const memberIds = [123]\nawait client.members.addMembers(123, memberIds)"
   },
   "ChatOperations_createChat": {
-    "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"example\",\n    channel: true,\n    public: true,\n    memberIds: [123]\n  }\n}\nconst response = client.chats.createChat(request)",
+    "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"example\",\n    channel: true,\n    public: true,\n    memberIds: [123]\n  }\n}\nconst response = await client.chats.createChat(request)",
     "output": "Chat({ id: number, name: string, isChannel: boolean, isPublic: boolean, createdAt: string })",
     "imports": [
-      "ChatCreateRequest",
-      "ChatCreateRequestChat"
+      "ChatCreateRequest"
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "client.chats.archiveChat(123)"
+    "usage": "await client.chats.archiveChat(123)"
   }
 }

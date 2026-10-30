@@ -62,14 +62,16 @@ npx -y @pachca/generator --spec https://example.com/openapi.yaml --output ./gene
 |-------------|----------|
 | **Все методы API** | Типизированный метод на каждый метод API |
 | **Автопагинация** | Методы для автоматического обхода всех страниц: `*All()` в TypeScript, Go, Kotlin и Swift, `*_all()` в Python, `*AllAsync()` в C# |
-| **Повторные запросы** | Автоматический retry при `429`, а при `5xx` только у запросов GET, PUT и DELETE. Паузы между попытками описаны на странице каждого языка, общие правила — на странице [Лимиты](/api/limits) |
+| **Повторные запросы** | SDK повторяет запросы сам. Паузы между попытками описаны на странице каждого языка, общие правила — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry). |
 | **Обработка ошибок** | Типизированные `ApiError` и `OAuthError` |
 | **Сериализация** | Автоматическая конвертация между форматами (snake_case ↔ camelCase) |
 | **Авторизация** | Bearer-токен передаётся один раз при создании клиента |
 
 ## Пример
 
-<ApiCodeExample operationId="ProfileOperations_getProfile" title="Получение профиля" show="request" langs={["typescript", "python", "go", "kotlin", "swift", "csharp"]} />
+<ApiCodeExample title="Получение профиля" operations={[
+  { id: "ProfileOperations_getProfile" }
+]} langs={["typescript", "python", "go", "kotlin", "swift", "csharp"]} />
 
 ## Токен сотрудника
 

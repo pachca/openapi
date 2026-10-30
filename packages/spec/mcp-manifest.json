@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "6820848e1abe6002"
+    "digest": "a8c152a26b134e12"
   },
   "server": {
     "name": "pachca",
@@ -476,7 +476,7 @@
                 },
                 "details": {
                   "type": "object",
-                  "description": "Additional event details. Structure depends on the event_key value — see event_key field value descriptions. For events without details, an empty object is returned. One of — AuditDetailsEmpty; AuditDetailsUserUpdated: changed_attrs, context; AuditDetailsRoleChanged: new_company_role, previous_company_role, initiator_id; AuditDetailsTagName: name; AuditDetailsInitiator: initiator_id; AuditDetailsInviter: inviter_id; AuditDetailsChatRenamed: old_name, new_name; AuditDetailsChatPermission: public_access; AuditDetailsTagChat: chat_id, tag_name; AuditDetailsChatId: chat_id; AuditDetailsTokenScopes: scopes; AuditDetailsKms: chat_id, message_id, reason; AuditDetailsDlp: dlp_rule_id, dlp_rule_name, message_id, chat_id, user_id, action_message, conditions_matched; AuditDetailsSearch: search_type, query_present, cursor_present, limit, filters; AuditDetailsBot: bot_id, actor_id; AuditDetailsBotScopes: bot_id, actor_id, added_scopes, removed_scopes; AuditDetailsBotWebhookSettings: bot_id, actor_id, changes; AuditDetailsBotOAuthClient: bot_id, actor_id, client_id, changes; AuditDetailsOAuthAuthorizationGranted: client_id, scopes; AuditDetailsOAuthAuthorizationRevoked: client_id, revoked_tokens_count, user_id; AuditDetailsDeviceAuthorizationApproved: client_id, scopes, device_name; AuditDetailsDeviceAuthorizationDenied: client_id, scopes, device_name; AuditDetailsVideoCallStarted: chat_id, started_message_id; AuditDetailsVideoCallFinished: chat_id, started_message_id, duration, max_members_count; AuditDetailsVideoCallRecording: chat_id, started_message_id, recording_id, file_id, duration, size; AuditDetailsBotOAuthClientSecretRotated: bot_id, actor_id, client_id; AuditDetailsBotOAuthClientDisabled: bot_id, actor_id, client_id, deleted_access_tokens_count, deleted_access_grants_count; AuditDetailsToken: token_kind, token_name, resource_owner_id, scopes, bot_id, reason; AuditDetailsBotTokenUpdated: token_kind, token_name, resource_owner_id, current_scopes, bot_id, actor_id; AuditDetailsUserLoginQr: method, login_grant_id; AuditDetailsLoginGrantCreated: login_grant_id; AuditDetailsLoginGrantApproved: login_grant_id, device; AuditDetailsLoginGrantDenied: login_grant_id, device, reason.",
+                  "description": "Additional event details. Structure depends on the event_key value — see event_key field value descriptions. For events without details, an empty object is returned. One of — AuditDetailsEmpty; AuditDetailsUserUpdated: changed_attrs, context; AuditDetailsRoleChanged: new_company_role, previous_company_role, initiator_id; AuditDetailsTagName: name; AuditDetailsInitiator: initiator_id; AuditDetailsInviter: inviter_id; AuditDetailsChatRenamed: old_name, new_name; AuditDetailsChatPermission: public_access; AuditDetailsTagChat: chat_id, tag_name; AuditDetailsChatId: chat_id; AuditDetailsTokenScopes: scopes; AuditDetailsKms: chat_id, message_id, reason; AuditDetailsDlp: dlp_rule_id, dlp_rule_name, message_id, chat_id, user_id, action_message, conditions_matched; AuditDetailsSearch: search_type, query_present, cursor_present, limit, filters; AuditDetailsBot: bot_id, actor_id, webhook_id, application_id, access_token_id, access_token_preview, scopes, name; AuditDetailsBotScopes: bot_id, actor_id, added_scopes, removed_scopes, bot_name, webhook_id, previous_scopes, new_scopes; AuditDetailsBotWebhookSettings: bot_id, actor_id, changes, bot_name, webhook_id, access_token_id, access_token_preview, application_id; AuditDetailsBotOAuthClient: bot_id, actor_id, client_id, changes, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsOAuthAuthorizationGranted: client_id, scopes, application_id, application_name, bot_id, bot_name, authorization_grant_id; AuditDetailsOAuthAuthorizationRevoked: client_id, revoked_tokens_count, user_id, application_id, application_name, bot_id, bot_name; AuditDetailsDeviceAuthorizationApproved: client_id, scopes, device_name, application_id, application_name, device_grant_id, token_kind; AuditDetailsDeviceAuthorizationDenied: client_id, scopes, device_name, application_id, device_grant_id, token_kind; AuditDetailsVideoCallStarted: chat_id, started_message_id; AuditDetailsVideoCallFinished: chat_id, started_message_id, duration, max_members_count; AuditDetailsVideoCallRecording: chat_id, started_message_id, recording_id, file_id, duration, size; AuditDetailsBotOAuthClientSecretRotated: bot_id, actor_id, client_id, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsBotOAuthClientDisabled: bot_id, actor_id, client_id, deleted_access_tokens_count, deleted_access_grants_count, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsToken: token_kind, token_name, resource_owner_id, scopes, access_token_id, access_token_preview, application_id, application_name, client_id, bot_id, bot_name, device_name, actor_id, webhook_id, user_id, source, reason; AuditDetailsBotTokenUpdated: token_kind, token_name, resource_owner_id, current_scopes, bot_id, actor_id, access_token_id, access_token_preview, application_id, application_name, client_id, bot_name, webhook_id, name; AuditDetailsUserLoginQr: method, login_grant_id; AuditDetailsLoginGrantCreated: login_grant_id; AuditDetailsLoginGrantApproved: login_grant_id, device; AuditDetailsLoginGrantDenied: login_grant_id, device, reason.",
                   "properties": {
                     "changed_attrs": {
                       "type": "array",
@@ -502,8 +502,27 @@
                       "description": "AuditDetailsRoleChanged: Initiator ID. AuditDetailsInitiator: Action initiator ID."
                     },
                     "name": {
-                      "type": "string",
-                      "description": "Tag name"
+                      "type": [
+                        "string",
+                        "object"
+                      ],
+                      "description": "AuditDetailsTagName: Tag name. AuditDetailsBot: Token name change for bot_token_updated. Present if the name was passed in the request. AuditDetailsBotTokenUpdated: Token name change. Present if the name was passed in the request.",
+                      "properties": {
+                        "previous": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "Previous name. `null` if there was no name."
+                        },
+                        "new": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "New name. `null` if the name was removed."
+                        }
+                      }
                     },
                     "inviter_id": {
                       "type": "integer",
@@ -531,7 +550,7 @@
                     },
                     "scopes": {
                       "type": "array",
-                      "description": "AuditDetailsTokenScopes and AuditDetailsToken: Token scopes. AuditDetailsOAuthAuthorizationGranted: Scopes the access was granted for. AuditDetailsDeviceAuthorizationApproved: Scopes the employee agreed to. AuditDetailsDeviceAuthorizationDenied: Scopes the client requested.",
+                      "description": "AuditDetailsTokenScopes and AuditDetailsToken: Token scopes. AuditDetailsBot: Token scopes. Present for bot_token_created. AuditDetailsBotOAuthClient and AuditDetailsBotOAuthClientDisabled: Scopes the bot requests from an employee on the consent screen. AuditDetailsOAuthAuthorizationGranted: Scopes the access was granted for. AuditDetailsDeviceAuthorizationApproved: Scopes the employee agreed to. AuditDetailsDeviceAuthorizationDenied: Scopes the client requested. AuditDetailsBotOAuthClientSecretRotated: Scopes the bot requests from an employee on the consent screen. Present for bot_oauth_client_secret_issued.",
                       "items": {
                         "type": "string"
                       }
@@ -542,7 +561,7 @@
                     },
                     "reason": {
                       "type": "string",
-                      "description": "AuditDetailsKms: Operation reason. AuditDetailsToken: Reason for the revocation. `guest_downgrade` means the token was revoked automatically when the employee was made a guest. Present only in such records. AuditDetailsLoginGrantDenied: Rejection reason. Values: denied — The employee rejected the sign-in; verification_failed — The employee entered digits other than the ones the device showed."
+                      "description": "AuditDetailsKms: Operation reason: `message_create` — encrypting the message text, `message_store_for_search` — saving the text for search, `file_upload` — uploading a file (all three with kms_encrypt), `file_download` — downloading a file (with kms_decrypt). AuditDetailsToken: Reason for the revocation. `guest_downgrade` means the token was revoked automatically when the employee was made a guest. Present only in such records. AuditDetailsLoginGrantDenied: Rejection reason. Values: denied — The employee rejected the sign-in; verification_failed — The employee entered digits other than the ones the device showed."
                     },
                     "dlp_rule_id": {
                       "type": "string",
@@ -554,7 +573,7 @@
                     },
                     "user_id": {
                       "type": "integer",
-                      "description": "AuditDetailsDlp: User ID. AuditDetailsOAuthAuthorizationRevoked: ID of the employee whose access was revoked. Present when the access was revoked by an administrator."
+                      "description": "AuditDetailsDlp: User ID. AuditDetailsOAuthAuthorizationRevoked: ID of the employee whose access was revoked. Present when the access was revoked by an administrator. AuditDetailsToken: ID of the employee whose token was revoked. Present when an administrator revoked the token or the employee was moved to guests."
                     },
                     "action_message": {
                       "type": [
@@ -593,14 +612,39 @@
                     },
                     "bot_id": {
                       "type": "integer",
-                      "description": "AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: Bot ID. AuditDetailsToken: Bot ID. Present for bot tokens and for tokens an employee granted to a bot."
+                      "description": "AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: Bot ID. AuditDetailsOAuthAuthorizationGranted: Bot ID. Present when access was granted to a bot. AuditDetailsOAuthAuthorizationRevoked: Bot ID. Present when access was revoked from a bot. AuditDetailsToken: Bot ID. Present for bot tokens and for tokens an employee granted to a bot."
                     },
                     "actor_id": {
                       "type": [
                         "integer",
                         "null"
                       ],
-                      "description": "ID of the user who performed the action. `null` if the action was performed without an initiator."
+                      "description": "AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: ID of the user who performed the action. `null` if the action was performed without an initiator. AuditDetailsToken: ID of the user who performed the action. Present for bot token events, `null` if the action was performed without an initiator."
+                    },
+                    "webhook_id": {
+                      "type": "integer",
+                      "description": "AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: ID of the bot's webhook. AuditDetailsToken: ID of the bot's webhook. Present for bot token events."
+                    },
+                    "application_id": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "AuditDetailsBot: ID of the bot's application. `null` if the bot has no application. AuditDetailsBotWebhookSettings: ID of the application of the token the settings were changed with. `null` if they were changed in the Pachca interface. AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: ID of the bot's application. AuditDetailsOAuthAuthorizationGranted: ID of the application that was granted access. AuditDetailsOAuthAuthorizationRevoked: ID of the application whose access was revoked. AuditDetailsDeviceAuthorizationApproved: ID of the application that was allowed to log in. AuditDetailsDeviceAuthorizationDenied: Application ID. When a CLI sign-in is refused, it is `null`: an application is assigned to the sign-in only after it is confirmed. AuditDetailsToken: ID of the application the token belongs to."
+                    },
+                    "access_token_id": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "AuditDetailsBot: Token ID. Present for bot_token_created, bot_token_reissued and bot_token_updated. AuditDetailsBotWebhookSettings: ID of the token the settings were changed with. `null` if they were changed in the Pachca interface. AuditDetailsBotOAuthClient and AuditDetailsBotOAuthClientDisabled: ID of the token the action was performed with. `null` if the action was performed in the Pachca interface. AuditDetailsBotOAuthClientSecretRotated: ID of the token the action was performed with. `null` if the action was performed in the Pachca interface. Present for bot_oauth_client_secret_issued. AuditDetailsToken and AuditDetailsBotTokenUpdated: Token ID."
+                    },
+                    "access_token_preview": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "AuditDetailsBot: Masked token: the first and last characters. Present for bot token events, `null` if the value is unavailable. AuditDetailsBotWebhookSettings: Masked token the settings were changed with. `null` if they were changed in the Pachca interface. AuditDetailsBotOAuthClient and AuditDetailsBotOAuthClientDisabled: Masked token the action was performed with. `null` if the action was performed in the Pachca interface. AuditDetailsBotOAuthClientSecretRotated: Masked token the action was performed with. `null` if the action was performed in the Pachca interface. Present for bot_oauth_client_secret_issued. AuditDetailsToken and AuditDetailsBotTokenUpdated: Masked token: the first and last characters. `null` if the value is unavailable."
                     },
                     "added_scopes": {
                       "type": "array",
@@ -616,14 +660,43 @@
                         "type": "string"
                       }
                     },
+                    "bot_name": {
+                      "type": "string",
+                      "description": "AuditDetailsBotScopes: Bot name. Absent in records before October 7, 2026. AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: Bot name. AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked and AuditDetailsToken: Bot name. Present together with `bot_id`."
+                    },
+                    "previous_scopes": {
+                      "type": "array",
+                      "description": "Bot token scopes before the change",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "new_scopes": {
+                      "type": "array",
+                      "description": "Bot token scopes after the change",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "changes": {
                       "type": "object",
-                      "description": "AuditDetailsBotWebhookSettings: Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages, events_history_enabled), the value is an object with previous and new fields. AuditDetailsBotOAuthClient: Changed client settings. The key is the setting name (confidential, redirect_uris, scopes), the value is an object with previous and new fields.",
+                      "description": "AuditDetailsBotWebhookSettings: Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), the value is an object with previous and new fields. AuditDetailsBotOAuthClient: Changed client settings. The key is the setting name (confidential, redirect_uris, scopes), the value is an object with previous and new fields.",
                       "additionalProperties": {}
                     },
                     "client_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated and AuditDetailsBotOAuthClientDisabled: Bot OAuth client ID. AuditDetailsOAuthAuthorizationGranted: ID of the OAuth client that was granted access. `null` in records before October 7, 2026 about access granted to a bot. AuditDetailsOAuthAuthorizationRevoked: ID of the OAuth client whose access was revoked. AuditDetailsDeviceAuthorizationApproved: ID of the OAuth client that was allowed to sign in. AuditDetailsDeviceAuthorizationDenied: ID of the OAuth client that was denied the sign-in. AuditDetailsToken: ID of the application's OAuth client. AuditDetailsBotTokenUpdated: ID of the bot's OAuth client."
+                    },
+                    "application_name": {
                       "type": "string",
-                      "description": "AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated and AuditDetailsBotOAuthClientDisabled: Bot OAuth client ID. AuditDetailsOAuthAuthorizationGranted: ID of the OAuth client that was granted access. AuditDetailsOAuthAuthorizationRevoked: ID of the OAuth client whose access was revoked. AuditDetailsDeviceAuthorizationApproved: ID of the OAuth client that was allowed to sign in. AuditDetailsDeviceAuthorizationDenied: ID of the OAuth client that was denied the sign-in."
+                      "description": "AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: Name of the bot's application. AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked and AuditDetailsDeviceAuthorizationApproved: Application name. Absent in records before October 7, 2026. AuditDetailsToken: Name of the application the token belongs to."
+                    },
+                    "authorization_grant_id": {
+                      "type": "integer",
+                      "description": "ID of the issued authorization code"
                     },
                     "revoked_tokens_count": {
                       "type": "integer",
@@ -634,7 +707,15 @@
                         "string",
                         "null"
                       ],
-                      "description": "AuditDetailsDeviceAuthorizationApproved: Name of the device the sign-in is made from. `null` if the app did not pass it. AuditDetailsDeviceAuthorizationDenied: Name of the device the sign-in was made from. `null` if the app did not pass it."
+                      "description": "AuditDetailsDeviceAuthorizationApproved: Name of the device the sign-in is made from. `null` if the app did not pass it. AuditDetailsDeviceAuthorizationDenied: Name of the device the sign-in was made from. `null` if the app did not pass it. AuditDetailsToken: Device name. Present for a CLI login, `null` if there is no name."
+                    },
+                    "device_grant_id": {
+                      "type": "integer",
+                      "description": "ID of the login request"
+                    },
+                    "token_kind": {
+                      "type": "string",
+                      "description": "AuditDetailsDeviceAuthorizationApproved and AuditDetailsDeviceAuthorizationDenied: Token kind: `cli` — CLI login. Absent in records before October 7, 2026. AuditDetailsToken: Token kind: `personal` — a personal token, `cli` — a CLI sign-in, `bot` — a bot token, `oauth` — a token an employee granted to a bot on the consent screen, `client` — a token of an external app an employee granted access to. AuditDetailsBotTokenUpdated: Token kind: `bot`."
                     },
                     "started_message_id": {
                       "type": [
@@ -674,10 +755,6 @@
                       "type": "integer",
                       "description": "Number of unused authorization codes revoked"
                     },
-                    "token_kind": {
-                      "type": "string",
-                      "description": "AuditDetailsToken: Token kind: `personal` — a personal token, `cli` — a CLI sign-in, `bot` — a bot token, `oauth` — a token an employee granted to a bot on the consent screen, `client` — a token of an external app an employee granted access to. AuditDetailsBotTokenUpdated: Token kind: `bot`."
-                    },
                     "token_name": {
                       "type": [
                         "string",
@@ -688,6 +765,10 @@
                     "resource_owner_id": {
                       "type": "integer",
                       "description": "AuditDetailsToken: ID of the token owner: an employee, or the bot itself for a bot token. AuditDetailsBotTokenUpdated: ID of the token owner — the bot."
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "Revocation source: `oauth_client` — the application revoked the token itself. Present only for oauth_token_revoked."
                     },
                     "current_scopes": {
                       "type": "array",
@@ -785,9 +866,20 @@
         "data[].details.dlp_rule_name",
         "data[].details.action_message",
         "data[].details.filters",
+        "data[].details.access_token_preview",
+        "data[].details.scopes[]",
+        "data[].details.name.previous",
+        "data[].details.name.new",
+        "data[].details.bot_name",
+        "data[].details.previous_scopes[]",
+        "data[].details.new_scopes[]",
         "data[].details.changes",
+        "data[].details.application_name",
         "data[].details.device_name",
+        "data[].details.token_kind",
         "data[].details.token_name",
+        "data[].details.client_id",
+        "data[].details.source",
         "data[].details.device.name",
         "data[].details.device.os_version",
         "data[].details.device.app_version",
@@ -1700,7 +1792,7 @@
           },
           "commands": {
             "type": "array",
-            "description": "Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.",
+            "description": "Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.",
             "examples": [
               [
                 "/task",
@@ -2807,7 +2899,7 @@
           },
           "commands": {
             "type": "array",
-            "description": "Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.",
+            "description": "Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.",
             "examples": [
               [
                 "/task",
@@ -2914,12 +3006,16 @@
             ]
           },
           "kind": {
-            "type": "string",
-            "description": "Incoming webhook source. If the bot had no incoming webhook, it is enabled. Values: simple — Custom format: the message is built from the request body with the bot's template; gitlab — GitLab: Pachca parses the request and builds the message itself; grafana — Grafana: Pachca parses the request and builds the message itself.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Incoming webhook source. If the bot had no incoming webhook, it is enabled. `null` deletes the incoming webhook: the address stops working, the template and the incoming webhook settings are reset, and on the next enabling the bot gets a new address. Values: simple — Custom format: the message is built from the request body with the bot's template; gitlab — GitLab: Pachca parses the request and builds the message itself; grafana — Grafana: Pachca parses the request and builds the message itself.",
             "enum": [
               "simple",
               "gitlab",
-              "grafana"
+              "grafana",
+              null
             ],
             "examples": [
               "simple"
@@ -3032,7 +3128,7 @@
         ],
         "additionalProperties": false
       },
-      "signature": "id* (integer), name (string), nickname (string), outgoing_url (string), events [string], trigger_on (commands | all_messages | unfurl), commands [string], scopes [string], template (string), template_engine (liquid | mustache), challenge_key (string), link_preview_enabled (boolean), ignore_self_messages (boolean), events_history_enabled (boolean), who_can_add (creator | creator_admin | creator_admin_user | anyone), can_edit [string], single_chat (boolean), kind (simple | gitlab | grafana), unfurl_domains [string], oauth_client {confidential (boolean), redirect_uris [string], scopes [string]} or null, promo {description (string), published (boolean)}, promo_images [{name (string), content (string), key (string)}]",
+      "signature": "id* (integer), name (string), nickname (string), outgoing_url (string), events [string], trigger_on (commands | all_messages | unfurl), commands [string], scopes [string], template (string), template_engine (liquid | mustache), challenge_key (string), link_preview_enabled (boolean), ignore_self_messages (boolean), events_history_enabled (boolean), who_can_add (creator | creator_admin | creator_admin_user | anyone), can_edit [string], single_chat (boolean), kind (simple | gitlab | grafana | ), unfurl_domains [string], oauth_client {confidential (boolean), redirect_uris [string], scopes [string]} or null, promo {description (string), published (boolean)}, promo_images [{name (string), content (string), key (string)}]",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -5728,7 +5824,7 @@
         "owner"
       ],
       "bot_token_only": false,
-      "description": "Download export archive. The answer is a temporary download link for the file. The link is valid for 5 minutes, so use it right away. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission. While the archive is being assembled, the method responds `404` with the `export_file_not_found` code. Its answer can carry a secret (a token, or a link that needs none): give it to the person in your reply and nowhere else.",
+      "description": "Download export archive. The answer is a temporary download link for the file. The link is valid for 5 minutes, so use it right away. Only the employee who ordered the export can download the archive: the method refuses another employee holding the same permission. The archive itself is stored for 7 days. After that the method still responds `302`, but the storage returns an error at the link, and the export has to be ordered again. While the archive is being assembled, the method responds `404` with the `export_file_not_found` code. Its answer can carry a secret (a token, or a link that needs none): give it to the person in your reply and nowhere else.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -7839,7 +7935,7 @@
                           "integer",
                           "null"
                         ],
-                        "description": "Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the duration was not supplied at upload time."
+                        "description": "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
                       }
                     }
                   }
@@ -8107,7 +8203,7 @@
                 },
                 "duration_ms": {
                   "type": "integer",
-                  "description": "Duration in milliseconds. Required for a voice message (`file_type` is `voice`). A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.",
+                  "description": "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.",
                   "format": "int32",
                   "examples": [
                     5400
@@ -8362,7 +8458,7 @@
                         "integer",
                         "null"
                       ],
-                      "description": "Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the duration was not supplied at upload time."
+                      "description": "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
                     }
                   }
                 }
@@ -8605,7 +8701,7 @@
                         "integer",
                         "null"
                       ],
-                      "description": "Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the duration was not supplied at upload time."
+                      "description": "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
                     }
                   }
                 }
@@ -8832,7 +8928,7 @@
                 },
                 "duration_ms": {
                   "type": "integer",
-                  "description": "Duration in milliseconds. Required for a voice message (`file_type` is `voice`). A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.",
+                  "description": "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.",
                   "format": "int32",
                   "examples": [
                     5400
@@ -9081,7 +9177,7 @@
                         "integer",
                         "null"
                       ],
-                      "description": "Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the duration was not supplied at upload time."
+                      "description": "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
                     }
                   }
                 }
@@ -10232,7 +10328,7 @@
                           "integer",
                           "null"
                         ],
-                        "description": "Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the duration was not supplied at upload time."
+                        "description": "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
                       }
                     }
                   }
@@ -10743,7 +10839,7 @@
                           "integer",
                           "null"
                         ],
-                        "description": "Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the duration was not supplied at upload time."
+                        "description": "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
                       }
                     }
                   }
@@ -11030,7 +11126,7 @@
                 },
                 "file_type": {
                   "type": "string",
-                  "description": "File type. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
+                  "description": "File type. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
                   "enum": [
                     "file",
                     "image",
@@ -11068,7 +11164,7 @@
                 },
                 "duration_ms": {
                   "type": "integer",
-                  "description": "Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.",
+                  "description": "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.",
                   "minimum": 1,
                   "format": "int32",
                   "examples": [
@@ -11352,7 +11448,7 @@
                         "integer",
                         "null"
                       ],
-                      "description": "Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the duration was not supplied at upload time."
+                      "description": "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
                     }
                   }
                 }
@@ -11671,7 +11767,7 @@
                         "integer",
                         "null"
                       ],
-                      "description": "Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the duration was not supplied at upload time."
+                      "description": "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
                     }
                   }
                 }
@@ -11954,7 +12050,7 @@
                 },
                 "duration_ms": {
                   "type": "integer",
-                  "description": "Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.",
+                  "description": "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.",
                   "minimum": 1,
                   "format": "int32",
                   "examples": [
@@ -12186,7 +12282,7 @@
                         "integer",
                         "null"
                       ],
-                      "description": "Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the duration was not supplied at upload time."
+                      "description": "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
                     }
                   }
                 }
@@ -14379,7 +14475,7 @@
                           "integer",
                           "null"
                         ],
-                        "description": "Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the duration was not supplied at upload time."
+                        "description": "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
                       }
                     }
                   }
@@ -18669,6 +18765,17 @@
           "view": {
             "in": "body",
             "at": "view"
+          }
+        }
+      },
+      "entity": "OpenViewResult",
+      "outputSchema": {
+        "type": "object",
+        "description": "View opening result",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether the window was opened. Always `true` in a successful response."
           }
         }
       },

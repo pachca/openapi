@@ -3738,7 +3738,7 @@ public class ViewsService
         throw new NotImplementedException("Views.submitViewResponse is not implemented");
     }
 
-    public virtual async System.Threading.Tasks.Task OpenViewAsync(OpenViewRequest request, CancellationToken cancellationToken = default)
+    public virtual async System.Threading.Tasks.Task<OpenViewResult> OpenViewAsync(OpenViewRequest request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Views.openView is not implemented");
     }
@@ -3774,7 +3774,7 @@ public sealed class ViewsServiceImpl : ViewsService
         }
     }
 
-    public override async System.Threading.Tasks.Task OpenViewAsync(OpenViewRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<OpenViewResult> OpenViewAsync(OpenViewRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/views/open";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -3784,7 +3784,7 @@ public sealed class ViewsServiceImpl : ViewsService
         switch ((int)response.StatusCode)
         {
             case 201:
-                return;
+                return PachcaUtils.Deserialize<OpenViewResult>(json);
             default:
                 throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }

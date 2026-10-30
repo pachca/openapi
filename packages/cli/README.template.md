@@ -68,11 +68,11 @@ pachca auth switch bot-notify
 # Загрузить файл (получает подпись и загружает автоматически)
 pachca upload photo.jpg
 
-# Из stdin
-cat data.csv | pachca upload -
+# Из stdin: имя с расширением задаёт --name
+cat data.csv | pachca upload - --name data.csv
 ```
 
-Команда `upload` автоматически получает подпись (`POST /uploads`) и загружает файл на S3. Возвращает `key` — используйте его в `--files` при создании сообщений.
+Команда `upload` автоматически получает подпись (`POST /uploads`) и загружает файл на S3. Возвращает `key` — используйте его в `--files` при создании сообщений. Расширение `name` в файле сообщения должно совпадать с расширением имени в `key`.
 
 ## Пагинация
 
@@ -122,7 +122,7 @@ pachca users list --columns id,email,role
 pachca users list --columns email --no-header
 
 # Пайп — цвет отключается автоматически
-pachca users list -o json | jq '.[].name'
+pachca users list -o json | jq -r '.[] | "\(.first_name) \(.last_name)"'
 
 # Текст из файла или pipe
 pachca messages create --entity-id 123 < message.txt
@@ -155,7 +155,7 @@ Escape hatch для нестандартных запросов без сген�
 
 ```
 pachca api GET /messages --query chat_id=123
-pachca api POST /messages -F message[chat_id]=12345 -f message[content]="Привет"
+pachca api POST /messages -F 'message[entity_id]=12345' -f 'message[content]=Привет'
 pachca api POST /messages --input payload.json
 pachca api GET /profile -o yaml --dry-run
 ```

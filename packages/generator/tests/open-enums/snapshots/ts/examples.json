@@ -6,7 +6,7 @@
     ]
   },
   "listMembers": {
-    "usage": "const response = client.members.listMembers({\n  sort: SortOrder.Asc,\n  role: MemberRole.Admin,\n  roles: [MemberRole.Admin],\n  region: Region.Eu\n})",
+    "usage": "const response = await client.members.listMembers({\n  sort: SortOrder.Asc,\n  role: MemberRole.Admin,\n  roles: [MemberRole.Admin],\n  region: Region.Eu\n})",
     "output": "ListMembersResponse({ data: Member[] })",
     "imports": [
       "MemberRole",
@@ -15,7 +15,7 @@
     ]
   },
   "updateMember": {
-    "usage": "const request: MemberUpdateRequest = { role: MemberRole.Admin, kind: MemberKind.Regular }\nconst response = client.members.updateMember(123, request)",
+    "usage": "const request: MemberUpdateRequest = { role: MemberRole.Admin, kind: MemberKind.Regular }\nconst response = await client.members.updateMember(123, request)",
     "output": "Member({ id: number, role: MemberRole, status: MemberStatus, previousStatuses?: MemberStatus[] })",
     "imports": [
       "MemberKind",

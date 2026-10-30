@@ -1352,7 +1352,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": {\n    \"entity_id\": 334,\n    \"content\": \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    \"files\": [\n      {\n        \"key\": \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n        \"name\": \"logo.png\",\n        \"file_type\": \"image\",\n        \"size\": 12345,\n        \"width\": 800,\n        \"height\": 600,\n        \"duration_ms\": 5400,\n        \"waveform\": \"4,8,12,20,16,10,6,3\"\n      }\n    ],\n    \"buttons\": [\n      [\n        {\n          \"text\": \"Подробнее\",\n          \"url\": \"https://example.com/details\"\n        },\n        {\n          \"text\": \"Отлично!\",\n          \"data\": \"awesome\"\n        }\n      ]\n    ],\n    \"parent_message_id\": 194270,\n    \"display_avatar_url\": \"https://example.com/avatar.png\",\n    \"display_name\": \"Бот Поддержки\"\n  }\n}",
+              "raw": "{\n  \"message\": {\n    \"entity_id\": 334,\n    \"content\": \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1428,7 +1428,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": {\n    \"content\": \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n    \"files\": [\n      {\n        \"key\": \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n        \"name\": \"logo.png\",\n        \"file_type\": \"image\",\n        \"size\": 12345,\n        \"width\": 800,\n        \"height\": 600,\n        \"duration_ms\": 5400,\n        \"waveform\": \"4,8,12,20,16,10,6,3\"\n      }\n    ],\n    \"buttons\": [\n      [\n        {\n          \"text\": \"Подробнее\",\n          \"url\": \"https://example.com/details\"\n        }\n      ]\n    ],\n    \"display_avatar_url\": \"https://example.com/avatar.png\",\n    \"display_name\": \"Бот Поддержки\"\n  }\n}",
+              "raw": "{\n  \"message\": {\n    \"content\": \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n    \"buttons\": [\n      [\n        {\n          \"text\": \"Подробнее\",\n          \"url\": \"https://example.com/details\"\n        }\n      ]\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1956,7 +1956,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"draft\": {\n    \"entity_type\": \"discussion\",\n    \"entity_id\": 334,\n    \"content\": \"Отчёт за неделю: продажи выросли на 10%\",\n    \"parent_message_id\": 196093,\n    \"files\": [\n      {\n        \"id\": 3560,\n        \"key\": \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n        \"name\": \"logo.png\",\n        \"file_type\": \"image\",\n        \"size\": 12345,\n        \"width\": 800,\n        \"height\": 600,\n        \"duration_ms\": 5400,\n        \"waveform\": \"4,8,12,20,16,10,6,3\"\n      }\n    ],\n    \"schedule\": {\n      \"start_date\": \"2026-09-17T12:00:00.000Z\",\n      \"end_date\": \"2026-12-31T12:00:00.000Z\",\n      \"repetition\": {\n        \"interval\": \"weekly\",\n        \"days\": [\n          1,\n          3\n        ],\n        \"nth_day\": 2\n      }\n    }\n  }\n}",
+              "raw": "{\n  \"draft\": {\n    \"entity_type\": \"discussion\",\n    \"entity_id\": 334,\n    \"content\": \"Отчёт за неделю: продажи выросли на 10%\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"

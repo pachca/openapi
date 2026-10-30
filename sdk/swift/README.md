@@ -32,7 +32,7 @@ let pachca = PachcaClient(token: "YOUR_TOKEN")
 let chats = try await pachca.chats.listChats()
 
 // Создание сообщения
-let message = try await pachca.messages.createMessage(MessageCreateRequest(
+let message = try await pachca.messages.createMessage(request: MessageCreateRequest(
     message: MessageCreateRequestMessage(
         entityId: chatId,
         content: "Hello from Swift SDK!"
@@ -40,7 +40,7 @@ let message = try await pachca.messages.createMessage(MessageCreateRequest(
 ))
 
 // Реакция
-try await pachca.reactions.addReaction(messageId, ReactionRequest(code: "👍"))
+let reaction = try await pachca.reactions.addReaction(id: messageId, request: ReactionRequest(code: "👍"))
 
 // Список пользователей
 let users = try await pachca.users.listUsers()
@@ -48,26 +48,26 @@ let users = try await pachca.users.listUsers()
 
 ## Конвенции
 
-- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Вход**: path-параметры передаются аргументами метода. Тело из одного обязательного поля, например роль участника чата, тоже разворачивается в аргумент. Остальные тела передаются одним объектом-запросом.
 - **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую. Если рядом с `data` есть `meta` (списки и метод `Новый чат`), SDK возвращает ответ целиком: `data` и `meta`.
 
 ```swift
-// ≤2 поля → развёрнуто в аргументы
-try await pachca.reactions.addReaction(messageId, ReactionRequest(code: "👍"))
-try await pachca.messages.pinMessage(messageId)
+// Тело из одного поля → аргумент
+try await pachca.members.updateMemberRole(id: chatId, userId: userId, role: .admin)
+try await pachca.messages.pinMessage(id: messageId)
 
-// >2 полей → объект-запрос
-try await pachca.messages.createMessage(MessageCreateRequest(...))
+// Тело из нескольких полей → объект-запрос
+_ = try await pachca.reactions.addReaction(id: messageId, request: ReactionRequest(code: "👍"))
 
 // Ответ: API возвращает {"data": ...}, SDK возвращает объект напрямую
-let message = try await pachca.messages.createMessage(...)  // Message, не MessageResponse
+let message = try await pachca.messages.getMessage(id: messageId)  // Message, не MessageResponse
 ```
 
 Полное описание параметров: [документация API](https://dev.pachca.com)
 
 ## Пагинация
 
-Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
+Для методов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
 
 ```swift
 // Вручную
@@ -84,11 +84,11 @@ repeat {
 let allChats = try await pachca.chats.listChatsAll()
 ```
 
-Доступные методы: `listChatsAll`, `listUsersAll`, `listTasksAll`, `listTagsAll`, `listMembersAll`, `listChatMessagesAll`, `listReactionsAll`, `searchChatsAll`, `searchMessagesAll`, `searchUsersAll` и др.
+Метод `*All` есть у каждого метода с пагинацией, полный список — на странице [Swift SDK](https://dev.pachca.com/guides/sdk/swift#avtopaginatsiya).
 
 ## Повторные запросы
 
-SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток). Ошибки сервера `5xx` повторяются только у запросов GET, PUT и DELETE: запрос POST сервер мог успеть выполнить, и повтор создал бы дубль. Ответ `504` с кодом `timeout` (поиск не уложился по времени) не повторяется: тот же запрос, скорее всего, снова не уложится, и его стоит сузить.
+SDK повторяет запросы сам. Паузы между попытками описаны на странице [Swift SDK](https://dev.pachca.com/guides/sdk/swift#povtornye-zaprosy), общие правила повторов — в разделе [Повторные запросы](https://dev.pachca.com/api/limits#povtornye-zaprosy-retry).
 
 ## Свой HTTP-клиент
 
@@ -111,28 +111,54 @@ let client = PachcaClient(headers: headers, session: session)
 
 ## Загрузка файлов
 
-Загрузка файла — трёхшаговый процесс:
+Загрузка файла идёт в три шага: параметры загрузки, отправка файла по адресу `directUrl` и сообщение с ключом файла. Подробнее — в разделе [Загрузка файлов](https://dev.pachca.com/api/file-uploads).
 
 ```swift
-// 1. Получить параметры загрузки
-let params = try await pachca.uploads.getUploadParams()
-
-// 2. Загрузить файл на S3
+let fileURL = URL(fileURLWithPath: "report.pdf")
+let filename = fileURL.lastPathComponent
 let fileData = try Data(contentsOf: fileURL)
-try await pachca.uploads.uploadFile(params, data: fileData, filename: "photo.png")
 
-// 3. Прикрепить к сообщению (используя key из params)
+// 1. Получить параметры загрузки и подставить имя файла в ключ
+let params = try await pachca.files.getUploadParams()
+let key = params.key.replacingOccurrences(of: "${filename}", with: filename)
+
+// 2. Загрузить файл по адресу directUrl
+let uploadRequest = FileUploadRequest(
+    ContentDisposition: params.ContentDisposition,
+    acl: params.acl,
+    policy: params.policy,
+    xAmzCredential: params.xAmzCredential,
+    xAmzAlgorithm: params.xAmzAlgorithm,
+    xAmzDate: params.xAmzDate,
+    xAmzSignature: params.xAmzSignature,
+    key: key,
+    bucket: params.bucket,
+    file: fileData
+)
+try await pachca.files.uploadFile(directUrl: params.directUrl, request: uploadRequest)
+
+// 3. Отправить сообщение с файлом
+_ = try await pachca.messages.createMessage(request: MessageCreateRequest(
+    message: MessageCreateRequestMessage(
+        entityId: chatId,
+        content: "Отчёт за неделю",
+        files: [MessageCreateRequestFile(key: key, name: filename, fileType: .file, size: Int64(fileData.count))]
+    )
+))
 ```
+
+Полный пример: [`examples/Sources/Upload/main.swift`](examples/Sources/Upload/main.swift)
 
 ## Обработка ошибок
 
 ```swift
 do {
-    let message = try await pachca.messages.getMessage(999999)
-} catch let error as APIError {
-    print("Ошибка API: \(error.message)")
+    let message = try await pachca.messages.getMessage(id: 999999)
+    print(message.content)
+} catch let error as ApiError {
+    print("Ошибка API: \(error.errors.map(\.message))")
 } catch let error as OAuthError {
-    print("Ошибка авторизации: \(error.message)")
+    print("Ошибка авторизации: \(error.error.rawValue)")
 }
 ```
 
@@ -146,10 +172,27 @@ do {
 import XCTest
 import PachcaSDK
 
-// Мок-сервис
+// Мок-сервис: переопределите только нужные методы
 class MockMessagesService: MessagesService {
-    override func getMessage(_ id: Int64) async throws -> Message {
-        return Message(id: id, content: "Test message", entityId: 123)
+    override func getMessage(id: Int) async throws -> Message {
+        return Message(
+            id: id,
+            entityType: .discussion,
+            entityId: 123,
+            chatId: 123,
+            rootChatId: 123,
+            content: "Test message",
+            userId: 1,
+            createdAt: "",
+            url: "",
+            files: [],
+            buttons: nil,
+            thread: nil,
+            forwarding: nil,
+            parentMessageId: nil,
+            displayAvatarUrl: nil,
+            important: false
+        )
     }
 }
 
@@ -158,7 +201,7 @@ final class MessagesTests: XCTestCase {
     func testGetMessage() async throws {
         let client = PachcaClient.stub(messages: MockMessagesService())
 
-        let message = try await client.messages.getMessage(1)
+        let message = try await client.messages.getMessage(id: 1)
         XCTAssertEqual(message.content, "Test message")
     }
 }

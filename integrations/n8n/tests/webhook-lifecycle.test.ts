@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { IDataObject, IHookFunctions } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+import { NodeApiError, NodeOperationError } from 'n8n-workflow';
 import { PachcaTrigger } from '../nodes/Pachca/PachcaTrigger.node';
 
 // ============================================================================
@@ -332,6 +332,106 @@ describe('PachcaTrigger.webhookMethods.create', () => {
 		);
 		expect(staticData.webhookUrl).toBeUndefined();
 		expect(staticData.botId).toBeUndefined();
+	});
+
+	// GET /profile refused for lack of profile:read: Pachca answers 403 insufficient_scope,
+	// and httpRequestWithAuthentication throws a NodeApiError with the body in context.data.
+	function profileScopeError() {
+		return new NodeApiError(
+			{ id: 'trigger', name: 'Pachca Trigger', type: 'n8n-nodes-pachca.pachcaTrigger', typeVersion: 1, position: [0, 0], parameters: {} },
+			{
+				response: {
+					status: 403,
+					data: { error: 'insufficient_scope', error_description: 'Insufficient scope. Required: profile:read' },
+					headers: { 'www-authenticate': 'Bearer error="insufficient_scope", scope="profile:read"' },
+				},
+			} as never,
+		);
+	}
+
+	it('should name the missing profile:read scope when GET /profile is refused and no Bot ID is set', async () => {
+		const staticData: IDataObject = {};
+		const ctx = createHookCtx({
+			nodeBotId: 0,
+			staticData,
+			httpResponses: [profileScopeError()], // GET /profile → 403 insufficient_scope
+		});
+
+		const error = await trigger.webhookMethods.default.create.call(ctx).catch((e: unknown) => e);
+		expect(error).toBeInstanceOf(NodeOperationError);
+		expect((error as NodeOperationError).message).toMatch(/profile:read/);
+		expect((error as NodeOperationError).message).not.toMatch(/Bot ID is required/i);
+		expect((error as NodeOperationError).description).toMatch(/bot settings in Pachca \(API tab\)/);
+		expect((error as NodeOperationError).description).toMatch(/Bot ID field/);
+		expect((error as NodeOperationError).description).toMatch(/Manual/);
+
+		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
+		// Only GET /profile — no registration attempt
+		expect(httpMock.mock.calls).toHaveLength(1);
+		expect(staticData.webhookUrl).toBeUndefined();
+		expect(staticData.mode).toBeUndefined();
+	});
+
+	it('should go on as a personal token when GET /profile is refused for scope and Bot ID is set', async () => {
+		const staticData: IDataObject = {};
+		const ctx = createHookCtx({
+			nodeBotId: 42,
+			staticData,
+			httpResponses: [
+				profileScopeError(), // GET /profile → 403 insufficient_scope
+				{ data: {} }, // PUT /bots/42
+			],
+		});
+
+		const result = await trigger.webhookMethods.default.create.call(ctx);
+		expect(result).toBe(true);
+		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
+		expect(httpMock.mock.calls[1][1]).toMatchObject({ method: 'PUT', url: `${BASE_URL}/bots/42` });
+		expect(staticData.mode).toBe('personal');
+	});
+
+	it('should add the profile:read hint to the 403 of PUT /bots/{id} when GET /profile was refused for scope', async () => {
+		const putError = Object.assign(new Error('Forbidden'), { httpCode: 403 });
+		const ctx = createHookCtx({
+			nodeBotId: 42,
+			httpResponses: [
+				profileScopeError(), // GET /profile → 403 insufficient_scope
+				putError, // PUT /bots/42 → 403 (a bot token cannot manage bots by id)
+			],
+		});
+
+		const error = await trigger.webhookMethods.default.create.call(ctx).catch((e: unknown) => e);
+		expect(error).toBeInstanceOf(NodeOperationError);
+		expect((error as NodeOperationError).description).toMatch(/editor access/);
+		expect((error as NodeOperationError).description).toMatch(/profile:read/);
+	});
+
+	it('should keep the 403 of PUT /bots/{id} free of the profile:read hint when GET /profile succeeded', async () => {
+		const putError = Object.assign(new Error('Forbidden'), { httpCode: 403 });
+		const ctx = createHookCtx({
+			nodeBotId: 42,
+			httpResponses: [
+				{ data: { id: 99, bot: false } }, // GET /profile → personal token
+				putError, // PUT /bots/42 → 403
+			],
+		});
+
+		const error = await trigger.webhookMethods.default.create.call(ctx).catch((e: unknown) => e);
+		expect((error as NodeOperationError).description).not.toMatch(/profile:read/);
+	});
+
+	it('should rethrow the GET /profile error when it is not about scope and no Bot ID is set', async () => {
+		const staticData: IDataObject = {};
+		const ctx = createHookCtx({
+			nodeBotId: 0,
+			staticData,
+			httpResponses: [new Error('network timeout')], // GET /profile → fails
+		});
+
+		await expect(trigger.webhookMethods.default.create.call(ctx)).rejects.toThrow('network timeout');
+		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
+		expect(httpMock.mock.calls).toHaveLength(1);
+		expect(staticData.webhookUrl).toBeUndefined();
 	});
 
 	it('should NOT touch staticData when PUT fails', async () => {

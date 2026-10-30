@@ -36,7 +36,7 @@ import { FormPlayground } from '@/components/mdx/form-playground';
 import { ScopeRolesTable } from '@/components/api/scope-roles-table';
 import { getOrderedPages } from '@/lib/ordered-pages';
 import { generateNavigation } from '@/lib/navigation';
-import type { Schema } from '@/lib/openapi/types';
+import type { Endpoint, Schema } from '@/lib/openapi/types';
 import { HTTP_CODES } from '@/lib/schemas/guide-schemas';
 
 /**
@@ -272,6 +272,7 @@ export async function ApiCards() {
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="Custom title" />
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="With filters" params={{ event_key: "user_login", limit: 50 }} />
  * <ApiCodeExample operationId="MessageOperations_createMessage" responseMode="minimal" />
+ * <ApiCodeExample operationId="MessageOperations_createMessage" example="Сообщение с кнопкой" langs={["curl", "cli"]} />
  *
  * Single-language mode (no dropdown, no header, inline copy button):
  * <ApiCodeExample lang="typescript" operationId="ChatOperations_createChat" />
@@ -283,6 +284,11 @@ export async function ApiCards() {
  *
  * operationId = {InterfaceName}_{methodName} from TypeSpec (see openapi.yaml)
  * params — override parameter and body field values; only specified + required ones are included (curl/cli only)
+ * example — request body example to show, by its key or `summary` (the `@opExample` title); without it
+ *   the first one. curl/cli only: SDK code comes from examples.json, built from the first example, so use
+ *   it with lang="curl" | "cli" or langs={["curl", "cli"]}; with an SDK language it renders an error, as
+ *   does an unknown name. Applied after `params`, and `params` that name body fields drop the spec's
+ *   examples, so use one or the other for the body.
  * responseMode — "full" (default): all fields with values; "minimal": null for nullable, [] for optional arrays
  * lang — single language: no dropdown/header, renders as simple code block
  * langs — filter languages in multi-language dropdown (e.g. ["typescript", "python", "go", "kotlin", "swift", "csharp"])
@@ -295,6 +301,7 @@ interface ApiCodeExampleProps {
   title?: string;
   show?: 'request' | 'response' | 'both';
   params?: Record<string, unknown>;
+  example?: string;
   responseMode?: 'full' | 'minimal';
   lang?: 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'csharp' | 'curl' | 'cli';
   langs?: Array<'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'csharp' | 'curl' | 'cli'>;
@@ -303,11 +310,59 @@ interface ApiCodeExampleProps {
   showInit?: boolean;
 }
 
+/**
+ * The endpoint the curl and CLI examples of a guide are generated from, in
+ * both the single- and the multi-language mode. `params` keep the named and
+ * the required query parameters and body fields, with the given values: a
+ * guide that asks for three fields should not get every optional one that
+ * happens to have an example in the spec. `example` then keeps one authored
+ * request body by its title. The .md twin is in `lib/mdx-expander.ts`, so the
+ * page and its .md show the same request. `null` when the spec has no request
+ * example with that title.
+ */
+async function guideEndpoint(
+  endpoint: Endpoint,
+  params: Record<string, unknown> | undefined,
+  example: string | undefined
+): Promise<Endpoint | null> {
+  if (!params && !example) return endpoint;
+  const { narrowRequestBody, selectRequestExample } = await import('@/lib/code-generators/utils');
+
+  let result = endpoint;
+  if (params) {
+    const paramNames = Object.keys(params);
+    result = {
+      ...endpoint,
+      parameters: endpoint.parameters
+        .filter((p) => p.in !== 'query' || p.required || paramNames.includes(p.name))
+        .map((p) => (paramNames.includes(p.name) ? { ...p, example: params[p.name] } : p)),
+      requestBody: narrowRequestBody(endpoint.requestBody, params),
+    };
+  }
+  if (example) {
+    const requestBody = selectRequestExample(result.requestBody, example);
+    if (!requestBody) return null;
+    result = { ...result, requestBody };
+  }
+  return result;
+}
+
+/** `example` with an SDK language: examples.json holds only the first example. */
+function SdkExampleError({ example, operationId }: { example: string; operationId?: string }) {
+  return (
+    <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+      Request example &quot;{example}&quot; ({operationId}) is shown in curl and cli only: set
+      lang=&quot;curl&quot; | &quot;cli&quot; or langs={'{["curl", "cli"]}'}
+    </div>
+  );
+}
+
 export async function ApiCodeExample({
   operationId,
   title,
   show = 'request',
   params,
+  example,
   responseMode,
   lang,
   langs,
@@ -336,15 +391,13 @@ export async function ApiCodeExample({
           </div>
         );
       }
-      let finalEndpoint = endpoint;
-      if (params) {
-        const paramNames = Object.keys(params);
-        finalEndpoint = {
-          ...endpoint,
-          parameters: endpoint.parameters
-            .filter((p) => p.in !== 'query' || p.required || paramNames.includes(p.name))
-            .map((p) => (paramNames.includes(p.name) ? { ...p, example: params[p.name] } : p)),
-        };
+      const finalEndpoint = await guideEndpoint(endpoint, params, example);
+      if (!finalEndpoint) {
+        return (
+          <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+            Request example not found: {example} ({operationId})
+          </div>
+        );
       }
       const { generateCurl } = await import('@/lib/code-generators/curl');
       const { generateCLI } = await import('@/lib/code-generators/cli');
@@ -355,6 +408,7 @@ export async function ApiCodeExample({
     }
 
     // SDK languages: load from examples.json
+    if (example) return <SdkExampleError example={example} operationId={operationId} />;
     const ops = operations ?? (operationId ? [{ id: operationId }] : []);
     const code = getSdkExampleForLang(lang, ops, showInit);
 
@@ -424,20 +478,20 @@ export async function ApiCodeExample({
     );
   }
 
-  let finalEndpoint = endpoint;
-  if (params) {
-    const { narrowRequestBody } = await import('@/lib/code-generators/utils');
-    const paramNames = Object.keys(params);
-    finalEndpoint = {
-      ...endpoint,
-      parameters: endpoint.parameters
-        .filter((p) => p.in !== 'query' || p.required || paramNames.includes(p.name))
-        .map((p) => (paramNames.includes(p.name) ? { ...p, example: params[p.name] } : p)),
-      // Body fields are narrowed the same way: a guide that asks for three
-      // fields should not get every optional one that happens to have an
-      // example in the spec.
-      requestBody: narrowRequestBody(endpoint.requestBody, params),
-    };
+  // Without `langs` the dropdown shows the SDK languages too, and they would
+  // send the first example instead of the named one.
+  const showsSdk = !langs || langs.some((l) => l !== 'curl' && l !== 'cli');
+  if (example && showsSdk) {
+    return <SdkExampleError example={example} operationId={operationId} />;
+  }
+
+  const finalEndpoint = await guideEndpoint(endpoint, params, example);
+  if (!finalEndpoint) {
+    return (
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+        Request example not found: {example} ({operationId})
+      </div>
+    );
   }
 
   const sdkEx = getSdkExamples(operationId);

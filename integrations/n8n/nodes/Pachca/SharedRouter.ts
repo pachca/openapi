@@ -38,6 +38,8 @@ interface FieldMap {
 	locator?: boolean;
 	subKey?: string;
 	isJson?: boolean;
+	/** The option value `null` is sent as JSON null */
+	nullable?: boolean;
 	default?: unknown;
 }
 
@@ -185,7 +187,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'who_can_add', n8n: 'whoCanAdd' },
 				{ api: 'can_edit', n8n: 'canEdit', isArray: true, arrayType: 'string' },
 				{ api: 'single_chat', n8n: 'singleChat' },
-				{ api: 'kind', n8n: 'kind' },
+				{ api: 'kind', n8n: 'kind', nullable: true },
 				{ api: 'unfurl_domains', n8n: 'unfurlDomains', isArray: true, arrayType: 'string' },
 				{ api: 'oauth_client', n8n: 'oauthClient', isJson: true },
 				{ api: 'promo', n8n: 'promo', isJson: true },
@@ -1134,7 +1136,9 @@ async function executeRoute(
 		} else {
 			raw = this.getNodeParameter(fm.n8n, i);
 		}
-		if (fm.isArray && typeof raw === 'string') {
+		if (fm.nullable && raw === 'null') {
+			body[fm.api] = null;
+		} else if (fm.isArray && typeof raw === 'string') {
 			body[fm.api] = splitAndValidateCommaList(this, raw, fm.n8n, fm.arrayType!, i);
 		} else if (fm.isJson && typeof raw === 'string') {
 			body[fm.api] = parseJsonObjectField(this, raw, fm.n8n, i);
@@ -1157,6 +1161,12 @@ async function executeRoute(
 		}
 
 		if (val === undefined || val === null || val === '') continue;
+
+		// An option value cannot be null in n8n: the `null` option of a nullable field stands for it
+		if (fm.nullable && val === 'null') {
+			body[fm.api] = null;
+			continue;
+		}
 
 		// fixedCollection: extract inner array using subKey
 		if (fm.subKey && typeof val === 'object' && !Array.isArray(val)) {

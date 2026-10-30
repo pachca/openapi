@@ -678,3 +678,106 @@ describe('error bodies', () => {
     });
   });
 });
+
+// Go sends an optional field only when the caller set it: for a nullable one
+// `null` switches a setting off or deletes an object (oauth_client, webhook.kind,
+// parent_message_id), so an unset field must never go out as null. NullFields
+// sends an explicit null.
+describe('Go request bodies', () => {
+  let types: string;
+
+  beforeAll(() => {
+    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-go-bodies-'));
+    generate(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'), out, ['go']);
+    types = fs.readFileSync(path.join(out, 'go', 'types.go'), 'utf-8');
+    fs.rmSync(out, { recursive: true, force: true });
+  });
+
+  const struct = (name: string) => types.match(new RegExp(`\\ntype ${name} struct \\{\\n[\\s\\S]*?\\n\\}`))?.[0] ?? '';
+
+  it('leaves out every optional field that is not set, nullable or not', () => {
+    expect(struct('BotUpdateRequest')).toMatch(/OAuthClient \*BotOAuthClientRequest +`json:"oauth_client,omitempty"`/);
+    expect(struct('BotUpdateRequestWebhook')).toMatch(/Kind +\*BotWebhookKind +`json:"kind,omitempty"`/);
+    expect(struct('DraftUpdateRequestDraft')).toMatch(/ParentMessageID \*int32 +`json:"parent_message_id,omitempty"`/);
+    expect(struct('DraftUpdateRequestDraft')).toMatch(/Schedule +\*DraftScheduleRequest +`json:"schedule,omitempty"`/);
+  });
+
+  it('keeps a required nullable field in the body', () => {
+    expect(struct('AuditEvent')).toMatch(/IpAddress +\*string +`json:"ip_address"`/);
+  });
+
+  it('sends null for a field named in NullFields, on request models only', () => {
+    expect(struct('BotUpdateRequest')).toContain('NullFields  []string                 `json:"-"` // fields to send as null: OAuthClient');
+    expect(struct('DraftUpdateRequestDraft')).toContain('// fields to send as null: ParentMessageID, Schedule');
+    expect(types).toContain('\t\tcase "Kind":\n\t\t\traw["kind"] = json.RawMessage("null")');
+    expect(types).toContain('return nil, fmt.Errorf("BotUpdateRequest: field %q cannot be sent as null", name)');
+    // A response model has nothing to send.
+    expect(struct('BotWebhook')).not.toContain('NullFields');
+    expect(struct('Message')).not.toContain('NullFields');
+  });
+});
+
+// A union with no discriminator ranks its members by the payload keys and takes
+// the first one that decodes: a member that fits the keys but not the types (an
+// older record) gives way to the next instead of failing the whole page.
+describe('unions without a discriminator', () => {
+  const fixture = path.join(TESTS_DIR, 'union-no-discriminator', 'fixture.yaml');
+  let out: string;
+  const read = (file: string) => fs.readFileSync(path.join(out, file), 'utf-8');
+
+  beforeAll(() => {
+    out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-union-fallback-'));
+    generate(fixture, out, SUPPORTED_LANGS);
+  });
+  afterAll(() => fs.rmSync(out, { recursive: true, force: true }));
+
+  it('every runtime falls through to the next member when one does not decode', () => {
+    const go = read('go/types.go');
+    expect(go).toContain('func rankUnionMembers(data []byte, shapes []unionMemberShape) []int {');
+    expect(go).toMatch(/if err = json\.Unmarshal\(data, v\); err == nil \{/);
+    expect(go).toContain('return firstErr');
+    const kt = read('kt/Models.kt');
+    expect(kt).toContain('for (shape in ranked) {');
+    expect(kt).toContain('} catch (e: IllegalArgumentException) {');
+    const cs = read('cs/Models.cs');
+    expect(cs).toContain('foreach (var candidate in ranked)');
+    expect(cs).toContain('catch (JsonException e)');
+    const py = read('py/utils.py');
+    expect(py).toContain('for member in _rank_union_members(members, value):');
+    expect(py).toContain('raise errors[0]');
+    const swift = read('swift/Models.swift');
+    expect(swift).toContain('for index in ranked {');
+    expect(swift).toContain('let keys = Set((try? decoder.container(keyedBy: AnyKey.self))?.allKeys.map(\\.stringValue) ?? [])');
+  });
+
+  it('Kotlin: a required nullable field of a member may hold null', () => {
+    const pachca = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-kt-members-'));
+    try {
+      generate(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'), pachca, ['kotlin']);
+      const models = fs.readFileSync(path.join(pachca, 'kt', 'Models.kt'), 'utf-8');
+      expect(models).toContain('@SerialName("token_name") val tokenName: String? = null,');
+      expect(models).toContain('@SerialName("action_message") val actionMessage: String? = null,');
+      expect(models).toContain('val limit: Int? = null,');
+    } finally {
+      fs.rmSync(pachca, { recursive: true, force: true });
+    }
+  });
+});
+
+// A .NET project sees System.Threading.Tasks.TaskStatus, Task, Thread and
+// System.IO.File through the default implicit usings: a C# example spells the
+// SDK type in full, or the short name fails with CS0104.
+describe('C# examples', () => {
+  it('spell in full an SDK type that the implicit usings also bring', () => {
+    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-cs-examples-'));
+    try {
+      generate(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'), out, ['csharp'], { examples: true });
+      const examples = JSON.parse(fs.readFileSync(path.join(out, 'cs', 'examples.json'), 'utf-8')) as Record<string, { usage: string }>;
+      const usages = Object.values(examples).map((e) => e.usage).join('\n');
+      expect(usages).toContain('Pachca.Sdk.TaskStatus.Undone');
+      expect(usages).not.toMatch(/(?<![.\w])TaskStatus\./);
+    } finally {
+      fs.rmSync(out, { recursive: true, force: true });
+    }
+  });
+});

@@ -1,4 +1,5 @@
 plugins {
+    `java-library`
     kotlin("jvm") version "2.2.20"
     kotlin("plugin.serialization") version "2.2.20"
     application
@@ -51,18 +52,27 @@ tasks.register<JavaExec>("runErrorBodyTests") {
     mainClass.set("tests.errorbodies.ErrorBodies")
 }
 
+tasks.register<JavaExec>("runAuditDetailsTests") {
+    classpath = sourceSets["tests"].runtimeClasspath
+    mainClass.set("tests.auditdetails.AuditDetails")
+}
+
 tasks.register<JavaExec>("runTests") {
     classpath = sourceSets["tests"].runtimeClasspath
     mainClass.set("tests.OpenEnums")
-    dependsOn("runRetryTests", "runErrorBodyTests")
+    dependsOn("runRetryTests", "runErrorBodyTests", "runAuditDetailsTests")
 }
 
 val ktorVersion = "3.2.3"
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    // The public API shows types of these three: JsonElement in ApiErrorItem.value
+    // and in payloads, Flow from pollWebhookEvents and pollWebhookPayloads, HttpClient
+    // in the constructor that takes a configured client. `api` puts them on the
+    // compile classpath of the projects that use the SDK.
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    api("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")

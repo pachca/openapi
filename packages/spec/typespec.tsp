@@ -1079,7 +1079,7 @@ model File {
   @example(1080)
   height?: int32 | null;
 
-  @doc("Длительность в миллисекундах у голосового, аудио- и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке.")
+  @doc("Длительность в миллисекундах у голосового сообщения и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке.")
   @example(5400)
   duration_ms?: int32 | null;
 }
@@ -2560,7 +2560,7 @@ model MessageCreateRequest {
       @maxLength(255)
       name: string;
 
-      @doc("Тип файла")
+      @doc("Тип файла. Голосовое сообщение (`voice`) отправляют с персональным токеном, а с токеном бота ответ `403`.")
       @example(FileType.image)
       file_type: FileType;
       
@@ -2576,7 +2576,7 @@ model MessageCreateRequest {
       @example(600)
       height?: int32;
 
-      @doc("Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.")
+      @doc("Длительность в миллисекундах: обязательна у голосового сообщения (`voice`), по желанию у видео (`video`), у остальных типов не сохраняется. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422` и кодом `wrong_params`.")
       @example(5400)
       @minValue(1)
       duration_ms?: int32;
@@ -2654,7 +2654,7 @@ model MessageUpdateRequest {
       @example(600)
       height?: int32;
 
-      @doc("Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.")
+      @doc("Длительность в миллисекундах: обязательна у голосового сообщения (`voice`), по желанию у видео (`video`), у остальных типов не сохраняется. Файл с длительностью без `file_type` считается голосовым. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422` и кодом `wrong_params`.")
       @example(5400)
       @minValue(1)
       duration_ms?: int32;
@@ -2860,7 +2860,7 @@ model DraftFileRequest {
   @example(600)
   height?: int32;
 
-  @doc("Длительность в миллисекундах. Обязательна для голосового сообщения (`file_type` — `voice`). Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.")
+  @doc("Длительность в миллисекундах: обязательна у голосового сообщения (`voice`), по желанию у видео (`video`), у остальных типов не сохраняется. Файл с длительностью без `file_type` считается голосовым. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422` и кодом `wrong_params`.")
   @example(5400)
   duration_ms?: int32;
 
@@ -3577,7 +3577,7 @@ model BotCreateRequest {
     @example(BotTriggerOn.commands)
     trigger_on?: BotTriggerOn = BotTriggerOn.commands;
 
-    @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.")
+    @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Событие о сообщении приходит боту, когда первое слово текста совпадает с одной из команд целиком, с учётом регистра. Команду можно задать и без слэша в начале. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.")
     @example(#["/task", "/help"])
     commands?: string[];
 
@@ -3665,7 +3665,7 @@ model BotUpdateRequest {
     @example(BotTriggerOn.commands)
     trigger_on?: BotTriggerOn;
 
-    @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.")
+    @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Событие о сообщении приходит боту, когда первое слово текста совпадает с одной из команд целиком, с учётом регистра. Команду можно задать и без слэша в начале. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.")
     @example(#["/task", "/help"])
     @extension("x-replaces-set", true)
     commands?: string[];
@@ -3712,9 +3712,9 @@ model BotUpdateRequest {
     @example(false)
     single_chat?: boolean;
 
-    @doc("Источник входящего вебхука. Если у бота входящего вебхука не было, он включается.")
+    @doc("Источник входящего вебхука. Если у бота входящего вебхука не было, он включается. `null` удаляет входящий вебхук: адрес перестаёт работать, шаблон и настройки входящего вебхука сбрасываются, а при следующем включении бот получает новый адрес.")
     @example(BotWebhookKind.simple)
-    kind?: BotWebhookKind;
+    kind?: BotWebhookKind | null;
 
     @doc("Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`. Список заменяется целиком.")
     @example(#["example.com"])
@@ -4311,8 +4311,30 @@ model AuditDetailsToken {
   resource_owner_id: int32;
   @doc("Скоупы токена")
   scopes: string[];
+  @doc("Идентификатор токена")
+  access_token_id: int32;
+  @doc("Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.")
+  access_token_preview: string | null;
+  @doc("Идентификатор приложения, которому принадлежит токен")
+  application_id?: int32;
+  @doc("Название приложения, которому принадлежит токен")
+  application_name?: string;
+  @doc("Идентификатор OAuth-клиента приложения")
+  client_id?: string;
   @doc("Идентификатор бота. Есть у токенов бота и у токенов, которые сотрудник выдал боту.")
   bot_id?: int32;
+  @doc("Имя бота. Есть вместе с `bot_id`.")
+  bot_name?: string;
+  @doc("Имя устройства. Есть у входа в CLI, `null`, если имени нет.")
+  device_name?: string | null;
+  @doc("Идентификатор пользователя, выполнившего действие. Есть у событий токенов бота, `null`, если действие выполнено без инициатора.")
+  actor_id?: int32 | null;
+  @doc("Идентификатор вебхука бота. Есть у событий токенов бота.")
+  webhook_id?: int32;
+  @doc("Идентификатор сотрудника, чей токен отозван. Есть, когда токен отозвал администратор или сотрудника перевели в гости.")
+  user_id?: int32;
+  @doc("Источник отзыва: `oauth_client` — приложение само отозвало токен. Есть только у oauth_token_revoked.")
+  source?: string;
   @doc("Причина отзыва. `guest_downgrade` — токен отозван автоматически, когда сотрудника перевели в гости. Есть только в таких записях.")
   reason?: string;
 }
@@ -4331,6 +4353,30 @@ model AuditDetailsBotTokenUpdated {
   bot_id?: int32;
   @doc("Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.")
   actor_id: int32 | null;
+  @doc("Идентификатор токена")
+  access_token_id: int32;
+  @doc("Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.")
+  access_token_preview: string | null;
+  @doc("Идентификатор приложения бота")
+  application_id?: int32;
+  @doc("Название приложения бота")
+  application_name?: string;
+  @doc("Идентификатор OAuth-клиента бота")
+  client_id?: string;
+  @doc("Имя бота")
+  bot_name?: string;
+  @doc("Идентификатор вебхука бота")
+  webhook_id: int32;
+  @doc("Смена названия токена. Есть, если название передали в запросе.")
+  name?: AuditDetailsTokenNameChange;
+}
+
+@doc("Смена названия токена в журнале аудита")
+model AuditDetailsTokenNameChange {
+  @doc("Прежнее название. `null`, если названия не было.")
+  previous: string | null;
+  @doc("Новое название. `null`, если название убрали.")
+  new: string | null;
 }
 
 @doc("При: kms_encrypt, kms_decrypt")
@@ -4339,7 +4385,7 @@ model AuditDetailsKms {
   chat_id: int32;
   @doc("Идентификатор сообщения")
   message_id: int32;
-  @doc("Причина операции")
+  @doc("Причина операции: `message_create` — шифрование текста сообщения, `message_store_for_search` — сохранение текста для поиска, `file_upload` — загрузка файла (все три у kms_encrypt), `file_download` — скачивание файла (у kms_decrypt)")
   reason: string;
 }
 
@@ -4381,6 +4427,18 @@ model AuditDetailsBot {
   bot_id: int32;
   @doc("Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.")
   actor_id: int32 | null;
+  @doc("Идентификатор вебхука бота")
+  webhook_id?: int32;
+  @doc("Идентификатор приложения бота. `null`, если приложения у бота нет.")
+  application_id?: int32 | null;
+  @doc("Идентификатор токена. Есть у bot_token_created, bot_token_reissued и bot_token_updated.")
+  access_token_id?: int32;
+  @doc("Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, `null`, если значение недоступно.")
+  access_token_preview?: string | null;
+  @doc("Скоупы токена. Есть у bot_token_created.")
+  scopes?: string[];
+  @doc("Смена названия токена у bot_token_updated. Есть, если название передали в запросе.")
+  name?: AuditDetailsTokenNameChange;
 }
 
 @doc("При: bot_scopes_updated")
@@ -4393,6 +4451,14 @@ model AuditDetailsBotScopes {
   added_scopes: string[];
   @doc("Скоупы, отозванные у токена бота")
   removed_scopes: string[];
+  @doc("Имя бота. Нет в записях до 7 октября 2026 года.")
+  bot_name?: string;
+  @doc("Идентификатор вебхука бота")
+  webhook_id: int32;
+  @doc("Скоупы токена бота до изменения")
+  previous_scopes: string[];
+  @doc("Скоупы токена бота после изменения")
+  new_scopes: string[];
 }
 
 @doc("При: bot_webhook_settings_updated")
@@ -4401,8 +4467,18 @@ model AuditDetailsBotWebhookSettings {
   bot_id: int32;
   @doc("Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.")
   actor_id: int32 | null;
-  @doc("Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).")
+  @doc("Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), значение — объект с полями previous (прежнее значение) и new (новое значение).")
   changes: Record<unknown>;
+  @doc("Имя бота")
+  bot_name?: string;
+  @doc("Идентификатор вебхука бота")
+  webhook_id?: int32;
+  @doc("Идентификатор токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.")
+  access_token_id?: int32 | null;
+  @doc("Токен, которым изменили настройки, в маскированном виде. `null`, если их изменили в интерфейсе Пачки.")
+  access_token_preview?: string | null;
+  @doc("Идентификатор приложения токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.")
+  application_id?: int32 | null;
 }
 
 @doc("При: bot_oauth_client_updated")
@@ -4415,6 +4491,20 @@ model AuditDetailsBotOAuthClient {
   client_id: string;
   @doc("Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).")
   changes: Record<unknown>;
+  @doc("Идентификатор приложения бота")
+  application_id?: int32;
+  @doc("Название приложения бота")
+  application_name?: string;
+  @doc("Имя бота")
+  bot_name?: string;
+  @doc("Идентификатор вебхука бота")
+  webhook_id?: int32;
+  @doc("Права, которые бот запрашивает у сотрудника на экране согласия")
+  scopes?: string[];
+  @doc("Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.")
+  access_token_id?: int32 | null;
+  @doc("Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.")
+  access_token_preview?: string | null;
 }
 
 @doc("При: bot_oauth_client_secret_rotated, bot_oauth_client_secret_issued")
@@ -4425,6 +4515,20 @@ model AuditDetailsBotOAuthClientSecretRotated {
   actor_id: int32 | null;
   @doc("Идентификатор OAuth-клиента бота")
   client_id: string;
+  @doc("Идентификатор приложения бота")
+  application_id?: int32;
+  @doc("Название приложения бота")
+  application_name?: string;
+  @doc("Имя бота")
+  bot_name?: string;
+  @doc("Идентификатор вебхука бота")
+  webhook_id?: int32;
+  @doc("Права, которые бот запрашивает у сотрудника на экране согласия. Есть у bot_oauth_client_secret_issued.")
+  scopes?: string[];
+  @doc("Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.")
+  access_token_id?: int32 | null;
+  @doc("Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.")
+  access_token_preview?: string | null;
 }
 
 @doc("При: bot_oauth_client_disabled")
@@ -4439,14 +4543,38 @@ model AuditDetailsBotOAuthClientDisabled {
   deleted_access_tokens_count: int32;
   @doc("Сколько неиспользованных кодов авторизации отозвано")
   deleted_access_grants_count: int32;
+  @doc("Идентификатор приложения бота")
+  application_id?: int32;
+  @doc("Название приложения бота")
+  application_name?: string;
+  @doc("Имя бота")
+  bot_name?: string;
+  @doc("Идентификатор вебхука бота")
+  webhook_id?: int32;
+  @doc("Права, которые бот запрашивает у сотрудника на экране согласия")
+  scopes?: string[];
+  @doc("Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.")
+  access_token_id?: int32 | null;
+  @doc("Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.")
+  access_token_preview?: string | null;
 }
 
 @doc("При: oauth_authorization_granted")
 model AuditDetailsOAuthAuthorizationGranted {
-  @doc("Идентификатор OAuth-клиента, которому выдан доступ")
-  client_id: string;
+  @doc("Идентификатор OAuth-клиента, которому выдан доступ. `null` в записях до 7 октября 2026 года о доступе, выданном боту.")
+  client_id: string | null;
   @doc("Скоупы, на которые выдан доступ")
   scopes: string[];
+  @doc("Идентификатор приложения, которому выдан доступ")
+  application_id: int32;
+  @doc("Название приложения. Нет в записях до 7 октября 2026 года.")
+  application_name?: string;
+  @doc("Идентификатор бота. Есть, когда доступ выдан боту.")
+  bot_id?: int32;
+  @doc("Имя бота. Есть вместе с `bot_id`.")
+  bot_name?: string;
+  @doc("Идентификатор выданного кода авторизации")
+  authorization_grant_id: int32;
 }
 
 @doc("При: oauth_authorization_revoked")
@@ -4457,6 +4585,14 @@ model AuditDetailsOAuthAuthorizationRevoked {
   revoked_tokens_count: int32;
   @doc("Идентификатор сотрудника, чей доступ отозван. Есть, когда доступ отозвал администратор.")
   user_id?: int32;
+  @doc("Идентификатор приложения, у которого отозван доступ")
+  application_id: int32;
+  @doc("Название приложения. Нет в записях до 7 октября 2026 года.")
+  application_name?: string;
+  @doc("Идентификатор бота. Есть, когда доступ отозван у бота.")
+  bot_id?: int32;
+  @doc("Имя бота. Есть вместе с `bot_id`.")
+  bot_name?: string;
 }
 
 @doc("При: oauth_device_authorization_approved")
@@ -4467,6 +4603,14 @@ model AuditDetailsDeviceAuthorizationApproved {
   scopes: string[];
   @doc("Имя устройства, с которого выполняется вход. `null`, если приложение его не передало.")
   device_name?: string | null;
+  @doc("Идентификатор приложения, которому разрешён вход")
+  application_id: int32;
+  @doc("Название приложения. Нет в записях до 7 октября 2026 года.")
+  application_name?: string;
+  @doc("Идентификатор запроса на вход")
+  device_grant_id: int32;
+  @doc("Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.")
+  token_kind?: string;
 }
 
 @doc("При: oauth_device_authorization_denied")
@@ -4477,6 +4621,12 @@ model AuditDetailsDeviceAuthorizationDenied {
   scopes: string[];
   @doc("Имя устройства, с которого выполнялся вход. `null`, если приложение его не передало.")
   device_name?: string | null;
+  @doc("Идентификатор приложения. При отказе во входе в CLI приходит `null`: приложение назначается входу только после подтверждения.")
+  application_id?: int32 | null;
+  @doc("Идентификатор запроса на вход")
+  device_grant_id: int32;
+  @doc("Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.")
+  token_kind?: string;
 }
 
 @doc("При: video_call_started")
@@ -5126,8 +5276,8 @@ model WebhookEventsStream {
   @example("https://api.pachca.com/events?signed_stream=d2ViaG9vay1ldmVudHMvMTczODgxNi8x&jid=eyJhbGciOiJIUzI1NiJ9.eyJ3ZWJob29rX2lkIjoxfQ.c2lnbmF0dXJl")
   url: string;
 
-  @doc("Дата и время, до которых действует ссылка (ISO-8601, UTC+0)")
-  @example(utcDateTime.fromISO("2026-10-27T12:20:00.000Z"))
+  @doc("Дата и время, до которых действует ссылка (ISO-8601, UTC+0): от одного до двух часов после запроса. В этот момент сервер присылает `disconnect` и закрывает подключение по ней.")
+  @example(utcDateTime.fromISO("2026-10-27T13:00:00.000Z"))
   expires_at: utcDateTime;
 }
 
@@ -5190,6 +5340,8 @@ model ExportWebhookPayload {
 @route("/oauth")
 @tag("OAuth")
 interface OAuthFlowOperations {
+  // The code exchange takes no Bearer token: the client authenticates in the body.
+  @useAuth(NoAuth)
   @extension("x-requirements", #{
     auth: false,
   })
@@ -5249,6 +5401,9 @@ interface OAuthFlowOperations {
     @body body: ApiError;
   };
 
+  // A client with a secret authenticates in the body or with Basic; a public client
+  // sends the revoked token itself as Bearer.
+  @useAuth(BearerAuth | NoAuth)
   @extension("x-oauth-flow", true)
   @doc("""
 Отзыв токена
@@ -5389,7 +5544,9 @@ interface ExportOperations {
 
 В ответ на запрос сервер вернёт `302 Found` с заголовком `Location`, содержащим временную ссылку на скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.
 
-Ссылка действует 5 минут, используйте её сразу. Сам архив хранится 7 дней, а скачать его может только тот, кто заказал выгрузку. Другому сотруднику с тем же правом метод откажет.
+Ссылка действует 5 минут, используйте её сразу. Скачать архив может только тот, кто заказал выгрузку: другому сотруднику с тем же правом метод откажет.
+
+Сам архив хранится 7 дней. После этого метод по-прежнему отвечает `302`, но хранилище по ссылке возвращает ошибку, и выгрузку нужно заказать заново.
 
 Пока архив собирается, метод отвечает `404` с кодом `export_file_not_found`.
 """)
@@ -7307,6 +7464,39 @@ interface MessageOperations {
 
 Действуют лимиты на частоту отправки и суточный предел на число сообщений в один чат от одного отправителя. При превышении любого из них метод отвечает `429`, а в заголовке `Retry-After` приходит пауза до следующей попытки. Значения пределов — в разделе [Лимиты](/api/limits).
 """)
+  // The request examples are written by hand: one built from every field's own
+  // example mixes fields of a bot (display_name, display_avatar_url) and of a
+  // voice message on an image, and fails whichever token sends it. The minimal
+  // example is emitted first (decorators apply bottom-up, so it is written last):
+  // clients that show a single example take the first one.
+  @opExample(
+    #{
+      parameters: #{
+        request: #{
+          message: #{
+            entity_type: MessageEntityType.discussion,
+            entity_id: 334,
+            content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+            buttons: #[#[#{ text: "Подробнее", url: "https://example.com/details" }]],
+          },
+        },
+      },
+    },
+    #{ title: "Сообщение с кнопкой" }
+  )
+  @opExample(
+    #{
+      parameters: #{
+        request: #{
+          message: #{
+            entity_id: 334,
+            content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+          },
+        },
+      },
+    },
+    #{ title: "Минимальный запрос" }
+  )
   @post
   createMessage(@body request: MessageCreateRequest): {
     @statusCode _: 201;
@@ -7381,6 +7571,18 @@ interface MessageOperations {
 
 Файлы и кнопки заменяются целиком: пустой массив снимает их все, а отсутствие поля в теле оставляет как было. Любая правка убирает превью ссылок, и заново оно не строится.
 """)
+  // Written by hand for the same reason as the example of createMessage.
+  @opExample(#{
+    parameters: #{
+      id: 194275,
+      request: #{
+        message: #{
+          content: "Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.",
+          buttons: #[#[#{ text: "Подробнее", url: "https://example.com/details" }]],
+        },
+      },
+    },
+  })
   @put
   updateMessage(
     @doc("Идентификатор сообщения")
@@ -8417,6 +8619,19 @@ interface DraftOperations {
 
 Токенам ботов метод недоступен.
 """)
+  // Written by hand: one built from the fields' examples passes a file `id`, which
+  // a new draft does not have (404), and a schedule on fixed dates that go stale.
+  @opExample(#{
+    parameters: #{
+      request: #{
+        draft: #{
+          entity_type: MessageEntityType.discussion,
+          entity_id: 334,
+          content: "Отчёт за неделю: продажи выросли на 10%",
+        },
+      },
+    },
+  })
   @post
   createDraft(@body request: DraftCreateRequest): {
     @statusCode _: 201;
@@ -8624,6 +8839,13 @@ model SubmitViewResponseResult {
   success: boolean;
 }
 
+@doc("Результат открытия представления")
+model OpenViewResult {
+  @doc("Признак того, что окно открыто. В успешном ответе всегда `true`.")
+  @example(true)
+  success: boolean;
+}
+
 // ============================================================================
 // Form Operations
 // ============================================================================
@@ -8648,7 +8870,7 @@ interface FormOperations {
   @post
   openView(@body request: OpenViewRequest): {
     @statusCode _: 201;
-
+    @body body: OpenViewResult;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -9998,9 +10220,11 @@ interface BotOperations {
 
 Поток работает, только когда в настройках бота включён пункт «Сохранять историю событий». Если пункт выключен или поток недоступен, метод отвечает `404` без тела. Метод работает только с токеном бота.
 
-Ссылку открывают без токена, например через `EventSource` или `curl -N`: доступ даёт сама ссылка, поэтому храните её как секрет. Каждое событие приходит записью истории с полями `id`, `event_type`, `payload` и `created_at`, а служебные сообщения подключения отличаются полем `type`.
+Ссылку открывают без токена, например через `EventSource` или `curl -N`: доступ даёт сама ссылка, поэтому храните её как секрет. Каждое событие приходит сообщением SSE без имени, в нём запись истории с полями `id`, `event_type`, `payload` и `created_at`. Служебные сообщения приходят именованными событиями SSE и отличаются полем `type`: `confirm_subscription` подтверждает подписку, а `disconnect` сообщает, что сервер закрыл подключение.
 
-Ссылка действует до `expires_at`, а потом поток перестаёт присылать события, не закрывая соединение. Новую ссылку берите в последние пять минут перед `expires_at`: более ранний запрос вернёт ту же ссылку. Чтобы ничего не пропустить, после подключения дождитесь подтверждения подписки и только потом прочитайте [Историю событий](GET /webhooks/events), и так после каждого переподключения и смены ссылки. Доставка в поток не гарантирована: обработанные события по-прежнему удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), а повторы отсекайте по `id`. Если у бота есть адрес вебхука, повторная доставка на него приходит в поток ещё раз с новым `id`: такие повторы отсекают по ключу из `payload`, как в разделе [Идемпотентная обработка](/guides/webhook/handler#idempotentnaya-obrabotka). Подробнее — в разделе [Поллинг](/guides/webhook/polling).
+Ссылка действует от одного до двух часов, до `expires_at`. В этот момент сервер присылает по ней `disconnect` и закрывает подключение, а `EventSource` после него сам не переподключается. Запрос в пределах того же часа по UTC возвращает ту же ссылку, а запрос в последний час перед `expires_at` даёт новую. Меняйте ссылку примерно за пять минут до `expires_at`: подключитесь по новой, пока работает старая, и закройте старое подключение, когда новое подтвердит подписку. Если `disconnect` всё же пришёл, получите новую ссылку и подключитесь заново.
+
+Чтобы ничего не пропустить, после каждого подключения, в том числе после переподключения и смены ссылки, дождитесь подтверждения подписки и только потом прочитайте [Историю событий](GET /webhooks/events). Доставка в поток не гарантирована: обработанные события всё равно удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), а повторы отсекайте по `id`. Если у бота есть адрес вебхука, повторная доставка на него приходит в поток ещё раз с новым `id`: такие повторы отсекают по ключу из `payload`, как в разделе [Идемпотентная обработка](/guides/webhook/handler#idempotentnaya-obrabotka). Подробнее — в разделе [События в реальном времени](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
 """)
   @route("/webhooks/events/stream")
   @get
@@ -10430,6 +10654,8 @@ model FileUploadRequest {
 
 @tag("Files")
 interface DirectUploadOperations {
+  // The upload goes to the storage address from the upload parameters, without a token.
+  @useAuth(NoAuth)
   @extension("x-requirements", #{
     auth: false,
   })

@@ -11,6 +11,8 @@ hideTableOfContents: true
     description="Автоматизируйте рабочие процессы и стройте интеграции с Пачкой: уведомления из мониторинга и CRM, боты и AI-агенты, реакция на события в реальном времени. Работайте через REST API, CLI, типизированные SDK, n8n или MCP-сервер."
   >
     <Card compact title="Быстрый старт" icon="Zap" href="/guides/quickstart" />
+    <Card compact title="Боты" icon="Bot" href="/guides/bots/overview" />
+    <Card compact title="Входящие вебхуки" icon="ArrowDownToLine" href="/guides/incoming-webhooks" />
     <Card compact title="Авторизация" icon="KeyRound" href="/api/authorization" />
     <Card compact title="Модели API" icon="Database" href="/api/models" />
     <Card compact title="AI-агенты" icon="Sparkles" href="/guides/ai-agents/overview" />
@@ -26,11 +28,14 @@ hideTableOfContents: true
 
 ## Боты и автоматизации
 
-Создавайте ботов, обрабатывайте команды, добавляйте кнопки и формы в сообщения, получайте события через вебхуки и работайте с данными сотрудников их правами.
+Отправляйте уведомления в чаты входящим вебхуком без кода, создавайте ботов, обрабатывайте команды, добавляйте кнопки и формы в сообщения, получайте события через исходящие вебхуки и работайте с данными сотрудников их правами.
 
 <CardGroup>
   <Card title="Боты" icon="Bot" href="/guides/bots/overview">
     Создание и настройка ботов
+  </Card>
+  <Card title="Входящие вебхуки" icon="ArrowDownToLine" href="/guides/incoming-webhooks">
+    Уведомления в чат по адресу вебхука без кода
   </Card>
   <Card title="От имени сотрудника" icon="KeyRound" href="/guides/oauth/overview">
     Бот работает правами сотрудника
@@ -40,9 +45,6 @@ hideTableOfContents: true
   </Card>
   <Card title="Формы" icon="SquareMousePointer" href="/guides/forms/overview">
     Модальные окна с полями ввода
-  </Card>
-  <Card title="Входящие вебхуки" icon="ArrowDownToLine" href="/guides/incoming-webhooks">
-    Сообщения по URL без кода
   </Card>
   <Card title="Исходящие вебхуки" icon="Webhook" href="/guides/webhook/overview">
     События в реальном времени
@@ -54,11 +56,20 @@ hideTableOfContents: true
 
 ## Основы API
 
-Базовые концепции для работы с API: формат запросов, обработка ошибок, лимиты, пагинация и загрузка файлов.
+Базовые концепции для работы с API: авторизация, формат запросов и ответов, обработка ошибок, лимиты, пагинация и загрузка файлов.
 
 <CardGroup>
+  <Card title="Авторизация" icon="KeyRound" href="/api/authorization">
+    Bearer-токен и доступ к API
+  </Card>
   <Card title="Запросы и ответы" icon="ArrowLeftRight" href="/api/requests-responses">
     Базовый URL, заголовки, формат данных
+  </Card>
+  <Card title="Пагинация" icon="ListOrdered" href="/api/pagination">
+    Обход больших списков по курсору
+  </Card>
+  <Card title="Загрузка файлов" icon="Upload" href="/api/file-uploads">
+    Три шага через presigned URL, в CLI одной командой
   </Card>
   <Card title="Ошибки" icon="AlertTriangle" href="/api/errors">
     HTTP-коды и структуры ответов
@@ -66,19 +77,16 @@ hideTableOfContents: true
   <Card title="Лимиты" icon="Gauge" href="/api/limits">
     Rate limits и повторные запросы
   </Card>
-  <Card title="Пагинация" icon="ListOrdered" href="/api/pagination">
-    Обход больших списков по курсору
-  </Card>
-  <Card title="Загрузка файлов" icon="Upload" href="/api/file-uploads">
-    Прямая загрузка в S3 одной командой
-  </Card>
 </CardGroup>
 
 ## Данные и безопасность
 
-Экспорт данных, защита от утечек, шифрование и мониторинг событий.
+Доступ агентов и интеграций, экспорт данных, защита от утечек, шифрование и мониторинг событий.
 
 <CardGroup>
+  <Card title="Агенты и MCP в пространстве" icon="Plug" href="/guides/agents-access">
+    Кто подключает агентов, где отозвать доступ
+  </Card>
   <Card title="Экспорт сообщений" icon="Download" href="/guides/export">
     Выгрузка всех сообщений в JSON
   </Card>

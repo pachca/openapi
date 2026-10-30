@@ -32,12 +32,14 @@ func (m ApiError) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Errors != nil {
-		raw["errors"] = m.Errors
+		if raw["errors"], err = json.Marshal(m.Errors); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }

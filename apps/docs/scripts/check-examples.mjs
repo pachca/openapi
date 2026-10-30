@@ -47,16 +47,26 @@ for (const [path, item] of Object.entries(spec.paths ?? {})) {
     if (!op) continue;
     const label = `${method.toUpperCase()} ${path}`;
 
+    // A request body shows every entry of an `examples` map (the method page
+    // and its .md list them all), so each entry has to reach the docs.
     const reqContent = op.requestBody?.content ?? {};
     for (const [media, obj] of Object.entries(reqContent)) {
       if (obj?.example !== undefined) {
         authored.push({ where: `${label} request (${media})`, example: obj.example });
       }
+      for (const [key, entry] of Object.entries(obj?.examples ?? {})) {
+        if (entry?.value !== undefined) {
+          authored.push({ where: `${label} request (${media}) «${key}»`, example: entry.value });
+        }
+      }
     }
+    // A response shows one example: the single `example`, or the first entry of the map.
     for (const [code, resp] of Object.entries(op.responses ?? {})) {
       for (const [media, obj] of Object.entries(resp?.content ?? {})) {
-        if (obj?.example !== undefined) {
-          authored.push({ where: `${label} response ${code} (${media})`, example: obj.example });
+        const first = Object.values(obj?.examples ?? {}).find((e) => e?.value !== undefined);
+        const example = obj?.example !== undefined ? obj.example : first?.value;
+        if (example !== undefined) {
+          authored.push({ where: `${label} response ${code} (${media})`, example });
         }
       }
     }

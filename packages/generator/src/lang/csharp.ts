@@ -11,7 +11,7 @@ import {
   type IRParam,
   type IRResponseType,
 } from '../ir.js';
-import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToPascal,
@@ -43,6 +43,23 @@ const CS_BCL_CONFLICTS = new Set(['Task', 'Thread']);
 /** Fully-qualify type names that conflict with BCL types imported in Client.cs */
 function csClientTypeRef(name: string): string {
   return CS_BCL_CONFLICTS.has(name) ? `Pachca.Sdk.${name}` : name;
+}
+
+/**
+ * SDK type names that a project with the default implicit usings (System.IO,
+ * System.Threading, System.Threading.Tasks) also sees from the BCL: an example
+ * spells them in full, or the short name fails with CS0104.
+ */
+const CS_IMPLICIT_USING_CONFLICTS = new Set(['Task', 'TaskStatus', 'Thread', 'File']);
+
+function csExampleTypeRef(name: string): string {
+  return CS_IMPLICIT_USING_CONFLICTS.has(name) ? `Pachca.Sdk.${name}` : name;
+}
+
+/** The type of a list or dictionary element as an example spells it. */
+function csExampleType(ft: IRFieldType): string {
+  const t = csType(ft);
+  return (ft.kind === 'enum' || ft.kind === 'model' || ft.kind === 'union') && ft.ref === t ? csExampleTypeRef(t) : t;
 }
 
 /** Members of an open enum struct that a constant can't take the name of. */
@@ -360,9 +377,9 @@ function emitStructuralUnion(lines: string[], u: IRUnion, memberModels: IRModel[
   lines.push('{');
   lines.push('}');
   lines.push('');
-  lines.push(`// ${u.name} carries no discriminator field: the member is chosen by which`);
-  lines.push('// one best matches the payload keys (most recognised, then fewest unrecognised,');
-  lines.push('// then fewest declared).');
+  lines.push(`// ${u.name} carries no discriminator field: members are tried in the order`);
+  lines.push('// they match the payload keys (most recognised, then fewest unrecognised, then');
+  lines.push('// fewest declared), and the first one that decodes wins.');
   lines.push(`internal sealed class ${u.name}Converter : JsonConverter<${u.name}>`);
   lines.push('{');
   lines.push('    private static readonly (Type Type, HashSet<string> Keys)[] Shapes =');
@@ -383,31 +400,26 @@ function emitStructuralUnion(lines: string[], u: IRUnion, memberModels: IRModel[
   lines.push('        {');
   lines.push('            foreach (var property in root.EnumerateObject()) keys.Add(property.Name);');
   lines.push('        }');
-  lines.push('        Type? best = null;');
-  lines.push('        int bestMatched = 0, bestUnknown = 0, bestDeclared = 0;');
-  lines.push('        foreach (var (type, shapeKeys) in Shapes)');
+  lines.push('        // OrderBy is stable: a tie keeps the declared order.');
+  lines.push('        var ranked = Shapes');
+  lines.push('            .Select(shape => (shape.Type, Matched: keys.Count(shape.Keys.Contains), Declared: shape.Keys.Count))');
+  lines.push('            .OrderByDescending(c => c.Matched)');
+  lines.push('            .ThenBy(c => keys.Count - c.Matched)');
+  lines.push('            .ThenBy(c => c.Declared);');
+  lines.push('        var raw = root.GetRawText();');
+  lines.push('        JsonException? firstError = null;');
+  lines.push('        foreach (var candidate in ranked)');
   lines.push('        {');
-  lines.push('            var matched = 0;');
-  lines.push('            foreach (var key in keys)');
+  lines.push('            try');
   lines.push('            {');
-  lines.push('                if (shapeKeys.Contains(key)) matched++;');
+  lines.push(`                return (${u.name})JsonSerializer.Deserialize(raw, candidate.Type, options)!;`);
   lines.push('            }');
-  lines.push('            var unknown = keys.Count - matched;');
-  lines.push('            var declared = shapeKeys.Count;');
-  lines.push('            var better = best is null');
-  lines.push('                || matched > bestMatched');
-  lines.push('                || (matched == bestMatched && unknown < bestUnknown)');
-  lines.push('                || (matched == bestMatched && unknown == bestUnknown && declared < bestDeclared);');
-  lines.push('            if (better)');
+  lines.push('            catch (JsonException e)');
   lines.push('            {');
-  lines.push('                best = type;');
-  lines.push('                bestMatched = matched;');
-  lines.push('                bestUnknown = unknown;');
-  lines.push('                bestDeclared = declared;');
+  lines.push('                firstError ??= e;');
   lines.push('            }');
   lines.push('        }');
-  lines.push(`        if (best is null) throw new JsonException("No ${u.name} member matched the payload");`);
-  lines.push(`        return (${u.name})JsonSerializer.Deserialize(root.GetRawText(), best, options)!;`);
+  lines.push(`        throw firstError ?? new JsonException("No ${u.name} member matched the payload");`);
   lines.push('    }');
   lines.push('');
   lines.push(`    public override void Write(Utf8JsonWriter writer, ${u.name} value, JsonSerializerOptions options)`);
@@ -1749,7 +1761,7 @@ function csLiteral(
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
       const member = e?.members.find((m) => m.value === ft.example);
-      if (e && member) return `${e.name}.${csEnumMemberName(member.value, e.name)}`;
+      if (e && member) return `${csExampleTypeRef(e.name)}.${csEnumMemberName(member.value, e.name)}`;
     }
   }
   switch (ft.kind) {
@@ -1766,7 +1778,7 @@ function csLiteral(
     case 'enum': {
       const e = ir.enums.find((en) => en.name === ft.ref);
       if (e && e.members.length > 0) {
-        return `${e.name}.${csEnumMemberName(e.members[0].value, e.name)}`;
+        return `${csExampleTypeRef(e.name)}.${csEnumMemberName(e.members[0].value, e.name)}`;
       }
       return `default(${ft.ref ?? 'object'})`;
     }
@@ -1778,9 +1790,9 @@ function csLiteral(
       return csModelLiteral(ft.ref ?? 'object', ir, models, visited, indent);
     }
     case 'array':
-      return `new List<${csType(ft.items!)}> { ${csLiteral(ft.items!, ir, models, visited, indent)} }`;
+      return `new List<${csExampleType(ft.items!)}> { ${csLiteral(ft.items!, ir, models, visited, indent)} }`;
     case 'record':
-      return `new Dictionary<string, ${csType(ft.valueType!)}> { ["key"] = ${csLiteral(ft.valueType!, ir, models, visited, indent)} }`;
+      return `new Dictionary<string, ${csExampleType(ft.valueType!)}> { ["key"] = ${csLiteral(ft.valueType!, ir, models, visited, indent)} }`;
     case 'union': {
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
@@ -1802,9 +1814,10 @@ function csModelLiteral(
   visited: Set<string>,
   indent: number = 0,
 ): string {
-  if (visited.has(modelName)) return `new ${modelName}()`;
+  const typeName = csExampleTypeRef(modelName);
+  if (visited.has(modelName)) return `new ${typeName}()`;
   const model = models.get(modelName);
-  if (!model || model.fields.length === 0) return `new ${modelName}()`;
+  if (!model || model.fields.length === 0) return `new ${typeName}()`;
 
   const nextVisited = new Set(visited);
   nextVisited.add(modelName);
@@ -1814,7 +1827,7 @@ function csModelLiteral(
   const fields = model.fields.filter(
     (f) => f.type.kind !== 'literal' && (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
   );
-  if (fields.length === 0) return `new ${modelName}()`;
+  if (fields.length === 0) return `new ${typeName}()`;
 
   const multiLine = fields.length > 2;
   const childIndent = indent + 1;
@@ -1829,9 +1842,9 @@ function csModelLiteral(
 
   const hasMultiLineChild = entries.some((e) => e.includes('\n'));
   if (multiLine || hasMultiLineChild) {
-    return `new ${modelName}\n${closePad}{\n${entries.map((e) => `${pad}${e}`).join(',\n')}\n${closePad}}`;
+    return `new ${typeName}\n${closePad}{\n${entries.map((e) => `${pad}${e}`).join(',\n')}\n${closePad}}`;
   }
-  return `new ${modelName} { ${entries.join(', ')} }`;
+  return `new ${typeName} { ${entries.join(', ')} }`;
 }
 
 function csFingerprint(
@@ -1951,13 +1964,14 @@ function buildOperationExample(
 
   if (op.requestBody) {
     const rb = op.requestBody;
+    const body = bodyExample(rb, ir, models);
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = paramSdkName(rb.unwrapField.name);
-      params.push({ name: sdkName, value: csLiteral(rb.unwrapField.type, ir, models) });
-      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
+      params.push({ name: sdkName, value: csLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     } else if (rb.schemaRef) {
-      params.push({ name: 'request', value: csLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
-      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
+      params.push({ name: 'request', value: csLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     }
   }
 

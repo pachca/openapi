@@ -54,22 +54,20 @@ def _declared_keys(member: type) -> set[str]:
     return {f.name[:-1] if f.name.endswith("_") else f.name for f in fields(member)}
 
 
-def _match_union_member(members: list[type], data: dict) -> type:
-    """Pick the union member that best fits a payload with no discriminator.
+def _rank_union_members(members: list[type], data: dict) -> list[type]:
+    """Order the members of a union with no discriminator by how well they fit a payload.
 
     Ranks by: most payload keys recognised, then fewest unrecognised, then
     fewest declared fields (so an empty member only wins an empty payload).
+    A tie keeps the declared order.
     """
     keys = {k.replace("-", "_").lower() for k in data}
-    best = members[0]
-    best_score: tuple[int, int, int] | None = None
-    for member in members:
+
+    def score(member: type) -> tuple[int, int, int]:
         declared = _declared_keys(member)
-        matched = len(keys & declared)
-        score = (-matched, len(keys - declared), len(declared))
-        if best_score is None or score < best_score:
-            best, best_score = member, score
-    return best
+        return (-len(keys & declared), len(keys - declared), len(declared))
+
+    return sorted(members, key=score)
 
 
 def _resolve_list_item_type(tp: object) -> object | None:
@@ -104,7 +102,15 @@ def _deserialize_instance(tp: object, value: object) -> object:
                 chosen = by_value.get(value.get(field_name))
                 if chosen is not None:
                     return _deserialize_dataclass(chosen, value)
-            return _deserialize_dataclass(_match_union_member(members, value), value)
+            # The first member that decodes wins: one that fits the keys best but
+            # misses a required field gives way to the next.
+            errors: list[Exception] = []
+            for member in _rank_union_members(members, value):
+                try:
+                    return _deserialize_dataclass(member, value)
+                except (TypeError, ValueError) as error:
+                    errors.append(error)
+            raise errors[0]
         nested = _resolve_type(tp)
         if nested is not None:
             return _deserialize_dataclass(nested, value)

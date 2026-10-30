@@ -96,36 +96,47 @@ export function mergeAllOf(schema: Schema): Schema {
 
 /**
  * Pick the object property that wraps the real fields (`{ draft: {...} }`).
- * Mirrors the rule in the CLI generator: the object property with the most
- * fields wins, so a small sibling object beside the wrapper doesn't cancel it.
+ * Mirrors `pickWrapperKey` in `packages/cli/scripts/generate-cli.ts`: the
+ * object property with the most fields wins, so a small sibling object beside
+ * the wrapper doesn't cancel it. The CLI example and the narrowing below both
+ * use this one rule, so the flags they print match the real command's.
  */
-function pickWrapperKey(properties: Record<string, Schema>): string | undefined {
-  const objectKeys = Object.keys(properties).filter((k) => {
-    const inner = mergeAllOf(properties[k]);
-    return !!inner.properties && Object.keys(inner.properties).length > 0;
-  });
+export function pickWrapperKey(properties: Record<string, Schema>): string | undefined {
+  const size = (key: string) => Object.keys(mergeAllOf(properties[key]).properties ?? {}).length;
+  const objectKeys = Object.keys(properties).filter((k) => size(k) > 0);
   if (objectKeys.length === 0) return undefined;
-  return objectKeys.reduce((biggest, key) => {
-    const a = Object.keys(mergeAllOf(properties[key]).properties ?? {}).length;
-    const b = Object.keys(mergeAllOf(properties[biggest]).properties ?? {}).length;
-    return a > b ? key : biggest;
-  });
+  return objectKeys.reduce((biggest, key) => (size(key) > size(biggest) ? key : biggest));
 }
 
-function narrowObjectSchema(schema: Schema, params: Record<string, unknown>): Schema {
+/**
+ * Keep the named, the required and the `keep` fields of an object schema. A
+ * named field takes its value from `params` and counts as required, so the
+ * example shows it even when the value equals the field's default.
+ */
+function narrowObjectSchema(
+  schema: Schema,
+  params: Record<string, unknown>,
+  keep: Record<string, Schema> = {}
+): Schema {
   const merged = mergeAllOf(schema);
   if (!merged.properties) return schema;
 
   const kept: Record<string, Schema> = {};
+  const required = new Set(merged.required ?? []);
   for (const [name, prop] of Object.entries(merged.properties)) {
-    const named = Object.hasOwn(params, name);
-    if (!named && !merged.required?.includes(name)) continue;
-    kept[name] = named ? { ...prop, example: params[name] } : prop;
+    if (Object.hasOwn(keep, name)) {
+      kept[name] = keep[name];
+    } else if (Object.hasOwn(params, name)) {
+      kept[name] = { ...prop, example: params[name] };
+      required.add(name);
+    } else if (required.has(name)) {
+      kept[name] = prop;
+    }
   }
   return {
     ...merged,
     properties: kept,
-    required: merged.required?.filter((name) => name in kept),
+    required: [...required].filter((name) => name in kept),
   };
 }
 
@@ -137,6 +148,11 @@ function narrowObjectSchema(schema: Schema, params: Record<string, unknown>): Sc
  * an `@example` in the spec — for `POST /drafts` that meant `schedule`, which
  * turns the very thing being demonstrated into a scheduled message. Narrowing
  * belongs here rather than in each generator so curl and CLI stay in step.
+ *
+ * The media type's hand-authored `example`/`examples` go too: the generators
+ * prefer them over the schema, so a narrowed body that kept them still showed
+ * the spec's full example (`entity_id: 334` with a button) instead of `params`.
+ * A body that `params` does not touch at all keeps its schema and examples.
  */
 export function narrowRequestBody(
   requestBody: Endpoint['requestBody'],
@@ -152,22 +168,55 @@ export function narrowRequestBody(
     if (!schema) continue;
 
     const merged = mergeAllOf(schema);
-    if (!merged.properties) continue;
+    const properties = merged.properties;
+    if (!properties) continue;
 
-    const wrapperKey = pickWrapperKey(merged.properties);
+    // Params that name only path or query parameters leave the body as it is:
+    // narrowed to its required fields it would lose the spec's example and
+    // collapse to an empty wrapper (`{ "message": {} }`).
+    const wrapperKey = pickWrapperKey(properties);
+    const wrapperFields = wrapperKey ? (mergeAllOf(properties[wrapperKey]).properties ?? {}) : {};
+    const namesBodyField = Object.keys(params).some(
+      (name) => Object.hasOwn(properties, name) || Object.hasOwn(wrapperFields, name)
+    );
+    if (!namesBodyField) continue;
+
     const narrowed = wrapperKey
-      ? {
-          ...merged,
-          properties: {
-            ...merged.properties,
-            [wrapperKey]: narrowObjectSchema(merged.properties[wrapperKey], params),
-          },
-        }
+      ? narrowObjectSchema(merged, params, {
+          [wrapperKey]: narrowObjectSchema(properties[wrapperKey], params),
+        })
       : narrowObjectSchema(merged, params);
 
-    content[mediaType] = { ...media, schema: narrowed };
+    content[mediaType] = { ...media, schema: narrowed, example: undefined, examples: undefined };
     changed = true;
   }
 
   return changed ? { ...requestBody, content } : requestBody;
+}
+
+/**
+ * Keep one hand-authored example of a request body, picked by its key or its
+ * `summary` (the `@opExample` title), so a guide can show the variant it is
+ * about while the method page's code tabs show the first one. `null` when no
+ * media type has such an example, so the caller can say so instead of silently
+ * showing another body.
+ */
+export function selectRequestExample(
+  requestBody: Endpoint['requestBody'],
+  name: string
+): Endpoint['requestBody'] | null {
+  if (!requestBody?.content) return null;
+
+  let found = false;
+  const content = { ...requestBody.content };
+  for (const [mediaType, media] of Object.entries(content)) {
+    const entry = Object.entries(media?.examples ?? {}).find(
+      ([key, example]) => key === name || example.summary === name
+    );
+    if (!entry) continue;
+    content[mediaType] = { ...media, example: undefined, examples: { [entry[0]]: entry[1] } };
+    found = true;
+  }
+
+  return found ? { ...requestBody, content } : null;
 }

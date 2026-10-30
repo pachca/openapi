@@ -1,0 +1,28 @@
+{
+  "Client_Init": {
+    "usage": "let client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "MessageOperations_createMessage": {
+    "usage": "let request = MessageCreateRequest(\n    message: MessageCreateRequestMessage(\n        entityId: 334,\n        content: \"Отчёт готов\",\n        buttons: [[.dataButton(DataButton(text: \"Принять\", data: \"accept\"))]]\n    )\n)\nlet response = try await client.messages.createMessage(request: request)",
+    "output": "Message(id: Int, content: String)",
+    "imports": [
+      "Button",
+      "DataButton",
+      "MessageCreateRequest",
+      "MessageCreateRequestMessage"
+    ]
+  },
+  "MessageOperations_updateMessage": {
+    "usage": "let request = MessageUpdateRequest(\n    message: MessageUpdateRequestMessage(\n        content: \"Отчёт обновлён\",\n        files: [MessageFile(\n            key: \"attaches/files/1/photo.png\",\n            name: \"photo.png\",\n            fileType: .image,\n            width: 800,\n            height: 600\n        )]\n    )\n)\nlet response = try await client.messages.updateMessage(id: 123, request: request)",
+    "output": "Message(id: Int, content: String)",
+    "imports": [
+      "FileType",
+      "MessageFile",
+      "MessageUpdateRequest",
+      "MessageUpdateRequestMessage"
+    ]
+  }
+}

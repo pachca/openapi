@@ -634,7 +634,12 @@ function transformRequestBody(
     }
   }
 
-  return { contentType, schemaRef, unwrapMode, unwrapField };
+  // A hand-written example shows a request the API accepts: the first of
+  // `examples` (the spec puts the minimal one first), else `example`.
+  const firstExample = mediaType.examples ? Object.values(mediaType.examples)[0]?.value : undefined;
+  const example = firstExample !== undefined ? firstExample : mediaType.example;
+
+  return { contentType, schemaRef, unwrapMode, unwrapField, ...(example !== undefined ? { example } : {}) };
 }
 
 /** A `meta` that names a type: a `$ref` or an inline object with properties. */

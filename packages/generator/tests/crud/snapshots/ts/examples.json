@@ -6,7 +6,7 @@
     ]
   },
   "ChatOperations_listChats": {
-    "usage": "const response = client.chats.listChats({\n  availability: ChatAvailability.IsMember,\n  limit: 123,\n  cursor: \"example\",\n  sortField: \"example\",\n  sortOrder: SortOrder.Asc\n})",
+    "usage": "const response = await client.chats.listChats({\n  availability: ChatAvailability.IsMember,\n  limit: 123,\n  cursor: \"example\",\n  sortField: \"example\",\n  sortOrder: SortOrder.Asc\n})",
     "output": "ListChatsResponse({ data: Chat[], meta?: PaginationMeta })",
     "imports": [
       "ChatAvailability",
@@ -14,29 +14,27 @@
     ]
   },
   "ChatOperations_getChat": {
-    "usage": "const response = client.chats.getChat(123)",
+    "usage": "const response = await client.chats.getChat(123)",
     "output": "Chat({ id: number, name: string, isChannel: boolean, isPublic: boolean, createdAt: string, memberIds?: number[] })"
   },
   "ChatOperations_createChat": {
-    "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"example\",\n    channel: true,\n    public: true,\n    memberIds: [123]\n  }\n}\nconst response = client.chats.createChat(request)",
+    "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"example\",\n    channel: true,\n    public: true,\n    memberIds: [123]\n  }\n}\nconst response = await client.chats.createChat(request)",
     "output": "Chat({ id: number, name: string, isChannel: boolean, isPublic: boolean, createdAt: string, memberIds?: number[] })",
     "imports": [
-      "ChatCreateRequest",
-      "ChatCreateRequestChat"
+      "ChatCreateRequest"
     ]
   },
   "ChatOperations_updateChat": {
-    "usage": "const request: ChatUpdateRequest = { chat: { name: \"example\", public: true } }\nconst response = client.chats.updateChat(123, request)",
+    "usage": "const request: ChatUpdateRequest = { chat: { name: \"example\", public: true } }\nconst response = await client.chats.updateChat(123, request)",
     "output": "Chat({ id: number, name: string, isChannel: boolean, isPublic: boolean, createdAt: string, memberIds?: number[] })",
     "imports": [
-      "ChatUpdateRequest",
-      "ChatUpdateRequestChat"
+      "ChatUpdateRequest"
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "client.chats.archiveChat(123)"
+    "usage": "await client.chats.archiveChat(123)"
   },
   "ChatOperations_deleteChat": {
-    "usage": "client.chats.deleteChat(123)"
+    "usage": "await client.chats.deleteChat(123)"
   }
 }

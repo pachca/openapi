@@ -13,6 +13,7 @@ import {
   makeApiRequestAllPages,
   sanitizeBaseUrl,
   getTokenProfile,
+  isInsufficientScopeError,
 } from '../nodes/Pachca/GenericFunctions';
 
 // ============================================================================
@@ -650,5 +651,86 @@ describe('getTokenProfile', () => {
     const credentials = { baseUrl: 'https://api.pachca.com/api/shared/v1' };
 
     await expect(getTokenProfile(ctx, credentials)).rejects.toThrow('Network timeout');
+  });
+});
+
+// ============================================================================
+// isInsufficientScopeError
+// ============================================================================
+
+describe('isInsufficientScopeError', () => {
+  // The body and the challenge Pachca sends when the token lacks the method's scope
+  const scopeBody = { error: 'insufficient_scope', error_description: 'Insufficient scope. Required: profile:read' };
+  const scopeChallenge = 'Bearer error="insufficient_scope", error_description="Insufficient scope. Required: profile:read", scope="profile:read"';
+
+  it('detects the error thrown by httpRequestWithAuthentication (body in context.data)', () => {
+    const error = new NodeApiError(MOCK_NODE, {
+      response: { status: 403, data: scopeBody, headers: { 'www-authenticate': scopeChallenge } },
+    } as never);
+    expect(error.httpCode).toBe('403');
+    expect(isInsufficientScopeError(error)).toBe(true);
+  });
+
+  it('detects a raw HTTP client error by its body or by the challenge alone', () => {
+    expect(isInsufficientScopeError({ response: { status: 403, data: scopeBody } })).toBe(true);
+    expect(isInsufficientScopeError({ response: { status: 403, headers: { 'www-authenticate': scopeChallenge } } })).toBe(true);
+  });
+
+  it('is false for other refusals and failures', () => {
+    const roleForbidden = new NodeApiError(MOCK_NODE, {
+      response: { status: 403, data: { error: 'role_forbidden', error_description: 'The current user role does not allow this action' } },
+    } as never);
+    expect(isInsufficientScopeError(roleForbidden)).toBe(false);
+    expect(isInsufficientScopeError(Object.assign(new Error('Forbidden'), { httpCode: 403 }))).toBe(false);
+    expect(isInsufficientScopeError(new Error('Network timeout'))).toBe(false);
+    expect(isInsufficientScopeError(undefined)).toBe(false);
+  });
+});
+
+// ============================================================================
+// makeApiRequestAllPages — Simplify of the Bot resource lists
+// ============================================================================
+
+describe('makeApiRequestAllPages simplify for bot lists', () => {
+  const page = (data: IDataObject[]) => ({ statusCode: 200, body: { data, meta: { paginate: {} } }, headers: {} });
+
+  it('keeps the payload of history events', async () => {
+    const event = { id: 'evt_1', event_type: 'message_new', payload: { type: 'message', event: 'new' }, created_at: '2026-01-01' };
+    const ctx = createExecCtx({
+      httpResponse: page([event]),
+      params: { returnAll: false, limit: 10, simplify: true, operation: 'getAllEvents' },
+    });
+    const results = await makeApiRequestAllPages.call(ctx, 'GET', '/webhooks/events', {}, 0, 'bot', 2);
+    expect(results).toEqual([{ json: event }]);
+  });
+
+  it('keeps the name and scopes of bot tokens and drops the token value', async () => {
+    const token = { id: 11, token: 'masked', name: 'n8n', user_id: 3, scopes: ['messages:create'], created_at: '2026-01-01', revoked_at: null, last_used_at: null };
+    const ctx = createExecCtx({
+      httpResponse: page([token]),
+      params: { returnAll: false, limit: 10, simplify: true, operation: 'getAllTokens' },
+    });
+    const results = await makeApiRequestAllPages.call(ctx, 'GET', '/bots/3/tokens', {}, 0, 'bot', 2);
+    expect(results).toEqual([{ json: { id: 11, name: 'n8n', scopes: ['messages:create'], created_at: '2026-01-01', last_used_at: null } }]);
+  });
+
+  it('keeps id and webhook of workspace bots', async () => {
+    const bot = { id: 5, oauth_client: null, webhook: { name: 'Deploy', nickname: 'deploy_bot' } };
+    const ctx = createExecCtx({
+      httpResponse: page([bot]),
+      params: { returnAll: false, limit: 10, simplify: true, operation: 'getAllCompanyBots' },
+    });
+    const results = await makeApiRequestAllPages.call(ctx, 'GET', '/company/bots', {}, 0, 'bot', 2);
+    expect(results).toEqual([{ json: { id: 5, webhook: { name: 'Deploy', nickname: 'deploy_bot' } } }]);
+  });
+
+  it('keeps the user fields of tag members', async () => {
+    const user = { id: 7, first_name: 'Ольга', last_name: 'Петрова', nickname: 'olga', email: 'olga@example.com', role: 'user', suspended: false, phone_number: '' };
+    const ctx = createExecCtx({
+      httpResponse: page([user]),
+      params: { returnAll: false, limit: 10, simplify: true, operation: 'getAllUsers' },
+    });
+    const results = await makeApiRequestAllPages.call(ctx, 'GET', '/group_tags/2/users', {}, 0, 'groupTag', 2);
+    expect(results).toEqual([{ json: { id: 7, first_name: 'Ольга', last_name: 'Петрова', nickname: 'olga', email: 'olga@example.com', role: 'user', suspended: false } }]);
   });
 });

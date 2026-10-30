@@ -609,6 +609,12 @@ class ApiErrorItem:
 class AuditDetailsBot:
     bot_id: int
     actor_id: int | None = None
+    webhook_id: int | None = None
+    application_id: int | None = None
+    access_token_id: int | None = None
+    access_token_preview: str | None = None
+    scopes: list[str] | None = None
+    name: AuditDetailsTokenNameChange | None = None
 
 
 @dataclass
@@ -617,6 +623,13 @@ class AuditDetailsBotOAuthClient:
     client_id: str
     changes: dict[str, Any]
     actor_id: int | None = None
+    application_id: int | None = None
+    application_name: str | None = None
+    bot_name: str | None = None
+    webhook_id: int | None = None
+    scopes: list[str] | None = None
+    access_token_id: int | None = None
+    access_token_preview: str | None = None
 
 
 @dataclass
@@ -626,6 +639,13 @@ class AuditDetailsBotOAuthClientDisabled:
     deleted_access_tokens_count: int
     deleted_access_grants_count: int
     actor_id: int | None = None
+    application_id: int | None = None
+    application_name: str | None = None
+    bot_name: str | None = None
+    webhook_id: int | None = None
+    scopes: list[str] | None = None
+    access_token_id: int | None = None
+    access_token_preview: str | None = None
 
 
 @dataclass
@@ -633,6 +653,13 @@ class AuditDetailsBotOAuthClientSecretRotated:
     bot_id: int
     client_id: str
     actor_id: int | None = None
+    application_id: int | None = None
+    application_name: str | None = None
+    bot_name: str | None = None
+    webhook_id: int | None = None
+    scopes: list[str] | None = None
+    access_token_id: int | None = None
+    access_token_preview: str | None = None
 
 
 @dataclass
@@ -640,7 +667,11 @@ class AuditDetailsBotScopes:
     bot_id: int
     added_scopes: list[str]
     removed_scopes: list[str]
+    webhook_id: int
+    previous_scopes: list[str]
+    new_scopes: list[str]
     actor_id: int | None = None
+    bot_name: str | None = None
 
 
 @dataclass
@@ -648,9 +679,17 @@ class AuditDetailsBotTokenUpdated:
     token_kind: str
     resource_owner_id: int
     current_scopes: list[str]
+    access_token_id: int
+    webhook_id: int
     token_name: str | None = None
     bot_id: int | None = None
     actor_id: int | None = None
+    access_token_preview: str | None = None
+    application_id: int | None = None
+    application_name: str | None = None
+    client_id: str | None = None
+    bot_name: str | None = None
+    name: AuditDetailsTokenNameChange | None = None
 
 
 @dataclass
@@ -658,6 +697,11 @@ class AuditDetailsBotWebhookSettings:
     bot_id: int
     changes: dict[str, Any]
     actor_id: int | None = None
+    bot_name: str | None = None
+    webhook_id: int | None = None
+    access_token_id: int | None = None
+    access_token_preview: str | None = None
+    application_id: int | None = None
 
 
 @dataclass
@@ -680,14 +724,21 @@ class AuditDetailsChatRenamed:
 class AuditDetailsDeviceAuthorizationApproved:
     client_id: str
     scopes: list[str]
+    application_id: int
+    device_grant_id: int
     device_name: str | None = None
+    application_name: str | None = None
+    token_kind: str | None = None
 
 
 @dataclass
 class AuditDetailsDeviceAuthorizationDenied:
     client_id: str
     scopes: list[str]
+    device_grant_id: int
     device_name: str | None = None
+    application_id: int | None = None
+    token_kind: str | None = None
 
 
 @dataclass
@@ -743,15 +794,24 @@ class AuditDetailsLoginGrantDenied:
 
 @dataclass
 class AuditDetailsOAuthAuthorizationGranted:
-    client_id: str
     scopes: list[str]
+    application_id: int
+    authorization_grant_id: int
+    client_id: str | None = None
+    application_name: str | None = None
+    bot_id: int | None = None
+    bot_name: str | None = None
 
 
 @dataclass
 class AuditDetailsOAuthAuthorizationRevoked:
     client_id: str
     revoked_tokens_count: int
+    application_id: int
     user_id: int | None = None
+    application_name: str | None = None
+    bot_id: int | None = None
+    bot_name: str | None = None
 
 
 @dataclass
@@ -786,9 +846,26 @@ class AuditDetailsToken:
     token_kind: str
     resource_owner_id: int
     scopes: list[str]
+    access_token_id: int
     token_name: str | None = None
+    access_token_preview: str | None = None
+    application_id: int | None = None
+    application_name: str | None = None
+    client_id: str | None = None
     bot_id: int | None = None
+    bot_name: str | None = None
+    device_name: str | None = None
+    actor_id: int | None = None
+    webhook_id: int | None = None
+    user_id: int | None = None
+    source: str | None = None
     reason: str | None = None
+
+
+@dataclass
+class AuditDetailsTokenNameChange:
+    previous: str | None = None
+    new: str | None = None
 
 
 @dataclass
@@ -1608,6 +1685,11 @@ class OpenViewRequest:
     view: OpenViewRequestView
     private_metadata: str | None = None
     callback_id: str | None = None
+
+
+@dataclass
+class OpenViewResult:
+    success: bool
 
 
 @dataclass

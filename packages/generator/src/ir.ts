@@ -112,6 +112,11 @@ export interface IRRequestBody {
   unwrapMode: UnwrapMode;
   /** For single-field unwrap: the unwrapped field */
   unwrapField?: IRField;
+  /**
+   * The hand-written body example in wire names: the first of `examples`, else
+   * `example`. The usage examples build the request from it (see bodyExample).
+   */
+  example?: unknown;
 }
 
 export interface IRSuccessResponse {

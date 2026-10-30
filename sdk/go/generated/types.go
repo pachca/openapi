@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"time"
 )
@@ -610,51 +611,167 @@ type ApiErrorItem struct {
 }
 
 type AuditDetailsBot struct {
-	BotID   int32  `json:"bot_id"`
-	ActorID *int32 `json:"actor_id"`
+	BotID              int32                        `json:"bot_id"`
+	ActorID            *int32                       `json:"actor_id"`
+	WebhookID          *int32                       `json:"webhook_id,omitempty"`
+	ApplicationID      *int32                       `json:"application_id,omitempty"`
+	AccessTokenID      *int32                       `json:"access_token_id,omitempty"`
+	AccessTokenPreview *string                      `json:"access_token_preview,omitempty"`
+	Scopes             []string                     `json:"scopes,omitempty"`
+	Name               *AuditDetailsTokenNameChange `json:"name,omitempty"`
+}
+
+func (m AuditDetailsBot) MarshalJSON() ([]byte, error) {
+	type Alias AuditDetailsBot
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Scopes != nil {
+		if raw["scopes"], err = json.Marshal(m.Scopes); err != nil {
+			return nil, err
+		}
+	}
+	return json.Marshal(raw)
 }
 
 type AuditDetailsBotOAuthClient struct {
-	BotID    int32          `json:"bot_id"`
-	ClientID string         `json:"client_id"`
-	Changes  map[string]any `json:"changes"`
-	ActorID  *int32         `json:"actor_id"`
+	BotID              int32          `json:"bot_id"`
+	ClientID           string         `json:"client_id"`
+	Changes            map[string]any `json:"changes"`
+	ActorID            *int32         `json:"actor_id"`
+	ApplicationID      *int32         `json:"application_id,omitempty"`
+	ApplicationName    *string        `json:"application_name,omitempty"`
+	BotName            *string        `json:"bot_name,omitempty"`
+	WebhookID          *int32         `json:"webhook_id,omitempty"`
+	Scopes             []string       `json:"scopes,omitempty"`
+	AccessTokenID      *int32         `json:"access_token_id,omitempty"`
+	AccessTokenPreview *string        `json:"access_token_preview,omitempty"`
+}
+
+func (m AuditDetailsBotOAuthClient) MarshalJSON() ([]byte, error) {
+	type Alias AuditDetailsBotOAuthClient
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Scopes != nil {
+		if raw["scopes"], err = json.Marshal(m.Scopes); err != nil {
+			return nil, err
+		}
+	}
+	return json.Marshal(raw)
 }
 
 type AuditDetailsBotOAuthClientDisabled struct {
-	BotID                    int32  `json:"bot_id"`
-	ClientID                 string `json:"client_id"`
-	DeletedAccessTokensCount int32  `json:"deleted_access_tokens_count"`
-	DeletedAccessGrantsCount int32  `json:"deleted_access_grants_count"`
-	ActorID                  *int32 `json:"actor_id"`
+	BotID                    int32    `json:"bot_id"`
+	ClientID                 string   `json:"client_id"`
+	DeletedAccessTokensCount int32    `json:"deleted_access_tokens_count"`
+	DeletedAccessGrantsCount int32    `json:"deleted_access_grants_count"`
+	ActorID                  *int32   `json:"actor_id"`
+	ApplicationID            *int32   `json:"application_id,omitempty"`
+	ApplicationName          *string  `json:"application_name,omitempty"`
+	BotName                  *string  `json:"bot_name,omitempty"`
+	WebhookID                *int32   `json:"webhook_id,omitempty"`
+	Scopes                   []string `json:"scopes,omitempty"`
+	AccessTokenID            *int32   `json:"access_token_id,omitempty"`
+	AccessTokenPreview       *string  `json:"access_token_preview,omitempty"`
+}
+
+func (m AuditDetailsBotOAuthClientDisabled) MarshalJSON() ([]byte, error) {
+	type Alias AuditDetailsBotOAuthClientDisabled
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Scopes != nil {
+		if raw["scopes"], err = json.Marshal(m.Scopes); err != nil {
+			return nil, err
+		}
+	}
+	return json.Marshal(raw)
 }
 
 type AuditDetailsBotOAuthClientSecretRotated struct {
-	BotID    int32  `json:"bot_id"`
-	ClientID string `json:"client_id"`
-	ActorID  *int32 `json:"actor_id"`
+	BotID              int32    `json:"bot_id"`
+	ClientID           string   `json:"client_id"`
+	ActorID            *int32   `json:"actor_id"`
+	ApplicationID      *int32   `json:"application_id,omitempty"`
+	ApplicationName    *string  `json:"application_name,omitempty"`
+	BotName            *string  `json:"bot_name,omitempty"`
+	WebhookID          *int32   `json:"webhook_id,omitempty"`
+	Scopes             []string `json:"scopes,omitempty"`
+	AccessTokenID      *int32   `json:"access_token_id,omitempty"`
+	AccessTokenPreview *string  `json:"access_token_preview,omitempty"`
+}
+
+func (m AuditDetailsBotOAuthClientSecretRotated) MarshalJSON() ([]byte, error) {
+	type Alias AuditDetailsBotOAuthClientSecretRotated
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Scopes != nil {
+		if raw["scopes"], err = json.Marshal(m.Scopes); err != nil {
+			return nil, err
+		}
+	}
+	return json.Marshal(raw)
 }
 
 type AuditDetailsBotScopes struct {
-	BotID         int32    `json:"bot_id"`
-	AddedScopes   []string `json:"added_scopes"`
-	RemovedScopes []string `json:"removed_scopes"`
-	ActorID       *int32   `json:"actor_id"`
+	BotID          int32    `json:"bot_id"`
+	AddedScopes    []string `json:"added_scopes"`
+	RemovedScopes  []string `json:"removed_scopes"`
+	WebhookID      int32    `json:"webhook_id"`
+	PreviousScopes []string `json:"previous_scopes"`
+	NewScopes      []string `json:"new_scopes"`
+	ActorID        *int32   `json:"actor_id"`
+	BotName        *string  `json:"bot_name,omitempty"`
 }
 
 type AuditDetailsBotTokenUpdated struct {
-	TokenKind       string   `json:"token_kind"`
-	ResourceOwnerID int32    `json:"resource_owner_id"`
-	CurrentScopes   []string `json:"current_scopes"`
-	TokenName       *string  `json:"token_name"`
-	BotID           *int32   `json:"bot_id,omitempty"`
-	ActorID         *int32   `json:"actor_id"`
+	TokenKind          string                       `json:"token_kind"`
+	ResourceOwnerID    int32                        `json:"resource_owner_id"`
+	CurrentScopes      []string                     `json:"current_scopes"`
+	AccessTokenID      int32                        `json:"access_token_id"`
+	WebhookID          int32                        `json:"webhook_id"`
+	TokenName          *string                      `json:"token_name"`
+	BotID              *int32                       `json:"bot_id,omitempty"`
+	ActorID            *int32                       `json:"actor_id"`
+	AccessTokenPreview *string                      `json:"access_token_preview"`
+	ApplicationID      *int32                       `json:"application_id,omitempty"`
+	ApplicationName    *string                      `json:"application_name,omitempty"`
+	ClientID           *string                      `json:"client_id,omitempty"`
+	BotName            *string                      `json:"bot_name,omitempty"`
+	Name               *AuditDetailsTokenNameChange `json:"name,omitempty"`
 }
 
 type AuditDetailsBotWebhookSettings struct {
-	BotID   int32          `json:"bot_id"`
-	Changes map[string]any `json:"changes"`
-	ActorID *int32         `json:"actor_id"`
+	BotID              int32          `json:"bot_id"`
+	Changes            map[string]any `json:"changes"`
+	ActorID            *int32         `json:"actor_id"`
+	BotName            *string        `json:"bot_name,omitempty"`
+	WebhookID          *int32         `json:"webhook_id,omitempty"`
+	AccessTokenID      *int32         `json:"access_token_id,omitempty"`
+	AccessTokenPreview *string        `json:"access_token_preview,omitempty"`
+	ApplicationID      *int32         `json:"application_id,omitempty"`
 }
 
 type AuditDetailsChatId struct {
@@ -671,15 +788,22 @@ type AuditDetailsChatRenamed struct {
 }
 
 type AuditDetailsDeviceAuthorizationApproved struct {
-	ClientID   string   `json:"client_id"`
-	Scopes     []string `json:"scopes"`
-	DeviceName *string  `json:"device_name"`
+	ClientID        string   `json:"client_id"`
+	Scopes          []string `json:"scopes"`
+	ApplicationID   int32    `json:"application_id"`
+	DeviceGrantID   int32    `json:"device_grant_id"`
+	DeviceName      *string  `json:"device_name,omitempty"`
+	ApplicationName *string  `json:"application_name,omitempty"`
+	TokenKind       *string  `json:"token_kind,omitempty"`
 }
 
 type AuditDetailsDeviceAuthorizationDenied struct {
-	ClientID   string   `json:"client_id"`
-	Scopes     []string `json:"scopes"`
-	DeviceName *string  `json:"device_name"`
+	ClientID      string   `json:"client_id"`
+	Scopes        []string `json:"scopes"`
+	DeviceGrantID int32    `json:"device_grant_id"`
+	DeviceName    *string  `json:"device_name,omitempty"`
+	ApplicationID *int32   `json:"application_id,omitempty"`
+	TokenKind     *string  `json:"token_kind,omitempty"`
 }
 
 type AuditDetailsDlp struct {
@@ -725,14 +849,23 @@ type AuditDetailsLoginGrantDenied struct {
 }
 
 type AuditDetailsOAuthAuthorizationGranted struct {
-	ClientID string   `json:"client_id"`
-	Scopes   []string `json:"scopes"`
+	Scopes               []string `json:"scopes"`
+	ApplicationID        int32    `json:"application_id"`
+	AuthorizationGrantID int32    `json:"authorization_grant_id"`
+	ClientID             *string  `json:"client_id"`
+	ApplicationName      *string  `json:"application_name,omitempty"`
+	BotID                *int32   `json:"bot_id,omitempty"`
+	BotName              *string  `json:"bot_name,omitempty"`
 }
 
 type AuditDetailsOAuthAuthorizationRevoked struct {
-	ClientID           string `json:"client_id"`
-	RevokedTokensCount int32  `json:"revoked_tokens_count"`
-	UserID             *int32 `json:"user_id,omitempty"`
+	ClientID           string  `json:"client_id"`
+	RevokedTokensCount int32   `json:"revoked_tokens_count"`
+	ApplicationID      int32   `json:"application_id"`
+	UserID             *int32  `json:"user_id,omitempty"`
+	ApplicationName    *string `json:"application_name,omitempty"`
+	BotID              *int32  `json:"bot_id,omitempty"`
+	BotName            *string `json:"bot_name,omitempty"`
 }
 
 type AuditDetailsRoleChanged struct {
@@ -759,12 +892,28 @@ type AuditDetailsTagName struct {
 }
 
 type AuditDetailsToken struct {
-	TokenKind       string   `json:"token_kind"`
-	ResourceOwnerID int32    `json:"resource_owner_id"`
-	Scopes          []string `json:"scopes"`
-	TokenName       *string  `json:"token_name"`
-	BotID           *int32   `json:"bot_id,omitempty"`
-	Reason          *string  `json:"reason,omitempty"`
+	TokenKind          string   `json:"token_kind"`
+	ResourceOwnerID    int32    `json:"resource_owner_id"`
+	Scopes             []string `json:"scopes"`
+	AccessTokenID      int32    `json:"access_token_id"`
+	TokenName          *string  `json:"token_name"`
+	AccessTokenPreview *string  `json:"access_token_preview"`
+	ApplicationID      *int32   `json:"application_id,omitempty"`
+	ApplicationName    *string  `json:"application_name,omitempty"`
+	ClientID           *string  `json:"client_id,omitempty"`
+	BotID              *int32   `json:"bot_id,omitempty"`
+	BotName            *string  `json:"bot_name,omitempty"`
+	DeviceName         *string  `json:"device_name,omitempty"`
+	ActorID            *int32   `json:"actor_id,omitempty"`
+	WebhookID          *int32   `json:"webhook_id,omitempty"`
+	UserID             *int32   `json:"user_id,omitempty"`
+	Source             *string  `json:"source,omitempty"`
+	Reason             *string  `json:"reason,omitempty"`
+}
+
+type AuditDetailsTokenNameChange struct {
+	Previous *string `json:"previous"`
+	New      *string `json:"new"`
 }
 
 type AuditDetailsTokenScopes struct {
@@ -866,24 +1015,34 @@ func (m BotCreateRequestWebhook) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Events != nil {
-		raw["events"] = m.Events
+		if raw["events"], err = json.Marshal(m.Events); err != nil {
+			return nil, err
+		}
 	}
 	if m.Commands != nil {
-		raw["commands"] = m.Commands
+		if raw["commands"], err = json.Marshal(m.Commands); err != nil {
+			return nil, err
+		}
 	}
 	if m.Scopes != nil {
-		raw["scopes"] = m.Scopes
+		if raw["scopes"], err = json.Marshal(m.Scopes); err != nil {
+			return nil, err
+		}
 	}
 	if m.CanEdit != nil {
-		raw["can_edit"] = m.CanEdit
+		if raw["can_edit"], err = json.Marshal(m.CanEdit); err != nil {
+			return nil, err
+		}
 	}
 	if m.UnfurlDomains != nil {
-		raw["unfurl_domains"] = m.UnfurlDomains
+		if raw["unfurl_domains"], err = json.Marshal(m.UnfurlDomains); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -933,15 +1092,19 @@ func (m BotOAuthClientRequest) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.RedirectUris != nil {
-		raw["redirect_uris"] = m.RedirectUris
+		if raw["redirect_uris"], err = json.Marshal(m.RedirectUris); err != nil {
+			return nil, err
+		}
 	}
 	if m.Scopes != nil {
-		raw["scopes"] = m.Scopes
+		if raw["scopes"], err = json.Marshal(m.Scopes); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -975,12 +1138,14 @@ func (m BotPromoRequest) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.PromoImages != nil {
-		raw["promo_images"] = m.PromoImages
+		if raw["promo_images"], err = json.Marshal(m.PromoImages); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1069,12 +1234,14 @@ func (m BotTokenCreateRequest) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Scopes != nil {
-		raw["scopes"] = m.Scopes
+		if raw["scopes"], err = json.Marshal(m.Scopes); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1090,12 +1257,14 @@ func (m BotTokenUpdateRequest) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Scopes != nil {
-		raw["scopes"] = m.Scopes
+		if raw["scopes"], err = json.Marshal(m.Scopes); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1119,40 +1288,85 @@ type BotUpdateRequestWebhook struct {
 	SingleChat           *bool              `json:"single_chat,omitempty"`
 	Kind                 *BotWebhookKind    `json:"kind,omitempty"`
 	UnfurlDomains        []string           `json:"unfurl_domains,omitempty"`
+	NullFields           []string           `json:"-"` // fields to send as null: Kind
 }
 
+// MarshalJSON leaves out every optional field that is not set. A field named
+// in NullFields goes out as null, whatever value it holds.
 func (m BotUpdateRequestWebhook) MarshalJSON() ([]byte, error) {
 	type Alias BotUpdateRequestWebhook
 	data, err := json.Marshal(Alias(m))
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Events != nil {
-		raw["events"] = m.Events
+		if raw["events"], err = json.Marshal(m.Events); err != nil {
+			return nil, err
+		}
 	}
 	if m.Commands != nil {
-		raw["commands"] = m.Commands
+		if raw["commands"], err = json.Marshal(m.Commands); err != nil {
+			return nil, err
+		}
 	}
 	if m.Scopes != nil {
-		raw["scopes"] = m.Scopes
+		if raw["scopes"], err = json.Marshal(m.Scopes); err != nil {
+			return nil, err
+		}
 	}
 	if m.CanEdit != nil {
-		raw["can_edit"] = m.CanEdit
+		if raw["can_edit"], err = json.Marshal(m.CanEdit); err != nil {
+			return nil, err
+		}
 	}
 	if m.UnfurlDomains != nil {
-		raw["unfurl_domains"] = m.UnfurlDomains
+		if raw["unfurl_domains"], err = json.Marshal(m.UnfurlDomains); err != nil {
+			return nil, err
+		}
+	}
+	for _, name := range m.NullFields {
+		switch name {
+		case "Kind":
+			raw["kind"] = json.RawMessage("null")
+		default:
+			return nil, fmt.Errorf("BotUpdateRequestWebhook: field %q cannot be sent as null", name)
+		}
 	}
 	return json.Marshal(raw)
 }
 
 type BotUpdateRequest struct {
 	Webhook     *BotUpdateRequestWebhook `json:"webhook,omitempty"`
-	OAuthClient *BotOAuthClientRequest   `json:"oauth_client"`
+	OAuthClient *BotOAuthClientRequest   `json:"oauth_client,omitempty"`
 	Promo       *BotPromoRequest         `json:"promo,omitempty"`
+	NullFields  []string                 `json:"-"` // fields to send as null: OAuthClient
+}
+
+// MarshalJSON leaves out every optional field that is not set. A field named
+// in NullFields goes out as null, whatever value it holds.
+func (m BotUpdateRequest) MarshalJSON() ([]byte, error) {
+	type Alias BotUpdateRequest
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	for _, name := range m.NullFields {
+		switch name {
+		case "OAuthClient":
+			raw["oauth_client"] = json.RawMessage("null")
+		default:
+			return nil, fmt.Errorf("BotUpdateRequest: field %q cannot be sent as null", name)
+		}
+	}
+	return json.Marshal(raw)
 }
 
 type BotWebhook struct {
@@ -1175,9 +1389,9 @@ type BotWebhook struct {
 	ChallengeKey         *string           `json:"challenge_key"`
 	Kind                 *BotWebhookKind   `json:"kind"`
 	LastRequestAt        *string           `json:"last_request_at"`
-	URL                  *string           `json:"url"`
+	URL                  *string           `json:"url,omitempty"`
 	SecretToken          *string           `json:"secret_token,omitempty"`
-	LastRequestBody      *string           `json:"last_request_body"`
+	LastRequestBody      *string           `json:"last_request_body,omitempty"`
 }
 
 type BotWebhookSelfUpdateRequestWebhook struct {
@@ -1235,15 +1449,19 @@ func (m ChatCreateRequestChat) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.MemberIDs != nil {
-		raw["member_ids"] = m.MemberIDs
+		if raw["member_ids"], err = json.Marshal(m.MemberIDs); err != nil {
+			return nil, err
+		}
 	}
 	if m.GroupTagIDs != nil {
-		raw["group_tag_ids"] = m.GroupTagIDs
+		if raw["group_tag_ids"], err = json.Marshal(m.GroupTagIDs); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1263,7 +1481,7 @@ type ChatMemberWebhookPayload struct {
 	UserIDs          []int32         `json:"user_ids"`
 	CreatedAt        time.Time       `json:"created_at"`
 	WebhookTimestamp int32           `json:"webhook_timestamp"`
-	ThreadID         *int32          `json:"thread_id"`
+	ThreadID         *int32          `json:"thread_id,omitempty"`
 }
 
 type ChatUpdateRequestChat struct {
@@ -1340,23 +1558,38 @@ type DraftCreateRequestDraft struct {
 	EntityType      MessageEntityType     `json:"entity_type"`
 	EntityID        int32                 `json:"entity_id"`
 	Content         *string               `json:"content,omitempty"`
-	ParentMessageID *int32                `json:"parent_message_id"`
+	ParentMessageID *int32                `json:"parent_message_id,omitempty"`
 	Files           []DraftFileRequest    `json:"files,omitempty"`
-	Schedule        *DraftScheduleRequest `json:"schedule"`
+	Schedule        *DraftScheduleRequest `json:"schedule,omitempty"`
+	NullFields      []string              `json:"-"` // fields to send as null: ParentMessageID, Schedule
 }
 
+// MarshalJSON leaves out every optional field that is not set. A field named
+// in NullFields goes out as null, whatever value it holds.
 func (m DraftCreateRequestDraft) MarshalJSON() ([]byte, error) {
 	type Alias DraftCreateRequestDraft
 	data, err := json.Marshal(Alias(m))
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Files != nil {
-		raw["files"] = m.Files
+		if raw["files"], err = json.Marshal(m.Files); err != nil {
+			return nil, err
+		}
+	}
+	for _, name := range m.NullFields {
+		switch name {
+		case "ParentMessageID":
+			raw["parent_message_id"] = json.RawMessage("null")
+		case "Schedule":
+			raw["schedule"] = json.RawMessage("null")
+		default:
+			return nil, fmt.Errorf("DraftCreateRequestDraft: field %q cannot be sent as null", name)
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1380,7 +1613,7 @@ type DraftFileRequest struct {
 type DraftRepetition struct {
 	Interval DraftRepetitionInterval `json:"interval"`
 	Days     []int32                 `json:"days,omitempty"`
-	NthDay   *int32                  `json:"nth_day"`
+	NthDay   *int32                  `json:"nth_day,omitempty"`
 }
 
 func (m DraftRepetition) MarshalJSON() ([]byte, error) {
@@ -1389,34 +1622,49 @@ func (m DraftRepetition) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Days != nil {
-		raw["days"] = m.Days
+		if raw["days"], err = json.Marshal(m.Days); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
 
 type DraftRepetitionRequest struct {
-	Interval DraftRepetitionInterval `json:"interval"`
-	Days     []int32                 `json:"days,omitempty"`
-	NthDay   *int32                  `json:"nth_day"`
+	Interval   DraftRepetitionInterval `json:"interval"`
+	Days       []int32                 `json:"days,omitempty"`
+	NthDay     *int32                  `json:"nth_day,omitempty"`
+	NullFields []string                `json:"-"` // fields to send as null: NthDay
 }
 
+// MarshalJSON leaves out every optional field that is not set. A field named
+// in NullFields goes out as null, whatever value it holds.
 func (m DraftRepetitionRequest) MarshalJSON() ([]byte, error) {
 	type Alias DraftRepetitionRequest
 	data, err := json.Marshal(Alias(m))
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Days != nil {
-		raw["days"] = m.Days
+		if raw["days"], err = json.Marshal(m.Days); err != nil {
+			return nil, err
+		}
+	}
+	for _, name := range m.NullFields {
+		switch name {
+		case "NthDay":
+			raw["nth_day"] = json.RawMessage("null")
+		default:
+			return nil, fmt.Errorf("DraftRepetitionRequest: field %q cannot be sent as null", name)
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1430,28 +1678,67 @@ type DraftSchedule struct {
 type DraftScheduleRequest struct {
 	StartDate  time.Time              `json:"start_date"`
 	Repetition DraftRepetitionRequest `json:"repetition"`
-	EndDate    *string                `json:"end_date"`
+	EndDate    *string                `json:"end_date,omitempty"`
+	NullFields []string               `json:"-"` // fields to send as null: EndDate
+}
+
+// MarshalJSON leaves out every optional field that is not set. A field named
+// in NullFields goes out as null, whatever value it holds.
+func (m DraftScheduleRequest) MarshalJSON() ([]byte, error) {
+	type Alias DraftScheduleRequest
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	for _, name := range m.NullFields {
+		switch name {
+		case "EndDate":
+			raw["end_date"] = json.RawMessage("null")
+		default:
+			return nil, fmt.Errorf("DraftScheduleRequest: field %q cannot be sent as null", name)
+		}
+	}
+	return json.Marshal(raw)
 }
 
 type DraftUpdateRequestDraft struct {
 	Content         *string               `json:"content,omitempty"`
-	ParentMessageID *int32                `json:"parent_message_id"`
+	ParentMessageID *int32                `json:"parent_message_id,omitempty"`
 	Files           []DraftFileRequest    `json:"files,omitempty"`
-	Schedule        *DraftScheduleRequest `json:"schedule"`
+	Schedule        *DraftScheduleRequest `json:"schedule,omitempty"`
+	NullFields      []string              `json:"-"` // fields to send as null: ParentMessageID, Schedule
 }
 
+// MarshalJSON leaves out every optional field that is not set. A field named
+// in NullFields goes out as null, whatever value it holds.
 func (m DraftUpdateRequestDraft) MarshalJSON() ([]byte, error) {
 	type Alias DraftUpdateRequestDraft
 	data, err := json.Marshal(Alias(m))
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Files != nil {
-		raw["files"] = m.Files
+		if raw["files"], err = json.Marshal(m.Files); err != nil {
+			return nil, err
+		}
+	}
+	for _, name := range m.NullFields {
+		switch name {
+		case "ParentMessageID":
+			raw["parent_message_id"] = json.RawMessage("null")
+		case "Schedule":
+			raw["schedule"] = json.RawMessage("null")
+		default:
+			return nil, fmt.Errorf("DraftUpdateRequestDraft: field %q cannot be sent as null", name)
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1474,12 +1761,14 @@ func (m ExportRequest) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.ChatIDs != nil {
-		raw["chat_ids"] = m.ChatIDs
+		if raw["chat_ids"], err = json.Marshal(m.ChatIDs); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1497,9 +1786,9 @@ type File struct {
 	Name       string   `json:"name"`
 	FileType   FileType `json:"file_type"`
 	URL        string   `json:"url"`
-	Width      *int32   `json:"width"`
-	Height     *int32   `json:"height"`
-	DurationMs *int32   `json:"duration_ms"`
+	Width      *int32   `json:"width,omitempty"`
+	Height     *int32   `json:"height,omitempty"`
+	DurationMs *int32   `json:"duration_ms,omitempty"`
 }
 
 type FileUploadRequest struct {
@@ -1600,8 +1889,8 @@ type Message struct {
 	Thread           *MessageThread    `json:"thread"`
 	Forwarding       *Forwarding       `json:"forwarding"`
 	ParentMessageID  *int32            `json:"parent_message_id"`
-	DisplayAvatarURL *string           `json:"display_avatar_url"`
-	DisplayName      *string           `json:"display_name"`
+	DisplayAvatarURL *string           `json:"display_avatar_url,omitempty"`
+	DisplayName      *string           `json:"display_name,omitempty"`
 	ChangedAt        *string           `json:"changed_at"`
 	DeletedAt        *string           `json:"deleted_at"`
 }
@@ -1635,15 +1924,19 @@ func (m MessageCreateRequestMessage) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Files != nil {
-		raw["files"] = m.Files
+		if raw["files"], err = json.Marshal(m.Files); err != nil {
+			return nil, err
+		}
 	}
 	if m.Buttons != nil {
-		raw["buttons"] = m.Buttons
+		if raw["buttons"], err = json.Marshal(m.Buttons); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1678,15 +1971,19 @@ func (m MessageUpdateRequestMessage) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Files != nil {
-		raw["files"] = m.Files
+		if raw["files"], err = json.Marshal(m.Files); err != nil {
+			return nil, err
+		}
 	}
 	if m.Buttons != nil {
-		raw["buttons"] = m.Buttons
+		if raw["buttons"], err = json.Marshal(m.Buttons); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1707,9 +2004,9 @@ type MessageWebhookPayload struct {
 	URL              string                `json:"url"`
 	ChatID           int32                 `json:"chat_id"`
 	WebhookTimestamp int32                 `json:"webhook_timestamp"`
-	ChangedAt        *string               `json:"changed_at"`
-	ParentMessageID  *int32                `json:"parent_message_id"`
-	Thread           *WebhookMessageThread `json:"thread"`
+	ChangedAt        *string               `json:"changed_at,omitempty"`
+	ParentMessageID  *int32                `json:"parent_message_id,omitempty"`
+	Thread           *WebhookMessageThread `json:"thread,omitempty"`
 }
 
 type OAuthError struct {
@@ -1761,6 +2058,10 @@ type OpenViewRequest struct {
 	View            OpenViewRequestView `json:"view"`
 	PrivateMetadata *string             `json:"private_metadata,omitempty"`
 	CallbackID      *string             `json:"callback_id,omitempty"`
+}
+
+type OpenViewResult struct {
+	Success bool `json:"success"`
 }
 
 type PaginationMetaPaginate struct {
@@ -1830,12 +2131,14 @@ func (m SubmitViewResponseRequest) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Errors != nil {
-		raw["errors"] = m.Errors
+		if raw["errors"], err = json.Marshal(m.Errors); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1881,15 +2184,19 @@ func (m TaskCreateRequestTask) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.PerformerIDs != nil {
-		raw["performer_ids"] = m.PerformerIDs
+		if raw["performer_ids"], err = json.Marshal(m.PerformerIDs); err != nil {
+			return nil, err
+		}
 	}
 	if m.CustomProperties != nil {
-		raw["custom_properties"] = m.CustomProperties
+		if raw["custom_properties"], err = json.Marshal(m.CustomProperties); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -1921,15 +2228,19 @@ func (m TaskUpdateRequestTask) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.PerformerIDs != nil {
-		raw["performer_ids"] = m.PerformerIDs
+		if raw["performer_ids"], err = json.Marshal(m.PerformerIDs); err != nil {
+			return nil, err
+		}
 	}
 	if m.CustomProperties != nil {
-		raw["custom_properties"] = m.CustomProperties
+		if raw["custom_properties"], err = json.Marshal(m.CustomProperties); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -2013,18 +2324,24 @@ func (m UserCreateRequestUser) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.ListTags != nil {
-		raw["list_tags"] = m.ListTags
+		if raw["list_tags"], err = json.Marshal(m.ListTags); err != nil {
+			return nil, err
+		}
 	}
 	if m.ChatIDs != nil {
-		raw["chat_ids"] = m.ChatIDs
+		if raw["chat_ids"], err = json.Marshal(m.ChatIDs); err != nil {
+			return nil, err
+		}
 	}
 	if m.CustomProperties != nil {
-		raw["custom_properties"] = m.CustomProperties
+		if raw["custom_properties"], err = json.Marshal(m.CustomProperties); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -2072,18 +2389,24 @@ func (m UserUpdateRequestUser) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.ChatIDs != nil {
-		raw["chat_ids"] = m.ChatIDs
+		if raw["chat_ids"], err = json.Marshal(m.ChatIDs); err != nil {
+			return nil, err
+		}
 	}
 	if m.ListTags != nil {
-		raw["list_tags"] = m.ListTags
+		if raw["list_tags"], err = json.Marshal(m.ListTags); err != nil {
+			return nil, err
+		}
 	}
 	if m.CustomProperties != nil {
-		raw["custom_properties"] = m.CustomProperties
+		if raw["custom_properties"], err = json.Marshal(m.CustomProperties); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -2099,13 +2422,13 @@ type VideoCallWebhookPayload struct {
 	ChatID           int32                    `json:"chat_id"`
 	OwnerID          int32                    `json:"owner_id"`
 	WebhookTimestamp int32                    `json:"webhook_timestamp"`
-	Thread           *WebhookVideoCallThread  `json:"thread"`
-	StartedAt        *string                  `json:"started_at"`
+	Thread           *WebhookVideoCallThread  `json:"thread,omitempty"`
+	StartedAt        *string                  `json:"started_at,omitempty"`
 	FinishedAt       *time.Time               `json:"finished_at,omitempty"`
-	Duration         *int32                   `json:"duration"`
+	Duration         *int32                   `json:"duration,omitempty"`
 	Members          []WebhookVideoCallMember `json:"members,omitempty"`
 	RecordingID      *int32                   `json:"recording_id,omitempty"`
-	FileID           *int32                   `json:"file_id"`
+	FileID           *int32                   `json:"file_id,omitempty"`
 	URL              *string                  `json:"url,omitempty"`
 	Size             *int64                   `json:"size,omitempty"`
 }
@@ -2116,12 +2439,14 @@ func (m VideoCallWebhookPayload) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Members != nil {
-		raw["members"] = m.Members
+		if raw["members"], err = json.Marshal(m.Members); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -2179,12 +2504,14 @@ func (m ViewBlockFileInput) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Filetypes != nil {
-		raw["filetypes"] = m.Filetypes
+		if raw["filetypes"], err = json.Marshal(m.Filetypes); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -2339,34 +2666,33 @@ type unionMemberShape struct {
 	keys map[string]struct{}
 }
 
-// pickUnionMember selects the member that best fits the payload: most keys
-// recognised, then fewest unrecognised, then fewest declared. Returns -1 when
-// the payload is not a JSON object.
-func pickUnionMember(data []byte, shapes []unionMemberShape) int {
+// rankUnionMembers orders the members by how well they fit the payload: most
+// keys recognised, then fewest unrecognised, then fewest declared, a tie keeping
+// the declared order. Returns nothing when the payload is not a JSON object.
+func rankUnionMembers(data []byte, shapes []unionMemberShape) []int {
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
-		return -1
+		return nil
 	}
-	best := -1
-	bestMatched, bestUnknown, bestDeclared := 0, 0, 0
+	matched := make([]int, len(shapes))
+	order := make([]int, len(shapes))
 	for i, shape := range shapes {
-		matched := 0
+		order[i] = i
 		for k := range raw {
 			if _, ok := shape.keys[k]; ok {
-				matched++
+				matched[i]++
 			}
 		}
-		unknown := len(raw) - matched
-		declared := len(shape.keys)
-		better := best == -1 ||
-			matched > bestMatched ||
-			(matched == bestMatched && unknown < bestUnknown) ||
-			(matched == bestMatched && unknown == bestUnknown && declared < bestDeclared)
-		if better {
-			best, bestMatched, bestUnknown, bestDeclared = i, matched, unknown, declared
-		}
 	}
-	return best
+	sort.SliceStable(order, func(a, b int) bool {
+		x, y := order[a], order[b]
+		if matched[x] != matched[y] {
+			return matched[x] > matched[y]
+		}
+		// Same keys recognised means the same number unrecognised.
+		return len(shapes[x].keys) < len(shapes[y].keys)
+	})
+	return order
 }
 
 type AuditEventDetailsUnion struct {
@@ -2421,21 +2747,21 @@ var auditEventDetailsUnionShapes = []unionMemberShape{
 	{keys: map[string]struct{}{"chat_id": {}, "message_id": {}, "reason": {}}},
 	{keys: map[string]struct{}{"dlp_rule_id": {}, "dlp_rule_name": {}, "message_id": {}, "chat_id": {}, "user_id": {}, "action_message": {}, "conditions_matched": {}}},
 	{keys: map[string]struct{}{"search_type": {}, "query_present": {}, "cursor_present": {}, "limit": {}, "filters": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "added_scopes": {}, "removed_scopes": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "changes": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "changes": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "scopes": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "revoked_tokens_count": {}, "user_id": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "scopes": {}, "device_name": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "scopes": {}, "device_name": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "webhook_id": {}, "application_id": {}, "access_token_id": {}, "access_token_preview": {}, "scopes": {}, "name": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "added_scopes": {}, "removed_scopes": {}, "bot_name": {}, "webhook_id": {}, "previous_scopes": {}, "new_scopes": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "changes": {}, "bot_name": {}, "webhook_id": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "changes": {}, "application_id": {}, "application_name": {}, "bot_name": {}, "webhook_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "scopes": {}, "application_id": {}, "application_name": {}, "bot_id": {}, "bot_name": {}, "authorization_grant_id": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "revoked_tokens_count": {}, "user_id": {}, "application_id": {}, "application_name": {}, "bot_id": {}, "bot_name": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "scopes": {}, "device_name": {}, "application_id": {}, "application_name": {}, "device_grant_id": {}, "token_kind": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "scopes": {}, "device_name": {}, "application_id": {}, "device_grant_id": {}, "token_kind": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "duration": {}, "max_members_count": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "recording_id": {}, "file_id": {}, "duration": {}, "size": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}}},
-	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "deleted_access_tokens_count": {}, "deleted_access_grants_count": {}}},
-	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "scopes": {}, "bot_id": {}, "reason": {}}},
-	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "current_scopes": {}, "bot_id": {}, "actor_id": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "application_id": {}, "application_name": {}, "bot_name": {}, "webhook_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "deleted_access_tokens_count": {}, "deleted_access_grants_count": {}, "application_id": {}, "application_name": {}, "bot_name": {}, "webhook_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}}},
+	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}, "application_name": {}, "client_id": {}, "bot_id": {}, "bot_name": {}, "device_name": {}, "actor_id": {}, "webhook_id": {}, "user_id": {}, "source": {}, "reason": {}}},
+	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "current_scopes": {}, "bot_id": {}, "actor_id": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}, "application_name": {}, "client_id": {}, "bot_name": {}, "webhook_id": {}, "name": {}}},
 	{keys: map[string]struct{}{"method": {}, "login_grant_id": {}}},
 	{keys: map[string]struct{}{"login_grant_id": {}}},
 	{keys: map[string]struct{}{"login_grant_id": {}, "device": {}}},
@@ -2443,112 +2769,220 @@ var auditEventDetailsUnionShapes = []unionMemberShape{
 }
 
 // UnmarshalJSON decodes AuditEventDetailsUnion, which carries no discriminator field:
-// the member is chosen by which one best matches the payload keys. The raw
-// payload is always kept in Raw so an unrecognised shape is never a decode error.
+// members are tried in the order they match the payload keys, and the first one
+// that decodes wins. The raw payload is always kept in Raw, so a payload that is
+// not an object is not a decode error. When no member decodes, the error is the
+// one of the member that fits the keys best.
 func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
 	u.Raw = append(json.RawMessage(nil), data...)
-	switch pickUnionMember(data, auditEventDetailsUnionShapes) {
-	case 0:
-		u.AuditDetailsEmpty = &AuditDetailsEmpty{}
-		return json.Unmarshal(data, u.AuditDetailsEmpty)
-	case 1:
-		u.AuditDetailsUserUpdated = &AuditDetailsUserUpdated{}
-		return json.Unmarshal(data, u.AuditDetailsUserUpdated)
-	case 2:
-		u.AuditDetailsRoleChanged = &AuditDetailsRoleChanged{}
-		return json.Unmarshal(data, u.AuditDetailsRoleChanged)
-	case 3:
-		u.AuditDetailsTagName = &AuditDetailsTagName{}
-		return json.Unmarshal(data, u.AuditDetailsTagName)
-	case 4:
-		u.AuditDetailsInitiator = &AuditDetailsInitiator{}
-		return json.Unmarshal(data, u.AuditDetailsInitiator)
-	case 5:
-		u.AuditDetailsInviter = &AuditDetailsInviter{}
-		return json.Unmarshal(data, u.AuditDetailsInviter)
-	case 6:
-		u.AuditDetailsChatRenamed = &AuditDetailsChatRenamed{}
-		return json.Unmarshal(data, u.AuditDetailsChatRenamed)
-	case 7:
-		u.AuditDetailsChatPermission = &AuditDetailsChatPermission{}
-		return json.Unmarshal(data, u.AuditDetailsChatPermission)
-	case 8:
-		u.AuditDetailsTagChat = &AuditDetailsTagChat{}
-		return json.Unmarshal(data, u.AuditDetailsTagChat)
-	case 9:
-		u.AuditDetailsChatId = &AuditDetailsChatId{}
-		return json.Unmarshal(data, u.AuditDetailsChatId)
-	case 10:
-		u.AuditDetailsTokenScopes = &AuditDetailsTokenScopes{}
-		return json.Unmarshal(data, u.AuditDetailsTokenScopes)
-	case 11:
-		u.AuditDetailsKms = &AuditDetailsKms{}
-		return json.Unmarshal(data, u.AuditDetailsKms)
-	case 12:
-		u.AuditDetailsDlp = &AuditDetailsDlp{}
-		return json.Unmarshal(data, u.AuditDetailsDlp)
-	case 13:
-		u.AuditDetailsSearch = &AuditDetailsSearch{}
-		return json.Unmarshal(data, u.AuditDetailsSearch)
-	case 14:
-		u.AuditDetailsBot = &AuditDetailsBot{}
-		return json.Unmarshal(data, u.AuditDetailsBot)
-	case 15:
-		u.AuditDetailsBotScopes = &AuditDetailsBotScopes{}
-		return json.Unmarshal(data, u.AuditDetailsBotScopes)
-	case 16:
-		u.AuditDetailsBotWebhookSettings = &AuditDetailsBotWebhookSettings{}
-		return json.Unmarshal(data, u.AuditDetailsBotWebhookSettings)
-	case 17:
-		u.AuditDetailsBotOAuthClient = &AuditDetailsBotOAuthClient{}
-		return json.Unmarshal(data, u.AuditDetailsBotOAuthClient)
-	case 18:
-		u.AuditDetailsOAuthAuthorizationGranted = &AuditDetailsOAuthAuthorizationGranted{}
-		return json.Unmarshal(data, u.AuditDetailsOAuthAuthorizationGranted)
-	case 19:
-		u.AuditDetailsOAuthAuthorizationRevoked = &AuditDetailsOAuthAuthorizationRevoked{}
-		return json.Unmarshal(data, u.AuditDetailsOAuthAuthorizationRevoked)
-	case 20:
-		u.AuditDetailsDeviceAuthorizationApproved = &AuditDetailsDeviceAuthorizationApproved{}
-		return json.Unmarshal(data, u.AuditDetailsDeviceAuthorizationApproved)
-	case 21:
-		u.AuditDetailsDeviceAuthorizationDenied = &AuditDetailsDeviceAuthorizationDenied{}
-		return json.Unmarshal(data, u.AuditDetailsDeviceAuthorizationDenied)
-	case 22:
-		u.AuditDetailsVideoCallStarted = &AuditDetailsVideoCallStarted{}
-		return json.Unmarshal(data, u.AuditDetailsVideoCallStarted)
-	case 23:
-		u.AuditDetailsVideoCallFinished = &AuditDetailsVideoCallFinished{}
-		return json.Unmarshal(data, u.AuditDetailsVideoCallFinished)
-	case 24:
-		u.AuditDetailsVideoCallRecording = &AuditDetailsVideoCallRecording{}
-		return json.Unmarshal(data, u.AuditDetailsVideoCallRecording)
-	case 25:
-		u.AuditDetailsBotOAuthClientSecretRotated = &AuditDetailsBotOAuthClientSecretRotated{}
-		return json.Unmarshal(data, u.AuditDetailsBotOAuthClientSecretRotated)
-	case 26:
-		u.AuditDetailsBotOAuthClientDisabled = &AuditDetailsBotOAuthClientDisabled{}
-		return json.Unmarshal(data, u.AuditDetailsBotOAuthClientDisabled)
-	case 27:
-		u.AuditDetailsToken = &AuditDetailsToken{}
-		return json.Unmarshal(data, u.AuditDetailsToken)
-	case 28:
-		u.AuditDetailsBotTokenUpdated = &AuditDetailsBotTokenUpdated{}
-		return json.Unmarshal(data, u.AuditDetailsBotTokenUpdated)
-	case 29:
-		u.AuditDetailsUserLoginQr = &AuditDetailsUserLoginQr{}
-		return json.Unmarshal(data, u.AuditDetailsUserLoginQr)
-	case 30:
-		u.AuditDetailsLoginGrantCreated = &AuditDetailsLoginGrantCreated{}
-		return json.Unmarshal(data, u.AuditDetailsLoginGrantCreated)
-	case 31:
-		u.AuditDetailsLoginGrantApproved = &AuditDetailsLoginGrantApproved{}
-		return json.Unmarshal(data, u.AuditDetailsLoginGrantApproved)
-	case 32:
-		u.AuditDetailsLoginGrantDenied = &AuditDetailsLoginGrantDenied{}
-		return json.Unmarshal(data, u.AuditDetailsLoginGrantDenied)
+	var firstErr error
+	for _, i := range rankUnionMembers(data, auditEventDetailsUnionShapes) {
+		var err error
+		switch i {
+		case 0:
+			v := &AuditDetailsEmpty{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsEmpty = v
+				return nil
+			}
+		case 1:
+			v := &AuditDetailsUserUpdated{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsUserUpdated = v
+				return nil
+			}
+		case 2:
+			v := &AuditDetailsRoleChanged{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsRoleChanged = v
+				return nil
+			}
+		case 3:
+			v := &AuditDetailsTagName{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsTagName = v
+				return nil
+			}
+		case 4:
+			v := &AuditDetailsInitiator{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsInitiator = v
+				return nil
+			}
+		case 5:
+			v := &AuditDetailsInviter{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsInviter = v
+				return nil
+			}
+		case 6:
+			v := &AuditDetailsChatRenamed{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsChatRenamed = v
+				return nil
+			}
+		case 7:
+			v := &AuditDetailsChatPermission{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsChatPermission = v
+				return nil
+			}
+		case 8:
+			v := &AuditDetailsTagChat{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsTagChat = v
+				return nil
+			}
+		case 9:
+			v := &AuditDetailsChatId{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsChatId = v
+				return nil
+			}
+		case 10:
+			v := &AuditDetailsTokenScopes{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsTokenScopes = v
+				return nil
+			}
+		case 11:
+			v := &AuditDetailsKms{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsKms = v
+				return nil
+			}
+		case 12:
+			v := &AuditDetailsDlp{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsDlp = v
+				return nil
+			}
+		case 13:
+			v := &AuditDetailsSearch{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsSearch = v
+				return nil
+			}
+		case 14:
+			v := &AuditDetailsBot{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsBot = v
+				return nil
+			}
+		case 15:
+			v := &AuditDetailsBotScopes{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsBotScopes = v
+				return nil
+			}
+		case 16:
+			v := &AuditDetailsBotWebhookSettings{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsBotWebhookSettings = v
+				return nil
+			}
+		case 17:
+			v := &AuditDetailsBotOAuthClient{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsBotOAuthClient = v
+				return nil
+			}
+		case 18:
+			v := &AuditDetailsOAuthAuthorizationGranted{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsOAuthAuthorizationGranted = v
+				return nil
+			}
+		case 19:
+			v := &AuditDetailsOAuthAuthorizationRevoked{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsOAuthAuthorizationRevoked = v
+				return nil
+			}
+		case 20:
+			v := &AuditDetailsDeviceAuthorizationApproved{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsDeviceAuthorizationApproved = v
+				return nil
+			}
+		case 21:
+			v := &AuditDetailsDeviceAuthorizationDenied{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsDeviceAuthorizationDenied = v
+				return nil
+			}
+		case 22:
+			v := &AuditDetailsVideoCallStarted{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsVideoCallStarted = v
+				return nil
+			}
+		case 23:
+			v := &AuditDetailsVideoCallFinished{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsVideoCallFinished = v
+				return nil
+			}
+		case 24:
+			v := &AuditDetailsVideoCallRecording{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsVideoCallRecording = v
+				return nil
+			}
+		case 25:
+			v := &AuditDetailsBotOAuthClientSecretRotated{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsBotOAuthClientSecretRotated = v
+				return nil
+			}
+		case 26:
+			v := &AuditDetailsBotOAuthClientDisabled{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsBotOAuthClientDisabled = v
+				return nil
+			}
+		case 27:
+			v := &AuditDetailsToken{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsToken = v
+				return nil
+			}
+		case 28:
+			v := &AuditDetailsBotTokenUpdated{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsBotTokenUpdated = v
+				return nil
+			}
+		case 29:
+			v := &AuditDetailsUserLoginQr{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsUserLoginQr = v
+				return nil
+			}
+		case 30:
+			v := &AuditDetailsLoginGrantCreated{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsLoginGrantCreated = v
+				return nil
+			}
+		case 31:
+			v := &AuditDetailsLoginGrantApproved{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsLoginGrantApproved = v
+				return nil
+			}
+		case 32:
+			v := &AuditDetailsLoginGrantDenied{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsLoginGrantDenied = v
+				return nil
+			}
+		}
+		if firstErr == nil {
+			firstErr = err
+		}
 	}
-	return nil
+	return firstErr
 }
 
 func (u AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {

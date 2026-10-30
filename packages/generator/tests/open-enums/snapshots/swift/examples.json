@@ -6,7 +6,7 @@
     ]
   },
   "listMembers": {
-    "usage": "let roles = [.admin]\nlet response = try await client.members.listMembers(sort: .asc, role: .admin, roles: roles, region: .eu)",
+    "usage": "let roles: [MemberRole] = [.admin]\nlet response = try await client.members.listMembers(sort: .asc, role: .admin, roles: roles, region: .eu)",
     "output": "ListMembersResponse(data: [Member])",
     "imports": [
       "MemberRole",

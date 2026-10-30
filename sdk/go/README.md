@@ -42,24 +42,25 @@ func main() {
 
 ## Конвенции
 
-- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Вход**: path-параметры передаются аргументами метода. Тело из одного обязательного поля, например роль участника чата, тоже разворачивается в аргумент. Остальные тела передаются одним объектом-запросом.
 - **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую. Если рядом с `data` есть `meta` (списки и метод `Новый чат`), SDK возвращает ответ целиком: `data` и `meta`.
+- **Значение null**: необязательное поле, которое не задано, в запрос не попадает. Чтобы отправить `null` там, где API его принимает (например, `null` в `webhook.kind` удаляет входящий вебхук бота), назовите поле в `NullFields` модели запроса так, как оно называется в Go: `pachca.BotUpdateRequestWebhook{NullFields: []string{"Kind"}}`.
 
 ```go
-// ≤2 поля → развёрнуто в аргументы
-reaction, err := client.Reactions.AddReaction(ctx, messageId, pachca.ReactionRequest{Code: "👍"})
-err = client.Messages.PinMessage(ctx, messageId)
+// Тело из одного поля → аргумент
+err := client.Members.UpdateMemberRole(ctx, chatID, userID, pachca.ChatMemberRoleAdmin)
+err = client.Messages.PinMessage(ctx, messageID)
 
-// >2 полей → объект-запрос
-msg, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{...})
+// Тело из нескольких полей → объект-запрос
+reaction, err := client.Reactions.AddReaction(ctx, messageID, pachca.ReactionRequest{Code: "👍"})
 
 // Ответ: API возвращает {"data": ...}, SDK возвращает объект напрямую
-msg, err := client.Messages.CreateMessage(ctx, ...)  // *Message, не *MessageResponse
+msg, err := client.Messages.GetMessage(ctx, messageID) // *Message, не *MessageResponse
 ```
 
 ## Пагинация
 
-Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
+Для методов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
 
 ```go
 // Вручную
@@ -78,21 +79,21 @@ for {
 allChats, err := client.Chats.ListChatsAll(ctx, nil)
 ```
 
-Доступные методы: `ListChatsAll`, `ListUsersAll`, `ListTasksAll`, `ListTagsAll`, `ListMembersAll`, `ListChatMessagesAll`, `ListReactionsAll`, `SearchChatsAll`, `SearchMessagesAll`, `SearchUsersAll` и др.
+Метод `*All` есть у каждого метода с пагинацией, полный список — на странице [Go SDK](https://dev.pachca.com/guides/sdk/go#avtopaginatsiya).
 
 ## Повторные запросы
 
-SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток). Ошибки сервера `5xx` повторяются только у запросов GET, PUT и DELETE: запрос POST сервер мог успеть выполнить, и повтор создал бы дубль. Ответ `504` с кодом `timeout` (поиск не уложился по времени) не повторяется: тот же запрос, скорее всего, снова не уложится, и его стоит сузить.
+SDK повторяет запросы сам. Паузы между попытками описаны на странице [Go SDK](https://dev.pachca.com/guides/sdk/go#povtornye-zaprosy), общие правила повторов — в разделе [Повторные запросы](https://dev.pachca.com/api/limits#povtornye-zaprosy-retry).
 
 ## Свой HTTP-клиент
 
-Для настройки прокси, TLS и других параметров транспорта используйте `NewPachcaClientWithHTTP()` с готовым `*http.Client`:
+Для настройки прокси, TLS и других параметров транспорта используйте `NewPachcaClientWithHTTP()` с готовым `*http.Client`. Заголовок `Authorization` такой клиент ставит сам, например своим `http.RoundTripper`, как в полном примере:
 
 ```go
 transport := &http.Transport{
     Proxy: http.ProxyURL(proxyURL),
 }
-httpClient := &http.Client{Transport: transport}
+httpClient := &http.Client{Transport: &bearerTransport{token: token, base: transport}}
 
 client := pachca.NewPachcaClientWithHTTP(pachca.PachcaAPIURL, httpClient)
 ```
@@ -101,32 +102,65 @@ client := pachca.NewPachcaClientWithHTTP(pachca.PachcaAPIURL, httpClient)
 
 ## Загрузка файлов
 
-Загрузка файла — трёхшаговый процесс:
+Загрузка файла идёт в три шага: параметры загрузки, отправка файла по адресу `DirectURL` и сообщение с ключом файла. Подробнее — в разделе [Загрузка файлов](https://dev.pachca.com/api/file-uploads).
 
 ```go
-// 1. Получить параметры загрузки
-res, err := client.Uploads.GetUploadParams(ctx)
-params := res.(*pachca.UploadParams)
+filename := "report.pdf"
+data, err := os.ReadFile(filename)
+if err != nil {
+    log.Fatal(err)
+}
 
-// 2. Загрузить файл на S3
-file, _ := os.Open("photo.png")
-err = client.Uploads.UploadFile(ctx, params, file, "photo.png")
+// 1. Получить параметры загрузки и подставить имя файла в ключ
+params, err := client.Files.GetUploadParams(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+key := strings.Replace(params.Key, "${filename}", filename, 1)
 
-// 3. Прикрепить к сообщению (используя key из params)
+// 2. Загрузить файл по адресу DirectURL
+err = client.Files.UploadFile(ctx, params.DirectURL, pachca.FileUploadRequest{
+    ContentDisposition: params.ContentDisposition,
+    ACL:                params.ACL,
+    Policy:             params.Policy,
+    XAMZCredential:     params.XAMZCredential,
+    XAMZAlgorithm:      params.XAMZAlgorithm,
+    XAMZDate:           params.XAMZDate,
+    XAMZSignature:      params.XAMZSignature,
+    Key:                key,
+    Bucket:             params.Bucket,
+    File:               bytes.NewReader(data),
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+// 3. Отправить сообщение с файлом
+_, err = client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{
+    Message: pachca.MessageCreateRequestMessage{
+        EntityID: chatID,
+        Content:  pachca.Ptr("Отчёт за неделю"),
+        Files: []pachca.MessageCreateRequestFile{
+            {Key: key, Name: filename, FileType: pachca.FileTypeFile, Size: pachca.Ptr(int64(len(data)))},
+        },
+    },
+})
 ```
+
+Полный пример: [`examples/upload.go`](examples/upload.go)
 
 ## Обработка ошибок
 
 ```go
-msg, err := client.Messages.GetMessage(ctx, 999999)
+_, err := client.Messages.GetMessage(ctx, 999999)
 if err != nil {
-    var apiErr *pachca.APIError
+    var apiErr *pachca.ApiError
     if errors.As(err, &apiErr) {
-        fmt.Printf("Ошибка API: %s\n", apiErr.Message)
+        fmt.Printf("Ошибка API: %s\n", apiErr.Error())
     }
     var oauthErr *pachca.OAuthError
     if errors.As(err, &oauthErr) {
-        fmt.Printf("Ошибка авторизации: %s\n", oauthErr.Message)
+        fmt.Printf("Ошибка авторизации: %s\n", oauthErr.Error())
     }
 }
 ```
@@ -147,10 +181,10 @@ import (
 
 // Мок-сервис
 type mockMessagesService struct {
-    pachca.MessagesService
+    pachca.MessagesServiceStub
 }
 
-func (m *mockMessagesService) GetMessage(ctx context.Context, id int64) (*pachca.Message, error) {
+func (m *mockMessagesService) GetMessage(ctx context.Context, id int32) (*pachca.Message, error) {
     return &pachca.Message{ID: id, Content: "Test message", EntityID: 123}, nil
 }
 

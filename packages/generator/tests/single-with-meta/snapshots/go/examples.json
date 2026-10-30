@@ -1,25 +1,25 @@
 {
   "Client_Init": {
-    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")\nctx := context.Background()",
     "imports": [
       "PachcaClient"
     ]
   },
   "ChatOperations_getChat": {
     "usage": "response, err := client.Chats.GetChat(ctx, int32(123))",
-    "output": "Chat{ID: int32, Name: string, CreatedAt: string}"
+    "output": "Chat{ID: int32, Name: string, CreatedAt: time.Time}"
   },
   "ChatOperations_createChat": {
-    "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"example\",\n\t\tMemberIDs: []int32{int32(123)},\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
-    "output": "CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: string}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32}}",
+    "usage": "request := pachca.ChatCreateRequest{\n\tChat: pachca.ChatCreateRequestChat{\n\t\tName: \"example\",\n\t\tMemberIDs: []int32{int32(123)},\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
+    "output": "CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: time.Time}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32}}",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
     ]
   },
   "ChatOperations_updateChat": {
-    "usage": "request := ChatUpdateRequest{\n\tChat: ChatUpdateRequestChat{\n\t\tName: Ptr(\"example\"),\n\t\tPublic: Ptr(true),\n\t},\n}\nresponse, err := client.Chats.UpdateChat(ctx, int32(123), request)",
-    "output": "UpdateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: string}, Meta: *ChatUpdateMeta{ChangedFields: []string}}",
+    "usage": "request := pachca.ChatUpdateRequest{\n\tChat: pachca.ChatUpdateRequestChat{\n\t\tName: pachca.Ptr(\"example\"),\n\t\tPublic: pachca.Ptr(true),\n\t},\n}\nresponse, err := client.Chats.UpdateChat(ctx, int32(123), request)",
+    "output": "UpdateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: time.Time}, Meta: *ChatUpdateMeta{ChangedFields: []string}}",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

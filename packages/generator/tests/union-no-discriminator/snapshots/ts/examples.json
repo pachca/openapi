@@ -6,7 +6,7 @@
     ]
   },
   "getEvents": {
-    "usage": "const response = client.events.getEvents()",
+    "usage": "const response = await client.events.getEvents()",
     "output": "GetEventsResponse({ data: Event[] })"
   }
 }

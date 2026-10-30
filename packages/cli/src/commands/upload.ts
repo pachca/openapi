@@ -21,7 +21,8 @@ export default class Upload extends BaseCommand {
 
   static override examples = [
     '<%= config.bin %> upload photo.jpg',
-    'cat data.csv | <%= config.bin %> upload -',
+    'cat data.csv | <%= config.bin %> upload - --name data.csv',
+    '<%= config.bin %> upload ./build/out.pdf --name report.pdf',
   ];
 
   static scope = 'uploads:write';
@@ -35,12 +36,29 @@ export default class Upload extends BaseCommand {
 
   static override flags = {
     ...BaseCommand.baseFlags,
+    name: Flags.string({
+      description:
+        'Имя файла, которым заканчивается key. Расширение name при отправке файла в сообщении должно совпадать с расширением этого имени. По умолчанию это имя загружаемого файла, а у данных из stdin имя stdin без расширения',
+    }),
   };
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(Upload);
     this.parsedFlags = flags;
 
+    const fromStdin = args.file === '-';
+    if (flags.name !== undefined && !isPlainFileName(flags.name)) {
+      this.validationError(
+        [{ message: 'Имя файла в --name не может быть пустым и содержать / или \\', flag: 'name' }],
+        { type: 'PACHCA_USAGE_ERROR' },
+      );
+    }
+    if (!fromStdin && !fs.existsSync(args.file)) {
+      this.validationError(
+        [{ message: `Файл не найден: ${args.file}` }],
+        { type: 'PACHCA_USAGE_ERROR' },
+      );
+    }
 
     // Step 1: Get upload params
     const { data: uploadData } = await this.apiRequest({
@@ -54,20 +72,16 @@ export default class Upload extends BaseCommand {
     let fileBlob: Blob;
     let fileName: string;
 
-    if (args.file === '-') {
+    // The key ends in this name, and the API checks the extension of `name` in
+    // a message's `files` against it. Data from stdin has no name of its own.
+    if (fromStdin) {
       const chunks: Buffer[] = [];
       for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
       fileBlob = new Blob([Buffer.concat(chunks)]);
-      fileName = 'stdin';
+      fileName = flags.name ?? 'stdin';
     } else {
-      if (!fs.existsSync(args.file)) {
-        this.validationError(
-          [{ message: `Файл не найден: ${args.file}` }],
-          { type: 'PACHCA_USAGE_ERROR' },
-        );
-      }
       fileBlob = new Blob([fs.readFileSync(args.file)]);
-      fileName = path.basename(args.file);
+      fileName = flags.name ?? path.basename(args.file);
     }
 
     // Step 3: Replace ${filename} in key
@@ -94,7 +108,20 @@ export default class Upload extends BaseCommand {
       noAuth: true,
     });
 
+    // Said after the upload succeeds, so a failed one does not report a file as uploaded.
+    if (fromStdin && flags.name === undefined && !flags.quiet) {
+      process.stderr.write(
+        '⚠ Файл из stdin загружен под именем stdin без расширения: в name файла в сообщении расширения тоже не должно быть.\n' +
+          '  Имя с расширением задаёт флаг --name, например --name report.csv\n',
+      );
+    }
+
     // Output the key for use in messages
     this.output({ key });
   }
+}
+
+/** A bare file name: the key keeps its folder, so a path separator would move the file out of it. */
+function isPlainFileName(name: string): boolean {
+  return name.trim() !== '' && !/[\\/]/.test(name);
 }

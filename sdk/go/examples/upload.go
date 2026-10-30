@@ -50,7 +50,7 @@ func main() {
 
 	// ── Step 2: Get upload params ───────────────────────────────────
 	fmt.Println("2. Getting upload params...")
-	params, err := client.Common.GetUploadParams(ctx)
+	params, err := client.Files.GetUploadParams(ctx)
 	if err != nil {
 		log.Fatalf("GetUploadParams failed: %v", err)
 	}
@@ -59,7 +59,7 @@ func main() {
 
 	// ── Step 3: Upload the file via SDK ─────────────────────────────
 	fmt.Println("3. Uploading file...")
-	err = client.Common.UploadFile(ctx, params.DirectURL, pachca.FileUploadRequest{
+	err = client.Files.UploadFile(ctx, params.DirectURL, pachca.FileUploadRequest{
 		ContentDisposition: params.ContentDisposition,
 		ACL:                params.ACL,
 		Policy:             params.Policy,

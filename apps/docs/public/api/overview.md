@@ -96,7 +96,7 @@ dotnet add package Pachca.Sdk
 - [Авторизация](/api/authorization) — Bearer-токен и доступ к API
 - [Запросы и ответы](/api/requests-responses) — Базовый URL, заголовки, формат данных
 - [Пагинация](/api/pagination) — Обход больших списков по курсору
-- [Загрузка файлов](/api/file-uploads) — Прямая загрузка в S3 одной командой
+- [Загрузка файлов](/api/file-uploads) — Три шага через presigned URL, в CLI одной командой
 - [Ошибки](/api/errors) — HTTP-коды и структуры ответов
 - [Лимиты](/api/limits) — Rate limits и повторные запросы
 

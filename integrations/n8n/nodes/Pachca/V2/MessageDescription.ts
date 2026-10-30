@@ -137,7 +137,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'duration_ms',
 							type: 'number',
 							default: 0,
-							description: 'Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.',
+							description: 'Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.',
 						},
 						{
 							displayName: 'File Type',
@@ -149,6 +149,7 @@ export const messageFields: INodeProperties[] = [
 { name: 'Video', value: 'video', description: 'Video file' },
 { name: 'Voice', value: 'voice', description: 'Voice message' }],
 							default: "",
+							description: 'File type. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`.',
 						},
 						{
 							displayName: 'Height',
@@ -445,7 +446,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'duration_ms',
 							type: 'number',
 							default: 0,
-							description: 'Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.',
+							description: 'Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.',
 						},
 						{
 							displayName: 'File Type',

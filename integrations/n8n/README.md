@@ -39,7 +39,7 @@ tar -xzf n8n-nodes-pachca.tgz -C ~/.n8n/nodes/
 
 ### Pachca
 
-Main node for interacting with the Pachca API. Supports 19 resources and 100+ operations:
+Main node for interacting with the Pachca API. Supports 19 resources with the operations below:
 
 | Resource          | Operations                                                                                                                                                                                                                                                           |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -49,7 +49,7 @@ Main node for interacting with the Pachca API. Supports 19 resources and 100+ op
 | Custom Property   | Get                                                                                                                                                                                                                                                                  |
 | Draft             | Create, Get, Get Many, Update, Delete                                                                                                                                                                                                                                |
 | File              | Create (S3 two-stage upload), Get                                                                                                                                                                                                                                    |
-| Form              | Create (visual builder, templates, or JSON), Submit Response                                                                                                                                                                                                         |
+| Form              | Create (visual builder or JSON), Submit Response                                                                                                                                                                                                                     |
 | Group Tag         | Create, Get, Get Many, Update, Delete, Get Many Users                                                                                                                                                                                                                |
 | Important Message | Get Many, Create, Delete                                                                                                                                                                                                                                             |
 | Message           | Create, Get, Get Many, Update, Delete, Pin, Unpin, Unfurl                                                                                                                                                                                                            |
@@ -65,7 +65,7 @@ Main node for interacting with the Pachca API. Supports 19 resources and 100+ op
 
 ### Pachca Trigger
 
-Webhook-based trigger that listens for 16 Pachca event types:
+Webhook-based trigger that listens for 19 Pachca events:
 
 | Category     | Events                                                     |
 | ------------ | ---------------------------------------------------------- |
@@ -74,21 +74,25 @@ Webhook-based trigger that listens for 16 Pachca event types:
 | Interactive  | button pressed, form submitted, link shared                |
 | Chat members | added, removed                                             |
 | Users        | invited, confirmed, activated, suspended, updated, deleted |
+| Video calls  | started, finished, recording ready                         |
 | Wildcard     | all events                                                 |
 
-Automatic mode registers the webhook URL when the workflow is activated and clears it on deactivation. A bot token self-registers via `PUT /bot/webhook` (no Bot ID needed); a personal token uses `PUT /bots/:id` and needs the `bots:write` scope, editor access to the bot, and the Bot ID.
+Pachca sends a bot only the events ticked on the **Outgoing webhook** tab of the bot settings, in both setup modes: the node sets only the webhook URL. A new bot is subscribed only to new messages in the "Starting with commands" mode with an empty command list, so it receives nothing until you tick the events you need and choose **Any messages** or list commands for `New Message`. Which tab item matches which event: [dev.pachca.com/guides/n8n/trigger](https://dev.pachca.com/guides/n8n/trigger#podderzhivaemye-sobytiya).
+
+A bot has a single webhook URL, so give each workflow with Pachca Trigger its own bot, or handle several events in one workflow with `All Events` and a Switch node.
+
+Automatic mode registers the webhook URL when the workflow is activated and clears it on deactivation. A bot token self-registers via `PUT /bot/webhook` (no Bot ID needed) and needs the `profile:read` and `bot_self:webhook:write` scopes; a personal token uses `PUT /bots/:id` and needs the `bots:write` scope, editor access to the bot, and the Bot ID set in the trigger node.
 
 ## Credentials
 
 Create a **Pachca API** credential with:
 
-| Field                   | Required | Description                                                                                                                                 |
-| ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Base URL**            | no       | Default: `https://api.pachca.com/api/shared/v1`. Change only for on-premise.                                                                |
-| **Access Token**        | yes      | Bot or personal API token                                                                                                                   |
-| **Bot ID**              | no       | For automatic webhook registration in Trigger with a **personal token**. Not needed for bot tokens — they self-register.                    |
-| **Signing Secret**      | no       | For HMAC-SHA256 verification of incoming webhooks (`pachca-signature` header)                                                               |
-| **Webhook Allowed IPs** | no       | Comma-separated IPs allowed to send webhooks. Pachca sends from `37.200.70.177`, `185.209.115.174` and `135.106.159.61`. Empty = allow all. |
+| Field                      | Required | Description                                                                                                                                                                              |
+| -------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Base URL**               | no       | Default: `https://api.pachca.com/api/shared/v1`. Keep the default.                                                                                                                       |
+| **Access Token**           | yes      | Bot or personal API token                                                                                                                                                                |
+| **Webhook Signing Secret** | no       | For HMAC-SHA256 verification of incoming webhooks (`pachca-signature` header). Copy **Signing secret** from the bot's Outgoing webhook tab.                                              |
+| **Webhook Allowed IPs**    | no       | Comma-separated IPs allowed to send webhooks. Pachca's addresses: [dev.pachca.com/guides/webhook/handler](https://dev.pachca.com/guides/webhook/handler#bezopasnost). Empty = allow all. |
 
 **Where to get tokens:**
 
@@ -111,17 +115,22 @@ All list operations (Get Many) support automatic cursor-based pagination:
 Toggle **Simplify** (on by default) to return only key fields from API responses. Turn off for full response.
 
 - **Message** — id, entity_id, chat_id, content, user_id, created_at
-- **Chat** — id, name, channel, public, members_count, created_at
+- **Chat** — id, name, channel, public, member_ids, created_at
 - **User** — id, first_name, last_name, nickname, email, role, suspended
 - **Task** — id, content, kind, status, priority, due_at, created_at
+- **Bot** — id, webhook; bot tokens: id, name, scopes, created_at, last_used_at; history events: id, event_type, payload, created_at
+- **Group Tag** — id, name, users_count; tag users: the User fields above
+- **Reaction** — code, name, user_id, created_at
+
+Other resources return the full response.
 
 ### Searchable Dropdowns
 
-Chat ID and User ID fields support search by name — type to find instead of entering numeric IDs.
+Chat, user and Entity ID fields support search by name — type to find instead of entering numeric IDs.
 
 ### Message Buttons
 
-Create messages with interactive buttons via JSON:
+Set **Button Layout** to **Single Row** or **Multiple Rows** to build buttons visually, or to **Raw JSON** to paste them as JSON (send `[]` on update to remove all buttons):
 
 ```json
 [
@@ -136,10 +145,9 @@ Button types: **URL** (opens link) and **Data** (sends `button_pressed` webhook 
 
 ### Forms
 
-Create modal forms with three builder modes:
+Create modal forms with two builder modes:
 
 - **Visual Builder** — add blocks (text input, select, radio, checkboxes, date/time, file upload)
-- **Templates** — predefined forms (Feedback, Time Off, Survey, Bug Report)
 - **JSON** — paste blocks from the visual playground
 
 Forms require a `trigger_id` from a `button_pressed` webhook event (valid for 3 seconds).
@@ -176,9 +184,9 @@ The node uses the **VersionedNodeType** pattern with `defaultVersion: 2`:
 
 **Renamed operations:** `send` → `create`, `getById` → `get`, `addReaction` → `create`, etc.
 
-**New v2 resources:** Chat Member, Custom Property, Read Member, Link Preview, Search, Chat Export, Security
+**New v2 resources:** Chat Member, Draft, Important Message, OAuth, Read Member, Search, Security
 
-To upgrade a v1 node: delete it, add a new Pachca node (defaults to v2), reconfigure with v2 names. API calls are identical.
+To upgrade a v1 node: delete it, add a new Pachca node (defaults to v2), reconfigure with v2 names. The API methods are the same, but in v2 **Simplify** is on by default for Get and Get Many, pagination uses **Return All** / **Limit**, and some parameters are renamed (for example, buttons use **Button Layout**). Check the expressions in the nodes that follow.
 
 ## Usage Examples
 
@@ -191,7 +199,7 @@ Set **Resource** = Message, **Operation** = Create:
 
 ### Send a message with buttons
 
-Set **Resource** = Message, **Operation** = Create, then in **Additional Fields** add **Buttons**:
+Set **Resource** = Message, **Operation** = Create, **Button Layout** = Raw JSON, and paste into **Buttons (JSON)**:
 
 ```json
 [
@@ -218,9 +226,10 @@ Set **Resource** = Search, **Operation** = Get Many Messages:
 
 ### Open a modal form
 
-1. **Pachca Trigger** — event `Button Pressed` (provides `trigger_id`)
-2. **Pachca** (Form > Create) — set **Title**, **Trigger ID**, choose builder mode
-3. **Pachca Trigger** — event `Form Submitted` (in a separate workflow)
+1. **Pachca Trigger** — event `All Events` (a bot has one webhook URL, so one trigger receives both the button press and the form submission)
+2. **Switch** — by `type`: `button` for the press, `view` for the submission
+3. **Pachca** (Form > Create) — on the button branch: set **Title**, **Trigger ID** (`trigger_id` from the event), choose builder mode
+4. On the `view` branch — process the form values from `data`
 
 ### Bot echo workflow
 
@@ -236,18 +245,22 @@ Token is invalid or expired. Check **Access Token** in Credentials. For bot toke
 
 ### 403 Forbidden
 
-Token lacks required scopes for this operation. Check available scopes in your token settings. Admin operations (managing users, tags, security log) require admin-level scopes.
+Token lacks required scopes for this operation, or the operation does not work with this token type. Check available scopes in your token settings. Managing users and tags requires admin-level scopes; the security log is available to the workspace owner on the Corporation plan. Forms, link unfurling and the event history work with a bot token only; drafts and the Important section with a personal token only.
+
+In `Automatic` mode Pachca Trigger reads `GET /profile` to tell a bot token from a personal one, so a bot token needs the `profile:read` scope next to `bot_self:webhook:write`. Without it and with an empty Bot ID the trigger does not activate and names the missing scope: add the scope to the bot token, fill in Bot ID for a personal token, or switch Webhook Setup to `Manual`.
 
 ### 429 Too Many Requests
 
-Rate limit exceeded (~4 req/sec for messages, ~50 req/sec for other operations). The node retries automatically with exponential backoff. For bulk operations, add a **Wait** node between steps.
+Rate limit exceeded — see [dev.pachca.com/api/limits](https://dev.pachca.com/api/limits) for the current limits. The node retries automatically after the `Retry-After` pause. For bulk operations, add a **Wait** node between steps or split items with **Loop Over Items**.
 
 ### Webhook not received (Trigger)
 
-1. **Bot not in chat** — bot only receives events from chats it's a member of
-2. **Workflow not activated** — click **Activate** in the top right
-3. **Bot ID missing** — set Bot ID in Credentials for auto-registration, or configure webhook URL manually in bot settings
-4. **n8n not reachable** — Pachca can't send webhooks to `localhost`. Use a tunnel (ngrok, Cloudflare Tunnel) or deploy to a server with a public IP
+1. **Event not ticked** — tick the event on the bot's Outgoing webhook tab; for `New Message` choose **Any messages** or list commands
+2. **Bot not in chat** — bot only receives message, reaction and chat member events from chats it's a member of
+3. **Workflow not activated** — click **Activate** in the top right
+4. **Webhook URL not set** — in manual mode paste the Production URL into the bot settings; in automatic mode with a personal token set **Bot ID** in the trigger node
+5. **Another workflow took the slot** — a bot has one webhook URL; give each workflow with Pachca Trigger its own bot
+6. **n8n not reachable** — Pachca can't send webhooks to `localhost`. Use a tunnel (ngrok, Cloudflare Tunnel) or deploy to a server with a public IP
 
 ### Form not opening
 

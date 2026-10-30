@@ -6,23 +6,21 @@
     ]
   },
   "ChatOperations_getChat": {
-    "usage": "const response = client.chats.getChat(123)",
+    "usage": "const response = await client.chats.getChat(123)",
     "output": "Chat({ id: number, name: string, createdAt: string })"
   },
   "ChatOperations_createChat": {
-    "usage": "const request: ChatCreateRequest = { chat: { name: \"example\", memberIds: [123] } }\nconst response = client.chats.createChat(request)",
+    "usage": "const request: ChatCreateRequest = { chat: { name: \"example\", memberIds: [123] } }\nconst response = await client.chats.createChat(request)",
     "output": "CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[] }) })",
     "imports": [
-      "ChatCreateRequest",
-      "ChatCreateRequestChat"
+      "ChatCreateRequest"
     ]
   },
   "ChatOperations_updateChat": {
-    "usage": "const request: ChatUpdateRequest = { chat: { name: \"example\", public: true } }\nconst response = client.chats.updateChat(123, request)",
+    "usage": "const request: ChatUpdateRequest = { chat: { name: \"example\", public: true } }\nconst response = await client.chats.updateChat(123, request)",
     "output": "UpdateChatResponse({ data: Chat({ id: number, name: string, createdAt: string }), meta?: ChatUpdateMeta({ changedFields: string[] }) })",
     "imports": [
-      "ChatUpdateRequest",
-      "ChatUpdateRequestChat"
+      "ChatUpdateRequest"
     ]
   }
 }

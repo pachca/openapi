@@ -19,7 +19,7 @@ const pachca = new PachcaClient("YOUR_TOKEN");
 
 // Отправка сообщения
 const message = await pachca.messages.createMessage({
-  message: { entity_id: chatId, content: "Привет из TypeScript SDK!" },
+  message: { entityId: chatId, content: "Привет из TypeScript SDK!" },
 });
 
 // Список пользователей
@@ -36,26 +36,30 @@ const pachca = new PachcaClient("YOUR_TOKEN");
 
 ## Конвенции
 
-- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Вход**: path-параметры передаются аргументами метода. Тело из одного обязательного поля, например роль участника чата, тоже разворачивается в аргумент. Остальные тела передаются одним объектом-запросом.
 - **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую. Если рядом с `data` есть `meta` (списки и метод `Новый чат`), SDK возвращает ответ целиком: `data` и `meta`.
 
 ```typescript
-// ≤2 поля → развёрнуто в аргументы
-await pachca.reactions.addReaction(messageId, { code: "👍" });
+import { ChatMemberRole } from "@pachca/sdk";
+
+// Тело из одного поля → аргумент
+await pachca.members.updateMemberRole(chatId, userId, ChatMemberRole.Admin);
 await pachca.messages.pinMessage(messageId);
 
-// >2 полей → объект-запрос
-await pachca.messages.createMessage({ message: { entity_id: 123, content: "..." } });
+// Тело из нескольких полей → объект-запрос
+await pachca.reactions.addReaction(messageId, { code: "👍" });
 
 // Ответ: API возвращает { data: Message }, SDK возвращает Message
-const message = await pachca.messages.createMessage(...); // Message, не { data: Message }
+const message = await pachca.messages.getMessage(messageId); // Message, не { data: Message }
 ```
 
 ## Пагинация
 
-Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
+Для методов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
 
 ```typescript
+import type { Chat } from "@pachca/sdk";
+
 // Вручную
 let cursor: string | undefined;
 const chats: Chat[] = [];
@@ -70,11 +74,11 @@ for (;;) {
 const allChats = await pachca.chats.listChatsAll();
 ```
 
-Доступные методы: `listChatsAll`, `listUsersAll`, `listTasksAll`, `listTagsAll`, `listMembersAll`, `listChatMessagesAll`, `listReactionsAll`, `searchChatsAll`, `searchMessagesAll`, `searchUsersAll` и др.
+Метод `*All` есть у каждого метода с пагинацией, полный список — на странице [TypeScript SDK](https://dev.pachca.com/guides/sdk/typescript#avtopaginatsiya).
 
 ## Повторные запросы
 
-SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток). Ошибки сервера `5xx` повторяются только у запросов GET, PUT и DELETE: запрос POST сервер мог успеть выполнить, и повтор создал бы дубль. Ответ `504` с кодом `timeout` (поиск не уложился по времени) не повторяется: тот же запрос, скорее всего, снова не уложится, и его стоит сузить.
+SDK повторяет запросы сам. Паузы между попытками описаны на странице [TypeScript SDK](https://dev.pachca.com/guides/sdk/typescript#povtornye-zaprosy), общие правила повторов — в разделе [Повторные запросы](https://dev.pachca.com/api/limits#povtornye-zaprosy-retry).
 
 ## Свой HTTP-клиент
 
@@ -92,18 +96,44 @@ const client = new PachcaClient({
 
 ## Загрузка файлов
 
-Загрузка файла — трёхшаговый процесс:
+Загрузка файла идёт в три шага: параметры загрузки, отправка файла по адресу `directUrl` и сообщение с ключом файла. Подробнее — в разделе [Загрузка файлов](https://dev.pachca.com/api/file-uploads).
 
 ```typescript
-// 1. Получить параметры загрузки
-const params = await pachca.common.getUploadParams();
+import { readFileSync } from "node:fs";
+import { FileType } from "@pachca/sdk";
 
-// 2. Загрузить файл на S3
-const file = fs.readFileSync("photo.png");
-await pachca.common.uploadFile(params, file, "photo.png");
+const filename = "report.pdf";
+const bytes = readFileSync(filename);
 
-// 3. Прикрепить к сообщению (используя key из params)
+// 1. Получить параметры загрузки и подставить имя файла в ключ
+const params = await pachca.files.getUploadParams();
+const key = params.key.replace("${filename}", filename);
+
+// 2. Загрузить файл по адресу directUrl
+await pachca.files.uploadFile(params.directUrl, {
+  contentDisposition: params.contentDisposition,
+  acl: params.acl,
+  policy: params.policy,
+  xAmzCredential: params.xAmzCredential,
+  xAmzAlgorithm: params.xAmzAlgorithm,
+  xAmzDate: params.xAmzDate,
+  xAmzSignature: params.xAmzSignature,
+  key,
+  bucket: params.bucket,
+  file: new Blob([bytes]),
+});
+
+// 3. Отправить сообщение с файлом
+await pachca.messages.createMessage({
+  message: {
+    entityId: chatId,
+    content: "Отчёт за неделю",
+    files: [{ key, name: filename, fileType: FileType.File, size: bytes.length }],
+  },
+});
 ```
+
+Полный пример: [`examples/upload.ts`](examples/upload.ts)
 
 ## Обработка ошибок
 

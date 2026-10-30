@@ -101,6 +101,7 @@ import {
   SubmitViewResponseRequest,
   SubmitViewResponseResult,
   OpenViewRequest,
+  OpenViewResult,
 } from "./types.js";
 import { deserialize, deserializeType, serializeType, fetchWithRetry, toFormBody } from "./utils.js";
 
@@ -2861,7 +2862,7 @@ export class ViewsService {
     throw new Error("Views.submitViewResponse is not implemented");
   }
 
-  async openView(request: OpenViewRequest): Promise<void> {
+  async openView(request: OpenViewRequest): Promise<OpenViewResult> {
     throw new Error("Views.openView is not implemented");
   }
 }
@@ -2890,15 +2891,17 @@ export class ViewsServiceImpl extends ViewsService {
     }
   }
 
-  async openView(request: OpenViewRequest): Promise<void> {
+  async openView(request: OpenViewRequest): Promise<OpenViewResult> {
     const response = await fetchWithRetry(`${this.baseUrl}/views/open`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("OpenViewRequest", request)),
     });
     switch (response.status) {
-      case 201:
-        return;
+      case 201: {
+        const body = await response.json();
+        return deserializeType("OpenViewResult", body) as OpenViewResult;
+      }
       default:
         throw await errorFromResponse(response);
     }

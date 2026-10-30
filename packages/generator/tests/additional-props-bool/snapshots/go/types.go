@@ -19,12 +19,14 @@ func (m Event) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Metadata != nil {
-		raw["metadata"] = m.Metadata
+		if raw["metadata"], err = json.Marshal(m.Metadata); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }

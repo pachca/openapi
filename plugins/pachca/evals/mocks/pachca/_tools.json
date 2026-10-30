@@ -264,7 +264,7 @@
                 },
                 "file_type": {
                   "type": "string",
-                  "description": "File type. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
+                  "description": "File type. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
                   "enum": [
                     "file",
                     "image",
@@ -302,7 +302,7 @@
                 },
                 "duration_ms": {
                   "type": "integer",
-                  "description": "Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.",
+                  "description": "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.",
                   "minimum": 1,
                   "format": "int32",
                   "examples": [

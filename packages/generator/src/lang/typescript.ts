@@ -11,7 +11,7 @@ import {
   type IRParam,
   type IRResponseType,
 } from '../ir.js';
-import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToPascal,
@@ -159,12 +159,15 @@ function emitEnum(lines: string[], e: IREnum): void {
 function emitErrorClass(lines: string[], m: IRModel): void {
   if (m.name === 'ApiError') {
     lines.push('export class ApiError extends Error {');
-    lines.push('  errors?: ApiErrorItem[];');
+    // The client always passes an array, empty when the body has no errors: callers read it without `?? []`.
+    lines.push('  errors: ApiErrorItem[];');
     lines.push('  /** HTTP status code of the response. An answer with an empty body or one that is not JSON comes with `errors` empty. */');
     lines.push('  status?: number;');
-    lines.push('  constructor(errors?: ApiErrorItem[], status?: number) {');
-    lines.push('    super(errors?.length ? errors.map((e) => `${e.key}: ${e.value}`).join(", ") : status !== undefined ? `HTTP ${status}` : "");');
-    lines.push('    this.errors = errors;');
+    // `new ApiError(null, 500)` from plain JavaScript worked while the field was optional: null still reads as empty.
+    lines.push('  constructor(errors: ApiErrorItem[] = [], status?: number) {');
+    lines.push('    const list = errors ?? [];');
+    lines.push('    super(list.length ? list.map((e) => `${e.key}: ${e.value}`).join(", ") : status !== undefined ? `HTTP ${status}` : "");');
+    lines.push('    this.errors = list;');
     lines.push('    this.status = status;');
     lines.push('  }');
     lines.push('}');
@@ -1527,6 +1530,7 @@ function tsBuildOperationExample(
   ir: IR,
   models: Map<string, IRModel>,
   serviceProp: string,
+  inlineAsObject: Set<string> = new Set(),
 ): { usage: string; output: string | null; imports: string[] } {
   const args: { name: string; value: string }[] = [];
   const imports = new Set<string>();
@@ -1542,13 +1546,14 @@ function tsBuildOperationExample(
 
   if (op.requestBody) {
     const rb = op.requestBody;
+    const body = bodyExample(rb, ir, models);
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = snakeToCamel(rb.unwrapField.name);
-      args.push({ name: sdkName, value: tsLiteral(rb.unwrapField.type, ir, models) });
-      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
+      args.push({ name: sdkName, value: tsLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     } else if (rb.schemaRef) {
-      args.push({ name: 'request', value: tsLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
-      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
+      args.push({ name: 'request', value: tsLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     }
   }
 
@@ -1588,17 +1593,20 @@ function tsBuildOperationExample(
   }
 
   const output = tsBuildOutputFingerprint(op, ir, models);
-  const rawCall = `client.${serviceProp}.${op.methodName}(${callArgs.join(', ')})`;
+  // Every method returns a Promise: without await the example would hand back the Promise, not the data.
+  const rawCall = `await client.${serviceProp}.${op.methodName}(${callArgs.join(', ')})`;
   const call = output ? `const response = ${rawCall}` : rawCall;
   const usage = declarations.length > 0
     ? [...declarations, call].join('\n')
     : call;
 
-  return { usage, output, imports: [...imports].sort() };
+  // A nested object written inline in types.ts has no exported name to import.
+  return { usage, output, imports: [...imports].filter((name) => !inlineAsObject.has(name)).sort() };
 }
 
 function generateExamples(ir: IR): string {
   const models = buildModelIndex(ir);
+  const inlineAsObject = buildInlineAsObjectSet(ir);
   const result: Record<string, object> = {};
 
   result['Client_Init'] = {
@@ -1611,7 +1619,7 @@ function generateExamples(ir: IR): string {
     const serviceProp = tagToProperty(svc.tag);
     for (const op of svc.operations) {
       if (op.isAlias) continue; // alias op — documented under its new service
-      const ex = tsBuildOperationExample(op, ir, models, serviceProp);
+      const ex = tsBuildOperationExample(op, ir, models, serviceProp, inlineAsObject);
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;

@@ -23,7 +23,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 
 | Команда | Метод API |
 |---------|-----------|
-| `pachca api` | Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs` |
+| `pachca api` | Произвольный запрос к API. Список и справка: `api ls` (список методов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs` |
 | `pachca auth list` | Список сохранённых профилей |
 | `pachca auth login` | Вход в аккаунт и сохранение профиля |
 | `pachca auth logout` | Удаление сохранённого профиля |
@@ -156,7 +156,7 @@ pachca commands
 pachca commands --available
 ```
 
-Не знаете точный эндпоинт — посмотрите список и справку прямо в CLI: `pachca api ls`, затем `pachca api <МЕТОД> <путь> --describe`. Подробнее — в разделе [Прямые запросы](/guides/cli/api-requests).
+Не знаете точный метод — посмотрите список и справку прямо в CLI: `pachca api ls`, затем `pachca api <МЕТОД> <путь> --describe`. Справочник работает и до входа, без токена. Подробнее — в разделе [Встроенный справочник по API](/guides/cli/api-requests#vstroennyy-spravochnik-po-api).
 
 
 ## Связанные разделы

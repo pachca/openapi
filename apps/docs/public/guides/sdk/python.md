@@ -22,7 +22,7 @@ pip install pachca-sdk
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
+Клиенту нужен токен бота или персональный токен. Какой выбрать и кто может его выпустить, описано в разделе [Какой токен выбрать](/api/authorization#kakoy-token-vybrat).
 
 ```python
 from pachca.client import PachcaClient
@@ -183,6 +183,8 @@ await client.close()
 **GET с параметрами:**
 
 ```python
+from datetime import datetime
+
 from pachca.models import ChatAvailability, ChatSortField, ListChatsParams, SortOrder
 
 # Список чатов
@@ -233,36 +235,35 @@ response = await client.chats.get_chat(id=334)
 
 ## Пагинация
 
-SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
-
-- **Списочные методы** (`client.users.list_users()`, `client.chats.list_chats()`, `client.messages.list_chat_messages()` и т.д.) — `meta.paginate` с полями `next_page`, `prev_page`, `has_next`, `has_prev`. Признак конца — `has_next == False`. Курсор `prev_page` нужен для polling новых записей «сверху» списка.
-- **Методы поиска** (`client.search.search_users()`, `client.search.search_chats()`, `client.search.search_messages()`) — `meta` с полями `total` и `paginate.next_page` (без `prev_page`/`has_next`/`has_prev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
-
-Курсоры — непрозрачные токены, никогда не бывают `None`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
+Поля пагинации называются как в API: `meta.paginate.next_page`, `prev_page`, `has_next` и `has_prev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```python
-from pachca.models import ListUsersParams
+from pachca.models import ListChatsParams
 
 cursor = None
 has_next = True
 while has_next:
-    response = await client.users.list_users(ListUsersParams(limit=50, cursor=cursor))
-    for user in response.data:
-        print(user.first_name, user.last_name)
+    response = await client.chats.list_chats(ListChatsParams(limit=50, cursor=cursor))
+    if not response.data:
+        break
+    for chat in response.data:
+        print(chat.id, chat.name)
     cursor = response.meta.paginate.next_page
-    has_next = response.meta.paginate.has_next
+    has_next = response.meta.paginate.has_next is not False
 ```
+
+В модели поле `has_next` необязательное. Если оно `None`, цикл идёт дальше и останавливается на пустой странице. Так же обходят страницы методы `*_all()`.
 
 ### Автопагинация
 
 Для каждого метода с пагинацией есть `*_all()` вариант:
 
 ```python
-# Все пользователи одним списком
-users = await client.users.list_users_all()
-print(f"Всего: {len(users)}")
+# Все чаты одним списком
+chats = await client.chats.list_chats_all()
+print(f"Всего: {len(chats)}")
 ```
 
 Доступные методы автопагинации:
@@ -270,10 +271,16 @@ print(f"Всего: {len(users)}")
 | Метод | Возвращает |
 |-------|-----------|
 | `security.get_audit_events_all()` | `list[AuditEvent]` |
+| `bots.list_bots_all()` | `list[BotResponse]` |
+| `bots.list_bot_tokens_all()` | `list[BotAccessToken]` |
+| `bots.list_company_bots_all()` | `list[CompanyBotResponse]` |
 | `bots.get_webhook_events_all()` | `list[WebhookEvent]` |
 | `chats.list_chats_all()` | `list[Chat]` |
+| `chats.list_company_chats_all()` | `list[Chat]` |
+| `drafts.list_drafts_all()` | `list[Draft]` |
 | `group_tags.list_tags_all()` | `list[GroupTag]` |
 | `group_tags.get_tag_users_all()` | `list[User]` |
+| `important_messages.list_important_messages_all()` | `list[Message]` |
 | `members.list_members_all()` | `list[User]` |
 | `messages.list_chat_messages_all()` | `list[Message]` |
 | `reactions.list_reactions_all()` | `list[Reaction]` |
@@ -281,6 +288,7 @@ print(f"Всего: {len(users)}")
 | `search.search_messages_all()` | `list[Message]` |
 | `search.search_users_all()` | `list[User]` |
 | `tasks.list_tasks_all()` | `list[Task]` |
+| `threads.list_threads_all()` | `list[Thread]` |
 | `users.list_users_all()` | `list[User]` |
 
 ## Обработка ошибок
@@ -298,8 +306,8 @@ try:
     await client.chats.create_chat(request)
 except ApiError as error:
     for e in error.errors:
-        print(e.key, e.message)   # "name", "не может быть пустым"
-        print(e.code)             # ValidationErrorCode.BLANK
+        print(e.key, e.message)   # name не может быть пустым
+        print(e.code)             # blank
 ```
 
 Поля `ApiErrorItem`:
@@ -307,10 +315,10 @@ except ApiError as error:
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `key` | `str` | Поле, вызвавшее ошибку |
-| `value` | `str \| None` | Переданное значение |
+| `value` | `Any \| None` | Переданное значение |
 | `message` | `str` | Текст ошибки |
 | `code` | `ValidationErrorCode` | Код валидации |
-| `payload` | `str \| None` | Дополнительные данные |
+| `payload` | `dict[str, Any] \| None` | Дополнительные данные |
 
 Код статуса ответа — в поле `status_code`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже выбрасывает `ApiError`: с кодом статуса и пустым `errors`. Так бывает с ответом `404` без тела от метода [Поток событий](/api/bots/get-stream), когда история событий выключена, и со страницей прокси при `502`.
 
@@ -332,16 +340,15 @@ except OAuthError as error:
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
+Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- До **3 повторов** на каждый запрос
-- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
-- **5xx:** линейная пауза с jitter: ~1 сек, ~2 сек, ~3 сек
-- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
-- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
-- Реализовано через `RetryTransport` — обёртку над httpx-транспортом
-- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
+- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 без заголовка:** 1 сек, 2 сек, 4 сек
+- **5xx:** 1 сек, 2 сек, 3 сек
+
+Сетевую ошибку без ответа сервера SDK не повторяет: исключение httpx приходит сразу. Повторы делает `RetryTransport`, обёртка над транспортом httpx.
+
+Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
 
 ## Типы
 
@@ -370,54 +377,54 @@ from pachca.models import (
 
 Поле-перечисление в ответе приходит элементом своего перечисления, в том числе со значением, которого SDK ещё не знает: у такого элемента в `value` исходная строка, а `is_known` равно `False`. Так же работает и вызов вроде `OAuthScope("x")`: проверить, знает ли SDK значение, помогает `is_known`.
 
+## Тело вебхука
+
+Тела событий вебхука описаны моделями `MessageWebhookPayload`, `ReactionWebhookPayload`, `ButtonWebhookPayload`, `ViewSubmitWebhookPayload`, `ChatMemberWebhookPayload`, `CompanyMemberWebhookPayload`, `LinkSharedWebhookPayload` и `VideoCallWebhookPayload`. Тип `WebhookPayloadUnion` объединяет их, а модель по полям `type` и `event` выбирает функция `deserialize`:
+
+```python
+import json
+
+from pachca.models import ButtonWebhookPayload, WebhookPayloadUnion
+from pachca.utils import deserialize
+
+# raw_body — тело запроса в байтах
+payload = deserialize(WebhookPayloadUnion, json.loads(raw_body))
+if isinstance(payload, ButtonWebhookPayload):
+    print(payload.message_id, payload.data)
+```
+
+Подпись проверяйте по исходному телу до разбора, как в разделе [Безопасность](/guides/webhook/handler#bezopasnost). Те же модели отдают методы `poll_webhook_events` и `poll_webhook_payloads`, которые забирают события из истории: пример — в разделе [Пример поллинга](/guides/webhook/polling#primer-pollinga).
+
 ## Зависимости
 
 | Пакет | Версия | Назначение |
 |-------|--------|-----------|
-| `httpx` | >=0.23.0 | Асинхронный HTTP-клиент |
-| `attrs` | >=22.2.0 | Dataclass'ы |
-| `python-dateutil` | ^2.8.0 | Парсинг дат |
+| `httpx` | `>=0.23.0, <0.29.0` | Асинхронный HTTP-клиент |
 
 ## Примеры
 
+**Отправка сообщения:**
+
 ```python
 from pachca.client import PachcaClient
-from pachca.models import Button, FileType, ListUsersParams, MessageCreateRequest, MessageCreateRequestFile, MessageCreateRequestMessage, MessageEntityType, TaskCreateRequest, TaskCreateRequestCustomProperty, TaskCreateRequestTask, TaskKind
+from pachca.models import MessageCreateRequest, MessageCreateRequestMessage
 
 client = PachcaClient("YOUR_TOKEN")
 
-# Отправка сообщения
-request = MessageCreateRequest(
-    message=MessageCreateRequestMessage(
-        entity_type=MessageEntityType.DISCUSSION,
-        entity_id=334,
-        content="Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-        files=[MessageCreateRequestFile(
-            key="attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
-            name="logo.png",
-            file_type=FileType.IMAGE,
-            size=12345,
-            width=800,
-            height=600,
-            duration_ms=5400,
-            waveform="4,8,12,20,16,10,6,3"
-        )],
-        buttons=[[Button(
-            text="Подробнее",
-            url="https://example.com/details",
-            data="awesome"
-        )]],
-        parent_message_id=194270,
-        display_avatar_url="https://example.com/avatar.png",
-        display_name="Бот Поддержки",
-        skip_invite_mentions=False
-    ),
-    link_preview=False
-)
+request = MessageCreateRequest(message=MessageCreateRequestMessage(entity_id=334, content="Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"))
 response = await client.messages.create_message(request=request)
 # → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None, important: bool)
+```
 
-# Список сотрудников
+
+**Список сотрудников:**
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ListUsersParams
+
+client = PachcaClient("YOUR_TOKEN")
+
 params = ListUsersParams(
     query="Олег",
     limit=1,
@@ -425,8 +432,19 @@ params = ListUsersParams(
 )
 response = await client.users.list_users(params=params)
 # → ListUsersResponse(data: list[User], meta: PaginationMeta)
+```
 
-# Создание задачи
+
+**Создание задачи:**
+
+```python
+from datetime import datetime
+
+from pachca.client import PachcaClient
+from pachca.models import TaskCreateRequest, TaskCreateRequestCustomProperty, TaskCreateRequestTask, TaskKind
+
+client = PachcaClient("YOUR_TOKEN")
+
 request = TaskCreateRequest(
     task=TaskCreateRequestTask(
         kind=TaskKind.REMINDER,
@@ -442,7 +460,6 @@ request = TaskCreateRequest(
 response = await client.tasks.create_task(request=request)
 # → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)])
 ```
-
 
 
 

@@ -155,6 +155,8 @@ export interface BodyField {
   maxLength?: number;
   maximum?: number;
   minimum?: number;
+  /** `nullable: true` in the spec: the literal `null` in the flag is sent as JSON null */
+  nullable?: boolean;
   isSibling?: boolean;
 }
 
@@ -173,6 +175,12 @@ export function toKebabCase(name: string): string {
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
     .replace(/_/g, '-')
     .toLowerCase();
+}
+
+/** OpenAPI 3.0 `nullable: true`, or a 3.1 type list that includes `null` */
+function isNullable(schema: Schema): boolean {
+  const resolved = resolveAllOf(schema);
+  return resolved.nullable === true || (Array.isArray(resolved.type) && resolved.type.includes('null'));
 }
 
 export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
@@ -212,6 +220,7 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
           maxLength: propSchema.maxLength,
           maximum: propSchema.maximum,
           minimum: propSchema.minimum,
+          nullable: isNullable(propSchema),
         }));
 
       // Add sibling scalar fields (non-object top-level properties)
@@ -228,6 +237,7 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
           maxLength: propSchema.maxLength,
           maximum: propSchema.maximum,
           minimum: propSchema.minimum,
+          nullable: isNullable(propSchema),
           isSibling: true,
         });
       }
@@ -249,10 +259,31 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
       maxLength: propSchema.maxLength,
       maximum: propSchema.maximum,
       minimum: propSchema.minimum,
+      nullable: isNullable(propSchema),
     }));
 }
 
 // resolveAllOf and getSchemaType imported from ./openapi-parser.js
+
+/**
+ * The flag factory for a nullable scalar body field (see src/lib/flags.ts): the
+ * literal `null` on the command line goes out as JSON null. A boolean flag has
+ * no room for a third value, and a list or an object is already passed as JSON,
+ * where `null` needs nothing special.
+ */
+function nullableFlagFactory(field: BodyField): 'nullableString' | 'nullableInteger' | null {
+  if (!field.nullable || field.format === 'binary') return null;
+  if (field.type === 'array' || field.type === 'object') return null;
+  const flagType = getOclifFlagType({ type: field.type, enum: field.enum } as Schema);
+  if (flagType === 'boolean') return null;
+  return flagType === 'integer' ? 'nullableInteger' : 'nullableString';
+}
+
+/** Append a sentence to a description that may end without a period. */
+function appendSentence(text: string, sentence: string): string {
+  const trimmed = text.trimEnd();
+  return `${/[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`} ${sentence}`;
+}
 
 function computeDefaultColumns(endpoint: Endpoint): string[] {
   // Find response schema properties
@@ -420,6 +451,14 @@ function generateCommandCode(p: CommandGenParams): string {
     imports.push(`import * as fs from 'node:fs';`);
     imports.push(`import { formatSize } from '../../utils.js';`);
   }
+  const nullableFactories = [...new Set(
+    p.bodyFields
+      .map(nullableFlagFactory)
+      .filter((f): f is 'nullableString' | 'nullableInteger' => f !== null),
+  )].sort();
+  if (nullableFactories.length > 0) {
+    imports.push(`import { ${nullableFactories.join(', ')} } from '../../lib/flags.js';`);
+  }
   // Build args
   const argsCode = p.pathParams.map((param) => {
     const argName = param.name.replace(/[{}]/g, '');
@@ -547,12 +586,22 @@ function generateCommandCode(p: CommandGenParams): string {
         entityHint = ` (${ENTITY_HINTS[plural]})`;
       }
     }
+    // A nullable field takes the literal `null` and sends JSON null. Where the spec
+    // says what `null` does, the help also shows how to spell it on the command line.
+    const nullableFactory = nullableFlagFactory(field);
+    const baseDescription = field.description || field.name;
+    const description = nullableFactory && baseDescription.includes('`null`')
+      ? appendSentence(baseDescription, `Чтобы передать null, укажите \`--${flagName} null\`.`)
+      : baseDescription;
     const bodyExtras: string[] = [];
-    if (field.enum) bodyExtras.push(`      options: ${JSON.stringify(field.enum)},`);
+    if (field.enum) {
+      const options = nullableFactory ? [...field.enum, 'null'] : field.enum;
+      bodyExtras.push(`      options: ${JSON.stringify(options)},`);
+    }
     if (flagType === 'boolean') bodyExtras.push(`      allowNo: true,`);
     const bodyExtrasStr = bodyExtras.length > 0 ? '\n' + bodyExtras.join('\n') : '';
-    bodyFlagLines.push(`    '${flagName}': Flags.${flagType}({
-      description: ${JSON.stringify((field.description || field.name) + maxLenComment + entityHint)},${bodyExtrasStr}
+    bodyFlagLines.push(`    '${flagName}': ${nullableFactory ?? `Flags.${flagType}`}({
+      description: ${JSON.stringify(description + maxLenComment + entityHint)},${bodyExtrasStr}
     }),`);
   }
 
@@ -604,7 +653,11 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`      for await (const chunk of process.stdin) {`);
     runBodyLines.push(`        chunks.push(chunk as Buffer);`);
     runBodyLines.push(`      }`);
-    runBodyLines.push(`      flags['${flagName}'] = Buffer.concat(chunks).toString('utf-8').trimEnd();`);
+    // An empty pipe (a script or an agent with nothing on stdin) sets nothing, so the
+    // field stays out of the body: `drafts update --parent-message-id null` must not
+    // also send an empty text.
+    runBodyLines.push(`      const piped = Buffer.concat(chunks).toString('utf-8').trimEnd();`);
+    runBodyLines.push(`      if (piped) flags['${flagName}'] = piped;`);
     runBodyLines.push(`    }`);
   }
 

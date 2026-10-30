@@ -158,6 +158,7 @@ const GUIDE_ICONS: Record<string, string> = {
   '/guides/dlp': 'ShieldCheck',
   '/guides/data-protection': 'Shield',
   '/guides/audit-events': 'ClipboardList',
+  '/guides/agents-access': 'Plug',
   '/api/authorization': 'KeyRound',
   '/api/requests-responses': 'ArrowLeftRight',
   '/api/errors': 'AlertTriangle',

@@ -17,7 +17,7 @@
 - У каждого события есть актор — сотрудник или бот, выполнивший действие. Действия без актора в журнал не попадают. Исключение — событие `oauth_token_revoked`: его актор — приложение, которое отозвало свой токен.
 - Данные собираются с 12 мая 2025 года.
 - Чтение самого журнала тоже событие: каждый запрос к методу пишет `audit_events_accessed`.
-- Так же логируется инвентаризация пространства: [Список чатов пространства](/api/chats/list-company) пишет `company_chats_accessed`, [Список ботов пространства](/api/bots/list-company) — `company_bots_accessed`. В обоих случаях актором и объектом события выступает владелец токена.
+- Также в журнал пишется инвентаризация пространства: [Список чатов пространства](/api/chats/list-company) пишет `company_chats_accessed`, [Список ботов пространства](/api/bots/list-company) — `company_bots_accessed`. В обоих случаях актором и объектом события выступает владелец токена.
 
 ## Структура записи
 
@@ -25,12 +25,12 @@
 | --- | --- | --- |
 | `id` | string | Идентификатор записи (UUID) |
 | `created_at` | string | Дата и время события (ISO-8601, UTC+0) |
-| `event_key` | string | Тип события. Полный список — ниже |
+| `event_key` | string | Тип события. Полный список — ниже. |
 | `actor_id` | string | Идентификатор сотрудника или бота, выполнившего действие |
 | `actor_type` | string | Тип актора: `User`, а у события `oauth_token_revoked` — `Doorkeeper::Application` |
 | `entity_id` | string | Идентификатор объекта, которого касается событие |
-| `entity_type` | string | Тип этого объекта, например `User`, `Chat`, `Message`, `Reaction`, `GroupTag`, `TopicThread`, `VideoRoom` или `AccessToken` |
-| `details` | object | Подробности события, состав зависит от `event_key`. Для событий без подробностей — пустой объект |
+| `entity_type` | string | Тип этого объекта, например `User`, `Chat`, `Message`, `Reaction`, `GroupTag`, `TopicThread`, `VideoRoom`, `AccessToken`, `OauthAccessToken` или `Doorkeeper::Application` |
+| `details` | object | Подробности события, состав зависит от `event_key`. Для событий без подробностей — пустой объект. |
 | `ip_address` | string, null | IP-адрес запроса, в котором произошло действие |
 | `user_agent` | string, null | User agent клиента, обрезается до 255 символов |
 
@@ -122,9 +122,52 @@
 - `exchange_disabled` — Отключена интеграция с Exchange
 
 
+## Что приходит в деталях
+
+Состав `details` зависит от типа события. События, которых нет в таблице, приходят с пустым объектом: вся информация о них уже есть в `actor_id` и `entity_id`.
+
+| Тип события | Поля `details` |
+| --- | --- |
+| `user_login` | `method` со значением `qr` и `login_grant_id` — при входе по QR-коду. При остальных способах входа — пустой объект. |
+| `login_grant_created` | `login_grant_id` |
+| `login_grant_approved` | `login_grant_id`, `device` — объект с полями `name`, `platform`, `os_version` и `app_version` |
+| `login_grant_denied` | `login_grant_id`, `device`, `reason` — `denied`, если сотрудник отклонил вход, или `verification_failed`, если он ввёл не те цифры |
+| `user_updated` | `changed_attrs` — список изменённых полей. `context` — присутствует со значением `sso_login`, если профиль обновился автоматически при входе через SSO. |
+| `user_role_changed` | `new_company_role`, `previous_company_role`, `initiator_id` |
+| `user_chat_join` | `inviter_id` |
+| `user_chat_leave`, `user_added_to_tag`, `user_removed_from_tag` | `initiator_id` |
+| `chat_renamed` | `old_name`, `new_name` |
+| `chat_permission_changed` | `public_access` |
+| `tag_created`, `tag_deleted` | `name` |
+| `tag_added_to_chat` | `chat_id`, `tag_name` |
+| `tag_removed_from_chat` | `chat_id` |
+| `access_token_created`, `access_token_updated`, `access_token_destroy`, `bot_token_created`, `bot_token_reissued`, `bot_token_recreated`, `bot_token_deleted`, `oauth_token_revoked` | `token_kind`, `token_name`, `resource_owner_id`, `scopes`, а также `access_token_id` и `access_token_preview` — идентификатор и маска токена. `application_id`, `application_name` и `client_id` — клиент OAuth, через который выдан токен: у программы с MCP это её название и адрес её документа с описанием. `bot_id` и `bot_name` — у токенов бота и токенов, которые сотрудник выдал боту. `device_name` — у входа в CLI. `actor_id` и `webhook_id` — у событий токенов бота. `user_id` — когда токен отозвал администратор или токен отозван при переводе сотрудника в гости. `reason` со значением `guest_downgrade` — у `access_token_destroy` при переводе в гости. `source` со значением `oauth_client` — у `oauth_token_revoked`. |
+| `bot_token_updated` | Те же поля, что у событий токенов бота, но права после изменения приходят в `current_scopes`. Название и права, переданные в запросе на изменение, приходят в `name` и `scopes` объектами с полями `previous` и `new`. |
+| `bot_deleted` | `bot_id`, `actor_id` |
+| `bot_scopes_updated` | `bot_id`, `bot_name`, `actor_id`, `webhook_id`, `previous_scopes`, `new_scopes`, `added_scopes`, `removed_scopes` |
+| `bot_webhook_settings_updated` | `changes` — объект, где ключ это имя настройки, а значение содержит `previous` и `new` |
+| `bot_oauth_client_updated` | `client_id`, `changes` — объект, где ключ это имя параметра клиента, а значение содержит `previous` и `new` |
+| `oauth_authorization_granted` | `client_id`, `application_id`, `application_name`, `scopes`, `authorization_grant_id`. `bot_id` и `bot_name` — у бота. |
+| `bot_oauth_client_secret_issued`, `bot_oauth_client_secret_rotated` | `bot_id`, `actor_id`, `client_id` |
+| `bot_oauth_client_disabled` | `bot_id`, `actor_id`, `client_id`, `deleted_access_tokens_count`, `deleted_access_grants_count` |
+| `oauth_authorization_revoked` | `client_id`, `application_id`, `application_name`, `revoked_tokens_count`. `bot_id` и `bot_name` — у бота. `user_id` — когда доступ сотрудника отозвал администратор. |
+| `oauth_device_authorization_approved`, `oauth_device_authorization_denied` | `client_id`, `scopes`, `device_name` |
+| `kms_encrypt`, `kms_decrypt` | `chat_id`, `message_id`, `reason` — повод обращения к ключу, значения в разделе [Журнал аудита](/guides/data-protection#zhurnal-audita) гайда по шифрованию |
+| `dlp_violation_detected` | `dlp_rule_id`, `dlp_rule_name`, `message_id`, `chat_id`, `user_id`, `action_message`, `conditions_matched` |
+| `search_users_api`, `search_chats_api`, `search_messages_api` | `search_type`, `query_present`, `cursor_present`, `limit`, `filters` |
+| `video_call_started` | `chat_id`, `started_message_id` |
+| `video_call_finished` | `chat_id`, `started_message_id`, `duration`, `max_members_count` |
+| `video_call_recording_ready` | `chat_id`, `started_message_id`, `recording_id`, `file_id`, `duration`, `size` |
+
+В записях до 7 октября 2026 года у событий токенов деталей меньше: у персональных токенов только `scopes`, у токенов бота — `bot_id` и `actor_id`.
+
+Полные схемы с типами и описанием каждого поля — в разделе «Ответ» на странице метода [Журнал аудита событий](/api/security/list), в поле `details`.
+
 ## Токены и авторизации в журнале
 
 Журнал записывает выдачу и отзыв каждого доступа к API. Вид доступа приходит в деталях в поле `token_kind`, а его владелец — в `resource_owner_id`.
+
+Объект у событий `access_token_*` — токен с `entity_type: AccessToken`. У `bot_token_reissued`, `bot_token_updated`, `bot_token_deleted` и `oauth_token_revoked` объект тоже токен, но с `entity_type: OauthAccessToken`, а у `bot_token_created` и `bot_token_recreated` — сам бот с `entity_type: User`. Поэтому события токенов надёжнее отбирать по `event_key`.
 
 | Что произошло | Событие |
 | --- | --- |
@@ -138,15 +181,20 @@
 | Токен бота удалён | `bot_token_deleted` |
 | Сотрудник разрешил боту действовать от своего имени | `oauth_authorization_granted` |
 | Доступ бота отозван в интерфейсе | `oauth_authorization_revoked` |
-| Бот сам отозвал выданный ему токен | `oauth_token_revoked` |
+| Сотрудник подключил программу с MCP через браузер, в том числе повторно | `oauth_authorization_granted` |
+| Отозваны все подключения программы с MCP у сотрудника | `oauth_authorization_revoked` |
+| Отозвано одно подключение программы с MCP | `access_token_destroy` с `token_kind: client` |
+| Бот или программа с MCP сами отозвали выданный им токен | `oauth_token_revoked` |
 | Боту выпущен или обновлён секрет клиента | `bot_oauth_client_secret_issued`, `bot_oauth_client_secret_rotated` |
 | Сотрудника перевели в гости, и все его токены отозваны: персональные, входы в CLI и доступы, выданные ботам и программам с MCP | `access_token_destroy` на каждый токен, в деталях `reason: guest_downgrade` |
 
-Отзыв в интерфейсе записывается от имени того, кто его выполнил. Когда чужой доступ закрывает администратор на вкладке [Все токены](/api/authorization#vse-tokeny-prostranstva), в `actor_id` приходит он, а владелец доступа остаётся в деталях: в `resource_owner_id` у токена и в `user_id` у авторизации бота.
+Подключение программы с MCP отличают от согласия боту по деталям `oauth_authorization_granted`: у программы в `client_id` приходит адрес её документа с описанием (ссылка `https://`), в `application_name` — её название, а полей `bot_id` и `bot_name` нет. Объект события — сама программа, `entity_type` у него `Doorkeeper::Application`. У токенов программы `token_kind` равен `client`. Программа, которую подключили персональным токеном, отдельной записи не оставляет: в журнале есть только создание этого токена.
 
-При [переводе в гости](/guides/permissions#perevod-v-gosti) в `actor_id` приходит тот, кто сменил роль, а владелец токенов — в `resource_owner_id`. Доступы, выданные ботам и программам с MCP, в этом случае записываются событием `access_token_destroy`, а не `oauth_authorization_revoked`. Неиспользованные коды авторизации и подтверждённые, но ещё не завершённые входы в CLI отменяются без записи в журнале.
+Отзыв в интерфейсе записывается от имени того, кто его выполнил. Когда чужой доступ закрывает администратор на вкладке [Все токены](/api/authorization#vse-tokeny-prostranstva), в `actor_id` приходит он, а владелец доступа остаётся в деталях: в `resource_owner_id` у событий токенов и в `user_id` у `oauth_authorization_revoked`.
 
-У события `oauth_token_revoked` актор — приложение, поэтому в `actor_id` приходит не идентификатор сотрудника. Сотрудник, чей токен отозван, указан в `resource_owner_id`.
+При [переводе в гости](/guides/permissions#perevod-v-gosti) в `actor_id` приходит тот, кто сменил роль, а владелец токенов — в `resource_owner_id`. Доступы, выданные ботам и программам с MCP, в этом случае тоже записываются событием `access_token_destroy`, по записи на каждый токен. Неиспользованные коды авторизации и подтверждённые, но ещё не завершённые входы в CLI отменяются без записи в журнале.
+
+У события `oauth_token_revoked` актор — приложение, которое отозвало токен: CLI, бот или программа с MCP. В `actor_id` приходит идентификатор приложения, тот же, что `application_id` в деталях, а сотрудник, чей токен отозван, указан в `resource_owner_id`.
 
 Обмен кода на токен и обновление токена отдельных записей не оставляют: выдачу фиксирует согласие сотрудника.
 
@@ -168,47 +216,6 @@
 Название, платформу и версии устройства в `device` присылает само приложение, сервер сверяет только их формат. Подмену устройства отсекает проверка цифр: при несовпадении вход сразу отклоняется с `reason: verification_failed`, второй попытки нет.
 
 Вход по QR-коду не запрашивает двухфакторную аутентификацию: личность уже подтверждена сессией на компьютере. Событий `user_2fa_success` и `user_2fa_fail` у такого входа нет.
-
-## Что приходит в деталях
-
-Состав `details` зависит от типа события. События, которых нет в таблице, приходят с пустым объектом: вся информация о них уже есть в `actor_id` и `entity_id`.
-
-| Тип события | Поля `details` |
-| --- | --- |
-| `user_login` | `method` со значением `qr` и `login_grant_id` — при входе по QR-коду. При остальных способах входа — пустой объект |
-| `login_grant_created` | `login_grant_id` |
-| `login_grant_approved` | `login_grant_id`, `device` — объект с полями `name`, `platform`, `os_version` и `app_version` |
-| `login_grant_denied` | `login_grant_id`, `device`, `reason` — `denied`, если сотрудник отклонил вход, или `verification_failed`, если он ввёл не те цифры |
-| `user_updated` | `changed_attrs` — список изменённых полей. `context` — присутствует со значением `sso_login`, если профиль обновился автоматически при входе через SSO |
-| `user_role_changed` | `new_company_role`, `previous_company_role`, `initiator_id` |
-| `user_chat_join` | `inviter_id` |
-| `user_chat_leave`, `user_added_to_tag`, `user_removed_from_tag` | `initiator_id` |
-| `chat_renamed` | `old_name`, `new_name` |
-| `chat_permission_changed` | `public_access` |
-| `tag_created`, `tag_deleted` | `name` |
-| `tag_added_to_chat` | `chat_id`, `tag_name` |
-| `tag_removed_from_chat` | `chat_id` |
-| `access_token_created`, `access_token_updated`, `access_token_destroy`, `bot_token_created`, `bot_token_reissued`, `bot_token_recreated`, `bot_token_deleted`, `oauth_token_revoked` | `token_kind`, `token_name`, `resource_owner_id`, `scopes`. `bot_id` — у токенов бота и токенов, которые сотрудник выдал боту. `reason` со значением `guest_downgrade` — у `access_token_destroy`, когда токен отозван при переводе сотрудника в гости |
-| `bot_token_updated` | `token_kind`, `token_name`, `resource_owner_id`, `current_scopes`, `bot_id`, `actor_id` |
-| `bot_deleted` | `bot_id`, `actor_id` |
-| `bot_scopes_updated` | `added_scopes`, `removed_scopes` |
-| `bot_webhook_settings_updated` | `changes` — объект, где ключ это имя настройки, а значение содержит `previous` и `new` |
-| `bot_oauth_client_updated` | `client_id`, `changes` — объект, где ключ это имя параметра клиента, а значение содержит `previous` и `new` |
-| `oauth_authorization_granted` | `client_id`, `scopes` |
-| `bot_oauth_client_secret_issued`, `bot_oauth_client_secret_rotated` | `bot_id`, `actor_id`, `client_id` |
-| `bot_oauth_client_disabled` | `bot_id`, `actor_id`, `client_id`, `deleted_access_tokens_count`, `deleted_access_grants_count` |
-| `oauth_authorization_revoked` | `client_id`, `revoked_tokens_count`. `user_id` — когда доступ сотрудника отозвал администратор |
-| `oauth_device_authorization_approved`, `oauth_device_authorization_denied` | `client_id`, `scopes`, `device_name` |
-| `kms_encrypt`, `kms_decrypt` | `chat_id`, `message_id`, `reason` |
-| `dlp_violation_detected` | `dlp_rule_id`, `dlp_rule_name`, `message_id`, `chat_id`, `user_id`, `action_message`, `conditions_matched` |
-| `search_users_api`, `search_chats_api`, `search_messages_api` | `search_type`, `query_present`, `cursor_present`, `limit`, `filters` |
-| `video_call_started` | `chat_id`, `started_message_id` |
-| `video_call_finished` | `chat_id`, `started_message_id`, `duration`, `max_members_count` |
-| `video_call_recording_ready` | `chat_id`, `started_message_id`, `recording_id`, `file_id`, `duration`, `size` |
-
-В записях до 7 октября 2026 года у событий токенов деталей меньше: у персональных токенов только `scopes`, у токенов бота — `bot_id` и `actor_id`.
-
-Полные схемы с типами и описанием каждого поля — в разделе «Ответ» на странице метода [Журнал аудита событий](/api/security/list), в поле `details`.
 
 ## Фильтры
 
@@ -256,6 +263,15 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 ```
 
 
+**Получение новых подключений ботов и программ с MCP за неделю**
+
+```bash
+# Для получения следующей страницы используйте cursor из meta.paginate.next_page
+curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2026-10-01T00:00:00Z&end_time=2026-10-08T00:00:00Z&event_key=oauth_authorization_granted" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+
 ## Хранение данных
 
 Журналы аудита хранятся в течение 90 дней для баланса между требованиями соответствия и эффективностью хранения. Все журналы неизменяемы и хранятся в системе только для чтения, чтобы обеспечить целостность данных.
@@ -264,7 +280,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 
 - Расследовать подозрительные попытки входа в систему
 - Отслеживать изменения прав доступа
-- Проверять, кто и когда выдавал и отзывал токены и доступы ботов
+- Проверять, кто и когда выдавал и отзывал токены и доступы ботов и программ с MCP
 - Отслеживать действия по удалению сообщений
 - Расследовать изменения ролей пользователей
 - Отслеживать изменения в составе участников чатов

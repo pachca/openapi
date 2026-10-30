@@ -8,7 +8,7 @@
 - [@pachca/sdk](https://www.npmjs.com/package/@pachca/sdk) npm
 
 
-Типизированный клиент для Pachca API. Работает в Node.js 18+ и в любом окружении с поддержкой `fetch`. ES Module с TypeScript-декларациями.
+Типизированный клиент для Pachca API. Работает в Node.js 18+ и в любом окружении с поддержкой `fetch`. Пакет подключается и как ES Module (`import`), и как CommonJS (`require`). TypeScript-декларации входят в пакет.
 
 ## Быстрый старт
 
@@ -22,7 +22,7 @@ npm install @pachca/sdk
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
+Клиенту нужен токен бота или персональный токен. Какой выбрать и кто может его выпустить, описано в разделе [Какой токен выбрать](/api/authorization#kakoy-token-vybrat).
 
 ```typescript
 import { PachcaClient } from "@pachca/sdk"
@@ -35,7 +35,7 @@ const client = new PachcaClient("YOUR_TOKEN")
 
 ```typescript
 // Получение профиля
-const response = client.profile.getProfile()
+const response = await client.profile.getProfile()
 // → User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
 ```
 
@@ -179,7 +179,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 import { ChatAvailability, ChatSortField, SortOrder } from "@pachca/sdk"
 
 // Список чатов
-const response = client.chats.listChats({
+const response = await client.chats.listChats({
   sort: ChatSortField.Id,
   order: SortOrder.Desc,
   availability: ChatAvailability.IsMember,
@@ -197,7 +197,7 @@ const response = client.chats.listChats({
 **POST с телом запроса:**
 
 ```typescript
-import { ChatCreateRequest, ChatCreateRequestChat } from "@pachca/sdk"
+import { ChatCreateRequest } from "@pachca/sdk"
 
 // Создание чата
 const request: ChatCreateRequest = {
@@ -209,7 +209,7 @@ const request: ChatCreateRequest = {
     public: false
   }
 }
-const response = client.chats.createChat(request)
+const response = await client.chats.createChat(request)
 // → CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[], notFoundGroupTagIds: number[] }) })
 ```
 
@@ -218,19 +218,14 @@ const response = client.chats.createChat(request)
 
 ```typescript
 // Получение чата
-const response = client.chats.getChat(334)
+const response = await client.chats.getChat(334)
 // → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null })
 ```
 
 
 ## Пагинация
 
-SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
-
-- **Списочные методы** (`client.users.listUsers()`, `client.chats.listChats()`, `client.messages.listChatMessages()` и т.д.) — `meta.paginate` с полями `nextPage`, `prevPage`, `hasNext`, `hasPrev`. Признак конца — `hasNext: false`. Курсор `prevPage` нужен для polling новых записей «сверху» списка.
-- **Методы поиска** (`client.search.searchUsers()`, `client.search.searchChats()`, `client.search.searchMessages()`) — `meta` с полями `total` и `paginate.nextPage` (без `prevPage`/`hasNext`/`hasPrev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
-
-Курсоры — непрозрачные токены, никогда не бывают `null`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -239,23 +234,26 @@ let cursor: string | undefined
 let hasNext = true
 
 while (hasNext) {
-  const response = await client.users.listUsers({ limit: 50, cursor })
-  for (const user of response.data) {
-    console.log(user.firstName, user.lastName)
+  const response = await client.chats.listChats({ limit: 50, cursor })
+  if (response.data.length === 0) break
+  for (const chat of response.data) {
+    console.log(chat.id, chat.name)
   }
   cursor = response.meta.paginate.nextPage
-  hasNext = response.meta.paginate.hasNext
+  hasNext = response.meta.paginate.hasNext ?? true
 }
 ```
+
+В типах поле `hasNext` необязательное. Если его нет, цикл идёт дальше и останавливается на пустой странице. Так же обходят страницы методы `*All()`.
 
 ### Автопагинация
 
 Для каждого метода с пагинацией есть `*All()` вариант, который автоматически обходит все страницы и возвращает плоский массив:
 
 ```typescript
-// Все пользователи одним массивом
-const users = await client.users.listUsersAll()
-console.log(`Всего: ${users.length}`)
+// Все чаты одним массивом
+const chats = await client.chats.listChatsAll()
+console.log(`Всего: ${chats.length}`)
 ```
 
 Доступные методы автопагинации:
@@ -263,10 +261,16 @@ console.log(`Всего: ${users.length}`)
 | Метод | Возвращает |
 |-------|-----------|
 | `security.getAuditEventsAll()` | `AuditEvent[]` |
+| `bots.listBotsAll()` | `BotResponse[]` |
+| `bots.listBotTokensAll()` | `BotAccessToken[]` |
+| `bots.listCompanyBotsAll()` | `CompanyBotResponse[]` |
 | `bots.getWebhookEventsAll()` | `WebhookEvent[]` |
 | `chats.listChatsAll()` | `Chat[]` |
+| `chats.listCompanyChatsAll()` | `Chat[]` |
+| `drafts.listDraftsAll()` | `Draft[]` |
 | `groupTags.listTagsAll()` | `GroupTag[]` |
 | `groupTags.getTagUsersAll()` | `User[]` |
+| `importantMessages.listImportantMessagesAll()` | `Message[]` |
 | `members.listMembersAll()` | `User[]` |
 | `messages.listChatMessagesAll()` | `Message[]` |
 | `reactions.listReactionsAll()` | `Reaction[]` |
@@ -274,6 +278,7 @@ console.log(`Всего: ${users.length}`)
 | `search.searchMessagesAll()` | `Message[]` |
 | `search.searchUsersAll()` | `User[]` |
 | `tasks.listTasksAll()` | `Task[]` |
+| `threads.listThreadsAll()` | `Thread[]` |
 | `users.listUsersAll()` | `User[]` |
 
 ## Обработка ошибок
@@ -292,8 +297,8 @@ try {
 } catch (error) {
   if (error instanceof ApiError) {
     for (const e of error.errors) {
-      console.log(e.key, e.message)   // "name", "не может быть пустым"
-      console.log(e.code)             // "blank"
+      console.log(e.key, e.message)   // name не может быть пустым
+      console.log(e.code)             // blank
     }
   }
 }
@@ -304,10 +309,10 @@ try {
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `key` | `string` | Поле, вызвавшее ошибку |
-| `value` | `string \| null` | Переданное значение |
+| `value` | `unknown` | Переданное значение |
 | `message` | `string` | Текст ошибки |
 | `code` | `ValidationErrorCode` | Код валидации (`blank`, `invalid`, `taken`, ...) |
-| `payload` | `string \| null` | Дополнительные данные |
+| `payload` | `Record<string, unknown> \| null` | Дополнительные данные |
 
 Код статуса ответа — в поле `status`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже выбрасывает `ApiError`: с кодом статуса и пустым `errors`. Так бывает с ответом `404` без тела от метода [Поток событий](/api/bots/get-stream), когда история событий выключена, и со страницей прокси при `502`.
 
@@ -331,16 +336,15 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
+Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- До **3 повторов** на каждый запрос
-- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
-- **5xx:** линейная пауза 1 сек, 2 сек, 3 сек
-- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
-- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
-- Каждая пауза удлиняется на случайную величину до 25%, поэтому SDK никогда не ждёт меньше `Retry-After`
-- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
+- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 без заголовка:** 1 сек, 2 сек, 4 сек
+- **5xx:** 1 сек, 2 сек, 3 сек
+
+Сетевую ошибку без ответа сервера SDK не повторяет: исключение из `fetch` приходит сразу.
+
+Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
 
 ## Сериализация
 
@@ -387,53 +391,60 @@ import {
 
 Перечисление в ответе принимает и значение, которого SDK ещё не знает: такое значение приходит строкой как есть.
 
-## Примеры
+## Тело вебхука
+
+Тела событий вебхука описаны типами `MessageWebhookPayload`, `ReactionWebhookPayload`, `ButtonWebhookPayload`, `ViewSubmitWebhookPayload`, `ChatMemberWebhookPayload`, `CompanyMemberWebhookPayload`, `LinkSharedWebhookPayload` и `VideoCallWebhookPayload`. Тип `WebhookPayloadUnion` объединяет их, а вид события задают поля `type` и `event`. Поля в этих типах названы в camelCase, поэтому тело запроса сначала пропустите через функцию `deserialize`:
 
 ```typescript
-import { Button, FileType, MessageCreateRequest, MessageCreateRequestFile, MessageCreateRequestMessage, MessageEntityType, PachcaClient, TaskCreateRequest, TaskCreateRequestCustomProperty, TaskCreateRequestTask, TaskKind } from "@pachca/sdk"
+import { deserialize, WebhookPayloadUnion } from "@pachca/sdk"
+
+// rawBody — тело запроса строкой
+const payload = deserialize(JSON.parse(rawBody)) as WebhookPayloadUnion
+if (payload.type === "button") {
+  console.log(payload.messageId, payload.data)
+}
+```
+
+Подпись проверяйте по исходному телу до разбора, как в разделе [Безопасность](/guides/webhook/handler#bezopasnost). Те же типы отдают методы `pollWebhookEvents` и `pollWebhookPayloads`, которые забирают события из истории: пример — в разделе [Пример поллинга](/guides/webhook/polling#primer-pollinga).
+
+## Примеры
+
+**Отправка сообщения:**
+
+```typescript
+import { MessageCreateRequest, PachcaClient } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
-// Отправка сообщения
-const request: MessageCreateRequest = {
-  message: {
-    entityType: MessageEntityType.Discussion,
-    entityId: 334,
-    content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-    files: [{
-      key: "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
-      name: "logo.png",
-      fileType: FileType.Image,
-      size: 12345,
-      width: 800,
-      height: 600,
-      durationMs: 5400,
-      waveform: "4,8,12,20,16,10,6,3"
-    }],
-    buttons: [[{
-      text: "Подробнее",
-      url: "https://example.com/details",
-      data: "awesome"
-    }]],
-    parentMessageId: 194270,
-    displayAvatarUrl: "https://example.com/avatar.png",
-    displayName: "Бот Поддержки",
-    skipInviteMentions: false
-  },
-  linkPreview: false
-}
-const response = client.messages.createMessage(request)
+const request: MessageCreateRequest = { message: { entityId: 334, content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)" } }
+const response = await client.messages.createMessage(request)
 // → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean })
+```
 
-// Список сотрудников
-const response = client.users.listUsers({
+
+**Список сотрудников:**
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = await client.users.listUsers({
   query: "Олег",
   limit: 1,
   cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
 })
 // → ListUsersResponse({ data: User[], meta: PaginationMeta })
+```
 
-// Создание задачи
+
+**Создание задачи:**
+
+```typescript
+import { PachcaClient, TaskCreateRequest, TaskCreateRequestCustomProperty, TaskKind } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
 const request: TaskCreateRequest = {
   task: {
     kind: TaskKind.Reminder,
@@ -446,10 +457,9 @@ const request: TaskCreateRequest = {
     customProperties: [{ id: 78, value: "Синий склад" }]
   }
 }
-const response = client.tasks.createTask(request)
+const response = await client.tasks.createTask(request)
 // → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[] })
 ```
-
 
 
 

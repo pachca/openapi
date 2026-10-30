@@ -1,0 +1,124 @@
+{
+  "name": "Уведомления из внешнего сервиса",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pachca-alerts",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 100],
+      "webhookId": "pachca-alerts-webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1",
+                    "leftValue": "={{ $json.body.level }}",
+                    "rightValue": "critical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Критичные"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Остальные"
+        }
+      },
+      "name": "Куда отправить",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [220, 100]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityId": {
+          "__rl": true,
+          "value": "CHAT_ID_ДЕЖУРНЫХ",
+          "mode": "id"
+        },
+        "content": "=**{{ $json.body.title || 'Критичный алерт' }}**\n\n{{ $json.body.text || '' }}"
+      },
+      "name": "В чат дежурных",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [480, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityId": {
+          "__rl": true,
+          "value": "CHAT_ID_АЛЕРТОВ",
+          "mode": "id"
+        },
+        "content": "=**{{ $json.body.title || 'Уведомление' }}**\n\n{{ $json.body.text || '' }}"
+      },
+      "name": "В чат алертов",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [480, 200]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Куда отправить",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Куда отправить": {
+      "main": [
+        [
+          {
+            "node": "В чат дежурных",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "В чат алертов",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

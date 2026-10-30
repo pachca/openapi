@@ -230,7 +230,7 @@ export const botFields: INodeProperties[] = [
 				name: 'commands',
 				type: 'string',
 				default: "",
-				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.',
+				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.',
 				placeholder: '/task,/help',
 			},
 			{
@@ -416,10 +416,9 @@ export const botFields: INodeProperties[] = [
 		displayName: 'Webhook URL',
 		name: 'webhookUrl',
 		type: 'string',
-		required: true,
 		default: '',
 		placeholder: 'https://example.com/webhook',
-		description: 'URL for the outgoing webhook',
+		description: 'URL of the outgoing webhook. An empty field keeps the current address.',
 		displayOptions: { show: { resource: ['bot'], operation: ['update'] } },
 	},
 	{
@@ -451,7 +450,7 @@ export const botFields: INodeProperties[] = [
 				name: 'commands',
 				type: 'string',
 				default: "",
-				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.',
+				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.',
 				placeholder: '/task,/help',
 			},
 			{
@@ -482,9 +481,10 @@ export const botFields: INodeProperties[] = [
 				type: 'options',
 				options: [{ name: 'Gitlab', value: 'gitlab', description: 'GitLab: Pachca parses the request and builds the message itself' },
 { name: 'Grafana', value: 'grafana', description: 'Grafana: Pachca parses the request and builds the message itself' },
+{ name: 'None', value: 'null', description: 'Deletes the incoming webhook' },
 { name: 'Simple', value: 'simple', description: 'Custom format: the message is built from the request body with the bot\'s template' }],
 				default: "simple",
-				description: 'Incoming webhook source. If the bot had no incoming webhook, it is enabled.',
+				description: 'Incoming webhook source. If the bot had no incoming webhook, it is enabled. "None" deletes the incoming webhook: the address stops working, the template and the incoming webhook settings are reset, and on the next enabling the bot gets a new address.',
 			},
 			{
 				displayName: 'Link Preview Enabled',

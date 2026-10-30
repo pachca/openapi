@@ -231,7 +231,9 @@ actions:
 
         In response to the request the server returns `302 Found` with a `Location` header containing a temporary download link for the file. Most HTTP clients automatically follow the redirect and download the file.
 
-        The link is valid for 5 minutes, so use it right away. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission.
+        The link is valid for 5 minutes, so use it right away. Only the employee who ordered the export can download the archive: the method refuses another employee holding the same permission.
+
+        The archive itself is stored for 7 days. After that the method still responds `302`, but the storage returns an error at the link, and the export has to be ordered again.
 
         While the archive is being assembled, the method responds `404` with the `export_file_not_found` code.
   - target: $.paths['/chats/exports/{id}'].get.parameters[?(@.name=='id')]
@@ -448,6 +450,9 @@ actions:
         An empty draft cannot be created: either text or attachments are needed.
 
         The method is not available to bot tokens.
+  - target: $.paths['/drafts'].post.requestBody.content['application/json'].example.draft
+    update:
+      content: "Weekly report: sales are up 10%"
   - target: $.paths['/drafts'].get
     update:
       description: |-
@@ -1400,9 +1405,11 @@ actions:
 
         The stream works only when the "Save event history" option is enabled in the bot settings. If the option is off or the stream is unavailable, the method responds `404` without a body. The method works only with a bot token.
 
-        The link is opened without a token, for example with `EventSource` or `curl -N`: the link itself grants access, so keep it secret. Each event comes as a history record with the `id`, `event_type`, `payload` and `created_at` fields, and the service messages of the connection are told apart by the `type` field.
+        The link is opened without a token, for example with `EventSource` or `curl -N`: the link itself grants access, so keep it secret. Each event comes as an unnamed SSE message carrying a history record with the `id`, `event_type`, `payload` and `created_at` fields. Service messages come as named SSE events and are told apart by the `type` field: `confirm_subscription` confirms the subscription, and `disconnect` reports that the server has closed the connection.
 
-        The link works until `expires_at`, and then the stream stops sending events without closing the connection. Get a new link within the last five minutes before `expires_at`: an earlier request returns the same link. Not to miss anything, after connecting wait for the subscription to be confirmed and only then read the [Event history](GET /webhooks/events), and do the same after every reconnection and change of link. Delivery to the stream is not guaranteed: keep deleting processed events with the [Delete history event](DELETE /webhooks/events/{id}) method, and drop repeats by `id`. If the bot has a webhook address, a repeated delivery to it comes to the stream once more with a new `id`: such repeats are dropped by a key from `payload`, as in [Idempotent processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in [Polling](/guides/webhook/polling).
+        The link works for one to two hours, until `expires_at`. At that moment the server sends `disconnect` over it and closes the connection, and after it `EventSource` does not reconnect by itself. A request within the same UTC hour returns the same link, and a request in the last hour before `expires_at` gives a new one. Change the link about five minutes before `expires_at`: connect with the new one while the old one still works, and close the old connection once the new one confirms the subscription. If `disconnect` does arrive, get a new link and connect again.
+
+        Not to miss anything, after every connection, including a reconnection and a change of link, wait for the subscription to be confirmed and only then read the [Event history](GET /webhooks/events). Delivery to the stream is not guaranteed: still delete processed events with the [Delete history event](DELETE /webhooks/events/{id}) method, and drop repeats by `id`. If the bot has a webhook address, a repeated delivery to it comes to the stream once more with a new `id`: such repeats are dropped by a key from `payload`, as in [Idempotent processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in [Real-time events](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
   - target: $.paths['/webhooks/events'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
@@ -1585,6 +1592,18 @@ actions:
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.device_name
     update:
       description: Name of the device the sign-in is made from. `null` if the app did not pass it.
+  - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.application_id
+    update:
+      description: "ID of the application that was allowed to log in"
+  - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.application_name
+    update:
+      description: "Application name. Absent in records before October 7, 2026."
+  - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.device_grant_id
+    update:
+      description: "ID of the login request"
+  - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.token_kind
+    update:
+      description: "Token kind: `cli` — CLI login. Absent in records before October 7, 2026."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied
     update:
       description: 'For: oauth_device_authorization_denied'
@@ -1597,6 +1616,15 @@ actions:
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.device_name
     update:
       description: Name of the device the sign-in was made from. `null` if the app did not pass it.
+  - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.application_id
+    update:
+      description: "Application ID. When a CLI sign-in is refused, it is `null`: an application is assigned to the sign-in only after it is confirmed."
+  - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.device_grant_id
+    update:
+      description: "ID of the login request"
+  - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.token_kind
+    update:
+      description: "Token kind: `cli` — CLI login. Absent in records before October 7, 2026."
   - target: $.components.schemas.AuditDetailsDlp
     update:
       description: 'For: dlp_violation_detected'
@@ -1647,7 +1675,7 @@ actions:
       description: Message ID
   - target: $.components.schemas.AuditDetailsKms.properties.reason
     update:
-      description: Operation reason
+      description: "Operation reason: `message_create` — encrypting the message text, `message_store_for_search` — saving the text for search, `file_upload` — uploading a file (all three with kms_encrypt), `file_download` — downloading a file (with kms_decrypt)"
   - target: $.components.schemas.AuditDetailsLoginGrantCreated
     update:
       description: 'For: login_grant_created'
@@ -1714,6 +1742,24 @@ actions:
   - target: $.components.schemas.AuditDetailsBot.properties.actor_id
     update:
       description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+  - target: $.components.schemas.AuditDetailsBot.properties.webhook_id
+    update:
+      description: "ID of the bot's webhook"
+  - target: $.components.schemas.AuditDetailsBot.properties.application_id
+    update:
+      description: "ID of the bot's application. `null` if the bot has no application."
+  - target: $.components.schemas.AuditDetailsBot.properties.access_token_id
+    update:
+      description: "Token ID. Present for bot_token_created, bot_token_reissued and bot_token_updated."
+  - target: $.components.schemas.AuditDetailsBot.properties.access_token_preview
+    update:
+      description: "Masked token: the first and last characters. Present for bot token events, `null` if the value is unavailable."
+  - target: $.components.schemas.AuditDetailsBot.properties.scopes
+    update:
+      description: "Token scopes. Present for bot_token_created."
+  - target: $.components.schemas.AuditDetailsBot.properties.name
+    update:
+      description: "Token name change for bot_token_updated. Present if the name was passed in the request."
   - target: $.components.schemas.AuditDetailsBotScopes
     update:
       description: 'For: bot_scopes_updated'
@@ -1723,12 +1769,39 @@ actions:
   - target: $.components.schemas.AuditDetailsBotScopes.properties.removed_scopes
     update:
       description: Scopes revoked from the bot token
+  - target: $.components.schemas.AuditDetailsBotScopes.properties.bot_name
+    update:
+      description: "Bot name. Absent in records before October 7, 2026."
+  - target: $.components.schemas.AuditDetailsBotScopes.properties.webhook_id
+    update:
+      description: "ID of the bot's webhook"
+  - target: $.components.schemas.AuditDetailsBotScopes.properties.previous_scopes
+    update:
+      description: "Bot token scopes before the change"
+  - target: $.components.schemas.AuditDetailsBotScopes.properties.new_scopes
+    update:
+      description: "Bot token scopes after the change"
   - target: $.components.schemas.AuditDetailsBotWebhookSettings
     update:
       description: 'For: bot_webhook_settings_updated'
   - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.changes
     update:
-      description: "Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages, events_history_enabled), the value is an object with previous and new fields."
+      description: "Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), the value is an object with previous and new fields."
+  - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.bot_name
+    update:
+      description: "Bot name"
+  - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.webhook_id
+    update:
+      description: "ID of the bot's webhook"
+  - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.access_token_id
+    update:
+      description: "ID of the token the settings were changed with. `null` if they were changed in the Pachca interface."
+  - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.access_token_preview
+    update:
+      description: "Masked token the settings were changed with. `null` if they were changed in the Pachca interface."
+  - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.application_id
+    update:
+      description: "ID of the application of the token the settings were changed with. `null` if they were changed in the Pachca interface."
   - target: $.components.schemas.AuditDetailsBotOAuthClient
     update:
       description: 'For: bot_oauth_client_updated'
@@ -1738,15 +1811,51 @@ actions:
   - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.changes
     update:
       description: "Changed client settings. The key is the setting name (confidential, redirect_uris, scopes), the value is an object with previous and new fields."
+  - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.application_id
+    update:
+      description: "ID of the bot's application"
+  - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.application_name
+    update:
+      description: "Name of the bot's application"
+  - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.bot_name
+    update:
+      description: "Bot name"
+  - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.webhook_id
+    update:
+      description: "ID of the bot's webhook"
+  - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.scopes
+    update:
+      description: "Scopes the bot requests from an employee on the consent screen"
+  - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.access_token_id
+    update:
+      description: "ID of the token the action was performed with. `null` if the action was performed in the Pachca interface."
+  - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.access_token_preview
+    update:
+      description: "Masked token the action was performed with. `null` if the action was performed in the Pachca interface."
   - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted
     update:
       description: 'For: oauth_authorization_granted'
   - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted.properties.client_id
     update:
-      description: ID of the OAuth client that was granted access
+      description: "ID of the OAuth client that was granted access. `null` in records before October 7, 2026 about access granted to a bot."
   - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted.properties.scopes
     update:
       description: Scopes the access was granted for
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted.properties.application_id
+    update:
+      description: "ID of the application that was granted access"
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted.properties.application_name
+    update:
+      description: "Application name. Absent in records before October 7, 2026."
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted.properties.bot_id
+    update:
+      description: "Bot ID. Present when access was granted to a bot."
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted.properties.bot_name
+    update:
+      description: "Bot name. Present together with `bot_id`."
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted.properties.authorization_grant_id
+    update:
+      description: "ID of the issued authorization code"
   - target: $.components.schemas.AuditDetailsOAuthAuthorizationRevoked
     update:
       description: 'For: oauth_authorization_revoked'
@@ -1759,6 +1868,18 @@ actions:
   - target: $.components.schemas.AuditDetailsOAuthAuthorizationRevoked.properties.user_id
     update:
       description: ID of the employee whose access was revoked. Present when the access was revoked by an administrator.
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationRevoked.properties.application_id
+    update:
+      description: "ID of the application whose access was revoked"
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationRevoked.properties.application_name
+    update:
+      description: "Application name. Absent in records before October 7, 2026."
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationRevoked.properties.bot_id
+    update:
+      description: "Bot ID. Present when access was revoked from a bot."
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationRevoked.properties.bot_name
+    update:
+      description: "Bot name. Present together with `bot_id`."
   - target: $.components.schemas.AuditDetailsVideoCallStarted
     update:
       description: 'For: video_call_started'
@@ -2018,7 +2139,7 @@ actions:
       description: Outgoing webhook trigger condition
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.commands
     update:
-      description: Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.
+      description: Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.scopes
     update:
       description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
@@ -2151,7 +2272,7 @@ actions:
       description: Outgoing webhook trigger condition
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.commands
     update:
-      description: Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.
+      description: Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.scopes
     update:
       description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
@@ -2365,13 +2486,13 @@ actions:
       description: Voice message transcription to text. `null` while the transcription is not ready or unavailable.
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.duration_ms
     update:
-      description: Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.
+      description: "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.waveform
     update:
       description: Waveform for visualizing the voice message. Required for voice messages (`file_type` is `voice`), not used for other types.
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.duration_ms
     update:
-      description: Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.
+      description: "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code."
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.waveform
     update:
       description: "Waveform for visualizing the voice message. Without it a request with a voice file (`file_type` is `voice`) does not pass validation, but when editing, the value that was sent is not saved. Not used for other types."
@@ -2744,7 +2865,7 @@ actions:
       description: Image height in pixels
   - target: $.components.schemas.DraftFileRequest.properties.duration_ms
     update:
-      description: "Duration in milliseconds. Required for a voice message (`file_type` is `voice`). A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`."
+      description: "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code."
   - target: $.components.schemas.DraftFileRequest.properties.waveform
     update:
       description: "Waveform for visualization. Required for a voice message (`file_type` is `voice`)."
@@ -2914,7 +3035,7 @@ actions:
       description: "Image height in pixels. `null` for files that are not images, and if the size was not supplied at upload time."
   - target: $.components.schemas.File.properties.duration_ms
     update:
-      description: "Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the duration was not supplied at upload time."
+      description: "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
   - target: $.components.schemas.FileType
     update:
       description: File type
@@ -3279,7 +3400,7 @@ actions:
       description: "File name to display to the user. The extension must match the extension of the file in `key`, otherwise the response is 422 with the `wrong_params` code."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.file_type
     update:
-      description: File type
+      description: File type. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`.
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.size
     update:
       description: File size in bytes, displayed to the user. If it is not passed or is 0, Pachca takes the size from the storage shortly after saving.
@@ -4518,6 +4639,12 @@ actions:
   - target: $.components.schemas.SubmitViewResponseResult.properties.success
     update:
       description: Successful processing flag
+  - target: $.components.schemas.OpenViewResult
+    update:
+      description: "View opening result"
+  - target: $.components.schemas.OpenViewResult.properties.success
+    update:
+      description: "Whether the window was opened. Always `true` in a successful response."
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.data
     update:
       description: "Submitted view field data. Key — block `name`, value — entered data. For a `file_input` block the value arrives as an array of objects with `name`, `size` and `url`, and the link is valid for 2 hours."
@@ -4547,7 +4674,7 @@ actions:
       description: Link to the event stream in the Server-Sent Events format. It opens without a token, so keep it secret.
   - target: $.components.schemas.WebhookEventsStream.properties.expires_at
     update:
-      description: Date and time until which the link works (ISO-8601, UTC+0)
+      description: "Date and time until which the link works (ISO-8601, UTC+0): one to two hours after the request. At that moment the server sends `disconnect` and closes the connection opened with it."
   - target: $.components.schemas.WebhookEventType
     update:
       description: Webhook event type
@@ -4629,6 +4756,27 @@ actions:
   - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.deleted_access_grants_count
     update:
       description: "Number of unused authorization codes revoked"
+  - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.application_id
+    update:
+      description: "ID of the bot's application"
+  - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.application_name
+    update:
+      description: "Name of the bot's application"
+  - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.bot_name
+    update:
+      description: "Bot name"
+  - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.webhook_id
+    update:
+      description: "ID of the bot's webhook"
+  - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.scopes
+    update:
+      description: "Scopes the bot requests from an employee on the consent screen"
+  - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.access_token_id
+    update:
+      description: "ID of the token the action was performed with. `null` if the action was performed in the Pachca interface."
+  - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.access_token_preview
+    update:
+      description: "Masked token the action was performed with. `null` if the action was performed in the Pachca interface."
   - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.deleted_access_tokens_count
     update:
       description: "Number of employee tokens revoked"
@@ -4644,6 +4792,27 @@ actions:
   - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.client_id
     update:
       description: "Bot OAuth client ID"
+  - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.application_id
+    update:
+      description: "ID of the bot's application"
+  - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.application_name
+    update:
+      description: "Name of the bot's application"
+  - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.bot_name
+    update:
+      description: "Bot name"
+  - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.webhook_id
+    update:
+      description: "ID of the bot's webhook"
+  - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.scopes
+    update:
+      description: "Scopes the bot requests from an employee on the consent screen. Present for bot_oauth_client_secret_issued."
+  - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.access_token_id
+    update:
+      description: "ID of the token the action was performed with. `null` if the action was performed in the Pachca interface. Present for bot_oauth_client_secret_issued."
+  - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.access_token_preview
+    update:
+      description: "Masked token the action was performed with. `null` if the action was performed in the Pachca interface. Present for bot_oauth_client_secret_issued."
   - target: $.components.schemas.AuditDetailsBotScopes.properties.actor_id
     update:
       description: "ID of the user who performed the action. `null` if the action was performed without an initiator."
@@ -5003,7 +5172,7 @@ actions:
       description: "The bot's catalog page. Available only while authorization is enabled for the bot."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.kind
     update:
-      description: "Incoming webhook source. If the bot had no incoming webhook, it is enabled."
+      description: "Incoming webhook source. If the bot had no incoming webhook, it is enabled. `null` deletes the incoming webhook: the address stops working, the template and the incoming webhook settings are reset, and on the next enabling the bot gets a new address."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.single_chat
     update:
       description: "Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don't count toward this limit"
@@ -5195,6 +5364,39 @@ actions:
   - target: $.components.schemas.AuditDetailsToken.properties.reason
     update:
       description: "Reason for the revocation. `guest_downgrade` means the token was revoked automatically when the employee was made a guest. Present only in such records."
+  - target: $.components.schemas.AuditDetailsToken.properties.access_token_id
+    update:
+      description: "Token ID"
+  - target: $.components.schemas.AuditDetailsToken.properties.access_token_preview
+    update:
+      description: "Masked token: the first and last characters. `null` if the value is unavailable."
+  - target: $.components.schemas.AuditDetailsToken.properties.application_id
+    update:
+      description: "ID of the application the token belongs to"
+  - target: $.components.schemas.AuditDetailsToken.properties.application_name
+    update:
+      description: "Name of the application the token belongs to"
+  - target: $.components.schemas.AuditDetailsToken.properties.client_id
+    update:
+      description: "ID of the application's OAuth client"
+  - target: $.components.schemas.AuditDetailsToken.properties.bot_name
+    update:
+      description: "Bot name. Present together with `bot_id`."
+  - target: $.components.schemas.AuditDetailsToken.properties.device_name
+    update:
+      description: "Device name. Present for a CLI login, `null` if there is no name."
+  - target: $.components.schemas.AuditDetailsToken.properties.actor_id
+    update:
+      description: "ID of the user who performed the action. Present for bot token events, `null` if the action was performed without an initiator."
+  - target: $.components.schemas.AuditDetailsToken.properties.webhook_id
+    update:
+      description: "ID of the bot's webhook. Present for bot token events."
+  - target: $.components.schemas.AuditDetailsToken.properties.user_id
+    update:
+      description: "ID of the employee whose token was revoked. Present when an administrator revoked the token or the employee was moved to guests."
+  - target: $.components.schemas.AuditDetailsToken.properties.source
+    update:
+      description: "Revocation source: `oauth_client` — the application revoked the token itself. Present only for oauth_token_revoked."
   - target: $.components.schemas.AuditDetailsBotTokenUpdated
     update:
       description: "For: bot_token_updated"
@@ -5216,6 +5418,39 @@ actions:
   - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.actor_id
     update:
       description: "ID of the user who performed the action. `null` if the action was performed without an initiator."
+  - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.access_token_id
+    update:
+      description: "Token ID"
+  - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.access_token_preview
+    update:
+      description: "Masked token: the first and last characters. `null` if the value is unavailable."
+  - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.application_id
+    update:
+      description: "ID of the bot's application"
+  - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.application_name
+    update:
+      description: "Name of the bot's application"
+  - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.client_id
+    update:
+      description: "ID of the bot's OAuth client"
+  - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.bot_name
+    update:
+      description: "Bot name"
+  - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.webhook_id
+    update:
+      description: "ID of the bot's webhook"
+  - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.name
+    update:
+      description: "Token name change. Present if the name was passed in the request."
+  - target: $.components.schemas.AuditDetailsTokenNameChange
+    update:
+      description: "Token name change in the audit log"
+  - target: $.components.schemas.AuditDetailsTokenNameChange.properties.previous
+    update:
+      description: "Previous name. `null` if there was no name."
+  - target: $.components.schemas.AuditDetailsTokenNameChange.properties.new
+    update:
+      description: "New name. `null` if the name was removed."
   - target: "$.paths['/chats/{id}/avatar'].put"
     update:
       description: |-

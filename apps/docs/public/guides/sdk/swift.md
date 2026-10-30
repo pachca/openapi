@@ -33,7 +33,7 @@ targets: [
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
+Клиенту нужен токен бота или персональный токен. Какой выбрать и кто может его выпустить, описано в разделе [Какой токен выбрать](/api/authorization#kakoy-token-vybrat).
 
 ```swift
 import PachcaSDK
@@ -230,12 +230,7 @@ let response = try await client.chats.getChat(id: 334)
 
 ## Пагинация
 
-SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
-
-- **Списочные методы** (`client.users.listUsers()`, `client.chats.listChats()`, `client.messages.listChatMessages()` и т.д.) — `meta.paginate` с полями `nextPage`, `prevPage`, `hasNext`, `hasPrev`. Признак конца — `hasNext == false`. Курсор `prevPage` нужен для polling новых записей «сверху» списка.
-- **Методы поиска** (`client.search.searchUsers()`, `client.search.searchChats()`, `client.search.searchMessages()`) — `meta` с полями `total` и `paginate.nextPage` (без `prevPage`/`hasNext`/`hasPrev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
-
-Курсоры — непрозрачные токены, никогда не бывают `nil`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -243,23 +238,26 @@ SDK работает с двумя группами методов, возвра
 var cursor: String? = nil
 var hasNext = true
 while hasNext {
-    let response = try await client.users.listUsers(limit: 50, cursor: cursor)
-    for user in response.data {
-        print("\(user.firstName) \(user.lastName)")
+    let response = try await client.chats.listChats(limit: 50, cursor: cursor)
+    if response.data.isEmpty { break }
+    for chat in response.data {
+        print(chat.id, chat.name)
     }
     cursor = response.meta.paginate.nextPage
-    hasNext = response.meta.paginate.hasNext
+    hasNext = response.meta.paginate.hasNext ?? true
 }
 ```
+
+В модели поле `hasNext` имеет тип `Bool?`. Если оно `nil`, цикл идёт дальше и останавливается на пустой странице. Так же обходят страницы методы `*All()`.
 
 ### Автопагинация
 
 Для каждого метода с пагинацией есть `*All()` вариант:
 
 ```swift
-// Все пользователи одним массивом
-let users = try await client.users.listUsersAll()
-print("Всего: \(users.count)")
+// Все чаты одним массивом
+let chats = try await client.chats.listChatsAll()
+print("Всего: \(chats.count)")
 ```
 
 Доступные методы автопагинации:
@@ -267,10 +265,16 @@ print("Всего: \(users.count)")
 | Метод | Возвращает |
 |-------|-----------|
 | `security.getAuditEventsAll()` | `[AuditEvent]` |
+| `bots.listBotsAll()` | `[BotResponse]` |
+| `bots.listBotTokensAll()` | `[BotAccessToken]` |
+| `bots.listCompanyBotsAll()` | `[CompanyBotResponse]` |
 | `bots.getWebhookEventsAll()` | `[WebhookEvent]` |
 | `chats.listChatsAll()` | `[Chat]` |
+| `chats.listCompanyChatsAll()` | `[Chat]` |
+| `drafts.listDraftsAll()` | `[Draft]` |
 | `groupTags.listTagsAll()` | `[GroupTag]` |
 | `groupTags.getTagUsersAll()` | `[User]` |
+| `importantMessages.listImportantMessagesAll()` | `[Message]` |
 | `members.listMembersAll()` | `[User]` |
 | `messages.listChatMessagesAll()` | `[Message]` |
 | `reactions.listReactionsAll()` | `[Reaction]` |
@@ -278,6 +282,7 @@ print("Всего: \(users.count)")
 | `search.searchMessagesAll()` | `[Message]` |
 | `search.searchUsersAll()` | `[User]` |
 | `tasks.listTasksAll()` | `[Task]` |
+| `threads.listThreadsAll()` | `[Thread]` |
 | `users.listUsersAll()` | `[User]` |
 
 ## Обработка ошибок
@@ -293,8 +298,8 @@ do {
     _ = try await client.chats.createChat(request: request)
 } catch let error as ApiError {
     for e in error.errors {
-        print("\(e.key): \(e.message)")  // "name: не может быть пустым"
-        print(e.code)                    // .blank
+        print("\(e.key): \(e.message)")  // name: не может быть пустым
+        print(e.code)                    // blank
     }
 }
 ```
@@ -304,10 +309,10 @@ do {
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `key` | `String` | Поле, вызвавшее ошибку |
-| `value` | `String?` | Переданное значение |
+| `value` | `AnyCodable?` | Переданное значение |
 | `message` | `String` | Текст ошибки |
 | `code` | `ValidationErrorCode` | Код валидации |
-| `payload` | `String?` | Дополнительные данные |
+| `payload` | `[String: AnyCodable]?` | Дополнительные данные |
 
 Код статуса ответа — в поле `statusCode`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже выбрасывает `ApiError`: с кодом статуса и пустым `errors`. Так бывает с ответом `404` без тела от метода [Поток событий](/api/bots/get-stream), когда история событий выключена, и со страницей прокси при `502`.
 
@@ -317,7 +322,7 @@ do {
 
 ```swift
 do {
-    try await client.profile.getProfile()
+    _ = try await client.profile.getProfile()
 } catch let error as OAuthError {
     print(error.error.rawValue)     // "insufficient_scope"
     print(error.errorDescription)   // описание ошибки
@@ -328,16 +333,15 @@ do {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
+Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- До **3 повторов** на каждый запрос
-- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
-- **5xx:** линейная пауза с jitter: ~1 сек, ~2 сек, ~3 сек
-- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
-- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
-- Ожидание через `Task.sleep(nanoseconds:)` — не блокирует поток
-- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
+- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 без заголовка:** 1 сек, 2 сек, 4 сек
+- **5xx:** 1 сек, 2 сек, 3 сек
+
+Сетевую ошибку без ответа сервера SDK не повторяет: ошибка URLSession приходит сразу. Паузы идут через `_Concurrency.Task.sleep(nanoseconds:)` и поток не блокируют.
+
+Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
 
 ## Типы
 
@@ -353,7 +357,7 @@ let user: User
 
 // Перечисления
 let key: AuditEventKey = .userLogin
-let availability: ChatAvailability = .isOpen
+let availability: ChatAvailability = .public
 let role: ChatMemberRole = .admin
 let status: TaskStatus = .done
 
@@ -364,7 +368,38 @@ let oauthError: OAuthError
 
 Перечисление в ответе принимает и значение, которого SDK ещё не знает: оно приходит случаем `.unknown(String)`, а `rawValue` возвращает исходную строку. Поэтому `switch` по такому перечислению включает `case .unknown` или `default`. Незнакомую строку и `init?(rawValue:)` превращает в случай `.unknown`: проверить, знает ли SDK значение, помогает `allCases.contains(value)`.
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Все перечисления SDK: `AuditEventKey`, `AuditLoginGrantDenyReason`, `AuditLoginGrantDevicePlatform`, `BotCanEdit`, `BotEventName`, `BotTemplateEngine`, `BotTriggerOn`, `BotWebhookKind`, `BotWhoCanAdd`, `ChatActivity`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSortField`, `ChatSubtype`, `CustomPropertyDataType`, `DraftRepetitionInterval`, `DraftType`, `FileTarget`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `MessageSearchSort`, `MessageSortField`, `OAuthErrorCode`, `OAuthScope`, `OAuthTokenTypeHint`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserCreateRole`, `UserEventType`, `UserRole`, `UserRoleInput`, `ValidationErrorCode`, `VideoCallEventType` и `WebhookEventType`.
+
+### Имена Task и Thread
+
+В SDK есть типы `Task` и `Thread`. В файле с `import PachcaSDK` имя `Task` означает задачу Пачки, поэтому задачу Swift Concurrency записывайте полностью: `_Concurrency.Task`. Имя `Thread` рядом с `import Foundation` неоднозначно, его записывайте как `PachcaSDK.Thread` или `Foundation.Thread`:
+
+```swift
+import Foundation
+import PachcaSDK
+
+_Concurrency.Task {
+    let threads: [PachcaSDK.Thread] = try await client.threads.listThreadsAll()
+    print(threads.count)
+}
+```
+
+## Тело вебхука
+
+Тела событий вебхука описаны структурами `MessageWebhookPayload`, `ReactionWebhookPayload`, `ButtonWebhookPayload`, `ViewSubmitWebhookPayload`, `ChatMemberWebhookPayload`, `CompanyMemberWebhookPayload`, `LinkSharedWebhookPayload` и `VideoCallWebhookPayload`. Перечисление `WebhookPayloadUnion` объединяет их: при разборе JSON оно выбирает случай по полям `type` и `event`.
+
+```swift
+import Foundation
+import PachcaSDK
+
+// body — тело запроса, Data
+let payload = try JSONDecoder().decode(WebhookPayloadUnion.self, from: body)
+if case .buttonWebhookPayload(let button) = payload {
+    print(button.messageId, button.data)
+}
+```
+
+Подпись проверяйте по исходному телу до разбора, как в разделе [Безопасность](/guides/webhook/handler#bezopasnost). Те же типы отдают методы `pollWebhookEvents` и `pollWebhookPayloads`, которые забирают события из истории: пример — в разделе [Пример поллинга](/guides/webhook/polling#primer-pollinga).
 
 ## Платформы
 
@@ -376,47 +411,38 @@ let oauthError: OAuthError
 
 ## Примеры
 
+**Отправка сообщения:**
+
 ```swift
 import PachcaSDK
 
 let client = PachcaClient(token: "YOUR_TOKEN")
 
-// Отправка сообщения
-let request = MessageCreateRequest(
-    message: MessageCreateRequestMessage(
-        entityType: .discussion,
-        entityId: 334,
-        content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-        files: [MessageCreateRequestFile(
-            key: "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
-            name: "logo.png",
-            fileType: .image,
-            size: Int64(12345),
-            width: 800,
-            height: 600,
-            durationMs: 5400,
-            waveform: "4,8,12,20,16,10,6,3"
-        )],
-        buttons: [[Button(
-            text: "Подробнее",
-            url: "https://example.com/details",
-            data: "awesome"
-        )]],
-        parentMessageId: 194270,
-        displayAvatarUrl: "https://example.com/avatar.png",
-        displayName: "Бот Поддержки",
-        skipInviteMentions: false
-    ),
-    linkPreview: false
-)
+let request = MessageCreateRequest(message: MessageCreateRequestMessage(entityId: 334, content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"))
 let response = try await client.messages.createMessage(request: request)
 // → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool)
+```
 
-// Список сотрудников
+
+**Список сотрудников:**
+
+```swift
+import PachcaSDK
+
+let client = PachcaClient(token: "YOUR_TOKEN")
+
 let response = try await client.users.listUsers(query: "Олег", limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
 // → ListUsersResponse(data: [User], meta: PaginationMeta)
+```
 
-// Создание задачи
+
+**Создание задачи:**
+
+```swift
+import PachcaSDK
+
+let client = PachcaClient(token: "YOUR_TOKEN")
+
 let request = TaskCreateRequest(
     task: TaskCreateRequestTask(
         kind: .reminder,
@@ -432,7 +458,6 @@ let request = TaskCreateRequest(
 let response = try await client.tasks.createTask(request: request)
 // → Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)])
 ```
-
 
 
 

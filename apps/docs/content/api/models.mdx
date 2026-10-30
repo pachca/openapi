@@ -1,14 +1,14 @@
 ---
 title: Модели
-description: "Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, черновики, задачи, теги, вебхуки и другие сущности"
+description: "Справочник моделей данных Pachca API (сотрудники, чаты, сообщения, черновики, напоминания, теги, вебхуки и другие сущности): свойства каждой модели и методы, которые с ней работают"
 hideTableOfContents: true
 ---
 
 # Модели
 
-Все модели данных, возвращаемые в ответах API. Каждая модель содержит связанные методы и таблицу свойств.
+Модели данных из ответов API. У каждой модели — таблица свойств и методы, которые с ней работают. Возвращают модель не все из них: удаление и действия вроде закрепления или архивации отвечают `204` без тела, а у отдельных методов своя форма ответа, описанная на их странице.
 
-<Info>Методы [Получение подписи, ключа и других параметров](POST /uploads), [Загрузка файла](POST /direct_url), [Скачивание файла](GET /files/{id}) и [Отзыв токена](POST /oauth/revoke) не возвращают модели данных: первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом, а отзыв — пустым объектом.</Info>
+<Info>Методы [Получение подписи, ключа и других параметров](POST /uploads), [Загрузка файла](POST /direct_url), [Скачивание файла](GET /files/{id}), [Отзыв токена](POST /oauth/revoke) и [Открытие представления](POST /views/open) не связаны ни с одной моделью, поэтому своего раздела у них нет. Первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом, отзыв — пустым объектом, а открытие представления — ответом `201` без тела.</Info>
 
 <CardGroup>
   <Card title="Дополнительное поле" href="#dopolnitelnoe-pole" methods="GET" />
@@ -25,8 +25,8 @@ hideTableOfContents: true
   <Card title="Реакция на сообщение" href="#reaktsiya-na-soobschenie" methods="GET POST DELETE" />
   <Card title="Напоминание" href="#napominanie" methods="GET POST PUT DELETE" />
   <Card title="Черновик" href="#chernovik" methods="GET POST PUT DELETE" />
-  <Card title="Представление" href="#predstavlenie" methods="POST" />
-  <Card title="Параметры бота" href="#parametry-bota" methods="POST, GET, PUT, DELETE" />
+  <Card title="Ответ на отправку формы" href="#otvet-na-otpravku-formy" methods="POST" />
+  <Card title="Параметры бота" href="#parametry-bota" methods="POST GET PUT DELETE" />
   <Card title="Бот в методах самого бота" href="#bot-v-metodah-samogo-bota" methods="PUT POST" />
   <Card title="Токен бота" href="#token-bota" methods="GET POST PUT DELETE" />
   <Card title="Каталог прав бота" href="#katalog-prav-bota" methods="GET" />
@@ -184,12 +184,11 @@ hideTableOfContents: true
 
 <ModelSchema name="Draft" />
 
-## Представление
+## Ответ на отправку формы
 
-- [Открытие представления](POST /views/open)
 - [Ответ на отправку формы](POST /views/{view_id}/submit_response)
 
-<ModelSchema name="OpenViewRequest" />
+<ModelSchema name="SubmitViewResponseResult" />
 
 ## Параметры бота
 
@@ -201,12 +200,16 @@ hideTableOfContents: true
 - [Ротация токена бота](POST /bots/{id}/recreate_token)
 - [Ротация секрета клиента](POST /bots/{id}/rotate_client_secret)
 
+Методы [Новый бот](POST /bots) и [Ротация токена бота](POST /bots/{id}/recreate_token) возвращают эту модель вместе с токеном бота в поле `access_token`. Токен приходит один раз, а при создании бота с `empty: true` его в ответе нет.
+
 <ModelSchema name="BotResponse" />
 
 ## Бот в методах самого бота
 
 - [Саморегистрация вебхука бота](PUT /bot/webhook)
 - [Ротация собственного токена бота](POST /bot/recreate_token)
+
+Ротация собственного токена возвращает эту модель вместе с новым токеном в поле `access_token`, он приходит один раз.
 
 <ModelSchema name="BotSelfResponse" />
 

@@ -549,6 +549,50 @@ describe('Special: botWebhook', () => {
 		const body = ctx._calls[0].body as any;
 		expect(body.webhook).toEqual({ outgoing_url: 'https://example.com/webhook' });
 	});
+
+	it('Kind = None sends kind: null, which deletes the incoming webhook', async () => {
+		const ctx = createMockContext({
+			resource: 'bot',
+			operation: 'update',
+			params: { botId: 5, webhookUrl: 'https://example.com/webhook', additionalFields: { kind: 'null' } },
+		});
+		await runRouter(ctx);
+		const body = ctx._calls[0].body as any;
+		expect(body.webhook).toHaveProperty('kind', null);
+	});
+
+	it('an empty Webhook URL leaves outgoing_url out, so deleting the incoming webhook sets no outgoing one', async () => {
+		const ctx = createMockContext({
+			resource: 'bot',
+			operation: 'update',
+			params: { botId: 5, webhookUrl: '', additionalFields: { kind: 'null' } },
+		});
+		await runRouter(ctx);
+		const body = ctx._calls[0].body as any;
+		expect(body.webhook).toEqual({ kind: null });
+	});
+
+	it('Kind = Simple sends the value as is', async () => {
+		const ctx = createMockContext({
+			resource: 'bot',
+			operation: 'update',
+			params: { botId: 5, webhookUrl: 'https://example.com/webhook', additionalFields: { kind: 'simple' } },
+		});
+		await runRouter(ctx);
+		const body = ctx._calls[0].body as any;
+		expect(body.webhook.kind).toBe('simple');
+	});
+
+	it('the string null stays a string where the field is not nullable', async () => {
+		const ctx = createMockContext({
+			resource: 'bot',
+			operation: 'update',
+			params: { botId: 5, webhookUrl: 'https://example.com/webhook', additionalFields: { template: 'null' } },
+		});
+		await runRouter(ctx);
+		const body = ctx._calls[0].body as any;
+		expect(body.webhook.template).toBe('null');
+	});
 });
 
 describe('Special: avatarUpload', () => {

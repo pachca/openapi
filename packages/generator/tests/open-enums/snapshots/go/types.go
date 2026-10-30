@@ -83,12 +83,14 @@ func (m Member) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.PreviousStatuses != nil {
-		raw["previous_statuses"] = m.PreviousStatuses
+		if raw["previous_statuses"], err = json.Marshal(m.PreviousStatuses); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }

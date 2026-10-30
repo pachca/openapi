@@ -2205,7 +2205,9 @@ paths:
 
         В ответ на запрос сервер вернёт `302 Found` с заголовком `Location`, содержащим временную ссылку на скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.
 
-        Ссылка действует 5 минут, используйте её сразу. Сам архив хранится 7 дней, а скачать его может только тот, кто заказал выгрузку. Другому сотруднику с тем же правом метод откажет.
+        Ссылка действует 5 минут, используйте её сразу. Скачать архив может только тот, кто заказал выгрузку: другому сотруднику с тем же правом метод откажет.
+
+        Сам архив хранится 7 дней. После этого метод по-прежнему отвечает `302`, но хранилище по ссылке возвращает ошибку, и выгрузку нужно заказать заново.
 
         Пока архив собирается, метод отвечает `404` с кодом `export_file_not_found`.
       parameters:
@@ -3609,6 +3611,8 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/FileUploadRequest'
+      security:
+        - {}
       x-external-url: directUrl
       x-requirements:
         auth: false
@@ -3693,6 +3697,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DraftCreateRequest'
+            example:
+              draft:
+                entity_type: discussion
+                entity_id: 334
+                content: 'Отчёт за неделю: продажи выросли на 10%'
       x-requirements:
         scope: drafts:write
     get:
@@ -4859,6 +4868,23 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MessageCreateRequest'
+            examples:
+              Минимальный запрос:
+                summary: Минимальный запрос
+                value:
+                  message:
+                    entity_id: 334
+                    content: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)
+              Сообщение с кнопкой:
+                summary: Сообщение с кнопкой
+                value:
+                  message:
+                    entity_type: discussion
+                    entity_id: 334
+                    content: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)
+                    buttons:
+                      - - text: Подробнее
+                          url: https://example.com/details
       x-requirements:
         scope: messages:create
     get:
@@ -5130,6 +5156,12 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MessageUpdateRequest'
+            example:
+              message:
+                content: 'Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.'
+                buttons:
+                  - - text: Подробнее
+                      url: https://example.com/details
       x-requirements:
         scope: messages:update
     delete:
@@ -5848,6 +5880,9 @@ paths:
               token: pato_bm90X2FfcmVhbF90b2tlbg
               client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
               client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+      security:
+        - BearerAuth: []
+        - {}
       x-oauth-flow: true
   /oauth/token:
     post:
@@ -5915,6 +5950,8 @@ paths:
               client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
               client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
               code_verifier: dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+      security:
+        - {}
       x-oauth-authorize-url: https://app.pachca.com/apps/authorize
       x-oauth-flow: true
       x-requirements:
@@ -8243,6 +8280,10 @@ paths:
       responses:
         '201':
           description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenViewResult'
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -8489,9 +8530,11 @@ paths:
 
         Поток работает, только когда в настройках бота включён пункт «Сохранять историю событий». Если пункт выключен или поток недоступен, метод отвечает `404` без тела. Метод работает только с токеном бота.
 
-        Ссылку открывают без токена, например через `EventSource` или `curl -N`: доступ даёт сама ссылка, поэтому храните её как секрет. Каждое событие приходит записью истории с полями `id`, `event_type`, `payload` и `created_at`, а служебные сообщения подключения отличаются полем `type`.
+        Ссылку открывают без токена, например через `EventSource` или `curl -N`: доступ даёт сама ссылка, поэтому храните её как секрет. Каждое событие приходит сообщением SSE без имени, в нём запись истории с полями `id`, `event_type`, `payload` и `created_at`. Служебные сообщения приходят именованными событиями SSE и отличаются полем `type`: `confirm_subscription` подтверждает подписку, а `disconnect` сообщает, что сервер закрыл подключение.
 
-        Ссылка действует до `expires_at`, а потом поток перестаёт присылать события, не закрывая соединение. Новую ссылку берите в последние пять минут перед `expires_at`: более ранний запрос вернёт ту же ссылку. Чтобы ничего не пропустить, после подключения дождитесь подтверждения подписки и только потом прочитайте [Историю событий](GET /webhooks/events), и так после каждого переподключения и смены ссылки. Доставка в поток не гарантирована: обработанные события по-прежнему удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), а повторы отсекайте по `id`. Если у бота есть адрес вебхука, повторная доставка на него приходит в поток ещё раз с новым `id`: такие повторы отсекают по ключу из `payload`, как в разделе [Идемпотентная обработка](/guides/webhook/handler#idempotentnaya-obrabotka). Подробнее — в разделе [Поллинг](/guides/webhook/polling).
+        Ссылка действует от одного до двух часов, до `expires_at`. В этот момент сервер присылает по ней `disconnect` и закрывает подключение, а `EventSource` после него сам не переподключается. Запрос в пределах того же часа по UTC возвращает ту же ссылку, а запрос в последний час перед `expires_at` даёт новую. Меняйте ссылку примерно за пять минут до `expires_at`: подключитесь по новой, пока работает старая, и закройте старое подключение, когда новое подтвердит подписку. Если `disconnect` всё же пришёл, получите новую ссылку и подключитесь заново.
+
+        Чтобы ничего не пропустить, после каждого подключения, в том числе после переподключения и смены ссылки, дождитесь подтверждения подписки и только потом прочитайте [Историю событий](GET /webhooks/events). Доставка в поток не гарантирована: обработанные события всё равно удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), а повторы отсекайте по `id`. Если у бота есть адрес вебхука, повторная доставка на него приходит в поток ещё раз с новым `id`: такие повторы отсекают по ключу из `payload`, как в разделе [Идемпотентная обработка](/guides/webhook/handler#idempotentnaya-obrabotka). Подробнее — в разделе [События в реальном времени](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
       parameters: []
       responses:
         '200':
@@ -8771,6 +8814,32 @@ components:
           format: int32
           nullable: true
           description: Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        application_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор приложения бота. `null`, если приложения у бота нет.
+        access_token_id:
+          type: integer
+          format: int32
+          description: Идентификатор токена. Есть у bot_token_created, bot_token_reissued и bot_token_updated.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: 'Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, `null`, если значение недоступно.'
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Скоупы токена. Есть у bot_token_created.
+        name:
+          allOf:
+            - $ref: '#/components/schemas/AuditDetailsTokenNameChange'
+          description: Смена названия токена у bot_token_updated. Есть, если название передали в запросе.
       description: 'При: bot_deleted, а также bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued в записях до 7 октября 2026 года'
     AuditDetailsBotOAuthClient:
       type: object
@@ -8796,6 +8865,34 @@ components:
           type: object
           additionalProperties: {}
           description: Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения бота
+        application_name:
+          type: string
+          description: Название приложения бота
+        bot_name:
+          type: string
+          description: Имя бота
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Права, которые бот запрашивает у сотрудника на экране согласия
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.
       description: 'При: bot_oauth_client_updated'
     AuditDetailsBotOAuthClientDisabled:
       type: object
@@ -8826,6 +8923,34 @@ components:
           type: integer
           format: int32
           description: Сколько неиспользованных кодов авторизации отозвано
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения бота
+        application_name:
+          type: string
+          description: Название приложения бота
+        bot_name:
+          type: string
+          description: Имя бота
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Права, которые бот запрашивает у сотрудника на экране согласия
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.
       description: 'При: bot_oauth_client_disabled'
     AuditDetailsBotOAuthClientSecretRotated:
       type: object
@@ -8846,6 +8971,34 @@ components:
         client_id:
           type: string
           description: Идентификатор OAuth-клиента бота
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения бота
+        application_name:
+          type: string
+          description: Название приложения бота
+        bot_name:
+          type: string
+          description: Имя бота
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Права, которые бот запрашивает у сотрудника на экране согласия. Есть у bot_oauth_client_secret_issued.
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.
       description: 'При: bot_oauth_client_secret_rotated, bot_oauth_client_secret_issued'
     AuditDetailsBotScopes:
       type: object
@@ -8854,6 +9007,9 @@ components:
         - actor_id
         - added_scopes
         - removed_scopes
+        - webhook_id
+        - previous_scopes
+        - new_scopes
       properties:
         bot_id:
           type: integer
@@ -8874,6 +9030,23 @@ components:
           items:
             type: string
           description: Скоупы, отозванные у токена бота
+        bot_name:
+          type: string
+          description: Имя бота. Нет в записях до 7 октября 2026 года.
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        previous_scopes:
+          type: array
+          items:
+            type: string
+          description: Скоупы токена бота до изменения
+        new_scopes:
+          type: array
+          items:
+            type: string
+          description: Скоупы токена бота после изменения
       description: 'При: bot_scopes_updated'
     AuditDetailsBotTokenUpdated:
       type: object
@@ -8883,6 +9056,9 @@ components:
         - resource_owner_id
         - current_scopes
         - actor_id
+        - access_token_id
+        - access_token_preview
+        - webhook_id
       properties:
         token_kind:
           type: string
@@ -8909,6 +9085,35 @@ components:
           format: int32
           nullable: true
           description: Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+        access_token_id:
+          type: integer
+          format: int32
+          description: Идентификатор токена
+        access_token_preview:
+          type: string
+          nullable: true
+          description: 'Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.'
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения бота
+        application_name:
+          type: string
+          description: Название приложения бота
+        client_id:
+          type: string
+          description: Идентификатор OAuth-клиента бота
+        bot_name:
+          type: string
+          description: Имя бота
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        name:
+          allOf:
+            - $ref: '#/components/schemas/AuditDetailsTokenNameChange'
+          description: Смена названия токена. Есть, если название передали в запросе.
       description: 'При: bot_token_updated'
     AuditDetailsBotWebhookSettings:
       type: object
@@ -8929,7 +9134,28 @@ components:
         changes:
           type: object
           additionalProperties: {}
-          description: Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
+          description: Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), значение — объект с полями previous (прежнее значение) и new (новое значение).
+        bot_name:
+          type: string
+          description: Имя бота
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: Токен, которым изменили настройки, в маскированном виде. `null`, если их изменили в интерфейсе Пачки.
+        application_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор приложения токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.
       description: 'При: bot_webhook_settings_updated'
     AuditDetailsChatId:
       type: object
@@ -8968,6 +9194,8 @@ components:
       required:
         - client_id
         - scopes
+        - application_id
+        - device_grant_id
       properties:
         client_id:
           type: string
@@ -8981,12 +9209,27 @@ components:
           type: string
           nullable: true
           description: Имя устройства, с которого выполняется вход. `null`, если приложение его не передало.
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения, которому разрешён вход
+        application_name:
+          type: string
+          description: Название приложения. Нет в записях до 7 октября 2026 года.
+        device_grant_id:
+          type: integer
+          format: int32
+          description: Идентификатор запроса на вход
+        token_kind:
+          type: string
+          description: 'Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.'
       description: 'При: oauth_device_authorization_approved'
     AuditDetailsDeviceAuthorizationDenied:
       type: object
       required:
         - client_id
         - scopes
+        - device_grant_id
       properties:
         client_id:
           type: string
@@ -9000,6 +9243,18 @@ components:
           type: string
           nullable: true
           description: Имя устройства, с которого выполнялся вход. `null`, если приложение его не передало.
+        application_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: 'Идентификатор приложения. При отказе во входе в CLI приходит `null`: приложение назначается входу только после подтверждения.'
+        device_grant_id:
+          type: integer
+          format: int32
+          description: Идентификатор запроса на вход
+        token_kind:
+          type: string
+          description: 'Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.'
       description: 'При: oauth_device_authorization_denied'
     AuditDetailsDlp:
       type: object
@@ -9078,7 +9333,7 @@ components:
           description: Идентификатор сообщения
         reason:
           type: string
-          description: Причина операции
+          description: 'Причина операции: `message_create` — шифрование текста сообщения, `message_store_for_search` — сохранение текста для поиска, `file_upload` — загрузка файла (все три у kms_encrypt), `file_download` — скачивание файла (у kms_decrypt)'
       description: 'При: kms_encrypt, kms_decrypt'
     AuditDetailsLoginGrantApproved:
       type: object
@@ -9127,21 +9382,43 @@ components:
       required:
         - client_id
         - scopes
+        - application_id
+        - authorization_grant_id
       properties:
         client_id:
           type: string
-          description: Идентификатор OAuth-клиента, которому выдан доступ
+          nullable: true
+          description: Идентификатор OAuth-клиента, которому выдан доступ. `null` в записях до 7 октября 2026 года о доступе, выданном боту.
         scopes:
           type: array
           items:
             type: string
           description: Скоупы, на которые выдан доступ
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения, которому выдан доступ
+        application_name:
+          type: string
+          description: Название приложения. Нет в записях до 7 октября 2026 года.
+        bot_id:
+          type: integer
+          format: int32
+          description: Идентификатор бота. Есть, когда доступ выдан боту.
+        bot_name:
+          type: string
+          description: Имя бота. Есть вместе с `bot_id`.
+        authorization_grant_id:
+          type: integer
+          format: int32
+          description: Идентификатор выданного кода авторизации
       description: 'При: oauth_authorization_granted'
     AuditDetailsOAuthAuthorizationRevoked:
       type: object
       required:
         - client_id
         - revoked_tokens_count
+        - application_id
       properties:
         client_id:
           type: string
@@ -9154,6 +9431,20 @@ components:
           type: integer
           format: int32
           description: Идентификатор сотрудника, чей доступ отозван. Есть, когда доступ отозвал администратор.
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения, у которого отозван доступ
+        application_name:
+          type: string
+          description: Название приложения. Нет в записях до 7 октября 2026 года.
+        bot_id:
+          type: integer
+          format: int32
+          description: Идентификатор бота. Есть, когда доступ отозван у бота.
+        bot_name:
+          type: string
+          description: Имя бота. Есть вместе с `bot_id`.
       description: 'При: oauth_authorization_revoked'
     AuditDetailsRoleChanged:
       type: object
@@ -9231,6 +9522,8 @@ components:
         - token_name
         - resource_owner_id
         - scopes
+        - access_token_id
+        - access_token_preview
       properties:
         token_kind:
           type: string
@@ -9248,14 +9541,70 @@ components:
           items:
             type: string
           description: Скоупы токена
+        access_token_id:
+          type: integer
+          format: int32
+          description: Идентификатор токена
+        access_token_preview:
+          type: string
+          nullable: true
+          description: 'Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.'
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения, которому принадлежит токен
+        application_name:
+          type: string
+          description: Название приложения, которому принадлежит токен
+        client_id:
+          type: string
+          description: Идентификатор OAuth-клиента приложения
         bot_id:
           type: integer
           format: int32
           description: Идентификатор бота. Есть у токенов бота и у токенов, которые сотрудник выдал боту.
+        bot_name:
+          type: string
+          description: Имя бота. Есть вместе с `bot_id`.
+        device_name:
+          type: string
+          nullable: true
+          description: Имя устройства. Есть у входа в CLI, `null`, если имени нет.
+        actor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор пользователя, выполнившего действие. Есть у событий токенов бота, `null`, если действие выполнено без инициатора.
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота. Есть у событий токенов бота.
+        user_id:
+          type: integer
+          format: int32
+          description: Идентификатор сотрудника, чей токен отозван. Есть, когда токен отозвал администратор или сотрудника перевели в гости.
+        source:
+          type: string
+          description: 'Источник отзыва: `oauth_client` — приложение само отозвало токен. Есть только у oauth_token_revoked.'
         reason:
           type: string
           description: Причина отзыва. `guest_downgrade` — токен отозван автоматически, когда сотрудника перевели в гости. Есть только в таких записях.
       description: 'При: access_token_created, access_token_updated, access_token_destroy, bot_token_created, bot_token_reissued, bot_token_recreated, bot_token_deleted, oauth_token_revoked'
+    AuditDetailsTokenNameChange:
+      type: object
+      required:
+        - previous
+        - new
+      properties:
+        previous:
+          type: string
+          nullable: true
+          description: Прежнее название. `null`, если названия не было.
+        new:
+          type: string
+          nullable: true
+          description: Новое название. `null`, если название убрали.
+      description: Смена названия токена в журнале аудита
     AuditDetailsTokenScopes:
       type: object
       required:
@@ -9776,7 +10125,7 @@ components:
               type: array
               items:
                 type: string
-              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.
+              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Событие о сообщении приходит боту, когда первое слово текста совпадает с одной из команд целиком, с учётом регистра. Команду можно задать и без слэша в начале. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.
               example:
                 - /task
                 - /help
@@ -10551,7 +10900,7 @@ components:
               type: array
               items:
                 type: string
-              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.
+              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Событие о сообщении приходит боту, когда первое слово текста совпадает с одной из команд целиком, с учётом регистра. Команду можно задать и без слэша в начале. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.
               example:
                 - /task
                 - /help
@@ -10609,7 +10958,8 @@ components:
             kind:
               allOf:
                 - $ref: '#/components/schemas/BotWebhookKind'
-              description: Источник входящего вебхука. Если у бота входящего вебхука не было, он включается.
+              nullable: true
+              description: 'Источник входящего вебхука. Если у бота входящего вебхука не было, он включается. `null` удаляет входящий вебхук: адрес перестаёт работать, шаблон и настройки входящего вебхука сбрасываются, а при следующем включении бот получает новый адрес.'
               example: simple
             unfurl_domains:
               type: array
@@ -11594,7 +11944,7 @@ components:
         duration_ms:
           type: integer
           format: int32
-          description: Длительность в миллисекундах. Обязательна для голосового сообщения (`file_type` — `voice`). Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.
+          description: 'Длительность в миллисекундах: обязательна у голосового сообщения (`voice`), по желанию у видео (`video`), у остальных типов не сохраняется. Файл с длительностью без `file_type` считается голосовым. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422` и кодом `wrong_params`.'
           example: 5400
         waveform:
           type: string
@@ -11885,7 +12235,7 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: Длительность в миллисекундах у голосового, аудио- и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке.
+          description: Длительность в миллисекундах у голосового сообщения и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке.
           example: 5400
       description: Файл
     FileTarget:
@@ -12399,7 +12749,7 @@ components:
                   file_type:
                     allOf:
                       - $ref: '#/components/schemas/FileType'
-                    description: Тип файла
+                    description: Тип файла. Голосовое сообщение (`voice`) отправляют с персональным токеном, а с токеном бота ответ `403`.
                     example: image
                   size:
                     type: integer
@@ -12420,7 +12770,7 @@ components:
                     type: integer
                     format: int32
                     minimum: 1
-                    description: Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.
+                    description: 'Длительность в миллисекундах: обязательна у голосового сообщения (`voice`), по желанию у видео (`video`), у остальных типов не сохраняется. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422` и кодом `wrong_params`.'
                     example: 5400
                   waveform:
                     type: string
@@ -12551,7 +12901,7 @@ components:
                     type: integer
                     format: int32
                     minimum: 1
-                    description: Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.
+                    description: 'Длительность в миллисекундах: обязательна у голосового сообщения (`voice`), по желанию у видео (`video`), у остальных типов не сохраняется. Файл с длительностью без `file_type` считается голосовым. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422` и кодом `wrong_params`.'
                     example: 5400
                   waveform:
                     type: string
@@ -13299,6 +13649,16 @@ components:
             - blocks
           description: Собранный объект представления
       description: Представление
+    OpenViewResult:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Признак того, что окно открыто. В успешном ответе всегда `true`.
+          example: true
+      description: Результат открытия представления
     PaginationMeta:
       type: object
       required:
@@ -15232,8 +15592,8 @@ components:
         expires_at:
           type: string
           format: date-time
-          description: Дата и время, до которых действует ссылка (ISO-8601, UTC+0)
-          example: '2026-10-27T12:20:00.000Z'
+          description: 'Дата и время, до которых действует ссылка (ISO-8601, UTC+0): от одного до двух часов после запроса. В этот момент сервер присылает `disconnect` и закрывает подключение по ней.'
+          example: '2026-10-27T13:00:00.000Z'
       description: Ссылка на поток событий бота
     WebhookLink:
       type: object

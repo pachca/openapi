@@ -1,12 +1,12 @@
 {
   "Client_Init": {
-    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")\nctx := context.Background()",
     "imports": [
       "PachcaClient"
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "params := &GetAuditEventsParams{\n\tStartTime: Ptr(\"2025-05-01T09:11:00.000Z\"),\n\tEndTime: Ptr(\"2025-05-02T09:11:00.000Z\"),\n\tEventKey: Ptr(AuditEventKeyUserLogin),\n\tActorID: Ptr(\"98765\"),\n\tActorType: Ptr(\"User\"),\n\tEntityID: Ptr(\"98765\"),\n\tEntityType: Ptr(\"User\"),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Security.GetAuditEvents(ctx, params)",
+    "usage": "params := &pachca.GetAuditEventsParams{\n\tStartTime: pachca.Ptr(time.Date(2025, 5, 1, 9, 11, 0, 0, time.UTC)),\n\tEndTime: pachca.Ptr(time.Date(2025, 5, 2, 9, 11, 0, 0, time.UTC)),\n\tEventKey: pachca.Ptr(pachca.AuditEventKeyUserLogin),\n\tActorID: pachca.Ptr(\"98765\"),\n\tActorType: pachca.Ptr(\"User\"),\n\tEntityID: pachca.Ptr(\"98765\"),\n\tEntityType: pachca.Ptr(\"User\"),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Security.GetAuditEvents(ctx, params)",
     "output": "GetAuditEventsResponse{Data: []AuditEvent, Meta: PaginationMeta}",
     "imports": [
       "AuditEventKey",
@@ -14,7 +14,7 @@
     ]
   },
   "BotOperations_listBots": {
-    "usage": "params := &ListBotsParams{\n\tQuery: Ptr(\"задач\"),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTczODgxNn0\"),\n}\nresponse, err := client.Bots.ListBots(ctx, params)",
+    "usage": "params := &pachca.ListBotsParams{\n\tQuery: pachca.Ptr(\"задач\"),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTczODgxNn0\"),\n}\nresponse, err := client.Bots.ListBots(ctx, params)",
     "output": "ListBotsResponse{Data: []BotResponse, Meta: PaginationMeta}",
     "imports": [
       "ListBotsParams"
@@ -22,28 +22,28 @@
   },
   "BotOperations_getBot": {
     "usage": "response, err := client.Bots.GetBot(ctx, int32(1738816))",
-    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}"
+    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: time.Time, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}"
   },
   "BotOperations_getBotScopes": {
     "usage": "response, err := client.Bots.GetBotScopes(ctx, int32(1738816))",
     "output": "BotScopeCatalog{Scopes: []BotScopeCatalogItem{ID: string, Title: string, Group: string, Preset: []string}, Groups: []BotScopeCatalogGroup{ID: string, Title: string, Description: string}, Presets: []BotScopeCatalogPreset{ID: string, Title: string}}"
   },
   "BotOperations_listBotTokens": {
-    "usage": "params := &ListBotTokensParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6NDgyN30\"),\n}\nresponse, err := client.Bots.ListBotTokens(ctx, int32(1738816), params)",
+    "usage": "params := &pachca.ListBotTokensParams{\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6NDgyN30\"),\n}\nresponse, err := client.Bots.ListBotTokens(ctx, int32(1738816), params)",
     "output": "ListBotTokensResponse{Data: []BotAccessToken, Meta: PaginationMeta}",
     "imports": [
       "ListBotTokensParams"
     ]
   },
   "CompanyBotOperations_listCompanyBots": {
-    "usage": "params := &ListCompanyBotsParams{\n\tQuery: Ptr(\"задач\"),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTczODgxNn0\"),\n}\nresponse, err := client.Bots.ListCompanyBots(ctx, params)",
+    "usage": "params := &pachca.ListCompanyBotsParams{\n\tQuery: pachca.Ptr(\"задач\"),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTczODgxNn0\"),\n}\nresponse, err := client.Bots.ListCompanyBots(ctx, params)",
     "output": "ListCompanyBotsResponse{Data: []CompanyBotResponse, Meta: PaginationMeta}",
     "imports": [
       "ListCompanyBotsParams"
     ]
   },
   "BotOperations_getWebhookEvents": {
-    "usage": "params := &GetWebhookEventsParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Bots.GetWebhookEvents(ctx, params)",
+    "usage": "params := &pachca.GetWebhookEventsParams{\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Bots.GetWebhookEvents(ctx, params)",
     "output": "GetWebhookEventsResponse{Data: []WebhookEvent, Meta: PaginationMeta}",
     "imports": [
       "GetWebhookEventsParams"
@@ -57,49 +57,44 @@
   },
   "BotOperations_getWebhookEventsStream": {
     "usage": "response, err := client.Bots.GetWebhookEventsStream(ctx)",
-    "output": "WebhookEventsStream{URL: string, ExpiresAt: string}"
+    "output": "WebhookEventsStream{URL: string, ExpiresAt: time.Time}"
   },
   "BotOperations_selfRecreateBotToken": {
     "usage": "response, err := client.Bots.SelfRecreateBotToken(ctx)",
     "output": "BotSelfTokenResponse{ID: int32, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Webhook: BotSelfWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}, AccessToken: string}"
   },
   "BotOperations_createBot": {
-    "usage": "request := BotCreateRequest{\n\tEmpty: Ptr(false),\n\tWebhook: BotCreateRequestWebhook{\n\t\tName: \"Бот задач\",\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://example.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t\tWhoCanAdd: Ptr(BotWhoCanAddCreator),\n\t\tCanEdit: []BotCanEdit{BotCanEditAdmin},\n\t\tSingleChat: Ptr(false),\n\t\tKind: Ptr(BotWebhookKindSimple),\n\t\tUnfurlDomains: []string{\"example\"},\n\t},\n\tOAuthClient: Ptr(BotOAuthClientRequest{\n\t\tConfidential: Ptr(true),\n\t\tRedirectUris: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t}),\n\tPromo: Ptr(BotPromoRequest{\n\t\tDescription: Ptr(\"Собирает сводку по задачам Jira и присылает её в чат\"),\n\t\tPublished: Ptr(true),\n\t\tPromoImages: []string{\"example\"},\n\t}),\n}\nresponse, err := client.Bots.CreateBot(ctx, request)",
-    "output": "BotCreateResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string, AccessToken: *string}",
+    "usage": "request := pachca.BotCreateRequest{\n\tWebhook: pachca.BotCreateRequestWebhook{\n\t\tName: \"Бот задач\",\n\t\tNickname: pachca.Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: pachca.Ptr(\"https://example.com/tasks/new\"),\n\t\tEvents: []pachca.BotEventName{pachca.BotEventNameMessageNew},\n\t\tTriggerOn: pachca.Ptr(pachca.BotTriggerOnCommands),\n\t\tCommands: []string{\"/task\"},\n\t\tScopes: []string{\"messages:create\"},\n\t},\n\tOAuthClient: pachca.Ptr(pachca.BotOAuthClientRequest{\n\t\tConfidential: pachca.Ptr(true),\n\t\tRedirectUris: []string{\"https://example.com/oauth/callback\"},\n\t\tScopes: []string{\"messages:read\"},\n\t}),\n}\nresponse, err := client.Bots.CreateBot(ctx, request)",
+    "output": "BotCreateResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: time.Time, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string, AccessToken: *string}",
     "imports": [
-      "BotCanEdit",
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
       "BotOAuthClientRequest",
-      "BotPromoRequest",
-      "BotTemplateEngine",
-      "BotTriggerOn",
-      "BotWebhookKind",
-      "BotWhoCanAdd"
+      "BotTriggerOn"
     ]
   },
   "BotOperations_recreateBotToken": {
     "usage": "response, err := client.Bots.RecreateBotToken(ctx, int32(1738816))",
-    "output": "BotCreateResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string, AccessToken: *string}"
+    "output": "BotCreateResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: time.Time, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string, AccessToken: *string}"
   },
   "BotOperations_rotateBotClientSecret": {
     "usage": "response, err := client.Bots.RotateBotClientSecret(ctx, int32(1738816))",
-    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}"
+    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: time.Time, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}"
   },
   "BotOperations_createBotToken": {
-    "usage": "request := BotTokenCreateRequest{\n\tName: \"Сервер уведомлений\",\n\tScopes: []string{\"example\"},\n}\nresponse, err := client.Bots.CreateBotToken(ctx, int32(1738816), request)",
-    "output": "BotAccessToken{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []string, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}",
+    "usage": "request := pachca.BotTokenCreateRequest{\n\tName: \"Сервер уведомлений\",\n\tScopes: []string{\"messages:create\"},\n}\nresponse, err := client.Bots.CreateBotToken(ctx, int32(1738816), request)",
+    "output": "BotAccessToken{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []string, CreatedAt: time.Time, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}",
     "imports": [
       "BotTokenCreateRequest"
     ]
   },
   "BotOperations_reissueBotToken": {
     "usage": "response, err := client.Bots.ReissueBotToken(ctx, int32(1738816), int64(4827))",
-    "output": "BotAccessToken{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []string, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}"
+    "output": "BotAccessToken{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []string, CreatedAt: time.Time, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}"
   },
   "BotOperations_selfUpdateBotWebhook": {
-    "usage": "request := BotWebhookSelfUpdateRequest{\n\tWebhook: BotWebhookSelfUpdateRequestWebhook{\n\t\tOutgoingURL: \"https://example.com/tasks/new\",\n\t},\n}\nresponse, err := client.Bots.SelfUpdateBotWebhook(ctx, request)",
+    "usage": "request := pachca.BotWebhookSelfUpdateRequest{\n\tWebhook: pachca.BotWebhookSelfUpdateRequestWebhook{\n\t\tOutgoingURL: \"https://example.com/tasks/new\",\n\t},\n}\nresponse, err := client.Bots.SelfUpdateBotWebhook(ctx, request)",
     "output": "BotSelfResponse{ID: int32, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Webhook: BotSelfWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}}",
     "imports": [
       "BotWebhookSelfUpdateRequest",
@@ -107,8 +102,8 @@
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "request := BotUpdateRequest{\n\tWebhook: Ptr(BotUpdateRequestWebhook{\n\t\tName: Ptr(\"Бот задач\"),\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://example.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t\tWhoCanAdd: Ptr(BotWhoCanAddCreator),\n\t\tCanEdit: []BotCanEdit{BotCanEditAdmin},\n\t\tSingleChat: Ptr(false),\n\t\tKind: Ptr(BotWebhookKindSimple),\n\t\tUnfurlDomains: []string{\"example\"},\n\t}),\n\tOAuthClient: Ptr(BotOAuthClientRequest{\n\t\tConfidential: Ptr(true),\n\t\tRedirectUris: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t}),\n\tPromo: Ptr(BotPromoRequest{\n\t\tDescription: Ptr(\"Собирает сводку по задачам Jira и присылает её в чат\"),\n\t\tPublished: Ptr(true),\n\t\tPromoImages: []string{\"example\"},\n\t}),\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
-    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}",
+    "usage": "request := pachca.BotUpdateRequest{\n\tWebhook: pachca.Ptr(pachca.BotUpdateRequestWebhook{\n\t\tName: pachca.Ptr(\"Бот задач\"),\n\t\tNickname: pachca.Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: pachca.Ptr(\"https://example.com/tasks/new\"),\n\t\tEvents: []pachca.BotEventName{pachca.BotEventNameMessageNew},\n\t\tTriggerOn: pachca.Ptr(pachca.BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: pachca.Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: pachca.Ptr(pachca.BotTemplateEngineLiquid),\n\t\tChallengeKey: pachca.Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: pachca.Ptr(true),\n\t\tIgnoreSelfMessages: pachca.Ptr(false),\n\t\tEventsHistoryEnabled: pachca.Ptr(false),\n\t\tWhoCanAdd: pachca.Ptr(pachca.BotWhoCanAddCreator),\n\t\tCanEdit: []pachca.BotCanEdit{pachca.BotCanEditAdmin},\n\t\tSingleChat: pachca.Ptr(false),\n\t\tKind: pachca.Ptr(pachca.BotWebhookKindSimple),\n\t\tUnfurlDomains: []string{\"example\"},\n\t}),\n\tOAuthClient: pachca.Ptr(pachca.BotOAuthClientRequest{\n\t\tConfidential: pachca.Ptr(true),\n\t\tRedirectUris: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t}),\n\tPromo: pachca.Ptr(pachca.BotPromoRequest{\n\t\tDescription: pachca.Ptr(\"Собирает сводку по задачам Jira и присылает её в чат\"),\n\t\tPublished: pachca.Ptr(true),\n\t\tPromoImages: []string{\"example\"},\n\t}),\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
+    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: time.Time, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}",
     "imports": [
       "BotCanEdit",
       "BotEventName",
@@ -127,8 +122,8 @@
     "output": "AvatarData{ImageURL: string}"
   },
   "BotOperations_updateBotToken": {
-    "usage": "request := BotTokenUpdateRequest{\n\tName: Ptr(\"Сервер уведомлений\"),\n\tScopes: []string{\"example\"},\n}\nresponse, err := client.Bots.UpdateBotToken(ctx, int32(1738816), int64(4827), request)",
-    "output": "BotAccessToken{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []string, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}",
+    "usage": "request := pachca.BotTokenUpdateRequest{\n\tName: pachca.Ptr(\"Сервер уведомлений\"),\n\tScopes: []string{\"messages:create\"},\n}\nresponse, err := client.Bots.UpdateBotToken(ctx, int32(1738816), int64(4827), request)",
+    "output": "BotAccessToken{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []string, CreatedAt: time.Time, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}",
     "imports": [
       "BotTokenUpdateRequest"
     ]
@@ -146,7 +141,7 @@
     "usage": "client.Bots.DeleteWebhookEvent(ctx, \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "params := &ListChatsParams{\n\tSort: Ptr(ChatSortFieldID),\n\tOrder: Ptr(SortOrderDesc),\n\tAvailability: Ptr(ChatAvailabilityIsMember),\n\tArchived: Ptr(true),\n\tLastMessageAtAfter: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tLastMessageAtBefore: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tPersonal: Ptr(false),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
+    "usage": "params := &pachca.ListChatsParams{\n\tSort: pachca.Ptr(pachca.ChatSortFieldID),\n\tOrder: pachca.Ptr(pachca.SortOrderDesc),\n\tAvailability: pachca.Ptr(pachca.ChatAvailabilityIsMember),\n\tArchived: pachca.Ptr(true),\n\tLastMessageAtAfter: pachca.Ptr(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),\n\tLastMessageAtBefore: pachca.Ptr(time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)),\n\tPersonal: pachca.Ptr(false),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
     "output": "ListChatsResponse{Data: []Chat, Meta: PaginationMeta}",
     "imports": [
       "ChatAvailability",
@@ -157,14 +152,14 @@
   },
   "ChatOperations_getChat": {
     "usage": "response, err := client.Chats.GetChat(ctx, int32(334))",
-    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}"
+    "output": "Chat{ID: int32, Name: string, CreatedAt: time.Time, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: time.Time, MeetRoomURL: string, AvatarURL: *string}"
   },
   "ExportOperations_downloadExport": {
     "usage": "response, err := client.Chats.DownloadExport(ctx, int32(22322))",
     "output": "string"
   },
   "CompanyChatOperations_listCompanyChats": {
-    "usage": "params := &ListCompanyChatsParams{\n\tActivity: Ptr(ChatActivityActive),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListCompanyChats(ctx, params)",
+    "usage": "params := &pachca.ListCompanyChatsParams{\n\tActivity: pachca.Ptr(pachca.ChatActivityActive),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListCompanyChats(ctx, params)",
     "output": "ListCompanyChatsResponse{Data: []Chat, Meta: PaginationMeta}",
     "imports": [
       "ChatActivity",
@@ -172,23 +167,23 @@
     ]
   },
   "ChatOperations_createChat": {
-    "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"🤿 aqua\",\n\t\tMemberIDs: []int32{int32(123)},\n\t\tGroupTagIDs: []int32{int32(123)},\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(false),\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
-    "output": "CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32, NotFoundGroupTagIDs: []int32}}",
+    "usage": "request := pachca.ChatCreateRequest{\n\tChat: pachca.ChatCreateRequestChat{\n\t\tName: \"🤿 aqua\",\n\t\tMemberIDs: []int32{int32(123)},\n\t\tGroupTagIDs: []int32{int32(123)},\n\t\tChannel: pachca.Ptr(true),\n\t\tPublic: pachca.Ptr(false),\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
+    "output": "CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: time.Time, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: time.Time, MeetRoomURL: string, AvatarURL: *string}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32, NotFoundGroupTagIDs: []int32}}",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "request := ExportRequest{\n\tStartAt: \"2025-03-20\",\n\tEndAt: \"2025-03-20\",\n\tWebhookURL: Ptr(\"https://example.com/webhooks/export\"),\n\tChatIDs: []int32{int32(123)},\n\tSkipChatsFile: Ptr(false),\n}\nresponse, err := client.Chats.RequestExport(ctx, request)",
+    "usage": "request := pachca.ExportRequest{\n\tStartAt: \"2025-03-01\",\n\tEndAt: \"2025-03-20\",\n\tChatIDs: []int32{int32(1381521)},\n}\nresponse, err := client.Chats.RequestExport(ctx, request)",
     "output": "ChatExport{ID: int32}",
     "imports": [
       "ExportRequest"
     ]
   },
   "ChatOperations_updateChat": {
-    "usage": "request := ChatUpdateRequest{\n\tChat: ChatUpdateRequestChat{\n\t\tName: Ptr(\"Бассейн\"),\n\t\tPublic: Ptr(true),\n\t},\n}\nresponse, err := client.Chats.UpdateChat(ctx, int32(334), request)",
-    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}",
+    "usage": "request := pachca.ChatUpdateRequest{\n\tChat: pachca.ChatUpdateRequestChat{\n\t\tName: pachca.Ptr(\"Бассейн\"),\n\t\tPublic: pachca.Ptr(true),\n\t},\n}\nresponse, err := client.Chats.UpdateChat(ctx, int32(334), request)",
+    "output": "Chat{ID: int32, Name: string, CreatedAt: time.Time, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: time.Time, MeetRoomURL: string, AvatarURL: *string}",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"
@@ -205,7 +200,7 @@
     "usage": "client.Chats.UnarchiveChat(ctx, int32(334))"
   },
   "ChatOperations_markChatUnread": {
-    "usage": "request := MarkChatUnreadRequest{\n\tMessageID: Ptr(int32(1194275)),\n}\nclient.Chats.MarkChatUnread(ctx, int32(334), request)",
+    "usage": "request := pachca.MarkChatUnreadRequest{\n\tMessageID: pachca.Ptr(int32(1194275)),\n}\nclient.Chats.MarkChatUnread(ctx, int32(334), request)",
     "imports": [
       "MarkChatUnreadRequest"
     ]
@@ -214,7 +209,7 @@
     "usage": "client.Chats.DeleteChatAvatar(ctx, int32(334))"
   },
   "ChatMemberOperations_listMembers": {
-    "usage": "params := &ListMembersParams{\n\tRole: Ptr(ChatMemberRoleFilterAll),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Members.ListMembers(ctx, int32(334), params)",
+    "usage": "params := &pachca.ListMembersParams{\n\tRole: pachca.Ptr(pachca.ChatMemberRoleFilterAll),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Members.ListMembers(ctx, int32(334), params)",
     "output": "ListMembersResponse{Data: []User, Meta: PaginationMeta}",
     "imports": [
       "ChatMemberRoleFilter",
@@ -225,13 +220,13 @@
     "usage": "groupTagIds := []int32{int32(123)}\nclient.Members.AddTags(ctx, int32(334), groupTagIds)"
   },
   "ChatMemberOperations_addMembers": {
-    "usage": "request := AddMembersRequest{\n\tMemberIDs: []int32{int32(123)},\n\tSilent: Ptr(true),\n}\nclient.Members.AddMembers(ctx, int32(334), request)",
+    "usage": "request := pachca.AddMembersRequest{\n\tMemberIDs: []int32{int32(123)},\n\tSilent: pachca.Ptr(true),\n}\nclient.Members.AddMembers(ctx, int32(334), request)",
     "imports": [
       "AddMembersRequest"
     ]
   },
   "ChatMemberOperations_updateMemberRole": {
-    "usage": "client.Members.UpdateMemberRole(ctx, int32(334), int32(186), ChatMemberRoleAdmin)",
+    "usage": "client.Members.UpdateMemberRole(ctx, int32(334), int32(186), pachca.ChatMemberRoleAdmin)",
     "imports": [
       "ChatMemberRole"
     ]
@@ -246,7 +241,7 @@
     "usage": "client.Members.RemoveMember(ctx, int32(334), int32(186))"
   },
   "CommonOperations_listProperties": {
-    "usage": "params := ListPropertiesParams{\n\tEntityType: SearchEntityTypeUser,\n}\nresponse, err := client.CustomProperties.ListProperties(ctx, params)",
+    "usage": "params := pachca.ListPropertiesParams{\n\tEntityType: pachca.SearchEntityTypeUser,\n}\nresponse, err := client.CustomProperties.ListProperties(ctx, params)",
     "output": "ListPropertiesResponse{Data: []CustomPropertyDefinition}",
     "imports": [
       "ListPropertiesParams",
@@ -254,7 +249,7 @@
     ]
   },
   "FileOperations_downloadFile": {
-    "usage": "params := &DownloadFileParams{\n\tTarget: Ptr(FileTargetThumb),\n}\nresponse, err := client.Files.DownloadFile(ctx, int32(3560), params)",
+    "usage": "params := &pachca.DownloadFileParams{\n\tTarget: pachca.Ptr(pachca.FileTargetThumb),\n}\nresponse, err := client.Files.DownloadFile(ctx, int32(3560), params)",
     "output": "[]byte",
     "imports": [
       "DownloadFileParams",
@@ -262,7 +257,7 @@
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "request := FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: Ptr(\"example\"),\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tBucket: Ptr(\"example\"),\n\tFile: bytes.NewReader(nil),\n}\nclient.Files.UploadFile(ctx, \"https://example.com\", request)",
+    "usage": "request := pachca.FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: pachca.Ptr(\"example\"),\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tBucket: pachca.Ptr(\"example\"),\n\tFile: bytes.NewReader(nil),\n}\nclient.Files.UploadFile(ctx, \"https://example.com\", request)",
     "imports": [
       "FileUploadRequest"
     ]
@@ -272,7 +267,7 @@
     "output": "UploadParams{ContentDisposition: string, ACL: *string, Policy: string, XAMZCredential: string, XAMZAlgorithm: string, XAMZDate: string, XAMZSignature: string, Key: string, Bucket: *string, DirectURL: string}"
   },
   "DraftOperations_listDrafts": {
-    "usage": "params := &ListDraftsParams{\n\tType: Ptr(DraftTypeAll),\n\tEntityType: Ptr(MessageEntityTypeDiscussion),\n\tEntityID: Ptr(int32(334)),\n\tLimit: Ptr(int32(25)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Drafts.ListDrafts(ctx, params)",
+    "usage": "params := &pachca.ListDraftsParams{\n\tType: pachca.Ptr(pachca.DraftTypeAll),\n\tEntityType: pachca.Ptr(pachca.MessageEntityTypeDiscussion),\n\tEntityID: pachca.Ptr(int32(334)),\n\tLimit: pachca.Ptr(int32(25)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Drafts.ListDrafts(ctx, params)",
     "output": "ListDraftsResponse{Data: []Draft, Meta: PaginationMeta}",
     "imports": [
       "DraftType",
@@ -282,25 +277,20 @@
   },
   "DraftOperations_getDraft": {
     "usage": "response, err := client.Drafts.GetDraft(ctx, int32(4821))",
-    "output": "Draft{ID: int32, EntityType: *MessageEntityType, EntityID: *int32, ChatID: *int32, Content: string, ParentMessageID: *int32, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Schedule: *DraftSchedule{StartDate: string, EndDate: *string, Repetition: DraftRepetition{Interval: DraftRepetitionInterval, Days: *[]int32, NthDay: *int32}}, NextSendAt: *string, CreatedAt: string, UpdatedAt: string}"
+    "output": "Draft{ID: int32, EntityType: *MessageEntityType, EntityID: *int32, ChatID: *int32, Content: string, ParentMessageID: *int32, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Schedule: *DraftSchedule{StartDate: time.Time, EndDate: *string, Repetition: DraftRepetition{Interval: DraftRepetitionInterval, Days: *[]int32, NthDay: *int32}}, NextSendAt: *string, CreatedAt: time.Time, UpdatedAt: time.Time}"
   },
   "DraftOperations_createDraft": {
-    "usage": "request := DraftCreateRequest{\n\tDraft: DraftCreateRequestDraft{\n\t\tEntityType: MessageEntityTypeDiscussion,\n\t\tEntityID: int32(334),\n\t\tContent: Ptr(\"Отчёт за неделю: продажи выросли на 10%\"),\n\t\tParentMessageID: Ptr(int32(196093)),\n\t\tFiles: []DraftFileRequest{DraftFileRequest{\n\t\t\tID: Ptr(int32(3560)),\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: Ptr(FileTypeImage),\n\t\t\tSize: Ptr(int64(12345)),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tSchedule: Ptr(DraftScheduleRequest{\n\t\t\tStartDate: \"2026-09-17T12:00:00.000Z\",\n\t\t\tEndDate: Ptr(\"2026-12-31T12:00:00.000Z\"),\n\t\t\tRepetition: DraftRepetitionRequest{\n\t\t\t\tInterval: DraftRepetitionIntervalWeekly,\n\t\t\t\tDays: []int32{int32(123)},\n\t\t\t\tNthDay: Ptr(int32(2)),\n\t\t\t},\n\t\t}),\n\t},\n}\nresponse, err := client.Drafts.CreateDraft(ctx, request)",
-    "output": "Draft{ID: int32, EntityType: *MessageEntityType, EntityID: *int32, ChatID: *int32, Content: string, ParentMessageID: *int32, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Schedule: *DraftSchedule{StartDate: string, EndDate: *string, Repetition: DraftRepetition{Interval: DraftRepetitionInterval, Days: *[]int32, NthDay: *int32}}, NextSendAt: *string, CreatedAt: string, UpdatedAt: string}",
+    "usage": "request := pachca.DraftCreateRequest{\n\tDraft: pachca.DraftCreateRequestDraft{\n\t\tEntityType: pachca.MessageEntityTypeDiscussion,\n\t\tEntityID: int32(334),\n\t\tContent: pachca.Ptr(\"Отчёт за неделю: продажи выросли на 10%\"),\n\t},\n}\nresponse, err := client.Drafts.CreateDraft(ctx, request)",
+    "output": "Draft{ID: int32, EntityType: *MessageEntityType, EntityID: *int32, ChatID: *int32, Content: string, ParentMessageID: *int32, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Schedule: *DraftSchedule{StartDate: time.Time, EndDate: *string, Repetition: DraftRepetition{Interval: DraftRepetitionInterval, Days: *[]int32, NthDay: *int32}}, NextSendAt: *string, CreatedAt: time.Time, UpdatedAt: time.Time}",
     "imports": [
       "DraftCreateRequest",
       "DraftCreateRequestDraft",
-      "DraftFileRequest",
-      "DraftRepetitionInterval",
-      "DraftRepetitionRequest",
-      "DraftScheduleRequest",
-      "FileType",
       "MessageEntityType"
     ]
   },
   "DraftOperations_updateDraft": {
-    "usage": "request := DraftUpdateRequest{\n\tDraft: DraftUpdateRequestDraft{\n\t\tContent: Ptr(\"Отчёт за неделю: продажи выросли на 10%\"),\n\t\tParentMessageID: Ptr(int32(196093)),\n\t\tFiles: []DraftFileRequest{DraftFileRequest{\n\t\t\tID: Ptr(int32(3560)),\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: Ptr(FileTypeImage),\n\t\t\tSize: Ptr(int64(12345)),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tSchedule: Ptr(DraftScheduleRequest{\n\t\t\tStartDate: \"2026-09-17T12:00:00.000Z\",\n\t\t\tEndDate: Ptr(\"2026-12-31T12:00:00.000Z\"),\n\t\t\tRepetition: DraftRepetitionRequest{\n\t\t\t\tInterval: DraftRepetitionIntervalWeekly,\n\t\t\t\tDays: []int32{int32(123)},\n\t\t\t\tNthDay: Ptr(int32(2)),\n\t\t\t},\n\t\t}),\n\t},\n}\nresponse, err := client.Drafts.UpdateDraft(ctx, int32(4821), request)",
-    "output": "Draft{ID: int32, EntityType: *MessageEntityType, EntityID: *int32, ChatID: *int32, Content: string, ParentMessageID: *int32, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Schedule: *DraftSchedule{StartDate: string, EndDate: *string, Repetition: DraftRepetition{Interval: DraftRepetitionInterval, Days: *[]int32, NthDay: *int32}}, NextSendAt: *string, CreatedAt: string, UpdatedAt: string}",
+    "usage": "request := pachca.DraftUpdateRequest{\n\tDraft: pachca.DraftUpdateRequestDraft{\n\t\tContent: pachca.Ptr(\"Отчёт за неделю: продажи выросли на 10%\"),\n\t\tParentMessageID: pachca.Ptr(int32(196093)),\n\t\tFiles: []pachca.DraftFileRequest{pachca.DraftFileRequest{\n\t\t\tID: pachca.Ptr(int32(3560)),\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: pachca.Ptr(pachca.FileTypeImage),\n\t\t\tSize: pachca.Ptr(int64(12345)),\n\t\t\tWidth: pachca.Ptr(int32(800)),\n\t\t\tHeight: pachca.Ptr(int32(600)),\n\t\t\tDurationMs: pachca.Ptr(int32(5400)),\n\t\t\tWaveform: pachca.Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tSchedule: pachca.Ptr(pachca.DraftScheduleRequest{\n\t\t\tStartDate: time.Date(2026, 9, 17, 12, 0, 0, 0, time.UTC),\n\t\t\tEndDate: pachca.Ptr(\"2026-12-31T12:00:00.000Z\"),\n\t\t\tRepetition: pachca.DraftRepetitionRequest{\n\t\t\t\tInterval: pachca.DraftRepetitionIntervalWeekly,\n\t\t\t\tDays: []int32{int32(123)},\n\t\t\t\tNthDay: pachca.Ptr(int32(2)),\n\t\t\t},\n\t\t}),\n\t},\n}\nresponse, err := client.Drafts.UpdateDraft(ctx, int32(4821), request)",
+    "output": "Draft{ID: int32, EntityType: *MessageEntityType, EntityID: *int32, ChatID: *int32, Content: string, ParentMessageID: *int32, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Schedule: *DraftSchedule{StartDate: time.Time, EndDate: *string, Repetition: DraftRepetition{Interval: DraftRepetitionInterval, Days: *[]int32, NthDay: *int32}}, NextSendAt: *string, CreatedAt: time.Time, UpdatedAt: time.Time}",
     "imports": [
       "DraftFileRequest",
       "DraftRepetitionInterval",
@@ -315,7 +305,7 @@
     "usage": "client.Drafts.DeleteDraft(ctx, int32(4821))"
   },
   "GroupTagOperations_listTags": {
-    "usage": "params := &ListTagsParams{\n\tNames: []string{\"example\"},\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.GroupTags.ListTags(ctx, params)",
+    "usage": "params := &pachca.ListTagsParams{\n\tNames: []string{\"example\"},\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.GroupTags.ListTags(ctx, params)",
     "output": "ListTagsResponse{Data: []GroupTag, Meta: PaginationMeta}",
     "imports": [
       "ListTagsParams"
@@ -326,14 +316,14 @@
     "output": "GroupTag{ID: int32, Name: string, UsersCount: int32}"
   },
   "GroupTagOperations_getTagUsers": {
-    "usage": "params := &GetTagUsersParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.GroupTags.GetTagUsers(ctx, int32(9111), params)",
+    "usage": "params := &pachca.GetTagUsersParams{\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.GroupTags.GetTagUsers(ctx, int32(9111), params)",
     "output": "GetTagUsersResponse{Data: []User, Meta: PaginationMeta}",
     "imports": [
       "GetTagUsersParams"
     ]
   },
   "GroupTagOperations_createTag": {
-    "usage": "request := GroupTagRequest{\n\tGroupTag: GroupTagRequestGroupTag{\n\t\tName: \"Новое название тега\",\n\t},\n}\nresponse, err := client.GroupTags.CreateTag(ctx, request)",
+    "usage": "request := pachca.GroupTagRequest{\n\tGroupTag: pachca.GroupTagRequestGroupTag{\n\t\tName: \"Новое название тега\",\n\t},\n}\nresponse, err := client.GroupTags.CreateTag(ctx, request)",
     "output": "GroupTag{ID: int32, Name: string, UsersCount: int32}",
     "imports": [
       "GroupTagRequest",
@@ -341,7 +331,7 @@
     ]
   },
   "GroupTagOperations_updateTag": {
-    "usage": "request := GroupTagRequest{\n\tGroupTag: GroupTagRequestGroupTag{\n\t\tName: \"Новое название тега\",\n\t},\n}\nresponse, err := client.GroupTags.UpdateTag(ctx, int32(9111), request)",
+    "usage": "request := pachca.GroupTagRequest{\n\tGroupTag: pachca.GroupTagRequestGroupTag{\n\t\tName: \"Новое название тега\",\n\t},\n}\nresponse, err := client.GroupTags.UpdateTag(ctx, int32(9111), request)",
     "output": "GroupTag{ID: int32, Name: string, UsersCount: int32}",
     "imports": [
       "GroupTagRequest",
@@ -352,7 +342,7 @@
     "usage": "client.GroupTags.DeleteTag(ctx, int32(9111))"
   },
   "ImportantMessageOperations_listImportantMessages": {
-    "usage": "params := &ListImportantMessagesParams{\n\tLimit: Ptr(int32(25)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.ImportantMessages.ListImportantMessages(ctx, params)",
+    "usage": "params := &pachca.ListImportantMessagesParams{\n\tLimit: pachca.Ptr(int32(25)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.ImportantMessages.ListImportantMessages(ctx, params)",
     "output": "ListImportantMessagesResponse{Data: []Message, Meta: PaginationMeta}",
     "imports": [
       "ListImportantMessagesParams"
@@ -365,7 +355,7 @@
     "usage": "client.ImportantMessages.RemoveMessageFromImportant(ctx, int32(194275))"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "params := ListChatMessagesParams{\n\tChatID: int32(198),\n\tSort: Ptr(MessageSortFieldID),\n\tOrder: Ptr(SortOrderDesc),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Messages.ListChatMessages(ctx, params)",
+    "usage": "params := pachca.ListChatMessagesParams{\n\tChatID: int32(198),\n\tSort: pachca.Ptr(pachca.MessageSortFieldID),\n\tOrder: pachca.Ptr(pachca.SortOrderDesc),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Messages.ListChatMessages(ctx, params)",
     "output": "ListChatMessagesResponse{Data: []Message, Meta: PaginationMeta}",
     "imports": [
       "ListChatMessagesParams",
@@ -375,22 +365,18 @@
   },
   "MessageOperations_getMessage": {
     "usage": "response, err := client.Messages.GetMessage(ctx, int32(194275))",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool}"
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: time.Time, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: time.Time, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool}"
   },
   "MessageOperations_createMessage": {
-    "usage": "request := MessageCreateRequest{\n\tMessage: MessageCreateRequestMessage{\n\t\tEntityType: Ptr(MessageEntityTypeDiscussion),\n\t\tEntityID: int32(334),\n\t\tContent: Ptr(\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"),\n\t\tFiles: []MessageCreateRequestFile{MessageCreateRequestFile{\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: FileTypeImage,\n\t\t\tSize: Ptr(int64(12345)),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tButtons: [][]Button{[]Button{Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: Ptr(\"https://example.com/details\"),\n\t\t\tData: Ptr(\"awesome\"),\n\t\t}}},\n\t\tParentMessageID: Ptr(int32(194270)),\n\t\tDisplayAvatarURL: Ptr(\"https://example.com/avatar.png\"),\n\t\tDisplayName: Ptr(\"Бот Поддержки\"),\n\t\tSkipInviteMentions: Ptr(false),\n\t},\n\tLinkPreview: Ptr(false),\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool}",
+    "usage": "request := pachca.MessageCreateRequest{\n\tMessage: pachca.MessageCreateRequestMessage{\n\t\tEntityID: int32(334),\n\t\tContent: pachca.Ptr(\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"),\n\t},\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: time.Time, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: time.Time, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool}",
     "imports": [
-      "Button",
-      "FileType",
       "MessageCreateRequest",
-      "MessageCreateRequestFile",
-      "MessageCreateRequestMessage",
-      "MessageEntityType"
+      "MessageCreateRequestMessage"
     ]
   },
   "LinkPreviewOperations_unfurl": {
-    "usage": "request := LinkPreviewsRequest{\n\tLinkPreviews: map[string]LinkPreview{\"key\": LinkPreview{\n\t\tTitle: \"Статья: Отправка файлов\",\n\t\tDescription: \"Пример отправки файлов на удаленный сервер\",\n\t\tImageURL: Ptr(\"https://example.com/img/landing.png\"),\n\t\tImage: Ptr(LinkPreviewImage{\n\t\t\tKey: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n\t\t\tName: \"files-to-server.jpg\",\n\t\t\tSize: Ptr(int32(695604)),\n\t\t}),\n\t}},\n}\nclient.Messages.Unfurl(ctx, int32(194275), request)",
+    "usage": "request := pachca.LinkPreviewsRequest{\n\tLinkPreviews: map[string]pachca.LinkPreview{\"key\": pachca.LinkPreview{\n\t\tTitle: \"Статья: Отправка файлов\",\n\t\tDescription: \"Пример отправки файлов на удаленный сервер\",\n\t\tImageURL: pachca.Ptr(\"https://example.com/img/landing.png\"),\n\t\tImage: pachca.Ptr(pachca.LinkPreviewImage{\n\t\t\tKey: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n\t\t\tName: \"files-to-server.jpg\",\n\t\t\tSize: pachca.Ptr(int32(695604)),\n\t\t}),\n\t}},\n}\nclient.Messages.Unfurl(ctx, int32(194275), request)",
     "imports": [
       "LinkPreview",
       "LinkPreviewImage",
@@ -401,13 +387,11 @@
     "usage": "client.Messages.PinMessage(ctx, int32(194275))"
   },
   "MessageOperations_updateMessage": {
-    "usage": "request := MessageUpdateRequest{\n\tMessage: MessageUpdateRequestMessage{\n\t\tContent: Ptr(\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\"),\n\t\tFiles: []MessageUpdateRequestFile{MessageUpdateRequestFile{\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: Ptr(FileTypeImage),\n\t\t\tSize: Ptr(int64(12345)),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tButtons: [][]Button{[]Button{Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: Ptr(\"https://example.com/details\"),\n\t\t\tData: Ptr(\"awesome\"),\n\t\t}}},\n\t\tDisplayAvatarURL: Ptr(\"https://example.com/avatar.png\"),\n\t\tDisplayName: Ptr(\"Бот Поддержки\"),\n\t},\n}\nresponse, err := client.Messages.UpdateMessage(ctx, int32(194275), request)",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool}",
+    "usage": "request := pachca.MessageUpdateRequest{\n\tMessage: pachca.MessageUpdateRequestMessage{\n\t\tContent: pachca.Ptr(\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\"),\n\t\tButtons: [][]pachca.Button{[]pachca.Button{pachca.Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: pachca.Ptr(\"https://example.com/details\"),\n\t\t}}},\n\t},\n}\nresponse, err := client.Messages.UpdateMessage(ctx, int32(194275), request)",
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: time.Time, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: time.Time, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool}",
     "imports": [
       "Button",
-      "FileType",
       "MessageUpdateRequest",
-      "MessageUpdateRequestFile",
       "MessageUpdateRequestMessage"
     ]
   },
@@ -418,34 +402,34 @@
     "usage": "client.Messages.UnpinMessage(ctx, int32(194275))"
   },
   "ReactionOperations_listReactions": {
-    "usage": "params := &ListReactionsParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Reactions.ListReactions(ctx, int32(194275), params)",
+    "usage": "params := &pachca.ListReactionsParams{\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Reactions.ListReactions(ctx, int32(194275), params)",
     "output": "ListReactionsResponse{Data: []Reaction, Meta: PaginationMeta}",
     "imports": [
       "ListReactionsParams"
     ]
   },
   "ReactionOperations_addReaction": {
-    "usage": "request := ReactionRequest{\n\tCode: \"👍\",\n\tName: Ptr(\"agent-thinking\"),\n}\nresponse, err := client.Reactions.AddReaction(ctx, int32(7231942), request)",
-    "output": "Reaction{UserID: int32, CreatedAt: string, Code: string, Name: string}",
+    "usage": "request := pachca.ReactionRequest{\n\tCode: \"👍\",\n\tName: pachca.Ptr(\"agent-thinking\"),\n}\nresponse, err := client.Reactions.AddReaction(ctx, int32(7231942), request)",
+    "output": "Reaction{UserID: int32, CreatedAt: time.Time, Code: string, Name: string}",
     "imports": [
       "ReactionRequest"
     ]
   },
   "ReactionOperations_removeReaction": {
-    "usage": "params := RemoveReactionParams{\n\tCode: \"👍\",\n\tName: Ptr(\"agent-thinking\"),\n}\nclient.Reactions.RemoveReaction(ctx, int32(7231942), params)",
+    "usage": "params := pachca.RemoveReactionParams{\n\tCode: \"👍\",\n\tName: pachca.Ptr(\"agent-thinking\"),\n}\nclient.Reactions.RemoveReaction(ctx, int32(7231942), params)",
     "imports": [
       "RemoveReactionParams"
     ]
   },
   "ReadMemberOperations_listReadMembers": {
-    "usage": "params := &ListReadMembersParams{\n\tLimit: Ptr(int32(300)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.ReadMembers.ListReadMembers(ctx, int32(194275), params)",
+    "usage": "params := &pachca.ListReadMembersParams{\n\tLimit: pachca.Ptr(int32(300)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.ReadMembers.ListReadMembers(ctx, int32(194275), params)",
     "output": "any",
     "imports": [
       "ListReadMembersParams"
     ]
   },
   "ThreadOperations_listThreads": {
-    "usage": "params := &ListThreadsParams{\n\tLastMessageAtAfter: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tLastMessageAtBefore: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Threads.ListThreads(ctx, params)",
+    "usage": "params := &pachca.ListThreadsParams{\n\tLastMessageAtAfter: pachca.Ptr(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),\n\tLastMessageAtBefore: pachca.Ptr(time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Threads.ListThreads(ctx, params)",
     "output": "ListThreadsResponse{Data: []Thread, Meta: PaginationMeta}",
     "imports": [
       "ListThreadsParams"
@@ -453,29 +437,28 @@
   },
   "ThreadOperations_getThread": {
     "usage": "response, err := client.Threads.GetThread(ctx, int32(265142))",
-    "output": "Thread{ID: int64, ChatID: int64, MessageID: *int64, MessageChatID: *int64, UpdatedAt: string}"
+    "output": "Thread{ID: int64, ChatID: int64, MessageID: *int64, MessageChatID: *int64, UpdatedAt: time.Time}"
   },
   "ThreadOperations_createThread": {
     "usage": "response, err := client.Threads.CreateThread(ctx, int32(154332686))",
-    "output": "Thread{ID: int64, ChatID: int64, MessageID: *int64, MessageChatID: *int64, UpdatedAt: string}"
+    "output": "Thread{ID: int64, ChatID: int64, MessageID: *int64, MessageChatID: *int64, UpdatedAt: time.Time}"
   },
   "ThreadOperations_createStandaloneThread": {
     "usage": "response, err := client.Threads.CreateStandaloneThread(ctx)",
-    "output": "Thread{ID: int64, ChatID: int64, MessageID: *int64, MessageChatID: *int64, UpdatedAt: string}"
+    "output": "Thread{ID: int64, ChatID: int64, MessageID: *int64, MessageChatID: *int64, UpdatedAt: time.Time}"
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "response, err := client.Oauth.GetTokenInfo(ctx)",
-    "output": "AccessTokenInfo{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []OAuthScope, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}"
+    "output": "AccessTokenInfo{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []OAuthScope, CreatedAt: time.Time, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}"
   },
   "OAuthFlowOperations_revokeToken": {
-    "usage": "request := OAuthRevokeRequest{\n\tToken: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n\tTokenTypeHint: Ptr(OAuthTokenTypeHintAccessToken),\n\tClientID: Ptr(\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\"),\n\tClientSecret: Ptr(\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"),\n}\nclient.Oauth.RevokeToken(ctx, request)",
+    "usage": "request := pachca.OAuthRevokeRequest{\n\tToken: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n\tClientID: pachca.Ptr(\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\"),\n\tClientSecret: pachca.Ptr(\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"),\n}\nclient.Oauth.RevokeToken(ctx, request)",
     "imports": [
-      "OAuthRevokeRequest",
-      "OAuthTokenTypeHint"
+      "OAuthRevokeRequest"
     ]
   },
   "OAuthFlowOperations_exchangeToken": {
-    "usage": "request := OAuthTokenRequest{\n\tGrantType: \"authorization_code\",\n\tCode: \"ZmFrZV9hdXRoX2NvZGU\",\n\tRedirectUri: \"https://bot.example.com/oauth/callback\",\n\tClientID: Ptr(\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\"),\n\tClientSecret: Ptr(\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"),\n\tCodeVerifier: Ptr(\"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"),\n}\nresponse, err := client.Oauth.ExchangeToken(ctx, request)",
+    "usage": "request := pachca.OAuthTokenRequest{\n\tGrantType: \"authorization_code\",\n\tCode: \"ZmFrZV9hdXRoX2NvZGU\",\n\tRedirectUri: \"https://bot.example.com/oauth/callback\",\n\tClientID: pachca.Ptr(\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\"),\n\tClientSecret: pachca.Ptr(\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"),\n\tCodeVerifier: pachca.Ptr(\"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"),\n}\nresponse, err := client.Oauth.ExchangeToken(ctx, request)",
     "output": "OAuthToken{AccessToken: string, TokenType: string, RefreshToken: string, Scope: string, CreatedAt: int64}",
     "imports": [
       "OAuthTokenRequest"
@@ -483,7 +466,7 @@
   },
   "ProfileOperations_getProfile": {
     "usage": "response, err := client.Profile.GetProfile(ctx)",
-    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}"
+    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: time.Time, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}"
   },
   "ProfileOperations_getStatus": {
     "usage": "response, err := client.Profile.GetStatus(ctx)",
@@ -494,7 +477,7 @@
     "output": "AvatarData{ImageURL: string}"
   },
   "ProfileOperations_updateStatus": {
-    "usage": "request := StatusUpdateRequest{\n\tStatus: StatusUpdateRequestStatus{\n\t\tEmoji: Ptr(\"🎮\"),\n\t\tTitle: Ptr(\"Очень занят\"),\n\t\tExpiresAt: Ptr(\"2024-04-08T10:00:00.000Z\"),\n\t\tIsAway: Ptr(true),\n\t\tAwayMessage: Ptr(\"Вернусь после 15:00\"),\n\t},\n}\nresponse, err := client.Profile.UpdateStatus(ctx, request)",
+    "usage": "request := pachca.StatusUpdateRequest{\n\tStatus: pachca.StatusUpdateRequestStatus{\n\t\tEmoji: pachca.Ptr(\"🎮\"),\n\t\tTitle: pachca.Ptr(\"Очень занят\"),\n\t\tExpiresAt: pachca.Ptr(time.Date(2024, 4, 8, 10, 0, 0, 0, time.UTC)),\n\t\tIsAway: pachca.Ptr(true),\n\t\tAwayMessage: pachca.Ptr(\"Вернусь после 15:00\"),\n\t},\n}\nresponse, err := client.Profile.UpdateStatus(ctx, request)",
     "output": "UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}",
     "imports": [
       "StatusUpdateRequest",
@@ -508,7 +491,7 @@
     "usage": "client.Profile.DeleteStatus(ctx)"
   },
   "SearchOperations_searchChats": {
-    "usage": "params := &SearchChatsParams{\n\tQuery: Ptr(\"Разработка\"),\n\tLimit: Ptr(int32(10)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n\tOrder: Ptr(SortOrderDesc),\n\tCreatedFrom: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tCreatedTo: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tActive: Ptr(true),\n\tChatSubtype: Ptr(ChatSubtypeDiscussion),\n\tPersonal: Ptr(false),\n}\nresponse, err := client.Search.SearchChats(ctx, params)",
+    "usage": "params := &pachca.SearchChatsParams{\n\tQuery: pachca.Ptr(\"Разработка\"),\n\tLimit: pachca.Ptr(int32(10)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n\tOrder: pachca.Ptr(pachca.SortOrderDesc),\n\tCreatedFrom: pachca.Ptr(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),\n\tCreatedTo: pachca.Ptr(time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)),\n\tActive: pachca.Ptr(true),\n\tChatSubtype: pachca.Ptr(pachca.ChatSubtypeDiscussion),\n\tPersonal: pachca.Ptr(false),\n}\nresponse, err := client.Search.SearchChats(ctx, params)",
     "output": "SearchChatsResponse{Data: []Chat, Meta: SearchPaginationMeta}",
     "imports": [
       "ChatSubtype",
@@ -517,7 +500,7 @@
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "params := &SearchMessagesParams{\n\tQuery: Ptr(\"футболки\"),\n\tLimit: Ptr(int32(10)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n\tOrder: Ptr(SortOrderDesc),\n\tSort: Ptr(MessageSearchSortCreatedAt),\n\tCreatedFrom: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tCreatedTo: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tChatIDs: []int32{int32(123)},\n\tUserIDs: []int32{int32(123)},\n\tActive: Ptr(true),\n}\nresponse, err := client.Search.SearchMessages(ctx, params)",
+    "usage": "params := &pachca.SearchMessagesParams{\n\tQuery: pachca.Ptr(\"футболки\"),\n\tLimit: pachca.Ptr(int32(10)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n\tOrder: pachca.Ptr(pachca.SortOrderDesc),\n\tSort: pachca.Ptr(pachca.MessageSearchSortCreatedAt),\n\tCreatedFrom: pachca.Ptr(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),\n\tCreatedTo: pachca.Ptr(time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)),\n\tChatIDs: []int32{int32(123)},\n\tUserIDs: []int32{int32(123)},\n\tActive: pachca.Ptr(true),\n}\nresponse, err := client.Search.SearchMessages(ctx, params)",
     "output": "SearchMessagesResponse{Data: []Message, Meta: SearchPaginationMeta}",
     "imports": [
       "MessageSearchSort",
@@ -526,7 +509,7 @@
     ]
   },
   "SearchOperations_searchUsers": {
-    "usage": "params := &SearchUsersParams{\n\tQuery: Ptr(\"Олег\"),\n\tLimit: Ptr(int32(10)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n\tSort: Ptr(SearchSortOrderByScore),\n\tOrder: Ptr(SortOrderDesc),\n\tCreatedFrom: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tCreatedTo: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tCompanyRoles: []UserRole{UserRoleAdmin},\n}\nresponse, err := client.Search.SearchUsers(ctx, params)",
+    "usage": "params := &pachca.SearchUsersParams{\n\tQuery: pachca.Ptr(\"Олег\"),\n\tLimit: pachca.Ptr(int32(10)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n\tSort: pachca.Ptr(pachca.SearchSortOrderByScore),\n\tOrder: pachca.Ptr(pachca.SortOrderDesc),\n\tCreatedFrom: pachca.Ptr(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),\n\tCreatedTo: pachca.Ptr(time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)),\n\tCompanyRoles: []pachca.UserRole{pachca.UserRoleAdmin},\n}\nresponse, err := client.Search.SearchUsers(ctx, params)",
     "output": "SearchUsersResponse{Data: []User, Meta: SearchPaginationMeta}",
     "imports": [
       "SearchSortOrder",
@@ -536,7 +519,7 @@
     ]
   },
   "TaskOperations_listTasks": {
-    "usage": "params := &ListTasksParams{\n\tStatus: Ptr(TaskStatusUndone),\n\tChatIDs: []int32{int32(123)},\n\tPerformerIDs: []int32{int32(123)},\n\tAuthorID: Ptr(int32(12)),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Tasks.ListTasks(ctx, params)",
+    "usage": "params := &pachca.ListTasksParams{\n\tStatus: pachca.Ptr(pachca.TaskStatusUndone),\n\tChatIDs: []int32{int32(123)},\n\tPerformerIDs: []int32{int32(123)},\n\tAuthorID: pachca.Ptr(int32(12)),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Tasks.ListTasks(ctx, params)",
     "output": "ListTasksResponse{Data: []Task, Meta: PaginationMeta}",
     "imports": [
       "ListTasksParams",
@@ -545,11 +528,11 @@
   },
   "TaskOperations_getTask": {
     "usage": "response, err := client.Tasks.GetTask(ctx, int32(22283))",
-    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}"
+    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: time.Time, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}"
   },
   "TaskOperations_createTask": {
-    "usage": "request := TaskCreateRequest{\n\tTask: TaskCreateRequestTask{\n\t\tKind: TaskKindReminder,\n\t\tContent: Ptr(\"Забрать со склада 21 заказ\"),\n\t\tDueAt: Ptr(\"2020-06-05T12:00:00.000+03:00\"),\n\t\tPriority: Ptr(int32(2)),\n\t\tPerformerIDs: []int32{int32(123)},\n\t\tChatID: Ptr(int32(456)),\n\t\tAllDay: Ptr(false),\n\t\tCustomProperties: []TaskCreateRequestCustomProperty{TaskCreateRequestCustomProperty{\n\t\t\tID: int32(78),\n\t\t\tValue: \"Синий склад\",\n\t\t}},\n\t},\n}\nresponse, err := client.Tasks.CreateTask(ctx, request)",
-    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}",
+    "usage": "request := pachca.TaskCreateRequest{\n\tTask: pachca.TaskCreateRequestTask{\n\t\tKind: pachca.TaskKindReminder,\n\t\tContent: pachca.Ptr(\"Забрать со склада 21 заказ\"),\n\t\tDueAt: pachca.Ptr(time.Date(2020, 6, 5, 12, 0, 0, 0, time.FixedZone(\"\", 3*60*60))),\n\t\tPriority: pachca.Ptr(int32(2)),\n\t\tPerformerIDs: []int32{int32(123)},\n\t\tChatID: pachca.Ptr(int32(456)),\n\t\tAllDay: pachca.Ptr(false),\n\t\tCustomProperties: []pachca.TaskCreateRequestCustomProperty{pachca.TaskCreateRequestCustomProperty{\n\t\t\tID: int32(78),\n\t\t\tValue: \"Синий склад\",\n\t\t}},\n\t},\n}\nresponse, err := client.Tasks.CreateTask(ctx, request)",
+    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: time.Time, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}",
     "imports": [
       "TaskCreateRequest",
       "TaskCreateRequestCustomProperty",
@@ -558,8 +541,8 @@
     ]
   },
   "TaskOperations_updateTask": {
-    "usage": "request := TaskUpdateRequest{\n\tTask: TaskUpdateRequestTask{\n\t\tKind: Ptr(TaskKindReminder),\n\t\tContent: Ptr(\"Забрать со склада 21 заказ\"),\n\t\tDueAt: Ptr(\"2020-06-05T12:00:00.000+03:00\"),\n\t\tPriority: Ptr(int32(2)),\n\t\tPerformerIDs: []int32{int32(123)},\n\t\tStatus: Ptr(TaskStatusDone),\n\t\tAllDay: Ptr(false),\n\t\tDoneAt: Ptr(\"2020-06-05T12:00:00.000Z\"),\n\t\tCustomProperties: []TaskUpdateRequestCustomProperty{TaskUpdateRequestCustomProperty{\n\t\t\tID: int32(78),\n\t\t\tValue: \"Синий склад\",\n\t\t}},\n\t},\n}\nresponse, err := client.Tasks.UpdateTask(ctx, int32(22283), request)",
-    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}",
+    "usage": "request := pachca.TaskUpdateRequest{\n\tTask: pachca.TaskUpdateRequestTask{\n\t\tKind: pachca.Ptr(pachca.TaskKindReminder),\n\t\tContent: pachca.Ptr(\"Забрать со склада 21 заказ\"),\n\t\tDueAt: pachca.Ptr(time.Date(2020, 6, 5, 12, 0, 0, 0, time.FixedZone(\"\", 3*60*60))),\n\t\tPriority: pachca.Ptr(int32(2)),\n\t\tPerformerIDs: []int32{int32(123)},\n\t\tStatus: pachca.Ptr(pachca.TaskStatusDone),\n\t\tAllDay: pachca.Ptr(false),\n\t\tDoneAt: pachca.Ptr(time.Date(2020, 6, 5, 12, 0, 0, 0, time.UTC)),\n\t\tCustomProperties: []pachca.TaskUpdateRequestCustomProperty{pachca.TaskUpdateRequestCustomProperty{\n\t\t\tID: int32(78),\n\t\t\tValue: \"Синий склад\",\n\t\t}},\n\t},\n}\nresponse, err := client.Tasks.UpdateTask(ctx, int32(22283), request)",
+    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: time.Time, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}",
     "imports": [
       "TaskKind",
       "TaskStatus",
@@ -572,7 +555,7 @@
     "usage": "client.Tasks.DeleteTask(ctx, int32(22283))"
   },
   "UserOperations_listUsers": {
-    "usage": "params := &ListUsersParams{\n\tQuery: Ptr(\"Олег\"),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Users.ListUsers(ctx, params)",
+    "usage": "params := &pachca.ListUsersParams{\n\tQuery: pachca.Ptr(\"Олег\"),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Users.ListUsers(ctx, params)",
     "output": "ListUsersResponse{Data: []User, Meta: PaginationMeta}",
     "imports": [
       "ListUsersParams"
@@ -580,15 +563,15 @@
   },
   "UserOperations_getUser": {
     "usage": "response, err := client.Users.GetUser(ctx, int32(12))",
-    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}"
+    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: time.Time, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}"
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "response, err := client.Users.GetUserStatus(ctx, int32(12))",
     "output": "UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}"
   },
   "UserOperations_createUser": {
-    "usage": "request := UserCreateRequest{\n\tUser: UserCreateRequestUser{\n\t\tFirstName: Ptr(\"Олег\"),\n\t\tLastName: Ptr(\"Петров\"),\n\t\tEmail: \"olegp@example.com\",\n\t\tPhoneNumber: Ptr(\"+79001234567\"),\n\t\tNickname: Ptr(\"olegpetrov\"),\n\t\tDepartment: Ptr(\"Продукт\"),\n\t\tTitle: Ptr(\"CIO\"),\n\t\tRole: Ptr(UserCreateRoleUser),\n\t\tSuspended: Ptr(false),\n\t\tListTags: []string{\"example\"},\n\t\tChatIDs: []int32{int32(123)},\n\t\tCustomProperties: []UserCreateRequestCustomProperty{UserCreateRequestCustomProperty{\n\t\t\tID: int32(1678),\n\t\t\tValue: \"Санкт-Петербург\",\n\t\t}},\n\t},\n\tSkipEmailNotify: Ptr(false),\n}\nresponse, err := client.Users.CreateUser(ctx, request)",
-    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}",
+    "usage": "request := pachca.UserCreateRequest{\n\tUser: pachca.UserCreateRequestUser{\n\t\tFirstName: pachca.Ptr(\"Олег\"),\n\t\tLastName: pachca.Ptr(\"Петров\"),\n\t\tEmail: \"olegp@example.com\",\n\t\tPhoneNumber: pachca.Ptr(\"+79001234567\"),\n\t\tNickname: pachca.Ptr(\"olegpetrov\"),\n\t\tDepartment: pachca.Ptr(\"Продукт\"),\n\t\tTitle: pachca.Ptr(\"CIO\"),\n\t\tRole: pachca.Ptr(pachca.UserCreateRoleUser),\n\t\tSuspended: pachca.Ptr(false),\n\t\tListTags: []string{\"example\"},\n\t\tChatIDs: []int32{int32(123)},\n\t\tCustomProperties: []pachca.UserCreateRequestCustomProperty{pachca.UserCreateRequestCustomProperty{\n\t\t\tID: int32(1678),\n\t\t\tValue: \"Санкт-Петербург\",\n\t\t}},\n\t},\n\tSkipEmailNotify: pachca.Ptr(false),\n}\nresponse, err := client.Users.CreateUser(ctx, request)",
+    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: time.Time, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
@@ -597,8 +580,8 @@
     ]
   },
   "UserOperations_updateUser": {
-    "usage": "request := UserUpdateRequest{\n\tUser: UserUpdateRequestUser{\n\t\tFirstName: Ptr(\"Олег\"),\n\t\tLastName: Ptr(\"Петров\"),\n\t\tEmail: Ptr(\"olegpetrov@example.com\"),\n\t\tPhoneNumber: Ptr(\"+79001234567\"),\n\t\tNickname: Ptr(\"olegpetrov\"),\n\t\tDepartment: Ptr(\"Отдел разработки\"),\n\t\tTitle: Ptr(\"Старший разработчик\"),\n\t\tRole: Ptr(UserRoleInputUser),\n\t\tChatIDs: []int32{int32(123)},\n\t\tSuspended: Ptr(false),\n\t\tListTags: []string{\"example\"},\n\t\tCustomProperties: []UserUpdateRequestCustomProperty{UserUpdateRequestCustomProperty{\n\t\t\tID: int32(1678),\n\t\t\tValue: \"Санкт-Петербург\",\n\t\t}},\n\t},\n}\nresponse, err := client.Users.UpdateUser(ctx, int32(12), request)",
-    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}",
+    "usage": "request := pachca.UserUpdateRequest{\n\tUser: pachca.UserUpdateRequestUser{\n\t\tFirstName: pachca.Ptr(\"Олег\"),\n\t\tLastName: pachca.Ptr(\"Петров\"),\n\t\tEmail: pachca.Ptr(\"olegpetrov@example.com\"),\n\t\tPhoneNumber: pachca.Ptr(\"+79001234567\"),\n\t\tNickname: pachca.Ptr(\"olegpetrov\"),\n\t\tDepartment: pachca.Ptr(\"Отдел разработки\"),\n\t\tTitle: pachca.Ptr(\"Старший разработчик\"),\n\t\tRole: pachca.Ptr(pachca.UserRoleInputUser),\n\t\tChatIDs: []int32{int32(123)},\n\t\tSuspended: pachca.Ptr(false),\n\t\tListTags: []string{\"example\"},\n\t\tCustomProperties: []pachca.UserUpdateRequestCustomProperty{pachca.UserUpdateRequestCustomProperty{\n\t\t\tID: int32(1678),\n\t\t\tValue: \"Санкт-Петербург\",\n\t\t}},\n\t},\n}\nresponse, err := client.Users.UpdateUser(ctx, int32(12), request)",
+    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: time.Time, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}",
     "imports": [
       "UserRoleInput",
       "UserUpdateRequest",
@@ -611,7 +594,7 @@
     "output": "AvatarData{ImageURL: string}"
   },
   "UserStatusOperations_updateUserStatus": {
-    "usage": "request := StatusUpdateRequest{\n\tStatus: StatusUpdateRequestStatus{\n\t\tEmoji: Ptr(\"🎮\"),\n\t\tTitle: Ptr(\"Очень занят\"),\n\t\tExpiresAt: Ptr(\"2024-04-08T10:00:00.000Z\"),\n\t\tIsAway: Ptr(true),\n\t\tAwayMessage: Ptr(\"Вернусь после 15:00\"),\n\t},\n}\nresponse, err := client.Users.UpdateUserStatus(ctx, int32(12), request)",
+    "usage": "request := pachca.StatusUpdateRequest{\n\tStatus: pachca.StatusUpdateRequestStatus{\n\t\tEmoji: pachca.Ptr(\"🎮\"),\n\t\tTitle: pachca.Ptr(\"Очень занят\"),\n\t\tExpiresAt: pachca.Ptr(time.Date(2024, 4, 8, 10, 0, 0, 0, time.UTC)),\n\t\tIsAway: pachca.Ptr(true),\n\t\tAwayMessage: pachca.Ptr(\"Вернусь после 15:00\"),\n\t},\n}\nresponse, err := client.Users.UpdateUserStatus(ctx, int32(12), request)",
     "output": "UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}",
     "imports": [
       "StatusUpdateRequest",
@@ -628,17 +611,19 @@
     "usage": "client.Users.DeleteUserStatus(ctx, int32(12))"
   },
   "FormOperations_submitViewResponse": {
-    "usage": "request := SubmitViewResponseRequest{\n\tSubmitID: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n\tErrors: map[string]string{\"key\": \"example\"},\n}\nresponse, err := client.Views.SubmitViewResponse(ctx, \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request)",
+    "usage": "request := pachca.SubmitViewResponseRequest{\n\tSubmitID: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n\tErrors: map[string]string{\"key\": \"example\"},\n}\nresponse, err := client.Views.SubmitViewResponse(ctx, \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request)",
     "output": "SubmitViewResponseResult{Success: bool}",
     "imports": [
       "SubmitViewResponseRequest"
     ]
   },
   "FormOperations_openView": {
-    "usage": "request := OpenViewRequest{\n\tType: \"modal\",\n\tTriggerID: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n\tPrivateMetadata: Ptr(\"{\\\"timeoff_id\\\":4378}\"),\n\tCallbackID: Ptr(\"timeoff_request_form\"),\n\tView: OpenViewRequestView{\n\t\tTitle: \"Уведомление об отпуске\",\n\t\tCloseText: Ptr(\"Закрыть\"),\n\t\tSubmitText: Ptr(\"Отправить заявку\"),\n\t\tBlocks: []ViewBlockUnion{ViewBlockHeader{\n\t\t\tType: \"header\",\n\t\t\tText: \"Основная информация\",\n\t\t}},\n\t},\n}\nclient.Views.OpenView(ctx, request)",
+    "usage": "request := pachca.OpenViewRequest{\n\tType: \"modal\",\n\tTriggerID: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n\tPrivateMetadata: pachca.Ptr(\"{\\\"timeoff_id\\\":4378}\"),\n\tCallbackID: pachca.Ptr(\"timeoff_request_form\"),\n\tView: pachca.OpenViewRequestView{\n\t\tTitle: \"Уведомление об отпуске\",\n\t\tCloseText: pachca.Ptr(\"Закрыть\"),\n\t\tSubmitText: pachca.Ptr(\"Отправить заявку\"),\n\t\tBlocks: []pachca.ViewBlockUnion{pachca.ViewBlockUnion{ViewBlockHeader: &pachca.ViewBlockHeader{\n\t\t\tType: \"header\",\n\t\t\tText: \"Основная информация\",\n\t\t}}},\n\t},\n}\nresponse, err := client.Views.OpenView(ctx, request)",
+    "output": "OpenViewResult{Success: bool}",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",
+      "ViewBlockHeader",
       "ViewBlockUnion"
     ]
   }

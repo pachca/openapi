@@ -10,7 +10,7 @@ import {
   type IRService,
   type IRUnion,
 } from '../ir.js';
-import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, tagToProperty, tagToServiceName, serviceToImplName } from '../naming.js';
 
 const SWIFT_KEYWORDS = new Set([
@@ -233,7 +233,7 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
   lines.push('}');
 }
 
-/** Union whose members share no discriminator: try each member, most specific first. */
+/** Union whose members share no discriminator: try the members in the order they match the payload keys. */
 function emitStructuralUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   lines.push(`public enum ${u.name}: Codable {`);
   for (const ref of u.memberRefs) {
@@ -241,26 +241,46 @@ function emitStructuralUnion(lines: string[], u: IRUnion, models: IRModel[]): vo
     lines.push(`    case ${c}(${ref})`);
   }
   lines.push('');
-  // Synthesized decoders only fail on a missing required key, so ordering by
-  // required-field count descending makes the most demanding member win and
-  // leaves the loosest one (typically an empty object) as the fallback.
-  const ordered = [...u.memberRefs].sort((a, b) => {
-    const req = (ref: string) =>
-      (models.find((m) => m.name === ref)?.fields ?? []).filter((f) => !isOptionalField(f)).length;
-    const all = (ref: string) => (models.find((m) => m.name === ref)?.fields ?? []).length;
-    return req(b) - req(a) || all(b) - all(a) || a.localeCompare(b);
-  });
+  // The same order as the other SDKs: most payload keys recognised, then fewest
+  // unrecognised, then fewest declared, a tie keeping the declared order. A
+  // member that fits the keys but misses a required one or holds a value of
+  // another type gives way to the next.
+  lines.push('    private struct AnyKey: CodingKey {');
+  lines.push('        let stringValue: String');
+  lines.push('        var intValue: Int? { nil }');
+  lines.push('        init?(stringValue: String) { self.stringValue = stringValue }');
+  lines.push('        init?(intValue: Int) { nil }');
+  lines.push('    }');
+  lines.push('');
   lines.push('    public init(from decoder: Decoder) throws {');
-  lines.push(`        // ${u.name} carries no discriminator field: members are tried from most`);
-  lines.push('        // to least demanding, so the loosest one only wins when nothing else fits.');
-  for (const ref of ordered) {
+  lines.push(`        // ${u.name} carries no discriminator field: members are tried in the order`);
+  lines.push('        // they match the payload keys, and the first one that decodes wins.');
+  lines.push(`        let shapes: [(keys: Set<String>, decode: (Decoder) throws -> ${u.name})] = [`);
+  for (const ref of u.memberRefs) {
     const c = ref.charAt(0).toLowerCase() + ref.slice(1);
-    lines.push(`        if let value = try? ${ref}(from: decoder) {`);
-    lines.push(`            self = .${c}(value)`);
-    lines.push('            return');
-    lines.push('        }');
+    const keys = (models.find((m) => m.name === ref)?.fields ?? []).map((f) => JSON.stringify(f.name));
+    const set = keys.length > 0 ? `[${keys.join(', ')}]` : '[]';
+    lines.push(`            (${set}, { .${c}(try ${ref}(from: $0)) }),`);
   }
-  lines.push('        throw DecodingError.dataCorrupted(');
+  lines.push('        ]');
+  lines.push('        let keys = Set((try? decoder.container(keyedBy: AnyKey.self))?.allKeys.map(\\.stringValue) ?? [])');
+  lines.push('        let ranked = shapes.indices.sorted { a, b in');
+  lines.push('            let matchedA = keys.intersection(shapes[a].keys).count');
+  lines.push('            let matchedB = keys.intersection(shapes[b].keys).count');
+  lines.push('            if matchedA != matchedB { return matchedA > matchedB }');
+  lines.push('            if shapes[a].keys.count != shapes[b].keys.count { return shapes[a].keys.count < shapes[b].keys.count }');
+  lines.push('            return a < b');
+  lines.push('        }');
+  lines.push('        var firstError: Error?');
+  lines.push('        for index in ranked {');
+  lines.push('            do {');
+  lines.push('                self = try shapes[index].decode(decoder)');
+  lines.push('                return');
+  lines.push('            } catch {');
+  lines.push('                if firstError == nil { firstError = error }');
+  lines.push('            }');
+  lines.push('        }');
+  lines.push('        throw firstError ?? DecodingError.dataCorrupted(');
   lines.push(`            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "No ${u.name} member matched the payload")`);
   lines.push('        )');
   lines.push('    }');
@@ -1270,7 +1290,7 @@ function swiftLiteral(
     case 'model': {
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
-        return swiftModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+        return swiftUnionLiteral(u.memberRefs[0], ir, models, visited, indent);
       }
       return swiftModelLiteral(ft.ref ?? 'String', ir, models, visited, indent);
     }
@@ -1281,7 +1301,7 @@ function swiftLiteral(
     case 'union': {
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
-        return swiftModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+        return swiftUnionLiteral(u.memberRefs[0], ir, models, visited, indent);
       }
       return `${ft.ref ?? 'String'}`;
     }
@@ -1290,6 +1310,18 @@ function swiftLiteral(
     case 'binary':
       return 'Data()';
   }
+}
+
+/** A union value is an enum case wrapping its member: `.viewBlockHeader(ViewBlockHeader(...))` (see emitUnion). */
+function swiftUnionLiteral(
+  memberRef: string,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string>,
+  indent: number,
+): string {
+  const caseName = memberRef.charAt(0).toLowerCase() + memberRef.slice(1);
+  return `.${caseName}(${swiftModelLiteral(memberRef, ir, models, visited, indent)})`;
 }
 
 function swiftModelLiteral(
@@ -1439,7 +1471,7 @@ function swiftBuildOperationExample(
   models: Map<string, IRModel>,
   serviceProp: string,
 ): { usage: string; output: string | null; imports: string[] } {
-  const callArgs: { label: string; value: string }[] = [];
+  const callArgs: { label: string; value: string; type?: IRFieldType }[] = [];
   const imports = new Set<string>();
 
   if (op.externalUrl) {
@@ -1447,33 +1479,36 @@ function swiftBuildOperationExample(
   }
 
   for (const p of op.pathParams) {
-    callArgs.push({ label: snakeToCamel(p.sdkName), value: swiftLiteral(p.type, ir, models) });
+    callArgs.push({ label: snakeToCamel(p.sdkName), value: swiftLiteral(p.type, ir, models), type: p.type });
     for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
   }
 
   if (op.requestBody) {
     const rb = op.requestBody;
+    const body = bodyExample(rb, ir, models);
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = swiftIdentifier(rb.unwrapField.name);
-      callArgs.push({ label: sdkName, value: swiftLiteral(rb.unwrapField.type, ir, models) });
-      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
+      callArgs.push({ label: sdkName, value: swiftLiteral(body.type, body.ir, body.models), type: body.type });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     } else if (rb.schemaRef) {
-      callArgs.push({ label: 'request', value: swiftLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
-      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
+      callArgs.push({ label: 'request', value: swiftLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     }
   }
 
   for (const q of op.queryParams) {
-    callArgs.push({ label: snakeToCamel(q.sdkName), value: swiftLiteral(q.type, ir, models) });
+    callArgs.push({ label: snakeToCamel(q.sdkName), value: swiftLiteral(q.type, ir, models), type: q.type });
     for (const r of collectTypeRefs(q.type, ir, models)) imports.add(r);
   }
 
   const declarations: string[] = [];
   const finalArgs: string[] = [];
 
-  for (const { label, value } of callArgs) {
+  for (const { label, value, type } of callArgs) {
     if ((value.includes('(') || value.includes('[')) && !value.startsWith('.') && !value.startsWith('"')) {
-      declarations.push(`let ${label} = ${value}`);
+      // An array or a dictionary of enum cases (`[.admin]`) has no type of its own: it is spelled out.
+      const annotation = type && (type.kind === 'array' || type.kind === 'record') ? `: ${swiftType(type)}` : '';
+      declarations.push(`let ${label}${annotation} = ${value}`);
       finalArgs.push(`${label}: ${label}`);
     } else {
       finalArgs.push(`${label}: ${value}`);

@@ -7,7 +7,7 @@ import type {
 	IWebhookResponseData,
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
-import { verifyWebhookSignature, getTokenProfile, sanitizeBaseUrl } from './GenericFunctions';
+import { verifyWebhookSignature, getTokenProfile, isInsufficientScopeError, sanitizeBaseUrl } from './GenericFunctions';
 
 /** Maps n8n event value to webhook payload { type, event } for filtering */
 const EVENT_FILTER: Record<string, { type: string; event: string }> = {
@@ -78,9 +78,9 @@ export class PachcaTrigger implements INodeType {
 					{ name: 'User Invited', value: 'company_member_invite' },
 					{ name: 'User Suspended', value: 'company_member_suspend' },
 					{ name: 'User Updated', value: 'company_member_update' },
-					{ name: 'VideoCall Finished', value: 'video_call_finished' },
-					{ name: 'VideoCall RecordingReady', value: 'video_call_recording_ready' },
-					{ name: 'VideoCall Started', value: 'video_call_started' },
+					{ name: 'Video Call Finished', value: 'video_call_finished' },
+					{ name: 'Video Call Recording Ready', value: 'video_call_recording_ready' },
+					{ name: 'Video Call Started', value: 'video_call_started' },
 				],
 				default: 'new_message',
 				description: 'The event to listen for',
@@ -94,7 +94,7 @@ export class PachcaTrigger implements INodeType {
 					{
 						name: 'Automatic',
 						value: 'automatic',
-						description: 'The node registers and clears this webhook URL in Pachca automatically. A bot token self-registers via PUT /bot/webhook (no Bot ID needed). A personal token uses PUT /bots/:botId and needs the bots:write scope, editor access to the bot, and the Bot ID below.',
+						description: 'The node registers and clears this webhook URL in Pachca automatically. A bot token self-registers via PUT /bot/webhook (no Bot ID needed) and needs the profile:read and bot_self:webhook:write scopes. A personal token uses PUT /bots/:botId and needs the bots:write scope, editor access to the bot, and the Bot ID below.',
 					},
 					{
 						name: 'Manual',
@@ -119,7 +119,7 @@ export class PachcaTrigger implements INodeType {
 			},
 			{
 				displayName:
-					'Automatic mode registers and clears this node\'s webhook URL in Pachca on activate/deactivate. With a <b>bot token</b> it self-registers — no Bot ID needed. With a <b>personal token</b> it needs the <code>bots:write</code> scope, editor access to the target bot, and the <b>Bot ID</b> below.',
+					'Automatic mode registers and clears this node\'s webhook URL in Pachca on activate/deactivate. With a <b>bot token</b> it self-registers — no Bot ID needed: the token needs the <code>profile:read</code> and <code>bot_self:webhook:write</code> scopes. With a <b>personal token</b> it needs the <code>bots:write</code> scope, editor access to the target bot, and the <b>Bot ID</b> below. The node sets only the URL: tick the events in bot settings in Pachca (Outgoing webhook tab), and for New Message choose <b>Any messages</b> or list commands.',
 				name: 'automaticSetupNotice',
 				type: 'notice',
 				default: '',
@@ -131,7 +131,7 @@ export class PachcaTrigger implements INodeType {
 			},
 			{
 				displayName:
-					'Copy the <b>Production URL</b> above and paste it into bot settings in Pachca (Outgoing Webhook tab → Webhook URL). Then activate the workflow. In manual mode n8n does not touch the bot webhook slot.',
+					'Copy the <b>Production URL</b> above and paste it into bot settings in Pachca (Outgoing webhook tab → Webhook URL). On the same tab tick the events this node listens for, and for New Message choose <b>Any messages</b> or list commands. Then activate the workflow. In manual mode n8n does not touch the bot webhook slot.',
 				name: 'manualSetupNotice',
 				type: 'notice',
 				default: '',
@@ -189,7 +189,7 @@ export class PachcaTrigger implements INodeType {
 				const setupMode = (this.getNodeParameter('webhookSetup', 'manual') as string) || 'manual';
 				if (setupMode === 'manual') {
 					this.logger.info(
-						'Pachca Trigger: manual webhook setup mode — n8n will not register the URL. Make sure the Production URL is pasted into Pachca bot settings (Outgoing Webhook tab → Webhook URL).',
+						'Pachca Trigger: manual webhook setup mode — n8n will not register the URL. Make sure the Production URL is pasted into Pachca bot settings (Outgoing webhook tab → Webhook URL).',
 					);
 					return true;
 				}
@@ -201,17 +201,34 @@ export class PachcaTrigger implements INodeType {
 
 				// Detect token type via GET /profile. A bot token self-registers its own
 				// webhook (PUT /bot/webhook, no Bot ID); a personal token registers a chosen
-				// bot by id (PUT /bots/:id). Bot tokens always carry profile:read, so a failed
-				// detection most likely means a personal token missing the scope — we fall back
-				// to the personal-token path, which requires the Bot ID below.
+				// bot by id (PUT /bots/:id). GET /profile needs the profile:read scope, and the
+				// scopes of a bot token are chosen per token, so either token type may lack it.
+				// With a Bot ID set the node goes on as a personal token; without one it stops
+				// with the reason, since the Bot ID error would point the wrong way.
+				const botId = Number(this.getNodeParameter('botId', 0));
 				let isBotToken = false;
+				let profileScopeMissing = false;
 				try {
 					const profile = await getTokenProfile(this, credentials);
 					isBotToken = profile.bot;
 				} catch (error) {
+					profileScopeMissing = isInsufficientScopeError(error);
+					if (!botId || botId <= 0) {
+						if (profileScopeMissing) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'The token lacks the profile:read scope, so the node cannot tell a bot token from a personal one.',
+								{
+									description:
+										'Automatic mode reads GET /profile to choose how to register the webhook URL. With a bot token, add the profile:read scope to this token in bot settings in Pachca (API tab) and activate the workflow again — the scopes of a bot token are chosen per token. With a personal token, fill in the Bot ID field of this node. Or switch Webhook Setup to Manual.',
+								},
+							);
+						}
+						throw error;
+					}
 					const message = error instanceof Error ? error.message : String(error);
 					this.logger.warn(
-						`Pachca Trigger: could not determine token type via GET /profile (${message}). Proceeding as personal token — set Bot ID, or retry if this is a bot token.`,
+						`Pachca Trigger: could not determine token type via GET /profile (${message}). Proceeding as personal token with Bot ID ${botId}.`,
 					);
 				}
 
@@ -244,14 +261,13 @@ export class PachcaTrigger implements INodeType {
 
 				// Personal token path — user must specify Bot ID explicitly; n8n cannot
 				// infer which bot the user wants to manage from a personal token alone.
-				const botId = Number(this.getNodeParameter('botId', 0));
 				if (!botId || botId <= 0) {
 					throw new NodeOperationError(
 						this.getNode(),
 						'Bot ID is required for automatic webhook registration with a personal token.',
 						{
 							description:
-								'Enter the Bot ID of the bot whose webhook URL should be registered. The personal token must have the bots:write scope and editor access to this bot. A bot token self-registers without a Bot ID — if you are using one, check that the token is valid.',
+								'Enter the Bot ID of the bot whose webhook URL should be registered. The personal token must have the bots:write scope and editor access to this bot. A bot token self-registers without a Bot ID.',
 						},
 					);
 				}
@@ -270,7 +286,10 @@ export class PachcaTrigger implements INodeType {
 							'Pachca rejected automatic webhook registration (403 Forbidden).',
 							{
 								description:
-									'The personal token needs both the bots:write scope AND editor access to this bot in Pachca settings. Check the bot access list in Pachca, or switch to Manual mode.',
+									'The personal token needs both the bots:write scope AND editor access to this bot in Pachca settings. Check the bot access list in Pachca, or switch to Manual mode.' +
+									(profileScopeMissing
+										? ' If this is a bot token, add the profile:read scope to it in bot settings in Pachca (API tab) and clear Bot ID — the node then registers the bot\'s own webhook URL.'
+										: ''),
 							},
 						);
 					}

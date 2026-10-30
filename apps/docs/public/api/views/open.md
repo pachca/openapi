@@ -364,6 +364,18 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
 
 ### 201: The request has succeeded and a new resource has been created as a result.
 
+**Схема ответа:**
+
+- `success: boolean` (required) — Признак того, что окно открыто. В успешном ответе всегда `true`. Пример: `true`
+
+**Пример ответа:**
+
+```json
+{
+  "success": true
+}
+```
+
 ### 400: The server could not understand the request due to invalid syntax.
 
 **Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).

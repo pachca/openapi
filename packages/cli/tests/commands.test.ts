@@ -3,6 +3,7 @@ import { runCommand } from '@oclif/test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { Readable } from 'node:stream';
 import {
   mockFetch, mockPaginatedFetch, mockFetchForEndpoint, mockResponse, mockEntity, fetchCalls,
 } from './mock-helpers.js';
@@ -278,6 +279,81 @@ describe('generated commands — functional tests', () => {
     });
   });
 
+  // ----- nullable body fields: the literal `null` goes out as JSON null -----
+
+  describe('null in a nullable field', () => {
+    it('bots update --kind null → webhook.kind: null (deletes the incoming webhook)', async () => {
+      mockFetchForEndpoint('/bots/{id}', 'PUT', { overrides: { id: 7 } });
+      const { error } = await runCommand(['bots', 'update', '7', '--kind', 'null'], { root: CLI_ROOT });
+      expect(error).toBeUndefined();
+      const body = JSON.parse(fetchCalls()[0][1].body);
+      expect(body.webhook).toHaveProperty('kind', null);
+    });
+
+    it('bots update --kind simple → the value is sent as is', async () => {
+      mockFetchForEndpoint('/bots/{id}', 'PUT', { overrides: { id: 7 } });
+      await runCommand(['bots', 'update', '7', '--kind', 'simple'], { root: CLI_ROOT });
+      expect(JSON.parse(fetchCalls()[0][1].body).webhook.kind).toBe('simple');
+    });
+
+    // `drafts update` reads the text from a pipe when stdin is not a terminal, as at a prompt.
+    function terminalStdin() {
+      Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
+    }
+
+    it('drafts update --parent-message-id null → draft.parent_message_id: null (takes the reply off)', async () => {
+      terminalStdin();
+      mockFetchForEndpoint('/drafts/{id}', 'PUT', { overrides: { id: 5 } });
+      const { error } = await runCommand(['drafts', 'update', '5', '--parent-message-id', 'null'], { root: CLI_ROOT });
+      expect(error).toBeUndefined();
+      expect(JSON.parse(fetchCalls()[0][1].body).draft).toHaveProperty('parent_message_id', null);
+    });
+
+    it('drafts update --parent-message-id 42 → still an integer', async () => {
+      terminalStdin();
+      mockFetchForEndpoint('/drafts/{id}', 'PUT', { overrides: { id: 5 } });
+      await runCommand(['drafts', 'update', '5', '--parent-message-id', '42'], { root: CLI_ROOT });
+      expect(JSON.parse(fetchCalls()[0][1].body).draft.parent_message_id).toBe(42);
+    });
+
+    it('drafts update --parent-message-id abc → refused before any request', async () => {
+      terminalStdin();
+      mockFetch({ data: {} });
+      const { error } = await runCommand(['drafts', 'update', '5', '--parent-message-id', 'abc'], { root: CLI_ROOT });
+      expect(error?.message).toContain('Expected an integer or null');
+      expect(fetchCalls()).toHaveLength(0);
+    });
+  });
+
+  // ----- text from stdin -----
+
+  describe('text from stdin', () => {
+    /** Feed `chunks` to the command as stdin, as a pipe does. */
+    async function withPipe<T>(chunks: string[], run: () => Promise<T>): Promise<T> {
+      const original = Object.getOwnPropertyDescriptor(process, 'stdin')!;
+      Object.defineProperty(process, 'stdin', { value: Readable.from(chunks.map((c) => Buffer.from(c))), configurable: true });
+      try {
+        return await run();
+      } finally {
+        Object.defineProperty(process, 'stdin', original);
+      }
+    }
+
+    it('an empty pipe leaves the text out of the body', async () => {
+      // A script or an agent runs with stdin that is not a terminal and carries nothing.
+      mockFetchForEndpoint('/drafts/{id}', 'PUT', { overrides: { id: 5 } });
+      await withPipe([], () => runCommand(['drafts', 'update', '5', '--parent-message-id', 'null'], { root: CLI_ROOT }));
+      const body = JSON.parse(fetchCalls()[0][1].body);
+      expect(body.draft).toEqual({ parent_message_id: null });
+    });
+
+    it('piped text becomes the text of the message', async () => {
+      mockFetchForEndpoint('/messages/{id}', 'PUT', { overrides: { id: 9 } });
+      await withPipe(['Новый текст\n'], () => runCommand(['messages', 'update', '9'], { root: CLI_ROOT }));
+      expect(JSON.parse(fetchCalls()[0][1].body).message.content).toBe('Новый текст');
+    });
+  });
+
   // ----- DELETE -----
 
   describe('users delete', () => {
@@ -350,6 +426,36 @@ describe('generated commands — functional tests', () => {
       expect(parsed.dry_run).toBe(true);
       expect(parsed.method).toBe('GET');
     });
+
+    it('--dry-run без входа и без PACHCA_TOKEN → запрос показан, токен не нужен', async () => {
+      fs.rmSync(path.join(tmpDir, 'pachca', 'config.toml'));
+      mockFetch({ data: {} });
+      // The init hook reads the flag from process.argv, which a test run does not carry.
+      const argv = process.argv;
+      process.argv = [...argv, '--dry-run'];
+      try {
+        const { stdout, stderr } = await runCommand(
+          ['messages', 'create', '--entity-id', '123', '--content', 'Привет', '--dry-run', '--json'],
+          { root: CLI_ROOT },
+        );
+        expect(stderr).not.toContain('Token not found');
+        const parsed = JSON.parse(stdout);
+        expect(parsed).toMatchObject({ dry_run: true, method: 'POST', body: { message: { entity_id: 123, content: 'Привет' } } });
+        expect(parsed.headers.Authorization).toBe('Bearer ••••••••');
+        expect(fetchCalls()).toHaveLength(0);
+      } finally {
+        process.argv = argv;
+      }
+    });
+
+    it('--dry-run не показывает заголовок Authorization у запроса без авторизации', async () => {
+      const { formatDryRun } = await import('../src/client.js');
+      const preview = formatDryRun(
+        { method: 'POST', path: 'https://storage.example.com/upload', token: '', noAuth: true },
+        true,
+      ) as { headers: Record<string, string> };
+      expect(preview.headers.Authorization).toBeUndefined();
+    });
   });
 
   // ----- API errors -----
@@ -421,6 +527,112 @@ describe('generated commands — functional tests', () => {
       expect(callCount).toBe(2);
       const parsed = JSON.parse(stdout);
       expect(Array.isArray(parsed)).toBe(true);
+    });
+  });
+
+  // ----- 403: права нет у токена или его не даёт роль -----
+
+  describe('403 по праву и по роли', () => {
+    const roleForbidden = {
+      status: 403,
+      data: { error: 'role_forbidden', error_description: 'The current user role does not allow this action' },
+      headers: { 'www-authenticate': 'Bearer error="role_forbidden", error_description="The current user role does not allow this action"' },
+    };
+    const insufficientScope = {
+      status: 403,
+      data: { error: 'insufficient_scope', error_description: 'Insufficient scope. Required: users:create' },
+      headers: {
+        'www-authenticate':
+          'Bearer error="insufficient_scope", error_description="Insufficient scope. Required: users:create", scope="users:create"',
+      },
+    };
+
+    function writeProfile(fields: string) {
+      fs.writeFileSync(
+        path.join(tmpDir, 'pachca', 'config.toml'),
+        `active_profile = "test"\n\n[profiles.test]\ntype = "user"\ntoken = "test-token"\nuser = "Test User"\n${fields}`,
+      );
+    }
+
+    function humanTerminal() {
+      Object.defineProperty(process.stderr, 'isTTY', { value: true, writable: true, configurable: true });
+    }
+
+    it('role_forbidden в JSON → PACHCA_AUTH_ERROR и код выхода 3', async () => {
+      mockFetch(roleForbidden);
+      const { stderr, error } = await runCommand(['users', 'create', '--email', 'olga@example.com'], { root: CLI_ROOT });
+      const parsed = JSON.parse(stderr.trim());
+      expect(parsed.type).toBe('PACHCA_AUTH_ERROR');
+      expect(parsed.message).toBe('role_forbidden');
+      expect(parsed.code).toBe(403);
+      expect(error?.oclif?.exit).toBe(3);
+    });
+
+    it('role_forbidden в терминале → право команды и администратор, без совета войти заново', async () => {
+      humanTerminal();
+      mockFetch(roleForbidden);
+      const { stderr, error } = await runCommand(
+        ['users', 'create', '--email', 'olga@example.com', '-o', 'table'],
+        { root: CLI_ROOT },
+      );
+      expect(stderr).toContain('✗ Право users:create есть у токена, но его не даёт роль.');
+      expect(stderr).toContain('роль меняет администратор пространства');
+      expect(stderr).not.toContain('auth login');
+      expect(error?.oclif?.exit).toBe(3);
+    });
+
+    it('role_forbidden у профиля бота → роль бота', async () => {
+      humanTerminal();
+      fs.writeFileSync(
+        path.join(tmpDir, 'pachca', 'config.toml'),
+        `active_profile = "test"\n\n[profiles.test]\ntype = "bot"\ntoken = "test-token"\nuser = "Бот"\n`,
+      );
+      mockFetch(roleForbidden);
+      const { stderr } = await runCommand(['users', 'create', '--email', 'olga@example.com', '-o', 'table'], { root: CLI_ROOT });
+      expect(stderr).toContain('его не даёт роль бота');
+    });
+
+    it('insufficient_scope, права нет и в сохранённом списке → добавить право токену', async () => {
+      humanTerminal();
+      writeProfile('scopes = ["users:read"]\n');
+      mockFetch(insufficientScope);
+      const { stderr, error } = await runCommand(
+        ['users', 'create', '--email', 'olga@example.com', '-o', 'table'],
+        { root: CLI_ROOT },
+      );
+      expect(stderr).toContain('✗ Не хватает права users:create.');
+      expect(stderr).toContain('У токена этого права нет.');
+      expect(stderr).toContain('Добавьте право токену в Пачке');
+      expect(stderr).not.toContain('администратор');
+      expect(error?.oclif?.exit).toBe(3);
+    });
+
+    it('insufficient_scope, а в сохранённом списке право есть → список устарел', async () => {
+      humanTerminal();
+      writeProfile('scopes = ["users:create"]\n');
+      mockFetch(insufficientScope);
+      const { stderr } = await runCommand(['users', 'create', '--email', 'olga@example.com', '-o', 'table'], { root: CLI_ROOT });
+      expect(stderr).toContain('список устарел');
+      expect(stderr).toContain('pachca auth status --remote --profile test');
+      expect(stderr).not.toContain('не даёт роль');
+    });
+
+    it('insufficient_scope после входа через браузер → войти заново тем же профилем', async () => {
+      humanTerminal();
+      writeProfile('auth = "oauth"\nscopes = ["users:read"]\n');
+      mockFetch(insufficientScope);
+      const { stderr } = await runCommand(['users', 'create', '--email', 'olga@example.com', '-o', 'table'], { root: CLI_ROOT });
+      expect(stderr).toContain('войдите заново: pachca auth login --profile test');
+    });
+
+    it('insufficient_scope с токеном из --token → проверить права через oauth token-info', async () => {
+      humanTerminal();
+      mockFetch(insufficientScope);
+      const { stderr } = await runCommand(
+        ['users', 'create', '--email', 'olga@example.com', '--token', 'pasted', '-o', 'table'],
+        { root: CLI_ROOT },
+      );
+      expect(stderr).toContain('pachca oauth token-info -o json');
     });
   });
 

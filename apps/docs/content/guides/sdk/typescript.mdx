@@ -13,7 +13,7 @@ related:
   <Card compact icon="Package" title="@pachca/sdk" href="https://www.npmjs.com/package/@pachca/sdk">npm</Card>
 </CardRow>
 
-Типизированный клиент для Pachca API. Работает в Node.js 18+ и в любом окружении с поддержкой `fetch`. ES Module с TypeScript-декларациями.
+Типизированный клиент для Pachca API. Работает в Node.js 18+ и в любом окружении с поддержкой `fetch`. Пакет подключается и как ES Module (`import`), и как CommonJS (`require`). TypeScript-декларации входят в пакет.
 
 ## Быстрый старт
 
@@ -27,7 +27,7 @@ npm install @pachca/sdk
   </Step>
   <Step title="Создание клиента">
 
-Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
+Клиенту нужен токен бота или персональный токен. Какой выбрать и кто может его выпустить, описано в разделе [Какой токен выбрать](/api/authorization#kakoy-token-vybrat).
 
 <ApiCodeExample lang="typescript" operations={[]} />
 
@@ -88,12 +88,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 
 ## Пагинация
 
-SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
-
-- **Списочные методы** (`client.users.listUsers()`, `client.chats.listChats()`, `client.messages.listChatMessages()` и т.д.) — `meta.paginate` с полями `nextPage`, `prevPage`, `hasNext`, `hasPrev`. Признак конца — `hasNext: false`. Курсор `prevPage` нужен для polling новых записей «сверху» списка.
-- **Методы поиска** (`client.search.searchUsers()`, `client.search.searchChats()`, `client.search.searchMessages()`) — `meta` с полями `total` и `paginate.nextPage` (без `prevPage`/`hasNext`/`hasPrev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
-
-Курсоры — непрозрачные токены, никогда не бывают `null`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -102,23 +97,26 @@ let cursor: string | undefined
 let hasNext = true
 
 while (hasNext) {
-  const response = await client.users.listUsers({ limit: 50, cursor })
-  for (const user of response.data) {
-    console.log(user.firstName, user.lastName)
+  const response = await client.chats.listChats({ limit: 50, cursor })
+  if (response.data.length === 0) break
+  for (const chat of response.data) {
+    console.log(chat.id, chat.name)
   }
   cursor = response.meta.paginate.nextPage
-  hasNext = response.meta.paginate.hasNext
+  hasNext = response.meta.paginate.hasNext ?? true
 }
 ```
+
+В типах поле `hasNext` необязательное. Если его нет, цикл идёт дальше и останавливается на пустой странице. Так же обходят страницы методы `*All()`.
 
 ### Автопагинация
 
 Для каждого метода с пагинацией есть `*All()` вариант, который автоматически обходит все страницы и возвращает плоский массив:
 
 ```typescript
-// Все пользователи одним массивом
-const users = await client.users.listUsersAll()
-console.log(`Всего: ${users.length}`)
+// Все чаты одним массивом
+const chats = await client.chats.listChatsAll()
+console.log(`Всего: ${chats.length}`)
 ```
 
 Доступные методы автопагинации:
@@ -126,10 +124,16 @@ console.log(`Всего: ${users.length}`)
 | Метод | Возвращает |
 |-------|-----------|
 | `security.getAuditEventsAll()` | `AuditEvent[]` |
+| `bots.listBotsAll()` | `BotResponse[]` |
+| `bots.listBotTokensAll()` | `BotAccessToken[]` |
+| `bots.listCompanyBotsAll()` | `CompanyBotResponse[]` |
 | `bots.getWebhookEventsAll()` | `WebhookEvent[]` |
 | `chats.listChatsAll()` | `Chat[]` |
+| `chats.listCompanyChatsAll()` | `Chat[]` |
+| `drafts.listDraftsAll()` | `Draft[]` |
 | `groupTags.listTagsAll()` | `GroupTag[]` |
 | `groupTags.getTagUsersAll()` | `User[]` |
+| `importantMessages.listImportantMessagesAll()` | `Message[]` |
 | `members.listMembersAll()` | `User[]` |
 | `messages.listChatMessagesAll()` | `Message[]` |
 | `reactions.listReactionsAll()` | `Reaction[]` |
@@ -137,6 +141,7 @@ console.log(`Всего: ${users.length}`)
 | `search.searchMessagesAll()` | `Message[]` |
 | `search.searchUsersAll()` | `User[]` |
 | `tasks.listTasksAll()` | `Task[]` |
+| `threads.listThreadsAll()` | `Thread[]` |
 | `users.listUsersAll()` | `User[]` |
 
 ## Обработка ошибок
@@ -155,8 +160,8 @@ try {
 } catch (error) {
   if (error instanceof ApiError) {
     for (const e of error.errors) {
-      console.log(e.key, e.message)   // "name", "не может быть пустым"
-      console.log(e.code)             // "blank"
+      console.log(e.key, e.message)   // name не может быть пустым
+      console.log(e.code)             // blank
     }
   }
 }
@@ -167,10 +172,10 @@ try {
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `key` | `string` | Поле, вызвавшее ошибку |
-| `value` | `string \| null` | Переданное значение |
+| `value` | `unknown` | Переданное значение |
 | `message` | `string` | Текст ошибки |
 | `code` | `ValidationErrorCode` | Код валидации (`blank`, `invalid`, `taken`, ...) |
-| `payload` | `string \| null` | Дополнительные данные |
+| `payload` | `Record<string, unknown> \| null` | Дополнительные данные |
 
 Код статуса ответа — в поле `status`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже выбрасывает `ApiError`: с кодом статуса и пустым `errors`. Так бывает с ответом `404` без тела от метода [Поток событий](GET /webhooks/events/stream), когда история событий выключена, и со страницей прокси при `502`.
 
@@ -194,16 +199,15 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
+Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- До **3 повторов** на каждый запрос
-- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
-- **5xx:** линейная пауза 1 сек, 2 сек, 3 сек
-- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
-- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
-- Каждая пауза удлиняется на случайную величину до 25%, поэтому SDK никогда не ждёт меньше `Retry-After`
-- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
+- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 без заголовка:** 1 сек, 2 сек, 4 сек
+- **5xx:** 1 сек, 2 сек, 3 сек
+
+Сетевую ошибку без ответа сервера SDK не повторяет: исключение из `fetch` приходит сразу.
+
+Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
 
 ## Сериализация
 
@@ -250,11 +254,38 @@ import {
 
 Перечисление в ответе принимает и значение, которого SDK ещё не знает: такое значение приходит строкой как есть.
 
+## Тело вебхука
+
+Тела событий вебхука описаны типами `MessageWebhookPayload`, `ReactionWebhookPayload`, `ButtonWebhookPayload`, `ViewSubmitWebhookPayload`, `ChatMemberWebhookPayload`, `CompanyMemberWebhookPayload`, `LinkSharedWebhookPayload` и `VideoCallWebhookPayload`. Тип `WebhookPayloadUnion` объединяет их, а вид события задают поля `type` и `event`. Поля в этих типах названы в camelCase, поэтому тело запроса сначала пропустите через функцию `deserialize`:
+
+```typescript
+import { deserialize, WebhookPayloadUnion } from "@pachca/sdk"
+
+// rawBody — тело запроса строкой
+const payload = deserialize(JSON.parse(rawBody)) as WebhookPayloadUnion
+if (payload.type === "button") {
+  console.log(payload.messageId, payload.data)
+}
+```
+
+Подпись проверяйте по исходному телу до разбора, как в разделе [Безопасность](/guides/webhook/handler#bezopasnost). Те же типы отдают методы `pollWebhookEvents` и `pollWebhookPayloads`, которые забирают события из истории: пример — в разделе [Пример поллинга](/guides/webhook/polling#primer-pollinga).
+
 ## Примеры
 
+**Отправка сообщения:**
+
 <ApiCodeExample lang="typescript" operations={[
-  { id: "MessageOperations_createMessage", comment: "Отправка сообщения" },
-  { id: "UserOperations_listUsers", comment: "Список сотрудников" },
-  { id: "TaskOperations_createTask", comment: "Создание задачи" }
+  { id: "MessageOperations_createMessage" }
 ]} />
 
+**Список сотрудников:**
+
+<ApiCodeExample lang="typescript" operations={[
+  { id: "UserOperations_listUsers" }
+]} />
+
+**Создание задачи:**
+
+<ApiCodeExample lang="typescript" operations={[
+  { id: "TaskOperations_createTask" }
+]} />

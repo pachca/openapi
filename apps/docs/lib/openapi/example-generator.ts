@@ -262,10 +262,8 @@ export function generateExample(
 }
 
 /**
- * Generate request body example from schema
- */
-/**
- * A media type's hand-authored example, if the spec carries one.
+ * A media type's hand-authored example, if the spec carries one: the single
+ * `example`, or the first entry of the `examples` map.
  *
  * An operation-level `example` is the response/request the API actually
  * produces for THAT operation, which a schema-derived example cannot know:
@@ -275,14 +273,49 @@ export function generateExample(
  * examples in the spec were silently discarded and the docs showed values the
  * API never returns.
  */
-function authoredExample(content: MediaType | undefined): unknown {
-  if (!content) return undefined;
-  if (content.example !== undefined) return content.example;
-  // `examples` (the plural map) — take the first entry's value.
-  const first = content.examples && Object.values(content.examples)[0];
-  return first && typeof first === 'object' && 'value' in first
-    ? (first as { value: unknown }).value
-    : undefined;
+export function authoredExample(content: MediaType | undefined): unknown {
+  return authoredExamples(content)[0]?.value;
+}
+
+/**
+ * One example of a request body, as the method page and its .md show it.
+ * `label` comes from the entry's `summary`, or from its key when the key is a
+ * real name rather than TypeSpec's `example0`.
+ */
+export interface LabeledExample {
+  label?: string;
+  description?: string;
+  value: unknown;
+}
+
+/**
+ * Every hand-authored example of a media type, in spec order: all entries of
+ * the `examples` map, or the single `example`. TypeSpec emits the map as soon
+ * as one `@opExample` has a title, keyed by the title (`example0`, `example1`
+ * without one) with the title repeated in `summary`.
+ */
+function authoredExamples(content: MediaType | undefined): LabeledExample[] {
+  if (!content) return [];
+  if (content.example !== undefined) return [{ value: content.example }];
+  const list: LabeledExample[] = [];
+  for (const [key, entry] of Object.entries(content.examples ?? {})) {
+    if (!entry || typeof entry !== 'object' || entry.value === undefined) continue;
+    list.push({
+      label: entry.summary || (/^example\d+$/.test(key) ? undefined : key),
+      description: entry.description,
+      value: entry.value,
+    });
+  }
+  return list;
+}
+
+function requestContent(requestBody: RequestBody | undefined): MediaType | undefined {
+  if (!requestBody) return undefined;
+  const content =
+    requestBody.content['application/json'] ||
+    requestBody.content['multipart/form-data'] ||
+    requestBody.content['application/x-www-form-urlencoded'];
+  return content?.schema ? content : undefined;
 }
 
 /**
@@ -292,22 +325,29 @@ export function generateRequestExample(
   requestBody: RequestBody | undefined,
   options?: ExampleOptions
 ): unknown {
-  if (!requestBody) {
-    return undefined;
-  }
-
-  const content =
-    requestBody.content['application/json'] ||
-    requestBody.content['multipart/form-data'] ||
-    requestBody.content['application/x-www-form-urlencoded'];
-  if (!content?.schema) {
-    return undefined;
-  }
+  const content = requestContent(requestBody);
+  if (!content) return undefined;
 
   const authored = authoredExample(content);
   if (authored !== undefined) return authored;
 
   return generateExample(content.schema, 0, options);
+}
+
+/**
+ * All examples of a request body for the method page and its .md: every
+ * authored entry when the spec has them (the curl and CLI tabs show the first
+ * one), otherwise the one example generated from the schema.
+ */
+export function generateRequestExamples(requestBody: RequestBody | undefined): LabeledExample[] {
+  const content = requestContent(requestBody);
+  if (!content) return [];
+
+  const authored = authoredExamples(content);
+  if (authored.length > 0) return authored;
+
+  const generated = generateExample(content.schema, 0);
+  return generated === undefined ? [] : [{ value: generated }];
 }
 
 /**

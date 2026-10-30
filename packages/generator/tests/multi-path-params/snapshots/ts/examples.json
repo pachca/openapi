@@ -6,18 +6,17 @@
     ]
   },
   "TaskOperations_getTask": {
-    "usage": "const response = client.tasks.getTask(123, 123)",
+    "usage": "const response = await client.tasks.getTask(123, 123)",
     "output": "Task({ id: number, title: string, isDone?: boolean })"
   },
   "TaskOperations_updateTask": {
-    "usage": "const request: TaskUpdateRequest = { task: { title: \"example\", isDone: true } }\nconst response = client.tasks.updateTask(123, 123, request)",
+    "usage": "const request: TaskUpdateRequest = { task: { title: \"example\", isDone: true } }\nconst response = await client.tasks.updateTask(123, 123, request)",
     "output": "Task({ id: number, title: string, isDone?: boolean })",
     "imports": [
-      "TaskUpdateRequest",
-      "TaskUpdateRequestTask"
+      "TaskUpdateRequest"
     ]
   },
   "TaskOperations_deleteComment": {
-    "usage": "client.tasks.deleteComment(123, 123, 123)"
+    "usage": "await client.tasks.deleteComment(123, 123, 123)"
   }
 }

@@ -27,7 +27,7 @@ go get github.com/pachca/openapi/sdk/go/generated
   </Step>
   <Step title="Создание клиента">
 
-Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
+Клиенту нужен токен бота или персональный токен. Какой выбрать и кто может его выпустить, описано в разделе [Какой токен выбрать](/api/authorization#kakoy-token-vybrat).
 
 <ApiCodeExample lang="go" operations={[]} />
 
@@ -50,13 +50,13 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 client := pachca.NewPachcaClient("YOUR_TOKEN")
 
 // С кастомным базовым URL
-client := pachca.NewPachcaClient("YOUR_TOKEN", "https://custom-api.example.com/api/shared/v1")
+client := pachca.NewPachcaClient("YOUR_TOKEN", pachca.WithBaseURL("https://custom-api.example.com/api/shared/v1"))
 ```
 
 | Параметр | Тип | По умолчанию | Описание |
 |----------|-----|-------------|----------|
 | `token` | `string` | — | Bearer-токен для авторизации |
-| `baseURL` | `...string` | `https://api.pachca.com/api/shared/v1` | Базовый URL API (необязательный) |
+| `opts` | `...ClientOption` | — | Необязательные настройки. `pachca.WithBaseURL(url)` меняет базовый URL API, по умолчанию `https://api.pachca.com/api/shared/v1`. |
 
 Все методы принимают `context.Context` первым аргументом — используйте его для таймаутов и отмены:
 
@@ -106,46 +106,62 @@ request := pachca.ChatUpdateRequest{
 }
 ```
 
+Поле, которое не задано, в запрос не попадает, поэтому метод обновления меняет только то, что вы передали.
+
+### Значение null
+
+Некоторые поля API принимают `null`: например, `null` в `oauth_client` выключает у бота авторизацию от имени сотрудника, а в `webhook.kind` удаляет входящий вебхук. Чтобы отправить `null`, назовите поле в `NullFields` той же модели запроса так, как оно называется в Go:
+
+```go
+request := pachca.BotUpdateRequest{
+    Webhook: &pachca.BotUpdateRequestWebhook{
+        NullFields: []string{"Kind"},
+    },
+}
+```
+
+`NullFields` есть у моделей запроса с такими полями, а в комментарии к нему перечислены имена, которые в нём можно указать. С другим именем SDK возвращает ошибку и запрос не отправляет.
+
 ## Пагинация
 
-SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `Meta`** — это важно учитывать при ручной пагинации:
-
-- **Списочные методы** (`client.Users.ListUsers()`, `client.Chats.ListChats()`, `client.Messages.ListChatMessages()` и т.д.) — `Meta.Paginate` с полями `NextPage`, `PrevPage`, `HasNext`, `HasPrev`. Признак конца — `HasNext == false`. Курсор `PrevPage` нужен для polling новых записей «сверху» списка.
-- **Методы поиска** (`client.Search.SearchUsers()`, `client.Search.SearchChats()`, `client.Search.SearchMessages()`) — `Meta` с полями `Total` и `Paginate.NextPage` (без `PrevPage`/`HasNext`/`HasPrev`). Признак конца — пустой `Data` или совпадение числа полученных записей с `Total`.
-
-Курсоры — непрозрачные токены, никогда не бывают пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в PascalCase: `Meta.Paginate.NextPage`, `PrevPage`, `HasNext` и `HasPrev`, а у методов поиска ещё `Meta.Total`. Необязательные поля, в том числе `HasNext`, приходят указателями. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```go
 var cursor *string
-hasNext := true
-for hasNext {
-    params := &pachca.ListUsersParams{Limit: pachca.Ptr(int32(50)), Cursor: cursor}
-    response, err := client.Users.ListUsers(ctx, params)
+for {
+    params := &pachca.ListChatsParams{Limit: pachca.Ptr(int32(50)), Cursor: cursor}
+    response, err := client.Chats.ListChats(ctx, params)
     if err != nil {
         log.Fatal(err)
     }
-    for _, user := range response.Data {
-        fmt.Println(user.FirstName, user.LastName)
+    if len(response.Data) == 0 {
+        break
     }
-    nextPage := response.Meta.Paginate.NextPage
-    cursor = &nextPage
-    hasNext = response.Meta.Paginate.HasNext
+    for _, chat := range response.Data {
+        fmt.Println(chat.ID, chat.Name)
+    }
+    if hasNext := response.Meta.Paginate.HasNext; hasNext != nil && !*hasNext {
+        break
+    }
+    cursor = pachca.Ptr(response.Meta.Paginate.NextPage)
 }
 ```
+
+Цикл заканчивается на `HasNext`, равном `false`, или на пустой странице. Так же обходят страницы методы `*All()`.
 
 ### Автопагинация
 
 Для каждого метода с пагинацией есть `*All()` вариант:
 
 ```go
-// Все пользователи одним слайсом
-users, err := client.Users.ListUsersAll(ctx, nil)
+// Все чаты одним слайсом
+chats, err := client.Chats.ListChatsAll(ctx, nil)
 if err != nil {
     log.Fatal(err)
 }
-fmt.Printf("Всего: %d\n", len(users))
+fmt.Printf("Всего: %d\n", len(chats))
 ```
 
 Доступные методы автопагинации:
@@ -153,10 +169,16 @@ fmt.Printf("Всего: %d\n", len(users))
 | Метод | Возвращает |
 |-------|-----------|
 | `Security.GetAuditEventsAll()` | `[]AuditEvent` |
+| `Bots.ListBotsAll()` | `[]BotResponse` |
+| `Bots.ListBotTokensAll()` | `[]BotAccessToken` |
+| `Bots.ListCompanyBotsAll()` | `[]CompanyBotResponse` |
 | `Bots.GetWebhookEventsAll()` | `[]WebhookEvent` |
 | `Chats.ListChatsAll()` | `[]Chat` |
+| `Chats.ListCompanyChatsAll()` | `[]Chat` |
+| `Drafts.ListDraftsAll()` | `[]Draft` |
 | `GroupTags.ListTagsAll()` | `[]GroupTag` |
 | `GroupTags.GetTagUsersAll()` | `[]User` |
+| `ImportantMessages.ListImportantMessagesAll()` | `[]Message` |
 | `Members.ListMembersAll()` | `[]User` |
 | `Messages.ListChatMessagesAll()` | `[]Message` |
 | `Reactions.ListReactionsAll()` | `[]Reaction` |
@@ -164,6 +186,7 @@ fmt.Printf("Всего: %d\n", len(users))
 | `Search.SearchMessagesAll()` | `[]Message` |
 | `Search.SearchUsersAll()` | `[]User` |
 | `Tasks.ListTasksAll()` | `[]Task` |
+| `Threads.ListThreadsAll()` | `[]Thread` |
 | `Users.ListUsersAll()` | `[]User` |
 
 ## Обработка ошибок
@@ -180,8 +203,8 @@ if err != nil {
     var apiErr *pachca.ApiError
     if errors.As(err, &apiErr) {
         for _, e := range apiErr.Errors {
-            fmt.Println(e.Key, e.Message)   // "name", "не может быть пустым"
-            fmt.Println(e.Code)             // ValidationErrorCodeBlank
+            fmt.Println(e.Key, e.Message)   // name не может быть пустым
+            fmt.Println(e.Code)             // blank
         }
     }
 }
@@ -192,10 +215,10 @@ if err != nil {
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `Key` | `string` | Поле, вызвавшее ошибку |
-| `Value` | `*string` | Переданное значение |
+| `Value` | `any` | Переданное значение |
 | `Message` | `string` | Текст ошибки |
 | `Code` | `ValidationErrorCode` | Код валидации |
-| `Payload` | `*string` | Дополнительные данные |
+| `Payload` | `map[string]any` | Дополнительные данные |
 
 Код статуса ответа — в поле `StatusCode`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже возвращает `*ApiError`: с кодом статуса и пустым `Errors`. Так бывает с ответом `404` без тела от метода [Поток событий](GET /webhooks/events/stream), когда история событий выключена, и со страницей прокси при `502`.
 
@@ -218,16 +241,15 @@ if err != nil {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
+Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- До **3 повторов** на каждый запрос
-- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
-- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
-- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
-- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
-- Тело запроса пересоздаётся через `req.GetBody()` при каждой попытке
-- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
+- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 без заголовка:** 1 сек, 2 сек, 4 сек
+- **5xx:** ~10 сек, ~20 сек, ~40 сек
+
+Сетевую ошибку без ответа сервера SDK не повторяет и сразу возвращает её из метода. Тело запроса для каждой попытки SDK создаёт заново через `req.GetBody()`.
+
+Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
 
 ## Типы
 
@@ -246,7 +268,7 @@ var req pachca.ChatCreateRequest
 
 // Перечисления
 key := pachca.AuditEventKeyUserLogin
-availability := pachca.ChatAvailabilityIsOpen
+availability := pachca.ChatAvailabilityPublic
 role := pachca.ChatMemberRoleAdmin
 status := pachca.TaskStatusDone
 
@@ -257,13 +279,41 @@ var oauthErr *pachca.OAuthError
 
 Перечисление — строковый тип, поэтому значение, которого SDK ещё не знает, приходит в ответе как есть.
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Все перечисления SDK: `AuditEventKey`, `AuditLoginGrantDenyReason`, `AuditLoginGrantDevicePlatform`, `BotCanEdit`, `BotEventName`, `BotTemplateEngine`, `BotTriggerOn`, `BotWebhookKind`, `BotWhoCanAdd`, `ChatActivity`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSortField`, `ChatSubtype`, `CustomPropertyDataType`, `DraftRepetitionInterval`, `DraftType`, `FileTarget`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `MessageSearchSort`, `MessageSortField`, `OAuthErrorCode`, `OAuthScope`, `OAuthTokenTypeHint`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserCreateRole`, `UserEventType`, `UserRole`, `UserRoleInput`, `ValidationErrorCode`, `VideoCallEventType` и `WebhookEventType`.
+
+## Тело вебхука
+
+Тела событий вебхука описаны типами `MessageWebhookPayload`, `ReactionWebhookPayload`, `ButtonWebhookPayload`, `ViewSubmitWebhookPayload`, `ChatMemberWebhookPayload`, `CompanyMemberWebhookPayload`, `LinkSharedWebhookPayload` и `VideoCallWebhookPayload`. Тип `WebhookPayloadUnion` объединяет их: при разборе JSON он выбирает тип по полям `type` и `event` и заполняет одно поле-указатель.
+
+```go
+// body — тело запроса в байтах
+var payload pachca.WebhookPayloadUnion
+if err := json.Unmarshal(body, &payload); err != nil {
+    log.Fatal(err)
+}
+if button := payload.ButtonWebhookPayload; button != nil {
+    fmt.Println(button.MessageID, button.Data)
+}
+```
+
+Подпись проверяйте по исходному телу до разбора, как в разделе [Безопасность](/guides/webhook/handler#bezopasnost). Те же типы отдают методы `PollWebhookEvents` и `PollWebhookPayloads`, которые забирают события из истории: пример — в разделе [Пример поллинга](/guides/webhook/polling#primer-pollinga).
 
 ## Примеры
 
+**Отправка сообщения:**
+
 <ApiCodeExample lang="go" operations={[
-  { id: "MessageOperations_createMessage", comment: "Отправка сообщения" },
-  { id: "UserOperations_listUsers", comment: "Список сотрудников" },
-  { id: "TaskOperations_createTask", comment: "Создание задачи" }
+  { id: "MessageOperations_createMessage" }
 ]} />
 
+**Список сотрудников:**
+
+<ApiCodeExample lang="go" operations={[
+  { id: "UserOperations_listUsers" }
+]} />
+
+**Создание задачи:**
+
+<ApiCodeExample lang="go" operations={[
+  { id: "TaskOperations_createTask" }
+]} />

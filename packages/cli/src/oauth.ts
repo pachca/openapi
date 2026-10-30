@@ -14,7 +14,8 @@ function delay(ms: number): Promise<void> {
  *
  * The CLI is a public client: it ships no secret and identifies itself with a
  * fixed `client_id`. Protection comes from the code never leaving the user's
- * own screen — see `printDeviceInstructions` in `commands/auth/login.ts`.
+ * own screen: the CLI prints the address and the code apart and never a link
+ * with the code in it.
  */
 export const CLI_CLIENT_ID = 'pachca_cli';
 

@@ -11,56 +11,70 @@ pip install pachca-sdk
 ## Использование
 
 ```python
-from pachca import PachcaClient, MessageCreateRequestMessage
+from pachca.client import PachcaClient
+from pachca.models import (
+    ListChatMessagesParams,
+    MessageCreateRequest,
+    MessageCreateRequestMessage,
+    ReactionRequest,
+)
 
 client = PachcaClient("YOUR_TOKEN")
 
-# Создание сообщения
-msg = await client.messages.create_message(
-    MessageCreateRequestMessage(entity_id=334, content="Hello!")
+# Отправка сообщения
+message = await client.messages.create_message(
+    MessageCreateRequest(message=MessageCreateRequestMessage(entity_id=chat_id, content="Привет из Python SDK!"))
 )
 
 # Получение сообщения
-fetched = await client.messages.get_message(msg.id)
+fetched = await client.messages.get_message(message.id)
 
-# Реакция (≤2 полей — передаются как kwargs)
-await client.reactions.add_reaction(msg.id, code="👀")
+# Реакция
+await client.reactions.add_reaction(message.id, ReactionRequest(code="👀"))
 
 # Закрепление
-await client.messages.pin_message(msg.id)
+await client.messages.pin_message(message.id)
 
-# Список сообщений чата (с пагинацией)
-messages = await client.messages.list_chat_messages(chat_id=198)
-print(messages.next_cursor)  # курсор следующей страницы
+# Страница сообщений чата и курсор следующей страницы
+page = await client.messages.list_chat_messages(ListChatMessagesParams(chat_id=chat_id))
+print(page.meta.paginate.next_page)
+
+await client.close()
 ```
+
+Все методы асинхронные: вызывайте их через `await` внутри `async def`.
 
 ## Конвенции
 
-- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Вход**: path-параметры передаются аргументами метода. Тело из одного обязательного поля, например роль участника чата, тоже разворачивается в аргумент. Остальные тела передаются одним объектом-запросом, query-параметры — объектом `*Params`.
 - **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую. Если рядом с `data` есть `meta` (списки и метод `Новый чат`), SDK возвращает ответ целиком: `data` и `meta`.
 
 ```python
-# ≤2 поля → развёрнуто в аргументы
-await client.reactions.add_reaction(message_id, ReactionRequest(code="👍"))
+from pachca.models import ChatMemberRole, ReactionRequest
+
+# Тело из одного поля → аргумент
+await client.members.update_member_role(chat_id, user_id, ChatMemberRole.ADMIN)
 await client.messages.pin_message(message_id)
 
-# >2 полей → объект-запрос
-await client.messages.create_message(MessageCreateRequest(...))
+# Тело из нескольких полей → объект-запрос
+await client.reactions.add_reaction(message_id, ReactionRequest(code="👍"))
 
-# Ответ: API возвращает {"data": ...}, SDK возвращает объект напрямую
-message = await client.messages.create_message(...)  # Message, не {"data": Message}
+# Ответ: API возвращает {"data": Message}, SDK возвращает Message
+message = await client.messages.get_message(message_id)  # Message, не {"data": Message}
 ```
 
 ## Пагинация
 
-Для эндпоинтов с курсорной пагинацией SDK генерирует `*_all`-методы, которые автоматически обходят все страницы:
+Для методов с курсорной пагинацией SDK генерирует `*_all`-методы, которые автоматически обходят все страницы:
 
 ```python
+from pachca.models import Chat, ListChatsParams
+
 # Вручную
-chats = []
+chats: list[Chat] = []
 cursor = None
 while True:
-    response = await client.chats.list_chats(cursor=cursor)
+    response = await client.chats.list_chats(ListChatsParams(cursor=cursor))
     if not response.data:
         break
     chats.extend(response.data)
@@ -70,24 +84,25 @@ while True:
 all_chats = await client.chats.list_chats_all()
 ```
 
-Доступные методы: `list_chats_all`, `list_users_all`, `list_tasks_all`, `list_tags_all`, `list_members_all`, `list_chat_messages_all`, `list_reactions_all`, `search_chats_all`, `search_messages_all`, `search_users_all` и др.
+Метод `*_all` есть у каждого метода с пагинацией, полный список — на странице [Python SDK](https://dev.pachca.com/guides/sdk/python#avtopaginatsiya).
 
 ## Повторные запросы
 
-SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток). Ошибки сервера `5xx` повторяются только у запросов GET, PUT и DELETE: запрос POST сервер мог успеть выполнить, и повтор создал бы дубль. Ответ `504` с кодом `timeout` (поиск не уложился по времени) не повторяется: тот же запрос, скорее всего, снова не уложится, и его стоит сузить.
+SDK повторяет запросы сам. Паузы между попытками описаны на странице [Python SDK](https://dev.pachca.com/guides/sdk/python#povtornye-zaprosy), общие правила повторов — в разделе [Повторные запросы](https://dev.pachca.com/api/limits#povtornye-zaprosy-retry).
 
 ## Свой HTTP-клиент
 
-Для настройки прокси, таймаутов и других параметров HTTP используйте `PachcaClient.from_client()` с готовым `httpx.AsyncClient`:
+Для настройки прокси, таймаутов и других параметров HTTP используйте `PachcaClient.from_client()` с готовым `httpx.AsyncClient`. Повторы такому клиенту даёт транспорт `RetryTransport` из `pachca.utils`, прокси задаётся во внутреннем транспорте:
 
 ```python
 import httpx
-from pachca import PachcaClient, PACHCA_API_URL
+from pachca.client import PACHCA_API_URL, PachcaClient
+from pachca.utils import RetryTransport
 
 http = httpx.AsyncClient(
     base_url=PACHCA_API_URL,
     headers={"Authorization": f"Bearer {token}"},
-    proxy="http://proxy:8080",
+    transport=RetryTransport(httpx.AsyncHTTPTransport(proxy=httpx.Proxy("http://proxy:8080"))),
 )
 client = PachcaClient.from_client(http)
 ```
@@ -96,30 +111,68 @@ client = PachcaClient.from_client(http)
 
 ## Загрузка файлов
 
-Загрузка файла — трёхшаговый процесс:
+Загрузка файла идёт в три шага: параметры загрузки, отправка файла по адресу `direct_url` и сообщение с ключом файла. Подробнее — в разделе [Загрузка файлов](https://dev.pachca.com/api/file-uploads).
 
 ```python
-# 1. Получить параметры загрузки
-params = await client.common.get_upload_params()
+from pachca.models import (
+    FileType,
+    FileUploadRequest,
+    MessageCreateRequest,
+    MessageCreateRequestFile,
+    MessageCreateRequestMessage,
+)
 
-# 2. Загрузить файл на S3
-with open("photo.png", "rb") as f:
-    await client.common.upload_file(params, f, "photo.png")
+filename = "report.pdf"
+with open(filename, "rb") as f:
+    data = f.read()
 
-# 3. Прикрепить к сообщению (используя key из params)
+# 1. Получить параметры загрузки и подставить имя файла в ключ
+params = await client.files.get_upload_params()
+key = params.key.replace("${filename}", filename)
+
+# 2. Загрузить файл по адресу direct_url
+await client.files.upload_file(
+    params.direct_url,
+    FileUploadRequest(
+        content_disposition=params.content_disposition,
+        acl=params.acl,
+        policy=params.policy,
+        x_amz_credential=params.x_amz_credential,
+        x_amz_algorithm=params.x_amz_algorithm,
+        x_amz_date=params.x_amz_date,
+        x_amz_signature=params.x_amz_signature,
+        key=key,
+        bucket=params.bucket,
+        file=data,
+    ),
+)
+
+# 3. Отправить сообщение с файлом
+await client.messages.create_message(
+    MessageCreateRequest(
+        message=MessageCreateRequestMessage(
+            entity_id=chat_id,
+            content="Отчёт за неделю",
+            files=[MessageCreateRequestFile(key=key, name=filename, file_type=FileType.FILE, size=len(data))],
+        )
+    )
+)
 ```
+
+Полный пример: [`../examples/upload.py`](../examples/upload.py)
 
 ## Обработка ошибок
 
 ```python
-from pachca import PachcaClient, ApiError, OAuthError
+from pachca.models import ApiError, OAuthError
 
 try:
     await client.messages.get_message(999999)
 except OAuthError as e:
-    print(f"Ошибка авторизации: {e.message}")
+    print(f"Ошибка авторизации: {e.error}")
 except ApiError as e:
-    print(f"Ошибка API: {e.errors}")
+    for item in e.errors:
+        print(f"Ошибка API: {item.key}: {item.message}")
 ```
 
 ## Тестирование
@@ -129,15 +182,25 @@ except ApiError as e:
 Методы без переопределения выбрасывают `NotImplementedError("Service.method is not implemented")`:
 
 ```python
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock
-from pachca import PachcaClient, MessagesService, Message
+from pachca.client import MessagesService, PachcaClient
+from pachca.models import Message, MessageEntityType
 
 # Мок-сервис
 mock_messages = MessagesService()
 mock_messages.get_message = AsyncMock(return_value=Message(
     id=1,
+    entity_type=MessageEntityType.DISCUSSION,
+    entity_id=123,
+    chat_id=123,
+    root_chat_id=123,
     content="Test message",
-    entity_id=123
+    user_id=1,
+    created_at=datetime.now(timezone.utc),
+    url="https://app.pachca.com/chats/123?message=1",
+    files=[],
+    important=False,
 ))
 
 # Тест

@@ -64,19 +64,14 @@
     "output": "BotSelfTokenResponse(id: int, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, webhook: BotSelfWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), access_token: str)"
   },
   "BotOperations_createBot": {
-    "usage": "request = BotCreateRequest(\n    empty=False,\n    webhook=BotCreateRequestWebhook(\n        name=\"Бот задач\",\n        nickname=\"tasks_bot\",\n        outgoing_url=\"https://example.com/tasks/new\",\n        events=[BotEventName.MESSAGE_NEW],\n        trigger_on=BotTriggerOn.COMMANDS,\n        commands=[\"example\"],\n        scopes=[\"example\"],\n        template=\"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        template_engine=BotTemplateEngine.LIQUID,\n        challenge_key=\"challenge\",\n        link_preview_enabled=True,\n        ignore_self_messages=False,\n        events_history_enabled=False,\n        who_can_add=BotWhoCanAdd.CREATOR,\n        can_edit=[BotCanEdit.ADMIN],\n        single_chat=False,\n        kind=BotWebhookKind.SIMPLE,\n        unfurl_domains=[\"example\"]\n    ),\n    oauth_client=BotOAuthClientRequest(\n        confidential=True,\n        redirect_uris=[\"example\"],\n        scopes=[\"example\"]\n    ),\n    promo=BotPromoRequest(\n        description=\"Собирает сводку по задачам Jira и присылает её в чат\",\n        published=True,\n        promo_images=[\"example\"]\n    )\n)\nresponse = await client.bots.create_bot(request=request)",
+    "usage": "request = BotCreateRequest(\n    webhook=BotCreateRequestWebhook(\n        name=\"Бот задач\",\n        nickname=\"tasks_bot\",\n        outgoing_url=\"https://example.com/tasks/new\",\n        events=[BotEventName.MESSAGE_NEW],\n        trigger_on=BotTriggerOn.COMMANDS,\n        commands=[\"/task\"],\n        scopes=[\"messages:create\"]\n    ),\n    oauth_client=BotOAuthClientRequest(\n        confidential=True,\n        redirect_uris=[\"https://example.com/oauth/callback\"],\n        scopes=[\"messages:read\"]\n    )\n)\nresponse = await client.bots.create_bot(request=request)",
     "output": "BotCreateResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None, url: str | None, secret_token: str | None, last_request_body: str | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None, access_token: str | None)",
     "imports": [
-      "BotCanEdit",
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
       "BotOAuthClientRequest",
-      "BotPromoRequest",
-      "BotTemplateEngine",
-      "BotTriggerOn",
-      "BotWebhookKind",
-      "BotWhoCanAdd"
+      "BotTriggerOn"
     ]
   },
   "BotOperations_recreateBotToken": {
@@ -88,7 +83,7 @@
     "output": "BotResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None, url: str | None, secret_token: str | None, last_request_body: str | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None)"
   },
   "BotOperations_createBotToken": {
-    "usage": "request = BotTokenCreateRequest(name=\"Сервер уведомлений\", scopes=[\"example\"])\nresponse = await client.bots.create_bot_token(id=1738816, request=request)",
+    "usage": "request = BotTokenCreateRequest(name=\"Сервер уведомлений\", scopes=[\"messages:create\"])\nresponse = await client.bots.create_bot_token(id=1738816, request=request)",
     "output": "BotAccessToken(id: int, token: str, name: str | None, user_id: int, scopes: list[str], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None, authorized_at: datetime | None)",
     "imports": [
       "BotTokenCreateRequest"
@@ -127,7 +122,7 @@
     "output": "AvatarData(image_url: str)"
   },
   "BotOperations_updateBotToken": {
-    "usage": "request = BotTokenUpdateRequest(name=\"Сервер уведомлений\", scopes=[\"example\"])\nresponse = await client.bots.update_bot_token(id=1738816, token_id=4827, request=request)",
+    "usage": "request = BotTokenUpdateRequest(name=\"Сервер уведомлений\", scopes=[\"messages:create\"])\nresponse = await client.bots.update_bot_token(id=1738816, token_id=4827, request=request)",
     "output": "BotAccessToken(id: int, token: str, name: str | None, user_id: int, scopes: list[str], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None, authorized_at: datetime | None)",
     "imports": [
       "BotTokenUpdateRequest"
@@ -180,7 +175,7 @@
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "request = ExportRequest(\n    start_at=\"2025-03-20\",\n    end_at=\"2025-03-20\",\n    webhook_url=\"https://example.com/webhooks/export\",\n    chat_ids=[123],\n    skip_chats_file=False\n)\nresponse = await client.chats.request_export(request=request)",
+    "usage": "request = ExportRequest(\n    start_at=\"2025-03-01\",\n    end_at=\"2025-03-20\",\n    chat_ids=[1381521]\n)\nresponse = await client.chats.request_export(request=request)",
     "output": "ChatExport(id: int)",
     "imports": [
       "ExportRequest"
@@ -285,16 +280,11 @@
     "output": "Draft(id: int, entity_type: MessageEntityType | None, entity_id: int | None, chat_id: int | None, content: str, parent_message_id: int | None, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, schedule: DraftSchedule(start_date: datetime, end_date: datetime | None, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: list[int] | None, nth_day: int | None)) | None, next_send_at: datetime | None, created_at: datetime, updated_at: datetime)"
   },
   "DraftOperations_createDraft": {
-    "usage": "request = DraftCreateRequest(\n    draft=DraftCreateRequestDraft(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=334,\n        content=\"Отчёт за неделю: продажи выросли на 10%\",\n        parent_message_id=196093,\n        files=[DraftFileRequest(\n            id=3560,\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        schedule=DraftScheduleRequest(\n            start_date=datetime.fromisoformat(\"2026-09-17T12:00:00.000+00:00\"),\n            end_date=datetime.fromisoformat(\"2026-12-31T12:00:00.000+00:00\"),\n            repetition=DraftRepetitionRequest(\n                interval=DraftRepetitionInterval.WEEKLY,\n                days=[123],\n                nth_day=2\n            )\n        )\n    )\n)\nresponse = await client.drafts.create_draft(request=request)",
+    "usage": "request = DraftCreateRequest(\n    draft=DraftCreateRequestDraft(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=334,\n        content=\"Отчёт за неделю: продажи выросли на 10%\"\n    )\n)\nresponse = await client.drafts.create_draft(request=request)",
     "output": "Draft(id: int, entity_type: MessageEntityType | None, entity_id: int | None, chat_id: int | None, content: str, parent_message_id: int | None, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, schedule: DraftSchedule(start_date: datetime, end_date: datetime | None, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: list[int] | None, nth_day: int | None)) | None, next_send_at: datetime | None, created_at: datetime, updated_at: datetime)",
     "imports": [
       "DraftCreateRequest",
       "DraftCreateRequestDraft",
-      "DraftFileRequest",
-      "DraftRepetitionInterval",
-      "DraftRepetitionRequest",
-      "DraftScheduleRequest",
-      "FileType",
       "MessageEntityType"
     ]
   },
@@ -378,15 +368,11 @@
     "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None, important: bool)"
   },
   "MessageOperations_createMessage": {
-    "usage": "request = MessageCreateRequest(\n    message=MessageCreateRequestMessage(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=334,\n        content=\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files=[MessageCreateRequestFile(\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        buttons=[[Button(\n            text=\"Подробнее\",\n            url=\"https://example.com/details\",\n            data=\"awesome\"\n        )]],\n        parent_message_id=194270,\n        display_avatar_url=\"https://example.com/avatar.png\",\n        display_name=\"Бот Поддержки\",\n        skip_invite_mentions=False\n    ),\n    link_preview=False\n)\nresponse = await client.messages.create_message(request=request)",
+    "usage": "request = MessageCreateRequest(message=MessageCreateRequestMessage(entity_id=334, content=\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nresponse = await client.messages.create_message(request=request)",
     "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None, important: bool)",
     "imports": [
-      "Button",
-      "FileType",
       "MessageCreateRequest",
-      "MessageCreateRequestFile",
-      "MessageCreateRequestMessage",
-      "MessageEntityType"
+      "MessageCreateRequestMessage"
     ]
   },
   "LinkPreviewOperations_unfurl": {
@@ -401,13 +387,11 @@
     "usage": "await client.messages.pin_message(id=194275)"
   },
   "MessageOperations_updateMessage": {
-    "usage": "request = MessageUpdateRequest(\n    message=MessageUpdateRequestMessage(\n        content=\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files=[MessageUpdateRequestFile(\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        buttons=[[Button(\n            text=\"Подробнее\",\n            url=\"https://example.com/details\",\n            data=\"awesome\"\n        )]],\n        display_avatar_url=\"https://example.com/avatar.png\",\n        display_name=\"Бот Поддержки\"\n    )\n)\nresponse = await client.messages.update_message(id=194275, request=request)",
+    "usage": "request = MessageUpdateRequest(message=MessageUpdateRequestMessage(content=\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\", buttons=[[Button(text=\"Подробнее\", url=\"https://example.com/details\")]]))\nresponse = await client.messages.update_message(id=194275, request=request)",
     "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None, important: bool)",
     "imports": [
       "Button",
-      "FileType",
       "MessageUpdateRequest",
-      "MessageUpdateRequestFile",
       "MessageUpdateRequestMessage"
     ]
   },
@@ -468,10 +452,9 @@
     "output": "AccessTokenInfo(id: int, token: str, name: str | None, user_id: int, scopes: list[OAuthScope], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None, authorized_at: datetime | None)"
   },
   "OAuthFlowOperations_revokeToken": {
-    "usage": "request = OAuthRevokeRequest(\n    token=\"pato_bm90X2FfcmVhbF90b2tlbg\",\n    token_type_hint=OAuthTokenTypeHint.ACCESS_TOKEN,\n    client_id=\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    client_secret=\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n)\nawait client.oauth.revoke_token(request=request)",
+    "usage": "request = OAuthRevokeRequest(\n    token=\"pato_bm90X2FfcmVhbF90b2tlbg\",\n    client_id=\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    client_secret=\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n)\nawait client.oauth.revoke_token(request=request)",
     "imports": [
-      "OAuthRevokeRequest",
-      "OAuthTokenTypeHint"
+      "OAuthRevokeRequest"
     ]
   },
   "OAuthFlowOperations_exchangeToken": {
@@ -635,10 +618,12 @@
     ]
   },
   "FormOperations_openView": {
-    "usage": "request = OpenViewRequest(\n    type=\"modal\",\n    trigger_id=\"791a056b-006c-49dd-834b-c633fde52fe8\",\n    private_metadata=\"{\\\"timeoff_id\\\":4378}\",\n    callback_id=\"timeoff_request_form\",\n    view=OpenViewRequestView(\n        title=\"Уведомление об отпуске\",\n        close_text=\"Закрыть\",\n        submit_text=\"Отправить заявку\",\n        blocks=[ViewBlockHeader(type=\"header\", text=\"Основная информация\")]\n    )\n)\nawait client.views.open_view(request=request)",
+    "usage": "request = OpenViewRequest(\n    type=\"modal\",\n    trigger_id=\"791a056b-006c-49dd-834b-c633fde52fe8\",\n    private_metadata=\"{\\\"timeoff_id\\\":4378}\",\n    callback_id=\"timeoff_request_form\",\n    view=OpenViewRequestView(\n        title=\"Уведомление об отпуске\",\n        close_text=\"Закрыть\",\n        submit_text=\"Отправить заявку\",\n        blocks=[ViewBlockHeader(type=\"header\", text=\"Основная информация\")]\n    )\n)\nresponse = await client.views.open_view(request=request)",
+    "output": "OpenViewResult(success: bool)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",
+      "ViewBlockHeader",
       "ViewBlockUnion"
     ]
   }

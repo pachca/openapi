@@ -4,9 +4,24 @@
 
 ## 2.2.3 (2026-10-30)
 
+### Features
+
+- Bot: in `Update`, `Kind` gains the `None` option, which deletes the bot's incoming webhook
+
 ### Improvements
 
 - File: `Create` has its upload fields — `File Source`, `File URL`, `Input Binary Field` and `Additional Fields` with `File Name` and `Content Type` — so a file uploads from a URL or from any binary field
+- Bot: in `Update`, `Webhook URL` is optional. An empty field keeps the current outgoing webhook address, so an update can rename a bot or delete its incoming webhook without setting an outgoing one.
+- Simplify: Bot > `Get Many Tokens` keeps `id`, `name`, `scopes`, `created_at` and `last_used_at`, Bot > `Get Many Events` keeps `id`, `event_type`, `payload` and `created_at`, and Group Tag > `Get Many Users` keeps the user fields
+- Trigger: the video call events are named `Video Call Started`, `Video Call Finished` and `Video Call Recording Ready`, and the event values stay the same
+- Trigger: the `Automatic` and `Manual` notices remind you to tick the events on the bot's Outgoing webhook tab and to choose Any messages or list commands for `New Message`
+- Trigger: `Automatic` mode tells the token type by `GET /profile`, and a token without the `profile:read` scope and with an empty `Bot ID` gets an error that names the scope and how to add it to a bot token
+- Trigger: with an empty `Bot ID` any other failure of `GET /profile` comes back as the original error, and a `403` from `PUT /bots/{id}` after `profile:read` was refused suggests adding the scope to the bot token and clearing `Bot ID`
+- Trigger: the `Automatic` option and its notice list the scopes a bot token needs — `profile:read` and `bot_self:webhook:write`
+- Credentials: the `Webhook Signing Secret` description says where to copy the Signing secret
+- Form: `Open` returns the API answer `{ "success": true }`
+- Field descriptions follow the API: the bot command rule, `Kind`, and `duration_ms` and `file_type` of message and draft files
+- README: the trigger events, Simplify fields, Button Layout and forms match the node
 
 ## 2.2.2 (2026-10-28)
 

@@ -54,7 +54,8 @@ export default class TasksCreate extends BaseCommand {
       for await (const chunk of process.stdin) {
         chunks.push(chunk as Buffer);
       }
-      flags['content'] = Buffer.concat(chunks).toString('utf-8').trimEnd();
+      const piped = Buffer.concat(chunks).toString('utf-8').trimEnd();
+      if (piped) flags['content'] = piped;
     }
 
     const missingRequired: { flag: string; label: string; type: string }[] = [

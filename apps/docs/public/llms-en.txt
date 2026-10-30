@@ -13,10 +13,14 @@
 - Two token types: **personal** — acts as a person and sees exactly what that person sees; **bot** — acts as a service account, sees every open channel of the workspace plus the closed chats and threads the bot was added to
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
 - Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
+- Which token: your own service, bot or CI → a bot token (by default any employee may create a bot). A script or agent acting as yourself → a personal token (by default only admins may create one). Notifications from an external system without code → an incoming webhook, one POST to the bot's webhook address with no token. Your app works with an employee's data → a token from that employee's authorization (OAuth). Full table (Russian): https://dev.pachca.com/api/authorization.md#kakoy-token-vybrat
+- Call the API from a server, a script or the CLI. The API answers cross-origin (CORS) requests only from Pachca's own web app, and a token in front-end code is readable by every visitor, so a web page sends its requests through your own backend
+- Writing code against the API: read the pachca-api skill first, https://dev.pachca.com/.well-known/skills/pachca-api/SKILL.md — token choice, the root key of a request body, responses of another shape, which ids are strings, UTC, pagination, limits and retries on one page
 - A personal token issued in the interface does not expire; one obtained by `pachca auth login` lives an hour and renews itself
 - MCP server: `https://mcp.pachca.com/mcp`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex and the ChatGPT desktop app (it shares the Codex setup) sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in `Authorization: Bearer <TOKEN>`. Setup per client: https://dev.pachca.com/guides/mcp/connect.md (Russian), in English: https://dev.pachca.com/skill.md and https://dev.pachca.com/.well-known/skills/pachca/references/mcp-clients.md. Plugin with the server and skills: https://dev.pachca.com/guides/mcp/plugin.md (Russian)
 - Pachca plugin (MCP server, skills and commands in one install): Claude Code — `claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins`, then `claude plugin install pachca@pachca`; Codex — `codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca`, then `codex plugin add pachca@pachca`; GitHub Copilot CLI and VS Code — `copilot plugin marketplace add pachca/openapi`, then `copilot plugin install pachca@pachca`; Cursor — `agent plugin marketplace add https://github.com/pachca/openapi`, then `/plugin` in an agent session, with a personal token in the `PACHCA_TOKEN` environment variable
-- Ways to work with Pachca: the MCP server for agent apps, the CLI for agents with a terminal, scripts and CI, the REST API and SDKs for your own integration, a bot for an agent that lives in Pachca, the n8n node. Which to pick (Russian): https://dev.pachca.com/guides/ai-agents/overview.md
+- MCP access: there is no separate MCP permission. Connecting is decided by the same two workspace settings as API access: by default personal tokens and browser sign-in are open to admins only, while bots are created by employees too, so an employee can connect an agent with their bot's token. Full rule (Russian): https://dev.pachca.com/api/authorization.md#kto-mozhet-sozdavat-tokeny, for admins: https://dev.pachca.com/guides/agents-access.md
+- Ways to work with Pachca: the REST API and SDKs for your own service, bot or CI, an incoming webhook for notifications without code, the CLI for scripts and agents with a terminal, the n8n node, the MCP server for agent apps and a bot for an agent that is called in Pachca chats. Which to pick for an integration (Russian): https://dev.pachca.com/guides/bots/overview.md, for connecting an agent: https://dev.pachca.com/guides/ai-agents/overview.md
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: `const client = new PachcaClient("YOUR_TOKEN")`
 - Python SDK: `client = PachcaClient("YOUR_TOKEN")`
@@ -79,7 +83,7 @@
 ## Idempotency and Reliability
 - Pachca API operations are NOT idempotent by default — duplicate POST requests create duplicate resources
 - Client-side deduplication: track request IDs, check before sending, store results with TTL
-- Webhooks use at-least-once delivery — handlers MUST be idempotent (dedup by event fields: id + type + event)
+- Webhooks: a delivery is retried only on a connection failure (see Delivery above), so pick up missed events from the event history. An event occasionally arrives twice — handlers MUST be idempotent. Build the dedup key per event type from its fields and never include `webhook_timestamp`, which changes on every delivery attempt (Russian: https://dev.pachca.com/guides/webhook/handler.md#idempotentnaya-obrabotka)
 - For multi-step operations: implement compensating actions (saga pattern) for failure recovery
 - Separate critical operations (create chat) from non-critical (send welcome message) with independent error handling
 
@@ -293,10 +297,10 @@ const SIGNING_SECRET = "your_signing_secret" // Bot card → Outgoing webhook �
 const app = express()
 
 app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
-  // Step 1: Verify HMAC-SHA256 signature
-  const signature = crypto.createHmac("sha256", SIGNING_SECRET)
-    .update(req.body).digest("hex")
-  if (signature !== req.headers["pachca-signature"]) {
+  // Step 1: Verify HMAC-SHA256 signature, compared in constant time
+  const expected = crypto.createHmac("sha256", SIGNING_SECRET).update(req.body).digest()
+  const received = Buffer.from(String(req.headers["pachca-signature"] ?? ""), "hex")
+  if (received.length !== expected.length || !crypto.timingSafeEqual(received, expected)) {
     return res.status(401).send("Invalid signature")
   }
 
@@ -314,14 +318,14 @@ app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
       if (event.event === "delete") console.log("Message deleted:", event.id)
       break
     case "reaction":
-      console.log(event.event === "new" ? "Reaction added:" : "Reaction removed:", event.emoji)
+      console.log(event.event === "new" ? "Reaction added:" : "Reaction removed:", event.code)
       break
     case "button":
       console.log("Button pressed:", event.data, "by user:", event.user_id)
       // Use event.trigger_id within 3 seconds to open a form
       break
-    case "view_submit":
-      console.log("Form submitted:", event.payload)
+    case "view":
+      console.log("Form submitted:", event.data) // field values by block name
       break
   }
 
@@ -344,7 +348,7 @@ def webhook():
 
     # Step 1: Verify HMAC-SHA256 signature
     expected = hmac.new(SIGNING_SECRET.encode(), raw_body, hashlib.sha256).hexdigest()
-    if expected != request.headers.get("Pachca-Signature"):
+    if not hmac.compare_digest(expected, request.headers.get("Pachca-Signature", "")):
         abort(401)
 
     # Step 2: Check timestamp for replay protection
@@ -367,12 +371,12 @@ def webhook():
 | message (new) | New message in chat | id, content, user_id, chat_id, entity_type, entity_id, created_at, url |
 | message (update) | Message edited | id, content, user_id, chat_id |
 | message (delete) | Message deleted | id, user_id, chat_id |
-| reaction (new/delete) | Reaction added/removed | message_id, user_id, emoji, chat_id |
-| button | Button pressed | message_id, user_id, data, trigger_id, chat_id |
-| view_submit | Form submitted | payload (form field values), user_id, trigger_id |
-| chat_member (new/delete) | Member added/removed from chat | chat_id, user_id, event |
-| company_member (new/update/delete) | Workspace member changes | user_id, event (no chat needed) |
-| link_shared | URL on one of the bot's domains shared anywhere in the workspace | url, message_id, chat_id |
+| reaction (new/delete) | Reaction added/removed | message_id, user_id, code, name, chat_id |
+| button (click) | Button pressed | message_id, user_id, data, trigger_id, chat_id |
+| view (submit) | Form submitted | data (form field values), callback_id, private_metadata, view_id, submit_id, user_id, chat_id |
+| chat_member (add/remove) | Members added to or removed from a chat or thread | chat_id, thread_id, user_ids |
+| company_member (invite/confirm/update/suspend/activate/delete) | Workspace member changes | user_ids (no chat needed) |
+| message (link_shared) | Link on one of the bot's domains shared anywhere in the workspace | links, message_id, chat_id, user_id |
 
 ### Alternative: Polling (when webhook URL is not available)
 Enable "Save event history" on the bot's Outgoing webhook tab (or `events_history_enabled` via the API when there is no URL at all), then poll:
@@ -612,7 +616,7 @@ Status fields: `emoji` (string), `title` (string), `expires_at` (ISO datetime or
 
 ## How to handle idempotency and partial failures in multi-service workflows
 
-Pachca API is **NOT idempotent** — duplicate POST requests create duplicate resources. Webhooks use **at-least-once** delivery. Both require explicit handling in distributed systems.
+Pachca API is **NOT idempotent** — duplicate POST requests create duplicate resources. A webhook event occasionally arrives twice, and a delivery is retried only on a connection failure, so missed events come from the event history. Both require explicit handling in distributed systems.
 
 ### 1. Client-side request deduplication
 
@@ -649,12 +653,37 @@ await idempotentCreateMessage("onboard-user-42", chatId, "Welcome!") // returns 
 ### 2. Webhook event deduplication
 
 ```typescript
-// Webhooks deliver at-least-once — same event may arrive multiple times
+// The same event may occasionally arrive twice
 const processedEvents = new Set<string>()
 
+// The key is built from the fields that tell one event from another, per type.
+// Never include webhook_timestamp: it changes on every delivery attempt
+function getEventKey(e: any): string {
+  const base = `${e.type}:${e.event}`
+  switch (e.type) {
+    case "message":
+      if (e.event === "link_shared") return `${base}:${e.message_id}:${e.links.map((l: any) => l.url).join(",")}`
+      if (e.event === "update") return `${base}:${e.id}:${e.changed_at}`
+      return `${base}:${e.id}`
+    case "reaction":
+      return `${base}:${e.message_id}:${e.user_id}:${e.code}:${e.created_at}`
+    case "button":
+      return `${base}:${e.trigger_id}` // new on every press
+    case "view":
+      return `${base}:${e.submit_id}` // new on every submit attempt
+    case "chat_member":
+      return `${base}:${e.chat_id}:${e.thread_id}:${e.user_ids.join(",")}:${e.created_at}`
+    case "company_member":
+      return `${base}:${e.user_ids.join(",")}:${e.created_at}`
+    case "video_call":
+      return `${base}:${e.video_room_id}:${e.recording_id ?? ""}`
+    default:
+      return `${base}:${e.id ?? e.message_id}`
+  }
+}
+
 function handleWebhookEvent(event: any) {
-  // Build unique key from event fields: type + event + id
-  const eventKey = `${event.type}:${event.event}:${event.id}:${event.webhook_timestamp}`
+  const eventKey = getEventKey(event)
 
   if (processedEvents.has(eventKey)) {
     return // Already processed, skip duplicate
@@ -799,7 +828,7 @@ setInterval(() => reconcileUsers(externalDb), 15 * 60 * 1000) // Every 15 minute
 
 ### Key principles for Pachca API distributed systems
 - **All POST endpoints create new resources** — never assume idempotency, always deduplicate on client side
-- **Webhooks are at-least-once** — handlers MUST be idempotent (dedup by event id + type + timestamp)
+- **A webhook event may arrive twice** — handlers MUST be idempotent (dedup by a key from the event fields, never by `webhook_timestamp`)
 - **Separate critical from non-critical operations** — chat creation (critical) vs welcome message (non-critical) should fail independently
 - **Use saga pattern with compensating actions** — for multi-step workflows where partial completion is worse than full rollback
 - **Implement periodic reconciliation** — webhooks can be missed; polling + reconciliation ensures eventual consistency
@@ -842,7 +871,7 @@ Order an export of the workspace messages for a period. The archive is prepared 
 Body: { start_at*, end_at*, webhook_url, chat_ids, skip_chats_file }
 
 ### GET /api/shared/v1/chats/exports/{id}
-In response to the request the server returns `302 Found` with a `Location` header containing a temporary download link for the file. Most HTTP clients automatically follow the redirect and download the file. The link is valid for 5 minutes, so use it right away. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission. While the archive is being assembled, the method responds `404` with the `export_file_not_found` code.
+In response to the request the server returns `302 Found` with a `Location` header containing a temporary download link for the file. Most HTTP clients automatically follow the redirect and download the file. The link is valid for 5 minutes, so use it right away. Only the employee who ordered the export can download the archive: the method refuses another employee holding the same permission. The archive itself is stored for 7 days. After that the method still responds `302`, but the storage returns an error at the link, and the export has to be ordered again. While the archive is being assembled, the method responds `404` with the `export_file_not_found` code.
 Parameters: id
 
 ### GET /api/shared/v1/chats/{id}
@@ -1248,7 +1277,7 @@ The bot's event history: the same thing that goes to the outgoing webhook, but f
 Parameters: limit?, cursor?
 
 ### GET /api/shared/v1/webhooks/events/stream
-A link by which the bot's events arrive as they happen, in the Server-Sent Events format. These are the same events that land in the [Event history](/api/bots/list-events). The stream suits a bot that does not receive webhooks at its own address but has to answer quickly, for example to a button click or a form submission. The stream works only when the "Save event history" option is enabled in the bot settings. If the option is off or the stream is unavailable, the method responds `404` without a body. The method works only with a bot token. The link is opened without a token, for example with `EventSource` or `curl -N`: the link itself grants access, so keep it secret. Each event comes as a history record with the `id`, `event_type`, `payload` and `created_at` fields, and the service messages of the connection are told apart by the `type` field. The link works until `expires_at`, and then the stream stops sending events without closing the connection. Get a new link within the last five minutes before `expires_at`: an earlier request returns the same link. Not to miss anything, after connecting wait for the subscription to be confirmed and only then read the [Event history](/api/bots/list-events), and do the same after every reconnection and change of link. Delivery to the stream is not guaranteed: keep deleting processed events with the [Delete history event](/api/bots/remove-event) method, and drop repeats by `id`. If the bot has a webhook address, a repeated delivery to it comes to the stream once more with a new `id`: such repeats are dropped by a key from `payload`, as in [Idempotent processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in [Polling](/guides/webhook/polling).
+A link by which the bot's events arrive as they happen, in the Server-Sent Events format. These are the same events that land in the [Event history](/api/bots/list-events). The stream suits a bot that does not receive webhooks at its own address but has to answer quickly, for example to a button click or a form submission. The stream works only when the "Save event history" option is enabled in the bot settings. If the option is off or the stream is unavailable, the method responds `404` without a body. The method works only with a bot token. The link is opened without a token, for example with `EventSource` or `curl -N`: the link itself grants access, so keep it secret. Each event comes as an unnamed SSE message carrying a history record with the `id`, `event_type`, `payload` and `created_at` fields. Service messages come as named SSE events and are told apart by the `type` field: `confirm_subscription` confirms the subscription, and `disconnect` reports that the server has closed the connection. The link works for one to two hours, until `expires_at`. At that moment the server sends `disconnect` over it and closes the connection, and after it `EventSource` does not reconnect by itself. A request within the same UTC hour returns the same link, and a request in the last hour before `expires_at` gives a new one. Change the link about five minutes before `expires_at`: connect with the new one while the old one still works, and close the old connection once the new one confirms the subscription. If `disconnect` does arrive, get a new link and connect again. Not to miss anything, after every connection, including a reconnection and a change of link, wait for the subscription to be confirmed and only then read the [Event history](/api/bots/list-events). Delivery to the stream is not guaranteed: still delete processed events with the [Delete history event](/api/bots/remove-event) method, and drop repeats by `id`. If the bot has a webhook address, a repeated delivery to it comes to the stream once more with a new `id`: such repeats are dropped by a key from `payload`, as in [Idempotent processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in [Real-time events](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
 
 ### DELETE /api/shared/v1/webhooks/events/{id}
 Removes an event from the bot's event history. When working through the history, delete an event right after processing it: the history does not clear itself, and everything left in it comes again on a repeat request. The method works only with the token of the bot the event belongs to.

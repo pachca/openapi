@@ -524,6 +524,20 @@ describe('Bot update UX', () => {
     const content = fs.readFileSync(path.join(V2_DIR, 'BotDescription.ts'), 'utf-8');
     expect(content).toContain("name: 'webhookUrl'");
   });
+
+  it('bot update: Kind offers None, which deletes the incoming webhook; create does not', async () => {
+    const { botFields } = await import('../nodes/Pachca/V2/BotDescription');
+    const kindOptions = (operation: string) => {
+      const collection = botFields.find(
+        (f) => f.name === 'additionalFields' && f.displayOptions?.show?.operation?.includes(operation),
+      );
+      const kind = (collection?.options as { name: string; options?: { name: string; value: unknown }[] }[] | undefined)
+        ?.find((o) => o.name === 'kind');
+      return kind?.options ?? [];
+    };
+    expect(kindOptions('update')).toContainEqual(expect.objectContaining({ name: 'None', value: 'null' }));
+    expect(kindOptions('create').map((o) => o.value)).not.toContain('null');
+  });
 });
 
 // ============================================================================

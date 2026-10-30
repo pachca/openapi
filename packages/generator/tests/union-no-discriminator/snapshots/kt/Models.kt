@@ -16,9 +16,9 @@ import kotlinx.serialization.json.jsonObject
 @Serializable(with = EventDetailsUnionSerializer::class)
 sealed interface EventDetailsUnion
 
-// EventDetailsUnion carries no discriminator field: the member is chosen by which one
-// best matches the payload keys (most recognised, then fewest unrecognised,
-// then fewest declared).
+// EventDetailsUnion carries no discriminator field: members are tried in the order
+// they match the payload keys (most recognised, then fewest unrecognised, then
+// fewest declared), and the first one that decodes wins.
 object EventDetailsUnionSerializer : KSerializer<EventDetailsUnion> {
     override val descriptor = buildClassSerialDescriptor("EventDetailsUnion")
 
@@ -43,27 +43,22 @@ object EventDetailsUnionSerializer : KSerializer<EventDetailsUnion> {
         val jsonDecoder = decoder as? JsonDecoder ?: error("EventDetailsUnionSerializer only supports JSON")
         val element = jsonDecoder.decodeJsonElement()
         val keys = element.jsonObject.keys
-        var best: Pair<Set<String>, (Json, JsonElement) -> EventDetailsUnion>? = null
-        var bestMatched = 0
-        var bestUnknown = 0
-        var bestDeclared = 0
-        for (shape in shapes) {
-            val matched = keys.count { it in shape.first }
-            val unknown = keys.size - matched
-            val declared = shape.first.size
-            val better = best == null ||
-                matched > bestMatched ||
-                (matched == bestMatched && unknown < bestUnknown) ||
-                (matched == bestMatched && unknown == bestUnknown && declared < bestDeclared)
-            if (better) {
-                best = shape
-                bestMatched = matched
-                bestUnknown = unknown
-                bestDeclared = declared
+        // sortedWith is stable: a tie keeps the declared order.
+        val ranked = shapes.sortedWith(
+            compareByDescending<Pair<Set<String>, *>> { shape -> keys.count { it in shape.first } }
+                .thenBy { shape -> keys.count { it !in shape.first } }
+                .thenBy { shape -> shape.first.size },
+        )
+        var firstError: IllegalArgumentException? = null
+        for (shape in ranked) {
+            try {
+                return shape.second(jsonDecoder.json, element)
+            } catch (e: IllegalArgumentException) {
+                // SerializationException is one: a wrong type or a missing required field.
+                if (firstError == null) firstError = e
             }
         }
-        val chosen = best ?: error("No EventDetailsUnion member matched the payload")
-        return chosen.second(jsonDecoder.json, element)
+        throw firstError ?: kotlinx.serialization.SerializationException("No EventDetailsUnion member matched the payload")
     }
 }
 

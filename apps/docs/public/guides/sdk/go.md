@@ -22,12 +22,17 @@ go get github.com/pachca/openapi/sdk/go/generated
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
+Клиенту нужен токен бота или персональный токен. Какой выбрать и кто может его выпустить, описано в разделе [Какой токен выбрать](/api/authorization#kakoy-token-vybrat).
 
 ```go
-import pachca "github.com/pachca/openapi/sdk/go/generated"
+import (
+	"context"
+
+	pachca "github.com/pachca/openapi/sdk/go/generated"
+)
 
 client := pachca.NewPachcaClient("YOUR_TOKEN")
+ctx := context.Background()
 ```
 
 
@@ -38,7 +43,7 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Получение профиля
 response, err := client.Profile.GetProfile(ctx)
-// → User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}
+// → User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: time.Time, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}
 ```
 
 
@@ -51,13 +56,13 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 client := pachca.NewPachcaClient("YOUR_TOKEN")
 
 // С кастомным базовым URL
-client := pachca.NewPachcaClient("YOUR_TOKEN", "https://custom-api.example.com/api/shared/v1")
+client := pachca.NewPachcaClient("YOUR_TOKEN", pachca.WithBaseURL("https://custom-api.example.com/api/shared/v1"))
 ```
 
 | Параметр | Тип | По умолчанию | Описание |
 |----------|-----|-------------|----------|
 | `token` | `string` | — | Bearer-токен для авторизации |
-| `baseURL` | `...string` | `https://api.pachca.com/api/shared/v1` | Базовый URL API (необязательный) |
+| `opts` | `...ClientOption` | — | Необязательные настройки. `pachca.WithBaseURL(url)` меняет базовый URL API, по умолчанию `https://api.pachca.com/api/shared/v1`. |
 
 Все методы принимают `context.Context` первым аргументом — используйте его для таймаутов и отмены:
 
@@ -185,19 +190,23 @@ user, err := client.Profile.GetProfile(ctx)
 **GET с параметрами:**
 
 ```go
-import pachca "github.com/pachca/openapi/sdk/go/generated"
+import (
+	"time"
+
+	pachca "github.com/pachca/openapi/sdk/go/generated"
+)
 
 // Список чатов
-params := &ListChatsParams{
-	Sort: Ptr(ChatSortFieldID),
-	Order: Ptr(SortOrderDesc),
-	Availability: Ptr(ChatAvailabilityIsMember),
-	Archived: Ptr(true),
-	LastMessageAtAfter: Ptr("2025-01-01T00:00:00.000Z"),
-	LastMessageAtBefore: Ptr("2025-02-01T00:00:00.000Z"),
-	Personal: Ptr(false),
-	Limit: Ptr(int32(1)),
-	Cursor: Ptr("eyJpZCI6MTAsImRpciI6ImFzYyJ9"),
+params := &pachca.ListChatsParams{
+	Sort: pachca.Ptr(pachca.ChatSortFieldID),
+	Order: pachca.Ptr(pachca.SortOrderDesc),
+	Availability: pachca.Ptr(pachca.ChatAvailabilityIsMember),
+	Archived: pachca.Ptr(true),
+	LastMessageAtAfter: pachca.Ptr(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),
+	LastMessageAtBefore: pachca.Ptr(time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)),
+	Personal: pachca.Ptr(false),
+	Limit: pachca.Ptr(int32(1)),
+	Cursor: pachca.Ptr("eyJpZCI6MTAsImRpciI6ImFzYyJ9"),
 }
 response, err := client.Chats.ListChats(ctx, params)
 // → ListChatsResponse{Data: []Chat, Meta: PaginationMeta}
@@ -210,17 +219,17 @@ response, err := client.Chats.ListChats(ctx, params)
 import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Создание чата
-request := ChatCreateRequest{
-	Chat: ChatCreateRequestChat{
+request := pachca.ChatCreateRequest{
+	Chat: pachca.ChatCreateRequestChat{
 		Name: "🤿 aqua",
 		MemberIDs: []int32{int32(123)},
 		GroupTagIDs: []int32{int32(123)},
-		Channel: Ptr(true),
-		Public: Ptr(false),
+		Channel: pachca.Ptr(true),
+		Public: pachca.Ptr(false),
 	},
 }
 response, err := client.Chats.CreateChat(ctx, request)
-// → CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32, NotFoundGroupTagIDs: []int32}}
+// → CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: time.Time, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: time.Time, MeetRoomURL: string, AvatarURL: *string}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32, NotFoundGroupTagIDs: []int32}}
 ```
 
 
@@ -231,7 +240,7 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Получение чата
 response, err := client.Chats.GetChat(ctx, int32(334))
-// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}
+// → Chat{ID: int32, Name: string, CreatedAt: time.Time, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: time.Time, MeetRoomURL: string, AvatarURL: *string}
 ```
 
 
@@ -248,46 +257,62 @@ request := pachca.ChatUpdateRequest{
 }
 ```
 
+Поле, которое не задано, в запрос не попадает, поэтому метод обновления меняет только то, что вы передали.
+
+### Значение null
+
+Некоторые поля API принимают `null`: например, `null` в `oauth_client` выключает у бота авторизацию от имени сотрудника, а в `webhook.kind` удаляет входящий вебхук. Чтобы отправить `null`, назовите поле в `NullFields` той же модели запроса так, как оно называется в Go:
+
+```go
+request := pachca.BotUpdateRequest{
+    Webhook: &pachca.BotUpdateRequestWebhook{
+        NullFields: []string{"Kind"},
+    },
+}
+```
+
+`NullFields` есть у моделей запроса с такими полями, а в комментарии к нему перечислены имена, которые в нём можно указать. С другим именем SDK возвращает ошибку и запрос не отправляет.
+
 ## Пагинация
 
-SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `Meta`** — это важно учитывать при ручной пагинации:
-
-- **Списочные методы** (`client.Users.ListUsers()`, `client.Chats.ListChats()`, `client.Messages.ListChatMessages()` и т.д.) — `Meta.Paginate` с полями `NextPage`, `PrevPage`, `HasNext`, `HasPrev`. Признак конца — `HasNext == false`. Курсор `PrevPage` нужен для polling новых записей «сверху» списка.
-- **Методы поиска** (`client.Search.SearchUsers()`, `client.Search.SearchChats()`, `client.Search.SearchMessages()`) — `Meta` с полями `Total` и `Paginate.NextPage` (без `PrevPage`/`HasNext`/`HasPrev`). Признак конца — пустой `Data` или совпадение числа полученных записей с `Total`.
-
-Курсоры — непрозрачные токены, никогда не бывают пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в PascalCase: `Meta.Paginate.NextPage`, `PrevPage`, `HasNext` и `HasPrev`, а у методов поиска ещё `Meta.Total`. Необязательные поля, в том числе `HasNext`, приходят указателями. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```go
 var cursor *string
-hasNext := true
-for hasNext {
-    params := &pachca.ListUsersParams{Limit: pachca.Ptr(int32(50)), Cursor: cursor}
-    response, err := client.Users.ListUsers(ctx, params)
+for {
+    params := &pachca.ListChatsParams{Limit: pachca.Ptr(int32(50)), Cursor: cursor}
+    response, err := client.Chats.ListChats(ctx, params)
     if err != nil {
         log.Fatal(err)
     }
-    for _, user := range response.Data {
-        fmt.Println(user.FirstName, user.LastName)
+    if len(response.Data) == 0 {
+        break
     }
-    nextPage := response.Meta.Paginate.NextPage
-    cursor = &nextPage
-    hasNext = response.Meta.Paginate.HasNext
+    for _, chat := range response.Data {
+        fmt.Println(chat.ID, chat.Name)
+    }
+    if hasNext := response.Meta.Paginate.HasNext; hasNext != nil && !*hasNext {
+        break
+    }
+    cursor = pachca.Ptr(response.Meta.Paginate.NextPage)
 }
 ```
+
+Цикл заканчивается на `HasNext`, равном `false`, или на пустой странице. Так же обходят страницы методы `*All()`.
 
 ### Автопагинация
 
 Для каждого метода с пагинацией есть `*All()` вариант:
 
 ```go
-// Все пользователи одним слайсом
-users, err := client.Users.ListUsersAll(ctx, nil)
+// Все чаты одним слайсом
+chats, err := client.Chats.ListChatsAll(ctx, nil)
 if err != nil {
     log.Fatal(err)
 }
-fmt.Printf("Всего: %d\n", len(users))
+fmt.Printf("Всего: %d\n", len(chats))
 ```
 
 Доступные методы автопагинации:
@@ -295,10 +320,16 @@ fmt.Printf("Всего: %d\n", len(users))
 | Метод | Возвращает |
 |-------|-----------|
 | `Security.GetAuditEventsAll()` | `[]AuditEvent` |
+| `Bots.ListBotsAll()` | `[]BotResponse` |
+| `Bots.ListBotTokensAll()` | `[]BotAccessToken` |
+| `Bots.ListCompanyBotsAll()` | `[]CompanyBotResponse` |
 | `Bots.GetWebhookEventsAll()` | `[]WebhookEvent` |
 | `Chats.ListChatsAll()` | `[]Chat` |
+| `Chats.ListCompanyChatsAll()` | `[]Chat` |
+| `Drafts.ListDraftsAll()` | `[]Draft` |
 | `GroupTags.ListTagsAll()` | `[]GroupTag` |
 | `GroupTags.GetTagUsersAll()` | `[]User` |
+| `ImportantMessages.ListImportantMessagesAll()` | `[]Message` |
 | `Members.ListMembersAll()` | `[]User` |
 | `Messages.ListChatMessagesAll()` | `[]Message` |
 | `Reactions.ListReactionsAll()` | `[]Reaction` |
@@ -306,6 +337,7 @@ fmt.Printf("Всего: %d\n", len(users))
 | `Search.SearchMessagesAll()` | `[]Message` |
 | `Search.SearchUsersAll()` | `[]User` |
 | `Tasks.ListTasksAll()` | `[]Task` |
+| `Threads.ListThreadsAll()` | `[]Thread` |
 | `Users.ListUsersAll()` | `[]User` |
 
 ## Обработка ошибок
@@ -322,8 +354,8 @@ if err != nil {
     var apiErr *pachca.ApiError
     if errors.As(err, &apiErr) {
         for _, e := range apiErr.Errors {
-            fmt.Println(e.Key, e.Message)   // "name", "не может быть пустым"
-            fmt.Println(e.Code)             // ValidationErrorCodeBlank
+            fmt.Println(e.Key, e.Message)   // name не может быть пустым
+            fmt.Println(e.Code)             // blank
         }
     }
 }
@@ -334,10 +366,10 @@ if err != nil {
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `Key` | `string` | Поле, вызвавшее ошибку |
-| `Value` | `*string` | Переданное значение |
+| `Value` | `any` | Переданное значение |
 | `Message` | `string` | Текст ошибки |
 | `Code` | `ValidationErrorCode` | Код валидации |
-| `Payload` | `*string` | Дополнительные данные |
+| `Payload` | `map[string]any` | Дополнительные данные |
 
 Код статуса ответа — в поле `StatusCode`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже возвращает `*ApiError`: с кодом статуса и пустым `Errors`. Так бывает с ответом `404` без тела от метода [Поток событий](/api/bots/get-stream), когда история событий выключена, и со страницей прокси при `502`.
 
@@ -360,16 +392,15 @@ if err != nil {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
+Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- До **3 повторов** на каждый запрос
-- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
-- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
-- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
-- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
-- Тело запроса пересоздаётся через `req.GetBody()` при каждой попытке
-- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
+- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 без заголовка:** 1 сек, 2 сек, 4 сек
+- **5xx:** ~10 сек, ~20 сек, ~40 сек
+
+Сетевую ошибку без ответа сервера SDK не повторяет и сразу возвращает её из метода. Тело запроса для каждой попытки SDK создаёт заново через `req.GetBody()`.
+
+Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
 
 ## Типы
 
@@ -388,7 +419,7 @@ var req pachca.ChatCreateRequest
 
 // Перечисления
 key := pachca.AuditEventKeyUserLogin
-availability := pachca.ChatAvailabilityIsOpen
+availability := pachca.ChatAvailabilityPublic
 role := pachca.ChatMemberRoleAdmin
 status := pachca.TaskStatusDone
 
@@ -399,75 +430,103 @@ var oauthErr *pachca.OAuthError
 
 Перечисление — строковый тип, поэтому значение, которого SDK ещё не знает, приходит в ответе как есть.
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Все перечисления SDK: `AuditEventKey`, `AuditLoginGrantDenyReason`, `AuditLoginGrantDevicePlatform`, `BotCanEdit`, `BotEventName`, `BotTemplateEngine`, `BotTriggerOn`, `BotWebhookKind`, `BotWhoCanAdd`, `ChatActivity`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSortField`, `ChatSubtype`, `CustomPropertyDataType`, `DraftRepetitionInterval`, `DraftType`, `FileTarget`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `MessageSearchSort`, `MessageSortField`, `OAuthErrorCode`, `OAuthScope`, `OAuthTokenTypeHint`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserCreateRole`, `UserEventType`, `UserRole`, `UserRoleInput`, `ValidationErrorCode`, `VideoCallEventType` и `WebhookEventType`.
+
+## Тело вебхука
+
+Тела событий вебхука описаны типами `MessageWebhookPayload`, `ReactionWebhookPayload`, `ButtonWebhookPayload`, `ViewSubmitWebhookPayload`, `ChatMemberWebhookPayload`, `CompanyMemberWebhookPayload`, `LinkSharedWebhookPayload` и `VideoCallWebhookPayload`. Тип `WebhookPayloadUnion` объединяет их: при разборе JSON он выбирает тип по полям `type` и `event` и заполняет одно поле-указатель.
+
+```go
+// body — тело запроса в байтах
+var payload pachca.WebhookPayloadUnion
+if err := json.Unmarshal(body, &payload); err != nil {
+    log.Fatal(err)
+}
+if button := payload.ButtonWebhookPayload; button != nil {
+    fmt.Println(button.MessageID, button.Data)
+}
+```
+
+Подпись проверяйте по исходному телу до разбора, как в разделе [Безопасность](/guides/webhook/handler#bezopasnost). Те же типы отдают методы `PollWebhookEvents` и `PollWebhookPayloads`, которые забирают события из истории: пример — в разделе [Пример поллинга](/guides/webhook/polling#primer-pollinga).
 
 ## Примеры
 
+**Отправка сообщения:**
+
 ```go
-import pachca "github.com/pachca/openapi/sdk/go/generated"
+import (
+	"context"
+
+	pachca "github.com/pachca/openapi/sdk/go/generated"
+)
 
 client := pachca.NewPachcaClient("YOUR_TOKEN")
+ctx := context.Background()
 
-// Отправка сообщения
-request := MessageCreateRequest{
-	Message: MessageCreateRequestMessage{
-		EntityType: Ptr(MessageEntityTypeDiscussion),
+request := pachca.MessageCreateRequest{
+	Message: pachca.MessageCreateRequestMessage{
 		EntityID: int32(334),
-		Content: Ptr("Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"),
-		Files: []MessageCreateRequestFile{MessageCreateRequestFile{
-			Key: "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
-			Name: "logo.png",
-			FileType: FileTypeImage,
-			Size: Ptr(int64(12345)),
-			Width: Ptr(int32(800)),
-			Height: Ptr(int32(600)),
-			DurationMs: Ptr(int32(5400)),
-			Waveform: Ptr("4,8,12,20,16,10,6,3"),
-		}},
-		Buttons: [][]Button{[]Button{Button{
-			Text: "Подробнее",
-			URL: Ptr("https://example.com/details"),
-			Data: Ptr("awesome"),
-		}}},
-		ParentMessageID: Ptr(int32(194270)),
-		DisplayAvatarURL: Ptr("https://example.com/avatar.png"),
-		DisplayName: Ptr("Бот Поддержки"),
-		SkipInviteMentions: Ptr(false),
+		Content: pachca.Ptr("Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"),
 	},
-	LinkPreview: Ptr(false),
 }
 response, err := client.Messages.CreateMessage(ctx, request)
-// → Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool}
+// → Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: time.Time, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: time.Time, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool}
+```
 
-// Список сотрудников
-params := &ListUsersParams{
-	Query: Ptr("Олег"),
-	Limit: Ptr(int32(1)),
-	Cursor: Ptr("eyJpZCI6MTAsImRpciI6ImFzYyJ9"),
+
+**Список сотрудников:**
+
+```go
+import (
+	"context"
+
+	pachca "github.com/pachca/openapi/sdk/go/generated"
+)
+
+client := pachca.NewPachcaClient("YOUR_TOKEN")
+ctx := context.Background()
+
+params := &pachca.ListUsersParams{
+	Query: pachca.Ptr("Олег"),
+	Limit: pachca.Ptr(int32(1)),
+	Cursor: pachca.Ptr("eyJpZCI6MTAsImRpciI6ImFzYyJ9"),
 }
 response, err := client.Users.ListUsers(ctx, params)
 // → ListUsersResponse{Data: []User, Meta: PaginationMeta}
+```
 
-// Создание задачи
-request := TaskCreateRequest{
-	Task: TaskCreateRequestTask{
-		Kind: TaskKindReminder,
-		Content: Ptr("Забрать со склада 21 заказ"),
-		DueAt: Ptr("2020-06-05T12:00:00.000+03:00"),
-		Priority: Ptr(int32(2)),
+
+**Создание задачи:**
+
+```go
+import (
+	"context"
+	"time"
+
+	pachca "github.com/pachca/openapi/sdk/go/generated"
+)
+
+client := pachca.NewPachcaClient("YOUR_TOKEN")
+ctx := context.Background()
+
+request := pachca.TaskCreateRequest{
+	Task: pachca.TaskCreateRequestTask{
+		Kind: pachca.TaskKindReminder,
+		Content: pachca.Ptr("Забрать со склада 21 заказ"),
+		DueAt: pachca.Ptr(time.Date(2020, 6, 5, 12, 0, 0, 0, time.FixedZone("", 3*60*60))),
+		Priority: pachca.Ptr(int32(2)),
 		PerformerIDs: []int32{int32(123)},
-		ChatID: Ptr(int32(456)),
-		AllDay: Ptr(false),
-		CustomProperties: []TaskCreateRequestCustomProperty{TaskCreateRequestCustomProperty{
+		ChatID: pachca.Ptr(int32(456)),
+		AllDay: pachca.Ptr(false),
+		CustomProperties: []pachca.TaskCreateRequestCustomProperty{pachca.TaskCreateRequestCustomProperty{
 			ID: int32(78),
 			Value: "Синий склад",
 		}},
 	},
 }
 response, err := client.Tasks.CreateTask(ctx, request)
-// → Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}
+// → Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: time.Time, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}
 ```
-
 
 
 

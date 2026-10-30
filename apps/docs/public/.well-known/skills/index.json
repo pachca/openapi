@@ -3,7 +3,7 @@
     {
       "name": "pachca",
       "description": "Вход в Пачку (Pachca) для агента: подключить агента или MCP-клиента (MCP через браузер или токеном, плагин, CLI), проверить подключение, выбрать токен, разобрать отказ 401/403 инструмента или CLI и отсутствие инструмента (роль, тариф, тип токена, участие в чате). Когда: «подключи Пачку», «настрой MCP Пачки», «войди в Пачку через CLI», «каким токеном подключить агента», «экран входа MCP», «агент получил 403 insufficient_scope», «нет инструмента Пачки (экспорт, журнал аудита)», «что умеет Пачка». English: \"connect Pachca\", \"set up Pachca MCP\", \"Pachca CLI login\", \"which token for my agent or MCP client\", \"MCP sign-in screen\", \"MCP tool or CLI returned 401/403\", \"a Pachca tool is missing\". Not for: writing messages → pachca-messaging, search and summaries → pachca-search, administration, who may create tokens → pachca-admin, building a bot → pachca-bots, an agent living in Pachca → pachca-ai-agent, OAuth for employees → pachca-oauth, a token for a script or service, 401/403 in your own code → pachca-api.",
-      "version": "f8cf6947283e",
+      "version": "d121d852185b",
       "files": [
         "SKILL.md",
         "references/access-model.md",
@@ -13,7 +13,7 @@
     {
       "name": "pachca-admin",
       "description": "Администрирование пространства Пачки: сотрудники (пригласить, сменить роль, приостановить, удалить), теги и участники чатов, доступ к API и «Все токены», журнал аудита, экспорт, DLP, безопасный контур и шифрование; что требует владельца, администратора или «Корпорации». Load before a tool call that changes an employee: delete only after a yes to your question. Use when: «пригласи сотрудника», «уволь / удали сотрудника», «сделай администратором», «добавь в тег», «добавь / удали участника чата», «кто в закрытом канале, где я не состою», «доступ к API ограничен», «отзови доступ сотрудника к API», «журнал аудита», «выгрузи переписку», «правило DLP»; \"invite an employee\", \"offboard a user\", \"change role\", \"add or remove chat members\", \"let employees create tokens\", \"export messages\". Not for: a missing tool or a general 401/403 → pachca; who is in a tag or chat → pachca-search; writing messages → pachca-messaging; a bot's own token → pachca-bots; an app acting for employees → pachca-oauth; scripts → pachca-api.",
-      "version": "54b0ff5a6772",
+      "version": "6047dd45391d",
       "files": [
         "SKILL.md",
         "references/employee-lifecycle.md",
@@ -24,7 +24,7 @@
     {
       "name": "pachca-ai-agent",
       "description": "Build an AI agent that lives in Pachca as a bot: called by @mention in a chat or thread or messaged in a DM, it reads the thread for context, shows the agent-thinking timer, replies in the thread and formats a long result as an .md card; plus bot vs MCP. Use when: «AI-агент в Пачке», «агент отвечает по упоминанию в треде», «агент не слышит упоминание», «бот-агент в личных сообщениях», «как агенту собрать контекст треда», «реакция agent-thinking», «длинный ответ агента карточкой .md», «бот или MCP»; \"AI agent bot in Pachca\", \"agent replies when mentioned\", \"agent does not hear a mention\", \"read thread context\", \"thinking indicator\", \"agent reply as an .md card\", \"bot vs MCP\". Not for: working in Pachca from Claude or Cursor through MCP → pachca, pachca-messaging, pachca-search; drafts and scheduled messages (a bot cannot make them), sending a file or report from Claude, Cursor or the CLI → pachca-messaging; webhooks, tokens and settings of any bot → pachca-bots; acting on behalf of an employee → pachca-oauth.",
-      "version": "402a93ce23c1",
+      "version": "4c85c82e7a3b",
       "files": [
         "SKILL.md",
         "references/drafts-and-scheduled.md",
@@ -35,7 +35,7 @@
     {
       "name": "pachca-api",
       "description": "API Пачки из кода, скриптов и CI: токен и скоупы для скрипта или сервиса, курсорная пагинация, ошибки и повторы без дублей (401/403/422, 429, 5xx), файлы в коде, SDK и генератор, CLI в скриптах, массовые выгрузки, поиск метода. Когда: «напиши скрипт для API Пачки», «какой токен дать скрипту, сервису или CI», «мой код получает 401/403/422 от API», «упёрлись в 429», «поиск вернул 504 timeout, повторить?», «обойти все страницы», «скрипт, который выгружает всех сотрудников», «загрузка файла из кода», «SDK Пачки», «какой метод API»; \"call the Pachca API from code\", \"token for a script or CI job\", \"401/403/422 in my code\", \"cursor pagination\", \"429 Retry-After\", \"upload a file from my code\", \"Pachca SDK\", \"pachca CLI in CI\", \"which endpoint\". Not for: connecting an agent or MCP client, a 401/403 from an MCP tool → pachca; writing messages, a file to a chat now → pachca-messaging; bots, webhooks, events → pachca-bots; OAuth for employees → pachca-oauth; token policy, all-tokens tab, message export → pachca-admin.",
-      "version": "73352861da97",
+      "version": "cd7783c1a2d1",
       "files": [
         "SKILL.md",
         "references/cli-scripting.md",
@@ -46,7 +46,7 @@
     {
       "name": "pachca-bots",
       "description": "Бот или интеграция в Пачке: что выбрать (входящий вебхук, бот с событиями, приложение с авторизацией), создание и настройки бота, токены и права, доступ к чатам, приём событий (подпись, повторы, идемпотентность, история событий), кнопки, формы, разворачивание ссылок, витрина. Use when: «сделать бота», «уведомления из CRM или CI в чат», «входящий вебхук», «исходящий вебхук», «бот команд или уведомлений не получает сообщения», «проверить подпись вебхука», «кнопки в сообщении бота», «форма, модальное окно», «превью ссылок, unfurl», «права токена бота», «токен бота утёк», «опубликовать бота в витрине»; \"build a Pachca bot\", \"incoming webhook\", \"outgoing webhook\", \"bot gets no events\", \"verify webhook signature\", \"message buttons\", \"modal form\", \"link unfurling\", \"reissue a leaked bot token\". Not for: an AI agent that answers in threads or does not hear a mention → pachca-ai-agent; an app acting for an employee → pachca-oauth; scripts, pagination, 429 → pachca-api; writing messages yourself → pachca-messaging.",
-      "version": "445e6bd053f8",
+      "version": "960247dc31a9",
       "files": [
         "SKILL.md",
         "references/events.md",

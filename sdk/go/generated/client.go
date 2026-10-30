@@ -4448,7 +4448,7 @@ func (s *UsersServiceImpl) DeleteUserStatus(ctx context.Context, userId int32) e
 
 type ViewsService interface {
 	SubmitViewResponse(ctx context.Context, viewId string, request SubmitViewResponseRequest) (*SubmitViewResponseResult, error)
-	OpenView(ctx context.Context, request OpenViewRequest) error
+	OpenView(ctx context.Context, request OpenViewRequest) (*OpenViewResult, error)
 }
 
 type ViewsServiceStub struct{}
@@ -4457,8 +4457,8 @@ func (s *ViewsServiceStub) SubmitViewResponse(ctx context.Context, viewId string
 	return nil, NotImplementedError{Method: "Views.submitViewResponse"}
 }
 
-func (s *ViewsServiceStub) OpenView(ctx context.Context, request OpenViewRequest) error {
-	return NotImplementedError{Method: "Views.openView"}
+func (s *ViewsServiceStub) OpenView(ctx context.Context, request OpenViewRequest) (*OpenViewResult, error) {
+	return nil, NotImplementedError{Method: "Views.openView"}
 }
 
 type ViewsServiceImpl struct {
@@ -4493,26 +4493,30 @@ func (s *ViewsServiceImpl) SubmitViewResponse(ctx context.Context, viewId string
 	}
 }
 
-func (s *ViewsServiceImpl) OpenView(ctx context.Context, request OpenViewRequest) error {
+func (s *ViewsServiceImpl) OpenView(ctx context.Context, request OpenViewRequest) (*OpenViewResult, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/views/open", s.baseURL), bytes.NewReader(body))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := doWithRetry(s.client, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusCreated:
-		return nil
+		var result OpenViewResult
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
 	default:
-		return errorFromResponse(resp)
+		return nil, errorFromResponse(resp)
 	}
 }
 

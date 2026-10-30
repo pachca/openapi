@@ -2983,7 +2983,7 @@ open class ViewsService {
         throw pachcaNotImplemented("Views.submitViewResponse")
     }
 
-    open func openView(request body: OpenViewRequest) async throws -> Void {
+    open func openView(request body: OpenViewRequest) async throws -> OpenViewResult {
         throw pachcaNotImplemented("Views.openView")
     }
 }
@@ -3016,7 +3016,7 @@ public final class ViewsServiceImpl: ViewsService {
         }
     }
 
-    public override func openView(request body: OpenViewRequest) async throws -> Void {
+    public override func openView(request body: OpenViewRequest) async throws -> OpenViewResult {
         var request = URLRequest(url: URL(string: "\(baseURL)/views/open")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -3026,7 +3026,7 @@ public final class ViewsServiceImpl: ViewsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return
+            return try deserialize(OpenViewResult.self, from: data)
         default:
             throw pachcaErrorFromResponse(statusCode, data)
         }

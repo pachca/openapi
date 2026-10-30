@@ -1,11 +1,20 @@
 import type { Endpoint, Schema } from '../openapi/types';
 import { generateUrlFromOperation } from '../openapi/mapper';
 import {
+  authoredExample,
   generateParameterExample,
   generateExample,
   type ExampleOptions,
 } from '../openapi/example-generator';
-import { requiresAuth, getQueryParams, resolveParamName, shellQuote, mergeAllOf } from './utils';
+import {
+  requiresAuth,
+  getQueryParams,
+  resolveParamName,
+  shellQuote,
+  mergeAllOf,
+  pickWrapperKey,
+  isRecord,
+} from './utils';
 
 export function generateCLI(endpoint: Endpoint, options?: ExampleOptions): string {
   const url = generateUrlFromOperation(endpoint);
@@ -152,11 +161,6 @@ function valueToFlag(
   }
 }
 
-/**
- * Extract body fields with wrapper unwrapping (same logic as CLI generator).
- * If body has a single object property (e.g. { message: { ... } }),
- * unwrap it and return inner fields + sibling scalar fields.
- */
 interface BodyField {
   name: string;
   example: unknown;
@@ -164,14 +168,19 @@ interface BodyField {
   format?: string;
 }
 
+/**
+ * Body fields as CLI flags, with the wrapper unwrapped the way the real CLI
+ * does it: for `{ message: {...}, link_preview }` the flags are the wrapper's
+ * fields plus the siblings beside it.
+ */
 function extractUnwrappedBodyFields(
   requestBody: Endpoint['requestBody'],
   options?: ExampleOptions
 ): BodyField[] {
   if (!requestBody) return [];
 
-  const content =
-    requestBody.content['application/json'] || requestBody.content['multipart/form-data'];
+  const jsonContent = requestBody.content['application/json'];
+  const content = jsonContent || requestBody.content['multipart/form-data'];
   if (!content?.schema) return [];
 
   const schema = mergeAllOf(content.schema);
@@ -188,74 +197,74 @@ function extractUnwrappedBodyFields(
     return [];
   }
 
-  const topKeys = Object.keys(properties);
+  // The wrapper rule is the real CLI generator's: an allOf-composed wrapper
+  // declares no `type: 'object'` of its own, and a second, smaller object beside
+  // the wrapper must not cancel unwrapping (the example then collapsed into one
+  // raw JSON flag while the command itself kept its individual flags).
+  const wrapperKey = pickWrapperKey(properties);
+  const innerSchema = wrapperKey ? mergeAllOf(properties[wrapperKey]) : undefined;
 
-  // Detect wrapper: the largest top-level object property. Resolve allOf and
-  // don't require a literal `type: 'object'` — an allOf-composed wrapper usually
-  // declares neither, and the real CLI generator resolves before asking, so the
-  // two would disagree.
-  //
-  // The size rule has to match `pickWrapperKey` in the CLI generator: it used to
-  // demand exactly one object here, so a second one appearing beside the wrapper
-  // cancelled unwrapping and the example collapsed into one raw JSON flag, while
-  // the command itself kept its individual flags.
-  const objectKeys = topKeys.filter((k) => {
-    const inner = mergeAllOf(properties[k] as Schema);
-    return !!inner.properties && Object.keys(inner.properties).length > 0;
-  });
-
-  if (objectKeys.length > 0) {
-    const wrapperKey = objectKeys.reduce((biggest, key) => {
-      const size = (k: string) =>
-        Object.keys(mergeAllOf(properties[k] as Schema).properties ?? {}).length;
-      return size(key) > size(biggest) ? key : biggest;
-    }, objectKeys[0]);
-    const innerSchema = properties[wrapperKey] as Schema;
-    const innerRequired = innerSchema.required || [];
-    const fields: BodyField[] = [];
-
-    // Inner fields from the wrapper object
-    if (innerSchema.properties) {
-      for (const [name, propSchema] of Object.entries(innerSchema.properties)) {
-        const s = propSchema as Schema;
-        if (s.readOnly) continue;
-        if (options?.requiredOnly && !innerRequired.includes(name)) continue;
-        const example = generateExample(s, 0, options);
-        if (example === undefined) continue;
-        if (isRedundantDefault(s, innerRequired.includes(name), example)) continue;
-        fields.push({ name, example, schemaType: s.type, format: s.format });
-      }
+  // A hand-written example in the spec is a coherent request: the curl tab
+  // shows it, and the CLI tab has to send the same body. Built field by field
+  // from the schema instead, it carried every field with an `@example` —
+  // `--display-name` that only a bot may send, a picture with `duration_ms`.
+  const authored = jsonContent ? authoredExample(jsonContent) : undefined;
+  if (isRecord(authored)) {
+    const inner = wrapperKey ? authored[wrapperKey] : undefined;
+    if (wrapperKey && innerSchema && isRecord(inner)) {
+      return [
+        ...authoredFields(inner, innerSchema, options),
+        ...authoredFields(omit(authored, wrapperKey), schema, options),
+      ];
     }
+    return authoredFields(authored, schema, options);
+  }
 
-    // Sibling scalar fields (top-level properties outside the wrapper)
-    const topRequired = schema.required || [];
-    for (const key of topKeys) {
-      if (key === wrapperKey) continue;
-      const s = properties[key] as Schema;
-      if (s.readOnly) continue;
-      if (options?.requiredOnly && !topRequired.includes(key)) continue;
-      const example = generateExample(s, 0, options);
-      if (example === undefined) continue;
-      if (isRedundantDefault(s, topRequired.includes(key), example)) continue;
-      fields.push({ name: key, example, schemaType: s.type, format: s.format });
-    }
-
-    return fields;
+  if (wrapperKey && innerSchema) {
+    return [...schemaFields(innerSchema, options), ...schemaFields(schema, options, wrapperKey)];
   }
 
   // No wrapper — use all top-level properties
-  const topRequired = schema.required || [];
+  return schemaFields(schema, options);
+}
+
+/** Flags from the schema: every writable field that has an example of its own. */
+function schemaFields(schema: Schema, options?: ExampleOptions, skipKey?: string): BodyField[] {
+  const required = schema.required || [];
   const fields: BodyField[] = [];
-  for (const [name, propSchema] of Object.entries(properties)) {
+  for (const [name, propSchema] of Object.entries(schema.properties ?? {})) {
+    if (name === skipKey) continue;
     const s = propSchema as Schema;
     if (s.readOnly) continue;
-    if (options?.requiredOnly && !topRequired.includes(name)) continue;
+    if (options?.requiredOnly && !required.includes(name)) continue;
     const example = generateExample(s, 0, options);
     if (example === undefined) continue;
-    if (isRedundantDefault(s, topRequired.includes(name), example)) continue;
+    if (isRedundantDefault(s, required.includes(name), example)) continue;
     fields.push({ name, example, schemaType: s.type, format: s.format });
   }
   return fields;
+}
+
+/** Flags from a hand-written example: its fields and values as written, typed by the schema. */
+function authoredFields(
+  values: Record<string, unknown>,
+  schema: Schema,
+  options?: ExampleOptions
+): BodyField[] {
+  const required = schema.required || [];
+  const fields: BodyField[] = [];
+  for (const [name, example] of Object.entries(values)) {
+    if (example === undefined) continue;
+    const s = (schema.properties?.[name] ?? {}) as Schema;
+    if (s.readOnly) continue;
+    if (options?.requiredOnly && !required.includes(name)) continue;
+    fields.push({ name, example, schemaType: s.type, format: s.format });
+  }
+  return fields;
+}
+
+function omit(values: Record<string, unknown>, key: string): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(values).filter(([name]) => name !== key));
 }
 
 /** Шум: опциональное поле, у которого пример равен дефолту схемы. Тождественно «не передавать поле». */

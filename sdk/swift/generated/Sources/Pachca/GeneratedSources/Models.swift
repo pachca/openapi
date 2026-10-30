@@ -2172,15 +2172,33 @@ public struct ApiErrorItem: Codable {
 public struct AuditDetailsBot: Codable {
     public let botId: Int
     public let actorId: Int?
+    public let webhookId: Int?
+    public let applicationId: Int?
+    public let accessTokenId: Int?
+    public let accessTokenPreview: String?
+    public let scopes: [String]?
+    public let name: AuditDetailsTokenNameChange?
 
-    public init(botId: Int, actorId: Int? = nil) {
+    public init(botId: Int, actorId: Int? = nil, webhookId: Int? = nil, applicationId: Int? = nil, accessTokenId: Int? = nil, accessTokenPreview: String? = nil, scopes: [String]? = nil, name: AuditDetailsTokenNameChange? = nil) {
         self.botId = botId
         self.actorId = actorId
+        self.webhookId = webhookId
+        self.applicationId = applicationId
+        self.accessTokenId = accessTokenId
+        self.accessTokenPreview = accessTokenPreview
+        self.scopes = scopes
+        self.name = name
     }
 
     enum CodingKeys: String, CodingKey {
         case botId = "bot_id"
         case actorId = "actor_id"
+        case webhookId = "webhook_id"
+        case applicationId = "application_id"
+        case accessTokenId = "access_token_id"
+        case accessTokenPreview = "access_token_preview"
+        case scopes
+        case name
     }
 }
 
@@ -2189,12 +2207,26 @@ public struct AuditDetailsBotOAuthClient: Codable {
     public let actorId: Int?
     public let clientId: String
     public let changes: [String: AnyCodable]
+    public let applicationId: Int?
+    public let applicationName: String?
+    public let botName: String?
+    public let webhookId: Int?
+    public let scopes: [String]?
+    public let accessTokenId: Int?
+    public let accessTokenPreview: String?
 
-    public init(botId: Int, actorId: Int? = nil, clientId: String, changes: [String: AnyCodable]) {
+    public init(botId: Int, actorId: Int? = nil, clientId: String, changes: [String: AnyCodable], applicationId: Int? = nil, applicationName: String? = nil, botName: String? = nil, webhookId: Int? = nil, scopes: [String]? = nil, accessTokenId: Int? = nil, accessTokenPreview: String? = nil) {
         self.botId = botId
         self.actorId = actorId
         self.clientId = clientId
         self.changes = changes
+        self.applicationId = applicationId
+        self.applicationName = applicationName
+        self.botName = botName
+        self.webhookId = webhookId
+        self.scopes = scopes
+        self.accessTokenId = accessTokenId
+        self.accessTokenPreview = accessTokenPreview
     }
 
     enum CodingKeys: String, CodingKey {
@@ -2202,6 +2234,13 @@ public struct AuditDetailsBotOAuthClient: Codable {
         case actorId = "actor_id"
         case clientId = "client_id"
         case changes
+        case applicationId = "application_id"
+        case applicationName = "application_name"
+        case botName = "bot_name"
+        case webhookId = "webhook_id"
+        case scopes
+        case accessTokenId = "access_token_id"
+        case accessTokenPreview = "access_token_preview"
     }
 }
 
@@ -2211,13 +2250,27 @@ public struct AuditDetailsBotOAuthClientDisabled: Codable {
     public let clientId: String
     public let deletedAccessTokensCount: Int
     public let deletedAccessGrantsCount: Int
+    public let applicationId: Int?
+    public let applicationName: String?
+    public let botName: String?
+    public let webhookId: Int?
+    public let scopes: [String]?
+    public let accessTokenId: Int?
+    public let accessTokenPreview: String?
 
-    public init(botId: Int, actorId: Int? = nil, clientId: String, deletedAccessTokensCount: Int, deletedAccessGrantsCount: Int) {
+    public init(botId: Int, actorId: Int? = nil, clientId: String, deletedAccessTokensCount: Int, deletedAccessGrantsCount: Int, applicationId: Int? = nil, applicationName: String? = nil, botName: String? = nil, webhookId: Int? = nil, scopes: [String]? = nil, accessTokenId: Int? = nil, accessTokenPreview: String? = nil) {
         self.botId = botId
         self.actorId = actorId
         self.clientId = clientId
         self.deletedAccessTokensCount = deletedAccessTokensCount
         self.deletedAccessGrantsCount = deletedAccessGrantsCount
+        self.applicationId = applicationId
+        self.applicationName = applicationName
+        self.botName = botName
+        self.webhookId = webhookId
+        self.scopes = scopes
+        self.accessTokenId = accessTokenId
+        self.accessTokenPreview = accessTokenPreview
     }
 
     enum CodingKeys: String, CodingKey {
@@ -2226,6 +2279,13 @@ public struct AuditDetailsBotOAuthClientDisabled: Codable {
         case clientId = "client_id"
         case deletedAccessTokensCount = "deleted_access_tokens_count"
         case deletedAccessGrantsCount = "deleted_access_grants_count"
+        case applicationId = "application_id"
+        case applicationName = "application_name"
+        case botName = "bot_name"
+        case webhookId = "webhook_id"
+        case scopes
+        case accessTokenId = "access_token_id"
+        case accessTokenPreview = "access_token_preview"
     }
 }
 
@@ -2233,17 +2293,38 @@ public struct AuditDetailsBotOAuthClientSecretRotated: Codable {
     public let botId: Int
     public let actorId: Int?
     public let clientId: String
+    public let applicationId: Int?
+    public let applicationName: String?
+    public let botName: String?
+    public let webhookId: Int?
+    public let scopes: [String]?
+    public let accessTokenId: Int?
+    public let accessTokenPreview: String?
 
-    public init(botId: Int, actorId: Int? = nil, clientId: String) {
+    public init(botId: Int, actorId: Int? = nil, clientId: String, applicationId: Int? = nil, applicationName: String? = nil, botName: String? = nil, webhookId: Int? = nil, scopes: [String]? = nil, accessTokenId: Int? = nil, accessTokenPreview: String? = nil) {
         self.botId = botId
         self.actorId = actorId
         self.clientId = clientId
+        self.applicationId = applicationId
+        self.applicationName = applicationName
+        self.botName = botName
+        self.webhookId = webhookId
+        self.scopes = scopes
+        self.accessTokenId = accessTokenId
+        self.accessTokenPreview = accessTokenPreview
     }
 
     enum CodingKeys: String, CodingKey {
         case botId = "bot_id"
         case actorId = "actor_id"
         case clientId = "client_id"
+        case applicationId = "application_id"
+        case applicationName = "application_name"
+        case botName = "bot_name"
+        case webhookId = "webhook_id"
+        case scopes
+        case accessTokenId = "access_token_id"
+        case accessTokenPreview = "access_token_preview"
     }
 }
 
@@ -2252,12 +2333,20 @@ public struct AuditDetailsBotScopes: Codable {
     public let actorId: Int?
     public let addedScopes: [String]
     public let removedScopes: [String]
+    public let botName: String?
+    public let webhookId: Int
+    public let previousScopes: [String]
+    public let newScopes: [String]
 
-    public init(botId: Int, actorId: Int? = nil, addedScopes: [String], removedScopes: [String]) {
+    public init(botId: Int, actorId: Int? = nil, addedScopes: [String], removedScopes: [String], botName: String? = nil, webhookId: Int, previousScopes: [String], newScopes: [String]) {
         self.botId = botId
         self.actorId = actorId
         self.addedScopes = addedScopes
         self.removedScopes = removedScopes
+        self.botName = botName
+        self.webhookId = webhookId
+        self.previousScopes = previousScopes
+        self.newScopes = newScopes
     }
 
     enum CodingKeys: String, CodingKey {
@@ -2265,6 +2354,10 @@ public struct AuditDetailsBotScopes: Codable {
         case actorId = "actor_id"
         case addedScopes = "added_scopes"
         case removedScopes = "removed_scopes"
+        case botName = "bot_name"
+        case webhookId = "webhook_id"
+        case previousScopes = "previous_scopes"
+        case newScopes = "new_scopes"
     }
 }
 
@@ -2275,14 +2368,30 @@ public struct AuditDetailsBotTokenUpdated: Codable {
     public let currentScopes: [String]
     public let botId: Int?
     public let actorId: Int?
+    public let accessTokenId: Int
+    public let accessTokenPreview: String?
+    public let applicationId: Int?
+    public let applicationName: String?
+    public let clientId: String?
+    public let botName: String?
+    public let webhookId: Int
+    public let name: AuditDetailsTokenNameChange?
 
-    public init(tokenKind: String, tokenName: String? = nil, resourceOwnerId: Int, currentScopes: [String], botId: Int? = nil, actorId: Int? = nil) {
+    public init(tokenKind: String, tokenName: String? = nil, resourceOwnerId: Int, currentScopes: [String], botId: Int? = nil, actorId: Int? = nil, accessTokenId: Int, accessTokenPreview: String? = nil, applicationId: Int? = nil, applicationName: String? = nil, clientId: String? = nil, botName: String? = nil, webhookId: Int, name: AuditDetailsTokenNameChange? = nil) {
         self.tokenKind = tokenKind
         self.tokenName = tokenName
         self.resourceOwnerId = resourceOwnerId
         self.currentScopes = currentScopes
         self.botId = botId
         self.actorId = actorId
+        self.accessTokenId = accessTokenId
+        self.accessTokenPreview = accessTokenPreview
+        self.applicationId = applicationId
+        self.applicationName = applicationName
+        self.clientId = clientId
+        self.botName = botName
+        self.webhookId = webhookId
+        self.name = name
     }
 
     enum CodingKeys: String, CodingKey {
@@ -2292,6 +2401,14 @@ public struct AuditDetailsBotTokenUpdated: Codable {
         case currentScopes = "current_scopes"
         case botId = "bot_id"
         case actorId = "actor_id"
+        case accessTokenId = "access_token_id"
+        case accessTokenPreview = "access_token_preview"
+        case applicationId = "application_id"
+        case applicationName = "application_name"
+        case clientId = "client_id"
+        case botName = "bot_name"
+        case webhookId = "webhook_id"
+        case name
     }
 }
 
@@ -2299,17 +2416,32 @@ public struct AuditDetailsBotWebhookSettings: Codable {
     public let botId: Int
     public let actorId: Int?
     public let changes: [String: AnyCodable]
+    public let botName: String?
+    public let webhookId: Int?
+    public let accessTokenId: Int?
+    public let accessTokenPreview: String?
+    public let applicationId: Int?
 
-    public init(botId: Int, actorId: Int? = nil, changes: [String: AnyCodable]) {
+    public init(botId: Int, actorId: Int? = nil, changes: [String: AnyCodable], botName: String? = nil, webhookId: Int? = nil, accessTokenId: Int? = nil, accessTokenPreview: String? = nil, applicationId: Int? = nil) {
         self.botId = botId
         self.actorId = actorId
         self.changes = changes
+        self.botName = botName
+        self.webhookId = webhookId
+        self.accessTokenId = accessTokenId
+        self.accessTokenPreview = accessTokenPreview
+        self.applicationId = applicationId
     }
 
     enum CodingKeys: String, CodingKey {
         case botId = "bot_id"
         case actorId = "actor_id"
         case changes
+        case botName = "bot_name"
+        case webhookId = "webhook_id"
+        case accessTokenId = "access_token_id"
+        case accessTokenPreview = "access_token_preview"
+        case applicationId = "application_id"
     }
 }
 
@@ -2356,17 +2488,29 @@ public struct AuditDetailsDeviceAuthorizationApproved: Codable {
     public let clientId: String
     public let scopes: [String]
     public let deviceName: String?
+    public let applicationId: Int
+    public let applicationName: String?
+    public let deviceGrantId: Int
+    public let tokenKind: String?
 
-    public init(clientId: String, scopes: [String], deviceName: String? = nil) {
+    public init(clientId: String, scopes: [String], deviceName: String? = nil, applicationId: Int, applicationName: String? = nil, deviceGrantId: Int, tokenKind: String? = nil) {
         self.clientId = clientId
         self.scopes = scopes
         self.deviceName = deviceName
+        self.applicationId = applicationId
+        self.applicationName = applicationName
+        self.deviceGrantId = deviceGrantId
+        self.tokenKind = tokenKind
     }
 
     enum CodingKeys: String, CodingKey {
         case clientId = "client_id"
         case scopes
         case deviceName = "device_name"
+        case applicationId = "application_id"
+        case applicationName = "application_name"
+        case deviceGrantId = "device_grant_id"
+        case tokenKind = "token_kind"
     }
 }
 
@@ -2374,17 +2518,26 @@ public struct AuditDetailsDeviceAuthorizationDenied: Codable {
     public let clientId: String
     public let scopes: [String]
     public let deviceName: String?
+    public let applicationId: Int?
+    public let deviceGrantId: Int
+    public let tokenKind: String?
 
-    public init(clientId: String, scopes: [String], deviceName: String? = nil) {
+    public init(clientId: String, scopes: [String], deviceName: String? = nil, applicationId: Int? = nil, deviceGrantId: Int, tokenKind: String? = nil) {
         self.clientId = clientId
         self.scopes = scopes
         self.deviceName = deviceName
+        self.applicationId = applicationId
+        self.deviceGrantId = deviceGrantId
+        self.tokenKind = tokenKind
     }
 
     enum CodingKeys: String, CodingKey {
         case clientId = "client_id"
         case scopes
         case deviceName = "device_name"
+        case applicationId = "application_id"
+        case deviceGrantId = "device_grant_id"
+        case tokenKind = "token_kind"
     }
 }
 
@@ -2509,17 +2662,32 @@ public struct AuditDetailsLoginGrantDenied: Codable {
 }
 
 public struct AuditDetailsOAuthAuthorizationGranted: Codable {
-    public let clientId: String
+    public let clientId: String?
     public let scopes: [String]
+    public let applicationId: Int
+    public let applicationName: String?
+    public let botId: Int?
+    public let botName: String?
+    public let authorizationGrantId: Int
 
-    public init(clientId: String, scopes: [String]) {
+    public init(clientId: String? = nil, scopes: [String], applicationId: Int, applicationName: String? = nil, botId: Int? = nil, botName: String? = nil, authorizationGrantId: Int) {
         self.clientId = clientId
         self.scopes = scopes
+        self.applicationId = applicationId
+        self.applicationName = applicationName
+        self.botId = botId
+        self.botName = botName
+        self.authorizationGrantId = authorizationGrantId
     }
 
     enum CodingKeys: String, CodingKey {
         case clientId = "client_id"
         case scopes
+        case applicationId = "application_id"
+        case applicationName = "application_name"
+        case botId = "bot_id"
+        case botName = "bot_name"
+        case authorizationGrantId = "authorization_grant_id"
     }
 }
 
@@ -2527,17 +2695,29 @@ public struct AuditDetailsOAuthAuthorizationRevoked: Codable {
     public let clientId: String
     public let revokedTokensCount: Int
     public let userId: Int?
+    public let applicationId: Int
+    public let applicationName: String?
+    public let botId: Int?
+    public let botName: String?
 
-    public init(clientId: String, revokedTokensCount: Int, userId: Int? = nil) {
+    public init(clientId: String, revokedTokensCount: Int, userId: Int? = nil, applicationId: Int, applicationName: String? = nil, botId: Int? = nil, botName: String? = nil) {
         self.clientId = clientId
         self.revokedTokensCount = revokedTokensCount
         self.userId = userId
+        self.applicationId = applicationId
+        self.applicationName = applicationName
+        self.botId = botId
+        self.botName = botName
     }
 
     enum CodingKeys: String, CodingKey {
         case clientId = "client_id"
         case revokedTokensCount = "revoked_tokens_count"
         case userId = "user_id"
+        case applicationId = "application_id"
+        case applicationName = "application_name"
+        case botId = "bot_id"
+        case botName = "bot_name"
     }
 }
 
@@ -2611,15 +2791,37 @@ public struct AuditDetailsToken: Codable {
     public let tokenName: String?
     public let resourceOwnerId: Int
     public let scopes: [String]
+    public let accessTokenId: Int
+    public let accessTokenPreview: String?
+    public let applicationId: Int?
+    public let applicationName: String?
+    public let clientId: String?
     public let botId: Int?
+    public let botName: String?
+    public let deviceName: String?
+    public let actorId: Int?
+    public let webhookId: Int?
+    public let userId: Int?
+    public let source: String?
     public let reason: String?
 
-    public init(tokenKind: String, tokenName: String? = nil, resourceOwnerId: Int, scopes: [String], botId: Int? = nil, reason: String? = nil) {
+    public init(tokenKind: String, tokenName: String? = nil, resourceOwnerId: Int, scopes: [String], accessTokenId: Int, accessTokenPreview: String? = nil, applicationId: Int? = nil, applicationName: String? = nil, clientId: String? = nil, botId: Int? = nil, botName: String? = nil, deviceName: String? = nil, actorId: Int? = nil, webhookId: Int? = nil, userId: Int? = nil, source: String? = nil, reason: String? = nil) {
         self.tokenKind = tokenKind
         self.tokenName = tokenName
         self.resourceOwnerId = resourceOwnerId
         self.scopes = scopes
+        self.accessTokenId = accessTokenId
+        self.accessTokenPreview = accessTokenPreview
+        self.applicationId = applicationId
+        self.applicationName = applicationName
+        self.clientId = clientId
         self.botId = botId
+        self.botName = botName
+        self.deviceName = deviceName
+        self.actorId = actorId
+        self.webhookId = webhookId
+        self.userId = userId
+        self.source = source
         self.reason = reason
     }
 
@@ -2628,8 +2830,29 @@ public struct AuditDetailsToken: Codable {
         case tokenName = "token_name"
         case resourceOwnerId = "resource_owner_id"
         case scopes
+        case accessTokenId = "access_token_id"
+        case accessTokenPreview = "access_token_preview"
+        case applicationId = "application_id"
+        case applicationName = "application_name"
+        case clientId = "client_id"
         case botId = "bot_id"
+        case botName = "bot_name"
+        case deviceName = "device_name"
+        case actorId = "actor_id"
+        case webhookId = "webhook_id"
+        case userId = "user_id"
+        case source
         case reason
+    }
+}
+
+public struct AuditDetailsTokenNameChange: Codable {
+    public let previous: String?
+    public let new: String?
+
+    public init(previous: String? = nil, new: String? = nil) {
+        self.previous = previous
+        self.new = new
     }
 }
 
@@ -4735,6 +4958,14 @@ public struct OpenViewRequest: Codable {
     }
 }
 
+public struct OpenViewResult: Codable {
+    public let success: Bool
+
+    public init(success: Bool) {
+        self.success = success
+    }
+}
+
 public struct PaginationMetaPaginate: Codable {
     public let nextPage: String
     public let prevPage: String?
@@ -5942,142 +6173,69 @@ public enum AuditEventDetailsUnion: Codable {
     case auditDetailsLoginGrantApproved(AuditDetailsLoginGrantApproved)
     case auditDetailsLoginGrantDenied(AuditDetailsLoginGrantDenied)
 
+    private struct AnyKey: CodingKey {
+        let stringValue: String
+        var intValue: Int? { nil }
+        init?(stringValue: String) { self.stringValue = stringValue }
+        init?(intValue: Int) { nil }
+    }
+
     public init(from decoder: Decoder) throws {
-        // AuditEventDetailsUnion carries no discriminator field: members are tried from most
-        // to least demanding, so the loosest one only wins when nothing else fits.
-        if let value = try? AuditDetailsDlp(from: decoder) {
-            self = .auditDetailsDlp(value)
-            return
+        // AuditEventDetailsUnion carries no discriminator field: members are tried in the order
+        // they match the payload keys, and the first one that decodes wins.
+        let shapes: [(keys: Set<String>, decode: (Decoder) throws -> AuditEventDetailsUnion)] = [
+            ([], { .auditDetailsEmpty(try AuditDetailsEmpty(from: $0)) }),
+            (["changed_attrs", "context"], { .auditDetailsUserUpdated(try AuditDetailsUserUpdated(from: $0)) }),
+            (["new_company_role", "previous_company_role", "initiator_id"], { .auditDetailsRoleChanged(try AuditDetailsRoleChanged(from: $0)) }),
+            (["name"], { .auditDetailsTagName(try AuditDetailsTagName(from: $0)) }),
+            (["initiator_id"], { .auditDetailsInitiator(try AuditDetailsInitiator(from: $0)) }),
+            (["inviter_id"], { .auditDetailsInviter(try AuditDetailsInviter(from: $0)) }),
+            (["old_name", "new_name"], { .auditDetailsChatRenamed(try AuditDetailsChatRenamed(from: $0)) }),
+            (["public_access"], { .auditDetailsChatPermission(try AuditDetailsChatPermission(from: $0)) }),
+            (["chat_id", "tag_name"], { .auditDetailsTagChat(try AuditDetailsTagChat(from: $0)) }),
+            (["chat_id"], { .auditDetailsChatId(try AuditDetailsChatId(from: $0)) }),
+            (["scopes"], { .auditDetailsTokenScopes(try AuditDetailsTokenScopes(from: $0)) }),
+            (["chat_id", "message_id", "reason"], { .auditDetailsKms(try AuditDetailsKms(from: $0)) }),
+            (["dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched"], { .auditDetailsDlp(try AuditDetailsDlp(from: $0)) }),
+            (["search_type", "query_present", "cursor_present", "limit", "filters"], { .auditDetailsSearch(try AuditDetailsSearch(from: $0)) }),
+            (["bot_id", "actor_id", "webhook_id", "application_id", "access_token_id", "access_token_preview", "scopes", "name"], { .auditDetailsBot(try AuditDetailsBot(from: $0)) }),
+            (["bot_id", "actor_id", "added_scopes", "removed_scopes", "bot_name", "webhook_id", "previous_scopes", "new_scopes"], { .auditDetailsBotScopes(try AuditDetailsBotScopes(from: $0)) }),
+            (["bot_id", "actor_id", "changes", "bot_name", "webhook_id", "access_token_id", "access_token_preview", "application_id"], { .auditDetailsBotWebhookSettings(try AuditDetailsBotWebhookSettings(from: $0)) }),
+            (["bot_id", "actor_id", "client_id", "changes", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview"], { .auditDetailsBotOAuthClient(try AuditDetailsBotOAuthClient(from: $0)) }),
+            (["client_id", "scopes", "application_id", "application_name", "bot_id", "bot_name", "authorization_grant_id"], { .auditDetailsOAuthAuthorizationGranted(try AuditDetailsOAuthAuthorizationGranted(from: $0)) }),
+            (["client_id", "revoked_tokens_count", "user_id", "application_id", "application_name", "bot_id", "bot_name"], { .auditDetailsOAuthAuthorizationRevoked(try AuditDetailsOAuthAuthorizationRevoked(from: $0)) }),
+            (["client_id", "scopes", "device_name", "application_id", "application_name", "device_grant_id", "token_kind"], { .auditDetailsDeviceAuthorizationApproved(try AuditDetailsDeviceAuthorizationApproved(from: $0)) }),
+            (["client_id", "scopes", "device_name", "application_id", "device_grant_id", "token_kind"], { .auditDetailsDeviceAuthorizationDenied(try AuditDetailsDeviceAuthorizationDenied(from: $0)) }),
+            (["chat_id", "started_message_id"], { .auditDetailsVideoCallStarted(try AuditDetailsVideoCallStarted(from: $0)) }),
+            (["chat_id", "started_message_id", "duration", "max_members_count"], { .auditDetailsVideoCallFinished(try AuditDetailsVideoCallFinished(from: $0)) }),
+            (["chat_id", "started_message_id", "recording_id", "file_id", "duration", "size"], { .auditDetailsVideoCallRecording(try AuditDetailsVideoCallRecording(from: $0)) }),
+            (["bot_id", "actor_id", "client_id", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview"], { .auditDetailsBotOAuthClientSecretRotated(try AuditDetailsBotOAuthClientSecretRotated(from: $0)) }),
+            (["bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview"], { .auditDetailsBotOAuthClientDisabled(try AuditDetailsBotOAuthClientDisabled(from: $0)) }),
+            (["token_kind", "token_name", "resource_owner_id", "scopes", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_id", "bot_name", "device_name", "actor_id", "webhook_id", "user_id", "source", "reason"], { .auditDetailsToken(try AuditDetailsToken(from: $0)) }),
+            (["token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_name", "webhook_id", "name"], { .auditDetailsBotTokenUpdated(try AuditDetailsBotTokenUpdated(from: $0)) }),
+            (["method", "login_grant_id"], { .auditDetailsUserLoginQr(try AuditDetailsUserLoginQr(from: $0)) }),
+            (["login_grant_id"], { .auditDetailsLoginGrantCreated(try AuditDetailsLoginGrantCreated(from: $0)) }),
+            (["login_grant_id", "device"], { .auditDetailsLoginGrantApproved(try AuditDetailsLoginGrantApproved(from: $0)) }),
+            (["login_grant_id", "device", "reason"], { .auditDetailsLoginGrantDenied(try AuditDetailsLoginGrantDenied(from: $0)) }),
+        ]
+        let keys = Set((try? decoder.container(keyedBy: AnyKey.self))?.allKeys.map(\.stringValue) ?? [])
+        let ranked = shapes.indices.sorted { a, b in
+            let matchedA = keys.intersection(shapes[a].keys).count
+            let matchedB = keys.intersection(shapes[b].keys).count
+            if matchedA != matchedB { return matchedA > matchedB }
+            if shapes[a].keys.count != shapes[b].keys.count { return shapes[a].keys.count < shapes[b].keys.count }
+            return a < b
         }
-        if let value = try? AuditDetailsVideoCallRecording(from: decoder) {
-            self = .auditDetailsVideoCallRecording(value)
-            return
+        var firstError: Error?
+        for index in ranked {
+            do {
+                self = try shapes[index].decode(decoder)
+                return
+            } catch {
+                if firstError == nil { firstError = error }
+            }
         }
-        if let value = try? AuditDetailsBotOAuthClientDisabled(from: decoder) {
-            self = .auditDetailsBotOAuthClientDisabled(value)
-            return
-        }
-        if let value = try? AuditDetailsSearch(from: decoder) {
-            self = .auditDetailsSearch(value)
-            return
-        }
-        if let value = try? AuditDetailsBotTokenUpdated(from: decoder) {
-            self = .auditDetailsBotTokenUpdated(value)
-            return
-        }
-        if let value = try? AuditDetailsToken(from: decoder) {
-            self = .auditDetailsToken(value)
-            return
-        }
-        if let value = try? AuditDetailsBotOAuthClient(from: decoder) {
-            self = .auditDetailsBotOAuthClient(value)
-            return
-        }
-        if let value = try? AuditDetailsBotScopes(from: decoder) {
-            self = .auditDetailsBotScopes(value)
-            return
-        }
-        if let value = try? AuditDetailsKms(from: decoder) {
-            self = .auditDetailsKms(value)
-            return
-        }
-        if let value = try? AuditDetailsLoginGrantDenied(from: decoder) {
-            self = .auditDetailsLoginGrantDenied(value)
-            return
-        }
-        if let value = try? AuditDetailsRoleChanged(from: decoder) {
-            self = .auditDetailsRoleChanged(value)
-            return
-        }
-        if let value = try? AuditDetailsVideoCallFinished(from: decoder) {
-            self = .auditDetailsVideoCallFinished(value)
-            return
-        }
-        if let value = try? AuditDetailsBotOAuthClientSecretRotated(from: decoder) {
-            self = .auditDetailsBotOAuthClientSecretRotated(value)
-            return
-        }
-        if let value = try? AuditDetailsBotWebhookSettings(from: decoder) {
-            self = .auditDetailsBotWebhookSettings(value)
-            return
-        }
-        if let value = try? AuditDetailsDeviceAuthorizationApproved(from: decoder) {
-            self = .auditDetailsDeviceAuthorizationApproved(value)
-            return
-        }
-        if let value = try? AuditDetailsDeviceAuthorizationDenied(from: decoder) {
-            self = .auditDetailsDeviceAuthorizationDenied(value)
-            return
-        }
-        if let value = try? AuditDetailsOAuthAuthorizationRevoked(from: decoder) {
-            self = .auditDetailsOAuthAuthorizationRevoked(value)
-            return
-        }
-        if let value = try? AuditDetailsChatRenamed(from: decoder) {
-            self = .auditDetailsChatRenamed(value)
-            return
-        }
-        if let value = try? AuditDetailsLoginGrantApproved(from: decoder) {
-            self = .auditDetailsLoginGrantApproved(value)
-            return
-        }
-        if let value = try? AuditDetailsOAuthAuthorizationGranted(from: decoder) {
-            self = .auditDetailsOAuthAuthorizationGranted(value)
-            return
-        }
-        if let value = try? AuditDetailsTagChat(from: decoder) {
-            self = .auditDetailsTagChat(value)
-            return
-        }
-        if let value = try? AuditDetailsUserLoginQr(from: decoder) {
-            self = .auditDetailsUserLoginQr(value)
-            return
-        }
-        if let value = try? AuditDetailsBot(from: decoder) {
-            self = .auditDetailsBot(value)
-            return
-        }
-        if let value = try? AuditDetailsUserUpdated(from: decoder) {
-            self = .auditDetailsUserUpdated(value)
-            return
-        }
-        if let value = try? AuditDetailsVideoCallStarted(from: decoder) {
-            self = .auditDetailsVideoCallStarted(value)
-            return
-        }
-        if let value = try? AuditDetailsChatId(from: decoder) {
-            self = .auditDetailsChatId(value)
-            return
-        }
-        if let value = try? AuditDetailsChatPermission(from: decoder) {
-            self = .auditDetailsChatPermission(value)
-            return
-        }
-        if let value = try? AuditDetailsInitiator(from: decoder) {
-            self = .auditDetailsInitiator(value)
-            return
-        }
-        if let value = try? AuditDetailsInviter(from: decoder) {
-            self = .auditDetailsInviter(value)
-            return
-        }
-        if let value = try? AuditDetailsLoginGrantCreated(from: decoder) {
-            self = .auditDetailsLoginGrantCreated(value)
-            return
-        }
-        if let value = try? AuditDetailsTagName(from: decoder) {
-            self = .auditDetailsTagName(value)
-            return
-        }
-        if let value = try? AuditDetailsTokenScopes(from: decoder) {
-            self = .auditDetailsTokenScopes(value)
-            return
-        }
-        if let value = try? AuditDetailsEmpty(from: decoder) {
-            self = .auditDetailsEmpty(value)
-            return
-        }
-        throw DecodingError.dataCorrupted(
+        throw firstError ?? DecodingError.dataCorrupted(
             DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "No AuditEventDetailsUnion member matched the payload")
         )
     }

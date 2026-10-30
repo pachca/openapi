@@ -1,12 +1,12 @@
 ---
 name: pachca-search
-description: 'Finding, summarizing and reminders in Pachca: which search covers what, reading a whole thread, channel and thread digests for a period, decisions and action items turned into tasks, a reminder at a set time for you or a colleague (Pachca notifies then), listing tasks and your «Важное», who is in a tag or chat. Use when: «найди, где обсуждали», «кто писал про», «где меня упоминали», «найди чат», «найди сотрудника», «перескажи тред», «что было в канале за неделю», «дайджест», «какие решения приняли», «поставь задачи по итогам», «напомни мне завтра в 9:00», «мои напоминания», «что у меня в важном», «кто в теге», «кто в чате»; "find where we discussed", "summarize this thread", "channel digest", "remind me tomorrow at 9", "my tasks". Not for: posting, pinning, reacting to or editing a message, including finding it first, or one sent later at a set time → pachca-messaging; changing employees, tags or chat members → pachca-admin; a bot that answers in threads → pachca-ai-agent; scripts → pachca-api.'
+description: 'Finding, summarizing and reminders in Pachca: which search covers what, reading a whole thread, channel and thread digests for a period, decisions and action items turned into reminders, a reminder at a set time for you or a colleague (Pachca notifies then), listing reminders and your «Важное», who is in a tag or chat. Use when: «найди, где обсуждали», «кто писал про», «где меня упоминали», «найди чат», «найди сотрудника», «перескажи тред», «что было в канале за неделю», «дайджест», «какие решения приняли», «поставь задачи по итогам», «напомни мне завтра в 9:00», «мои напоминания», «что у меня в важном», «кто в теге», «кто в чате»; "find where we discussed", "summarize this thread", "channel digest", "remind me tomorrow at 9", "my reminders". Not for: posting, pinning, reacting to or editing a message, including finding it first, or one sent later at a set time → pachca-messaging; changing employees, tags or chat members → pachca-admin; a bot that answers in threads → pachca-ai-agent; scripts → pachca-api.'
 ---
 
 # Pachca: finding and summarizing
 
 Pachca has search for messages, chats and employees, plus plain feeds for
-chats, threads and tasks. Each one covers a different slice of the
+chats, threads and reminders. Each one covers a different slice of the
 workspace. Most wrong answers come from using the wrong one, reading only
 the first page, or taking the wrong id of a thread.
 
@@ -17,9 +17,9 @@ the first page, or taking the wrong id of a thread.
 - Retell a thread or a chat, or build a digest of channels and threads for
   a period.
 - Pull decisions, open questions and action items out of a discussion, and
-  create tasks from them. Set a task for yourself or a colleague. List
-  someone's tasks.
-- "Remind me tomorrow at 9:00": a task with that `due_at`. Pachca
+  create reminders from them. Set a reminder for yourself or a colleague. List
+  someone's reminders.
+- "Remind me tomorrow at 9:00": a reminder with that `due_at`. Pachca
   notifies its assignees at that time.
 - Find who is in a group of employees (a tag) or in a chat.
 - List the messages in your «Важное». Marking a message is pachca-messaging.
@@ -41,15 +41,15 @@ the chats and threads the bot was added to. A multi-guest sees only the
 chats they were added to: no public chat they have not joined, not even
 its feed.
 
-| Need                     | Tool (CLI)                                                          | Covers                                                                                                                                                                                                        | Does not cover                                                                                                                                                                                                                   |
-| ------------------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Where something was said | `pachca_search_messages` (`pachca search list-messages`)            | Message text and attachment names in conversations, channels and direct chats you are in, plus the threads of those conversations and channels                                                                | Public conversations and channels you have not joined, even though their feed is readable. Standalone threads, threads under a direct chat and threads whose parent chat you are not in, unless their `chat_id` is in `chat_ids` |
-| A chat by name           | `pachca_search_chats` (`pachca search list-chats`)                  | Conversation and channel names, typos forgiven; public chats you have not joined; private ones only if you are a member                                                                                       | Content. Direct chats unless `personal=true`, which searches by the other party's name                                                                                                                                           |
-| An employee              | `pachca_search_users` (`pachca search list-users`)                  | First and last name (typos forgiven), nickname, title, department (exact word)                                                                                                                                | Phone: use `pachca_list_users` with `query`. Email only for callers who see personal data. Deleted employees never; suspended only with a text query; only public bots                                                           |
-| A whole chat or thread   | `pachca_list_chat_messages` (`pachca messages list`)                | The full feed of one chat by `chat_id`, a thread chat included, newest first                                                                                                                                  | A date filter; deleted messages                                                                                                                                                                                                  |
-| Threads that moved       | `pachca_list_threads` (`pachca threads list`)                       | Threads you are in, or whose parent chat you are in, standalone ones included, by last message time                                                                                                           | Threads of public chats you have not joined; titles or text (a thread has neither)                                                                                                                                               |
-| Tasks                    | `pachca_list_tasks` (`pachca tasks list`)                           | Every task of the active chats you are in, other employees' included, plus unbound tasks you created or are assigned to; with `chat_ids`, every task of those chats. "My tasks": `performer_ids` with your id | Text search and a due-date filter. The list is oldest first: read every page, match `content` and filter `due_at` yourself                                                                                                       |
-| Your «Важное»            | `pachca_list_important_messages` (`pachca important-messages list`) | Messages you marked as important, newest mark first, from any chat, chats you left included. Only an employee's token                                                                                         | Other employees' marks. A bot token has no «Важное»                                                                                                                                                                              |
+| Need                     | Tool (CLI)                                                          | Covers                                                                                                                                                                                                                        | Does not cover                                                                                                                                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Where something was said | `pachca_search_messages` (`pachca search list-messages`)            | Message text and attachment names in conversations, channels and direct chats you are in, plus the threads of those conversations and channels                                                                                | Public conversations and channels you have not joined, even though their feed is readable. Standalone threads, threads under a direct chat and threads whose parent chat you are not in, unless their `chat_id` is in `chat_ids` |
+| A chat by name           | `pachca_search_chats` (`pachca search list-chats`)                  | Conversation and channel names, typos forgiven; public chats you have not joined; private ones only if you are a member                                                                                                       | Content. Direct chats unless `personal=true`, which searches by the other party's name                                                                                                                                           |
+| An employee              | `pachca_search_users` (`pachca search list-users`)                  | First and last name (typos forgiven), nickname, title, department (exact word)                                                                                                                                                | Phone: use `pachca_list_users` with `query`. Email only for callers who see personal data. Deleted employees never; suspended only with a text query; only public bots                                                           |
+| A whole chat or thread   | `pachca_list_chat_messages` (`pachca messages list`)                | The full feed of one chat by `chat_id`, a thread chat included, newest first                                                                                                                                                  | A date filter; deleted messages                                                                                                                                                                                                  |
+| Threads that moved       | `pachca_list_threads` (`pachca threads list`)                       | Threads you are in, or whose parent chat you are in, standalone ones included, by last message time                                                                                                                           | Threads of public chats you have not joined; titles or text (a thread has neither)                                                                                                                                               |
+| Reminders                | `pachca_list_tasks` (`pachca tasks list`)                           | Every reminder of the active chats you are in, other employees' included, plus unbound reminders you created or are assigned to; with `chat_ids`, every reminder of those chats. "My reminders": `performer_ids` with your id | Text search and a due-date filter. The list is oldest first: read every page, match `content` and filter `due_at` yourself                                                                                                       |
+| Your «Важное»            | `pachca_list_important_messages` (`pachca important-messages list`) | Messages you marked as important, newest mark first, from any chat, chats you left included. Only an employee's token                                                                                                         | Other employees' marks. A bot token has no «Важное»                                                                                                                                                                              |
 
 Do not promise what does not exist:
 
@@ -134,7 +134,7 @@ that feed. Starting points, ids and the full procedure:
 - The chat feed has no date filter. To cover a period, page newest first
   and stop once `created_at` is older than the start, or use search with
   `created_from` / `created_to`.
-- A task on a day without an hour: `all_day: true` and `due_at` at
+- A reminder on a day without an hour: `all_day: true` and `due_at` at
   `23:59:59` of that day in the employee's offset. Details in
   [references/tasks.md](references/tasks.md).
 
@@ -166,24 +166,25 @@ that feed. Starting points, ids and the full procedure:
 Digests and decision extraction, step by step:
 [references/digests.md](references/digests.md).
 
-## Turning action items into tasks
+## Turning action items into reminders
 
-Tasks are called «напоминания» in the Russian docs. The rules the model
-gets wrong:
+Reminders («напоминания») are called tasks in the API and the tool names:
+`pachca_create_task`, `pachca_list_tasks`, scopes `tasks:*`. The rules the
+model gets wrong:
 
-- `performer_ids` defaults to the token owner. A task for someone else
+- `performer_ids` defaults to the token owner. A reminder for someone else
   needs their id, or it lands on you.
-- Pass the description in `content`; without it the task text is just the
+- Pass the description in `content`; without it the reminder text is just the
   kind's name. `kind` is required: take `reminder` unless the item is a
   call, meeting, event or email.
-- A task binds by `chat_id` only to a chat you are in: a conversation or a
+- A reminder binds by `chat_id` only to a chat you are in: a conversation or a
   direct chat, your chat with yourself included. Not to a channel, a thread
-  or an archived chat: a task from a thread binds to its parent chat if you
+  or an archived chat: a reminder from a thread binds to its parent chat if you
   are in it and it is not a channel, or to nothing. In an open
-  conversation every employee of the workspace can read the bound task.
-- When you pull several tasks for other employees out of a discussion,
+  conversation every employee of the workspace can read the bound reminder.
+- When you pull several reminders for other employees out of a discussion,
   show the list (what, who, by when) and create them after the user agrees.
-  A single task the user dictated: just create it.
+  A single reminder the user dictated: just create it.
 
 Fields, deadlines, all-day, errors, handing over, closing and listing:
 [references/tasks.md](references/tasks.md).
@@ -217,10 +218,10 @@ is pachca-admin.
   skips: search does not cover them, their feeds do.
 - `pachca_list_threads` not showing a thread does not mean it is closed to
   you: `pachca_get_thread` by `id` may still open it.
-- Listing "my tasks" without `performer_ids`: the list also holds
-  colleagues' tasks from the chats you share with them.
+- Listing "my reminders" without `performer_ids`: the list also holds
+  colleagues' reminders from the chats you share with them.
 - `pachca_list_tasks` with `chat_ids` silently drops ids you cannot access:
-  an empty answer is not proof of no tasks.
+  an empty answer is not proof of no reminders.
 - A digest you post into a channel can expose messages from private chats
   or DMs its members cannot see. Build a shared digest only from chats that
   audience can see.
@@ -248,7 +249,7 @@ is pachca-admin.
 - Chat members: <https://dev.pachca.com/api/members/list.md>
 - Threads list and info: <https://dev.pachca.com/api/threads/list.md>,
   <https://dev.pachca.com/api/threads/get.md>
-- Tasks: <https://dev.pachca.com/api/tasks/create.md>,
+- Reminders: <https://dev.pachca.com/api/tasks/create.md>,
   <https://dev.pachca.com/api/tasks/list.md>,
   <https://dev.pachca.com/api/tasks/update.md>
 - Pagination: <https://dev.pachca.com/api/pagination.md>

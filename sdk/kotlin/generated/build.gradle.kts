@@ -57,10 +57,15 @@ tasks.register<JavaExec>("runAuditDetailsTests") {
     mainClass.set("tests.auditdetails.AuditDetails")
 }
 
+tasks.register<JavaExec>("runRequestBodyTests") {
+    classpath = sourceSets["tests"].runtimeClasspath
+    mainClass.set("tests.requestbodies.RequestBodies")
+}
+
 tasks.register<JavaExec>("runTests") {
     classpath = sourceSets["tests"].runtimeClasspath
     mainClass.set("tests.OpenEnums")
-    dependsOn("runRetryTests", "runErrorBodyTests", "runAuditDetailsTests")
+    dependsOn("runRetryTests", "runErrorBodyTests", "runAuditDetailsTests", "runRequestBodyTests")
 }
 
 val ktorVersion = "3.2.3"

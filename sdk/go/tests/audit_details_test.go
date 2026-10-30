@@ -70,3 +70,18 @@ func TestBotTokenUpdatedWithScopesChange(t *testing.T) {
 		t.Errorf("bot_token_updated with a scopes change decodes into AuditDetailsBotTokenUpdated: %s", details.Raw)
 	}
 }
+
+// A token record holds scopes as a list: AuditDetailsBotTokenUpdated takes scopes
+// as an object, so the record decodes into AuditDetailsToken.
+func TestTokenRecordWithScopesList(t *testing.T) {
+	var details pachca.AuditEventDetailsUnion
+	payload := `{"token_kind":"user","token_name":"Отчёты","resource_owner_id":12,"scopes":["messages:read"],` +
+		`"access_token_id":4828,"access_token_preview":"dG9r...a2Vu","actor_id":12}`
+	if err := json.Unmarshal([]byte(payload), &details); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	got := details.AuditDetailsToken
+	if got == nil || got.AccessTokenID != 4828 || len(got.Scopes) != 1 {
+		t.Errorf("access_token_created decodes into AuditDetailsToken: %s", details.Raw)
+	}
+}

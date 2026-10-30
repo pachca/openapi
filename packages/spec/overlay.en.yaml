@@ -420,7 +420,7 @@ actions:
       description: |-
         List custom properties
 
-        The schema of the workspace's custom properties: the ID, the name, and the type of each. Only employees and tasks have such properties, their sets are independent, and the `entity_type` parameter picks the one you need. The values come with the entity itself — in the employee's profile or in the task. The IDs from here are needed in order to set those values.
+        The schema of the workspace's custom properties: the ID, the name, and the type of each. Only employees and reminders have such properties, their sets are independent, and the `entity_type` parameter picks the one you need. The values come with the entity itself — in the employee's profile or in the reminder. The IDs from here are needed in order to set those values.
 
         Properties of the "File" and "Multiple choice" types are not available through the API and do not make it into the results. The basic profile fields — name, phone, email, department, tags — do not either: these are not custom properties.
 
@@ -1055,41 +1055,41 @@ actions:
   - target: $.paths['/tasks'].post
     update:
       description: |-
-        New task
+        New reminder
 
-        Creates a task and assigns the employees responsible for it.
+        Creates a reminder and assigns the employees responsible for it.
 
-        Specifying the task type is required when creating a task: call, meeting, simple reminder, event, or email. A description is not required — without it the task takes the name of its type as the text. If a description is passed, it is what becomes the task's text.
+        Specifying the reminder type is required when creating a reminder: call, meeting, simple reminder, event, or email. A description is not required — without it the reminder takes the name of its type as the text. If a description is passed, it is what becomes the reminder's text.
 
-        A task must have assignees; if none are specified, you are assigned as the responsible one.
+        A reminder must have assignees; if none are specified, you are assigned as the responsible one.
 
-        Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the [List employees](GET /users) method. If no user exists with an ID from `performer_ids`, the method responds `404`. If the caller cannot see the employee, the response is `403`: this happens with an employee of another workspace, a suspended or a deleted one, and for a guest with anyone they share no chat with. In both cases the task is not created.
+        Any workspace employee can be assigned to a reminder that is not linked to any entity. You can get the current employee list using the [List employees](GET /users) method. If no user exists with an ID from `performer_ids`, the method responds `404`. If the caller cannot see the employee, the response is `403`: this happens with an employee of another workspace, a suspended or a deleted one, and for a guest with anyone they share no chat with. In both cases the reminder is not created.
 
-        A task can be linked with the `chat_id` field to a conversation or to a direct chat, the chat with yourself included. Then, besides the author and the assignees, the members of that chat see it. Whoever links it must belong to that chat. Tasks are not created in a channel, in a thread, or in an archived chat.
+        A reminder can be linked with the `chat_id` field to a conversation or to a direct chat, the chat with yourself included. Then, besides the author and the assignees, the members of that chat see it. Whoever links it must belong to that chat. Reminders are not created in a channel, in a thread, or in an archived chat.
 
-        Handing a task to somebody else means changing the assignee with [Edit task](PUT /tasks/{id}).
+        Handing a reminder to somebody else means changing the assignee with [Edit reminder](PUT /tasks/{id}).
 
-        A task with a due date also appears as an event in a calendar connected to the workspace or to the token owner's profile. The assignees are invited to that event as attendees. Their own connected calendars do not create the event.
+        A reminder with a due date also appears as an event in a calendar connected to the workspace or to the token owner's profile. The assignees are invited to that event as attendees. Their own connected calendars do not create the event.
   - target: $.paths['/tasks'].get
     update:
       description: |-
-        List tasks
+        List reminders
 
-        The tasks available to the token owner.
+        The reminders available to the token owner.
 
-        Without the `chat_ids` parameter all tasks of the active chats you are a member of are returned, other employees' tasks included, plus tasks with no chat that you created or that are assigned to you. The tasks you are an assignee of are picked by the `performer_ids` filter with your ID. The `chat_ids` parameter changes the selection — all tasks of the listed chats are returned.
+        Without the `chat_ids` parameter all reminders of the active chats you are a member of are returned, other employees' reminders included, plus reminders with no chat that you created or that are assigned to you. The reminders you are an assignee of are picked by the `performer_ids` filter with your ID. The `chat_ids` parameter changes the selection — all reminders of the listed chats are returned.
   - target: $.paths['/tasks'].get.parameters[?(@.name=='status')]
     update:
-      description: Filter by state. If the parameter is omitted, tasks in any state are returned.
+      description: Filter by state. If the parameter is omitted, reminders in any state are returned.
   - target: $.paths['/tasks'].get.parameters[?(@.name=='chat_ids')]
     update:
-      description: Filter by the chats the tasks are attached to. Accessible chats are the ones you are a member of, public conversations and channels of the workspace, and threads available to you through their parent chat. For a multi-guest, public conversations and channels are accessible only if they are a member. The remaining IDs are ignored without an error. Up to 100 IDs.
+      description: Filter by the chats the reminders are attached to. Accessible chats are the ones you are a member of, public conversations and channels of the workspace, and threads available to you through their parent chat. For a multi-guest, public conversations and channels are accessible only if they are a member. The remaining IDs are ignored without an error. Up to 100 IDs.
   - target: $.paths['/tasks'].get.parameters[?(@.name=='performer_ids')]
     update:
-      description: Filter by task performers. Up to 100 IDs.
+      description: Filter by reminder performers. Up to 100 IDs.
   - target: $.paths['/tasks'].get.parameters[?(@.name=='author_id')]
     update:
-      description: Filter by task author
+      description: Filter by reminder author
   - target: $.paths['/tasks'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
@@ -1099,42 +1099,42 @@ actions:
   - target: $.paths['/tasks/{id}'].get
     update:
       description: |-
-        Task info
+        Reminder info
 
-        The task together with its author, assignees, and the chat it is linked to.
+        The reminder together with its author, assignees, and the chat it is linked to.
 
-        A task is seen by its author, its assignees, and everyone who can access its chat. The rule is the same as for the `chat_ids` filter of [List tasks](GET /tasks): the chat members, and in open conversations and channels — any employee of the workspace. Access to the chat is enough only to read the task: it can be changed and deleted only by the author or one of the assignees.
+        A reminder is seen by its author, its assignees, and everyone who can access its chat. The rule is the same as for the `chat_ids` filter of [List reminders](GET /tasks): the chat members, and in open conversations and channels — any employee of the workspace. Access to the chat is enough only to read the reminder: it can be changed and deleted only by the author or one of the assignees.
   - target: $.paths['/tasks/{id}'].get.parameters[?(@.name=='id')]
     update:
-      description: "Task ID: in a web app link it is the number from the path `/tasks/{id}` or from the `task_id` parameter"
+      description: "Reminder ID: in a web app link it is the number from the path `/tasks/{id}` or from the `task_id` parameter"
   - target: $.paths['/tasks/{id}'].put
     update:
       description: |-
-        Edit task
+        Edit reminder
 
-        Changes a task: only the fields you pass are overwritten.
+        Changes a reminder: only the fields you pass are overwritten.
 
-        Handing a task over to another employee is an edit too. `performer_ids` replaces the whole list of assignees: read the current list with [Task info](GET /tasks/{id}) and pass everyone who stays together with the new assignee.
+        Handing a reminder over to another employee is an edit too. `performer_ids` replaces the whole list of assignees: read the current list with [Reminder info](GET /tasks/{id}) and pass everyone who stays together with the new assignee.
 
-        A completed task is closed with this same method: `status: "done"` ticks it off and keeps it in the list, `status: "undone"` puts it back to work.
+        A completed reminder is closed with this same method: `status: "done"` ticks it off and keeps it in the list, `status: "undone"` puts it back to work.
 
-        Available to the author and the assignees. A member of the chat where the task hangs sees it but cannot change it. The link to a chat cannot be changed: to move a task to another chat, delete it and create it again with the `chat_id` you need.
+        Available to the author and the assignees. A member of the chat where the reminder hangs sees it but cannot change it. The link to a chat cannot be changed: to move a reminder to another chat, delete it and create it again with the `chat_id` you need.
   - target: $.paths['/tasks/{id}'].put.parameters[?(@.name=='id')]
     update:
-      description: Task ID
+      description: Reminder ID
   - target: $.paths['/tasks/{id}'].delete
     update:
       description: |-
-        Delete task
+        Delete reminder
 
-        Removes a task for good: it cannot be restored, and it disappears for the assignees as well. If the task went into a connected calendar, the event is deleted there too when the task is deleted by its author. When an assignee deletes it, the event can stay in the author's calendar.
+        Removes a reminder for good: it cannot be restored, and it disappears for the assignees as well. If the reminder went into a connected calendar, the event is deleted there too when the reminder is deleted by its author. When an assignee deletes it, the event can stay in the author's calendar.
 
         Available to the author and the assignees. A repeated call responds `404`.
 
-        A completed task can be closed while keeping it in the list with [Edit task](PUT /tasks/{id}) and `status: "done"`.
+        A completed reminder can be closed while keeping it in the list with [Edit reminder](PUT /tasks/{id}) and `status: "done"`.
   - target: $.paths['/tasks/{id}'].delete.parameters[?(@.name=='id')]
     update:
-      description: Task ID
+      description: Reminder ID
   - target: $.paths['/threads/{id}'].get
     update:
       description: |-
@@ -1265,7 +1265,7 @@ actions:
 
         The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not exist in the workspace yet creates a new tag together with the assignment.
 
-        `suspended: true` suspends the employee: they lose access but remain in chats, tags, and tasks, while `suspended: false` brings them back. An employee is removed for good by [Delete employee](DELETE /users/{id}).
+        `suspended: true` suspends the employee: they lose access but remain in chats, tags, and reminders, while `suspended: false` brings them back. An employee is removed for good by [Delete employee](DELETE /users/{id}).
 
         The workspace owner can be edited only by themselves, and their role can be changed only to administrator, otherwise the response is `403`.
 
@@ -1286,11 +1286,11 @@ actions:
 
         Removes an employee from the workspace. This cannot be undone: they can be brought back only with a new invitation, and that will already be a different employee.
 
-        What happens: they leave all conversations and channels except direct messages, all tags are taken off them, the tasks where they were the only assignee are deleted, and they are removed from the remaining ones. The messages and files they wrote stay in place.
+        What happens: they leave all conversations and channels except direct messages, all tags are taken off them, the reminders where they were the only assignee are deleted, and they are removed from the remaining ones. The messages and files they wrote stay in place.
 
         The workspace owner cannot be deleted — the method responds `403`. A repeated call responds `404`: the method no longer finds a deleted employee.
 
-        If the employee is going on vacation or the dismissal is not final yet, use [Edit employee](PUT /users/{id}) with `suspended: true`. Suspension is reversible and keeps chats, tags, and tasks.
+        If the employee is going on vacation or the dismissal is not final yet, use [Edit employee](PUT /users/{id}) with `suspended: true`. Suspension is reversible and keeps chats, tags, and reminders.
   - target: $.paths['/users/{id}'].delete.parameters[?(@.name=='id')]
     update:
       description: User ID
@@ -3388,7 +3388,7 @@ actions:
       description: "Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user. A thread has two: its `id` goes with `entity_type: \"thread\"`, and its `chat_id` with `discussion`, like any chat."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.content
     update:
-      description: "Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. The message goes out under the token owner's name, and a bot's with the Bot badge."
+      description: "Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). Take the nickname from a method's response and the `user_id` from data: a nickname made up from a name mentions nobody. `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. The message goes out under the token owner's name, and a bot's with the Bot badge."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files
     update:
       description: Files to attach
@@ -3445,7 +3445,7 @@ actions:
       description: Message parameters object to update
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.content
     update:
-      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters."
+      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). Take the nickname from a method's response and the `user_id` from data: a nickname made up from a name mentions nobody. For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters."
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files
     update:
       description: "Files to attach. The set you pass replaces the previous one: to keep a file already attached, pass it again with the same `key`. Such a file stays the same attachment with the same `id` and name, and its fields from the request are not applied. To show the file under another name, upload it again."
@@ -3743,7 +3743,7 @@ actions:
     update:
       x-enum-descriptions:
         User: User
-        Task: Task
+        Task: Reminder
   - target: $.components.schemas.SearchPaginationMeta
     update:
       description: Pagination metadata for search results
@@ -3802,10 +3802,10 @@ actions:
       description: Array of tag names
   - target: $.components.schemas.Task
     update:
-      description: Task
+      description: Reminder
   - target: $.components.schemas.Task.properties.id
     update:
-      description: Task ID
+      description: Reminder ID
   - target: $.components.schemas.Task.properties.kind
     update:
       description: Kind
@@ -3814,37 +3814,37 @@ actions:
       description: Description
   - target: $.components.schemas.Task.properties.due_at
     update:
-      description: "Task due date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if no due date is set."
+      description: "Reminder due date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if no due date is set."
   - target: $.components.schemas.Task.properties.priority
     update:
       description: Priority
   - target: $.components.schemas.Task.properties.user_id
     update:
-      description: ID of the user who created the task
+      description: ID of the user who created the reminder
   - target: $.components.schemas.Task.properties.chat_id
     update:
-      description: "ID of the chat the task is linked to. `null` if the task is not linked to a chat."
+      description: "ID of the chat the reminder is linked to. `null` if the reminder is not linked to a chat."
   - target: $.components.schemas.Task.properties.status
     update:
-      description: Task status
+      description: Reminder status
   - target: $.components.schemas.Task.properties.created_at
     update:
-      description: Task creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+      description: Reminder creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
   - target: $.components.schemas.Task.properties.performer_ids
     update:
-      description: Array of user IDs assigned to the task as performers
+      description: Array of user IDs assigned to the reminder as performers
   - target: $.components.schemas.Task.properties.all_day
     update:
-      description: "Whether this is an all-day task: `true` if `all_day: true` was passed on creation or the due date is exactly 23:59:59. The Pachca web app shows a task without a time only for such a due date, and for any other time of the due date it shows that time."
+      description: "Whether this is an all-day reminder: `true` if `all_day: true` was passed on creation or the due date is exactly 23:59:59. The Pachca web app shows a reminder without a time only for such a due date, and for any other time of the due date it shows that time."
   - target: $.components.schemas.Task.properties.custom_properties
     update:
-      description: Task custom properties
+      description: Reminder custom properties
   - target: $.components.schemas.TaskCreateRequest
     update:
-      description: Task creation request
+      description: Reminder creation request
   - target: $.components.schemas.TaskCreateRequest.properties.task
     update:
-      description: Task parameters object to create
+      description: Reminder parameters object to create
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.kind
     update:
       description: Kind
@@ -3853,19 +3853,19 @@ actions:
       description: "Description, defaults to the kind name. Up to 40,000 bytes in UTF-8."
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.due_at
     update:
-      description: "Task due date (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. Seconds are dropped: the due date lands on the start of the minute. The exception is exactly 23:59:59: such a task is created as an all-day one, without a specific time."
+      description: "Reminder due date (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. Seconds are dropped: the due date lands on the start of the minute. The exception is exactly 23:59:59: such a reminder is created as an all-day one, without a specific time."
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.priority
     update:
       description: 'Priority: 1, 2 (important), or 3 (very important)'
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.performer_ids
     update:
-      description: Array of user IDs to assign as task performers (defaults to you)
+      description: Array of user IDs to assign as reminder performers (defaults to you)
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.chat_id
     update:
-      description: ID of the chat to link the task to
+      description: ID of the chat to link the reminder to
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.all_day
     update:
-      description: "Whether this is an all-day task. Pass `due_at` with it at exactly 23:59:59 of the day in the employee's local offset, such as `2026-10-29T23:59:59+03:00`. The Pachca web app shows a task without a time only for such a due date, and for any other time of the due date it shows that time even with `all_day: true`."
+      description: "Whether this is an all-day reminder. Pass `due_at` with it at exactly 23:59:59 of the day in the employee's local offset, such as `2026-10-29T23:59:59+03:00`. The Pachca web app shows a reminder without a time only for such a due date, and for any other time of the due date it shows that time even with `all_day: true`."
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.custom_properties
     update:
       description: Custom properties to set
@@ -3877,7 +3877,7 @@ actions:
       description: Value to set
   - target: $.components.schemas.TaskKind
     update:
-      description: Task kind
+      description: Reminder type
   - target: $.components.schemas.TaskKind
     update:
       x-enum-descriptions:
@@ -3888,7 +3888,7 @@ actions:
         email: Send an email
   - target: $.components.schemas.TaskStatus
     update:
-      description: Task status
+      description: Reminder status
   - target: $.components.schemas.TaskStatus
     update:
       x-enum-descriptions:
@@ -3896,10 +3896,10 @@ actions:
         undone: Active
   - target: $.components.schemas.TaskUpdateRequest
     update:
-      description: Task update request
+      description: Reminder update request
   - target: $.components.schemas.TaskUpdateRequest.properties.task
     update:
-      description: Task parameters object to update
+      description: Reminder parameters object to update
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.kind
     update:
       description: Kind
@@ -3908,22 +3908,22 @@ actions:
       description: "Description. Up to 40,000 bytes in UTF-8."
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.due_at
     update:
-      description: "Task due date (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. Seconds are dropped: the due date lands on the start of the minute. The exception is exactly 23:59:59: such a task is created as an all-day one, without a specific time."
+      description: "Reminder due date (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. Seconds are dropped: the due date lands on the start of the minute. The exception is exactly 23:59:59: such a reminder is created as an all-day one, without a specific time."
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.priority
     update:
       description: 'Priority: 1, 2 (important), or 3 (very important)'
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.performer_ids
     update:
-      description: Array of user IDs to assign as task performers. The list replaces the previous one whole.
+      description: Array of user IDs to assign as reminder performers. The list replaces the previous one whole.
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.status
     update:
       description: Status
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.all_day
     update:
-      description: "Whether this is an all-day task. An edit does not apply this field: a task becomes all-day by a `due_at` at exactly 23:59:59 of the day in the employee's local offset, such as `2026-10-29T23:59:59+03:00`."
+      description: "Whether this is an all-day reminder. An edit does not apply this field: a reminder becomes all-day by a `due_at` at exactly 23:59:59 of the day in the employee's local offset, such as `2026-10-29T23:59:59+03:00`."
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.done_at
     update:
-      description: "Task completion date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. A value that could not be parsed removes the completion mark: the response comes back successful, and `done_at` in it is `null`."
+      description: "Reminder completion date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. A value that could not be parsed removes the completion mark: the response comes back successful, and `done_at` in it is `null`."
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.custom_properties
     update:
       description: Custom properties to set
@@ -4218,7 +4218,7 @@ actions:
       description: Whether the user is deactivated
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.list_tags
     update:
-      description: "Array of tag names to assign to the employee. The list replaces the previous one as a whole, an empty one removes all tags. A value that is not an array of non-empty strings is ignored: the employee's tags do not change. Only a bot that any employee can add to a chat and that has the \"Restrict to a single chat\" setting turned off can be added to a tag. If the bot does not meet these conditions and the list contains a tag it does not have yet, the method responds `422` on the `group_tags` field and changes nothing: with the `single_chat_bot_tag_denied` code when the bot is restricted to a single chat, and `restricted_bot_tag_denied` when not everyone can add it to chats. More in the [Bot in tags](/guides/bots/settings#bot-v-tegah) section."
+      description: "Array of tag names to assign to the employee. The list replaces the previous one as a whole, an empty one removes all tags. A value that is not an array of non-empty strings is ignored: the employee's tags do not change. Only a bot that any employee can add to a chat and that has the \"Restrict to a single chat\" setting turned off can be added to a tag. If the bot does not meet these conditions and the list contains a tag it does not have yet, the method responds `422` on the `group_tags` field and changes nothing: with the `single_chat_bot_tag_denied` code when the bot is restricted to a single chat, and `restricted_bot_tag_denied` when the \"Who can add the bot to chats\" setting is \"Creator\" or \"Creator and Administrators\". More in the [Bot in tags](/guides/bots/settings#bot-v-tegah) section."
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.custom_properties
     update:
       description: Custom properties to set
@@ -5442,6 +5442,9 @@ actions:
   - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.name
     update:
       description: "Token name change. Present if the name was passed in the request."
+  - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.scopes
+    update:
+      description: "Token scopes change. Present if the scopes were passed in the request."
   - target: $.components.schemas.AuditDetailsTokenNameChange
     update:
       description: "Token name change in the audit log"
@@ -5451,6 +5454,15 @@ actions:
   - target: $.components.schemas.AuditDetailsTokenNameChange.properties.new
     update:
       description: "New name. `null` if the name was removed."
+  - target: $.components.schemas.AuditDetailsTokenScopesChange
+    update:
+      description: "Token scopes change in the audit log"
+  - target: $.components.schemas.AuditDetailsTokenScopesChange.properties.previous
+    update:
+      description: "Token scopes before the change"
+  - target: $.components.schemas.AuditDetailsTokenScopesChange.properties.new
+    update:
+      description: "Token scopes after the change"
   - target: "$.paths['/chats/{id}/avatar'].put"
     update:
       description: |-

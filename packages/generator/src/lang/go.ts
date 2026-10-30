@@ -10,7 +10,7 @@ import {
   type IRUnion,
   type IRResponseType,
 } from '../ir.js';
-import { bodyExample, buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, snakeToPascal, tagToServiceName, serviceToImplName, serviceToStubName } from '../naming.js';
 
 function upperFirst(s: string): string {
@@ -120,27 +120,6 @@ function goJsonTag(field: IRField): string {
   return field.required ? field.name : `${field.name},omitempty`;
 }
 
-/** Optional nullable fields of a request model: the ones NullFields can send as `null`. */
-function goNullableOptionalFields(m: IRModel): IRField[] {
-  return m.fields.filter((f) => !f.required && f.nullable);
-}
-
-/** Every model (inline objects included) a JSON request body reaches. */
-function goRequestModels(ir: IR): Set<string> {
-  const index = buildModelIndex(ir);
-  const names = new Set<string>();
-  for (const s of ir.services) {
-    for (const op of s.operations) {
-      const rb = op.requestBody;
-      if (!rb || rb.contentType !== 'json') continue;
-      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, index)) {
-        if (index.has(r)) names.add(r);
-      }
-    }
-  }
-  return names;
-}
-
 function goFieldInfo(field: IRField, modelName: string): { name: string; typeName: string; tag: string; comment: string } {
   const name = modelName === 'OAuthError' && field.name === 'error'
     ? 'Err'
@@ -177,7 +156,7 @@ function emitEnum(lines: string[], e: IREnum): void {
 }
 
 function emitModel(lines: string[], m: IRModel, allModels: IRModel[], requestModels: Set<string>): void {
-  const nullable = requestModels.has(m.name) ? goNullableOptionalFields(m) : [];
+  const nullable = requestModels.has(m.name) ? nullableOptionalFields(m) : [];
   lines.push(`type ${m.name} struct {`);
   if (m.fields.length === 0) {
     lines.push('}');
@@ -508,11 +487,11 @@ function generateTypes(ir: IR): string {
   const needIO = ir.models.some((m) => m.fields.some((f) => f.type.kind === 'binary'));
   const hasUnions = ir.unions.length > 0;
   const allModels = ir.models.flatMap((m) => [...m.inlineObjects, m]);
-  const requestModels = goRequestModels(ir);
+  const requestModels = requestModelNames(ir);
   const hasOptionalContainers = allModels.some((m) => m.fields.some(
     (f) => !f.required && (f.type.kind === 'array' || f.type.kind === 'record'),
   ));
-  const hasNullFields = allModels.some((m) => requestModels.has(m.name) && goNullableOptionalFields(m).length > 0);
+  const hasNullFields = allModels.some((m) => requestModels.has(m.name) && nullableOptionalFields(m).length > 0);
 
   const imports: string[] = [];
   if (hasUnions || hasOptionalContainers || hasNullFields) imports.push('"encoding/json"');
@@ -1965,6 +1944,8 @@ function generateExamples(ir: IR): string {
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
+      const named = namedBodyExamples(op, (o) => goBuildOperationExample(o, ir, models, serviceField));
+      if (named) entry.examples = named;
       result[op.operationId] = entry;
       if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
         result[`${op.operationId}_pollWebhookEvents`] = {

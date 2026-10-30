@@ -15,7 +15,7 @@ description: >-
 
 # Pachca
 
-Pachca is a corporate messenger: a workspace of employees with chats, channels, threads, tasks, tags and bots.
+Pachca is a corporate messenger: a workspace of employees with chats, channels, threads, reminders, tags and bots.
 All of it is reachable through one public API, exposed three ways: the MCP server (a `pachca_*` tool per API
 method), the CLI `@pachca/cli` (a `pachca <section> <action>` command per method) and the REST API. This skill
 gets you connected, explains why something is or is not available, and routes you to the skill for the work.
@@ -96,8 +96,15 @@ the other clients, and installing the skills without the plugin:
 
 Do it right:
 
-- Browser sign-in needs a client that supports OAuth with a Client ID Metadata Document. If sign-in fails or
-  the client asks you to register a client, connect with a personal token in the header instead.
+- Browser sign-in needs a client that supports OAuth with a Client ID Metadata Document. Codex does from
+  0.148.0: an older Codex says `Dynamic client registration not supported`, so ask the person to update it
+  (`codex --version`). If sign-in still fails or the client asks you to register a client, connect with a
+  personal token in the header instead.
+- Do not narrow the scopes of a browser sign-in (`codex mcp login --scopes`, `scopes` in the client's config):
+  the program asks for the scopes and the consent screen only shows them, with no choice. A narrowed
+  connection lists the same tools and refuses the rest with `insufficient_scope`. A missing scope takes a new
+  sign-in without the narrowing; retrying the call does not help. To limit an agent, give it a read-only
+  personal token instead (below).
 - The consent screen has no workspace picker: access goes to the workspace open in the browser. Wrong
   workspace: revoke the connection, switch workspaces in Pachca, connect again.
 - Several workspaces: add the server several times under different names (`pachca-main`, `pachca-partner`),
@@ -155,7 +162,7 @@ shapes, pagination, limits, errors, uploads and SDKs → [`pachca-api`](https://
 | You or your agent on your own machine, an MCP client app               | personal: CLI login, MCP browser sign-in, or a personal token in the header |
 | A script or personal automation acting as you                          | personal, created in the UI                                                 |
 | No employee present: CI, server, cloud worker, chat bot, notifications | bot, with only the scopes it needs                                          |
-| A bot that needs an employee's own data: their tasks, their chats      | by authorization (OAuth) → [`pachca-oauth`](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md)                                   |
+| A bot that needs an employee's own data: their reminders, their chats  | by authorization (OAuth) → [`pachca-oauth`](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md)                                   |
 
 ## Who may connect
 
@@ -262,7 +269,7 @@ result through other tools. Owner privileges, multi-guest limits and role change
 | Task                                                                                             | Skill              |
 | ------------------------------------------------------------------------------------------------ | ------------------ |
 | Write, reply, mention, draft, schedule, send files, reactions, pins, «Важное»                    | [`pachca-messaging`](https://dev.pachca.com/.well-known/skills/pachca-messaging/SKILL.md) |
-| Find messages, chats, people; read a thread; digests; decisions and tasks from a discussion      | [`pachca-search`](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md)    |
+| Find messages, chats, people; read a thread; digests; decisions and reminders from a discussion  | [`pachca-search`](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md)    |
 | Owner or admin: employees, tags, channels, roles, API access, all tokens, audit log, export, DLP | [`pachca-admin`](https://dev.pachca.com/.well-known/skills/pachca-admin/SKILL.md)     |
 | Build a bot or integration: webhooks, events, tokens, scopes, buttons, forms, unfurling          | [`pachca-bots`](https://dev.pachca.com/.well-known/skills/pachca-bots/SKILL.md)      |
 | An AI agent that lives in Pachca as a bot and answers in threads                                 | [`pachca-ai-agent`](https://dev.pachca.com/.well-known/skills/pachca-ai-agent/SKILL.md)  |

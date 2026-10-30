@@ -21,4 +21,4 @@ Follow the `pachca-search` skill and its thread procedure. A link can name the t
 
    Later messages override earlier ones. Quote nothing you did not read.
 
-Do not post the summary unless the user asks. If they ask, show the text first and post after a clear yes, following the `pachca-messaging` skill. To turn action items into tasks, use the `tasks-from` command (`/pachca:tasks-from` in Claude Code).
+Do not post the summary unless the user asks. If they ask, show the text first and post after a clear yes, following the `pachca-messaging` skill. To turn action items into reminders, use the `tasks-from` command (`/pachca:tasks-from` in Claude Code).

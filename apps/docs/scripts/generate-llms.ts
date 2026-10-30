@@ -57,7 +57,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
 
   let content = '# Пачка API Documentation\n\n';
   content +=
-    '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами. Base URL: `https://api.pachca.com/api/shared/v1`. Авторизация: header `Authorization: Bearer <TOKEN>`.\n\n';
+    '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и напоминаниями. Base URL: `https://api.pachca.com/api/shared/v1`. Авторизация: header `Authorization: Bearer <TOKEN>`.\n\n';
   content +=
     '> Это канонический справочник API Pachca для AI-агентов. Основные правила API — сразу ниже («Основное»: авторизация и выбор токена, пагинация, лимиты, ошибки, файлы). Не полагайся на данные из обучающей выборки.\n\n';
 
@@ -582,7 +582,7 @@ function generateLibraryRules(): string {
 - Search endpoints (\`/search/users\`, \`/search/chats\`, \`/search/messages\`) have NO \`prev_page\`/\`has_next\`/\`has_prev\` — \`prev_page\` polling does not apply. Detect end by received count == \`total\` or an empty \`data\`. \`SearchPaginationMeta\` exposes only \`next_page\` and \`total\`
 - TypeScript auto-pagination: \`client.users.listUsersAll()\` returns flat array of all results
 - Python auto-pagination: \`await client.users.list_users_all()\` returns list of all results
-- Available for: users, chats, messages, members, tags, reactions, tasks, audit events, webhook events
+- Available for: users, chats, messages, members, tags, reactions, reminders (\`client.tasks\`), audit events, webhook events
 
 ## Webhooks (Real-time Events)
 - Create a bot in Pachca: Integrations → Bots → Create bot
@@ -1367,7 +1367,7 @@ import { PachcaClient, MessageEntityType } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
-// Saga: create project workspace (chat + members + welcome message + task)
+// Saga: create project workspace (chat + members + welcome message + reminder)
 // Each step has a compensating action for rollback on failure
 
 interface SagaStep {
@@ -1507,7 +1507,7 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
 
   let content = '# Пачка API - Полная документация\n\n';
   content +=
-    '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
+    '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и напоминаниями.\n\n';
   content +=
     '> Канонический источник — dev.pachca.com. Сверяй версии и параметры методов с актуальным API, не полагайся на данные из обучающей выборки.\n\n';
   content += '> Краткий индекс: [llms.txt](https://dev.pachca.com/llms.txt)\n\n';
@@ -2114,7 +2114,7 @@ function generateEnglishApiReference(): string {
 function generateLlmsEnTxt(): string {
   let content = '# Pachca API — Complete English Documentation\n\n';
   content +=
-    '> REST API for Pachca corporate messenger. Manage messages, chats, users, tasks, bots, and webhooks.\n\n';
+    '> REST API for Pachca corporate messenger. Manage messages, chats, users, reminders, bots, and webhooks.\n\n';
   content +=
     '> Canonical source: dev.pachca.com. Verify method versions and parameters against the live API — do not rely on training data.\n\n';
   content += '> Base URL: https://api.pachca.com/api/shared/v1\n\n';

@@ -541,6 +541,40 @@ describe('Bot update UX', () => {
 });
 
 // ============================================================================
+// NULLABLE FIELDS (V2 files)
+// ============================================================================
+
+describe('Nullable fields of an update', () => {
+  type Option = { name: string; type?: string; description?: string; default?: unknown };
+  const collectionOptions = async (operation: string): Promise<Option[]> => {
+    const { draftFields } = await import('../nodes/Pachca/V2/DraftDescription');
+    const collection = draftFields.find(
+      (f) => f.name === 'additionalFields' && f.displayOptions?.show?.operation?.includes(operation),
+    );
+    return (collection?.options ?? []) as Option[];
+  };
+
+  it('draft update: Clear Parent Message ID is a boolean next to Parent Message ID; create has none', async () => {
+    const update = await collectionOptions('update');
+    const flag = update.find((o) => o.name === 'clearParentMessageId');
+    expect(flag).toMatchObject({ type: 'boolean', default: false });
+    expect(flag?.description).toMatch(/^Whether to send null, which removes the reply/);
+    expect((await collectionOptions('create')).map((o) => o.name)).not.toContain('clearParentMessageId');
+  });
+
+  it('draft update: the Parent Message ID description names the boolean, since the number field cannot hold null', async () => {
+    const parent = (await collectionOptions('update')).find((o) => o.name === 'parentMessageId');
+    expect(parent?.description).toContain('"Clear Parent Message ID" removes the reply');
+    expect(parent?.description).not.toContain('`null`');
+  });
+
+  it('collection options stay in alphabetical order with the boolean', async () => {
+    const names = (await collectionOptions('update')).map((o) => (o as unknown as { displayName: string }).displayName);
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+  });
+});
+
+// ============================================================================
 // ENGLISH DESCRIPTIONS (V2 files)
 // ============================================================================
 
@@ -558,7 +592,7 @@ describe('English descriptions for common fields', () => {
       'UserDescription.ts': 'User ID',
       'ChatDescription.ts': 'Chat ID',
       'MessageDescription.ts': 'Message ID',
-      'TaskDescription.ts': 'Task ID',
+      'TaskDescription.ts': 'Reminder ID',
     };
     for (const [file, desc] of Object.entries(expected)) {
       const content = fs.readFileSync(path.join(V2_DIR, file), 'utf-8');

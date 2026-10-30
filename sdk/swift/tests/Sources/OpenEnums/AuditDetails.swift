@@ -18,7 +18,13 @@ func checkAuditDetails() {
         #"{"token_kind":"bot","token_name":null,"resource_owner_id":7,"current_scopes":["messages:read"],"bot_id":7,"actor_id":null,"access_token_id":4827,"access_token_preview":null,"webhook_id":31}"#)
     // Fits AuditDetailsKms by keys, but reason is missing: AuditDetailsChatId takes it.
     let chatAndMessage = auditEvent("3", "message_deleted", #"{"chat_id":5,"message_id":1}"#)
-    let page = #"{"data":["# + [oldBotTokenUpdated, botTokenUpdated, chatAndMessage].joined(separator: ",") +
+    // A token record: scopes is a list.
+    let accessTokenCreated = auditEvent("4", "access_token_created",
+        #"{"token_kind":"user","token_name":"Отчёты","resource_owner_id":12,"scopes":["messages:read"],"access_token_id":4828,"access_token_preview":"dG9r...a2Vu","actor_id":12}"#)
+    // A change of the bot token scopes: scopes is an object beside current_scopes.
+    let botTokenScopesUpdated = auditEvent("5", "bot_token_updated",
+        #"{"token_kind":"bot","token_name":null,"resource_owner_id":7,"current_scopes":["messages:read","chats:read"],"scopes":{"previous":["messages:read"],"new":["messages:read","chats:read"]},"bot_id":7,"actor_id":12,"access_token_id":4827,"access_token_preview":null,"webhook_id":31}"#)
+    let page = #"{"data":["# + [oldBotTokenUpdated, botTokenUpdated, chatAndMessage, accessTokenCreated, botTokenScopesUpdated].joined(separator: ",") +
         #"],"meta":{"paginate":{"next_page":"eyJpZCI6M30"}}}"#
 
     let events: [AuditEvent]
@@ -32,13 +38,20 @@ func checkAuditDetails() {
         FileHandle.standardError.write(Data("audit details failed: \(message)\n".utf8))
         exit(1)
     }
-    if events.count != 3 { fail("the page keeps every record, got \(events.count)") }
+    if events.count != 5 { fail("the page keeps every record, got \(events.count)") }
     if case .auditDetailsBot = events[0].details { fail("AuditDetailsBot takes scopes as a list: it must give way") }
     guard case .auditDetailsBotTokenUpdated(let updated) = events[1].details, updated.tokenName == nil, updated.actorId == nil else {
         fail("required fields that hold null decode, got \(events[1].details)")
     }
     guard case .auditDetailsChatId(let chat) = events[2].details, chat.chatId == 5 else {
         fail("the first member that decodes wins, got \(events[2].details)")
+    }
+    guard case .auditDetailsToken(let token) = events[3].details, token.scopes == ["messages:read"] else {
+        fail("a token record decodes as a token, got \(events[3].details)")
+    }
+    guard case .auditDetailsBotTokenUpdated(let scopesUpdated) = events[4].details,
+          scopesUpdated.currentScopes == ["messages:read", "chats:read"] else {
+        fail("a change of the bot token scopes decodes as bot_token_updated, got \(events[4].details)")
     }
     print("audit details ok")
 }

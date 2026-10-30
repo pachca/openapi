@@ -196,7 +196,7 @@ employee sees how long the agent has been working. The timer runs up to 5 minute
   token: the bot token gets `403`, and the employee's authorization of the bot
   cannot add the drafts scopes. When a mistake is expensive, send the text to
   the caller as a clearly marked proposal and let them send it. For "remind the
-  team on Monday", keep your own scheduler or create a reminder task. Details:
+  team on Monday", keep your own scheduler or create a reminder. Details:
   [references/drafts-and-scheduled.md](references/drafts-and-scheduled.md). An
   agent with the employee's own sign-in → `pachca-messaging`.
 - **The agent sees more than the people it answers.** The bot token reads every
@@ -212,7 +212,7 @@ employee sees how long the agent has been working. The timer runs up to 5 minute
   cannot see it, or you cannot check, say that you cannot share it here instead
   of quoting it.
 - **The caller's own data needs the caller's consent.** If the agent needs the
-  employee's tasks or chats, the employee authorizes the bot; in a DM the bot
+  employee's reminders or chats, the employee authorizes the bot; in a DM the bot
   sends an authorization button → `pachca-oauth`.
 - **One reply, not a stream.** Sending is limited by rate and by the number of
   messages into one chat per day ([Limits](https://dev.pachca.com/api/limits.md)).

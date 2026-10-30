@@ -57,9 +57,9 @@ Main node for interacting with the Pachca API. Supports 19 resources with the op
 | Profile           | Get, Update/Delete Avatar, Get/Update/Delete Status                                                                                                                                                                                                                  |
 | Reaction          | Create, Delete, Get Many                                                                                                                                                                                                                                             |
 | Read Member       | Get Many Read Member IDs                                                                                                                                                                                                                                             |
+| Reminder          | Create, Get, Get Many, Update, Delete                                                                                                                                                                                                                                |
 | Search            | Get Many Chats, Get Many Messages, Get Many Users                                                                                                                                                                                                                    |
 | Security          | Get Many                                                                                                                                                                                                                                                             |
-| Task              | Create, Get, Get Many, Update, Delete                                                                                                                                                                                                                                |
 | Thread            | Create, Create Standalone, Get, Get Many                                                                                                                                                                                                                             |
 | User              | Create, Get, Get Many, Update, Delete, Update/Delete Avatar, Get/Update/Delete Status                                                                                                                                                                                |
 
@@ -117,7 +117,7 @@ Toggle **Simplify** (on by default) to return only key fields from API responses
 - **Message** — id, entity_id, chat_id, content, user_id, created_at
 - **Chat** — id, name, channel, public, member_ids, created_at
 - **User** — id, first_name, last_name, nickname, email, role, suspended
-- **Task** — id, content, kind, status, priority, due_at, created_at
+- **Reminder** — id, content, kind, status, priority, due_at, created_at
 - **Bot** — id, webhook; bot tokens: id, name, scopes, created_at, last_used_at; history events: id, event_type, payload, created_at
 - **Group Tag** — id, name, users_count; tag users: the User fields above
 - **Reaction** — code, name, user_id, created_at
@@ -159,6 +159,14 @@ Upload avatar images for profiles and users via `multipart/form-data`. Uses bina
 ### File Upload
 
 Two-stage S3 upload with automatic retry. Sources: **URL** or **Binary Data** from previous workflow nodes.
+
+### Clearing a Value
+
+An update clears a value by sending `null`, and each kind of field has its own way to send it:
+
+- **Option field** — the **None** option, such as **Kind** in Bot > Update, which deletes the incoming webhook
+- **JSON field** — the text `null`, such as **OAuth Client** in Bot > Update, which disables authorization on behalf of an employee
+- **Number field** — the **Clear** toggle next to it, such as **Clear Parent Message ID** in Draft > Update, which removes the reply
 
 ### AI Tool Use
 

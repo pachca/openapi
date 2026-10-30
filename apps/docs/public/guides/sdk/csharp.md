@@ -219,6 +219,22 @@ var response = await client.Chats.GetChatAsync(334);
 ```
 
 
+### Значение null
+
+Необязательное поле, которое не задано, в запрос не попадает, поэтому метод обновления меняет только то, что вы передали. Некоторые поля API принимают `null`: например, `null` в `oauth_client` выключает у бота авторизацию от имени сотрудника, а в `webhook.kind` удаляет входящий вебхук. Чтобы отправить `null`, назовите поле в `NullFields` той же модели запроса так, как оно называется в C#:
+
+```csharp
+var request = new BotUpdateRequest
+{
+    Webhook = new BotUpdateRequestWebhook
+    {
+        NullFields = [nameof(BotUpdateRequestWebhook.Kind)],
+    },
+};
+```
+
+`NullFields` есть у моделей запроса с такими полями, а в его описании перечислены имена, которые в нём можно указать. С другим именем SDK выбрасывает `ArgumentException` и запрос не отправляет.
+
 ## Пагинация
 
 Поля пагинации называются как в API, но в PascalCase: `Meta.Paginate.NextPage`, `PrevPage`, `HasNext` и `HasPrev`, а у методов поиска ещё `Meta.Total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
@@ -460,7 +476,7 @@ using Task = System.Threading.Tasks.Task;
 using PachcaTask = Pachca.Sdk.Task;
 ```
 
-Тогда `Task` означает задачу .NET, например в `static async Task Main()`, а `PachcaTask` — задачу Пачки.
+Тогда `Task` означает задачу .NET, например в `static async Task Main()`, а `PachcaTask` — напоминание Пачки.
 
 ## Тело вебхука
 
@@ -507,7 +523,7 @@ var response = await client.Users.ListUsersAsync("Олег", 1, "eyJpZCI6MTAsImR
 ```
 
 
-**Создание задачи:**
+**Создание напоминания:**
 
 ```csharp
 using Pachca.Sdk;

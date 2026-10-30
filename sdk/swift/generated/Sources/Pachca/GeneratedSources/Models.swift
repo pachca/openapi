@@ -1469,7 +1469,7 @@ public enum ReactionEventType: Codable, Hashable, RawRepresentable, CaseIterable
 public enum SearchEntityType: String, Codable, CaseIterable {
     /// Пользователь
     case User
-    /// Задача
+    /// Напоминание
     case Task
 }
 
@@ -2376,8 +2376,9 @@ public struct AuditDetailsBotTokenUpdated: Codable {
     public let botName: String?
     public let webhookId: Int
     public let name: AuditDetailsTokenNameChange?
+    public let scopes: AuditDetailsTokenScopesChange?
 
-    public init(tokenKind: String, tokenName: String? = nil, resourceOwnerId: Int, currentScopes: [String], botId: Int? = nil, actorId: Int? = nil, accessTokenId: Int, accessTokenPreview: String? = nil, applicationId: Int? = nil, applicationName: String? = nil, clientId: String? = nil, botName: String? = nil, webhookId: Int, name: AuditDetailsTokenNameChange? = nil) {
+    public init(tokenKind: String, tokenName: String? = nil, resourceOwnerId: Int, currentScopes: [String], botId: Int? = nil, actorId: Int? = nil, accessTokenId: Int, accessTokenPreview: String? = nil, applicationId: Int? = nil, applicationName: String? = nil, clientId: String? = nil, botName: String? = nil, webhookId: Int, name: AuditDetailsTokenNameChange? = nil, scopes: AuditDetailsTokenScopesChange? = nil) {
         self.tokenKind = tokenKind
         self.tokenName = tokenName
         self.resourceOwnerId = resourceOwnerId
@@ -2392,6 +2393,7 @@ public struct AuditDetailsBotTokenUpdated: Codable {
         self.botName = botName
         self.webhookId = webhookId
         self.name = name
+        self.scopes = scopes
     }
 
     enum CodingKeys: String, CodingKey {
@@ -2409,6 +2411,7 @@ public struct AuditDetailsBotTokenUpdated: Codable {
         case botName = "bot_name"
         case webhookId = "webhook_id"
         case name
+        case scopes
     }
 }
 
@@ -2861,6 +2864,16 @@ public struct AuditDetailsTokenScopes: Codable {
 
     public init(scopes: [String]) {
         self.scopes = scopes
+    }
+}
+
+public struct AuditDetailsTokenScopesChange: Codable {
+    public let previous: [String]
+    public let new: [String]
+
+    public init(previous: [String], new: [String]) {
+        self.previous = previous
+        self.new = new
     }
 }
 
@@ -3546,8 +3559,10 @@ public struct BotUpdateRequestWebhook: Codable {
     public let singleChat: Bool?
     public let kind: BotWebhookKind?
     public let unfurlDomains: [String]?
+    /// Fields to send as null: kind. An unset field stays out of the body.
+    public var nullFields: Set<String> = []
 
-    public init(name: String? = nil, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil, ignoreSelfMessages: Bool? = nil, eventsHistoryEnabled: Bool? = nil, whoCanAdd: BotWhoCanAdd? = nil, canEdit: [BotCanEdit]? = nil, singleChat: Bool? = nil, kind: BotWebhookKind? = nil, unfurlDomains: [String]? = nil) {
+    public init(name: String? = nil, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil, ignoreSelfMessages: Bool? = nil, eventsHistoryEnabled: Bool? = nil, whoCanAdd: BotWhoCanAdd? = nil, canEdit: [BotCanEdit]? = nil, singleChat: Bool? = nil, kind: BotWebhookKind? = nil, unfurlDomains: [String]? = nil, nullFields: Set<String> = []) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
@@ -3566,6 +3581,39 @@ public struct BotUpdateRequestWebhook: Codable {
         self.singleChat = singleChat
         self.kind = kind
         self.unfurlDomains = unfurlDomains
+        self.nullFields = nullFields
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        if let unknown = nullFields.subtracting(["kind"]).sorted().first {
+            throw EncodingError.invalidValue(nullFields, EncodingError.Context(
+                codingPath: encoder.codingPath,
+                debugDescription: "BotUpdateRequestWebhook: field \"\(unknown)\" cannot be sent as null"
+            ))
+        }
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(name, forKey: .name)
+        try container.encodeIfPresent(nickname, forKey: .nickname)
+        try container.encodeIfPresent(outgoingUrl, forKey: .outgoingUrl)
+        try container.encodeIfPresent(events, forKey: .events)
+        try container.encodeIfPresent(triggerOn, forKey: .triggerOn)
+        try container.encodeIfPresent(commands, forKey: .commands)
+        try container.encodeIfPresent(scopes, forKey: .scopes)
+        try container.encodeIfPresent(template, forKey: .template)
+        try container.encodeIfPresent(templateEngine, forKey: .templateEngine)
+        try container.encodeIfPresent(challengeKey, forKey: .challengeKey)
+        try container.encodeIfPresent(linkPreviewEnabled, forKey: .linkPreviewEnabled)
+        try container.encodeIfPresent(ignoreSelfMessages, forKey: .ignoreSelfMessages)
+        try container.encodeIfPresent(eventsHistoryEnabled, forKey: .eventsHistoryEnabled)
+        try container.encodeIfPresent(whoCanAdd, forKey: .whoCanAdd)
+        try container.encodeIfPresent(canEdit, forKey: .canEdit)
+        try container.encodeIfPresent(singleChat, forKey: .singleChat)
+        if nullFields.contains("kind") {
+            try container.encodeNil(forKey: .kind)
+        } else {
+            try container.encodeIfPresent(kind, forKey: .kind)
+        }
+        try container.encodeIfPresent(unfurlDomains, forKey: .unfurlDomains)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -3594,11 +3642,31 @@ public struct BotUpdateRequest: Codable {
     public let webhook: BotUpdateRequestWebhook?
     public let oauthClient: BotOAuthClientRequest?
     public let promo: BotPromoRequest?
+    /// Fields to send as null: oauthClient. An unset field stays out of the body.
+    public var nullFields: Set<String> = []
 
-    public init(webhook: BotUpdateRequestWebhook? = nil, oauthClient: BotOAuthClientRequest? = nil, promo: BotPromoRequest? = nil) {
+    public init(webhook: BotUpdateRequestWebhook? = nil, oauthClient: BotOAuthClientRequest? = nil, promo: BotPromoRequest? = nil, nullFields: Set<String> = []) {
         self.webhook = webhook
         self.oauthClient = oauthClient
         self.promo = promo
+        self.nullFields = nullFields
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        if let unknown = nullFields.subtracting(["oauthClient"]).sorted().first {
+            throw EncodingError.invalidValue(nullFields, EncodingError.Context(
+                codingPath: encoder.codingPath,
+                debugDescription: "BotUpdateRequest: field \"\(unknown)\" cannot be sent as null"
+            ))
+        }
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(webhook, forKey: .webhook)
+        if nullFields.contains("oauthClient") {
+            try container.encodeNil(forKey: .oauthClient)
+        } else {
+            try container.encodeIfPresent(oauthClient, forKey: .oauthClient)
+        }
+        try container.encodeIfPresent(promo, forKey: .promo)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -4079,14 +4147,41 @@ public struct DraftCreateRequestDraft: Codable {
     public let parentMessageId: Int?
     public let files: [DraftFileRequest]?
     public let schedule: DraftScheduleRequest?
+    /// Fields to send as null: parentMessageId, schedule. An unset field stays out of the body.
+    public var nullFields: Set<String> = []
 
-    public init(entityType: MessageEntityType, entityId: Int, content: String? = nil, parentMessageId: Int? = nil, files: [DraftFileRequest]? = nil, schedule: DraftScheduleRequest? = nil) {
+    public init(entityType: MessageEntityType, entityId: Int, content: String? = nil, parentMessageId: Int? = nil, files: [DraftFileRequest]? = nil, schedule: DraftScheduleRequest? = nil, nullFields: Set<String> = []) {
         self.entityType = entityType
         self.entityId = entityId
         self.content = content
         self.parentMessageId = parentMessageId
         self.files = files
         self.schedule = schedule
+        self.nullFields = nullFields
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        if let unknown = nullFields.subtracting(["parentMessageId", "schedule"]).sorted().first {
+            throw EncodingError.invalidValue(nullFields, EncodingError.Context(
+                codingPath: encoder.codingPath,
+                debugDescription: "DraftCreateRequestDraft: field \"\(unknown)\" cannot be sent as null"
+            ))
+        }
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(entityType, forKey: .entityType)
+        try container.encode(entityId, forKey: .entityId)
+        try container.encodeIfPresent(content, forKey: .content)
+        if nullFields.contains("parentMessageId") {
+            try container.encodeNil(forKey: .parentMessageId)
+        } else {
+            try container.encodeIfPresent(parentMessageId, forKey: .parentMessageId)
+        }
+        try container.encodeIfPresent(files, forKey: .files)
+        if nullFields.contains("schedule") {
+            try container.encodeNil(forKey: .schedule)
+        } else {
+            try container.encodeIfPresent(schedule, forKey: .schedule)
+        }
     }
 
     enum CodingKeys: String, CodingKey {
@@ -4165,11 +4260,31 @@ public struct DraftRepetitionRequest: Codable {
     public let interval: DraftRepetitionInterval
     public let days: [Int]?
     public let nthDay: Int?
+    /// Fields to send as null: nthDay. An unset field stays out of the body.
+    public var nullFields: Set<String> = []
 
-    public init(interval: DraftRepetitionInterval, days: [Int]? = nil, nthDay: Int? = nil) {
+    public init(interval: DraftRepetitionInterval, days: [Int]? = nil, nthDay: Int? = nil, nullFields: Set<String> = []) {
         self.interval = interval
         self.days = days
         self.nthDay = nthDay
+        self.nullFields = nullFields
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        if let unknown = nullFields.subtracting(["nthDay"]).sorted().first {
+            throw EncodingError.invalidValue(nullFields, EncodingError.Context(
+                codingPath: encoder.codingPath,
+                debugDescription: "DraftRepetitionRequest: field \"\(unknown)\" cannot be sent as null"
+            ))
+        }
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(interval, forKey: .interval)
+        try container.encodeIfPresent(days, forKey: .days)
+        if nullFields.contains("nthDay") {
+            try container.encodeNil(forKey: .nthDay)
+        } else {
+            try container.encodeIfPresent(nthDay, forKey: .nthDay)
+        }
     }
 
     enum CodingKeys: String, CodingKey {
@@ -4201,11 +4316,31 @@ public struct DraftScheduleRequest: Codable {
     public let startDate: String
     public let endDate: String?
     public let repetition: DraftRepetitionRequest
+    /// Fields to send as null: endDate. An unset field stays out of the body.
+    public var nullFields: Set<String> = []
 
-    public init(startDate: String, endDate: String? = nil, repetition: DraftRepetitionRequest) {
+    public init(startDate: String, endDate: String? = nil, repetition: DraftRepetitionRequest, nullFields: Set<String> = []) {
         self.startDate = startDate
         self.endDate = endDate
         self.repetition = repetition
+        self.nullFields = nullFields
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        if let unknown = nullFields.subtracting(["endDate"]).sorted().first {
+            throw EncodingError.invalidValue(nullFields, EncodingError.Context(
+                codingPath: encoder.codingPath,
+                debugDescription: "DraftScheduleRequest: field \"\(unknown)\" cannot be sent as null"
+            ))
+        }
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(startDate, forKey: .startDate)
+        if nullFields.contains("endDate") {
+            try container.encodeNil(forKey: .endDate)
+        } else {
+            try container.encodeIfPresent(endDate, forKey: .endDate)
+        }
+        try container.encode(repetition, forKey: .repetition)
     }
 
     enum CodingKeys: String, CodingKey {
@@ -4220,12 +4355,37 @@ public struct DraftUpdateRequestDraft: Codable {
     public let parentMessageId: Int?
     public let files: [DraftFileRequest]?
     public let schedule: DraftScheduleRequest?
+    /// Fields to send as null: parentMessageId, schedule. An unset field stays out of the body.
+    public var nullFields: Set<String> = []
 
-    public init(content: String? = nil, parentMessageId: Int? = nil, files: [DraftFileRequest]? = nil, schedule: DraftScheduleRequest? = nil) {
+    public init(content: String? = nil, parentMessageId: Int? = nil, files: [DraftFileRequest]? = nil, schedule: DraftScheduleRequest? = nil, nullFields: Set<String> = []) {
         self.content = content
         self.parentMessageId = parentMessageId
         self.files = files
         self.schedule = schedule
+        self.nullFields = nullFields
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        if let unknown = nullFields.subtracting(["parentMessageId", "schedule"]).sorted().first {
+            throw EncodingError.invalidValue(nullFields, EncodingError.Context(
+                codingPath: encoder.codingPath,
+                debugDescription: "DraftUpdateRequestDraft: field \"\(unknown)\" cannot be sent as null"
+            ))
+        }
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(content, forKey: .content)
+        if nullFields.contains("parentMessageId") {
+            try container.encodeNil(forKey: .parentMessageId)
+        } else {
+            try container.encodeIfPresent(parentMessageId, forKey: .parentMessageId)
+        }
+        try container.encodeIfPresent(files, forKey: .files)
+        if nullFields.contains("schedule") {
+            try container.encodeNil(forKey: .schedule)
+        } else {
+            try container.encodeIfPresent(schedule, forKey: .schedule)
+        }
     }
 
     enum CodingKeys: String, CodingKey {
@@ -6212,7 +6372,7 @@ public enum AuditEventDetailsUnion: Codable {
             (["bot_id", "actor_id", "client_id", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview"], { .auditDetailsBotOAuthClientSecretRotated(try AuditDetailsBotOAuthClientSecretRotated(from: $0)) }),
             (["bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview"], { .auditDetailsBotOAuthClientDisabled(try AuditDetailsBotOAuthClientDisabled(from: $0)) }),
             (["token_kind", "token_name", "resource_owner_id", "scopes", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_id", "bot_name", "device_name", "actor_id", "webhook_id", "user_id", "source", "reason"], { .auditDetailsToken(try AuditDetailsToken(from: $0)) }),
-            (["token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_name", "webhook_id", "name"], { .auditDetailsBotTokenUpdated(try AuditDetailsBotTokenUpdated(from: $0)) }),
+            (["token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_name", "webhook_id", "name", "scopes"], { .auditDetailsBotTokenUpdated(try AuditDetailsBotTokenUpdated(from: $0)) }),
             (["method", "login_grant_id"], { .auditDetailsUserLoginQr(try AuditDetailsUserLoginQr(from: $0)) }),
             (["login_grant_id"], { .auditDetailsLoginGrantCreated(try AuditDetailsLoginGrantCreated(from: $0)) }),
             (["login_grant_id", "device"], { .auditDetailsLoginGrantApproved(try AuditDetailsLoginGrantApproved(from: $0)) }),

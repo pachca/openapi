@@ -347,7 +347,25 @@
     "imports": [
       "MessageCreateRequest",
       "MessageCreateRequestMessage"
-    ]
+    ],
+    "examples": {
+      "Минимальный запрос": {
+        "usage": "var request = new MessageCreateRequest { Message = new MessageCreateRequestMessage { EntityId = 334, Content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\" } };\nvar response = await client.Messages.CreateMessageAsync(request);",
+        "imports": [
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage"
+        ]
+      },
+      "Сообщение с кнопкой": {
+        "usage": "var request = new MessageCreateRequest\n{\n    Message = new MessageCreateRequestMessage\n    {\n        EntityType = MessageEntityType.Discussion,\n        EntityId = 334,\n        Content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        Buttons = new List<List<Button>> { new List<Button> { new Button { Text = \"Подробнее\", Url = \"https://example.com/details\" } } }\n    }\n};\nvar response = await client.Messages.CreateMessageAsync(request);",
+        "imports": [
+          "Button",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage",
+          "MessageEntityType"
+        ]
+      }
+    }
   },
   "LinkPreviewOperations_unfurl": {
     "usage": "var request = new LinkPreviewsRequest\n{\n    LinkPreviews = new Dictionary<string, LinkPreview> { [\"key\"] = new LinkPreview\n    {\n        Title = \"Статья: Отправка файлов\",\n        Description = \"Пример отправки файлов на удаленный сервер\",\n        ImageUrl = \"https://example.com/img/landing.png\",\n        Image = new LinkPreviewImage\n        {\n            Key = \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            Name = \"files-to-server.jpg\",\n            Size = 695604\n        }\n    } }\n};\nawait client.Messages.UnfurlAsync(194275, request);",

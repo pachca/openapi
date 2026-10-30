@@ -228,6 +228,18 @@ let response = try await client.chats.getChat(id: 334)
 ```
 
 
+### Значение null
+
+Необязательное поле, которое не задано, в запрос не попадает, поэтому метод обновления меняет только то, что вы передали. Некоторые поля API принимают `null`: например, `null` в `oauth_client` выключает у бота авторизацию от имени сотрудника, а в `webhook.kind` удаляет входящий вебхук. Чтобы отправить `null`, назовите поле в `nullFields` той же модели запроса так, как оно называется в Swift:
+
+```swift
+let request = BotUpdateRequest(
+    webhook: BotUpdateRequestWebhook(nullFields: ["kind"])
+)
+```
+
+`nullFields` есть у моделей запроса с такими полями, а в его описании перечислены имена, которые в нём можно указать. С другим именем SDK выбрасывает `EncodingError` и запрос не отправляет.
+
 ## Пагинация
 
 Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
@@ -372,7 +384,7 @@ let oauthError: OAuthError
 
 ### Имена Task и Thread
 
-В SDK есть типы `Task` и `Thread`. В файле с `import PachcaSDK` имя `Task` означает задачу Пачки, поэтому задачу Swift Concurrency записывайте полностью: `_Concurrency.Task`. Имя `Thread` рядом с `import Foundation` неоднозначно, его записывайте как `PachcaSDK.Thread` или `Foundation.Thread`:
+В SDK есть типы `Task` и `Thread`. В файле с `import PachcaSDK` имя `Task` означает напоминание Пачки, поэтому задачу Swift Concurrency записывайте полностью: `_Concurrency.Task`. Имя `Thread` рядом с `import Foundation` неоднозначно, его записывайте как `PachcaSDK.Thread` или `Foundation.Thread`:
 
 ```swift
 import Foundation
@@ -436,7 +448,7 @@ let response = try await client.users.listUsers(query: "Олег", limit: 1, cur
 ```
 
 
-**Создание задачи:**
+**Создание напоминания:**
 
 ```swift
 import PachcaSDK

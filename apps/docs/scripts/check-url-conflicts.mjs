@@ -11,30 +11,15 @@ const openapiPath = path.join(__dirname, '..', '..', '..', 'packages', 'spec', '
 const fileContents = fs.readFileSync(openapiPath, 'utf8');
 const openapi = yaml.load(fileContents);
 
-// Tag to URL segment mapping (synchronized with lib/openapi/mapper.ts)
-const TAG_URL_MAPPING = {
-  Сообщения: 'messages',
-  Сотрудники: 'users',
-  Чаты: 'chats',
-  'Участники чатов': 'chat-members',
-  Треды: 'threads',
-  Теги: 'tags',
-  Профиль: 'profile',
-  Общее: 'common',
-  Боты: 'bots',
-  Формы: 'forms',
-  Прочитавшие: 'read-members',
-  Реакции: 'reactions',
-  'Превью ссылок': 'link-previews',
-  Задачи: 'tasks',
-  Безопасность: 'security',
-};
-
+// Tag to URL segment (synchronized with lib/openapi/mapper.ts, which slugs the tag).
+// Spec tags are English, e.g. "Tasks" → tasks, "Group tags" → group-tags.
 function tagToUrlSegment(tag) {
-  if (TAG_URL_MAPPING[tag]) {
-    return TAG_URL_MAPPING[tag];
-  }
-  return tag.toLowerCase().replace(/\s+/g, '-');
+  return tag
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 // Функция для генерации URL (synchronized with lib/openapi/mapper.ts)

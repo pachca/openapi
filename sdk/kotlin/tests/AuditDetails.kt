@@ -15,6 +15,7 @@ import com.pachca.sdk.AuditDetailsBot
 import com.pachca.sdk.AuditDetailsBotTokenUpdated
 import com.pachca.sdk.AuditDetailsChatId
 import com.pachca.sdk.AuditDetailsDlp
+import com.pachca.sdk.AuditDetailsToken
 import com.pachca.sdk.PachcaClient
 import com.sun.net.httpserver.HttpServer
 import kotlinx.coroutines.runBlocking
@@ -48,6 +49,21 @@ private val DLP = event(
 
 private val CHAT_JOIN = event("4", "user_chat_join", """{"chat_id":5}""")
 
+// A token record: scopes is a list.
+private val ACCESS_TOKEN_CREATED = event(
+    "5", "access_token_created",
+    """{"token_kind":"user","token_name":"Отчёты","resource_owner_id":12,"scopes":["messages:read"],""" +
+        """"access_token_id":4828,"access_token_preview":"dG9r...a2Vu","actor_id":12}""",
+)
+
+// A change of the bot token scopes: scopes is an object beside current_scopes.
+private val BOT_TOKEN_SCOPES_UPDATED = event(
+    "6", "bot_token_updated",
+    """{"token_kind":"bot","token_name":null,"resource_owner_id":7,"current_scopes":["messages:read","chats:read"],""" +
+        """"scopes":{"previous":["messages:read"],"new":["messages:read","chats:read"]},"bot_id":7,"actor_id":12,""" +
+        """"access_token_id":4827,"access_token_preview":null,"webhook_id":31}""",
+)
+
 private fun check(condition: Boolean, message: String) {
     if (!condition) {
         System.err.println("audit details failed: $message")
@@ -56,7 +72,7 @@ private fun check(condition: Boolean, message: String) {
 }
 
 fun main() {
-    val page = """{"data":[$OLD_BOT_TOKEN_UPDATED,$BOT_TOKEN_UPDATED,$DLP,$CHAT_JOIN],"meta":{"paginate":{"next_page":"eyJpZCI6NH0"}}}"""
+    val page = """{"data":[$OLD_BOT_TOKEN_UPDATED,$BOT_TOKEN_UPDATED,$DLP,$CHAT_JOIN,$ACCESS_TOKEN_CREATED,$BOT_TOKEN_SCOPES_UPDATED],"meta":{"paginate":{"next_page":"eyJpZCI6NH0"}}}"""
     val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
     server.createContext("/") { exchange ->
         val bytes = page.toByteArray()
@@ -70,7 +86,7 @@ fun main() {
     try {
         runBlocking {
             val events = client.security.getAuditEvents().data
-            check(events.size == 4, "the page keeps every record, got ${events.size}")
+            check(events.size == 6, "the page keeps every record, got ${events.size}")
             check(events[0].details !is AuditDetailsBot, "AuditDetailsBot takes scopes as a list: it must give way, got ${events[0].details}")
             val updated = events[1].details
             check(
@@ -81,6 +97,13 @@ fun main() {
             check(dlp is AuditDetailsDlp && dlp.actionMessage == null, "action_message null decodes, got $dlp")
             val join = events[3].details
             check(join is AuditDetailsChatId && join.chatId == 5, "a plain record decodes as before, got $join")
+            val token = events[4].details
+            check(token is AuditDetailsToken && token.scopes == listOf("messages:read"), "a token record decodes as a token, got $token")
+            val scopesUpdated = events[5].details
+            check(
+                scopesUpdated is AuditDetailsBotTokenUpdated && scopesUpdated.currentScopes == listOf("messages:read", "chats:read"),
+                "a change of the bot token scopes decodes as bot_token_updated, got $scopesUpdated",
+            )
         }
         println("audit details ok")
     } finally {

@@ -2,12 +2,15 @@ package com.pachca.sdk
 
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import kotlinx.serialization.KeepGeneratedSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Transient
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -15,6 +18,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
@@ -24,6 +29,36 @@ object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor = PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: OffsetDateTime) = encoder.encodeString(value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
     override fun deserialize(decoder: Decoder): OffsetDateTime = OffsetDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+}
+
+/**
+ * Writes a request model as its generated serializer does: an unset field stays
+ * out of the body. A field named in nullFields goes out as null, whatever value
+ * it holds, and a name the model does not take as null fails before the request
+ * is sent.
+ */
+internal open class NullFieldsSerializer<T>(
+    private val generated: KSerializer<T>,
+    private val model: String,
+    private val keys: Map<String, String>,
+    private val nullFields: (T) -> Set<String>,
+) : KSerializer<T> {
+    override val descriptor: SerialDescriptor get() = generated.descriptor
+
+    override fun deserialize(decoder: Decoder): T = generated.deserialize(decoder)
+
+    override fun serialize(encoder: Encoder, value: T) {
+        val names = nullFields(value)
+        val unknown = names.firstOrNull { it !in keys }
+        if (unknown != null) throw SerializationException("$model: field \"$unknown\" cannot be sent as null")
+        if (names.isEmpty() || encoder !is JsonEncoder) {
+            generated.serialize(encoder, value)
+            return
+        }
+        val body = encoder.json.encodeToJsonElement(generated, value).jsonObject.toMutableMap()
+        for (name in names) body[keys.getValue(name)] = JsonNull
+        encoder.encodeJsonElement(JsonObject(body))
+    }
 }
 
 /** Тип аудит-события */
@@ -981,7 +1016,7 @@ value class ReactionEventType(val value: String) {
 enum class SearchEntityType(val value: String) {
     /** Пользователь */
     @SerialName("User") USER("User"),
-    /** Задача */
+    /** Напоминание */
     @SerialName("Task") TASK("Task"),
 }
 
@@ -1005,7 +1040,7 @@ enum class SortOrder(val value: String) {
     @SerialName("desc") DESC("desc"),
 }
 
-/** Тип задачи */
+/** Тип напоминания */
 @Serializable
 @JvmInline
 value class TaskKind(val value: String) {
@@ -1406,7 +1441,7 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
         setOf("bot_id", "actor_id", "client_id", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClientSecretRotated.serializer(), element) },
         setOf("bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClientDisabled.serializer(), element) },
         setOf("token_kind", "token_name", "resource_owner_id", "scopes", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_id", "bot_name", "device_name", "actor_id", "webhook_id", "user_id", "source", "reason") to { json, element -> json.decodeFromJsonElement(AuditDetailsToken.serializer(), element) },
-        setOf("token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_name", "webhook_id", "name") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotTokenUpdated.serializer(), element) },
+        setOf("token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_name", "webhook_id", "name", "scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotTokenUpdated.serializer(), element) },
         setOf("method", "login_grant_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsUserLoginQr.serializer(), element) },
         setOf("login_grant_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsLoginGrantCreated.serializer(), element) },
         setOf("login_grant_id", "device") to { json, element -> json.decodeFromJsonElement(AuditDetailsLoginGrantApproved.serializer(), element) },
@@ -1745,6 +1780,7 @@ data class AuditDetailsBotTokenUpdated(
     @SerialName("bot_name") val botName: String? = null,
     @SerialName("webhook_id") val webhookId: Int,
     val name: AuditDetailsTokenNameChange? = null,
+    val scopes: AuditDetailsTokenScopesChange? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -2104,6 +2140,12 @@ data class AuditDetailsTokenNameChange(
 )
 
 @Serializable
+data class AuditDetailsTokenScopesChange(
+    val previous: List<String>,
+    val new: List<String>,
+)
+
+@Serializable
 data class AuditEvent(
     val id: String,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
@@ -2329,7 +2371,8 @@ data class BotTokenUpdateRequest(
     val scopes: List<String>? = null,
 )
 
-@Serializable
+@KeepGeneratedSerializer
+@Serializable(with = BotUpdateRequestWebhookSerializer::class)
 data class BotUpdateRequestWebhook(
     val name: String? = null,
     val nickname: String? = null,
@@ -2349,13 +2392,26 @@ data class BotUpdateRequestWebhook(
     @SerialName("single_chat") val singleChat: Boolean? = null,
     val kind: BotWebhookKind? = null,
     @SerialName("unfurl_domains") val unfurlDomains: List<String>? = null,
+    /** Fields to send as null: kind. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
 )
 
-@Serializable
+internal object BotUpdateRequestWebhookSerializer : NullFieldsSerializer<BotUpdateRequestWebhook>(
+    BotUpdateRequestWebhook.generatedSerializer(), "BotUpdateRequestWebhook", mapOf("kind" to "kind"), { it.nullFields },
+)
+
+@KeepGeneratedSerializer
+@Serializable(with = BotUpdateRequestSerializer::class)
 data class BotUpdateRequest(
     val webhook: BotUpdateRequestWebhook? = null,
     @SerialName("oauth_client") val oauthClient: BotOAuthClientRequest? = null,
     val promo: BotPromoRequest? = null,
+    /** Fields to send as null: oauthClient. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
+)
+
+internal object BotUpdateRequestSerializer : NullFieldsSerializer<BotUpdateRequest>(
+    BotUpdateRequest.generatedSerializer(), "BotUpdateRequest", mapOf("oauthClient" to "oauth_client"), { it.nullFields },
 )
 
 @Serializable
@@ -2506,7 +2562,8 @@ data class Draft(
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("updated_at") val updatedAt: OffsetDateTime,
 )
 
-@Serializable
+@KeepGeneratedSerializer
+@Serializable(with = DraftCreateRequestDraftSerializer::class)
 data class DraftCreateRequestDraft(
     @SerialName("entity_type") val entityType: MessageEntityType,
     @SerialName("entity_id") val entityId: Int,
@@ -2514,6 +2571,12 @@ data class DraftCreateRequestDraft(
     @SerialName("parent_message_id") val parentMessageId: Int? = null,
     val files: List<DraftFileRequest>? = null,
     val schedule: DraftScheduleRequest? = null,
+    /** Fields to send as null: parentMessageId, schedule. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
+)
+
+internal object DraftCreateRequestDraftSerializer : NullFieldsSerializer<DraftCreateRequestDraft>(
+    DraftCreateRequestDraft.generatedSerializer(), "DraftCreateRequestDraft", mapOf("parentMessageId" to "parent_message_id", "schedule" to "schedule"), { it.nullFields },
 )
 
 @Serializable
@@ -2541,11 +2604,18 @@ data class DraftRepetition(
     @SerialName("nth_day") val nthDay: Int? = null,
 )
 
-@Serializable
+@KeepGeneratedSerializer
+@Serializable(with = DraftRepetitionRequestSerializer::class)
 data class DraftRepetitionRequest(
     val interval: DraftRepetitionInterval,
     val days: List<Int>? = null,
     @SerialName("nth_day") val nthDay: Int? = null,
+    /** Fields to send as null: nthDay. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
+)
+
+internal object DraftRepetitionRequestSerializer : NullFieldsSerializer<DraftRepetitionRequest>(
+    DraftRepetitionRequest.generatedSerializer(), "DraftRepetitionRequest", mapOf("nthDay" to "nth_day"), { it.nullFields },
 )
 
 @Serializable
@@ -2555,19 +2625,33 @@ data class DraftSchedule(
     val repetition: DraftRepetition,
 )
 
-@Serializable
+@KeepGeneratedSerializer
+@Serializable(with = DraftScheduleRequestSerializer::class)
 data class DraftScheduleRequest(
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("start_date") val startDate: OffsetDateTime,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("end_date") val endDate: OffsetDateTime? = null,
     val repetition: DraftRepetitionRequest,
+    /** Fields to send as null: endDate. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
 )
 
-@Serializable
+internal object DraftScheduleRequestSerializer : NullFieldsSerializer<DraftScheduleRequest>(
+    DraftScheduleRequest.generatedSerializer(), "DraftScheduleRequest", mapOf("endDate" to "end_date"), { it.nullFields },
+)
+
+@KeepGeneratedSerializer
+@Serializable(with = DraftUpdateRequestDraftSerializer::class)
 data class DraftUpdateRequestDraft(
     val content: String? = null,
     @SerialName("parent_message_id") val parentMessageId: Int? = null,
     val files: List<DraftFileRequest>? = null,
     val schedule: DraftScheduleRequest? = null,
+    /** Fields to send as null: parentMessageId, schedule. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
+)
+
+internal object DraftUpdateRequestDraftSerializer : NullFieldsSerializer<DraftUpdateRequestDraft>(
+    DraftUpdateRequestDraft.generatedSerializer(), "DraftUpdateRequestDraft", mapOf("parentMessageId" to "parent_message_id", "schedule" to "schedule"), { it.nullFields },
 )
 
 @Serializable

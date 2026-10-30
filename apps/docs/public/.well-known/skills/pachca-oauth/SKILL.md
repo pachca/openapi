@@ -15,7 +15,7 @@ employee token (→ `pachca`).
 ## When to use
 
 - A bot needs the employee's own data or must act under their name: a digest of their chats,
-  a task created as them, their tracker tasks answered from Pachca.
+  a reminder set as them, their tracker tasks answered from Pachca.
 - A service acts for many employees and each must agree and be able to revoke.
 - A browser, mobile or CLI app on the employee's device needs their token (public client).
 - Something in an existing flow breaks: no button, refusal instead of consent, `invalid_grant`,

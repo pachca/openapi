@@ -373,7 +373,25 @@
     "imports": [
       "MessageCreateRequest",
       "MessageCreateRequestMessage"
-    ]
+    ],
+    "examples": {
+      "Минимальный запрос": {
+        "usage": "request = MessageCreateRequest(message=MessageCreateRequestMessage(entity_id=334, content=\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nresponse = await client.messages.create_message(request=request)",
+        "imports": [
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage"
+        ]
+      },
+      "Сообщение с кнопкой": {
+        "usage": "request = MessageCreateRequest(\n    message=MessageCreateRequestMessage(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=334,\n        content=\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        buttons=[[Button(text=\"Подробнее\", url=\"https://example.com/details\")]]\n    )\n)\nresponse = await client.messages.create_message(request=request)",
+        "imports": [
+          "Button",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage",
+          "MessageEntityType"
+        ]
+      }
+    }
   },
   "LinkPreviewOperations_unfurl": {
     "usage": "request = LinkPreviewsRequest(\n    link_previews={\"key\": LinkPreview(\n        title=\"Статья: Отправка файлов\",\n        description=\"Пример отправки файлов на удаленный сервер\",\n        image_url=\"https://example.com/img/landing.png\",\n        image=LinkPreviewImage(\n            key=\"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name=\"files-to-server.jpg\",\n            size=695604\n        )\n    )}\n)\nawait client.messages.unfurl(id=194275, request=request)",

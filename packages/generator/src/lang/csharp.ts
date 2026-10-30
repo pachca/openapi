@@ -11,7 +11,7 @@ import {
   type IRParam,
   type IRResponseType,
 } from '../ir.js';
-import { bodyExample, buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToPascal,
@@ -121,6 +121,14 @@ function isValueType(ft: IRFieldType): boolean {
   return false;
 }
 
+/**
+ * The name a caller writes in NullFields: the property name as nameof gives it and
+ * reflection sees it, without the @ a keyword takes.
+ */
+function nullFieldName(field: IRField): string {
+  return fieldSdkName(field).replace(/^@/, '');
+}
+
 function fieldSdkName(field: IRField): string {
   let name: string;
   if (field.name.includes('-')) {
@@ -193,8 +201,17 @@ function hasApiErrorModel(ir: IR): boolean {
 
 // ── Models.cs ────────────────────────────────────────────────────────
 
+/** Request models with properties the caller can send as null by name in NullFields. */
+function csNullableModels(ir: IR): IRModel[] {
+  const requestModels = requestModelNames(ir);
+  return [...buildModelIndex(ir).values()]
+    .filter((m) => requestModels.has(m.name) && nullableOptionalFields(m).length > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 function generateModels(ir: IR): string {
   const lines: string[] = [];
+  const nullableModels = new Set(csNullableModels(ir).map((m) => m.name));
   const unionMemberRefs = new Set<string>();
   for (const u of ir.unions) {
     for (const ref of u.memberRefs) unionMemberRefs.add(ref);
@@ -238,10 +255,10 @@ function generateModels(ir: IR): string {
     if (unionMemberRefs.has(m.name)) continue;
     for (const inl of m.inlineObjects) {
       lines.push('');
-      emitModel(lines, inl, ir.models);
+      emitModel(lines, inl, ir.models, nullableModels.has(inl.name));
     }
     lines.push('');
-    emitModel(lines, m, ir.models);
+    emitModel(lines, m, ir.models, nullableModels.has(m.name));
   }
 
   // Response types
@@ -550,9 +567,11 @@ function emitModel(
   lines: string[],
   m: IRModel,
   allModels: IRModel[],
+  withNullFields = false,
 ): void {
   const fields = m.fields;
-  const ext = m.isError ? ' : Exception' : '';
+  const nullable = withNullFields ? nullableOptionalFields(m) : [];
+  const ext = m.isError ? ' : Exception' : nullable.length > 0 ? ' : INullFields' : '';
 
   if (fields.length === 0) {
     lines.push(`public class ${m.name}${ext} { }`);
@@ -599,6 +618,13 @@ function emitModel(
         }
       }
     }
+  }
+
+  if (nullable.length > 0) {
+    lines.push('');
+    lines.push(`    /// <summary>Properties to send as null: ${nullable.map(nullFieldName).join(', ')}. An unset property stays out of the body.</summary>`);
+    lines.push('    [JsonIgnore]');
+    lines.push('    public List<string>? NullFields { get; set; }');
   }
 
   if (m.name === 'ApiError') {
@@ -662,7 +688,70 @@ function emitResponseType(lines: string[], rt: IRResponseType): void {
 
 // ── Utils.cs ─────────────────────────────────────────────────────────
 
+/**
+ * An unset property stays out of the body (WhenWritingNull). A request model with
+ * properties the API takes as null carries NullFields: a property named there goes
+ * out as null, and a name the model does not take as null fails before the request
+ * is sent.
+ */
+function csNullFieldsHelpers(ir: IR): { usings: string; metadataUsing: string; interfaceDecl: string; resolver: string; members: string } {
+  const models = csNullableModels(ir);
+  if (models.length === 0) return { usings: '', metadataUsing: '', interfaceDecl: '', resolver: '', members: '' };
+  const entries = models
+    .map((m) => `        [typeof(${m.name})] = new() { ${nullableOptionalFields(m).map((f) => `"${nullFieldName(f)}"`).join(', ')} },`)
+    .join('\n');
+  return {
+    usings: 'using System.Reflection;\n',
+    metadataUsing: 'using System.Text.Json.Serialization.Metadata;\n',
+    interfaceDecl: `
+/// <summary>A request model with properties the API takes as null.</summary>
+internal interface INullFields
+{
+    List<string>? NullFields { get; }
+}
+`,
+    resolver: `
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { SendNullFields } },`,
+    members: `
+
+    // Properties of a request model the caller can send as null, by name in NullFields.
+    private static readonly Dictionary<Type, HashSet<string>> NullableProperties = new()
+    {
+${entries}
+    };
+
+    // A property named in NullFields goes out as null, whatever value it holds. A name
+    // the model does not take as null fails before the request is sent.
+    private static void SendNullFields(JsonTypeInfo typeInfo)
+    {
+        if (typeInfo.Kind != JsonTypeInfoKind.Object || !NullableProperties.TryGetValue(typeInfo.Type, out var nullable))
+            return;
+        var model = typeInfo.Type.Name;
+        typeInfo.OnSerializing = obj =>
+        {
+            foreach (var name in ((INullFields)obj).NullFields ?? new List<string>())
+            {
+                if (!nullable.Contains(name))
+                    throw new ArgumentException($"{model}: field \\"{name}\\" cannot be sent as null");
+            }
+        };
+        foreach (var property in typeInfo.Properties)
+        {
+            if (property.AttributeProvider is not PropertyInfo info || !nullable.Contains(info.Name) || property.Get is not { } get)
+                continue;
+            var name = info.Name;
+            property.Get = obj => IsNulled(obj, name) ? null : get(obj);
+            property.ShouldSerialize = (obj, value) => value != null || IsNulled(obj, name);
+        }
+    }
+
+    private static bool IsNulled(object obj, string name) =>
+        ((INullFields)obj).NullFields?.Contains(name) == true;`,
+  };
+}
+
 function generateUtils(ir: IR): string {
+  const nullFields = csNullFieldsHelpers(ir);
   return `#nullable enable
 
 using System;
@@ -670,13 +759,13 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
+${nullFields.usings}using System.Text;
 using System.Text.Json;
-using System.Threading;
+${nullFields.metadataUsing}using System.Threading;
 using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
-
+${nullFields.interfaceDecl}
 internal static class PachcaUtils
 {
     private const int MaxRetries = 3;
@@ -696,8 +785,8 @@ internal static class PachcaUtils
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-        PropertyNameCaseInsensitive = true,
-    };
+        PropertyNameCaseInsensitive = true,${nullFields.resolver}
+    };${nullFields.members}
 
     // Only the daily chat limit and the hour-long ban wait longer than a minute.
     private static readonly TimeSpan MaxRetryAfter = TimeSpan.FromSeconds(60);
@@ -2021,6 +2110,8 @@ function generateExamples(ir: IR): string {
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
+      const named = namedBodyExamples(op, (o) => buildOperationExample(o, ir, models, serviceProp));
+      if (named) entry.examples = named;
       result[op.operationId] = entry;
       if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
         result[`${op.operationId}_pollWebhookEvents`] = {

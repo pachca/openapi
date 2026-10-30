@@ -635,7 +635,7 @@ export enum ReactionEventType {
 export enum SearchEntityType {
   /** Пользователь */
   User = "User",
-  /** Задача */
+  /** Напоминание */
   Task = "Task",
 }
 
@@ -658,7 +658,7 @@ export enum SortOrder {
 }
 
 /**
- * Тип задачи
+ * Тип напоминания
  *
  * A response may carry a value this SDK does not list yet: it arrives as the raw string.
  */
@@ -1021,6 +1021,7 @@ export interface AuditDetailsBotTokenUpdated {
   botName?: string;
   webhookId: number;
   name?: AuditDetailsTokenNameChange;
+  scopes?: AuditDetailsTokenScopesChange;
 }
 
 export interface AuditDetailsBotWebhookSettings {
@@ -1178,6 +1179,11 @@ export interface AuditDetailsTokenNameChange {
 
 export interface AuditDetailsTokenScopes {
   scopes: string[];
+}
+
+export interface AuditDetailsTokenScopesChange {
+  previous: string[];
+  new: string[];
 }
 
 export interface AuditDetailsUserLoginQr {

@@ -267,6 +267,13 @@ export const draftFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['draft'], operation: ['update'] } },
 		options: [
 			{
+				displayName: 'Clear Parent Message ID',
+				name: 'clearParentMessageId',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to send null, which removes the reply. It takes precedence over Parent Message ID.',
+			},
+			{
 				displayName: 'Content',
 				name: 'content',
 				type: 'string',
@@ -361,7 +368,7 @@ export const draftFields: INodeProperties[] = [
 				name: 'parentMessageId',
 				type: 'number',
 				default: 0,
-				description: 'ID of the message the draft will be sent as a reply to. `null` removes the reply.',
+				description: 'ID of the message the draft will be sent as a reply to. "Clear Parent Message ID" removes the reply.',
 				placeholder: '196093',
 			},
 			{

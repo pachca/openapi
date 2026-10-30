@@ -12,7 +12,27 @@
       "Button",
       "DataButton",
       "MessageCreateRequest"
-    ]
+    ],
+    "examples": {
+      "minimal": {
+        "summary": "Текст с кнопкой",
+        "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityId: 334,\n    content: \"Отчёт готов\",\n    buttons: [[{ text: \"Принять\", data: \"accept\" }]]\n  }\n}\nconst response = await client.messages.createMessage(request)",
+        "imports": [
+          "Button",
+          "DataButton",
+          "MessageCreateRequest"
+        ]
+      },
+      "full": {
+        "summary": "Сообщение с файлом",
+        "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityId: 334,\n    content: \"Отчёт готов\",\n    files: [{\n      key: \"attaches/files/1/report.pdf\",\n      name: \"report.pdf\",\n      fileType: FileType.File\n    }]\n  },\n  linkPreview: true\n}\nconst response = await client.messages.createMessage(request)",
+        "imports": [
+          "FileType",
+          "MessageCreateRequest",
+          "MessageFile"
+        ]
+      }
+    }
   },
   "MessageOperations_updateMessage": {
     "usage": "const request: MessageUpdateRequest = {\n  message: {\n    content: \"Отчёт обновлён\",\n    files: [{\n      key: \"attaches/files/1/photo.png\",\n      name: \"photo.png\",\n      fileType: FileType.Image,\n      width: 800,\n      height: 600\n    }]\n  }\n}\nconst response = await client.messages.updateMessage(123, request)",

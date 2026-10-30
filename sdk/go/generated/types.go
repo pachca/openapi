@@ -399,7 +399,7 @@ type SearchEntityType string
 
 const (
 	SearchEntityTypeUser SearchEntityType = "User" // Пользователь
-	SearchEntityTypeTask SearchEntityType = "Task" // Задача
+	SearchEntityTypeTask SearchEntityType = "Task" // Напоминание
 )
 
 type SearchSortOrder string
@@ -747,20 +747,21 @@ type AuditDetailsBotScopes struct {
 }
 
 type AuditDetailsBotTokenUpdated struct {
-	TokenKind          string                       `json:"token_kind"`
-	ResourceOwnerID    int32                        `json:"resource_owner_id"`
-	CurrentScopes      []string                     `json:"current_scopes"`
-	AccessTokenID      int32                        `json:"access_token_id"`
-	WebhookID          int32                        `json:"webhook_id"`
-	TokenName          *string                      `json:"token_name"`
-	BotID              *int32                       `json:"bot_id,omitempty"`
-	ActorID            *int32                       `json:"actor_id"`
-	AccessTokenPreview *string                      `json:"access_token_preview"`
-	ApplicationID      *int32                       `json:"application_id,omitempty"`
-	ApplicationName    *string                      `json:"application_name,omitempty"`
-	ClientID           *string                      `json:"client_id,omitempty"`
-	BotName            *string                      `json:"bot_name,omitempty"`
-	Name               *AuditDetailsTokenNameChange `json:"name,omitempty"`
+	TokenKind          string                         `json:"token_kind"`
+	ResourceOwnerID    int32                          `json:"resource_owner_id"`
+	CurrentScopes      []string                       `json:"current_scopes"`
+	AccessTokenID      int32                          `json:"access_token_id"`
+	WebhookID          int32                          `json:"webhook_id"`
+	TokenName          *string                        `json:"token_name"`
+	BotID              *int32                         `json:"bot_id,omitempty"`
+	ActorID            *int32                         `json:"actor_id"`
+	AccessTokenPreview *string                        `json:"access_token_preview"`
+	ApplicationID      *int32                         `json:"application_id,omitempty"`
+	ApplicationName    *string                        `json:"application_name,omitempty"`
+	ClientID           *string                        `json:"client_id,omitempty"`
+	BotName            *string                        `json:"bot_name,omitempty"`
+	Name               *AuditDetailsTokenNameChange   `json:"name,omitempty"`
+	Scopes             *AuditDetailsTokenScopesChange `json:"scopes,omitempty"`
 }
 
 type AuditDetailsBotWebhookSettings struct {
@@ -918,6 +919,11 @@ type AuditDetailsTokenNameChange struct {
 
 type AuditDetailsTokenScopes struct {
 	Scopes []string `json:"scopes"`
+}
+
+type AuditDetailsTokenScopesChange struct {
+	Previous []string `json:"previous"`
+	New      []string `json:"new"`
 }
 
 type AuditDetailsUserLoginQr struct {
@@ -2761,7 +2767,7 @@ var auditEventDetailsUnionShapes = []unionMemberShape{
 	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "application_id": {}, "application_name": {}, "bot_name": {}, "webhook_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}}},
 	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "deleted_access_tokens_count": {}, "deleted_access_grants_count": {}, "application_id": {}, "application_name": {}, "bot_name": {}, "webhook_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}}},
 	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "scopes": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}, "application_name": {}, "client_id": {}, "bot_id": {}, "bot_name": {}, "device_name": {}, "actor_id": {}, "webhook_id": {}, "user_id": {}, "source": {}, "reason": {}}},
-	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "current_scopes": {}, "bot_id": {}, "actor_id": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}, "application_name": {}, "client_id": {}, "bot_name": {}, "webhook_id": {}, "name": {}}},
+	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "current_scopes": {}, "bot_id": {}, "actor_id": {}, "access_token_id": {}, "access_token_preview": {}, "application_id": {}, "application_name": {}, "client_id": {}, "bot_name": {}, "webhook_id": {}, "name": {}, "scopes": {}}},
 	{keys: map[string]struct{}{"method": {}, "login_grant_id": {}}},
 	{keys: map[string]struct{}{"login_grant_id": {}}},
 	{keys: map[string]struct{}{"login_grant_id": {}, "device": {}}},

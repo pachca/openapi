@@ -10,7 +10,7 @@ import {
   type IRService,
   type IRUnion,
 } from '../ir.js';
-import { bodyExample, buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, tagToProperty, tagToServiceName, serviceToImplName } from '../naming.js';
 
 const SWIFT_KEYWORDS = new Set([
@@ -168,7 +168,49 @@ function isSelfReferencing(m: IRModel): boolean {
   return m.fields.some((f) => fieldRefsModel(f.type, m.name));
 }
 
-function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
+/** The name a caller writes in nullFields: the property name, without the backticks a keyword takes. */
+function nullFieldName(f: IRField): string {
+  return swiftIdentifier(f.name).replace(/`/g, '');
+}
+
+/**
+ * A request model with fields the API takes as null carries nullFields and its own
+ * encode(to:): an unset field stays out of the body, a field named in nullFields
+ * goes out as null whatever value it holds, and a name the model does not take as
+ * null throws EncodingError before the request is sent.
+ */
+function emitNullFieldsEncode(lines: string[], m: IRModel, nullable: IRField[]): void {
+  const names = nullable.map((f) => JSON.stringify(nullFieldName(f))).join(', ');
+  lines.push('');
+  lines.push('    public func encode(to encoder: Encoder) throws {');
+  lines.push(`        if let unknown = nullFields.subtracting([${names}]).sorted().first {`);
+  lines.push('            throw EncodingError.invalidValue(nullFields, EncodingError.Context(');
+  lines.push('                codingPath: encoder.codingPath,');
+  lines.push(`                debugDescription: "${m.name}: field \\"\\(unknown)\\" cannot be sent as null"`);
+  lines.push('            ))');
+  lines.push('        }');
+  lines.push('        var container = encoder.container(keyedBy: CodingKeys.self)');
+  for (const f of m.fields) {
+    const id = swiftIdentifier(f.name);
+    const optional = !f.required || f.nullable;
+    const write = optional
+      ? `try container.encodeIfPresent(${id}, forKey: .${id})`
+      : `try container.encode(${id}, forKey: .${id})`;
+    if (nullable.includes(f)) {
+      lines.push(`        if nullFields.contains("${nullFieldName(f)}") {`);
+      lines.push(`            try container.encodeNil(forKey: .${id})`);
+      lines.push('        } else {');
+      lines.push(`            ${write}`);
+      lines.push('        }');
+    } else {
+      lines.push(`        ${write}`);
+    }
+  }
+  lines.push('    }');
+}
+
+function emitModel(lines: string[], m: IRModel, allModels: IRModel[], withNullFields = false): void {
+  const nullable = withNullFields ? nullableOptionalFields(m) : [];
   const proto = m.isError ? 'Codable, Error' : 'Codable';
   const keyword = isSelfReferencing(m) ? 'class' : 'struct';
   lines.push(`public ${keyword} ${m.name}: ${proto} {`);
@@ -191,17 +233,25 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
     lines.push('    public var statusCode: Int?');
     fieldInfos.push({ name: 'statusCode', type: 'Int?', optional: true, mutable: true });
   }
+  if (nullable.length > 0) {
+    // Not in the body: CodingKeys below leave it out.
+    lines.push(`    /// Fields to send as null: ${nullable.map(nullFieldName).join(', ')}. An unset field stays out of the body.`);
+    lines.push('    public var nullFields: Set<String> = []');
+  }
   // Generate public memberwise init
   lines.push('');
   const initParams = fieldInfos.map((fi) => {
     const defaultVal = fi.optional ? ' = nil' : '';
     return `${fi.name}: ${fi.type}${defaultVal}`;
   });
+  if (nullable.length > 0) initParams.push('nullFields: Set<String> = []');
   lines.push(`    public init(${initParams.join(', ')}) {`);
   for (const fi of fieldInfos) {
     lines.push(`        self.${fi.name} = ${fi.name}`);
   }
+  if (nullable.length > 0) lines.push('        self.nullFields = nullFields');
   lines.push('    }');
+  if (nullable.length > 0) emitNullFieldsEncode(lines, m, nullable);
 
   if (m.name === 'ApiError') {
     const errorsField = m.fields.find((f) => f.name === 'errors');
@@ -229,7 +279,7 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
     }
   }
 
-  emitCodingKeys(lines, m.fields, m.name === 'ApiError');
+  emitCodingKeys(lines, m.fields, m.name === 'ApiError' || nullable.length > 0);
   lines.push('}');
 }
 
@@ -393,12 +443,13 @@ function generateModels(ir: IR): string {
     emitEnum(lines, e);
     lines.push('');
   }
+  const requestModels = requestModelNames(ir);
   for (const m of ir.models) {
     for (const inl of m.inlineObjects) {
-      emitModel(lines, inl, ir.models);
+      emitModel(lines, inl, ir.models, requestModels.has(inl.name));
       lines.push('');
     }
-    emitModel(lines, m, ir.models);
+    emitModel(lines, m, ir.models, requestModels.has(m.name));
     lines.push('');
   }
   for (const u of ir.unions) {
@@ -1113,10 +1164,11 @@ function generateUtils(ir: IR): string {
     '    return encoder',
     '}()',
     '',
+    '// The encoder leaves out every optional field that is not set. A null in the',
+    '// body is one the caller asked for: a field named in nullFields of a request',
+    '// model, or a null inside a free-form value.',
     'func serialize<T: Encodable>(_ value: T) throws -> Data {',
-    '    let data = try pachcaEncoder.encode(value)',
-    '    let json = try JSONSerialization.jsonObject(with: data)',
-    '    return try JSONSerialization.data(withJSONObject: stripNulls(json))',
+    '    return try pachcaEncoder.encode(value)',
     '}',
     '',
     'func deserialize<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {',
@@ -1226,21 +1278,6 @@ function generateUtils(ir: IR): string {
     '',
   );
 
-  lines.push(
-    'private func stripNulls(_ value: Any) -> Any {',
-    '    if let dict = value as? [String: Any] {',
-    '        return dict.compactMapValues { v -> Any? in',
-    '            if v is NSNull { return nil }',
-    '            return stripNulls(v)',
-    '        }',
-    '    }',
-    '    if let arr = value as? [Any] {',
-    '        return arr.map(stripNulls)',
-    '    }',
-    '    return value',
-    '}',
-    '',
-  );
   return lines.join('\n');
 }
 
@@ -1543,6 +1580,8 @@ function swiftGenerateExamples(ir: IR): string {
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
+      const named = namedBodyExamples(op, (o) => swiftBuildOperationExample(o, ir, models, serviceProp));
+      if (named) entry.examples = named;
       result[op.operationId] = entry;
       if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
         result[`${op.operationId}_pollWebhookEvents`] = {

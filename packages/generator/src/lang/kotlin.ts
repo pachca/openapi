@@ -11,7 +11,7 @@ import {
   type IRParam,
   type IRResponseType,
 } from '../ir.js';
-import { bodyExample, buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToUpperSnake,
@@ -60,6 +60,11 @@ function ktType(ft: IRFieldType): string {
 function needsSerialName(field: IRField): boolean {
   if (field.type.kind === 'binary') return false;
   return fieldSdkName(field) !== field.name;
+}
+
+/** The name a caller writes in nullFields: the property name, without the backticks a keyword takes. */
+function nullFieldName(field: IRField): string {
+  return fieldSdkName(field).replace(/`/g, '');
 }
 
 function fieldSdkName(field: IRField): string {
@@ -200,6 +205,16 @@ function generateModels(ir: IR): string {
       m.inlineObjects.some((i) => i.fields.some((f) => usesAny(f.type)))) ||
     ir.params.some((p) => p.params.some((q) => usesAny(q.type)));
 
+  // Request models with fields the caller can send as null by name in nullFields.
+  const requestModels = requestModelNames(ir);
+  const nullableModels = new Set(
+    [...buildModelIndex(ir).values()]
+      .filter((m) => requestModels.has(m.name) && nullableOptionalFields(m).length > 0)
+      .map((m) => m.name),
+  );
+  const needNullFields = nullableModels.size > 0;
+  if (needNullFields) needTransient = true;
+
   // An open enum is a value class and names no entries.
   if (ir.enums.some((e) => !e.open)) needSerialName = true;
   if (ir.unions.length > 0) needSerialName = true;
@@ -229,22 +244,28 @@ function generateModels(ir: IR): string {
   if (needDateTime) imports.push('import java.time.OffsetDateTime');
   if (needDateTime) imports.push('import java.time.format.DateTimeFormatter');
   const needCustomUnionSerializer = needWebhookPayloadUnionSerializer || needStructuralUnionSerializer;
-  if (needDateTime || needCustomUnionSerializer) imports.push('import kotlinx.serialization.KSerializer');
+  const needCustomSerializer = needCustomUnionSerializer || needNullFields;
+  if (needNullFields) imports.push('import kotlinx.serialization.KeepGeneratedSerializer');
+  if (needDateTime || needCustomSerializer) imports.push('import kotlinx.serialization.KSerializer');
   if (needSerialName) imports.push('import kotlinx.serialization.SerialName');
   imports.push('import kotlinx.serialization.Serializable');
+  if (needNullFields) imports.push('import kotlinx.serialization.SerializationException');
   if (needTransient) imports.push('import kotlinx.serialization.Transient');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveKind');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor');
+  if (needNullFields) imports.push('import kotlinx.serialization.descriptors.SerialDescriptor');
   if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.descriptors.buildClassSerialDescriptor');
-  if (needDateTime || needCustomUnionSerializer) imports.push('import kotlinx.serialization.encoding.Decoder');
-  if (needDateTime || needCustomUnionSerializer) imports.push('import kotlinx.serialization.encoding.Encoder');
+  if (needDateTime || needCustomSerializer) imports.push('import kotlinx.serialization.encoding.Decoder');
+  if (needDateTime || needCustomSerializer) imports.push('import kotlinx.serialization.encoding.Encoder');
   if (needStructuralUnionSerializer) imports.push('import kotlinx.serialization.json.Json');
   if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.JsonDecoder');
   if (needJsonElement) imports.push('import kotlinx.serialization.json.JsonElement');
-  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.JsonEncoder');
+  if (needCustomSerializer) imports.push('import kotlinx.serialization.json.JsonEncoder');
+  if (needNullFields) imports.push('import kotlinx.serialization.json.JsonNull');
+  if (needNullFields) imports.push('import kotlinx.serialization.json.JsonObject');
   if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.contentOrNull');
   if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.decodeFromJsonElement');
-  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.jsonObject');
+  if (needCustomSerializer) imports.push('import kotlinx.serialization.json.jsonObject');
   if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.jsonPrimitive');
   lines.push(imports.join('\n'));
 
@@ -254,6 +275,39 @@ function generateModels(ir: IR): string {
     lines.push('    override val descriptor = PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)');
     lines.push('    override fun serialize(encoder: Encoder, value: OffsetDateTime) = encoder.encodeString(value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))');
     lines.push('    override fun deserialize(decoder: Decoder): OffsetDateTime = OffsetDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)');
+    lines.push('}');
+  }
+
+  if (needNullFields) {
+    lines.push('');
+    lines.push('/**');
+    lines.push(' * Writes a request model as its generated serializer does: an unset field stays');
+    lines.push(' * out of the body. A field named in nullFields goes out as null, whatever value');
+    lines.push(' * it holds, and a name the model does not take as null fails before the request');
+    lines.push(' * is sent.');
+    lines.push(' */');
+    lines.push('internal open class NullFieldsSerializer<T>(');
+    lines.push('    private val generated: KSerializer<T>,');
+    lines.push('    private val model: String,');
+    lines.push('    private val keys: Map<String, String>,');
+    lines.push('    private val nullFields: (T) -> Set<String>,');
+    lines.push(') : KSerializer<T> {');
+    lines.push('    override val descriptor: SerialDescriptor get() = generated.descriptor');
+    lines.push('');
+    lines.push('    override fun deserialize(decoder: Decoder): T = generated.deserialize(decoder)');
+    lines.push('');
+    lines.push('    override fun serialize(encoder: Encoder, value: T) {');
+    lines.push('        val names = nullFields(value)');
+    lines.push('        val unknown = names.firstOrNull { it !in keys }');
+    lines.push('        if (unknown != null) throw SerializationException("$model: field \\"$unknown\\" cannot be sent as null")');
+    lines.push('        if (names.isEmpty() || encoder !is JsonEncoder) {');
+    lines.push('            generated.serialize(encoder, value)');
+    lines.push('            return');
+    lines.push('        }');
+    lines.push('        val body = encoder.json.encodeToJsonElement(generated, value).jsonObject.toMutableMap()');
+    lines.push('        for (name in names) body[keys.getValue(name)] = JsonNull');
+    lines.push('        encoder.encodeJsonElement(JsonObject(body))');
+    lines.push('    }');
     lines.push('}');
   }
 
@@ -275,10 +329,10 @@ function generateModels(ir: IR): string {
     // Emit inline objects before parent
     for (const inl of m.inlineObjects) {
       lines.push('');
-      emitModel(lines, inl, ir.models);
+      emitModel(lines, inl, ir.models, nullableModels.has(inl.name));
     }
     lines.push('');
-    emitModel(lines, m, ir.models);
+    emitModel(lines, m, ir.models, nullableModels.has(m.name));
   }
 
   // Response types
@@ -546,10 +600,17 @@ function emitModel(
   lines: string[],
   m: IRModel,
   allModels: IRModel[],
+  withNullFields = false,
 ): void {
   const fields = m.fields;
+  const nullable = withNullFields ? nullableOptionalFields(m) : [];
 
-  lines.push('@Serializable');
+  if (nullable.length > 0) {
+    lines.push('@KeepGeneratedSerializer');
+    lines.push(`@Serializable(with = ${m.name}Serializer::class)`);
+  } else {
+    lines.push('@Serializable');
+  }
 
   if (fields.length === 0) {
     const ext = m.isError ? ' : Exception()' : '';
@@ -614,9 +675,21 @@ function emitModel(
     lines.push('    /** HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty. */');
     lines.push('    @Transient val statusCode: Int? = null,');
   }
+  if (nullable.length > 0) {
+    lines.push(`    /** Fields to send as null: ${nullable.map(nullFieldName).join(', ')}. An unset field stays out of the body. */`);
+    lines.push('    @Transient val nullFields: Set<String> = emptySet(),');
+  }
 
   const ext = m.isError ? ' : Exception()' : '';
   lines.push(`)${ext}`);
+
+  if (nullable.length > 0) {
+    const keys = nullable.map((f) => `"${nullFieldName(f)}" to "${f.name}"`).join(', ');
+    lines.push('');
+    lines.push(`internal object ${m.name}Serializer : NullFieldsSerializer<${m.name}>(`);
+    lines.push(`    ${m.name}.generatedSerializer(), "${m.name}", mapOf(${keys}), { it.nullFields },`);
+    lines.push(')');
+  }
 
   if (m.name === 'ApiError') {
     const errorsField = m.fields.find((f) => f.name === 'errors');
@@ -1845,6 +1918,8 @@ function generateExamples(ir: IR): string {
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
+      const named = namedBodyExamples(op, (o) => buildOperationExample(o, ir, models, serviceProp));
+      if (named) entry.examples = named;
       result[op.operationId] = entry;
       if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
         result[`${op.operationId}_pollWebhookEvents`] = {

@@ -57,6 +57,7 @@ Console.WriteLine("open enums ok");
 await Retries.RunAsync();
 await ErrorBodies.RunAsync();
 await AuditDetails.RunAsync();
+await RequestBodies.RunAsync();
 return 0;
 
 static void Check(bool condition, string message)

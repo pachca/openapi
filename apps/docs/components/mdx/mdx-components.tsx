@@ -272,7 +272,7 @@ export async function ApiCards() {
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="Custom title" />
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="With filters" params={{ event_key: "user_login", limit: 50 }} />
  * <ApiCodeExample operationId="MessageOperations_createMessage" responseMode="minimal" />
- * <ApiCodeExample operationId="MessageOperations_createMessage" example="Сообщение с кнопкой" langs={["curl", "cli"]} />
+ * <ApiCodeExample operationId="MessageOperations_createMessage" example="Сообщение с кнопкой" />
  *
  * Single-language mode (no dropdown, no header, inline copy button):
  * <ApiCodeExample lang="typescript" operationId="ChatOperations_createChat" />
@@ -285,10 +285,10 @@ export async function ApiCards() {
  * operationId = {InterfaceName}_{methodName} from TypeSpec (see openapi.yaml)
  * params — override parameter and body field values; only specified + required ones are included (curl/cli only)
  * example — request body example to show, by its key or `summary` (the `@opExample` title); without it
- *   the first one. curl/cli only: SDK code comes from examples.json, built from the first example, so use
- *   it with lang="curl" | "cli" or langs={["curl", "cli"]}; with an SDK language it renders an error, as
- *   does an unknown name. Applied after `params`, and `params` that name body fields drop the spec's
- *   examples, so use one or the other for the body.
+ *   the first one. Every language shows it: curl and cli from the spec, the SDK languages from the
+ *   `examples` field of the operation's examples.json entry. Needs `operationId`. An unknown name, or
+ *   a shown SDK language without that example, renders an error. Applied after `params`, and `params`
+ *   that name body fields drop the spec's examples, so use one or the other for the body.
  * responseMode — "full" (default): all fields with values; "minimal": null for nullable, [] for optional arrays
  * lang — single language: no dropdown/header, renders as simple code block
  * langs — filter languages in multi-language dropdown (e.g. ["typescript", "python", "go", "kotlin", "swift", "csharp"])
@@ -347,12 +347,23 @@ async function guideEndpoint(
   return result;
 }
 
-/** `example` with an SDK language: examples.json holds only the first example. */
-function SdkExampleError({ example, operationId }: { example: string; operationId?: string }) {
+/**
+ * `example` that a shown SDK language has no code for: the generator writes a
+ * named example into examples.json only when the spec names it. The .md twin
+ * is in `lib/mdx-expander.ts`.
+ */
+function SdkExampleMissing({
+  example,
+  operationId,
+  missing,
+}: {
+  example: string;
+  operationId: string;
+  missing: string[];
+}) {
   return (
     <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
-      Request example &quot;{example}&quot; ({operationId}) is shown in curl and cli only: set
-      lang=&quot;curl&quot; | &quot;cli&quot; or langs={'{["curl", "cli"]}'}
+      Request example &quot;{example}&quot; ({operationId}) has no SDK code in: {missing.join(', ')}
     </div>
   );
 }
@@ -370,6 +381,15 @@ export async function ApiCodeExample({
   operations,
   showInit = true,
 }: ApiCodeExampleProps) {
+  // A named request example belongs to one operation.
+  if (example && !operationId) {
+    return (
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+        operationId is required for example=&quot;{example}&quot;
+      </div>
+    );
+  }
+
   // Single-language mode: render as simple code block
   if (lang) {
     const { GuideCodeBlock } = await import('@/components/api/guide-code-block');
@@ -408,7 +428,27 @@ export async function ApiCodeExample({
     }
 
     // SDK languages: load from examples.json
-    if (example) return <SdkExampleError example={example} operationId={operationId} />;
+    if (example && operationId) {
+      const code = getSdkExampleForLang(lang, [{ id: operationId, example }], showInit);
+      if (code) return <GuideCodeBlock language={lang} code={code} />;
+      // A name the spec lacks reads as in the other modes, before the SDK one.
+      const endpoint = await getEndpointByOperation(operationId);
+      if (!endpoint) {
+        return (
+          <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+            Endpoint not found: {operationId}
+          </div>
+        );
+      }
+      if (!(await guideEndpoint(endpoint, undefined, example))) {
+        return (
+          <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+            Request example not found: {example} ({operationId})
+          </div>
+        );
+      }
+      return <SdkExampleMissing example={example} operationId={operationId} missing={[lang]} />;
+    }
     const ops = operations ?? (operationId ? [{ id: operationId }] : []);
     const code = getSdkExampleForLang(lang, ops, showInit);
 
@@ -478,13 +518,6 @@ export async function ApiCodeExample({
     );
   }
 
-  // Without `langs` the dropdown shows the SDK languages too, and they would
-  // send the first example instead of the named one.
-  const showsSdk = !langs || langs.some((l) => l !== 'curl' && l !== 'cli');
-  if (example && showsSdk) {
-    return <SdkExampleError example={example} operationId={operationId} />;
-  }
-
   const finalEndpoint = await guideEndpoint(endpoint, params, example);
   if (!finalEndpoint) {
     return (
@@ -494,7 +527,15 @@ export async function ApiCodeExample({
     );
   }
 
-  const sdkEx = getSdkExamples(operationId);
+  // With `example` every tab shows that request, the SDK ones included.
+  const sdkEx = getSdkExamples(operationId, example);
+  if (example) {
+    const sdkLangs = ['typescript', 'python', 'go', 'kotlin', 'swift', 'csharp'];
+    const missing = sdkLangs.filter((l) => (!langs || langs.some((v) => v === l)) && !sdkEx[l]);
+    if (missing.length > 0) {
+      return <SdkExampleMissing example={example} operationId={operationId} missing={missing} />;
+    }
+  }
 
   return (
     <CodeExamples

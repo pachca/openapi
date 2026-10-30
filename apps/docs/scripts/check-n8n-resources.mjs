@@ -49,7 +49,7 @@ const SECTION = {
   ReadMember: 'Read Member',
   Search: 'Search',
   Security: 'Security',
-  Task: 'Task',
+  Task: 'Reminder',
   Thread: 'Thread',
   User: 'User',
 };

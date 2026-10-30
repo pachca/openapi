@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, beforeAll, afterAll } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import ts from 'typescript';
 import { generate, SUPPORTED_LANGS } from '../src/index.js';
@@ -717,6 +718,99 @@ describe('Go request bodies', () => {
   });
 });
 
+// Kotlin, Python, C# and Swift: a field named in nullFields goes out as null, on
+// request models only. Each SDK checks the bodies at runtime in sdk/*/tests.
+describe('null fields of request models', () => {
+  let out: string;
+  const read = (file: string) => fs.readFileSync(path.join(out, file), 'utf-8');
+
+  beforeAll(() => {
+    out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-null-fields-'));
+    generate(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'), out, ['kotlin', 'python', 'csharp', 'swift']);
+  });
+  afterAll(() => fs.rmSync(out, { recursive: true, force: true }));
+
+  it('Kotlin: nullFields and a serializer that writes null', () => {
+    const kt = read('kt/Models.kt');
+    expect(kt).toContain('@Serializable(with = BotUpdateRequestWebhookSerializer::class)');
+    expect(kt).toContain('    @Transient val nullFields: Set<String> = emptySet(),');
+    expect(kt).toContain('mapOf("parentMessageId" to "parent_message_id", "schedule" to "schedule")');
+    expect(kt).toContain('cannot be sent as null');
+    expect(kt).not.toMatch(/data class BotWebhook\([^)]*nullFields/);
+  });
+
+  it('Python: null_fields and the fields each model takes as null', () => {
+    expect(read('py/models.py')).toContain('    null_fields: Sequence[str] = ()');
+    const utils = read('py/utils.py');
+    expect(utils).toContain('    BotUpdateRequest: frozenset({"oauth_client"}),');
+    expect(utils).toContain('cannot be sent as null');
+  });
+
+  it('C#: NullFields and a contract modifier', () => {
+    expect(read('cs/Models.cs')).toContain('public class BotUpdateRequestWebhook : INullFields');
+    const utils = read('cs/Utils.cs');
+    expect(utils).toContain('[typeof(BotUpdateRequest)] = new() { "OauthClient" },');
+    expect(utils).toContain('TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { SendNullFields } },');
+  });
+
+  it('Swift: nullFields and its own encode(to:)', () => {
+    const swift = read('swift/Models.swift');
+    expect(swift).toContain('    public var nullFields: Set<String> = []');
+    expect(swift).toContain('            try container.encodeNil(forKey: .kind)');
+    expect(read('swift/Utils.swift')).not.toContain('stripNulls');
+  });
+
+  it('a keyword-named field goes by the name the caller writes, without the escape', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-null-keyword-'));
+    try {
+      const spec = {
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/items/{id}': {
+            put: {
+              operationId: 'updateItem',
+              summary: 'Изменение элемента',
+              tags: ['Items'],
+              parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+              requestBody: {
+                required: true,
+                content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemUpdateRequest' } } },
+              },
+              responses: { '204': { description: 'Нет содержимого' } },
+            },
+          },
+        },
+        components: {
+          schemas: {
+            ItemUpdateRequest: {
+              type: 'object',
+              properties: {
+                class: { type: 'string', nullable: true, description: 'Класс элемента.' },
+                name: { type: 'string', description: 'Название элемента.' },
+              },
+            },
+          },
+        },
+      };
+      const file = path.join(dir, 'spec.yaml');
+      fs.writeFileSync(file, JSON.stringify(spec));
+      const gen = path.join(dir, 'out');
+      generate(file, gen, ['kotlin', 'python', 'csharp', 'swift']);
+      const at = (f: string) => fs.readFileSync(path.join(gen, f), 'utf-8');
+      expect(at('kt/Models.kt')).toContain('mapOf("class" to "class")');
+      expect(at('py/utils.py')).toContain('    ItemUpdateRequest: frozenset({"class_"}),');
+      expect(at('cs/Utils.cs')).toContain('[typeof(ItemUpdateRequest)] = new() { "Class" },');
+      const swift = at('swift/Models.swift');
+      expect(swift).toContain('nullFields.subtracting(["class"])');
+      expect(swift).toContain('if nullFields.contains("class") {');
+      expect(swift).toContain('try container.encodeNil(forKey: .`class`)');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
 // A union with no discriminator ranks its members by the payload keys and takes
 // the first one that decodes: a member that fits the keys but not the types (an
 // older record) gives way to the next instead of failing the whole page.
@@ -764,6 +858,57 @@ describe('unions without a discriminator', () => {
   });
 });
 
+// Members that share a key with another type (scopes as a list or an object): the
+// member that fits the keys best but not the value's type gives way to the next.
+describe('unions without a discriminator: value types', () => {
+  const fixture = path.join(TESTS_DIR, 'union-type-mismatch', 'fixture.yaml');
+  let out: string;
+  const hasPython = (() => {
+    try {
+      execFileSync('python3', ['--version'], { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  beforeAll(() => {
+    out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-union-types-'));
+    generate(fixture, out, ['python']);
+  });
+  afterAll(() => fs.rmSync(out, { recursive: true, force: true }));
+
+  it('Python checks the value types when it picks a member', () => {
+    const py = fs.readFileSync(path.join(out, 'py', 'utils.py'), 'utf-8');
+    expect(py).toContain('return _deserialize_dataclass(member, value, strict=True)');
+    expect(py).toContain('if strict and not _fits(hints[f.name], v):');
+  });
+
+  it.skipIf(!hasPython)('Python: a token record goes past the member that takes scopes as an object', () => {
+    fs.renameSync(path.join(out, 'py'), path.join(out, 'pachca'));
+    const script = [
+      'import sys, types',
+      'stub = types.ModuleType("httpx")',
+      'stub.__getattr__ = lambda name: type(name, (), {})',
+      'sys.modules["httpx"] = stub',
+      `sys.path.insert(0, ${JSON.stringify(out)})`,
+      'from pachca.models import DetailsBot, DetailsBotTokenUpdated, DetailsToken, Event',
+      'from pachca.utils import deserialize',
+      'def details(d): return deserialize(Event, {"id": 1, "event_key": "bot_updated", "details": d}).details',
+      'token = details({"token_kind": "user", "resource_owner_id": 12, "scopes": ["messages:read"], "access_token_id": 4828})',
+      'assert isinstance(token, DetailsToken) and token.scopes == ["messages:read"], token',
+      'updated = details({"token_kind": "bot", "resource_owner_id": 7, "current_scopes": ["chats:read"], "scopes": {"previous": ["messages:read"], "new": ["chats:read"]}, "access_token_id": 4827, "webhook_id": 31})',
+      'assert isinstance(updated, DetailsBotTokenUpdated) and updated.scopes.new == ["chats:read"], updated',
+      'old = details({"bot_id": 7, "webhook_id": 31, "scopes": {"previous": [], "new": []}})',
+      'assert not isinstance(old, DetailsBot), old',
+      'bot = details({"bot_id": 7, "webhook_id": 31, "scopes": ["messages:read"]})',
+      'assert isinstance(bot, DetailsBot), bot',
+      'print("ok")',
+    ].join('\n');
+    expect(execFileSync('python3', ['-c', script], { encoding: 'utf-8' }).trim()).toBe('ok');
+  });
+});
+
 // A .NET project sees System.Threading.Tasks.TaskStatus, Task, Thread and
 // System.IO.File through the default implicit usings: a C# example spells the
 // SDK type in full, or the short name fails with CS0104.
@@ -772,10 +917,84 @@ describe('C# examples', () => {
     const out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-cs-examples-'));
     try {
       generate(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'), out, ['csharp'], { examples: true });
-      const examples = JSON.parse(fs.readFileSync(path.join(out, 'cs', 'examples.json'), 'utf-8')) as Record<string, { usage: string }>;
-      const usages = Object.values(examples).map((e) => e.usage).join('\n');
+      const examples = JSON.parse(fs.readFileSync(path.join(out, 'cs', 'examples.json'), 'utf-8')) as Record<
+        string,
+        { usage: string; examples?: Record<string, { usage: string }> }
+      >;
+      // The named request examples are shown in the guides too.
+      const usages = Object.values(examples)
+        .flatMap((e) => [e.usage, ...Object.values(e.examples ?? {}).map((named) => named.usage)])
+        .join('\n');
       expect(usages).toContain('Pachca.Sdk.TaskStatus.Undone');
       expect(usages).not.toMatch(/(?<![.\w])TaskStatus\./);
+    } finally {
+      fs.rmSync(out, { recursive: true, force: true });
+    }
+  });
+});
+
+// A request body with named examples gets the usage of each under the
+// operation's entry (`examples`), so a guide can show the SDK call of any of
+// them. Every top-level key stays an operation: readers that look one up or
+// walk the keys see the same file as before.
+describe('named body examples', () => {
+  const DIRS: Record<string, string> = {
+    typescript: 'ts',
+    python: 'py',
+    go: 'go',
+    kotlin: 'kt',
+    swift: 'swift',
+    csharp: 'cs',
+  };
+  type Entry = {
+    usage: string;
+    output?: string;
+    imports?: string[];
+    examples?: Record<string, { summary?: string; usage: string; imports?: string[] }>;
+  };
+  const read = (out: string, lang: string) =>
+    JSON.parse(fs.readFileSync(path.join(out, DIRS[lang], 'examples.json'), 'utf-8')) as Record<string, Entry>;
+
+  it('writes each named example of the body under its key, the first one as the entry itself', () => {
+    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-named-examples-'));
+    try {
+      generate(path.join(TESTS_DIR, 'body-example', 'fixture.yaml'), out, SUPPORTED_LANGS, { examples: true });
+      for (const lang of SUPPORTED_LANGS) {
+        const examples = read(out, lang);
+        expect(Object.keys(examples), lang).toEqual([
+          'Client_Init',
+          'MessageOperations_createMessage',
+          'MessageOperations_updateMessage',
+        ]);
+        const entry = examples.MessageOperations_createMessage;
+        expect(Object.keys(entry.examples ?? {}), lang).toEqual(['minimal', 'full']);
+        const { minimal, full } = entry.examples!;
+        expect(minimal.usage, lang).toBe(entry.usage);
+        expect(minimal.imports, lang).toEqual(entry.imports);
+        expect(minimal.summary, lang).toBe('Текст с кнопкой');
+        expect(full.summary, lang).toBe('Сообщение с файлом');
+        expect(full.usage, lang).toContain('report.pdf');
+        expect(full.usage, lang).not.toContain('accept');
+        expect(full, lang).not.toHaveProperty('output');
+        // A single unnamed example has nothing to choose from.
+        expect(examples.MessageOperations_updateMessage, lang).not.toHaveProperty('examples');
+      }
+    } finally {
+      fs.rmSync(out, { recursive: true, force: true });
+    }
+  });
+
+  // guides/buttons.mdx shows the button message in every SDK language.
+  it('gives the Pachca button message to every language', () => {
+    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-named-examples-pachca-'));
+    try {
+      generate(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'), out, SUPPORTED_LANGS, { examples: true });
+      for (const lang of SUPPORTED_LANGS) {
+        const named = read(out, lang).MessageOperations_createMessage.examples ?? {};
+        expect(Object.keys(named), lang).toEqual(['Минимальный запрос', 'Сообщение с кнопкой']);
+        expect(named['Сообщение с кнопкой'].usage, lang).toContain('https://example.com/details');
+        expect(named['Сообщение с кнопкой'], lang).not.toHaveProperty('summary');
+      }
     } finally {
       fs.rmSync(out, { recursive: true, force: true });
     }

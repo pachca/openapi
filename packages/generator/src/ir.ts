@@ -117,6 +117,18 @@ export interface IRRequestBody {
    * `example`. The usage examples build the request from it (see bodyExample).
    */
   example?: unknown;
+  /**
+   * The named body examples (`examples`), in spec order, the first included.
+   * examples.json gives each its own usage under the operation's entry.
+   */
+  examples?: IRBodyExample[];
+}
+
+/** One named request body example: the key of `examples`, its `summary` and its value. */
+export interface IRBodyExample {
+  name: string;
+  summary?: string;
+  value: unknown;
 }
 
 export interface IRSuccessResponse {

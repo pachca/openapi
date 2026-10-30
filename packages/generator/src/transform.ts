@@ -16,6 +16,7 @@ import type {
   IRService,
   IROperation,
   IRParam,
+  IRBodyExample,
   IRRequestBody,
   IRRequestHeader,
   IRSuccessResponse,
@@ -638,8 +639,19 @@ function transformRequestBody(
   // `examples` (the spec puts the minimal one first), else `example`.
   const firstExample = mediaType.examples ? Object.values(mediaType.examples)[0]?.value : undefined;
   const example = firstExample !== undefined ? firstExample : mediaType.example;
+  // Every named example, so a guide can show the SDK call of any of them.
+  const examples: IRBodyExample[] = Object.entries(mediaType.examples ?? {})
+    .filter(([, ex]) => ex?.value !== undefined)
+    .map(([name, ex]) => ({ name, ...(ex.summary ? { summary: ex.summary } : {}), value: ex.value }));
 
-  return { contentType, schemaRef, unwrapMode, unwrapField, ...(example !== undefined ? { example } : {}) };
+  return {
+    contentType,
+    schemaRef,
+    unwrapMode,
+    unwrapField,
+    ...(example !== undefined ? { example } : {}),
+    ...(examples.length > 0 ? { examples } : {}),
+  };
 }
 
 /** A `meta` that names a type: a `$ref` or an inline object with properties. */

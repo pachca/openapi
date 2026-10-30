@@ -1,4 +1,4 @@
-import type { IR, IRField, IRFieldType, IRModel, IRRequestBody } from '../ir.js';
+import type { IR, IRField, IRFieldType, IRModel, IROperation, IRRequestBody } from '../ir.js';
 import { shouldUnwrapBody } from '../ir.js';
 
 export interface GeneratedFile {
@@ -80,6 +80,70 @@ export function buildModelIndex(ir: IR): Map<string, IRModel> {
     }
   }
   return index;
+}
+
+/**
+ * Every model (inline objects included) a JSON request body reaches. An optional
+ * nullable field of such a model can go out as an explicit `null` by name.
+ */
+export function requestModelNames(ir: IR): Set<string> {
+  const index = buildModelIndex(ir);
+  const names = new Set<string>();
+  for (const s of ir.services) {
+    for (const op of s.operations) {
+      const rb = op.requestBody;
+      if (!rb || rb.contentType !== 'json') continue;
+      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, index)) {
+        if (index.has(r)) names.add(r);
+      }
+    }
+  }
+  return names;
+}
+
+/**
+ * Optional nullable fields of a model. An unset one stays out of the body (for
+ * such a field `null` means something: it switches a setting off or deletes an
+ * object), and the caller names it to send `null`.
+ */
+export function nullableOptionalFields(m: IRModel): IRField[] {
+  return m.fields.filter((f) => !f.required && f.nullable);
+}
+
+/** The usage example of one named request body example in examples.json. */
+export interface NamedExampleEntry {
+  /** The example's `summary`, when it differs from its key */
+  summary?: string;
+  usage: string;
+  imports?: string[];
+}
+
+/**
+ * The `examples` field of an operation's examples.json entry: the usage of every
+ * named request body example, by its key in the spec, the first included (its
+ * usage is the entry's own). `undefined` when the body names no example.
+ *
+ * The named examples stay inside the operation's entry: every top-level key of
+ * examples.json is an operation (or `Client_Init` and the polling helpers), and
+ * readers that look an operation up or walk the keys keep working. The output
+ * is the operation's, since a request example does not change the response.
+ */
+export function namedBodyExamples(
+  op: IROperation,
+  build: (op: IROperation) => { usage: string; imports: string[] },
+): Record<string, NamedExampleEntry> | undefined {
+  const rb = op.requestBody;
+  if (!rb?.examples?.length) return undefined;
+  const result: Record<string, NamedExampleEntry> = {};
+  for (const ex of rb.examples) {
+    const built = build({ ...op, requestBody: { ...rb, example: ex.value } });
+    result[ex.name] = {
+      ...(ex.summary && ex.summary !== ex.name ? { summary: ex.summary } : {}),
+      usage: built.usage,
+      ...(built.imports.length > 0 ? { imports: built.imports } : {}),
+    };
+  }
+  return result;
 }
 
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>

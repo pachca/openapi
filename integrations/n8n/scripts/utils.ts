@@ -85,19 +85,23 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
       // Add sibling scalar fields (non-object top-level properties)
       for (const key of topKeys) {
         if (key === wrapperKey) continue;
-        const propSchema = resolveAllOf(properties[key]);
+        // resolveAllOf merges only the allOf parts: the property's own description and
+        // `nullable` (oauth_client of Bot > Update: `null` disables authorization) sit
+        // next to allOf and would be lost
+        const ownSchema = properties[key];
+        const propSchema = resolveAllOf(ownSchema);
         fields.push({
           name: key,
           type: getSchemaType(propSchema),
           format: propSchema.format,
           required: requiredFields.has(key),
-          description: propSchema.description,
+          description: ownSchema.description ?? propSchema.description,
           enum: propSchema.enum,
           maxLength: propSchema.maxLength,
           maximum: propSchema.maximum,
           minimum: propSchema.minimum,
           readOnly: propSchema.readOnly,
-          nullable: propSchema.nullable,
+          nullable: ownSchema.nullable || propSchema.nullable,
           default: propSchema.default,
           items: propSchema.items,
           properties: propSchema.properties,

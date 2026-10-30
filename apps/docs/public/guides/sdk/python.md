@@ -233,6 +233,18 @@ response = await client.chats.get_chat(id=334)
 ```
 
 
+### Значение null
+
+Необязательное поле, которое не задано, в запрос не попадает, поэтому метод обновления меняет только то, что вы передали. Некоторые поля API принимают `null`: например, `null` в `oauth_client` выключает у бота авторизацию от имени сотрудника, а в `webhook.kind` удаляет входящий вебхук. Чтобы отправить `null`, назовите поле в `null_fields` той же модели запроса так, как оно называется в Python:
+
+```python
+request = BotUpdateRequest(
+    webhook=BotUpdateRequestWebhook(null_fields=["kind"]),
+)
+```
+
+`null_fields` есть у моделей запроса с такими полями, а в комментарии к нему перечислены имена, которые в нём можно указать. С другим именем SDK выбрасывает `ValueError` и запрос не отправляет.
+
 ## Пагинация
 
 Поля пагинации называются как в API: `meta.paginate.next_page`, `prev_page`, `has_next` и `has_prev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
@@ -435,7 +447,7 @@ response = await client.users.list_users(params=params)
 ```
 
 
-**Создание задачи:**
+**Создание напоминания:**
 
 ```python
 from datetime import datetime

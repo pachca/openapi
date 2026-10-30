@@ -13,7 +13,29 @@
       "DataButton",
       "MessageCreateRequest",
       "MessageCreateRequestMessage"
-    ]
+    ],
+    "examples": {
+      "minimal": {
+        "summary": "Текст с кнопкой",
+        "usage": "var request = new MessageCreateRequest\n{\n    Message = new MessageCreateRequestMessage\n    {\n        EntityId = 334,\n        Content = \"Отчёт готов\",\n        Buttons = new List<List<Button>> { new List<Button> { new DataButton { Text = \"Принять\", Data = \"accept\" } } }\n    }\n};\nvar response = await client.Messages.CreateMessageAsync(request);",
+        "imports": [
+          "Button",
+          "DataButton",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage"
+        ]
+      },
+      "full": {
+        "summary": "Сообщение с файлом",
+        "usage": "var request = new MessageCreateRequest\n{\n    Message = new MessageCreateRequestMessage\n    {\n        EntityId = 334,\n        Content = \"Отчёт готов\",\n        Files = new List<MessageFile> { new MessageFile\n        {\n            Key = \"attaches/files/1/report.pdf\",\n            Name = \"report.pdf\",\n            FileType = FileType.File\n        } }\n    },\n    LinkPreview = true\n};\nvar response = await client.Messages.CreateMessageAsync(request);",
+        "imports": [
+          "FileType",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage",
+          "MessageFile"
+        ]
+      }
+    }
   },
   "MessageOperations_updateMessage": {
     "usage": "var request = new MessageUpdateRequest\n{\n    Message = new MessageUpdateRequestMessage\n    {\n        Content = \"Отчёт обновлён\",\n        Files = new List<MessageFile> { new MessageFile\n        {\n            Key = \"attaches/files/1/photo.png\",\n            Name = \"photo.png\",\n            FileType = FileType.Image,\n            Width = 800,\n            Height = 600\n        } }\n    }\n};\nvar response = await client.Messages.UpdateMessageAsync(123, request);",

@@ -54,7 +54,7 @@ npx -y @pachca/generator --spec https://example.com/openapi.yaml --output ./gene
 | `--spec <path\|url>` | Путь или URL к OpenAPI 3.0 YAML (по умолчанию: `https://dev.pachca.com/openapi.yaml`) |
 | `--output <dir>` | Директория для сгенерированного кода |
 | `--lang <langs>` | Языки через запятую: `typescript`, `python`, `go`, `kotlin`, `swift`, `csharp` |
-| `--examples` | Генерировать `examples.json` с примерами вызовов |
+| `--examples` | Генерировать `examples.json` с примерами вызовов. Если у тела запроса есть именованные примеры, код каждого из них лежит в поле `examples` записи метода по ключу примера. |
 
 ## Возможности
 

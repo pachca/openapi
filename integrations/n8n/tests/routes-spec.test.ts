@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { parseOpenAPI, resolveAllOf } from '@pachca/openapi-parser';
 import type { Endpoint, Schema } from '@pachca/openapi-parser';
-import { getWrapperKey } from '../scripts/utils';
+import { extractBodyFields, getWrapperKey } from '../scripts/utils';
 
 // ============================================================================
 // SETUP: Paths
@@ -235,6 +235,8 @@ interface ParsedRoute {
 	paginated: boolean;
 	wrapperKey: string | null;
 	special: string | null;
+	/** Source text of the route, for checks of single field map entries */
+	body: string;
 }
 
 function parseRoutesFromFile(): ParsedRoute[] {
@@ -310,7 +312,7 @@ function parseRoutesFromFile(): ParsedRoute[] {
 			const specialMatch = opBody.match(/special: '([^']+)'/);
 			const special = specialMatch?.[1] ?? null;
 
-			routes.push({ resource, operation, method, path: routePath, paginated, wrapperKey, special });
+			routes.push({ resource, operation, method, path: routePath, paginated, wrapperKey, special, body: opBody });
 		}
 	}
 
@@ -522,4 +524,44 @@ describe('ROUTES table vs OpenAPI spec', () => {
 			expect(orphans, `Orphan ROUTES entries:\n${orphans.join('\n')}`).toEqual([]);
 		});
 	});
+});
+
+// ============================================================================
+// Nullable body fields of an update: JSON null clears a value in the API, and an
+// n8n field cannot hold null. Every such field needs a way to send it: the `null`
+// option or JSON text (`nullable: true`) or a Clear <Field> boolean (`nullFlag`).
+// ============================================================================
+
+describe('nullable body fields of an update can be sent as null', () => {
+	const parsedRoutes = parseRoutesFromFile();
+	const updates = getSpecOperations().filter(
+		(op) => op.endpoint.method === 'PUT' || op.endpoint.method === 'PATCH',
+	);
+	const cases = updates.flatMap((op) =>
+		extractBodyFields(op.endpoint.requestBody)
+			.filter((f) => f.nullable && !f.required && !f.readOnly)
+			.map((f) => ({ op, field: f.name })),
+	);
+
+	it('the spec has such fields: Bot > Update kind and oauth_client, Draft > Update parent_message_id and schedule', () => {
+		const names = cases.map((c) => `${c.op.endpoint.method} ${c.op.endpoint.path} ${c.field}`);
+		expect(names).toEqual(expect.arrayContaining([
+			'PUT /bots/{id} kind',
+			'PUT /bots/{id} oauth_client',
+			'PUT /drafts/{id} parent_message_id',
+			'PUT /drafts/{id} schedule',
+		]));
+	});
+
+	for (const { op, field } of cases) {
+		it(`${op.endpoint.method} ${op.endpoint.path}: ${field}`, () => {
+			const route = parsedRoutes.find(
+				(r) => r.method === op.endpoint.method && r.path === op.endpoint.path,
+			);
+			expect(route, `no route for ${op.endpoint.method} ${op.endpoint.path}`).toBeDefined();
+			const entry = route!.body.match(new RegExp(`\\{ api: '${field}',[^}]*\\}`))?.[0] ?? '';
+			expect(entry, `${field} is not in the route`).not.toBe('');
+			expect(entry).toMatch(/nullable: true|nullFlag: '\w+'/);
+		});
+	}
 });

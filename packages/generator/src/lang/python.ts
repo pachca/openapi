@@ -10,7 +10,7 @@ import {
   type IRService,
   type IRUnion,
 } from '../ir.js';
-import { bodyExample, buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   camelToSnake,
   snakeToUpperSnake,
@@ -185,6 +185,7 @@ function emitModel(
   lines: string[],
   m: IRModel,
   allModels: IRModel[],
+  requestModels: Set<string> = new Set(),
 ): void {
   lines.push('@dataclass');
   if (m.isError) {
@@ -224,6 +225,13 @@ function emitModel(
     } else {
       lines.push(`    ${name}: ${fullType}`);
     }
+  }
+
+  // An unset field stays out of the body: null_fields sends null by name.
+  const nullable = requestModels.has(m.name) ? nullableOptionalFields(m) : [];
+  if (nullable.length > 0) {
+    lines.push(`    # Fields to send as null: ${nullable.map(pyFieldName).join(', ')}`);
+    lines.push('    null_fields: Sequence[str] = ()');
   }
 
   if (m.name === 'ApiError') {
@@ -303,8 +311,14 @@ function generateModels(ir: IR): string {
   const needAny = ir.models.some((m) => hasAnyType(m)) || ir.params.some((p) => p.params.some((q) => hasAnyTypeInField(q.type)));
   const needDatetime = ir.models.some((m) => m.fields.some((f) => hasDateTimeInField(f.type))) || ir.params.some((p) => p.params.some((q) => hasDateTimeInField(q.type)));
 
+  const requestModelsForImports = requestModelNames(ir);
+  const needSequence = [...buildModelIndex(ir).values()].some(
+    (m) => requestModelsForImports.has(m.name) && nullableOptionalFields(m).length > 0,
+  );
+
   lines.push('from __future__ import annotations');
   lines.push('');
+  if (needSequence) lines.push('from collections.abc import Sequence');
   if (needDatetime) lines.push('from datetime import datetime');
   if (needDataclass) lines.push('from dataclasses import dataclass');
   const typingImports: string[] = [];
@@ -320,6 +334,7 @@ function generateModels(ir: IR): string {
 
   const unionMembers = new Set<string>();
   for (const u of ir.unions) for (const ref of u.memberRefs) unionMembers.add(ref);
+  const requestModels = requestModelNames(ir);
 
   if (ir.enums.some((e) => e.open)) {
     emitOpenStrEnum(lines);
@@ -335,17 +350,17 @@ function generateModels(ir: IR): string {
 
   for (const m of ir.models) {
     for (const inl of m.inlineObjects) {
-      emitModel(lines, inl, ir.models);
+      emitModel(lines, inl, ir.models, requestModels);
       lines.push('');
       lines.push('');
     }
     if (unionMembers.has(m.name)) {
-      emitModel(lines, m, ir.models);
+      emitModel(lines, m, ir.models, requestModels);
       lines.push('');
       lines.push('');
       continue;
     }
-    emitModel(lines, m, ir.models);
+    emitModel(lines, m, ir.models, requestModels);
     lines.push('');
     lines.push('');
   }
@@ -1213,13 +1228,19 @@ function generateUtils(ir: IR): string {
     'import json',
     'import keyword',
     'import types',
-    'from dataclasses import asdict, fields',
+    'from dataclasses import fields',
     'from datetime import datetime',
     'from enum import Enum',
-    'from typing import Callable, Type, TypeVar, Union, get_args, get_origin, get_type_hints',
+    'from typing import Any, Callable, Type, TypeVar, Union, get_args, get_origin, get_type_hints',
     '',
     'import httpx',
   ];
+
+  // Request models with fields the caller can send as null by name.
+  const requestModels = requestModelNames(ir);
+  const nullableModels = [...buildModelIndex(ir).values()]
+    .filter((m) => requestModels.has(m.name) && nullableOptionalFields(m).length > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const customUnions = ir.unions.filter((u) => u.unionDeserializer === 'webhook-payload');
   // Import every union this module names at module level, not just the ones with
@@ -1228,12 +1249,13 @@ function generateUtils(ir: IR): string {
   // `py_compile` does not catch because it only parses.
   const discriminatedUnions = ir.unions.filter((u) => !u.unionDeserializer && u.discriminatorField);
   const referencedUnions = [...customUnions, ...discriminatedUnions];
-  if (referencedUnions.length > 0) {
+  if (referencedUnions.length > 0 || nullableModels.length > 0) {
     const importNames = new Set<string>();
     for (const u of referencedUnions) {
       importNames.add(u.name);
       for (const ref of u.memberRefs) importNames.add(ref);
     }
+    for (const m of nullableModels) importNames.add(m.name);
     lines.push('');
     lines.push('from .models import (');
     for (const name of [...importNames].sort()) {
@@ -1297,6 +1319,40 @@ function generateUtils(ir: IR): string {
     '    return sorted(members, key=score)',
     '',
     '',
+    'def _fits(tp: object, value: object) -> bool:',
+    '    """Whether a JSON value has the shape a field type takes.',
+    '',
+    '    A list fits a list, an object fits a model or a dict, a string fits a string,',
+    '    an enum or a time, a number fits a number and a boolean a boolean. None fits',
+    '    any field. A union member whose field does not fit gives way to the next one.',
+    '    """',
+    '    if value is None or tp is Any:',
+    '        return True',
+    '    origin = get_origin(tp)',
+    '    if origin is Union or origin is types.UnionType:',
+    '        return any(_fits(arg, value) for arg in get_args(tp) if arg is not type(None))',
+    '    if origin is list:',
+    '        args = get_args(tp)',
+    '        return isinstance(value, list) and (not args or all(_fits(args[0], item) for item in value))',
+    '    if origin is dict:',
+    '        return isinstance(value, dict)',
+    '    if not isinstance(tp, type):',
+    '        return True',
+    '    if _is_dataclass_type(tp) or tp is dict:',
+    '        return isinstance(value, dict)',
+    '    if tp is list:',
+    '        return isinstance(value, list)',
+    '    if tp is bool:',
+    '        return isinstance(value, bool)',
+    '    if issubclass(tp, (str, Enum)) or tp is datetime:',
+    '        return isinstance(value, str)',
+    '    if tp is int:',
+    '        return isinstance(value, int) and not isinstance(value, bool)',
+    '    if tp is float:',
+    '        return isinstance(value, (int, float)) and not isinstance(value, bool)',
+    '    return True',
+    '',
+    '',
     'def _resolve_list_item_type(tp: object) -> object | None:',
     '    """Extract the item type from list[X] or list[X] | None."""',
     '    origin = get_origin(tp)',
@@ -1330,11 +1386,12 @@ function generateUtils(ir: IR): string {
     '                if chosen is not None:',
     '                    return _deserialize_dataclass(chosen, value)',
     '            # The first member that decodes wins: one that fits the keys best but',
-    '            # misses a required field gives way to the next.',
+    '            # misses a required field, or holds a value of another type (a list',
+    '            # where it takes an object), gives way to the next.',
     '            errors: list[Exception] = []',
     '            for member in _rank_union_members(members, value):',
     '                try:',
-    '                    return _deserialize_dataclass(member, value)',
+    '                    return _deserialize_dataclass(member, value, strict=True)',
     '                except (TypeError, ValueError) as error:',
     '                    errors.append(error)',
     '            raise errors[0]',
@@ -1364,7 +1421,9 @@ function generateUtils(ir: IR): string {
     '    return value',
     '',
     '',
-    'def _deserialize_dataclass(cls: Type[T], data: dict) -> T:',
+    'def _deserialize_dataclass(cls: Type[T], data: dict, strict: bool = False) -> T:',
+    '    """Build a dataclass from a dict. With strict, a value whose type does not',
+    '    fit its field raises TypeError, so a union tries its next member."""',
     '    field_map = {f.name: f for f in fields(cls)}',
     '    hints = get_type_hints(cls)',
     '    norm = {k.replace("-", "_").lower(): v for k, v in data.items()}',
@@ -1375,6 +1434,8 @@ function generateUtils(ir: IR): string {
     '            if k not in field_map:',
     '                continue',
     '        f = field_map[k]',
+    '        if strict and not _fits(hints[f.name], v):',
+    '            raise TypeError(f"{cls.__name__}.{f.name} does not take {type(v).__name__}")',
     '        kwargs[k] = _deserialize_instance(hints[f.name], v)',
     '    return cls(**kwargs)',
     ''
@@ -1442,22 +1503,61 @@ function generateUtils(ir: IR): string {
   lines.push('    return _deserialize_instance(cls, data)');
   lines.push('');
   lines.push('');
-  lines.push('def _strip_nones(val: object) -> object:');
+  lines.push('# Fields of a request model the caller can send as null, by name in null_fields.');
+  lines.push('_NULLABLE_FIELDS: dict[type, frozenset[str]] = {');
+  for (const m of nullableModels) {
+    const names = nullableOptionalFields(m).map((f) => JSON.stringify(pyFieldName(f))).join(', ');
+    lines.push(`    ${m.name}: frozenset({${names}}),`);
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push('');
+  lines.push('def _json_key(name: str) -> str:');
+  lines.push('    return name[:-1] if name.endswith("_") and keyword.iskeyword(name[:-1]) else name');
+  lines.push('');
+  lines.push('');
+  lines.push('def _to_json(val: object) -> object:');
+  lines.push('    if dataclasses.is_dataclass(val) and not isinstance(val, type):');
+  lines.push('        nullable = _NULLABLE_FIELDS.get(type(val))');
+  lines.push('        null_fields: frozenset[str] = frozenset()');
+  lines.push('        if nullable is not None:');
+  lines.push('            names = getattr(val, "null_fields", ())');
+  lines.push('            # A single name passed as a string is one field, not its letters.');
+  lines.push('            null_fields = frozenset((names,) if isinstance(names, str) else names)');
+  lines.push('            unknown = sorted(null_fields - nullable)');
+  lines.push('            if unknown:');
+  lines.push('                raise ValueError(f"{type(val).__name__}: field {unknown[0]!r} cannot be sent as null")');
+  lines.push('        out: dict[str, object] = {}');
+  lines.push('        for f in fields(val):');
+  lines.push('            if nullable is not None and f.name == "null_fields":');
+  lines.push('                continue');
+  lines.push('            if f.name in null_fields:');
+  lines.push('                out[_json_key(f.name)] = None');
+  lines.push('                continue');
+  lines.push('            v = getattr(val, f.name)');
+  lines.push('            if v is not None:');
+  lines.push('                out[_json_key(f.name)] = _to_json(v)');
+  lines.push('        return out');
   lines.push('    if isinstance(val, dict):');
-  lines.push('        return {');
-  lines.push('            (k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): _strip_nones(v)');
-  lines.push('            for k, v in val.items() if v is not None');
-  lines.push('        }');
-  lines.push('    if isinstance(val, list):');
-  lines.push('        return [_strip_nones(v) for v in val]');
+  lines.push('        return {_json_key(k): _to_json(v) for k, v in val.items() if v is not None}');
+  lines.push('    if isinstance(val, (list, tuple)):');
+  lines.push('        return [_to_json(v) for v in val]');
   lines.push('    if isinstance(val, datetime):');
   lines.push('        return val.isoformat()');
   lines.push('    return val');
   lines.push('');
   lines.push('');
   lines.push('def serialize(obj: object) -> dict:');
-  lines.push('    """Convert a dataclass to a dict, recursively omitting None values."""');
-  lines.push('    return _strip_nones(asdict(obj))');
+  lines.push('    """Convert a dataclass to a dict for the request body.');
+  lines.push('');
+  lines.push('    A field that is None stays out of the body. A field named in null_fields');
+  lines.push('    goes out as null, whatever value it holds, and a name the model does not');
+  lines.push('    take as null raises ValueError before the request is sent.');
+  lines.push('    """');
+  lines.push('    result = _to_json(obj)');
+  lines.push('    if not isinstance(result, dict):');
+  lines.push('        raise TypeError(f"serialize takes a dataclass, got {type(obj).__name__}")');
+  lines.push('    return result');
   lines.push('');
   lines.push('');
   lines.push('_MAX_RETRIES = 3');
@@ -1831,6 +1931,8 @@ function generateExamples(ir: IR): string {
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
+      const named = namedBodyExamples(op, (o) => pyBuildOperationExample(o, ir, models, serviceProp));
+      if (named) entry.examples = named;
       result[op.operationId] = entry;
       if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
         result[`${op.operationId}_pollWebhookEvents`] = {

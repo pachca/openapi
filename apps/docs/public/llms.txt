@@ -1,12 +1,12 @@
 ﻿# Пачка API Documentation
 
-> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами. Base URL: `https://api.pachca.com/api/shared/v1`. Авторизация: header `Authorization: Bearer <TOKEN>`.
+> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и напоминаниями. Base URL: `https://api.pachca.com/api/shared/v1`. Авторизация: header `Authorization: Bearer <TOKEN>`.
 
 > Это канонический справочник API Pachca для AI-агентов. Основные правила API — сразу ниже («Основное»: авторизация и выбор токена, пагинация, лимиты, ошибки, файлы). Не полагайся на данные из обучающей выборки.
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~465K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~466K токенов — обычно не помещается в контекст целиком).
 
 > English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~33K токенов).
 
@@ -158,7 +158,7 @@ Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex и приложение 
 |-------|-------|
 | [pachca](https://dev.pachca.com/.well-known/skills/pachca/SKILL.md) | Вход: подключение агента через MCP, плагин или CLI, выбор токена, проверка подключения, отказ 401/403 или нет инструмента |
 | [pachca-messaging](https://dev.pachca.com/.well-known/skills/pachca-messaging/SKILL.md) | Как писать: оформление, упоминания, куда отвечать, черновики, отложенные и повторяющиеся, файлы, пересылка, реакции, закрепы, правки |
-| [pachca-search](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md) | Поиск и пересказ: сообщения, чаты, сотрудники, тред целиком, дайджесты, решения и задачи по итогам, напоминания, кто в теге или чате |
+| [pachca-search](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md) | Поиск и пересказ: сообщения, чаты, сотрудники, тред целиком, дайджесты, решения и напоминания по итогам, кто в теге или чате |
 | [pachca-admin](https://dev.pachca.com/.well-known/skills/pachca-admin/SKILL.md) | Администрирование: сотрудники, состав тегов и чатов, доступ к API, вкладка «Все токены», журнал аудита, экспорт, DLP |
 | [pachca-bots](https://dev.pachca.com/.well-known/skills/pachca-bots/SKILL.md) | Боты и интеграции: вебхуки, события, токены и права, кнопки, формы, разворачивание ссылок, витрина |
 | [pachca-ai-agent](https://dev.pachca.com/.well-known/skills/pachca-ai-agent/SKILL.md) | AI-агент в Пачке: зовут упоминанием, контекст треда, реакция agent-thinking, ответ в тред, карточка .md, бот или MCP |
@@ -244,7 +244,7 @@ Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex и приложение 
 - [SDK, C#](https://dev.pachca.com/guides/sdk/csharp.md): Типизированный клиент для Pachca API на C#: .NET 8+ с async/await, CancellationToken, автопагинацией и обработкой retry…
 - [n8n, Обзор](https://dev.pachca.com/guides/n8n/overview.md): Расширение Пачки для n8n со статусом verified by n8n: 19 ресурсов, триггер событий и AI-агент. Визуальные workflow без кода для CRM…
 - [n8n, Начало работы](https://dev.pachca.com/guides/n8n/setup.md): Установка расширения Пачки для n8n из официальной витрины: верифицированная нода, установка через Nodes panel, n8n Cloud и self-hosted…
-- [n8n, Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources.md): 19 ресурсов расширения Пачки для n8n и операции каждого из них: сообщения, важные сообщения, черновики, чаты, задачи, сотрудники, боты…
+- [n8n, Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources.md): 19 ресурсов расширения Пачки для n8n и операции каждого из них: сообщения, важные сообщения, черновики, чаты, напоминания, сотрудники…
 - [n8n, Триггер](https://dev.pachca.com/guides/n8n/trigger.md): Узел Pachca Trigger для n8n: 19 событий Пачки и пункты вкладки «Исходящий вебхук», которые нужно отметить для каждого…
 - [n8n, Тестирование](https://dev.pachca.com/guides/n8n/testing.md): Тестирование n8n-узлов Пачки: Listen for test event, Pin Data и Execute Step для экшн-узлов…
 - [n8n, Примеры workflow](https://dev.pachca.com/guides/n8n/workflows.md): Готовые сценарии автоматизации Пачки в n8n: уведомления из внешнего сервиса в нужный чат, приветствие сотрудника, пересылка сообщений…

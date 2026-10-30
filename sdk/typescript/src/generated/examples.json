@@ -334,7 +334,23 @@
     "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean })",
     "imports": [
       "MessageCreateRequest"
-    ]
+    ],
+    "examples": {
+      "Минимальный запрос": {
+        "usage": "const request: MessageCreateRequest = { message: { entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\" } }\nconst response = await client.messages.createMessage(request)",
+        "imports": [
+          "MessageCreateRequest"
+        ]
+      },
+      "Сообщение с кнопкой": {
+        "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    buttons: [[{ text: \"Подробнее\", url: \"https://example.com/details\" }]]\n  }\n}\nconst response = await client.messages.createMessage(request)",
+        "imports": [
+          "Button",
+          "MessageCreateRequest",
+          "MessageEntityType"
+        ]
+      }
+    }
   },
   "LinkPreviewOperations_unfurl": {
     "usage": "const request: LinkPreviewsRequest = {\n  linkPreviews: { key: {\n    title: \"Статья: Отправка файлов\",\n    description: \"Пример отправки файлов на удаленный сервер\",\n    imageUrl: \"https://example.com/img/landing.png\",\n    image: {\n      key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n      name: \"files-to-server.jpg\",\n      size: 695604\n    }\n  } }\n}\nawait client.messages.unfurl(194275, request)",

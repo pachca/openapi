@@ -496,7 +496,7 @@ response, err := client.Users.ListUsers(ctx, params)
 ```
 
 
-**Создание задачи:**
+**Создание напоминания:**
 
 ```go
 import (

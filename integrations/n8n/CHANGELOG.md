@@ -7,6 +7,8 @@
 ### Features
 
 - Bot: in `Update`, `Kind` gains the `None` option, which deletes the bot's incoming webhook
+- Draft: in `Update`, `Clear Parent Message ID` sends `parent_message_id: null`, which removes the reply
+- Bot: in `Update`, the text `null` in `OAuth Client` disables authorization on behalf of an employee
 
 ### Improvements
 
@@ -20,8 +22,11 @@
 - Trigger: the `Automatic` option and its notice list the scopes a bot token needs — `profile:read` and `bot_self:webhook:write`
 - Credentials: the `Webhook Signing Secret` description says where to copy the Signing secret
 - Form: `Open` returns the API answer `{ "success": true }`
-- Field descriptions follow the API: the bot command rule, `Kind`, and `duration_ms` and `file_type` of message and draft files
-- README: the trigger events, Simplify fields, Button Layout and forms match the node
+- Field descriptions follow the API: the bot command rule, the mention rule of message text, `Kind`, `duration_ms` and `file_type` of message and draft files, `OAuth Client` and `Promo` of Bot > `Create` and `Update`, `List Tags` of User > `Update`, and the reminder fields
+- A field that takes `null` has a way to send it: the `None` option of an option field, the text `null` in a JSON field, and a `Clear` toggle next to a number field of an update
+- Reminder: the `/tasks` resource is named `Reminder`, as in Pachca, and its actions read `Create a reminder` and so on. The resource value `task` stays the same, so saved workflows keep working.
+- Custom Property: the `Task` entity type is shown as `Reminder`, and its value stays `Task`
+- README: the trigger events, Simplify fields, Button Layout and forms match the node, the resource list names `Reminder`, and the Clearing a Value section shows how to send `null`
 
 ## 2.2.2 (2026-10-28)
 

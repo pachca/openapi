@@ -70,8 +70,6 @@ Data-кнопка отправляет данные на сервер через
 
 **Сообщение с кнопкой**
 
-### curl
-
 ```bash
 curl "https://api.pachca.com/api/shared/v1/messages" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
@@ -91,18 +89,6 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
     ]
   }
 }'
-```
-
-### cli
-
-```bash
-pachca messages create \
-  --entity-type=discussion \
-  --entity-id=334 \
-  --content='Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)' \
-  --buttons='[[{"text":"Подробнее","url":"https://example.com/details"}]]' \
-  --json \
-  --token YOUR_ACCESS_TOKEN
 ```
 
 

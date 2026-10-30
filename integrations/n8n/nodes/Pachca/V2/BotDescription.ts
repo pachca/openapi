@@ -292,7 +292,7 @@ export const botFields: INodeProperties[] = [
 				name: 'oauthClient',
 				type: 'json',
 				default: "{}",
-				description: 'Settings of authorization on behalf of an employee',
+				description: 'Enable authorization on behalf of an employee right at creation',
 			},
 			{
 				displayName: 'Outgoing URL',
@@ -307,7 +307,7 @@ export const botFields: INodeProperties[] = [
 				name: 'promo',
 				type: 'json',
 				default: "{}",
-				description: 'The bot\'s catalog page',
+				description: 'The bot\'s catalog page. Set only together with `oauth_client`: without authorization the bot has no page.',
 			},
 			{
 				displayName: 'Scopes',
@@ -514,7 +514,7 @@ export const botFields: INodeProperties[] = [
 				name: 'oauthClient',
 				type: 'json',
 				default: "{}",
-				description: 'Settings of authorization on behalf of an employee',
+				description: 'Settings of authorization on behalf of an employee. If authorization is disabled, the object enables it, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot\'s own tokens keep working.',
 			},
 			{
 				displayName: 'Outgoing URL',
@@ -529,7 +529,7 @@ export const botFields: INodeProperties[] = [
 				name: 'promo',
 				type: 'json',
 				default: "{}",
-				description: 'The bot\'s catalog page',
+				description: 'The bot\'s catalog page. Available only while authorization is enabled for the bot.',
 			},
 			{
 				displayName: 'Scopes',

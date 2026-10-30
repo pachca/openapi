@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, Union
@@ -405,7 +406,7 @@ class SearchEntityType(StrEnum):
     """Тип сущности для поиска"""
 
     USER = "User"  # Пользователь
-    TASK = "Task"  # Задача
+    TASK = "Task"  # Напоминание
 
 
 class SearchSortOrder(StrEnum):
@@ -424,7 +425,7 @@ class SortOrder(StrEnum):
 
 
 class TaskKind(OpenStrEnum):
-    """Тип задачи"""
+    """Тип напоминания"""
 
     CALL = "call"  # Позвонить контакту
     MEETING = "meeting"  # Встреча
@@ -690,6 +691,7 @@ class AuditDetailsBotTokenUpdated:
     client_id: str | None = None
     bot_name: str | None = None
     name: AuditDetailsTokenNameChange | None = None
+    scopes: AuditDetailsTokenScopesChange | None = None
 
 
 @dataclass
@@ -871,6 +873,12 @@ class AuditDetailsTokenNameChange:
 @dataclass
 class AuditDetailsTokenScopes:
     scopes: list[str]
+
+
+@dataclass
+class AuditDetailsTokenScopesChange:
+    previous: list[str]
+    new: list[str]
 
 
 @dataclass
@@ -1155,6 +1163,8 @@ class BotUpdateRequestWebhook:
     single_chat: bool | None = None
     kind: BotWebhookKind | None = None
     unfurl_domains: list[str] | None = None
+    # Fields to send as null: kind
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1162,6 +1172,8 @@ class BotUpdateRequest:
     webhook: BotUpdateRequestWebhook | None = None
     oauth_client: BotOAuthClientRequest | None = None
     promo: BotPromoRequest | None = None
+    # Fields to send as null: oauth_client
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1352,6 +1364,8 @@ class DraftCreateRequestDraft:
     parent_message_id: int | None = None
     files: list[DraftFileRequest] | None = None
     schedule: DraftScheduleRequest | None = None
+    # Fields to send as null: parent_message_id, schedule
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1384,6 +1398,8 @@ class DraftRepetitionRequest:
     interval: DraftRepetitionInterval
     days: list[int] | None = None
     nth_day: int | None = None
+    # Fields to send as null: nth_day
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1398,6 +1414,8 @@ class DraftScheduleRequest:
     start_date: datetime
     repetition: DraftRepetitionRequest
     end_date: datetime | None = None
+    # Fields to send as null: end_date
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1406,6 +1424,8 @@ class DraftUpdateRequestDraft:
     parent_message_id: int | None = None
     files: list[DraftFileRequest] | None = None
     schedule: DraftScheduleRequest | None = None
+    # Fields to send as null: parent_message_id, schedule
+    null_fields: Sequence[str] = ()
 
 
 @dataclass

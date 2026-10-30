@@ -593,6 +593,73 @@ describe('Special: botWebhook', () => {
 		const body = ctx._calls[0].body as any;
 		expect(body.webhook.template).toBe('null');
 	});
+
+	it('OAuth Client = null sends oauth_client: null next to webhook, which disables authorization', async () => {
+		const ctx = createMockContext({
+			resource: 'bot',
+			operation: 'update',
+			params: { botId: 5, webhookUrl: '', additionalFields: { oauthClient: ' null ' } },
+		});
+		await runRouter(ctx);
+		const body = ctx._calls[0].body as any;
+		expect(body).toHaveProperty('oauth_client', null);
+		expect(body.webhook).not.toHaveProperty('oauth_client');
+	});
+
+	it('null in a JSON field that is not nullable is an error, the way any non-object is', async () => {
+		const ctx = createMockContext({
+			resource: 'bot',
+			operation: 'update',
+			params: { botId: 5, webhookUrl: '', additionalFields: { promo: 'null' } },
+		});
+		await expect(runRouter(ctx)).rejects.toThrow('promo must be a JSON object');
+	});
+});
+
+describe('Nullable fields: Draft > Update', () => {
+	it('Clear Parent Message ID sends parent_message_id: null, which removes the reply', async () => {
+		const ctx = createMockContext({
+			resource: 'draft',
+			operation: 'update',
+			params: { id: 7, additionalFields: { clearParentMessageId: true } },
+		});
+		await runRouter(ctx);
+		expect(ctx._calls[0].method).toBe('PUT');
+		expect(ctx._calls[0].url).toContain('/drafts/7');
+		expect(ctx._calls[0].body).toEqual({ draft: { parent_message_id: null } });
+	});
+
+	it('Clear Parent Message ID wins over a filled Parent Message ID', async () => {
+		const ctx = createMockContext({
+			resource: 'draft',
+			operation: 'update',
+			params: { id: 7, additionalFields: { parentMessageId: 196093, clearParentMessageId: true } },
+		});
+		await runRouter(ctx);
+		expect((ctx._calls[0].body as any).draft.parent_message_id).toBeNull();
+	});
+
+	it('without Clear Parent Message ID the ID goes out as is', async () => {
+		const ctx = createMockContext({
+			resource: 'draft',
+			operation: 'update',
+			params: { id: 7, additionalFields: { parentMessageId: 196093, clearParentMessageId: false } },
+		});
+		await runRouter(ctx);
+		const body = ctx._calls[0].body as any;
+		expect(body.draft.parent_message_id).toBe(196093);
+		expect(body.draft).not.toHaveProperty('clearParentMessageId');
+	});
+
+	it('Schedule = null sends schedule: null, and the API answers for a scheduled message', async () => {
+		const ctx = createMockContext({
+			resource: 'draft',
+			operation: 'update',
+			params: { id: 7, additionalFields: { schedule: 'null' } },
+		});
+		await runRouter(ctx);
+		expect(ctx._calls[0].body).toEqual({ draft: { schedule: null } });
+	});
 });
 
 describe('Special: avatarUpload', () => {

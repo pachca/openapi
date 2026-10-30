@@ -918,6 +918,9 @@
     - `name: object` — Смена названия токена. Есть, если название передали в запросе.
       - `previous: string` (required, nullable) — Прежнее название. `null`, если названия не было.
       - `new: string` (required, nullable) — Новое название. `null`, если название убрали.
+    - `scopes: object` — Смена скоупов токена. Есть, если скоупы передали в запросе.
+      - `previous: array of string` (required) — Скоупы токена до изменения
+      - `new: array of string` (required) — Скоупы токена после изменения
   - **AuditDetailsUserLoginQr**: При: user_login, если вход был по QR-коду
     - `method: string` (required) — Способ входа: `qr` — вход по QR-коду
     - `login_grant_id: string` (required) — Идентификатор запроса на вход по QR-коду, общий для всех событий одного входа

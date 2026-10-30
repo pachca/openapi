@@ -95,7 +95,7 @@ export const messageFields: INodeProperties[] = [
 		type: 'string',
 		typeOptions: { rows: 4 },
 		default: "",
-		description: 'Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. The message goes out under the token owner\'s name, and a bot\'s with the Bot badge.',
+		description: 'Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). Take the nickname from a method\'s response and the `user_id` from data: a nickname made up from a name mentions nobody. `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. The message goes out under the token owner\'s name, and a bot\'s with the Bot badge.',
 		displayOptions: { show: { resource: ['message'], operation: ['create'] } },
 		placeholder: 'Yesterday we sold 756 t-shirts (10% more than last Sunday)',
 	},
@@ -413,7 +413,7 @@ export const messageFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 4 },
 				default: "",
-				description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters.',
+				description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). Take the nickname from a method\'s response and the `user_id` from data: a nickname made up from a name mentions nobody. For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters.',
 				placeholder: 'Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur, liaison, necessary, surveillance, questionnaire.',
 			},
 			{

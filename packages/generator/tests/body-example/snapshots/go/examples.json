@@ -13,7 +13,29 @@
       "DataButton",
       "MessageCreateRequest",
       "MessageCreateRequestMessage"
-    ]
+    ],
+    "examples": {
+      "minimal": {
+        "summary": "Текст с кнопкой",
+        "usage": "request := pachca.MessageCreateRequest{\n\tMessage: pachca.MessageCreateRequestMessage{\n\t\tEntityID: int32(334),\n\t\tContent: pachca.Ptr(\"Отчёт готов\"),\n\t\tButtons: [][]pachca.Button{[]pachca.Button{pachca.Button{DataButton: &pachca.DataButton{\n\t\t\tText: \"Принять\",\n\t\t\tData: \"accept\",\n\t\t}}}},\n\t},\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
+        "imports": [
+          "Button",
+          "DataButton",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage"
+        ]
+      },
+      "full": {
+        "summary": "Сообщение с файлом",
+        "usage": "request := pachca.MessageCreateRequest{\n\tMessage: pachca.MessageCreateRequestMessage{\n\t\tEntityID: int32(334),\n\t\tContent: pachca.Ptr(\"Отчёт готов\"),\n\t\tFiles: []pachca.MessageFile{pachca.MessageFile{\n\t\t\tKey: \"attaches/files/1/report.pdf\",\n\t\t\tName: \"report.pdf\",\n\t\t\tFileType: pachca.FileTypeFile,\n\t\t}},\n\t},\n\tLinkPreview: pachca.Ptr(true),\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
+        "imports": [
+          "FileType",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage",
+          "MessageFile"
+        ]
+      }
+    }
   },
   "MessageOperations_updateMessage": {
     "usage": "request := pachca.MessageUpdateRequest{\n\tMessage: pachca.MessageUpdateRequestMessage{\n\t\tContent: pachca.Ptr(\"Отчёт обновлён\"),\n\t\tFiles: []pachca.MessageFile{pachca.MessageFile{\n\t\t\tKey: \"attaches/files/1/photo.png\",\n\t\t\tName: \"photo.png\",\n\t\t\tFileType: pachca.FileTypeImage,\n\t\t\tWidth: pachca.Ptr(int32(800)),\n\t\t\tHeight: pachca.Ptr(int32(600)),\n\t\t}},\n\t},\n}\nresponse, err := client.Messages.UpdateMessage(ctx, int32(123), request)",

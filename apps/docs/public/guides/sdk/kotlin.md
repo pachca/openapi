@@ -249,6 +249,18 @@ val response = client.chats.getChat(id = 334)
 ```
 
 
+### Значение null
+
+Необязательное поле, которое не задано, в запрос не попадает, поэтому метод обновления меняет только то, что вы передали. Некоторые поля API принимают `null`: например, `null` в `oauth_client` выключает у бота авторизацию от имени сотрудника, а в `webhook.kind` удаляет входящий вебхук. Чтобы отправить `null`, назовите поле в `nullFields` той же модели запроса так, как оно называется в Kotlin:
+
+```kotlin
+val request = BotUpdateRequest(
+    webhook = BotUpdateRequestWebhook(nullFields = setOf("kind")),
+)
+```
+
+`nullFields` есть у моделей запроса с такими полями, а в его описании перечислены имена, которые в нём можно указать. С другим именем SDK выбрасывает `SerializationException` и запрос не отправляет.
+
 ## Пагинация
 
 Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
@@ -462,7 +474,7 @@ val response = client.users.listUsers(query = "Олег", limit = 1, cursor = "e
 ```
 
 
-**Создание задачи:**
+**Создание напоминания:**
 
 ```kotlin
 import com.pachca.sdk.PachcaClient

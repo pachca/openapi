@@ -1604,7 +1604,7 @@ public enum SearchEntityType
 {
     /// <summary>Пользователь</summary>
     User,
-    /// <summary>Задача</summary>
+    /// <summary>Напоминание</summary>
     Task,
 }
 
@@ -1707,7 +1707,7 @@ internal class SortOrderConverter : JsonConverter<SortOrder>
     }
 }
 
-/// <summary>Тип задачи</summary>
+/// <summary>Тип напоминания</summary>
 [JsonConverter(typeof(TaskKindConverter))]
 public readonly struct TaskKind : IEquatable<TaskKind>
 {
@@ -2303,7 +2303,7 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         (typeof(AuditDetailsBotOAuthClientSecretRotated), new HashSet<string> { "bot_id", "actor_id", "client_id", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview" }),
         (typeof(AuditDetailsBotOAuthClientDisabled), new HashSet<string> { "bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview" }),
         (typeof(AuditDetailsToken), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "scopes", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_id", "bot_name", "device_name", "actor_id", "webhook_id", "user_id", "source", "reason" }),
-        (typeof(AuditDetailsBotTokenUpdated), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_name", "webhook_id", "name" }),
+        (typeof(AuditDetailsBotTokenUpdated), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_name", "webhook_id", "name", "scopes" }),
         (typeof(AuditDetailsUserLoginQr), new HashSet<string> { "method", "login_grant_id" }),
         (typeof(AuditDetailsLoginGrantCreated), new HashSet<string> { "login_grant_id" }),
         (typeof(AuditDetailsLoginGrantApproved), new HashSet<string> { "login_grant_id", "device" }),
@@ -2775,6 +2775,8 @@ public class AuditDetailsBotTokenUpdated : AuditEventDetailsUnion
     public int WebhookId { get; set; } = default!;
     [JsonPropertyName("name")]
     public AuditDetailsTokenNameChange? Name { get; set; }
+    [JsonPropertyName("scopes")]
+    public AuditDetailsTokenScopesChange? Scopes { get; set; }
 }
 
 public class AuditDetailsUserLoginQr : AuditEventDetailsUnion
@@ -3280,6 +3282,14 @@ public class AuditDetailsTokenNameChange
     public string? @New { get; set; }
 }
 
+public class AuditDetailsTokenScopesChange
+{
+    [JsonPropertyName("previous")]
+    public List<string> Previous { get; set; } = default!;
+    [JsonPropertyName("new")]
+    public List<string> @New { get; set; } = default!;
+}
+
 public class AuditEvent
 {
     [JsonPropertyName("id")]
@@ -3640,7 +3650,7 @@ public class BotTokenUpdateRequest
     public List<string>? Scopes { get; set; }
 }
 
-public class BotUpdateRequestWebhook
+public class BotUpdateRequestWebhook : INullFields
 {
     [JsonPropertyName("name")]
     public string? Name { get; set; }
@@ -3678,9 +3688,13 @@ public class BotUpdateRequestWebhook
     public BotWebhookKind? Kind { get; set; }
     [JsonPropertyName("unfurl_domains")]
     public List<string>? UnfurlDomains { get; set; }
+
+    /// <summary>Properties to send as null: Kind. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
-public class BotUpdateRequest
+public class BotUpdateRequest : INullFields
 {
     [JsonPropertyName("webhook")]
     public BotUpdateRequestWebhook? Webhook { get; set; }
@@ -3688,6 +3702,10 @@ public class BotUpdateRequest
     public BotOAuthClientRequest? OauthClient { get; set; }
     [JsonPropertyName("promo")]
     public BotPromoRequest? Promo { get; set; }
+
+    /// <summary>Properties to send as null: OauthClient. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
 public class BotWebhook
@@ -3926,7 +3944,7 @@ public class Draft
     public DateTimeOffset UpdatedAt { get; set; } = default!;
 }
 
-public class DraftCreateRequestDraft
+public class DraftCreateRequestDraft : INullFields
 {
     [JsonPropertyName("entity_type")]
     public MessageEntityType EntityType { get; set; } = default!;
@@ -3940,6 +3958,10 @@ public class DraftCreateRequestDraft
     public List<DraftFileRequest>? Files { get; set; }
     [JsonPropertyName("schedule")]
     public DraftScheduleRequest? Schedule { get; set; }
+
+    /// <summary>Properties to send as null: ParentMessageId, Schedule. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
 public class DraftCreateRequest
@@ -3980,7 +4002,7 @@ public class DraftRepetition
     public int? NthDay { get; set; }
 }
 
-public class DraftRepetitionRequest
+public class DraftRepetitionRequest : INullFields
 {
     [JsonPropertyName("interval")]
     public DraftRepetitionInterval Interval { get; set; } = default!;
@@ -3988,6 +4010,10 @@ public class DraftRepetitionRequest
     public List<int>? Days { get; set; }
     [JsonPropertyName("nth_day")]
     public int? NthDay { get; set; }
+
+    /// <summary>Properties to send as null: NthDay. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
 public class DraftSchedule
@@ -4000,7 +4026,7 @@ public class DraftSchedule
     public DraftRepetition Repetition { get; set; } = default!;
 }
 
-public class DraftScheduleRequest
+public class DraftScheduleRequest : INullFields
 {
     [JsonPropertyName("start_date")]
     public DateTimeOffset StartDate { get; set; } = default!;
@@ -4008,9 +4034,13 @@ public class DraftScheduleRequest
     public DateTimeOffset? EndDate { get; set; }
     [JsonPropertyName("repetition")]
     public DraftRepetitionRequest Repetition { get; set; } = default!;
+
+    /// <summary>Properties to send as null: EndDate. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
-public class DraftUpdateRequestDraft
+public class DraftUpdateRequestDraft : INullFields
 {
     [JsonPropertyName("content")]
     public string? Content { get; set; }
@@ -4020,6 +4050,10 @@ public class DraftUpdateRequestDraft
     public List<DraftFileRequest>? Files { get; set; }
     [JsonPropertyName("schedule")]
     public DraftScheduleRequest? Schedule { get; set; }
+
+    /// <summary>Properties to send as null: ParentMessageId, Schedule. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
 public class DraftUpdateRequest

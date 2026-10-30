@@ -1,5 +1,5 @@
 interface:
-  display_name: 'Tasks from a discussion'
-  short_description: 'Turn a Pachca discussion into tasks after review'
+  display_name: 'Reminders from a discussion'
+  short_description: 'Turn a Pachca discussion into reminders after review'
 policy:
   allow_implicit_invocation: false

@@ -21,11 +21,37 @@ public struct ItemPatchRequestItem: Codable {
     public let name: String?
     public let description: String?
     public let priority: Int?
+    /// Fields to send as null: description. An unset field stays out of the body.
+    public var nullFields: Set<String> = []
 
-    public init(name: String? = nil, description: String? = nil, priority: Int? = nil) {
+    public init(name: String? = nil, description: String? = nil, priority: Int? = nil, nullFields: Set<String> = []) {
         self.name = name
         self.description = description
         self.priority = priority
+        self.nullFields = nullFields
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        if let unknown = nullFields.subtracting(["description"]).sorted().first {
+            throw EncodingError.invalidValue(nullFields, EncodingError.Context(
+                codingPath: encoder.codingPath,
+                debugDescription: "ItemPatchRequestItem: field \"\(unknown)\" cannot be sent as null"
+            ))
+        }
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(name, forKey: .name)
+        if nullFields.contains("description") {
+            try container.encodeNil(forKey: .description)
+        } else {
+            try container.encodeIfPresent(description, forKey: .description)
+        }
+        try container.encodeIfPresent(priority, forKey: .priority)
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case description
+        case priority
     }
 }
 

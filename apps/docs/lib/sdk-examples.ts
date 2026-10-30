@@ -4,10 +4,22 @@ import * as path from 'path';
 const SDK_ROOT = path.join(process.cwd(), '..', '..', 'sdk');
 const LOCATION_PATH = path.join(SDK_ROOT, 'examples-location.json');
 
+interface NamedExampleEntry {
+  /** The example's `summary` in the spec, when it differs from its key */
+  summary?: string;
+  usage: string;
+  imports?: string[];
+}
+
 interface ExampleEntry {
   usage: string;
   imports?: string[];
   output?: string;
+  /**
+   * The SDK call for each named request body example, by its key in the spec,
+   * the first included. The output is the entry's own.
+   */
+  examples?: Record<string, NamedExampleEntry>;
 }
 
 type ExamplesJson = Record<string, ExampleEntry>;
@@ -105,9 +117,28 @@ function appendOutput(lang: SdkLanguage, usage: string, output: string): string 
   return `${usage}\n${prefix} → ${output}`;
 }
 
+/**
+ * The SDK call of an operation: its own entry, or with `example` the named
+ * request body example, found by its key or `summary` as `selectRequestExample`
+ * finds it for curl and the CLI. `undefined` when the language has no such
+ * example.
+ */
+function exampleEntry(
+  langData: ExamplesJson,
+  operationId: string,
+  example?: string
+): ExampleEntry | undefined {
+  const entry = langData[operationId];
+  if (!entry || !example) return entry;
+  const named = Object.entries(entry.examples ?? {}).find(
+    ([key, value]) => key === example || value.summary === example
+  )?.[1];
+  return named ? { usage: named.usage, imports: named.imports, output: entry.output } : undefined;
+}
+
 export function getSdkExampleForLang(
   lang: string,
-  operations: Array<{ id: string; comment?: string }>,
+  operations: Array<{ id: string; comment?: string; example?: string }>,
   showInit = true
 ): string {
   const all = loadAll();
@@ -116,13 +147,15 @@ export function getSdkExampleForLang(
   if (!langData) return '';
 
   const prefix = COMMENT_PREFIX[sdkLang] ?? '//';
+  const entries = operations.map((op) => exampleEntry(langData, op.id, op.example));
+  // A named example the language lacks: no code at all, so the caller shows an error.
+  if (operations.some((op, index) => op.example && !entries[index])) return '';
 
   const initEntry = langData['Client_Init'];
   const clientImports: string[] = [];
   const modelImports: string[] = [];
   if (showInit && initEntry?.imports) clientImports.push(...initEntry.imports);
-  for (const op of operations) {
-    const entry = langData[op.id];
+  for (const entry of entries) {
     if (entry?.imports) modelImports.push(...entry.imports);
   }
 
@@ -130,7 +163,7 @@ export function getSdkExampleForLang(
 
   const code = [
     showInit ? (initEntry?.usage ?? '') : '',
-    ...operations.map((op) => langData[op.id]?.usage ?? ''),
+    ...entries.map((entry) => entry?.usage ?? ''),
   ].join('\n');
   const importBlock = buildImportBlock(sdkLang, clientImports, modelImports, code);
   if (importBlock) parts.push(importBlock);
@@ -140,8 +173,8 @@ export function getSdkExampleForLang(
     if (init) parts.push(init);
   }
 
-  for (const op of operations) {
-    const entry = langData[op.id];
+  for (const [index, op] of operations.entries()) {
+    const entry = entries[index];
     if (!entry?.usage) continue;
     let block = entry.usage;
     if (entry.output) block = appendOutput(sdkLang, block, entry.output);
@@ -192,21 +225,24 @@ export function getValidSdkSymbols(lang: string): {
   const imports = new Set<string>();
   const methodRegex = /client\.(\w+)\.(\w+)\s*\(/g;
 
-  for (const [opId, entry] of Object.entries(langData)) {
+  for (const [opId, operationEntry] of Object.entries(langData)) {
     if (opId === 'Client_Init') continue;
 
-    // Extract service.method pairs from usage code
-    let match;
-    while ((match = methodRegex.exec(entry.usage)) !== null) {
-      const [, service, method] = match;
-      if (!methods.has(service)) methods.set(service, new Set());
-      methods.get(service)!.add(method);
-    }
-    methodRegex.lastIndex = 0;
+    // The operation's own call and the call of each named request example
+    for (const entry of [operationEntry, ...Object.values(operationEntry.examples ?? {})]) {
+      // Extract service.method pairs from usage code
+      let match;
+      while ((match = methodRegex.exec(entry.usage)) !== null) {
+        const [, service, method] = match;
+        if (!methods.has(service)) methods.set(service, new Set());
+        methods.get(service)!.add(method);
+      }
+      methodRegex.lastIndex = 0;
 
-    if (entry.imports) {
-      for (const imp of entry.imports) {
-        imports.add(imp);
+      if (entry.imports) {
+        for (const imp of entry.imports) {
+          imports.add(imp);
+        }
       }
     }
   }
@@ -239,14 +275,19 @@ export function getValidSdkSymbols(lang: string): {
   return { methods, imports };
 }
 
-export function getSdkExamples(operationId: string): Record<string, string> {
+/**
+ * The SDK code of an operation in every language, with the client set up. With
+ * `example`, the code of that named request body example (by its key or
+ * `summary`). A language without that code gets an empty string.
+ */
+export function getSdkExamples(operationId: string, example?: string): Record<string, string> {
   const all = loadAll();
   const result: Record<string, string> = {};
 
   for (const lang of SDK_LANGUAGES) {
     const langData = all[lang];
     const initEntry = langData['Client_Init'];
-    const entry = langData[operationId];
+    const entry = exampleEntry(langData, operationId, example);
 
     if (entry?.usage) {
       const clientImports = initEntry?.imports ?? [];

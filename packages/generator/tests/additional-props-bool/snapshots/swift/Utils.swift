@@ -13,10 +13,11 @@ let pachcaEncoder: JSONEncoder = {
     return encoder
 }()
 
+// The encoder leaves out every optional field that is not set. A null in the
+// body is one the caller asked for: a field named in nullFields of a request
+// model, or a null inside a free-form value.
 func serialize<T: Encodable>(_ value: T) throws -> Data {
-    let data = try pachcaEncoder.encode(value)
-    let json = try JSONSerialization.jsonObject(with: data)
-    return try JSONSerialization.data(withJSONObject: stripNulls(json))
+    return try pachcaEncoder.encode(value)
 }
 
 func deserialize<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
@@ -114,17 +115,4 @@ func dataWithRetry(session: URLSession, for request: URLRequest, delegate: (any 
         return (data, response)
     }
     return try await session.data(for: request, delegate: delegate) // unreachable
-}
-
-private func stripNulls(_ value: Any) -> Any {
-    if let dict = value as? [String: Any] {
-        return dict.compactMapValues { v -> Any? in
-            if v is NSNull { return nil }
-            return stripNulls(v)
-        }
-    }
-    if let arr = value as? [Any] {
-        return arr.map(stripNulls)
-    }
-    return value
 }

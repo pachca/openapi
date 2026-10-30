@@ -1,5 +1,5 @@
 {
-  "name": "Напоминание о задачах",
+  "name": "Просроченные напоминания",
   "nodes": [
     {
       "parameters": {
@@ -23,7 +23,7 @@
         "operation": "getAll",
         "returnAll": true
       },
-      "name": "Получить задачи",
+      "name": "Получить напоминания",
       "type": "n8n-nodes-pachca.pachca",
       "typeVersion": 2,
       "position": [220, 0]
@@ -61,7 +61,7 @@
         },
         "options": {}
       },
-      "name": "IF просрочена",
+      "name": "IF просрочено",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [440, 0]
@@ -75,7 +75,7 @@
           "value": "CHAT_ID",
           "mode": "id"
         },
-        "content": "=Просроченная задача: **{{ $json.content }}**\nДедлайн: {{ $json.due_at }}"
+        "content": "=Просроченное напоминание: **{{ $json.content }}**\nДедлайн: {{ $json.due_at }}"
       },
       "name": "Уведомление",
       "type": "n8n-nodes-pachca.pachca",
@@ -88,25 +88,25 @@
       "main": [
         [
           {
-            "node": "Получить задачи",
+            "node": "Получить напоминания",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Получить задачи": {
+    "Получить напоминания": {
       "main": [
         [
           {
-            "node": "IF просрочена",
+            "node": "IF просрочено",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF просрочена": {
+    "IF просрочено": {
       "main": [
         [
           {

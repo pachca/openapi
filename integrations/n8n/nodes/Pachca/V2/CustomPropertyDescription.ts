@@ -32,7 +32,7 @@ export const customPropertyFields: INodeProperties[] = [
 		name: 'entityType',
 		type: 'options',
 		required: true,
-		options: [{ name: 'Task', value: 'Task' },
+		options: [{ name: 'Reminder', value: 'Task' },
 { name: 'User', value: 'User' }],
 		default: "",
 		displayOptions: { show: { resource: ['customProperty'], operation: ['get'] } },

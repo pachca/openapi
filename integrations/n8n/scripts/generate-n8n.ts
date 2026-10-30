@@ -505,12 +505,16 @@ function tagToResource(tag: string): string {
   return singular.join('');
 }
 
-/** Resource value → display name (Title Case, singular) */
+/**
+ * Resource value → display name (Title Case, singular). The `/tasks` entity is a
+ * reminder in Pachca («Напоминания», Reminders): the resource is shown as Reminder,
+ * and its value stays `task`, which saved workflows keep.
+ */
 function resourceDisplayName(resource: string): string {
   const MAP: Record<string, string> = {
     user: 'User', message: 'Message', chat: 'Chat', member: 'Chat Member',
     thread: 'Thread', reaction: 'Reaction', groupTag: 'Group Tag',
-    profile: 'Profile', customProperty: 'Custom Property', task: 'Task',
+    profile: 'Profile', customProperty: 'Custom Property', task: 'Reminder',
     bot: 'Bot', file: 'File', form: 'Form', readMember: 'Read Member',
     oauth: 'OAuth', search: 'Search', security: 'Security', draft: 'Draft',
     importantMessage: 'Important Message',
@@ -858,14 +862,28 @@ function quote(s: string): string {
 const ENUM_DISPLAY_OVERRIDES: Record<string, string> = {
   asc: 'Ascending',
   desc: 'Descending',
+  // Entity Type of custom properties: the `/tasks` entity is a reminder (see resourceDisplayName)
+  Task: 'Reminder',
 };
 
 /**
- * A nullable enum field gets one more option that sends JSON null: on Bot > Update,
- * Kind = None deletes the incoming webhook. An n8n option value cannot be null, so
- * the option carries the string `null`, and the router turns it into null by the
- * `nullable` mark in the field map. Where the spec description says `null`, the
- * node names this option instead.
+ * JSON null in a body field clears a value in the API: `kind: null` on Bot > Update
+ * deletes the incoming webhook, `parent_message_id: null` on Draft > Update removes
+ * the reply. An n8n field cannot hold null, so every nullable body field gets a way
+ * to send it, chosen by the field type:
+ *
+ * - enum options: one more option, None, with the string value `null`
+ *   (isNullableOptions);
+ * - JSON object: the literal `null` typed into the field (isNullableJson);
+ * - number, string or boolean in the Additional Fields of an update: a boolean
+ *   `Clear <Field>` next to it, which sends null and wins over the field value
+ *   (nullFlagFor).
+ *
+ * The router sends null by the `nullable` mark (option and JSON) or by the `nullFlag`
+ * name (the boolean) in the field map. Where the spec description says `null`, the
+ * node names the option or the boolean instead. A nullable scalar field outside the
+ * Additional Fields of an update gets no boolean, so its description must not promise
+ * null: the generator stops on such a field (see assertNullHandled).
  */
 const NULL_OPTION_NAME = 'None';
 const NULL_OPTION_DESCRIPTIONS: Record<string, string> = {
@@ -882,6 +900,59 @@ function nullOption(resource: string, field: BodyField): { name: string; value: 
     value: 'null',
     description: NULL_OPTION_DESCRIPTIONS[`${resource}.${field.name}`] ?? 'Sends null',
   };
+}
+
+/** A nullable JSON object field: the router sends the literal `null` as JSON null */
+function isNullableJson(field: BodyField): boolean {
+  return !!field.nullable && toN8nType(field) === 'json';
+}
+
+const NULL_FLAG_TYPES = new Set(['number', 'string', 'boolean']);
+
+/** An update operation: there null clears a stored value, in a create it equals leaving the field out */
+function isUpdateOperation(op: OperationInfo): boolean {
+  return op.endpoint.method === 'PUT' || op.endpoint.method === 'PATCH';
+}
+
+/**
+ * The `Clear <Field>` boolean of a nullable number, string or boolean field in the
+ * Additional Fields of an update, or undefined when the field gets none. Its
+ * description takes what null does from the spec sentence that starts with `null`.
+ */
+function nullFlagFor(
+  resource: string,
+  op: OperationInfo,
+  field: BodyField,
+): { name: string; displayName: string; description: string } | undefined {
+  if (!field.nullable || field.required || field.enum?.length || !isUpdateOperation(op)) return undefined;
+  if (!NULL_FLAG_TYPES.has(toN8nType(field))) return undefined;
+  // Only a field of the Additional Fields collection: the boolean lives there
+  const onTop = (map: Record<string, Record<string, Set<string>>>) =>
+    !!(map[resource]?.[op.v2Op] ?? map[resource]?.[op.v1Op])?.has(field.name);
+  if (onTop(PROMOTED_TOP_LEVEL_FIELDS) || onTop(OPTIONAL_TOP_LEVEL_FIELDS)) return undefined;
+  const fieldName = getParamName(resource, op.v1Op, field.name);
+  const fieldDisplayName = formatDisplayName(field.name);
+  const specDesc = getFieldDescription(field.name, field.description, op.endpoint.id) ?? '';
+  const effect = specDesc.match(/`null` ([^.]+)\./)?.[1];
+  return {
+    name: `clear${fieldName.charAt(0).toUpperCase()}${fieldName.slice(1)}`,
+    displayName: `Clear ${fieldDisplayName}`,
+    description: `Whether to send null, which ${effect ?? 'clears the value'}. It takes precedence over ${fieldDisplayName}.`,
+  };
+}
+
+/**
+ * A nullable field whose description speaks of `null` anywhere ("`null` removes the
+ * reply", "and `null` disables it") needs a way to send it: an option, the JSON
+ * literal or the boolean. The check runs on the field as the node shows it.
+ */
+function assertNullHandled(resource: string, op: OperationInfo, field: BodyField, description: string, isInsideCollection: boolean): void {
+  if (!field.nullable || !description.includes('`null`')) return;
+  if (isNullableOptions(field) || isNullableJson(field)) return;
+  if (isInsideCollection && nullFlagFor(resource, op, field)) return;
+  throw new Error(
+    `${resource} > ${op.v2Op}: the description of ${field.name} promises null, and the node has no way to send it`,
+  );
 }
 
 function generateEnumOptions(
@@ -1163,9 +1234,33 @@ function generateResourceDescription(
       lines.push(`\t\tdefault: {},`);
       lines.push(`\t\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: [${allOpValues.map(quote).join(', ')}] } },`);
       lines.push(`\t\toptions: [`);
-      const sortedOptionalFields = [...filteredOptionalFields].sort((a, b) => formatDisplayName(a.name).localeCompare(formatDisplayName(b.name)));
-      for (const field of sortedOptionalFields) {
-        lines.push(generateFieldProperty(field, resource, op, allResourceValues, allOpValues, false, true));
+      // A nullable scalar of an update brings its `Clear <Field>` boolean (see nullFlagFor),
+      // sorted with the other options: n8n wants a collection in alphabetical order
+      const collectionOptions: Array<{ displayName: string; code: string }> = [];
+      for (const field of filteredOptionalFields) {
+        collectionOptions.push({
+          displayName: formatDisplayName(field.name),
+          code: generateFieldProperty(field, resource, op, allResourceValues, allOpValues, false, true),
+        });
+        const nullFlag = nullFlagFor(resource, op, field);
+        if (nullFlag) {
+          collectionOptions.push({
+            displayName: nullFlag.displayName,
+            code: [
+              `\t\t\t{`,
+              `\t\t\t\tdisplayName: ${quote(nullFlag.displayName)},`,
+              `\t\t\t\tname: ${quote(nullFlag.name)},`,
+              `\t\t\t\ttype: 'boolean',`,
+              `\t\t\t\tdefault: false,`,
+              `\t\t\t\tdescription: ${quote(sanitizeDescription(nullFlag.description))},`,
+              `\t\t\t},`,
+            ].join('\n'),
+          });
+        }
+      }
+      collectionOptions.sort((a, b) => a.displayName.localeCompare(b.displayName));
+      for (const option of collectionOptions) {
+        lines.push(option.code);
       }
       lines.push(`\t\t],`);
       lines.push(`\t},`);
@@ -1737,9 +1832,14 @@ function generateFieldProperty(
   // Description — EN spec first, then RU fallback
   // Skip if identical to displayName (n8n lint: node-param-description-identical-to-display-name)
   const specDesc = getFieldDescription(field.name, field.description, op.endpoint.id);
-  const rawDesc = specDesc && isNullableOptions(field)
-    ? specDesc.replace(/`null`/g, `"${NULL_OPTION_NAME}"`)
-    : specDesc;
+  const nullFlag = isInsideCollection ? nullFlagFor(resource, op, field) : undefined;
+  let rawDesc = specDesc;
+  if (specDesc && isNullableOptions(field)) {
+    rawDesc = specDesc.replace(/`null`/g, `"${NULL_OPTION_NAME}"`);
+  } else if (specDesc && nullFlag) {
+    rawDesc = specDesc.replace(/`null`/g, `"${nullFlag.displayName}"`);
+  }
+  if (specDesc) assertNullHandled(resource, op, field, specDesc, isInsideCollection);
   if (rawDesc && rawDesc.toLowerCase() !== displayName.toLowerCase()) {
     const desc = sanitizeDescription(n8nType === 'boolean' ? booleanDescription(rawDesc) : rawDesc);
     lines.push(`${tab}\tdescription: ${quote(desc)},`);
@@ -2780,9 +2880,15 @@ function buildFieldMapStr(resource: string, op: OperationInfo, f: BodyField): st
     parts.push('isJson: true');
   }
 
-  // The `null` option of a nullable enum field (see nullOption) goes out as JSON null
-  if (isNullableOptions(f)) {
+  // The `null` option of a nullable enum field (see nullOption) and the literal `null`
+  // in a nullable JSON field go out as JSON null
+  if (isNullableOptions(f) || isNullableJson(f)) {
     parts.push('nullable: true');
+  }
+  // The `Clear <Field>` boolean of a nullable scalar of an update (see nullFlagFor)
+  const nullFlag = nullFlagFor(resource, op, f);
+  if (nullFlag) {
+    parts.push(`nullFlag: '${nullFlag.name}'`);
   }
 
   // v1 compat: form fields that may be missing in v1 JSON mode or v1 workflows
@@ -3119,8 +3225,10 @@ interface FieldMap {
 \tlocator?: boolean;
 \tsubKey?: string;
 \tisJson?: boolean;
-\t/** The option value \`null\` is sent as JSON null */
+\t/** The option value or the JSON text \`null\` is sent as JSON null */
 \tnullable?: boolean;
+\t/** The boolean of the collection that sends JSON null and wins over the field value */
+\tnullFlag?: string;
 \tdefault?: unknown;
 }
 
@@ -3245,6 +3353,11 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 // Generic Route Executor
 // ============================================================================
 
+/** The \`null\` option of a nullable enum field, or the literal \`null\` in a nullable JSON field */
+function isNullText(fm: FieldMap, value: unknown): boolean {
+\treturn fm.nullable === true && typeof value === 'string' && value.trim() === 'null';
+}
+
 async function executeRoute(
 \tthis: IExecuteFunctions,
 \troute: RouteConfig,
@@ -3330,7 +3443,7 @@ async function executeRoute(
 \t\t} else {
 \t\t\traw = this.getNodeParameter(fm.n8n, i);
 \t\t}
-\t\tif (fm.nullable && raw === 'null') {
+\t\tif (isNullText(fm, raw)) {
 \t\t\tbody[fm.api] = null;
 \t\t} else if (fm.isArray && typeof raw === 'string') {
 \t\t\tbody[fm.api] = splitAndValidateCommaList(this, raw, fm.n8n, fm.arrayType!, i);
@@ -3347,6 +3460,12 @@ async function executeRoute(
 \ttry { additional = this.getNodeParameter(collectionName, i, {}) as IDataObject; } catch { /* no collection */ }
 
 \tfor (const fm of route.optionalBodyMap ?? []) {
+\t\t// The Clear <Field> boolean of a nullable field sends null whatever the field holds
+\t\tif (fm.nullFlag && additional[fm.nullFlag] === true) {
+\t\t\tbody[fm.api] = null;
+\t\t\tcontinue;
+\t\t}
+
 \t\tlet val: unknown = additional[fm.n8n];
 
 \t\t// If not in collection, try as top-level param (v1 compat for V1_TOP_LEVEL_PARAMS)
@@ -3356,8 +3475,8 @@ async function executeRoute(
 
 \t\tif (val === undefined || val === null || val === '') continue;
 
-\t\t// An option value cannot be null in n8n: the \`null\` option of a nullable field stands for it
-\t\tif (fm.nullable && val === 'null') {
+\t\t// An n8n field cannot hold null: the \`null\` option or JSON text of a nullable field stands for it
+\t\tif (isNullText(fm, val)) {
 \t\t\tbody[fm.api] = null;
 \t\t\tcontinue;
 \t\t}

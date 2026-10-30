@@ -639,7 +639,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
   }
 
   // <ApiCodeExample operationId="..." title="..." params={{ ... }} />
-  // <ApiCodeExample operationId="..." example="..." langs={["curl", "cli"]} />
+  // <ApiCodeExample operationId="..." example="..." />
   // <ApiCodeExample lang="python" operations={[...]} showInit={false} />
   if (result.includes('<ApiCodeExample')) {
     const apiCodeRegex = /<ApiCodeExample\s+([\s\S]*?)\/>/g;
@@ -681,17 +681,44 @@ export async function expandMdxComponents(content: string): Promise<string> {
       }
       if (operationId) ops.push({ id: operationId });
 
-      // `example` with an SDK language: examples.json holds only the first
-      // example, so the page renders an error, and so does the .md.
-      const sdkExampleError = `*Request example "${exampleName}" (${operationId}) is shown in curl and cli only*\n`;
+      // `example` that a shown SDK language has no code for: the page renders
+      // an error (`SdkExampleMissing`), and so does the .md.
+      const sdkExampleMissing = (missing: readonly string[]): string =>
+        `*Request example "${exampleName}" (${operationId}) has no SDK code in: ${missing.join(', ')}*\n`;
+
+      // A named request example belongs to one operation.
+      if (exampleName && !operationId) {
+        result = result.replace(
+          fullMatch,
+          `*operationId is required for example="${exampleName}"*\n`
+        );
+        continue;
+      }
 
       // SDK language mode: generate from examples.json
       if (lang && isSdkLang(lang)) {
-        if (exampleName) {
-          result = result.replace(fullMatch, sdkExampleError);
+        const showInit = !attrs.includes('showInit={false}');
+        if (exampleName && operationId) {
+          const code = getSdkExampleForLang(
+            lang,
+            [{ id: operationId, example: exampleName }],
+            showInit
+          );
+          let md = '';
+          if (code) {
+            if (title) md += `**${title}**\n\n`;
+            md += `\`\`\`${lang}\n${code}\n\`\`\`\n`;
+          } else {
+            // A name the spec lacks reads as in the other modes, before the SDK one.
+            const endpoint = await getEndpointByOperation(operationId);
+            if (!endpoint) md = `*Endpoint not found: ${operationId}*\n`;
+            else if (!selectRequestExample(endpoint.requestBody, exampleName)) {
+              md = `*Request example not found: ${exampleName} (${operationId})*\n`;
+            } else md = sdkExampleMissing([lang]);
+          }
+          result = result.replace(fullMatch, md);
           continue;
         }
-        const showInit = !attrs.includes('showInit={false}');
         const code = getSdkExampleForLang(lang, ops, showInit);
 
         if (code) {
@@ -733,15 +760,6 @@ export async function expandMdxComponents(content: string): Promise<string> {
 
       // lang="curl" | "cli" is one block on the page and ignores `langs`.
       const singleLang = lang === 'curl' || lang === 'cli' ? lang : undefined;
-      // Without `langs` the page dropdown shows the SDK languages too.
-      if (
-        exampleName &&
-        !singleLang &&
-        (requestedLangs.length === 0 || requestedSdkLangs.length > 0)
-      ) {
-        result = result.replace(fullMatch, sdkExampleError);
-        continue;
-      }
 
       // Parse and apply param overrides
       let finalEndpoint = endpoint;
@@ -781,11 +799,23 @@ export async function expandMdxComponents(content: string): Promise<string> {
         finalEndpoint = { ...finalEndpoint, requestBody };
       }
 
-      const baseUrl = await getBaseUrl();
       // The same SDK code as in the page dropdown: from examples.json, so
-      // `params` shape only the curl and CLI examples (`example` stops above
-      // when SDK languages are shown).
-      const sdkExamples = requestedSdkLangs.length > 0 ? getSdkExamples(operationId) : {};
+      // `params` shape only the curl and CLI examples, and `example` picks the
+      // named request in every language.
+      const sdkExamples = getSdkExamples(operationId, exampleName);
+      // Without `langs` the page dropdown shows every SDK language.
+      const shownSdkLangs = singleLang
+        ? []
+        : requestedLangs.length > 0
+          ? requestedSdkLangs
+          : SDK_LANGS;
+      const missingSdkLangs = exampleName ? shownSdkLangs.filter((l) => !sdkExamples[l]) : [];
+      if (missingSdkLangs.length > 0) {
+        result = result.replace(fullMatch, sdkExampleMissing(missingSdkLangs));
+        continue;
+      }
+
+      const baseUrl = await getBaseUrl();
       const exampleFor = async (
         blockLang: string
       ): Promise<{ fence: string; code: string } | undefined> => {

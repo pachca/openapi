@@ -4,17 +4,23 @@ import dataclasses
 import json
 import keyword
 import types
-from dataclasses import asdict, fields
+from dataclasses import fields
 from datetime import datetime
 from enum import Enum
-from typing import Callable, Type, TypeVar, Union, get_args, get_origin, get_type_hints
+from typing import Any, Callable, Type, TypeVar, Union, get_args, get_origin, get_type_hints
 
 import httpx
 
 from .models import (
+    BotUpdateRequest,
+    BotUpdateRequestWebhook,
     ButtonWebhookPayload,
     ChatMemberWebhookPayload,
     CompanyMemberWebhookPayload,
+    DraftCreateRequestDraft,
+    DraftRepetitionRequest,
+    DraftScheduleRequest,
+    DraftUpdateRequestDraft,
     LinkSharedWebhookPayload,
     MessageWebhookPayload,
     ReactionWebhookPayload,
@@ -88,6 +94,40 @@ def _rank_union_members(members: list[type], data: dict) -> list[type]:
     return sorted(members, key=score)
 
 
+def _fits(tp: object, value: object) -> bool:
+    """Whether a JSON value has the shape a field type takes.
+
+    A list fits a list, an object fits a model or a dict, a string fits a string,
+    an enum or a time, a number fits a number and a boolean a boolean. None fits
+    any field. A union member whose field does not fit gives way to the next one.
+    """
+    if value is None or tp is Any:
+        return True
+    origin = get_origin(tp)
+    if origin is Union or origin is types.UnionType:
+        return any(_fits(arg, value) for arg in get_args(tp) if arg is not type(None))
+    if origin is list:
+        args = get_args(tp)
+        return isinstance(value, list) and (not args or all(_fits(args[0], item) for item in value))
+    if origin is dict:
+        return isinstance(value, dict)
+    if not isinstance(tp, type):
+        return True
+    if _is_dataclass_type(tp) or tp is dict:
+        return isinstance(value, dict)
+    if tp is list:
+        return isinstance(value, list)
+    if tp is bool:
+        return isinstance(value, bool)
+    if issubclass(tp, (str, Enum)) or tp is datetime:
+        return isinstance(value, str)
+    if tp is int:
+        return isinstance(value, int) and not isinstance(value, bool)
+    if tp is float:
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return True
+
+
 def _resolve_list_item_type(tp: object) -> object | None:
     """Extract the item type from list[X] or list[X] | None."""
     origin = get_origin(tp)
@@ -121,11 +161,12 @@ def _deserialize_instance(tp: object, value: object) -> object:
                 if chosen is not None:
                     return _deserialize_dataclass(chosen, value)
             # The first member that decodes wins: one that fits the keys best but
-            # misses a required field gives way to the next.
+            # misses a required field, or holds a value of another type (a list
+            # where it takes an object), gives way to the next.
             errors: list[Exception] = []
             for member in _rank_union_members(members, value):
                 try:
-                    return _deserialize_dataclass(member, value)
+                    return _deserialize_dataclass(member, value, strict=True)
                 except (TypeError, ValueError) as error:
                     errors.append(error)
             raise errors[0]
@@ -155,7 +196,9 @@ def _deserialize_instance(tp: object, value: object) -> object:
     return value
 
 
-def _deserialize_dataclass(cls: Type[T], data: dict) -> T:
+def _deserialize_dataclass(cls: Type[T], data: dict, strict: bool = False) -> T:
+    """Build a dataclass from a dict. With strict, a value whose type does not
+    fit its field raises TypeError, so a union tries its next member."""
     field_map = {f.name: f for f in fields(cls)}
     hints = get_type_hints(cls)
     norm = {k.replace("-", "_").lower(): v for k, v in data.items()}
@@ -166,6 +209,8 @@ def _deserialize_dataclass(cls: Type[T], data: dict) -> T:
             if k not in field_map:
                 continue
         f = field_map[k]
+        if strict and not _fits(hints[f.name], v):
+            raise TypeError(f"{cls.__name__}.{f.name} does not take {type(v).__name__}")
         kwargs[k] = _deserialize_instance(hints[f.name], v)
     return cls(**kwargs)
 
@@ -206,22 +251,63 @@ def deserialize(cls: Type[T], data: dict) -> T:
     return _deserialize_instance(cls, data)
 
 
-def _strip_nones(val: object) -> object:
+# Fields of a request model the caller can send as null, by name in null_fields.
+_NULLABLE_FIELDS: dict[type, frozenset[str]] = {
+    BotUpdateRequest: frozenset({"oauth_client"}),
+    BotUpdateRequestWebhook: frozenset({"kind"}),
+    DraftCreateRequestDraft: frozenset({"parent_message_id", "schedule"}),
+    DraftRepetitionRequest: frozenset({"nth_day"}),
+    DraftScheduleRequest: frozenset({"end_date"}),
+    DraftUpdateRequestDraft: frozenset({"parent_message_id", "schedule"}),
+}
+
+
+def _json_key(name: str) -> str:
+    return name[:-1] if name.endswith("_") and keyword.iskeyword(name[:-1]) else name
+
+
+def _to_json(val: object) -> object:
+    if dataclasses.is_dataclass(val) and not isinstance(val, type):
+        nullable = _NULLABLE_FIELDS.get(type(val))
+        null_fields: frozenset[str] = frozenset()
+        if nullable is not None:
+            names = getattr(val, "null_fields", ())
+            # A single name passed as a string is one field, not its letters.
+            null_fields = frozenset((names,) if isinstance(names, str) else names)
+            unknown = sorted(null_fields - nullable)
+            if unknown:
+                raise ValueError(f"{type(val).__name__}: field {unknown[0]!r} cannot be sent as null")
+        out: dict[str, object] = {}
+        for f in fields(val):
+            if nullable is not None and f.name == "null_fields":
+                continue
+            if f.name in null_fields:
+                out[_json_key(f.name)] = None
+                continue
+            v = getattr(val, f.name)
+            if v is not None:
+                out[_json_key(f.name)] = _to_json(v)
+        return out
     if isinstance(val, dict):
-        return {
-            (k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): _strip_nones(v)
-            for k, v in val.items() if v is not None
-        }
-    if isinstance(val, list):
-        return [_strip_nones(v) for v in val]
+        return {_json_key(k): _to_json(v) for k, v in val.items() if v is not None}
+    if isinstance(val, (list, tuple)):
+        return [_to_json(v) for v in val]
     if isinstance(val, datetime):
         return val.isoformat()
     return val
 
 
 def serialize(obj: object) -> dict:
-    """Convert a dataclass to a dict, recursively omitting None values."""
-    return _strip_nones(asdict(obj))
+    """Convert a dataclass to a dict for the request body.
+
+    A field that is None stays out of the body. A field named in null_fields
+    goes out as null, whatever value it holds, and a name the model does not
+    take as null raises ValueError before the request is sent.
+    """
+    result = _to_json(obj)
+    if not isinstance(result, dict):
+        raise TypeError(f"serialize takes a dataclass, got {type(obj).__name__}")
+    return result
 
 
 _MAX_RETRIES = 3

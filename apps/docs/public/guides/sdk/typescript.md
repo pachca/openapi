@@ -438,7 +438,7 @@ const response = await client.users.listUsers({
 ```
 
 
-**Создание задачи:**
+**Создание напоминания:**
 
 ```typescript
 import { PachcaClient, TaskCreateRequest, TaskCreateRequestCustomProperty, TaskKind } from "@pachca/sdk"

@@ -7,8 +7,9 @@ servers:
 tags:
   - name: Messages
 paths:
-  # E1: several examples → the first one (the minimal) shapes the usage example;
-  # a union of button variants takes the member the example matches.
+  # E1: several examples → the first one (the minimal) shapes the usage example,
+  # and each gets its own under `examples` by its key; a union of button
+  # variants takes the member the example matches.
   /messages:
     post:
       operationId: MessageOperations_createMessage

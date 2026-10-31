@@ -1,6 +1,6 @@
 ---
 name: request-review
-description: 'Запросить код-ревью в Пачке: сообщение о MR или PR в чат, куда коллеги пишут запросы на ревью, в формате прошлых запросов этого чата и с упоминанием ревьюеров, или одно напоминание о ваших MR, которые ждут ревью. Когда: «запроси ревью в Пачке», «попроси ревью у Анны и Олега», «напиши в чат ревью, что MR готов», «напомни про ревью моих MR», "request a code review in Pachca", "remind reviewers about my open PRs". Not for: a post about what was done → post-changes; review remarks gathered in a thread → summarize-thread; waiting for comments in a thread → watch-thread.'
+description: 'Запросить код-ревью в Пачке: сообщение о MR или PR в чат, куда коллеги пишут запросы на ревью, в формате прошлых запросов этого чата и с упоминанием ревьюеров, или одно напоминание о ваших MR, которые ждут ревью. Когда: «запроси ревью в Пачке», «попроси ревью у Анны и Олега», «напиши в чат ревью, что MR готов», «напомни про ревью моих MR», "request a code review in Pachca", "remind reviewers about my open PRs". Not for: a post about what was done → pachca-messaging; review remarks gathered in a thread → summarize-thread; waiting for comments in a thread → watch-thread.'
 argument-hint: '[reviewers] [chat] [MR, PR or branch] | напомни'
 disable-model-invocation: true
 ---

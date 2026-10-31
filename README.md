@@ -16,7 +16,7 @@
 | Что | Кому | В репозитории |
 |-----|------|---------------|
 | [MCP-сервер](#mcp-сервер) | Сотруднику в программе с AI-агентом: инструмент на каждый метод API | набор инструментов: исходники в `packages/spec`, пакет `packages/mcp-manifest`; сам сервер работает в бэкенде Пачки |
-| [Плагин «Пачка»](#плагин-скиллы-и-команды) | Claude Code, приложению Claude, Codex, VS Code с GitHub Copilot и Cursor: MCP-сервер, восемь скиллов и четыре команды | `plugins/pachca` |
+| [Плагин «Пачка»](#плагин-скиллы-и-команды) | Claude Code, приложению Claude, Codex, VS Code с GitHub Copilot и Cursor: MCP-сервер, восемь скиллов и три команды | `plugins/pachca` |
 | [CLI](#cli) | Терминалу, скриптам, CI и агентам с терминалом | `packages/cli` |
 | [SDK](#sdk) и [генератор](#генератор) | Своему коду на TypeScript, Python, Go, Kotlin, Swift и C# | `sdk/`, `packages/generator` |
 | [n8n](#n8n) | Автоматизациям без кода | `integrations/n8n` |
@@ -97,10 +97,9 @@ npx skills add https://dev.pachca.com -g -a opencode -y
 |---------|------------|
 | `summarize-thread` | Пересказывает тред: о чём он, что решили, что осталось открытым и кому что поручили. Можно передать несколько тредов, попросить только новое за период и задать вопрос, на который агент ответит в конце. Тред о проблеме разбирает простыми словами, а замечания из треда разбирает по пунктам со статусом по коду |
 | `watch-thread` | Следит за тредом через CLI и отвечает в нём, пока открыта сессия. Без треда открывает его под сообщением или создаёт самостоятельный тред с коллегой |
-| `post-changes` | Пишет пост о том, что сделано по задаче или в сессии, в стиле прошлых постов чата и оставляет его черновиком в поле ввода |
 | `request-review` | Просит ревью MR или PR в чате ревью в формате прошлых запросов и с упоминанием ревьюеров, а со словом «напомни» напоминает о ваших MR, которые ждут ревью |
 
-В Claude Code команды вызываются как `/pachca:summarize-thread`, `/pachca:watch-thread`, `/pachca:post-changes` и `/pachca:request-review`, в остальных программах — по таблице в разделе [Команды плагина](https://dev.pachca.com/guides/mcp/plugin#komandy-plagina) страницы «Плагин и скиллы». Что делает каждая команда по шагам — на странице [Команды плагина](https://dev.pachca.com/guides/mcp/commands).
+В Claude Code команды вызываются как `/pachca:summarize-thread`, `/pachca:watch-thread` и `/pachca:request-review`, в остальных программах — по таблице в разделе [Команды плагина](https://dev.pachca.com/guides/mcp/plugin#komandy-plagina) страницы «Плагин и скиллы». Что делает каждая команда по шагам — на странице [Команды плагина](https://dev.pachca.com/guides/mcp/commands).
 
 Скиллы и команды пишутся руками в `plugins/pachca/skills/<name>/`. Сборка публикует на dev.pachca.com восемь скиллов-знаний (`/.well-known/agent-skills/index.json`, `/skill.md`) и проверяет ссылки, имена инструментов MCP и команд CLI. Команды плагина на сайт не попадают. В скиллах-знаниях только инструкции. Команда `watch-thread` запускает в фоне скрипт `scripts/watch.mjs` на Node.js, который следит за тредом через CLI, поэтому ей нужен `@pachca/cli` с входом `pachca auth login`. Прогоны плагина через `claude plugin eval` лежат в `plugins/pachca/evals`, как их запускать — в [CONTRIBUTING.md](CONTRIBUTING.md#agent-skills-and-the-plugin).
 
@@ -259,7 +258,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 ├── integrations/
 │   └── n8n/               # n8n community node (генерируется из OpenAPI)
 ├── plugins/pachca/        # Плагин «Пачка»: скиллы и команды (пишутся руками), настройки MCP, манифест для каждой программы
-│   ├── skills/            # 8 скиллов-знаний и 4 команды
+│   ├── skills/            # 8 скиллов-знаний и 3 команды
 │   └── evals/             # Прогоны плагина через claude plugin eval: routing, knowledge, actions
 ├── .claude-plugin/        # Маркетплейс для Claude Code, приложения Claude и GitHub Copilot
 ├── .cursor-plugin/        # Маркетплейс для Cursor

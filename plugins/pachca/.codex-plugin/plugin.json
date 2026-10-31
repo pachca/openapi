@@ -1,7 +1,7 @@
 {
   "name": "pachca",
   "version": "1.0.6",
-  "description": "Pachca corporate messenger for AI agents: the MCP server with a tool per API method, skills on doing things right in Pachca, and commands to summarize a thread, watch a thread to reply in it and request a code review.",
+  "description": "Pachca corporate messenger for AI agents: the MCP server with a tool per API method, skills on doing things right in Pachca, and commands to summarize a thread and watch a thread to reply in it.",
   "author": {
     "name": "Pachca",
     "url": "https://dev.pachca.com"

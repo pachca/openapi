@@ -22,6 +22,8 @@ export interface CommandRow {
   roles?: string;
   plan?: string;
   noAuth?: boolean;
+  /** Without `method`: a link title to `href`, with `summary` under it */
+  title?: string;
   params: ParamRow[];
 }
 
@@ -54,7 +56,13 @@ function ParamsPanel({ params }: { params: ParamRow[] }) {
   );
 }
 
-export function CliCommandsTable({ commands }: { commands: CommandRow[] }) {
+export function CliCommandsTable({
+  commands,
+  headers = ['Команда', 'Метод API'],
+}: {
+  commands: CommandRow[];
+  headers?: [string, string];
+}) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
   return (
@@ -70,8 +78,8 @@ export function CliCommandsTable({ commands }: { commands: CommandRow[] }) {
         </colgroup>
         <thead className="border-b border-glass-border">
           <tr>
-            <th className={TH}>Команда</th>
-            <th className={TH}>Метод API</th>
+            <th className={TH}>{headers[0]}</th>
+            <th className={TH}>{headers[1]}</th>
           </tr>
         </thead>
         <tbody>
@@ -119,6 +127,16 @@ export function CliCommandsTable({ commands }: { commands: CommandRow[] }) {
                       >
                         {c.summary}
                       </EndpointLink>
+                    ) : c.title ? (
+                      <>
+                        <a
+                          href={c.href}
+                          className="font-semibold text-text-primary underline underline-offset-[3px] decoration-1 decoration-current/30 hover:decoration-current hover:decoration-[1.5px] transition-all"
+                        >
+                          {c.title}
+                        </a>
+                        <div className="mt-1 text-text-secondary">{c.summary}</div>
+                      </>
                     ) : (
                       <span className="text-text-secondary">{c.summary}</span>
                     )}

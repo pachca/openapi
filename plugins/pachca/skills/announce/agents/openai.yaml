@@ -1,5 +1,0 @@
-interface:
-  display_name: 'Announcement'
-  short_description: 'Draft a Pachca announcement for review'
-policy:
-  allow_implicit_invocation: false

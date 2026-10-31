@@ -32,7 +32,7 @@ Access paths: prefer the MCP tools (`pachca_send_message`, `pachca_create_draft`
 Rules:
 
 - Reply where the conversation is. If the user is talking about a thread, answer in that thread, not in the parent chat.
-- A thread cannot be deleted and has no title. Create one only when the user asked for a thread or is clearly continuing one, and post the first message right away: an empty thread is not a conversation yet.
+- A thread cannot be deleted and has no title. Create one only when the user asked for a thread or is clearly continuing one. When you open it to start a discussion, post the first message right away: an empty thread is not a conversation yet. A thread opened only to follow a message, as «Подписаться на тред» does, may stay empty.
 - No nested threads: a message that is itself inside a thread cannot get a thread (`400`). A deleted message cannot either (`404`).
 - A channel subscriber writes only in threads of channel messages. Posting to the channel itself returns `403`. Offer the thread instead.
 - In an open chat you are not a member of, you can read, react and comment in a thread that already exists under a message (`pachca_create_thread` returns it), but starting a new thread there or posting to the chat itself returns `403`. Offer that thread, or ask before joining: adding yourself (`pachca_add_members` with your own id) changes the member list everyone sees.
@@ -42,17 +42,27 @@ Rules:
 
 ## Writing to colleagues
 
-Every message reaches people and their notifications. Write as a considerate colleague who respects their time.
+Every message reaches people and their notifications. A few things are fixed by how Pachca works; the rest are approaches with trade-offs. Follow the user's preference when they state one, in the request or in their `CLAUDE.md` or `AGENTS.md`. Otherwise choose by the situation, and say which approach you took when it is not obvious.
 
-- Put the point in the first message: greeting, request and context together. Never send a bare «Привет» or «Есть минутка?» and wait.
-- Send one complete message, not a burst of short ones: each of them notifies. Keep one request per message and say what is needed and by when.
-- Keep a discussion under the message it is about, in its thread, and bring people in by mentioning them there rather than forwarding, opening a new chat or writing to them directly.
-- Acknowledge with a reaction rather than an «ок» or «спасибо» message. Do not scatter reactions through other people's conversation.
-- Mention only the people whose action or answer you need. `@all` and `@here` are for when everyone must act now.
-- Before asking a colleague and waiting, check their status (`pachca_get_user_status`): if `is_away` is on or the status says they are away, for example on vacation, tell the user instead of waiting.
-- Do not rush people: no one owes an instant reply. Remind once, after a reasonable time.
-- Close the loop: when a discussion reaches a decision, post a short summary of what was decided and who does what; when your question is answered, acknowledge it and stop.
-- Write in the user's voice, plainly, without canned phrases. Apologies, thanks for someone's work, feedback and other personal messages are the user's to write: offer at most a draft.
+Fixed by Pachca:
+
+- Every message notifies, so several short messages notify several times.
+- A mention in a thread invites the person (see Mentions), and `@all` or `@here` reaches everyone it covers.
+- An edit notifies nobody (see Editing and deleting).
+- Lists and tables in `content` stay plain text (see Formatting).
+
+Approaches:
+
+- **Where to ask a colleague.** In the thread under the message it is about, when the question belongs to that discussion and others may need the answer. In a standalone thread, for a topic with no message to hang it on, kept apart from personal chat. In a direct message, when it is quick and personal; some people do not expect an agent there. Without a preference, prefer a thread.
+- **How long.** The conclusion or one request in a line or two usually lands best; details go into the thread or a file.
+- **How to start.** Greeting, request and context in one message save a round trip, while a bare «Привет» or «Есть минутка?» makes the person wait. Saying what is needed and by when helps them answer.
+- **How to acknowledge.** A reaction says «seen» quietly, but people often read it as «seen, on it» and stop answering, so put one when you will act on the message. When the person needs to know what happens next, reply with that and when. «Ок» or «посмотрю» alone tells them little.
+- **Whom to mention.** The people whose action or answer is needed. A manager or a whole group, when they must act. `@all` and `@here`, when everyone must act now.
+- **When to step in.** When a message is addressed to the user or concerns the task they gave you. In a discussion that goes fine without you, staying silent usually helps more than mediating, and comments on someone's tone or mood rarely help. Take a joke as a joke.
+- **Waiting for an answer.** Check the colleague's status first (`pachca_get_user_status`): if `is_away` is on or the status says they are away, for example on vacation, tell the user instead of waiting. Nobody owes an instant reply; one reminder after a reasonable time is usually enough.
+- **Creating things.** Threads, documents and meeting invites ask people for attention: create them only when the user asked for them (for threads, see the rules under «Choose where to write»).
+- **Closing.** When a discussion reaches a decision, a short summary of what was decided and who does what, with a link to where it is written down, saves everyone rereading. When your question is answered, acknowledge it and stop.
+- **Voice.** Write in the user's voice, plainly, without canned phrases, cheering or praise. Apologies, thanks for someone's work and feedback carry the user's own voice: offer a draft rather than sending.
 
 ## Formatting
 
@@ -74,9 +84,9 @@ The `content` text is markdown with a narrow set: bold, italic, strikethrough, l
 
 ## When to ask first
 
-A sent message cannot be taken back: the notification is gone, and deleting leaves a «Сообщение удалено» mark. A request that gives the text and the target is carried out at once, and the program asks its own approval. Ask first, and wait for a yes, only when:
+A sent message cannot be taken back: the notification is gone, and deleting leaves a «Сообщение удалено» mark. A request that gives the text and the target is carried out at once, and the program asks its own approval. So is a request with an explicit verb to send and one named recipient, such as «отправь в тред …», «спроси у Анны …» or «напиши Анне, что …»: it is a yes to send the text you compose. «Напиши мне текст», «подготовь» or anything the user wants to review is not: put a draft into that chat's input box (below) rather than text in this chat to copy. Ask first, and wait for a yes, only when:
 
-1. The user did not give the exact text and target, or you would open a thread they did not ask for: show the target (chat, thread or employee, resolved by id) and the final text. If the user wants to review or send it personally, make a draft instead (below).
+1. The user named no single target or did not ask you to send, or you would open a thread they did not ask for: show the target (chat, thread or employee, resolved by id) and the final text, or make a draft.
 2. It goes to many at once, or to more people than the user named: several chats or people, or `@all` or `@here` the user did not ask for.
 3. A mention in a thread would bring in someone outside it: they get the thread and its parent message, so ask even when the user named them.
 4. It is a scheduled or recurring message whose text, time or repetition you filled in: nobody reviews it before it goes.

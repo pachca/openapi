@@ -4,7 +4,7 @@ This plugin connects an AI agent to [Pachca](https://pachca.com), a corporate me
 
 - **The MCP server** `pachca` at `https://mcp.pachca.com/mcp`, with a tool for each Pachca API method. Which tools an agent gets depends on the employee's role, the workspace plan and the kind of token.
 - **Eight skills** on doing things right in Pachca: connecting and choosing a token, writing and replying in threads, search and summaries, administration, bots, AI agents that live in Pachca, OAuth apps and API scripts. The agent reads a skill when a task matches it.
-- **Six commands** that only you start: `catch-up`, `thread-summary`, `digest`, `announce`, `tasks-from` and `watch-thread`. In Claude Code they are `/pachca:catch-up` and so on.
+- **Two commands** that only you start: `thread-summary` and `watch-thread`. In Claude Code they are `/pachca:thread-summary` and `/pachca:watch-thread`.
 
 ## Install
 

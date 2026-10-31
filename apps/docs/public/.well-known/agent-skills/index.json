@@ -41,7 +41,7 @@
       "type": "archive",
       "description": "Писать в Пачку: разметка, упоминания, куда писать (тред, ответ с цитатой, личный чат), черновик, который отправит сотрудник, отложенные и регулярные сообщения в чат, файлы, пересылка, реакции, закрепление, «Важное», правка, удаление, поиск нужного сообщения, когда сначала спросить, лимиты. Когда: «напиши в чат», «отправь сообщение», «ответь в треде», «напиши в личку», «упомяни», «подготовь черновик, я отправлю сам», «агент готовит черновик, сотрудник отправляет», «запланируй сообщение», «напоминай в канал каждый понедельник», «отправь отчёт файлом .md», «приложи файл», «перешли сообщение», «поставь реакцию», «закрепи сообщение», «отметь как важное», «исправь сообщение», \"send a message\", \"reply in the thread\", \"DM someone\", \"draft for me to send\", \"schedule a message\", \"attach a file\", \"forward a message\", \"pin\". Not for: search or summaries as the goal, a reminder for an employee → pachca-search; buttons, forms, clicks → pachca-bots; an AI agent as a bot → pachca-ai-agent; uploads from code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-messaging.tar.gz",
-      "digest": "sha256:d9324079d795cdda2fed136b7cf3b2389d76464145961088be6b74aae8442e8b"
+      "digest": "sha256:1d67692b5f32de1c017b2ca6e770eb43b1c5ce565041a70f2d8c5f7550470e09"
     },
     {
       "name": "pachca-oauth",

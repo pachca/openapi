@@ -21,6 +21,7 @@ import { getOrderedPages } from './ordered-pages';
 import { generateNavigation, compareEndpointsForNav } from './navigation';
 import { sortTagsByOrder } from './guides-config';
 import { SCOPE_ROLES, SCOPE_ROLE_LABELS } from './scope-roles';
+import { splitAsks } from './prompts';
 
 // ============================================
 // Helper functions
@@ -274,6 +275,28 @@ export async function expandMdxComponents(content: string): Promise<string> {
         return `### Шаг ${stepNum}. ${title}\n\n${dedent(content).trim()}\n\n`;
       }
     );
+  });
+
+  // <Prompts><Prompt ask="«…»">…</Prompt></Prompts> -> the table «Просьба / Что сделает агент»,
+  // each phrase of `ask` in italics as the page showed them before the component.
+  result = result.replace(/<Prompts>([\s\S]*?)<\/Prompts>/g, (_, inner) => {
+    let md = '| Просьба | Что сделает агент |\n|---|---|\n';
+    const rows = [...inner.matchAll(/<Prompt\s+ask="([^"]*)">([\s\S]*?)<\/Prompt>/g)];
+    // A <Prompt> written another way would vanish from the .md without an error.
+    if (rows.length !== (inner.match(/<Prompt\b/g) ?? []).length) {
+      throw new Error('<Prompts>: every <Prompt> must be written as <Prompt ask="…">…</Prompt>');
+    }
+    for (const m of rows) {
+      const asks = splitAsks(m[1])
+        .map((phrase) => `*«${phrase}»*`)
+        .join(', ');
+      const does = dedent(m[2])
+        .trim()
+        .replace(/\s*\n\s*/g, ' ');
+      md += `| ${asks} | ${does} |\n`;
+    }
+    // The source keeps its own blank line after </Prompts>.
+    return md.trimEnd();
   });
 
   // <HttpCodes />
@@ -880,6 +903,21 @@ export async function expandMdxComponents(content: string): Promise<string> {
     }
     md += '\n';
     result = result.replace(/<CliCommands\s*\/>/g, md);
+  }
+
+  // <PluginCommands /> -> one markdown table: the command with its arguments,
+  // the section it opens and what each argument takes. Source: plugin-commands.ts.
+  if (result.includes('<PluginCommands')) {
+    const { PLUGIN_COMMANDS } = await import('./plugin-commands');
+    let md = '| Команда | Что делает |\n|---------|------------|\n';
+    for (const c of PLUGIN_COMMANDS) {
+      const args = c.args
+        .map((a) => `\`${a.token}\`${a.required ? '*' : ' (по желанию)'}: ${a.description}`)
+        .join(' ');
+      md += `| \`${c.usage}\` | [${c.title}](#${c.anchor}). ${c.summary} ${args} |\n`;
+    }
+    md += '\n';
+    result = result.replace(/<PluginCommands\s*\/>/g, md);
   }
 
   // <McpTools /> -> one markdown table in the order of the API sidebar, as on the

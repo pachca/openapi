@@ -1,13 +1,13 @@
 ---
 name: thread-summary
-description: 'Пересказать тред Пачки целиком: контекст, решения, открытые вопросы и поручения, со ссылками. Когда: «перескажи тред», «о чём договорились в треде», «кратко по треду», "summarize this thread", "what was decided in the thread". Not for: turning action items into reminders → tasks-from; a digest of chats for a period → digest.'
-argument-hint: '<thread link, message link or thread id>'
+description: 'Пересказать тред Пачки целиком: контекст, решения, открытые вопросы и поручения, со ссылками. Когда: «перескажи тред», «о чём договорились в треде», «кратко по треду», "summarize this thread", "what was decided in the thread". Not for: turning action items into reminders, or a digest of chats for a period → pachca-search.'
+argument-hint: '<thread links, message links or thread ids> [since when] [what to look for]'
 disable-model-invocation: true
 ---
 
 # Summarize a Pachca thread
 
-Summarize the Pachca thread the user gave with the command: a thread link, a message link or a thread id. If there is none, ask for it.
+Summarize the Pachca threads the user gave with the command: one or more thread links, message links or thread ids. If there is none, ask for it. With several, summarize each thread separately, in the order given. The user may add a window («с понедельника», «с моего последнего сообщения») and a question to answer («ответили ли мне», «что нужно поправить»).
 
 Follow the `pachca-search` skill and its thread procedure. A link can name the thread itself (`thread_id`), the message the thread hangs under (`thread_message_id`), or a single message (`sidebar_message` or `message`); that message can be the one the thread hangs under, a comment inside the thread or a message with no thread. For a thread id or a `thread_id` link, `pachca_get_thread` gives the thread's `chat_id` and `message_id`. Otherwise find the thread chat with the "Find the thread chat" table in the skill's `references/threads.md`. A message with `thread` is the parent itself: its `id` is the thread's `message_id`. A comment inside a thread has no `thread`: its own `chat_id` is the thread chat, and its `entity_id` is the thread id, so `pachca_get_thread` by `entity_id` gives the thread's `message_id`. If the message has no thread (`thread` is `null` and its `entity_type` is not `thread`), say so and do not create one. Read the thread chat by its `chat_id`, not the parent chat.
 
@@ -21,4 +21,6 @@ Follow the `pachca-search` skill and its thread procedure. A link can name the t
 
    Later messages override earlier ones. Quote nothing you did not read.
 
-Do not post the summary unless the user asks. If they ask, show the text first and post after a clear yes, following the `pachca-messaging` skill. To turn action items into reminders, use the `tasks-from` command (`/pachca:tasks-from` in Claude Code).
+   With a window, read the whole thread for context but summarize only what is new in it. «Since my last message» starts at the user's own last message in the thread (its `user_id` is yours). With a question, end with a direct answer to it; for «what to fix», list each item with its message link and attachment, so the user can pick what to take into work.
+
+Do not post the summary unless the user asks. If they ask, show the text first and post after a clear yes, following the `pachca-messaging` skill. To turn action items into reminders, the user asks for that, and you follow the reminders part of the `pachca-search` skill.

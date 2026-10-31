@@ -2418,7 +2418,7 @@ function assertGeneratedMarkdownIntegrity(llmsTxt: string) {
   walk(publicDir);
 
   const LEAK_TAGS =
-    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero|McpTools|CliCommands)\b/;
+    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero|McpTools|CliCommands|PluginCommands|Prompts|Prompt)\b/;
   const errors: string[] = [];
 
   for (const file of mdFiles) {

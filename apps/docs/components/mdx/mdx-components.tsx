@@ -22,6 +22,8 @@ import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { McpTools } from '@/components/mdx/mcp-tools';
+import { PluginCommands } from '@/components/mdx/plugin-commands';
+import { Prompts, Prompt } from '@/components/mdx/prompts';
 import { GlobalFlags } from '@/components/mdx/global-flags';
 import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
@@ -679,6 +681,9 @@ export const customMdxComponents = {
   FormPlayground,
   CliCommands,
   McpTools,
+  PluginCommands,
+  Prompts,
+  Prompt,
   GlobalFlags,
   SdkCommands,
   NpmBadge,

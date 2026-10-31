@@ -16,7 +16,7 @@ Everything for working with the API of [Pachca](https://pachca.com), a corporate
 | What | For whom | In this repo |
 |------|----------|--------------|
 | [MCP server](#mcp-server) | An employee in a program with an AI agent: one tool per API method | tool set: sources in `packages/spec`, package `packages/mcp-manifest`; the server itself runs in Pachca's backend |
-| [Pachca plugin](#plugin-skills-and-commands) | Claude Code, the Claude app, Codex, VS Code with GitHub Copilot and Cursor: the MCP server, eight skills and three commands | `plugins/pachca` |
+| [Pachca plugin](#plugin-skills-and-commands) | Claude Code, the Claude app, Codex, VS Code with GitHub Copilot and Cursor: the MCP server, eight skills and four commands | `plugins/pachca` |
 | [CLI](#cli) | The terminal, scripts, CI and agents with a terminal | `packages/cli` |
 | [SDKs](#sdk) and the [generator](#generator) | Your own code in TypeScript, Python, Go, Kotlin, Swift and C# | `sdk/`, `packages/generator` |
 | [n8n](#n8n) | Automations without code | `integrations/n8n` |
@@ -95,11 +95,12 @@ In Cursor the plugin's server connects with a personal token from the `PACHCA_TO
 
 | Command | What it does |
 |---------|--------------|
-| `summarize-thread` | Retells a thread: what it is about, what was decided, what is still open and who was asked to do what. You can pass several threads, ask for only what is new since a given time and ask a question it answers at the end. Feedback in the thread comes as a list, each item with its status in the code |
+| `summarize-thread` | Retells a thread: what it is about, what was decided, what is still open and who was asked to do what. You can pass several threads, ask for only what is new since a given time and ask a question it answers at the end. A thread about a problem gets a plain account of it, and feedback in the thread comes as a list, each item with its status in the code |
 | `watch-thread` | Watches a thread through the CLI and replies in it while the session is open. Without a thread it opens one under a message or starts an unattached thread with a colleague |
 | `post-changes` | Writes a post about what was done for a task or in the session, in the style of the chat's earlier posts, and leaves it as a draft in the chat's input box |
+| `request-review` | Asks for a review of an MR or PR in the chat where the team asks for reviews, in the shape of earlier requests and mentioning the reviewers, and with «напомни» reminds about your MRs still waiting for a review |
 
-In Claude Code the commands are `/pachca:summarize-thread`, `/pachca:watch-thread` and `/pachca:post-changes`; how to call them in other programs is in the table in the [Plugin commands](https://dev.pachca.com/guides/mcp/plugin#komandy-plagina) section of the Plugin and skills page, and what each command does step by step is on the [Plugin commands](https://dev.pachca.com/guides/mcp/commands) page (both in Russian).
+In Claude Code the commands are `/pachca:summarize-thread`, `/pachca:watch-thread`, `/pachca:post-changes` and `/pachca:request-review`; how to call them in other programs is in the table in the [Plugin commands](https://dev.pachca.com/guides/mcp/plugin#komandy-plagina) section of the Plugin and skills page, and what each command does step by step is on the [Plugin commands](https://dev.pachca.com/guides/mcp/commands) page (both in Russian).
 
 Skills and commands are written by hand in `plugins/pachca/skills/<name>/`. The build publishes the eight knowledge skills on dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) and checks their links and the MCP tool and CLI command names. The plugin's commands are not published on the site. Knowledge skills hold instructions only. The `watch-thread` command runs a background Node.js script, `scripts/watch.mjs`, that watches the thread through the CLI, so it needs `@pachca/cli` signed in with `pachca auth login`. Plugin evals for `claude plugin eval` live in `plugins/pachca/evals`; how to run them is in [CONTRIBUTING.md](CONTRIBUTING.md#agent-skills-and-the-plugin).
 

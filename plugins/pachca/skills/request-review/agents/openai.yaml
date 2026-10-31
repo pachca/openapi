@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Request review'
+  short_description: 'Ask for a code review in a Pachca chat'
+policy:
+  allow_implicit_invocation: false

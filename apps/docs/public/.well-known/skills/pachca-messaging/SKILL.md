@@ -31,7 +31,7 @@ Access paths: prefer the MCP tools (`pachca_send_message`, `pachca_create_draft`
 
 Rules:
 
-- Reply where the conversation is. If the user is talking about a thread, answer in that thread, not in the parent chat.
+- Reply where the conversation is. If the user is talking about a thread, answer in that thread, not in the parent chat. «Ответь в тред» with a message link means the thread under that message, opened if it has none, and a link to a comment inside a thread means that thread: the "Find the thread chat" table in the `pachca-search` skill's `references/threads.md` reads every kind of link. A quoted reply (`parent_message_id`) is for answering that message in the chat flow, when the user asks for it.
 - A thread cannot be deleted and has no title. Create one only when the user asked for a thread or is clearly continuing one. When you open it to start a discussion, post the first message right away: an empty thread is not a conversation yet. A thread opened only to follow a message, as «Подписаться на тред» does, may stay empty.
 - No nested threads: a message that is itself inside a thread cannot get a thread (`400`). A deleted message cannot either (`404`).
 - A channel subscriber writes only in threads of channel messages. Posting to the channel itself returns `403`. Offer the thread instead.
@@ -63,6 +63,7 @@ Approaches:
 - **Creating things.** Threads, documents and meeting invites ask people for attention: create them only when the user asked for them (for threads, see the rules under «Choose where to write»).
 - **Closing.** When a discussion reaches a decision, a short summary of what was decided and who does what, with a link to where it is written down, saves everyone rereading. When your question is answered, acknowledge it and stop.
 - **Voice.** Write in the user's voice, plainly, without canned phrases, cheering or praise. Apologies, thanks for someone's work and feedback carry the user's own voice: offer a draft rather than sending.
+- **Saying that an agent wrote it.** Some employees want colleagues to know the text came from their agent: the «Отправлено через …» badge is easy to miss, and a personal token created in Pachca's interface shows none. When the user asks for it, in the request or in their instructions for agents, open with one short line, for example «Пишет агент Олега по его просьбе». When the ask came only in the request, offer to add it to their instructions for agents so it holds next time.
 
 ## Formatting
 
@@ -87,7 +88,7 @@ The `content` text is markdown with a narrow set: bold, italic, strikethrough, l
 A sent message cannot be taken back: the notification is gone, and deleting leaves a «Сообщение удалено» mark. A request that gives the text and the target is carried out at once, and the program asks its own approval. So is a request with an explicit verb to send and one named recipient, such as «отправь в тред …», «спроси у Анны …» or «напиши Анне, что …»: it is a yes to send the text you compose. So is a pointed-out mistake: when the user says a message you sent for them is wrong, fix it at once and say what you changed, without asking first; the editing rule below still holds: check who has read it right before, then edit, or edit and reply. «Напиши мне текст», «подготовь» or anything the user wants to review is not: put a draft into that chat's input box (below) rather than text in this chat to copy. Ask first, and wait for a yes, only when:
 
 1. The user named no single target or did not ask you to send, or you would open a thread they did not ask for: show the target (chat, thread or employee, resolved by id) and the final text, or make a draft.
-2. It goes to many at once, or to more people than the user named: several chats or people, or `@all` or `@here` the user did not ask for.
+2. It goes to many at once, or to more people than the user named: several chats or people, a mention of someone the user did not name, or `@all` or `@here` the user did not ask for.
 3. A mention in a thread would bring in someone outside it: they get the thread and its parent message, so ask even when the user named them.
 4. It is a scheduled or recurring message whose text, time or repetition you filled in: nobody reviews it before it goes.
 5. You would edit or delete a message the user gave no link or id for: name it first.
@@ -150,6 +151,7 @@ The API has no forward method: «Переслать» exists only in the app. Fo
 ## Pitfalls
 
 - Sending to a thread by the parent message id, or to a thread that does not exist yet.
+- Sending again after a timeout or an answer you could not read: the first message may have gone out. Read the latest messages of that chat and send again only if yours is not there. After a send with files, check that the message carries them.
 - Markdown lists, tables or quotes in `content`. `#Title` without a space stays raw. A one-line ` ```code``` ` is not a code block. A markdown link to `example.com`, without a scheme such as `https://`, keeps only the label.
 - Mentioning someone in a thread "for context" without `skip_invite_mentions`: they now see the thread and the parent message.
 - `display_name` and `display_avatar_url` are for bot tokens only. A personal token gets `403`.

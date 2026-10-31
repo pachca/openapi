@@ -78,17 +78,21 @@ ad-hoc `bun -e` commands or the old `bin/` / `tests/` helpers.
 ## Agent skills and the plugin
 
 `plugins/pachca` is the Pachca plugin. Claude Code and the Claude app read
-`.claude-plugin/plugin.json` and `.mcp.json`. Codex, VS Code, GitHub Copilot and
-Cline read the Agent Plugins manifest `plugin.json` and `mcp.json`. Cursor reads
-`.cursor-plugin/plugin.json`, whose MCP server sends the token from `PACHCA_TOKEN`.
-The marketplaces at the repository root (`.claude-plugin/`, `.cursor-plugin/`,
-`.agents/plugins/`) all point at `./plugins/pachca`. Codex loads the plugin by
-its Agent Plugins manifest and limits the MCP tools of such a plugin to 64 KB of
-tool specs (`codex-rs/core/src/mcp_tool_exposure.rs`), which leaves out most
-Pachca tools. The docs and the `pachca` skill therefore tell Codex users to add
-the server by hand under the name `pachca`: it replaces the plugin's server.
+`.claude-plugin/plugin.json` and `.mcp.json`. Codex reads its own
+`.codex-plugin/plugin.json` and `.mcp.json`. VS Code and GitHub Copilot read the
+root `plugin.json` in the Copilot format, with skills from `skills/` and the
+server from `.mcp.json`. Cursor reads `.cursor-plugin/plugin.json`, whose MCP
+server sends the token from `PACHCA_TOKEN`. The marketplaces at the repository
+root (`.claude-plugin/`, `.cursor-plugin/`, `.agents/plugins/`) all point at
+`./plugins/pachca`.
 
-Everything in the plugin is written by hand except the `version` of its three
+The root `plugin.json` must not declare the Agent Plugins `$schema`. Codex reads
+such a root manifest before its own and then caps the plugin's MCP tools at
+64 KB of tool specs (`codex-rs/core/src/mcp_tool_exposure.rs`): only the first
+28 or so Pachca tools by name would reach the agent, without
+`pachca_send_message`. The build fails on that.
+
+Everything in the plugin is written by hand except the `version` of its four
 manifests. Once the plugin files (all but `evals/`) differ from the ones in
 `main`, the docs build sets it one patch above the version in `main`, so a
 release gets the next version however many commits of the branch change the

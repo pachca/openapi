@@ -7,8 +7,8 @@ import * as yaml from 'js-yaml';
 
 /**
  * The Pachca plugin is hand-written in `plugins/pachca`: skills, MCP configs and one
- * manifest per host (`plugin.json` for Codex, VS Code and Copilot,
- * `.claude-plugin/plugin.json` for Claude Code and the Claude app,
+ * manifest per host (`.codex-plugin/plugin.json` for Codex, `plugin.json` for VS Code
+ * and Copilot, `.claude-plugin/plugin.json` for Claude Code and the Claude app,
  * `.cursor-plugin/plugin.json` for Cursor). This module checks all of it and
  * publishes the skills on the docs site.
  *
@@ -19,7 +19,7 @@ import * as yaml from 'js-yaml';
  *   `agents/openai.yaml` with `allow_implicit_invocation: false`, so they run only
  *   when the user calls them; they ship in the plugin only.
  *
- * Written into the plugin: the `version` of the three manifests, one patch above
+ * Written into the plugin: the `version` of the four manifests, one patch above
  * the version in `main` once the plugin files (all but `evals/`) differ from the
  * ones in `main` (the content hash and version are kept in `plugin-version.json`
  * next to this module), and `evals/mocks/pachca/_tools.json` for the eval suite.
@@ -52,11 +52,14 @@ const DISCOVERY_SCHEMA = 'https://schemas.agentskills.io/discovery/0.2.0/schema.
 const PLUGIN_DIR = path.join(REPO_ROOT, PLUGIN_REL);
 const PLUGIN_SOURCE = './plugins/pachca';
 const MCP_URL = 'https://mcp.pachca.com/mcp';
-const AGENT_PLUGINS_SCHEMA = 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json';
-const AGENT_PLUGINS_MCP_SCHEMA = 'https://agent-plugins.org/schemas/1.0.0/mcp.schema.json';
-/** The closed field set of an Agent Plugins 1.0.0 manifest. */
-const AGENT_PLUGINS_KEYS = new Set([
-  '$schema',
+/**
+ * Fields of the root `plugin.json`, read by VS Code and Copilot in their own format:
+ * skills from `skills/`, the server from `.mcp.json`. It must not declare the Agent
+ * Plugins `$schema`: Codex reads a root manifest with it before its own and then caps
+ * the plugin's MCP tools at 64 KB of specs (codex-rs `mcp_tool_exposure.rs`), which
+ * hides most Pachca tools.
+ */
+const ROOT_MANIFEST_KEYS = new Set([
   'name',
   'version',
   'description',
@@ -65,25 +68,25 @@ const AGENT_PLUGINS_KEYS = new Set([
   'repository',
   'license',
   'keywords',
-  'extensions',
 ]);
 /**
- * One manifest per host, all with the same version: Agent Plugins (Codex, VS Code,
- * Copilot), Claude (Claude Code, the Claude app), Cursor.
+ * One manifest per host, all with the same version: Codex, Copilot (VS Code, Copilot
+ * CLI), Claude (Claude Code, the Claude app), Cursor.
  */
 const VERSIONED_MANIFESTS = [
+  '.codex-plugin/plugin.json',
   'plugin.json',
   '.claude-plugin/plugin.json',
   '.cursor-plugin/plugin.json',
 ];
 /** Files at the plugin root that ship and make up the version, next to `skills/**`. */
-const PLUGIN_ROOT_FILES = [...VERSIONED_MANIFESTS, '.mcp.json', 'mcp.json', 'README.md'];
+const PLUGIN_ROOT_FILES = [...VERSIONED_MANIFESTS, '.mcp.json', 'README.md'];
 /** What may sit at the plugin root. A `bin/` would make the Claude app refuse the plugin. */
 const PLUGIN_LAYOUT = new Set([
   '.claude-plugin',
+  '.codex-plugin',
   '.cursor-plugin',
   '.mcp.json',
-  'mcp.json',
   'plugin.json',
   'README.md',
   'skills',
@@ -657,7 +660,7 @@ function stampVersion(f: string, version: string, problems: string[]): Published
 }
 
 /**
- * The plugin around the skills: layout, the three manifests in step, one MCP
+ * The plugin around the skills: layout, the four manifests in step, one MCP
  * address, no secret outside Cursor's header, the marketplaces. Returns the
  * manifests with the version written in, and the version record.
  */
@@ -667,7 +670,7 @@ function checkPlugin(problems: string[]): PublishedFile[] {
     if (PLUGIN_LAYOUT.has(e) || e === '.DS_Store') continue;
     problems.push(`${rel(e)}: not part of the plugin layout (${[...PLUGIN_LAYOUT].join(', ')})`);
   }
-  for (const dir of ['.claude-plugin', '.cursor-plugin']) {
+  for (const dir of ['.claude-plugin', '.codex-plugin', '.cursor-plugin']) {
     const abs = path.join(PLUGIN_DIR, dir);
     if (!fs.existsSync(abs)) continue; // reported as a missing manifest below
     for (const f of listFiles(abs)) {
@@ -679,51 +682,52 @@ function checkPlugin(problems: string[]): PublishedFile[] {
     problems.push(`${rel('README.md')}: missing`);
 
   const json = new Map<string, Json>();
-  for (const f of [...VERSIONED_MANIFESTS, '.mcp.json', 'mcp.json']) {
+  for (const f of [...VERSIONED_MANIFESTS, '.mcp.json']) {
     const v = readJson(path.join(PLUGIN_DIR, f), rel(f), problems);
     if (v) json.set(f, v);
   }
-  const portable = json.get('plugin.json');
+  const codexRel = '.codex-plugin/plugin.json';
+  const codex = json.get(codexRel);
+  const root = json.get('plugin.json');
   const claude = json.get('.claude-plugin/plugin.json');
   const cursor = json.get('.cursor-plugin/plugin.json');
 
-  if (portable && claude && cursor) {
-    const all = [portable, claude, cursor];
+  if (codex && root && claude && cursor) {
+    const all = [codex, root, claude, cursor];
     for (const key of ['name', 'description', 'homepage', 'repository', 'license', 'keywords']) {
       if (new Set(all.map((m) => JSON.stringify(m[key]))).size > 1)
-        problems.push(`${PLUGIN_REL}: "${key}" differs between the three plugin manifests`);
+        problems.push(`${PLUGIN_REL}: "${key}" differs between the four plugin manifests`);
     }
     if (new Set(all.map((m) => at(m, 'author', 'name'))).size > 1)
-      problems.push(`${PLUGIN_REL}: author.name differs between the three plugin manifests`);
-    const shown = [
-      claude.displayName,
-      cursor.displayName,
-      at(portable, 'extensions', 'com.openai', 'interface', 'displayName'),
-    ];
+      problems.push(`${PLUGIN_REL}: author.name differs between the four plugin manifests`);
+    const shown = [claude.displayName, cursor.displayName, at(codex, 'interface', 'displayName')];
     if (new Set(shown).size > 1)
-      problems.push(
-        `${PLUGIN_REL}: displayName differs (Codex shows extensions.com.openai.interface.displayName)`
-      );
+      problems.push(`${PLUGIN_REL}: displayName differs (Codex shows interface.displayName)`);
   }
 
-  if (portable) {
-    if (portable.name !== 'pachca')
-      problems.push(`${rel('plugin.json')}: the plugin is named pachca`);
-    if (/claude code/i.test(String(portable.description)))
+  if (root) {
+    if (root.name !== 'pachca') problems.push(`${rel('plugin.json')}: the plugin is named pachca`);
+    if (/claude code/i.test(String(root.description)))
       problems.push(
         `${rel('plugin.json')}: the description names one program, every host shows it`
       );
-    if (portable.$schema !== AGENT_PLUGINS_SCHEMA)
-      problems.push(`${rel('plugin.json')}: $schema is not ${AGENT_PLUGINS_SCHEMA}`);
-    for (const k of Object.keys(portable)) {
-      if (!AGENT_PLUGINS_KEYS.has(k))
-        problems.push(`${rel('plugin.json')}: "${k}" is not an Agent Plugins 1.0.0 field`);
+    for (const k of Object.keys(root)) {
+      if (!ROOT_MANIFEST_KEYS.has(k))
+        problems.push(
+          `${rel('plugin.json')}: "${k}" does not belong here (an Agent Plugins $schema would make Codex cap the MCP tools)`
+        );
     }
-    for (const k of Object.keys((portable.author as Json | undefined) ?? {})) {
+    for (const k of Object.keys((root.author as Json | undefined) ?? {})) {
       if (!['name', 'email', 'url'].includes(k))
         problems.push(`${rel('plugin.json')}: author.${k} is not allowed`);
     }
-    const ui = at(portable, 'extensions', 'com.openai', 'interface') as Json | undefined;
+  }
+
+  if (codex) {
+    if (codex.skills !== './skills/') problems.push(`${rel(codexRel)}: skills is ./skills/`);
+    if (codex.mcpServers !== './.mcp.json')
+      problems.push(`${rel(codexRel)}: mcpServers is ./.mcp.json`);
+    const ui = codex.interface as Json | undefined;
     for (const k of [
       'displayName',
       'shortDescription',
@@ -732,7 +736,7 @@ function checkPlugin(problems: string[]): PublishedFile[] {
       'websiteURL',
     ]) {
       if (typeof ui?.[k] !== 'string' || !(ui[k] as string).trim())
-        problems.push(`${rel('plugin.json')}: extensions.com.openai.interface.${k} is empty`);
+        problems.push(`${rel(codexRel)}: interface.${k} is empty`);
     }
     const prompts = ui?.defaultPrompt;
     if (
@@ -741,21 +745,19 @@ function checkPlugin(problems: string[]): PublishedFile[] {
       prompts.length > 3 ||
       prompts.some((p) => typeof p !== 'string' || !p.trim() || Buffer.byteLength(p, 'utf8') > 128)
     ) {
-      problems.push(
-        `${rel('plugin.json')}: defaultPrompt takes 1 to 3 prompts of at most 128 bytes`
-      );
+      problems.push(`${rel(codexRel)}: defaultPrompt takes 1 to 3 prompts of at most 128 bytes`);
     }
     if (
-      at(portable, 'extensions', 'com.openai', 'onboardingSkill') !==
+      at(codex, 'extensions', 'com.openai', 'onboardingSkill') !==
       `./skills/${ENTRY_SKILL}/SKILL.md`
     )
-      problems.push(`${rel('plugin.json')}: onboardingSkill is ./skills/${ENTRY_SKILL}/SKILL.md`);
+      problems.push(`${rel(codexRel)}: onboardingSkill is ./skills/${ENTRY_SKILL}/SKILL.md`);
   }
-  const category = checkMarketplaces(portable?.description, problems);
-  const uiCategory = at(portable, 'extensions', 'com.openai', 'interface', 'category');
-  if (portable && category !== undefined && uiCategory !== category)
+  const category = checkMarketplaces(root?.description, problems);
+  const uiCategory = at(codex, 'interface', 'category');
+  if (codex && category !== undefined && uiCategory !== category)
     problems.push(
-      `${rel('plugin.json')}: interface.category differs from .agents/plugins/marketplace.json`
+      `${rel(codexRel)}: interface.category differs from .agents/plugins/marketplace.json`
     );
 
   const claudeMcp = json.get('.mcp.json');
@@ -764,17 +766,6 @@ function checkPlugin(problems: string[]): PublishedFile[] {
     !isDeepStrictEqual(claudeMcp, { mcpServers: { pachca: { type: 'http', url: MCP_URL } } })
   )
     problems.push(`${rel('.mcp.json')}: only the pachca server, type http, ${MCP_URL}, no headers`);
-  const portableMcp = json.get('mcp.json');
-  if (
-    portableMcp &&
-    !isDeepStrictEqual(portableMcp, {
-      $schema: AGENT_PLUGINS_MCP_SCHEMA,
-      mcpServers: { pachca: { type: 'streamable-http', url: MCP_URL } },
-    })
-  )
-    problems.push(
-      `${rel('mcp.json')}: only the pachca server, type streamable-http, ${MCP_URL}, no headers`
-    );
   if (claude && 'mcpServers' in claude)
     problems.push(
       `${rel('.claude-plugin/plugin.json')}: no mcpServers here, Claude reads .mcp.json`
@@ -1157,7 +1148,7 @@ review generated diffs → commit. Branch from \`origin/main\`; open a PR
 | \`packages/spec/mcp-manifest.json\` | the spec + \`packages/spec/mcp-core.ts\`, \`mcp-tools.ts\`, \`scripts/generate-mcp-manifest.ts\` (then \`bun run generate-mcp\` in \`packages/spec\`) |
 | \`packages/mcp-manifest/mcp-manifest.json\`, \`mcp-manifest.schema.json\` | copies of \`packages/spec/mcp-manifest.json\` and \`mcp-manifest.schema.json\` (\`npx turbo build --filter=@pachca/mcp-manifest\`); a changed manifest needs a new version on top of \`packages/mcp-manifest/CHANGELOG.md\` and in its \`package.json\`, and a release entry with product \`mcp\` and that version in \`apps/docs/data/releases.json\` (the package itself is not there) |
 | \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, Postman collection | \`apps/docs/scripts/generate-llms.ts\` |
-| \`apps/docs/public/skill.md\`, \`public/.well-known/**\`, \`public/skills/*.zip\`, \`plugins/pachca/evals/mocks/pachca/_tools.json\`, and the \`version\` in \`plugins/pachca/plugin.json\`, \`.claude-plugin/plugin.json\`, \`.cursor-plugin/plugin.json\` (recorded in \`apps/docs/scripts/skills/plugin-version.json\`) | the hand-written plugin in \`plugins/pachca/\`, checked and published by \`apps/docs/scripts/skills/generate.ts\` (links, MCP tool and CLI command names, size, manifests in step; the version is one patch above the one in \`main\` once the plugin files change) |
+| \`apps/docs/public/skill.md\`, \`public/.well-known/**\`, \`public/skills/*.zip\`, \`plugins/pachca/evals/mocks/pachca/_tools.json\`, and the \`version\` in \`plugins/pachca/plugin.json\`, \`.codex-plugin/plugin.json\`, \`.claude-plugin/plugin.json\`, \`.cursor-plugin/plugin.json\` (recorded in \`apps/docs/scripts/skills/plugin-version.json\`) | the hand-written plugin in \`plugins/pachca/\`, checked and published by \`apps/docs/scripts/skills/generate.ts\` (links, MCP tool and CLI command names, size, manifests in step; the version is one patch above the one in \`main\` once the plugin files change) |
 | \`packages/cli/src/commands/**\` (except \`auth\`/\`config\`), \`packages/cli/CHANGELOG.md\` | \`packages/cli/scripts/generate-cli.ts\`; \`src/data/changelog.json\` |
 | n8n node files | \`integrations/n8n/scripts/generate-n8n.ts\` |
 | \`AGENTS.md\` (this file) | \`apps/docs/scripts/skills/generate.ts\` (\`generateAgentsMd()\`) |
@@ -1175,7 +1166,7 @@ change to a published package ships with a release entry (and vice versa).
 - Snapshot regeneration for \`packages/generator\` is a bulk snapshot rewrite. Use \`cd packages/generator && npm run regen-snapshots\` (backed by top-level \`scripts/regen-generator-snapshots.ts\`) instead of ad-hoc \`bun -e\` one-offs or the old \`bin/\` / \`tests/\` helpers.
 - Restart the docs dev server after changing component registrations or new TS/TSX files (Turbopack HMR misses them).
 - Hand-written files must stay out of a turbo task's \`outputs\` globs. On a cache **hit** turbo restores every declared output over the working tree, silently reverting hand edits — the package script alone keeps them, so it looks intermittent. \`generate-n8n\` declares \`nodes/**/*.ts\`, so \`nodes/Pachca/GenericFunctions.ts\` and \`nodes/Pachca/V1/**\` are excluded by negation in \`turbo.json\`; keep new hand-written node files excluded too.
-- Never type the plugin \`version\`: once \`plugins/pachca\` (all but \`evals/\`) differs from the plugin in \`main\`, the docs build sets it one patch above the version in \`main\` and writes it into the three plugin manifests and \`apps/docs/scripts/skills/plugin-version.json\`. Rebuilding or a second commit does not raise it further. After changing the plugin, run \`npx turbo build\` and commit those files with the change. If the version did not change after you changed the plugin, rerun with \`--force\`.
+- Never type the plugin \`version\`: once \`plugins/pachca\` (all but \`evals/\`) differs from the plugin in \`main\`, the docs build sets it one patch above the version in \`main\` and writes it into the four plugin manifests and \`apps/docs/scripts/skills/plugin-version.json\`. Rebuilding or a second commit does not raise it further. After changing the plugin, run \`npx turbo build\` and commit those files with the change. If the version did not change after you changed the plugin, rerun with \`--force\`.
 
 ## Deep-dive docs (read before the relevant task)
 

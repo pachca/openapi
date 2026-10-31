@@ -82,7 +82,11 @@ ad-hoc `bun -e` commands or the old `bin/` / `tests/` helpers.
 Cline read the Agent Plugins manifest `plugin.json` and `mcp.json`. Cursor reads
 `.cursor-plugin/plugin.json`, whose MCP server sends the token from `PACHCA_TOKEN`.
 The marketplaces at the repository root (`.claude-plugin/`, `.cursor-plugin/`,
-`.agents/plugins/`) all point at `./plugins/pachca`.
+`.agents/plugins/`) all point at `./plugins/pachca`. Codex loads the plugin by
+its Agent Plugins manifest and limits the MCP tools of such a plugin to 64 KB of
+tool specs (`codex-rs/core/src/mcp_tool_exposure.rs`), which leaves out most
+Pachca tools. The docs and the `pachca` skill therefore tell Codex users to add
+the server by hand under the name `pachca`: it replaces the plugin's server.
 
 Everything in the plugin is written by hand except the `version` of its three
 manifests. Once the plugin files (all but `evals/`) differ from the ones in

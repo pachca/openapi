@@ -55,7 +55,10 @@ Address `https://mcp.pachca.com/mcp`, transport Streamable HTTP. Choose how to s
 | Bot token in `Authorization: Bearer <token>`      | an agent with no employee present: a server, Yandex AI Studio, GigaChat                                                                    | the bot                   | until deleted            |
 
 **With the Pachca plugin** the server is already configured: do not add a second one by hand, do what the
-table says for your client. Check the list (`claude mcp list`, `codex mcp list`, `copilot mcp list`,
+table says for your client. Codex is the exception: it limits a plugin's MCP server to 64 KB of tool
+descriptions, so the agent would see only the first 28 or so Pachca tools by name, without
+`pachca_send_message`. There, add the server by hand under the name `pachca`: it replaces the plugin's server
+and has no such limit, and the skills stay with the plugin. Check the list (`claude mcp list`, `codex mcp list`, `copilot mcp list`,
 `agent mcp list` in Cursor). In Claude Code a server added by hand at the same address hides the plugin's
 server.
 
@@ -65,7 +68,7 @@ server.
 | Claude app, Cowork          | on the plugin's **Connectors** tab | **Add**, then **Connect** there. On Team and Enterprise the organization owner adds the connector first, members only press **Connect** |
 | VS Code, GitHub Copilot CLI | `pachca`                           | the browser opens on first use. To retry in Copilot CLI: `/mcp auth pachca`                                                             |
 | Cursor                      | `plugin-pachca-pachca`             | no sign-in: it sends the token from `PACHCA_TOKEN`. Put a personal token there, restart Cursor                                          |
-| Codex                       | `pachca`                           | `codex mcp login pachca` (`--no-browser` prints the link)                                                                               |
+| Codex                       | `pachca`                           | add it by hand, `codex mcp add pachca --url https://mcp.pachca.com/mcp`, which opens the browser; retry with `codex mcp login pachca`   |
 
 **Without the plugin**, Claude Code and Codex:
 
@@ -199,11 +202,12 @@ Each call passes five checks, and any one can refuse:
 5. **Token kind**: only a bot token has forms, link unfurling, event history, changing its own webhook and
    rotating its own token. Only a personal token has drafts, scheduled messages, «Важное» and bot management.
 
-The MCP server lists only the tools that fit the token's role, plan and kind. Some programs load tools on
-demand when there are many: Codex hides every MCP tool behind its tool search once all servers together have
-more than 100, and that search can miss a tool asked for among others. Before you call a tool missing, search
-for it by its exact name alone, such as `pachca_send_message`. A tool that this search does not find is the answer,
-not a glitch: tell the user which role, plan or token kind the action needs, and do not reach for the same
+The MCP server lists only the tools that fit the token's role, plan and kind. Some programs show only part
+of it. A list of Pachca tools that stops part-way through the alphabet was cut by the program: in Codex that is
+the plugin's server, fixed by adding the server by hand as above. Codex also hides every MCP tool behind its
+tool search once all servers together have more than 100, and that search can miss a tool asked for among
+others. Before you call a tool missing, search for it by its exact name alone, such as `pachca_send_message`. A
+tool that this search does not find either is the answer, not a glitch: tell the user which role, plan or token kind the action needs, and do not reach for the same
 result through other tools. Owner privileges, multi-guest limits and role changes:
 [references/access-model.md](references/access-model.md).
 

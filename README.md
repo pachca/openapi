@@ -68,6 +68,7 @@ claude plugin install pachca@pachca
 # Codex
 codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca
 codex plugin add pachca@pachca
+codex mcp add pachca --url https://mcp.pachca.com/mcp
 
 # GitHub Copilot CLI и VS Code
 copilot plugin marketplace add pachca/openapi

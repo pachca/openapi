@@ -249,6 +249,7 @@
         "check-sdk-install",
         "check-examples",
         "check-anchors",
+        "check-urls",
         "@pachca/spec#enum:check"
       ],
       "cache": false

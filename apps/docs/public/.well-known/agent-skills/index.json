@@ -41,7 +41,7 @@
       "type": "archive",
       "description": "Писать в Пачку: разметка, упоминания, куда писать (тред, ответ с цитатой, личный чат), черновик, который отправит сотрудник, отложенные и регулярные сообщения в чат, файлы, пересылка, реакции, закрепление, «Важное», правка, удаление, поиск нужного сообщения, когда сначала спросить, лимиты. Когда: «напиши в чат», «отправь сообщение», «ответь в треде», «напиши в личку», «упомяни», «подготовь черновик, я отправлю сам», «агент готовит черновик, сотрудник отправляет», «запланируй сообщение», «напоминай в канал каждый понедельник», «отправь отчёт файлом .md», «приложи файл», «перешли сообщение», «поставь реакцию», «закрепи сообщение», «отметь как важное», «исправь сообщение», \"send a message\", \"reply in the thread\", \"DM someone\", \"draft for me to send\", \"schedule a message\", \"attach a file\", \"forward a message\", \"pin\". Not for: search or summaries as the goal, a reminder for an employee → pachca-search; buttons, forms, clicks → pachca-bots; an AI agent as a bot → pachca-ai-agent; uploads from code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-messaging.tar.gz",
-      "digest": "sha256:1d67692b5f32de1c017b2ca6e770eb43b1c5ce565041a70f2d8c5f7550470e09"
+      "digest": "sha256:dac7c6a0b48701df05a172f2055dcee286d735f7c019638181adda86d8426b9d"
     },
     {
       "name": "pachca-oauth",
@@ -55,7 +55,7 @@
       "type": "archive",
       "description": "Поиск, пересказ и напоминания в Пачке: какой поиск что охватывает, чтение треда целиком, дайджест каналов и тредов за период, решения и поручения из обсуждения в виде напоминаний, напоминание на заданное время себе или коллеге (Пачка уведомит в срок), список напоминаний и своего «Важного», кто в теге или чате. Когда: «найди, где обсуждали», «кто писал про», «где меня упоминали», «найди чат», «найди сотрудника», «перескажи тред», «что было в канале за неделю», «дайджест», «какие решения приняли», «поставь задачи по итогам», «напомни мне завтра в 9:00», «мои напоминания», «что у меня в важном», «кто в теге», «кто в чате», \"find where we discussed\", \"summarize this thread\", \"channel digest\", \"remind me tomorrow at 9\", \"my reminders\". Not for: posting, pinning, reacting to or editing a message, including finding it first, or one sent later at a set time → pachca-messaging; changing employees, tags or chat members → pachca-admin; a bot that answers in threads → pachca-ai-agent; scripts → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-search.tar.gz",
-      "digest": "sha256:4add23d83e02c9f913b9e61af774a429ae42ea15242eaf8a972af7520a2b66d5"
+      "digest": "sha256:900e14824f340999301cac56bb9d9a808903b0f0eff52db4fde4469eb1adf192"
     }
   ]
 }

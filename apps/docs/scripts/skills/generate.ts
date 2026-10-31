@@ -358,7 +358,8 @@ function checkMarkdown(md: string, label: string, ctx: CheckContext) {
   }
 
   const code = codeText(md);
-  for (const m of code.matchAll(/\bpachca_[a-z0-9_]+/g)) {
+  // `pachca_content_…` is the tag the MCP server puts around people's words, not a tool.
+  for (const m of code.matchAll(/\bpachca_(?!content_)[a-z0-9_]+/g)) {
     if (!ctx.tools.has(m[0])) ctx.problems.push(`${label}: no MCP tool ${m[0]}`);
   }
   // `pachca` in command position: a line start or after a pipe, `&&`, `;` or `(`.

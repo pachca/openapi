@@ -102,7 +102,7 @@ agent picks them by description. The build publishes them on dev.pachca.com: the
 discovery index, `/skill.md` and `/skills/<name>.zip` for uploads. Commands are
 skills with any other name, `argument-hint` and `disable-model-invocation: true`,
 plus `agents/openai.yaml` with `policy.allow_implicit_invocation: false` for
-Codex. They run only when the user calls them (`/pachca:catch-up` in Claude Code)
+Codex. They run only when the user calls them (`/pachca:summarize-thread` in Claude Code)
 and are not published. A command says in words what the user gives with it,
 without `$ARGUMENTS`, which only some programs fill in. The build fails on a
 broken link, a missing MCP tool, CLI command or skill, an internal id, or

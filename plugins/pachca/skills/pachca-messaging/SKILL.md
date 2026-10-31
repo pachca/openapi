@@ -42,7 +42,7 @@ Rules:
 
 ## Writing to colleagues
 
-Every message reaches people and their notifications. A few things are fixed by how Pachca works; the rest are approaches with trade-offs. Follow the user's preference when they state one, in the request or in their `CLAUDE.md` or `AGENTS.md`. Otherwise choose by the situation, and say which approach you took when it is not obvious.
+Every message reaches people and their notifications. A few things are fixed by how Pachca works; the rest are approaches with trade-offs. Follow the user's preference when they state one, in the request or in the instructions their program reads (`AGENTS.md`, `CLAUDE.md` or the program's own rules). Otherwise choose by the situation, and say which approach you took when it is not obvious.
 
 Fixed by Pachca:
 
@@ -84,7 +84,7 @@ The `content` text is markdown with a narrow set: bold, italic, strikethrough, l
 
 ## When to ask first
 
-A sent message cannot be taken back: the notification is gone, and deleting leaves a «Сообщение удалено» mark. A request that gives the text and the target is carried out at once, and the program asks its own approval. So is a request with an explicit verb to send and one named recipient, such as «отправь в тред …», «спроси у Анны …» or «напиши Анне, что …»: it is a yes to send the text you compose. «Напиши мне текст», «подготовь» or anything the user wants to review is not: put a draft into that chat's input box (below) rather than text in this chat to copy. Ask first, and wait for a yes, only when:
+A sent message cannot be taken back: the notification is gone, and deleting leaves a «Сообщение удалено» mark. A request that gives the text and the target is carried out at once, and the program asks its own approval. So is a request with an explicit verb to send and one named recipient, such as «отправь в тред …», «спроси у Анны …» or «напиши Анне, что …»: it is a yes to send the text you compose. So is a pointed-out mistake: when the user says a message you sent for them is wrong, fix it at once by the editing rule below and say what you changed, without asking first. «Напиши мне текст», «подготовь» or anything the user wants to review is not: put a draft into that chat's input box (below) rather than text in this chat to copy. Ask first, and wait for a yes, only when:
 
 1. The user named no single target or did not ask you to send, or you would open a thread they did not ask for: show the target (chat, thread or employee, resolved by id) and the final text, or make a draft.
 2. It goes to many at once, or to more people than the user named: several chats or people, or `@all` or `@here` the user did not ask for.

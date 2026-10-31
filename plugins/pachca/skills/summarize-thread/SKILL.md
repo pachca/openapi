@@ -1,6 +1,6 @@
 ---
-name: thread-summary
-description: 'Пересказать тред Пачки целиком: контекст, решения, открытые вопросы и поручения, со ссылками. Когда: «перескажи тред», «о чём договорились в треде», «кратко по треду», "summarize this thread", "what was decided in the thread". Not for: turning action items into reminders, or a digest of chats for a period → pachca-search.'
+name: summarize-thread
+description: 'Пересказать тред Пачки целиком: контекст, решения, открытые вопросы и поручения, со ссылками. Когда: «перескажи тред», «о чём договорились в треде», «кратко по треду», «что поправить по треду», «разбери замечания в треде», "summarize this thread", "what was decided in the thread", "what feedback is in the thread". Not for: turning action items into reminders, or a digest of chats for a period → pachca-search.'
 argument-hint: '<thread links, message links or thread ids> [since when] [what to look for]'
 disable-model-invocation: true
 ---
@@ -21,6 +21,10 @@ Follow the `pachca-search` skill and its thread procedure. A link can name the t
 
    Later messages override earlier ones. Quote nothing you did not read.
 
-   With a window, read the whole thread for context but summarize only what is new in it. «Since my last message» starts at the user's own last message in the thread (its `user_id` is yours). With a question, end with a direct answer to it; for «what to fix», list each item with its message link and attachment, so the user can pick what to take into work.
+   With a window, read the whole thread for context but summarize only what is new in it. «Since my last message» starts at the user's own last message in the thread (its `user_id` is yours). With a question, end with a direct answer to it.
+
+4. Remarks. When the question is about feedback («что нужно поправить», «какие замечания», «разбери отзывы»), the answer is a list rather than a retelling. For each remark: what is wrong, who said it, how it should be, the message link and its attachments; look at screenshots and files with `pachca_download_file`. When this session has the code or the task the thread is about, check each remark against it and mark it done, to fix or a separate task, saying what you checked; a remark you could not check is marked so. End by asking which remarks to take.
+
+   Taking them is the user's next request, not part of this command: change the code as they ask, create tasks only in the tracker they name and through its own tools, and reply in the thread only when they ask, on the message the remark came from (`parent_message_id`), following the `pachca-messaging` skill.
 
 Do not post the summary unless the user asks. If they ask, show the text first and post after a clear yes, following the `pachca-messaging` skill. To turn action items into reminders, the user asks for that, and you follow the reminders part of the `pachca-search` skill.

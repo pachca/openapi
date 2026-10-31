@@ -12,7 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "generate-llms": "bun scripts/generate-llms.ts",
-    "check-urls": "node scripts/check-url-conflicts.mjs",
+    "check-urls": "bun scripts/check-url-conflicts.ts",
     "check-models": "node scripts/check-models-coverage.mjs",
     "check-examples": "node scripts/check-examples.mjs",
     "check-anchors": "node scripts/check-anchors.mjs",

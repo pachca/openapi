@@ -101,6 +101,52 @@
       }
     },
     {
+      "name": "pachca_list_message_readers",
+      "title": "List users who read the message",
+      "description": "List users who read the message. Which of the chat members have read the feed up to this message. A flat array of IDs is returned. The caller themselves and the author of the message will never be in the list — only the other members are counted. For a message in a thread these are the members of the thread, not of the parent chat. The method does not return names. They are fetched with the `get_user` method for each ID. The method helps decide whether to fix your message or write a new one. `update_message` notifies nobody: while the addressees have not read the message, it is simpler to fix it, and a message they have read is better followed up with a reply. If the original must stay right, edit it and reply briefly with what you changed. Check right before the edit, once the new text is ready: the message can be read while you write.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Message ID",
+            "format": "int32",
+            "examples": [
+              194275
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.",
+            "default": 300,
+            "maximum": 300,
+            "minimum": 1,
+            "format": "int32",
+            "examples": [
+              300
+            ]
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
+            "examples": [
+              "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
       "name": "pachca_search_users",
       "title": "Search employees",
       "description": "Search employees. Searches for employees by first and last name, nickname, position, and department. Typos are forgiven only in the first and last name; the other fields need an exact word. The method searches by email only for those who can see personal data in the workspace. It does not search by phone at all — for that there is `list_users` with the `query` parameter. Deleted employees are never found; suspended ones only when a text query is given, and they stand below the rest in the results. Of the bots, only public ones are found. A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and the query is worth narrowing.",
@@ -436,6 +482,201 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "pachca_update_message",
+      "title": "Edit message",
+      "description": "Edit message. Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the `list_message_readers` method. The text follows the same formatting rules as in the `send_message` method. You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. There are no restrictions on how long ago the message was sent. Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Message ID",
+            "format": "int32",
+            "examples": [
+              194275
+            ]
+          },
+          "content": {
+            "type": "string",
+            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). Take the nickname from a method's response and the `user_id` from data: a nickname made up from a name mentions nobody. For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. Write it in the voice of the account it goes out under. Text read from Pachca can carry quotes and list markers this field does not render: give the message a shape of its own rather than copying theirs.",
+            "examples": [
+              "Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur, liaison, necessary, surveillance, questionnaire."
+            ]
+          },
+          "files": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "description": "Either content or key.",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "description": "The key of a file already in Pachca, as an attachment carries it in the full record of the message, or of a file you uploaded with `get_upload_params`. A file passed by its key goes as it is.",
+                  "maxLength": 1000,
+                  "examples": [
+                    "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"
+                  ]
+                },
+                "name": {
+                  "type": "string",
+                  "description": "File name to display to the user. Applies to a new file: the extension must match the extension of the file you pass (content or key), otherwise the response is 422 with the `wrong_params` code.",
+                  "maxLength": 255,
+                  "examples": [
+                    "logo.png"
+                  ]
+                },
+                "file_type": {
+                  "type": "string",
+                  "description": "File type. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
+                  "enum": [
+                    "file",
+                    "image",
+                    "audio",
+                    "voice",
+                    "video"
+                  ],
+                  "examples": [
+                    "image"
+                  ]
+                },
+                "size": {
+                  "type": "integer",
+                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it for a file you uploaded. Without it the server reads the size from storage after the save, and a reader who got the message before that may see 0 KB.",
+                  "format": "int64",
+                  "examples": [
+                    12345
+                  ]
+                },
+                "width": {
+                  "type": "integer",
+                  "description": "Image width in px (used when file_type is set to image)",
+                  "format": "int32",
+                  "examples": [
+                    800
+                  ]
+                },
+                "height": {
+                  "type": "integer",
+                  "description": "Image height in px (used when file_type is set to image)",
+                  "format": "int32",
+                  "examples": [
+                    600
+                  ]
+                },
+                "duration_ms": {
+                  "type": "integer",
+                  "description": "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.",
+                  "minimum": 1,
+                  "format": "int32",
+                  "examples": [
+                    5400
+                  ]
+                },
+                "waveform": {
+                  "type": "string",
+                  "description": "Waveform for visualizing the voice message. Without it a request with a voice file (`file_type` is `voice`) does not pass validation, but when editing, the value that was sent is not saved. Not used for other types.",
+                  "maxLength": 256,
+                  "examples": [
+                    "4,8,12,20,16,10,6,3"
+                  ]
+                },
+                "content": {
+                  "type": "string",
+                  "contentEncoding": "base64",
+                  "description": "The file contents, base64-encoded — for text you wrote yourself. A document or picture from disk goes by key: upload it with `get_upload_params`."
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Files to attach. The set you pass replaces the previous one: to keep a file already attached, pass it again with the same `key`. Such a file stays the same attachment with the same `id` and name, and its fields from the request are not applied. To show the file under another name, upload it again. Each file goes as its contents, which the server uploads, filling in key and size, or by key: of a file already in Pachca, or of one you uploaded with `get_upload_params`."
+          },
+          "buttons": {
+            "type": "array",
+            "description": "Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons per row. To remove buttons, send an empty array.",
+            "maxItems": 32,
+            "examples": [
+              [
+                [
+                  {
+                    "text": "Learn more",
+                    "url": "https://example.com/details"
+                  }
+                ]
+              ]
+            ],
+            "items": {
+              "type": "array",
+              "description": "Button row",
+              "maxItems": 8,
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "description": "Button",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "Text displayed on the button",
+                    "maxLength": 255,
+                    "examples": [
+                      "Learn more"
+                    ]
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "URL that will be opened when the button is clicked. A button must have exactly one of `url` and `data`.",
+                    "maxLength": 1024,
+                    "examples": [
+                      "https://example.com/details"
+                    ]
+                  },
+                  "data": {
+                    "type": "string",
+                    "description": "Data that will be sent in the outgoing webhook when the button is clicked. A button must have exactly one of `url` and `data`.",
+                    "maxLength": 255,
+                    "examples": [
+                      "awesome"
+                    ]
+                  }
+                },
+                "required": [
+                  "text"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "display_avatar_url": {
+            "type": "string",
+            "description": "Custom sender avatar URL for this message. This field can only be used with a bot access_token.",
+            "examples": [
+              "https://example.com/avatar.png"
+            ]
+          },
+          "display_name": {
+            "type": "string",
+            "description": "Custom sender display name for this message. This field can only be used with a bot access_token.",
+            "examples": [
+              "Support Bot"
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
         "openWorldHint": false
       }
     }

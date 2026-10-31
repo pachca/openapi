@@ -1,0 +1,21 @@
+schema_version: "1.1"
+name: act-fix-own-message
+description: "An action through the MCP server, checked against mocks"
+tags: [action, pachca-messaging]
+runs: 3
+execution:
+  prompt: "В сообщении 2002, которое ты отправил за меня в тред, ошибка: релиз в четверг, а не в пятницу"
+  max_turns: 10
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: checked-readers
+    type: regex
+    target: "mock_calls"
+    pattern: "pachca_list_message_readers"
+  - name: edited
+    type: regex
+    target: "mock_calls"
+    pattern: "pachca_update_message"
+  - name: fixed-without-asking
+    type: llm
+    criteria: "PASS if the agent edited message 2002 so it says Thursday instead of Friday without first asking the user to confirm, and then said what it changed. FAIL if it asks for confirmation before editing, or sends a new message instead of editing although nobody has read the original."

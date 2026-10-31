@@ -1,6 +1,6 @@
 ---
 name: pachca-messaging
-description: 'Писать в Пачку: разметка, упоминания, куда писать (тред, ответ с цитатой, личный чат), черновик, который отправит сотрудник, отложенные и регулярные сообщения в чат, файлы, пересылка, реакции, закрепление, «Важное», правка, удаление, поиск нужного сообщения, когда сначала спросить, лимиты. Когда: «напиши в чат», «отправь сообщение», «ответь в треде», «напиши в личку», «упомяни», «подготовь черновик, я отправлю сам», «агент готовит черновик, сотрудник отправляет», «запланируй сообщение», «напоминай в канал каждый понедельник», «отправь отчёт файлом .md», «приложи файл», «перешли сообщение», «поставь реакцию», «закрепи сообщение», «отметь как важное», «исправь сообщение», "send a message", "reply in the thread", "DM someone", "draft for me to send", "schedule a message", "attach a file", "forward a message", "pin". Not for: search or summaries as the goal, a reminder for an employee → pachca-search; buttons, forms, clicks → pachca-bots; an AI agent as a bot → pachca-ai-agent; uploads from code → pachca-api.'
+description: 'Писать в Пачку: разметка, упоминания, куда писать (тред, ответ с цитатой, личный чат), черновик, который отправит сотрудник, пост об изменениях, отложенные и регулярные сообщения в чат, файлы, пересылка, реакции, закрепление, «Важное», правка, удаление, поиск нужного сообщения, когда сначала спросить, лимиты. Когда: «напиши в чат», «отправь сообщение», «ответь в треде», «напиши в личку», «упомяни», «подготовь черновик, я отправлю сам», «напиши пост об изменениях», «запланируй сообщение», «напоминай в канал каждый понедельник», «отправь отчёт файлом .md», «перешли сообщение», «поставь реакцию», «закрепи сообщение», «отметь как важное», «исправь сообщение», "send a message", "reply in the thread", "DM someone", "draft for me to send", "schedule a message", "attach a file", "forward a message", "pin". Not for: search or summaries as the goal, a reminder for an employee → pachca-search; buttons, forms, clicks → pachca-bots; an AI agent as a bot → pachca-ai-agent; uploads from code → pachca-api.'
 ---
 
 # Writing in Pachca
@@ -31,7 +31,7 @@ Access paths: prefer the MCP tools (`pachca_send_message`, `pachca_create_draft`
 
 Rules:
 
-- Reply where the conversation is. If the user is talking about a thread, answer in that thread, not in the parent chat.
+- Reply where the conversation is. If the user is talking about a thread, answer in that thread, not in the parent chat. «Ответь в тред» with a message link means the thread under that message, opened if it has none, and a link to a comment inside a thread means that thread: the "Find the thread chat" table in the `pachca-search` skill's `references/threads.md` reads every kind of link. A quoted reply (`parent_message_id`) is for answering that message in the chat flow, when the user asks for it.
 - A thread cannot be deleted and has no title. Create one only when the user asked for a thread or is clearly continuing one. When you open it to start a discussion, post the first message right away: an empty thread is not a conversation yet. A thread opened only to follow a message, as «Подписаться на тред» does, may stay empty.
 - No nested threads: a message that is itself inside a thread cannot get a thread (`400`). A deleted message cannot either (`404`).
 - A channel subscriber writes only in threads of channel messages. Posting to the channel itself returns `403`. Offer the thread instead.
@@ -87,7 +87,7 @@ The `content` text is markdown with a narrow set: bold, italic, strikethrough, l
 A sent message cannot be taken back: the notification is gone, and deleting leaves a «Сообщение удалено» mark. A request that gives the text and the target is carried out at once, and the program asks its own approval. So is a request with an explicit verb to send and one named recipient, such as «отправь в тред …», «спроси у Анны …» or «напиши Анне, что …»: it is a yes to send the text you compose. So is a pointed-out mistake: when the user says a message you sent for them is wrong, fix it at once and say what you changed, without asking first; the editing rule below still holds: check who has read it right before, then edit, or edit and reply. «Напиши мне текст», «подготовь» or anything the user wants to review is not: put a draft into that chat's input box (below) rather than text in this chat to copy. Ask first, and wait for a yes, only when:
 
 1. The user named no single target or did not ask you to send, or you would open a thread they did not ask for: show the target (chat, thread or employee, resolved by id) and the final text, or make a draft.
-2. It goes to many at once, or to more people than the user named: several chats or people, or `@all` or `@here` the user did not ask for.
+2. It goes to many at once, or to more people than the user named: several chats or people, a mention of someone the user did not name, or `@all` or `@here` the user did not ask for.
 3. A mention in a thread would bring in someone outside it: they get the thread and its parent message, so ask even when the user named them.
 4. It is a scheduled or recurring message whose text, time or repetition you filled in: nobody reviews it before it goes.
 5. You would edit or delete a message the user gave no link or id for: name it first.
@@ -102,6 +102,15 @@ Use a draft when the user says «подготовь», «я проверю», «
 - One ordinary draft per chat, thread or direct message. A second create returns `409` with the existing id in `payload.draft_id`: read it and update it, do not retry the create.
 - A draft creates no notification. Tell the employee which chat it is in.
 - There is no "send draft" method: a draft goes out as a normal message to the same chat with what the draft holds (`content`, `parent_message_id`, each file by `key`). Through MCP, add the draft's `draft_id` to `pachca_send_message`: the draft is deleted once the message is sent and stays if the send fails, so no `pachca_delete_draft` afterwards. Only if the answer says `draft_id` was not applied is the message out with the draft still there: then delete it with `pachca_delete_draft`. Whatever you leave out of the message is lost with the draft. Through the CLI (`pachca drafts delete <id> --force`) or the API, delete the draft yourself after the send succeeds, or its text stays in the input box.
+
+## A post about changes
+
+«Напиши пост об изменениях в чат «Изменения API»» or «подготовь пост о сделанном по задаче» asks for a post about finished work in a chat where the team writes about such changes.
+
+- **What went in.** Only what is done: the task and the merge request through the tools this session has (a tracker's MCP server, `gh`, `glab`), the branch through `git log` and `git diff`, or this session's commits. Do not invent a task number, link or status you did not read. If it matters whether the change is on staging or production and nothing says, ask.
+- **How this chat writes.** Rules for such posts in the project's instructions for agents come first. Then read the latest page of the chat, above all the user's own posts of this kind, and follow their shape: the first line, length, which links they keep. With none, start with the task as a link and say what changed for the chat's readers (behavior, API fields, rights), naming new fields exactly, without code internals, plans, bare URLs, the merge request link or mentions. Several chats get one post each, written for that chat's readers.
+- **A draft unless told to send.** Leave the post as a draft in the chat's input box. When the change shows on screen, attach screenshots or other files of the result (see Files). A `409` for a draft that is not yours from this work: show it and ask before replacing it. Send only when the user said «отправь».
+- **Run again.** After the code changed or the user corrected the text, update your draft. If the user already sent it, fix the post by the editing rule below. Corrections are rules for this chat: offer to add them to the instructions for agents.
 
 ## Scheduled messages
 
@@ -150,6 +159,7 @@ The API has no forward method: «Переслать» exists only in the app. Fo
 ## Pitfalls
 
 - Sending to a thread by the parent message id, or to a thread that does not exist yet.
+- Sending again after a timeout or an answer you could not read: the first message may have gone out. Read the latest messages of that chat and send again only if yours is not there. After a send with files, check that the message carries them.
 - Markdown lists, tables or quotes in `content`. `#Title` without a space stays raw. A one-line ` ```code``` ` is not a code block. A markdown link to `example.com`, without a scheme such as `https://`, keeps only the label.
 - Mentioning someone in a thread "for context" without `skip_invite_mentions`: they now see the thread and the parent message.
 - `display_name` and `display_avatar_url` are for bot tokens only. A personal token gets `403`.

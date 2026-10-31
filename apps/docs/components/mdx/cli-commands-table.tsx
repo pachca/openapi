@@ -4,6 +4,7 @@ import { Fragment, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { CopyableInlineCode } from '@/components/api/copyable-inline-code';
 import { EndpointLink } from '@/components/api/endpoint-link';
+import { InlineCodeText } from '@/components/api/inline-code-text';
 
 export interface ParamRow {
   token: string;
@@ -50,7 +51,9 @@ function ParamsPanel({ params, split }: { params: ParamRow[]; split: number }) {
             </span>
             <span className="min-w-0 break-words text-text-secondary">{p.type}</span>
           </div>
-          <div className="min-w-0 break-words text-text-secondary pr-4">{p.description}</div>
+          <div className="min-w-0 break-words text-text-secondary pr-4">
+            <InlineCodeText text={p.description} />
+          </div>
         </div>
       ))}
     </div>

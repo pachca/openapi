@@ -1,5 +1,0 @@
-interface:
-  display_name: 'Post changes'
-  short_description: 'Draft a post about what changed for a Pachca chat'
-policy:
-  allow_implicit_invocation: false

@@ -7,8 +7,8 @@ import * as yaml from 'js-yaml';
 
 /**
  * The Pachca plugin is hand-written in `plugins/pachca`: skills, MCP configs and one
- * manifest per host (`.codex-plugin/plugin.json` for Codex, `plugin.json` for VS Code
- * and Copilot, `.claude-plugin/plugin.json` for Claude Code and the Claude app,
+ * manifest per host (`.codex-plugin/plugin.json` for Codex, `plugin.json` for Copilot
+ * CLI, `.claude-plugin/plugin.json` for Claude Code, the Claude app and VS Code,
  * `.cursor-plugin/plugin.json` for Cursor). This module checks all of it and
  * publishes the skills on the docs site.
  *
@@ -53,8 +53,8 @@ const PLUGIN_DIR = path.join(REPO_ROOT, PLUGIN_REL);
 const PLUGIN_SOURCE = './plugins/pachca';
 const MCP_URL = 'https://mcp.pachca.com/mcp';
 /**
- * Fields of the root `plugin.json`, read by VS Code and Copilot in their own format:
- * skills from `skills/`, the server from `.mcp.json`. It must not declare the Agent
+ * Fields of the root `plugin.json`, read by Copilot CLI in its legacy format: skills
+ * from `skills/`, the server from `.mcp.json`. VS Code prefers the Claude manifest. It must not declare the Agent
  * Plugins `$schema`: Codex reads a root manifest with it before its own and then caps
  * the plugin's MCP tools at 64 KB of specs (codex-rs `mcp_tool_exposure.rs`), which
  * hides most Pachca tools.
@@ -70,8 +70,8 @@ const ROOT_MANIFEST_KEYS = new Set([
   'keywords',
 ]);
 /**
- * One manifest per host, all with the same version: Codex, Copilot (VS Code, Copilot
- * CLI), Claude (Claude Code, the Claude app), Cursor.
+ * One manifest per host, all with the same version: Codex, Copilot CLI, Claude
+ * (Claude Code, the Claude app, VS Code), Cursor.
  */
 const VERSIONED_MANIFESTS = [
   '.codex-plugin/plugin.json',

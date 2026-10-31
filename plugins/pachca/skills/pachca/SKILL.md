@@ -204,7 +204,9 @@ it. A list of Pachca tools that stops part-way through the alphabet was cut by t
 Codex a plugin older than 1.0.5 gets only 64 KB of tool descriptions, so update it
 (`codex plugin marketplace upgrade pachca`, then a new session) or add the server by hand with
 `codex mcp add pachca --url https://mcp.pachca.com/mcp`. Codex also hides every MCP tool behind its tool search
-once all servers together have more than 100, and that search can miss a tool asked for among others. Before you call a tool missing, search
+once all servers together have more than 100, and that search can miss a tool asked for among others. VS Code
+folds a server's tools into a group once the chat has 64 tools or more: call the group's `activate_…` tool to
+open it. Before you call a tool missing, search
 for it by its exact name alone, such as `pachca_send_message`. A tool that this search does not find is the answer,
 not a glitch: tell the user which role, plan or token kind the action needs, and do not reach for the same
 result through other tools. Owner privileges, multi-guest limits and role changes:

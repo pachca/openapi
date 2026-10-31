@@ -78,10 +78,11 @@ ad-hoc `bun -e` commands or the old `bin/` / `tests/` helpers.
 ## Agent skills and the plugin
 
 `plugins/pachca` is the Pachca plugin. Claude Code and the Claude app read
-`.claude-plugin/plugin.json` and `.mcp.json`. Codex reads its own
-`.codex-plugin/plugin.json` and `.mcp.json`. VS Code and GitHub Copilot read the
-root `plugin.json` in the Copilot format, with skills from `skills/` and the
-server from `.mcp.json`. Cursor reads `.cursor-plugin/plugin.json`, whose MCP
+`.claude-plugin/plugin.json` and `.mcp.json`, and so does VS Code: it checks the
+Claude manifest before a root `plugin.json` without the Agent Plugins `$schema`.
+Codex reads its own `.codex-plugin/plugin.json` and `.mcp.json`. GitHub Copilot
+CLI reads the root `plugin.json` in its legacy format, with skills from `skills/`
+and the server from `.mcp.json`. Cursor reads `.cursor-plugin/plugin.json`, whose MCP
 server sends the token from `PACHCA_TOKEN`. The marketplaces at the repository
 root (`.claude-plugin/`, `.cursor-plugin/`, `.agents/plugins/`) all point at
 `./plugins/pachca`.

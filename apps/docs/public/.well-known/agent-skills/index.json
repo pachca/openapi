@@ -6,7 +6,7 @@
       "type": "archive",
       "description": "Вход в Пачку (Pachca) для агента: подключить агента или MCP-клиента (MCP через браузер или токеном, плагин, CLI), проверить подключение, выбрать токен, разобрать отказ 401/403 инструмента или CLI и отсутствие инструмента (роль, тариф, тип токена, участие в чате). Когда: «подключи Пачку», «настрой MCP Пачки», «войди в Пачку через CLI», «каким токеном подключить агента», «экран входа MCP», «агент получил 403 insufficient_scope», «нет инструмента Пачки (экспорт, журнал аудита)», «что умеет Пачка», \"connect Pachca\", \"set up Pachca MCP\", \"Pachca CLI login\", \"which token for my agent or MCP client\", \"MCP sign-in screen\", \"MCP tool or CLI returned 401/403\", \"a Pachca tool is missing\". Not for: writing messages → pachca-messaging; search and summaries → pachca-search; administration, who may create tokens → pachca-admin; building a bot → pachca-bots; an agent living in Pachca → pachca-ai-agent; OAuth for employees → pachca-oauth; a token for a script or service, 401/403 in your own code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca.tar.gz",
-      "digest": "sha256:ff7769ac3f301646ed08eff438ff8af45e6f1b2f42b1dcba289c02b017d6fc12"
+      "digest": "sha256:e26a568ea2715e193fbb7ccfabd0876d0b76333d8640c22a66f5d3b58ce8a487"
     },
     {
       "name": "pachca-admin",

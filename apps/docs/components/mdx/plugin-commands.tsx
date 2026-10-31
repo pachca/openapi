@@ -18,5 +18,8 @@ export function PluginCommands() {
     })),
   }));
 
-  return <CliCommandsTable commands={commands} headers={['Команда', 'Что делает']} />;
+  // Plugin commands carry their parts, so they get the wider column.
+  return (
+    <CliCommandsTable commands={commands} headers={['Команда', 'Что делает']} commandWidth={58} />
+  );
 }

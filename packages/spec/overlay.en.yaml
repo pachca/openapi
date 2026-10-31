@@ -336,7 +336,7 @@ actions:
 
         Who belongs to a conversation, a channel, or a thread. Bots come on equal terms with employees, with `bot: true`.
 
-        The workspace owner can retrieve the member list of any chat in the workspace. Admins and bots can only retrieve the member list of chats they belong to (or that are public).
+        The workspace owner can retrieve the member list of any chat in the workspace. Admins and bots can only retrieve the member list of chats they belong to (or that are public). The member list of a thread is open to everyone who sees the thread, as the [Who sees a thread](/guides/threads#kto-vidit-tred) section describes.
 
         Only active employees make it into the results: suspended ones do not come, although their membership is kept. The `role` field of a record is the employee's role in the workspace. The method does not return a member's role in the chat: who holds which is shown only by the `role` filter, one request per role.
   - target: $.paths['/chats/{id}/members'].get.parameters[?(@.name=='id')]
@@ -360,7 +360,7 @@ actions:
 
         Members are added by employees and bots. For a guest and a multi-guest the method responds `403`, as in the interface, whatever their role in the chat.
 
-        The role in the chat is assigned at the moment of adding: the workspace owner and an administrator become chat administrators, everyone else becomes an ordinary member. After that the chat role is not recalculated by itself: promoting an employee in the workspace does not change their role where they already belong. To change a role, use the [Change member role](PUT /chats/{id}/members/{user_id}) method.
+        The role in the chat is assigned at the moment of adding: in a conversation or a channel the workspace owner and an administrator become chat administrators, everyone else becomes an ordinary member. After that the chat role is not recalculated by itself: promoting an employee in the workspace does not change their role where they already belong. To change a role, use the [Change member role](PUT /chats/{id}/members/{user_id}) method.
 
         Those who already belong to the chat are silently skipped by the method, and this is not treated as an error. An unknown or inactive ID, however, stops the whole request: the method responds `404` and lists such values, and nobody is added.
 
@@ -371,13 +371,13 @@ actions:
         Adding a whole department at once is more convenient with a tag — [Add tags](POST /chats/{id}/group_tags): then the chat membership is maintained by itself.
   - target: $.paths['/chats/{id}/members'].post.parameters[?(@.name=='id')]
     update:
-      description: Chat ID (conversation, channel, or thread chat)
+      description: "Chat ID (conversation, channel, or thread chat). Into a thread the method adds everyone as an ordinary member and without a notification, so mention the people you added in a thread message. Employees from outside the parent chat are added there whatever the \"Use cross-chat threads\" setting is."
   - target: $.paths['/chats/{id}/members/{user_id}'].delete
     update:
       description: |-
         Remove chat member
 
-        Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its `chat_id`: this can be done by the Creator or an Admin of the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators added to the thread. In a private conversation the removed member loses access to the chat but stays in the threads they belonged to.
+        Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its `chat_id`: this can be done by the Creator or an Admin of the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators who were added to the thread through the "Add members" window in the Pachca app, not by a mention. In a private conversation the removed member loses access to the chat but stays in the threads they belonged to.
 
         An employee held in the chat by a linked tag cannot be removed with this method: the response will be successful, but the employee will stay in the chat. Take the tag off them with [Edit employee](PUT /users/{id}) or unlink the tag from the chat with the [Remove tag from chat](DELETE /chats/{id}/group_tags/{tag_id}) method.
 
@@ -663,7 +663,7 @@ actions:
       description: |-
         Edit message
 
-        Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark. The text follows the same formatting rules as in the [New message](POST /messages) method.
+        Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the [List users who read the message](GET /messages/{id}/read_member_ids) method. The text follows the same formatting rules as in the [New message](POST /messages) method.
 
         You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. There are no restrictions on how long ago the message was sent.
 
@@ -676,7 +676,7 @@ actions:
       description: |-
         Delete message
 
-        Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators added to the thread. There are no time restrictions on message deletion.
+        Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators who were added to the thread through the "Add members" window in the Pachca app, not by a mention. There are no time restrictions on message deletion.
 
         The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a "Message deleted" note stays in place of the message in the chat.
 
@@ -823,6 +823,8 @@ actions:
         The caller themselves and the author of the message will never be in the list — only the other members are counted. For a message in a thread these are the members of the thread, not of the parent chat.
 
         The method does not return names. They are fetched with the [Employee info](GET /users/{id}) method for each ID.
+
+        The method helps decide whether to fix your message or write a new one. [Edit message](PUT /messages/{id}) notifies nobody: while the addressees have not read the message, it is simpler to fix it, and a message they have read is better followed up with a reply. If the original must stay right, edit it and reply briefly with what you changed. Check right before the edit, once the new text is ready: the message can be read while you write.
   - target: $.paths['/messages/{id}/read_member_ids'].get.parameters[?(@.name=='id')]
     update:
       description: Message ID
@@ -843,7 +845,7 @@ actions:
 
         An empty thread holds no talk yet: send the first message into it right away with the [New message](POST /messages) method, `entity_type: "thread"` and the thread's `id` from the response. A thread has no name, and it cannot be deleted either through the API or in the app.
 
-        If a thread has already been created for the message, the response will return information about the previously created thread. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.
+        If a thread has already been created for the message, the response will return information about the previously created thread. Only a member of the chat starts a new thread: to someone who sees an open conversation or channel without belonging to it, the method responds `403`, while an existing thread is returned. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.
   - target: $.paths['/messages/{id}/thread'].post.parameters[?(@.name=='id')]
     update:
       description: Message ID
@@ -1157,7 +1159,7 @@ actions:
 
         Creates a thread that is not linked to anything: a place to talk, a dialogue with an agent, or a call that needs no chat of its own. Any employees can be gathered in it.
 
-        The thread creator becomes its only member and its owner: they can remove members and delete other people's messages in the thread, and they cannot be removed themselves. In older unattached threads the creator is an ordinary member: whether a thread has an owner is shown by [List chat members](GET /chats/{id}/members) with `role=owner`. The `message_id` and `message_chat_id` fields in the response are returned as `null`. The easiest way to add members to the thread is a mention: `@nickname` or `@tag` at the start or the end of the message text. The [Add chat members](POST /chats/{id}/members) method by the `chat_id` of the thread works too.
+        The thread creator becomes its only member and its owner: they can remove members and delete other people's messages in the thread, and they cannot be removed themselves. In older unattached threads the creator is an ordinary member: whether a thread has an owner is shown by [List chat members](GET /chats/{id}/members) with `role=owner`. The `message_id` and `message_chat_id` fields in the response are returned as `null`. Members are added by the [Add chat members](POST /chats/{id}/members) method by the `chat_id` of the thread. It sends no notification, so mention the people you added in the first message. A `@nickname` or `@tag` mention in a thread message adds members too, but only while the workspace setting "Use cross-chat threads" is on (the default), and its value cannot be read through the API.
 
         A thread has no name, so send the first message into it right away — that is how employees will understand what it is about. It is addressed by the thread's `id` with `entity_type: "thread"`. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a thread under it with the [New thread](POST /messages/{id}/thread) method, and if a permanent place with a name is needed, use the [New chat](POST /chats) method.
   - target: $.paths['/threads'].get
@@ -3424,7 +3426,7 @@ actions:
       description: "Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else's name and avatar, and only this message. The Bot badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Details are in the [Bots](/guides/bots/overview) section."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.skip_invite_mentions
     update:
-      description: "Skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. With the workspace setting \"Use cross-chat threads\" on (the default), a mention also adds an employee from outside the parent chat, and with `true` in this field a mention adds nobody. A mention by a guest or a multi-guest then adds only those who share a chat with the author. With the setting off, a mention adds only members of the parent chat, and this field changes nothing. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there."
+      description: "Skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. With the workspace setting \"Use cross-chat threads\" on (the default), a mention also adds an employee from outside the parent chat, and with `true` in this field a mention adds nobody, and a person who is not in the thread gets no notification either. A mention by a guest or a multi-guest then adds only those who share a chat with the author. With the setting off, a mention adds only members of the parent chat, and this field changes nothing. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there."
   - target: $.components.schemas.MessageCreateRequest.properties.link_preview
     update:
       description: Display a preview of the first link found in the message text

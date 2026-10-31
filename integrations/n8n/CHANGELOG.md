@@ -22,7 +22,7 @@
 - Trigger: the `Automatic` option and its notice list the scopes a bot token needs — `profile:read` and `bot_self:webhook:write`
 - Credentials: the `Webhook Signing Secret` description says where to copy the Signing secret
 - Form: `Open` returns the API answer `{ "success": true }`
-- Field descriptions follow the API: the bot command rule, the mention rule of message text, `Kind`, `duration_ms` and `file_type` of message and draft files, `OAuth Client` and `Promo` of Bot > `Create` and `Update`, `List Tags` of User > `Update`, and the reminder fields
+- Field descriptions follow the API: the bot command rule, the mention rule of message text, `Kind`, `duration_ms` and `file_type` of message and draft files, `OAuth Client` and `Promo` of Bot > `Create` and `Update`, `List Tags` of User > `Update`, the reminder fields, adding thread members and `Skip Invite Mentions`
 - A field that takes `null` has a way to send it: the `None` option of an option field, the text `null` in a JSON field, and a `Clear` toggle next to a number field of an update
 - Reminder: the `/tasks` resource is named `Reminder`, as in Pachca, and its actions read `Create a reminder` and so on. The resource value `task` stays the same, so saved workflows keep working.
 - Custom Property: the `Task` entity type is shown as `Reminder`, and its value stays `Task`

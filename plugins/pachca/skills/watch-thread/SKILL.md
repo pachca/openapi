@@ -1,19 +1,21 @@
 ---
 name: watch-thread
 description: 'Следить за тредом Пачки и отвечать в нём, пока сессия открыта: агент узнаёт о новых сообщениях через CLI и отвечает в пределах вашей задачи. Когда: «следи за тредом», «отвечай в треде, если спросят», «спроси у коллеги в треде и дождись ответа», «веди тред, пока я работаю», "watch this thread", "reply in the thread when someone asks". Not for: a one-off reply → pachca-messaging; a summary of a thread → thread-summary.'
-argument-hint: '<thread link> [what to do]'
+argument-hint: '<thread link or who to ask> [what to do]'
 disable-model-invocation: true
 ---
 
 # Watch a Pachca thread and reply
 
-Watch the Pachca thread the user gave with the command (a thread link, a message link or a thread id) and act on new messages within the goal they gave: answer questions, ask a colleague and wait for the answer, keep code or docs in step with the discussion. If there is no link, ask for it. If the goal is missing, ask for it in one line before you start.
+Watch the Pachca thread the user gave with the command (a thread link, a message link or a thread id) and act on new messages within the goal they gave: answer questions, ask a colleague and wait for the answer, keep code or docs in step with the discussion. If there is no link but the goal names who to ask, start a standalone thread with them (step 1); with neither, ask for the link. If the goal is missing, ask for it in one line before you start.
 
 A background script does not get this program's MCP sign-in. So the watching runs through the Pachca CLI, and you read and reply with whichever you have, MCP tools or the CLI. The guide for people is [Агент следит за тредом](https://dev.pachca.com/guides/ai-agents/watch-thread).
 
 ## 1. Find the thread
 
-Follow the `pachca-search` skill and its thread procedure, and note two numbers: the thread's `id` (for replies) and its `chat_id` (for reading and watching). For a thread id or a `thread_id` link, `pachca_get_thread` gives both. For a message link, use the "Find the thread chat" table in the skill's `references/threads.md`: a parent message carries both in `thread`, a comment inside a thread has the thread's `chat_id` as its own `chat_id` and the thread `id` as its `entity_id`. If the message has no thread, say so and watch the message's chat only if the user confirms; then reply in that chat, and warn that a busy chat wakes you more often. Read the latest messages (`pachca_list_chat_messages` by the `chat_id`, newest first by default) to learn the context, and note the newest message `id`.
+Follow the `pachca-search` skill and its thread procedure, and note two numbers: the thread's `id` (for replies) and its `chat_id` (for reading and watching). For a thread id or a `thread_id` link, `pachca_get_thread` gives both. For a message link, use the "Find the thread chat" table in the skill's `references/threads.md`: a parent message carries both in `thread`, a comment inside a thread has the thread's `chat_id` as its own `chat_id` and the thread `id` as its `entity_id`. If the message has no thread yet, open one under it with `pachca_create_thread`, as «Подписаться на тред» in the message menu does (it returns the existing thread if one has appeared), and watch it. Like the button, opening posts nothing and notifies nobody: you, the message author, those who reacted and the chat members who turned on notifications about new threads become its members at once, and the chat members mentioned in the message follow a moment later, so your comments reach all of them. Write in it only when the goal calls for it, not to announce yourself, and tell the user that you opened it. Watch the message's chat itself only if the user asks for the chat, and warn that a busy chat wakes you more often. Read the whole thread to learn the context (`pachca_list_chat_messages` by the `chat_id`, every page): a thread is one topic, usually a few dozen messages. In a chat without an end, such as a direct chat, read only the latest page. Note the newest message `id`.
+
+No link, but the goal names people to ask («спроси у Анны…») or a topic to discuss with them that has no message to open a thread under: offer a standalone thread with them instead of writing in a direct chat. Show the user the question and the members in one message and wait for a yes. Then create the thread with `pachca_create_unattached_thread`, add the members with `pachca_add_members` by its `chat_id` (a mention alone adds nobody to a standalone thread when the workspace turned off «Использовать сквозные треды»), and post the question with a mention of each of them, following the `pachca-messaging` skill: being added sends no notification, the mention does. The new thread gives its `id` and `chat_id`, and your question is the newest message.
 
 ## 2. Check the CLI
 
@@ -50,6 +52,9 @@ Tell the user in one line that watching has started, how often it checks and how
 - A line with `truncated: true` holds the first 4000 characters: get the full message with `pachca_get_message`. `files` holds names only.
 - Before each reply, read the last few messages of the thread: if the user or you already answered after this message, skip it.
 - Reply in the thread, following the `pachca-messaging` skill: `pachca_send_message` with `entity_type: "thread"` and the thread's `id`. Starting this command is the user's yes to reply in this thread within the goal. Anything beyond it, such as a decision, a promise on the user's behalf or a message to another chat, needs the user's yes first. When unsure, leave a draft for the user to send and tell them.
+- Keep replies short: the answer first, in Pachca's formatting from the `pachca-messaging` skill (short paragraphs, no markdown lists or tables). Send a long result as a `.md` file.
+- A mention in a thread is an invitation: a person who is not in the thread is added and sees the thread and its parent message. While «Использовать сквозные треды» is off, a mention adds only members of the parent chat and nobody to a standalone thread, and a person not added gets no notification either. Mention only people already in the thread (`pachca_list_members` by the thread `chat_id`) and people the goal names; before bringing in someone outside it, tell the user and get a yes, then add them with `pachca_add_members` by the thread `chat_id` and mention them. To refer to someone without inviting them, write the name without `@`. `@all` and `@here` reach only the thread's members.
+- To correct or add to your own reply, follow the editing rule of the `pachca-messaging` skill: with the new text ready, check `pachca_list_message_readers` right before acting, then edit, reply, or edit and reply with what you changed.
 - A send that times out or returns something unclear is not resent blind: read the last messages of the thread and send again only if your message is not there.
 
 ## 5. Stop
@@ -59,7 +64,7 @@ Stop the watcher (the monitor or the background command) and tell the user when 
 The script also ends on its own with `{"event":"stopped",...}`. Pass on its `error` and `hint`:
 
 - `reason: "auth"`: an ended sign-in needs `pachca auth login` again; with `PACHCA_TOKEN` the token is invalid or lacks a right, and the user replaces it; `insufficient_scope` names the missing right.
-- `reason: "access"`: the thread is out of reach, for example the user left the chat.
+- `reason: "access"`: the thread is out of reach, for example the user was removed from it and does not see it through its chat.
 - `reason: "error"`: the CLI is missing or kept failing.
 
 Exit code `2` with no line is a bad argument: fix the command and start it again. `{"event":"more"}` means more new messages arrived than one check reads: read the thread with `pachca_list_chat_messages` before you reply.

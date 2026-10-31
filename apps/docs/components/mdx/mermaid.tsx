@@ -601,9 +601,11 @@ export function Mermaid({ chart, title }: MermaidProps) {
           onMouseLeave={handleMouseUp}
           style={{ cursor: isPanning ? 'grabbing' : 'grab', touchAction: 'none' }}
         >
+          {/* Mermaid оборачивает подписи в <p> и меряет их шрифтом из темы,
+              а .prose p увеличивает шрифт — подпись не влезает в рамку и обрезается */}
           <div
             ref={containerRef}
-            className="w-full h-full"
+            className="w-full h-full [&_p]:[font-size:inherit]! [&_p]:[line-height:inherit]!"
             style={{
               transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
               transformOrigin: '0 0',

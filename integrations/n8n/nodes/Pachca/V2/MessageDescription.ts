@@ -219,7 +219,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'skipInviteMentions',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. With the workspace setting "Use cross-chat threads" on (the default), a mention also adds an employee from outside the parent chat, and with `true` in this field a mention adds nobody. A mention by a guest or a multi-guest then adds only those who share a chat with the author. With the setting off, a mention adds only members of the parent chat, and this field changes nothing. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there.',
+				description: 'Whether to skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. With the workspace setting "Use cross-chat threads" on (the default), a mention also adds an employee from outside the parent chat, and with `true` in this field a mention adds nobody, and a person who is not in the thread gets no notification either. A mention by a guest or a multi-guest then adds only those who share a chat with the author. With the setting off, a mention adds only members of the parent chat, and this field changes nothing. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there.',
 			},
 		],
 	},

@@ -18,6 +18,8 @@ Reminders named as in the Pachca app, deleting an incoming webhook, the output o
 - `pachca_update_user`: `list_tags` names the "Who can add the bot to chats" values that lead to `restricted_bot_tag_denied`, "Creator" and "Creator and Administrators".
 - `pachca_send_message` and `pachca_update_message`: `content` says to take a nickname from a tool's answer and a `user_id` from data, since a nickname made up from a name mentions nobody.
 - A `403` with `insufficient_scope` tells the model not to retry: a person connected through the browser signs in again without narrowing the scopes, a personal token gets the scope in its menu, a bot's creator adds it to the bot's token.
+- `pachca_add_members`, `pachca_list_members`, `pachca_remove_member`, `pachca_delete_message`, `pachca_create_thread`, `pachca_create_unattached_thread` and `skip_invite_mentions` of `pachca_send_message` describe thread membership as the server keeps it: adding to a thread makes an ordinary member and notifies nobody, a mention adds nobody to an unattached thread while cross-chat threads are off, only a chat member starts a new thread, and a person outside the thread mentioned with `skip_invite_mentions` gets no notification.
+- `pachca_update_message` says an edit notifies nobody and does not make the message unread, and `pachca_list_message_readers` says how it helps decide between fixing a message and replying with an addition, checked right before acting.
 - `pachca_search_users`, `pachca_search_chats` and `pachca_search_messages`: the output `meta.paginate` has `has_next`, `false` on the last page, where `next_page` still comes.
 
 ## 1.4.0 (2026-10-28)

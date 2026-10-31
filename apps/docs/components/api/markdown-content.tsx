@@ -33,6 +33,8 @@ import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { McpTools } from '@/components/mdx/mcp-tools';
+import { PluginCommands } from '@/components/mdx/plugin-commands';
+import { Prompts, Prompt } from '@/components/mdx/prompts';
 import { GlobalFlags } from '@/components/mdx/global-flags';
 import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
@@ -197,9 +199,7 @@ const components = {
 
   // Other
   hr: () => <hr className="my-8 border-glass-border" />,
-  em: ({ children }: { children: React.ReactNode }) => (
-    <em className="text-text-secondary not-italic">{children}</em>
-  ),
+  em: ({ children }: { children: React.ReactNode }) => <em className="italic">{children}</em>,
   strong: ({ children }: { children: React.ReactNode }) => (
     <strong className="font-semibold">{children}</strong>
   ),
@@ -234,6 +234,9 @@ const components = {
   ScopeRoles,
   CliCommands,
   McpTools,
+  PluginCommands,
+  Prompts,
+  Prompt,
   GlobalFlags,
   SdkCommands,
   NpmBadge,

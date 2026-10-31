@@ -67,6 +67,7 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
   - `total: integer, int32` (required) — Общее количество найденных результатов. Пример: `42`
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`
+    - `has_next: boolean` (required) — Есть ли ещё данные на следующей странице. На последней странице — `false`. Пример: `true`
 
 **Пример ответа:**
 
@@ -98,7 +99,8 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
   "meta": {
     "total": 42,
     "paginate": {
-      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3",
+      "has_next": true
     }
   }
 }

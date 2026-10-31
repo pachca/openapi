@@ -8,6 +8,7 @@ export default class ViewsOpen extends BaseCommand {
   static scope = "views:write";
   static apiMethod = "POST";
   static apiPath = "/views/open";
+  static defaultColumns = ["success"];
   static requiredFlags = ["title","blocks","type","trigger-id"];
 
   static override args = {

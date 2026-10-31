@@ -9,23 +9,26 @@ related:
 
 # Файлы
 
-Команда `pachca upload` автоматически получает подпись через `POST /uploads` и загружает файл на S3 — не нужно вручную копировать 7 параметров подписи:
+Команда `pachca upload` за один вызов выполняет оба шага [загрузки файла](/api/file-uploads): получает подпись методом [Получение подписи, ключа и других параметров](POST /uploads) и отправляет файл в хранилище. Параметры подписи вручную копировать не нужно:
 
 ```bash
 # Загрузить файл
 pachca upload photo.jpg
 
-# Из stdin
-cat data.csv | pachca upload -
+# Из stdin: имя файла с расширением задаёт --name
+cat data.csv | pachca upload - --name data.csv
 ```
 
-Команда возвращает `key` — используйте его в поле `files[].key` при [создании сообщений](/api/messages/create):
+Команда возвращает `key`. Передайте его в поле `files` [Нового сообщения](POST /messages) вместе с отображаемым именем `name` и типом `file_type`:
 
 ```bash
 # Загрузить файл и отправить в чат
 KEY=$(pachca upload photo.jpg -o json | jq -r '.key')
-pachca messages create --entity-id 123 --content "Фото" --files "[{\"key\":\"$KEY\",\"name\":\"photo.jpg\"}]"
+pachca messages create --entity-id 123 --content "Фото" \
+  --files "[{\"key\":\"$KEY\",\"name\":\"photo.jpg\",\"file_type\":\"image\"}]"
 ```
+
+Расширение в `name` должно совпадать с расширением файла в `key`. Ключ заканчивается именем загружаемого файла, а флаг `--name` задаёт другое имя: так данные из stdin получают имя с расширением. Если `--name` не указан, файл из stdin сохраняется под именем `stdin` без расширения, и в `name` для него тоже указывают имя без расширения. Размер `size` можно не передавать: Пачка возьмёт его из хранилища. Остальные типы файлов и их поля — в разделе [Типы файлов](/api/file-uploads#tipy-faylov).
 
 <Info>Для низкоуровневого контроля доступна команда `pachca files direct-url` — она отправляет multipart-запрос на указанный URL с параметрами подписи.</Info>
 
@@ -43,4 +46,4 @@ pachca files get 3560 --save ./report.pdf
 pachca files get 3560 --target pdf_preview --save ./preview.pdf
 ```
 
-Путь в `--save` обязателен: команда пишет файл на диск, а не в вывод. Токену нужен скоуп `files:read`.
+Путь в `--save` обязателен: команда сохраняет файл на диск по этому пути. Токену нужен скоуп `files:read`.

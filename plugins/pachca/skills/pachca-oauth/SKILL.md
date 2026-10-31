@@ -1,6 +1,6 @@
 ---
 name: pachca-oauth
-description: 'Authorization on behalf of an employee in Pachca (OAuth 2.0 with PKCE): when a bot needs an employee''s own token, the OAuth tab, redirect URIs and scope set, the authorization link, code exchange, checking whose token it is, storing a token per employee, re-authorization, revocation, launch checklist. Use when: «бот от имени сотрудника», «авторизация от имени сотрудника», «OAuth в Пачке», «client_id и client_secret», «redirect URI», «обменять код на токен», «PKCE», «экран согласия моего бота», «кнопка Предоставить доступ», «сотрудник отозвал доступ», «токен сотрудника вернул 401 или 403», "Pachca OAuth", "act on behalf of a user", "authorization code flow", "exchange code for token", "my bot''s OAuth consent screen", "per-user token for my bot". Not for: a bot acting as itself, webhooks, showcase, a leaked bot token → pachca-bots; MCP sign-in, a 401/403 from an MCP tool or the CLI → pachca; your own token in a script → pachca-api; revoking access on the All tokens tab → pachca-admin.'
+description: 'Авторизация от имени сотрудника в Пачке (OAuth 2.0 с PKCE): когда боту нужен собственный токен сотрудника, вкладка OAuth, адреса возврата и набор прав, ссылка на авторизацию, обмен кода на токен, проверка владельца токена, хранение токена каждого сотрудника, повторная авторизация, отзыв доступа, список проверок перед запуском. Когда: «бот от имени сотрудника», «авторизация от имени сотрудника», «OAuth в Пачке», «client_id и client_secret», «redirect URI», «обменять код на токен», «PKCE», «экран согласия моего бота», «кнопка Предоставить доступ», «сотрудник отозвал доступ», «токен сотрудника вернул 401 или 403», "Pachca OAuth", "act on behalf of a user", "authorization code flow", "exchange code for token", "my bot''s OAuth consent screen", "per-user token for my bot". Not for: a bot acting as itself, webhooks, showcase, a leaked bot token → pachca-bots; MCP sign-in, a 401/403 from an MCP tool or the CLI → pachca; your own token in a script → pachca-api; revoking access on the All tokens tab → pachca-admin.'
 ---
 
 # Pachca: acting on behalf of an employee (OAuth)
@@ -15,7 +15,7 @@ employee token (→ `pachca`).
 ## When to use
 
 - A bot needs the employee's own data or must act under their name: a digest of their chats,
-  a task created as them, their tracker tasks answered from Pachca.
+  a reminder set as them, their tracker tasks answered from Pachca.
 - A service acts for many employees and each must agree and be able to revoke.
 - A browser, mobile or CLI app on the employee's device needs their token (public client).
 - Something in an existing flow breaks: no button, refusal instead of consent, `invalid_grant`,

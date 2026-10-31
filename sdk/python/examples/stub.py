@@ -31,6 +31,7 @@ class FakeMessages(MessagesService):
             created_at=datetime.now(),
             url="",
             files=[],
+            important=False,
         )
 
 

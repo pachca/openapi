@@ -105,6 +105,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
         children: [
           { title: 'Обзор', path: '/guides/ai-agents/overview' },
           { title: 'Взаимодействие с агентом', path: '/guides/ai-agents/interaction' },
+          { title: 'Агент следит за тредом', path: '/guides/ai-agents/watch-thread' },
           { title: 'Черновик вместо отправки', path: '/guides/ai-agents/drafts' },
           { title: 'Оформление ответов', path: '/guides/ai-agents/markdown' },
         ],
@@ -121,6 +122,8 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
       { title: 'Подключение', path: '/guides/mcp/connect' },
       { title: 'Инструменты', path: '/guides/mcp/tools' },
       { title: 'Плагин и скиллы', path: '/guides/mcp/plugin' },
+      { title: 'Команды плагина', path: '/guides/mcp/commands' },
+      { title: 'Скиллы', path: '/guides/mcp/skills' },
     ],
   },
   {
@@ -131,11 +134,13 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
         path: '/guides/bots/overview',
         children: [
           { title: 'Обзор', path: '/guides/bots/overview' },
+          { title: 'Первый бот', path: '/guides/bots/first-bot' },
+          { title: 'Общение с ботом', path: '/guides/bots/conversations' },
+          { title: 'Интерактивный бот', path: '/guides/bots/interactive' },
           { title: 'Создание бота', path: '/guides/bots/setup' },
           { title: 'Настройки бота', path: '/guides/bots/settings' },
           { title: 'Токены бота', path: '/guides/bots/tokens' },
           { title: 'Доступы к чатам и сообщениям', path: '/guides/bots/access' },
-          { title: 'Общение с ботом', path: '/guides/bots/conversations' },
           { title: 'Витрина', path: '/guides/bots/showcase' },
           { title: 'Готовые примеры', path: '/guides/bots/examples' },
         ],
@@ -148,6 +153,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
           { title: 'Обзор', path: '/guides/webhook/overview' },
           { title: 'Настройка и типы событий', path: '/guides/webhook/events' },
           { title: 'Безопасность и обработчик', path: '/guides/webhook/handler' },
+          { title: 'Разработка и запуск обработчика', path: '/guides/webhook/deploy' },
           { title: 'Поллинг', path: '/guides/webhook/polling' },
         ],
       },
@@ -178,6 +184,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
   {
     title: 'Данные и безопасность',
     items: [
+      { title: 'Агенты и MCP в пространстве', path: '/guides/agents-access' },
       { title: 'Экспорт сообщений', path: '/guides/export' },
       { title: 'DLP-система', path: '/guides/dlp' },
       { title: 'Шифрование и безопасный контур', path: '/guides/data-protection' },
@@ -274,7 +281,7 @@ export const API_GUIDE_PAGES: SidebarPageItem[] = [
   { title: 'Авторизация', path: '/api/authorization' },
   { title: 'Запросы и ответы', path: '/api/requests-responses' },
   { title: 'Пагинация', path: '/api/pagination' },
-  { title: 'Загрузка файлов', path: '/api/file-uploads' },
+  { title: 'Файлы', path: '/api/file-uploads' },
   { title: 'Ошибки', path: '/api/errors' },
   { title: 'Лимиты', path: '/api/limits' },
   { title: 'Модели', path: '/api/models' },

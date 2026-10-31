@@ -103,8 +103,8 @@ Scopes: `messages:read` and `chats:read`, plus `files:read` for attachment conte
 
 Call API methods and external services. Typical calls from a thread:
 
-- a task from the discussion —
-  [New task](https://dev.pachca.com/api/tasks/create.md)
+- a reminder from the discussion —
+  [New reminder](https://dev.pachca.com/api/tasks/create.md)
   (`pachca_create_task`, `pachca tasks create`), needs `tasks:create`;
 - a message into another chat —
   [New message](https://dev.pachca.com/api/messages/create.md)

@@ -22,7 +22,7 @@ graders:
   - name: no-command
     type: tool_used
     tool: Skill
-    input_match: "\"skill\"\\s*:\\s*\"(?:pachca:)?(?:catch-up|thread-summary|digest|announce|tasks-from)\""
+    input_match: "\"skill\"\\s*:\\s*\"(?:pachca:)?(?:summarize-thread|watch-thread|post-changes)\""
     min: 0
     max: 0
     arm: both

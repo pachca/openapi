@@ -1,4 +1,5 @@
 plugins {
+    `java-library`
     kotlin("jvm") version "2.2.20"
     kotlin("plugin.serialization") version "2.2.20"
     application
@@ -51,31 +52,50 @@ tasks.register<JavaExec>("runErrorBodyTests") {
     mainClass.set("tests.errorbodies.ErrorBodies")
 }
 
+tasks.register<JavaExec>("runAuditDetailsTests") {
+    classpath = sourceSets["tests"].runtimeClasspath
+    mainClass.set("tests.auditdetails.AuditDetails")
+}
+
+tasks.register<JavaExec>("runRequestBodyTests") {
+    classpath = sourceSets["tests"].runtimeClasspath
+    mainClass.set("tests.requestbodies.RequestBodies")
+}
+
 tasks.register<JavaExec>("runTests") {
     classpath = sourceSets["tests"].runtimeClasspath
     mainClass.set("tests.OpenEnums")
-    dependsOn("runRetryTests", "runErrorBodyTests")
+    dependsOn("runRetryTests", "runErrorBodyTests", "runAuditDetailsTests", "runRequestBodyTests")
 }
 
 val ktorVersion = "3.2.3"
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    // The public API shows types of these three: JsonElement in ApiErrorItem.value
+    // and in payloads, Flow from pollWebhookEvents and pollWebhookPayloads, HttpClient
+    // in the constructor that takes a configured client. `api` puts them on the
+    // compile classpath of the projects that use the SDK.
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    api("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 }
 
+// The library runs on Java 11+, though JitPack builds it with JDK 17 (jitpack.yml):
+// -Xjdk-release also refuses JDK APIs newer than 11.
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
-        freeCompilerArgs.add("-opt-in=kotlinx.serialization.ExperimentalSerializationApi")
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        freeCompilerArgs.addAll("-opt-in=kotlinx.serialization.ExperimentalSerializationApi", "-Xjdk-release=11")
     }
 }
 
 java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
     withSourcesJar()
 }
 

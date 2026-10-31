@@ -2,8 +2,8 @@
  * Retries: a 504 with the error code `timeout` is a search the server stopped because the
  * query is too heavy, so the SDK hands it back at once with its body intact, while a 504
  * from a proxy is retried. `retryIf` cannot read the body: an interceptor under the retry
- * plugin marks such a call. The client talks to a local server that answers each request
- * with the next canned response.
+ * plugin marks such a call. A 429 without Retry-After is retried after about a second. The
+ * client talks to a local server that answers each request with the next canned response.
  *
  * Usage (from sdk/kotlin/generated), run by `runTests`:
  *
@@ -43,8 +43,9 @@ fun main() {
         val (status, body) = responses.remove()
         val bytes = body.toByteArray()
         exchange.responseHeaders.add("Content-Type", "application/json")
-        exchange.sendResponseHeaders(status, bytes.size.toLong())
-        exchange.responseBody.use { it.write(bytes) }
+        // An empty body goes out without one (-1): a 204 must not carry a body.
+        exchange.sendResponseHeaders(status, if (bytes.isEmpty()) -1 else bytes.size.toLong())
+        exchange.responseBody.use { if (bytes.isNotEmpty()) it.write(bytes) }
     }
     server.start()
     val client = PachcaClient("test-token", baseUrl = "http://127.0.0.1:${server.address.port}")
@@ -65,7 +66,19 @@ fun main() {
             checkRetry(requests.get() == 1, "a 504 with the code timeout is not repeated, got ${requests.get()} requests")
             checkRetry(elapsedMs < 5_000, "a 504 with the code timeout comes back at once, took $elapsedMs ms")
 
-            // A 504 from a proxy, and a 504 with another code: the retry waits about 20 seconds,
+            // A 429 without Retry-After: the first retry waits about a second (1-1.25 s with
+            // the jitter), as in the other SDKs, and the second request goes through.
+            responses.clear()
+            responses.add(429 to """{"errors":[]}""")
+            responses.add(204 to "")
+            requests.set(0)
+            val started429 = System.nanoTime()
+            client.messages.pinMessage(1)
+            val elapsed429Ms = (System.nanoTime() - started429) / 1_000_000
+            checkRetry(requests.get() == 2, "a 429 is retried once here, got ${requests.get()} requests")
+            checkRetry(elapsed429Ms in 900..5_000, "a 429 without Retry-After waits about a second, took $elapsed429Ms ms")
+
+            // A 504 from a proxy, and a 504 with another code: the retry waits about 10 seconds,
             // so a call still running after two seconds, with one request made, is waiting for it.
             for (body in listOf("<html>Gateway Timeout</html>", """{"errors":[{"code":"unavailable","message":"Try later"}]}""")) {
                 responses.clear()

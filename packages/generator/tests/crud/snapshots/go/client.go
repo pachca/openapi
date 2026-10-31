@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"time"
 )
 
 // errorFromResponse reads an error answer. Its body is either {"errors": [...]} or
@@ -143,24 +142,21 @@ func (s *ChatsServiceImpl) ListChatsAll(ctx context.Context, params *ListChatsPa
 	}
 	var items []Chat
 	var cursor *string
-	hasNext := true
-	for hasNext {
+	for {
 		params.Cursor = cursor
 		result, err := s.ListChats(ctx, params)
 		if err != nil {
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if len(result.Data) == 0 {
+		if len(result.Data) == 0 || result.Meta == nil {
 			return items, nil
 		}
-		nextPage := result.Meta.Paginate.NextPage
-		cursor = &nextPage
-		if result.Meta.Paginate.HasNext != nil {
-			hasNext = *result.Meta.Paginate.HasNext
+		if result.Meta.Paginate.NextPage == nil {
+			return items, nil
 		}
+		cursor = result.Meta.Paginate.NextPage
 	}
-	return items, nil
 }
 
 func (s *ChatsServiceImpl) GetChat(ctx context.Context, id int32) (*Chat, error) {

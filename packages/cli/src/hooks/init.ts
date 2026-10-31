@@ -8,6 +8,7 @@ import ansis from 'ansis';
 import {
   getActiveProfile,
   getDefaults,
+  profileFlag,
   resolveToken,
   TokenNotFoundError,
   ProfileNotFoundError,
@@ -152,6 +153,10 @@ const hook: Hook<'init'> = async function (opts) {
         // runs with the current token and reports the real API error itself.
         if (!isSessionExpired(error)) return;
 
+        // The server no longer renews this login: it was revoked (in the «Токены CLI»
+        // list, by an admin) or ran out. Name the profile, like the 401 hint does,
+        // so the command can be pasted as is.
+        const relogin = `pachca auth login${profileFlag(profileName)}`;
         const format = resolveOutputFromArgv();
         if (format === 'json' || !process.stderr.isTTY) {
           outputError(
@@ -159,13 +164,13 @@ const hook: Hook<'init'> = async function (opts) {
               error: 'Session expired',
               type: 'PACHCA_AUTH_ERROR',
               code: null,
-              hint: 'pachca auth login',
+              hint: relogin,
             },
             format as 'json',
           );
         } else {
-          process.stderr.write(`✗ Срок входа истёк. Войдите заново:\n\n`);
-          process.stderr.write(`    pachca auth login\n`);
+          process.stderr.write(`✗ Вход завершён или отозван. Войдите заново:\n\n`);
+          process.stderr.write(`    ${relogin}\n`);
         }
         process.exit(3);
       }

@@ -6,11 +6,11 @@
     ]
   },
   "EventOperations_listEvents": {
-    "usage": "const response = client.export.listEvents({\n  dateFrom: \"2024-01-01\",\n  dateTo: \"2024-01-01\",\n  createdAfter: \"2024-01-01T00:00:00Z\",\n  limit: 123\n})",
+    "usage": "const response = await client.export.listEvents({\n  dateFrom: \"2024-01-01\",\n  dateTo: \"2024-01-01\",\n  createdAfter: \"2024-01-01T00:00:00Z\",\n  limit: 123\n})",
     "output": "ListEventsResponse({ data: Event[] })"
   },
   "ExportOperations_createExport": {
-    "usage": "const request: ExportRequest = {\n  startAt: \"2025-03-20\",\n  endAt: \"2025-03-20\",\n  webhookUrl: \"example\"\n}\nconst response = client.export.createExport(request)",
+    "usage": "const request: ExportRequest = {\n  startAt: \"2025-03-20\",\n  endAt: \"2025-03-20\",\n  webhookUrl: \"example\"\n}\nconst response = await client.export.createExport(request)",
     "output": "Export({ id: number, startAt: string, endAt: string, status: string, createdAt: string })",
     "imports": [
       "ExportRequest"

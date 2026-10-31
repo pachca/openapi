@@ -1,5 +1,5 @@
 import type { Endpoint, Schema, Response } from './openapi/types';
-import { generateRequestExample, generateResponseExample } from './openapi/example-generator';
+import { generateRequestExamples, generateResponseExample } from './openapi/example-generator';
 import { generateCurl } from './code-generators/curl';
 import { generateTitle, getDescriptionWithoutTitle } from './openapi/mapper';
 import { getGuideData } from './content-loader';
@@ -206,7 +206,7 @@ export function schemaToMarkdown(
           const resolvedVariant = resolveSchema(variant);
           const variantName = variant.$ref
             ? variant.$ref.split('/').pop()
-            : resolvedVariant.title || 'Вариант';
+            : resolvedVariant.title || unnamedVariantLabel(resolvedVariant) || 'Вариант';
           content += `${indent}  - **${variantName}**`;
           if (resolvedVariant.description) {
             content += `: ${resolvedVariant.description}`;
@@ -290,6 +290,16 @@ const SELF_DESCRIBING_FORMATS = new Set(['date', 'date-time', 'uri', 'email', 'u
  * The type of a union whose variants are bare types, e.g. `string | number |
  * array | object`; null when any variant is a named or structured schema.
  */
+/** Type label for an inline union variant without a name: `array of string`, `string`. */
+function unnamedVariantLabel(variant: Schema): string | null {
+  if (variant.properties) return null;
+  if (variant.type === 'array') {
+    const items = resolveSchema(variant.items ?? {});
+    return items.properties ? null : `array of ${items.type || 'any'}`;
+  }
+  return typeof variant.type === 'string' ? variant.type : null;
+}
+
 function plainUnionLabel(variants: Schema[]): string | null {
   const types: string[] = [];
   for (const variant of variants) {
@@ -438,13 +448,21 @@ function formatRequestBody(endpoint: Endpoint): string {
 
     // Generate JSON example (skip for multipart — binary blob makes no sense as JSON).
     // A form body shows its fields the same way; the curl example sends them as `-d name=value`.
+    // Every authored example is listed under its own label, as on the page; the
+    // curl example below sends the first one.
     if (contentType !== 'multipart/form-data') {
-      const example = generateRequestExample(endpoint.requestBody);
-      if (example) {
-        content += '### Пример\n\n';
-        content += '```json\n';
-        content += JSON.stringify(example, null, 2);
-        content += '\n```\n';
+      const examples = generateRequestExamples(endpoint.requestBody).filter((ex) => ex.value);
+      if (examples.length > 0) {
+        content += examples.length > 1 ? '### Примеры\n\n' : '### Пример\n\n';
+        examples.forEach((example, index) => {
+          const label = example.label ?? (examples.length > 1 ? `Пример ${index + 1}` : '');
+          if (label) content += `**${label}**\n\n`;
+          if (example.description) content += `${example.description}\n\n`;
+          content += '```json\n';
+          content += JSON.stringify(example.value, null, 2);
+          content += '\n```\n';
+          if (index < examples.length - 1) content += '\n';
+        });
       }
     }
   }

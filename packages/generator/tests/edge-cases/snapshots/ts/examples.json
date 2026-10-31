@@ -6,7 +6,7 @@
     ]
   },
   "listEvents": {
-    "usage": "const response = client.events.listEvents({\n  isActive: true,\n  scopes: [OAuthScope.ChatsRead],\n  filter: {}\n})",
+    "usage": "const response = await client.events.listEvents({\n  isActive: true,\n  scopes: [OAuthScope.ChatsRead],\n  filter: {}\n})",
     "output": "ListEventsResponse({ data: Event[] })",
     "imports": [
       "EventFilter",
@@ -14,14 +14,14 @@
     ]
   },
   "publishEvent": {
-    "usage": "const response = client.events.publishEvent(123, OAuthScope.ChatsRead)",
+    "usage": "const response = await client.events.publishEvent(123, OAuthScope.ChatsRead)",
     "output": "Event({ id: number, type: EventType })",
     "imports": [
       "OAuthScope"
     ]
   },
   "createUpload": {
-    "usage": "const request: UploadRequest = { file: new Blob([]), contentDisposition: \"example\" }\nclient.uploads.createUpload(request)",
+    "usage": "const request: UploadRequest = { file: new Blob([]), contentDisposition: \"example\" }\nawait client.uploads.createUpload(request)",
     "imports": [
       "UploadRequest"
     ]

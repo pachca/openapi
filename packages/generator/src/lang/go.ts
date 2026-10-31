@@ -9,8 +9,13 @@ import {
   type IRService,
   type IRUnion,
   type IRResponseType,
+  type IRValueUnion,
+  jsonKindOf,
+  unionRequiredShapes,
+  valueUnionMemberName,
+  paginateModel,
 } from '../ir.js';
-import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, snakeToPascal, tagToServiceName, serviceToImplName, serviceToStubName } from '../naming.js';
 
 function upperFirst(s: string): string {
@@ -97,7 +102,7 @@ function goType(
       return ft.ref ?? 'string';
     case 'model':
     case 'union':
-      return ft.ref ?? 'any';
+      return ft.valueUnion ?? ft.ref ?? 'any';
     case 'array':
       return `[]${goType(ft.items!, opts)}`;
     case 'record':
@@ -109,9 +114,15 @@ function goType(
   }
 }
 
+/**
+ * An optional field the caller left unset stays out of the body: for a nullable
+ * one `null` means something (it switches a setting off or deletes an object),
+ * so an unset field must not turn into `null`. A model a request reaches takes
+ * an explicit `null` through NullFields (see emitModel). A required nullable
+ * field keeps the key and goes out as `null` when nil.
+ */
 function goJsonTag(field: IRField): string {
-  const omit = !field.nullable && isOptionalField(field);
-  return omit ? `${field.name},omitempty` : field.name;
+  return field.required ? field.name : `${field.name},omitempty`;
 }
 
 function goFieldInfo(field: IRField, modelName: string): { name: string; typeName: string; tag: string; comment: string } {
@@ -149,7 +160,8 @@ function emitEnum(lines: string[], e: IREnum): void {
   lines.push(')');
 }
 
-function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
+function emitModel(lines: string[], m: IRModel, allModels: IRModel[], requestModels: Set<string>): void {
+  const nullable = requestModels.has(m.name) ? nullableOptionalFields(m) : [];
   lines.push(`type ${m.name} struct {`);
   if (m.fields.length === 0) {
     lines.push('}');
@@ -168,28 +180,52 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
     // that is not JSON comes with Errors empty.
     rows.push(['StatusCode', 'int', '`json:"-"` // HTTP status code of the answer']);
   }
+  if (nullable.length > 0) {
+    const names = nullable.map((f) => goFieldInfo(f, m.name).name).join(', ');
+    rows.push(['NullFields', '[]string', `\`json:"-"\` // fields to send as null: ${names}`]);
+  }
   for (const line of goAligned(rows)) lines.push(line);
   lines.push('}');
 
+  // omitempty drops an empty slice or map too: one the caller set (even empty)
+  // goes back into the body.
   const optionalContainers = m.fields.filter(
-    (f) => isOptionalField(f) && (f.type.kind === 'array' || f.type.kind === 'record') && !f.nullable,
+    (f) => !f.required && (f.type.kind === 'array' || f.type.kind === 'record'),
   );
-  if (optionalContainers.length > 0) {
+  if (optionalContainers.length > 0 || nullable.length > 0) {
     lines.push('');
+    if (nullable.length > 0) {
+      lines.push(`// MarshalJSON leaves out every optional field that is not set. A field named`);
+      lines.push(`// in NullFields goes out as null, whatever value it holds.`);
+    }
     lines.push(`func (m ${m.name}) MarshalJSON() ([]byte, error) {`);
     lines.push(`\ttype Alias ${m.name}`);
     lines.push('\tdata, err := json.Marshal(Alias(m))');
     lines.push('\tif err != nil {');
     lines.push('\t\treturn nil, err');
     lines.push('\t}');
-    lines.push('\tvar raw map[string]any');
+    lines.push('\tvar raw map[string]json.RawMessage');
     lines.push('\tif err := json.Unmarshal(data, &raw); err != nil {');
     lines.push('\t\treturn nil, err');
     lines.push('\t}');
     for (const field of optionalContainers) {
       const goName = goExportName(field.name);
       lines.push(`\tif m.${goName} != nil {`);
-      lines.push(`\t\traw[${JSON.stringify(field.name)}] = m.${goName}`);
+      lines.push(`\t\tif raw[${JSON.stringify(field.name)}], err = json.Marshal(m.${goName}); err != nil {`);
+      lines.push('\t\t\treturn nil, err');
+      lines.push('\t\t}');
+      lines.push('\t}');
+    }
+    if (nullable.length > 0) {
+      lines.push('\tfor _, name := range m.NullFields {');
+      lines.push('\t\tswitch name {');
+      for (const field of nullable) {
+        lines.push(`\t\tcase ${JSON.stringify(goFieldInfo(field, m.name).name)}:`);
+        lines.push(`\t\t\traw[${JSON.stringify(field.name)}] = json.RawMessage("null")`);
+      }
+      lines.push('\t\tdefault:');
+      lines.push(`\t\t\treturn nil, fmt.Errorf("${m.name}: field %q cannot be sent as null", name)`);
+      lines.push('\t\t}');
       lines.push('\t}');
     }
     lines.push('\treturn json.Marshal(raw)');
@@ -248,41 +284,188 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
   }
 }
 
+/**
+ * A field that takes values of different JSON kinds is a struct with a field per
+ * member: the one the value fills is set, the others stay nil. The first byte of
+ * the JSON value picks the member, and an object that does not fit its model is
+ * an error, so a union member gives way to the next.
+ */
+function emitValueUnion(lines: string[], vu: IRValueUnion): void {
+  const fieldType = (m: IRFieldType) => (m.kind === 'array' ? goType(m) : `*${goType(m)}`);
+  if (vu.description) lines.push(`// ${vu.name}: ${vu.description.replace(/\n/g, ' ')}`);
+  lines.push(`// One field is set: the member of the JSON kind the value has.`);
+  lines.push(`type ${vu.name} struct {`);
+  for (const line of goAligned(vu.members.map((m) => [valueUnionMemberName(m), fieldType(m)]))) lines.push(line);
+  lines.push('}');
+  lines.push('');
+  const bytes: Record<string, string> = {
+    array: "'['",
+    object: "'{'",
+    string: "'\"'",
+    boolean: "'t', 'f'",
+    number: "'-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'",
+  };
+  const expected = vu.members.map((m) => valueUnionMemberName(m)).join(' or ');
+  lines.push(`func (u *${vu.name}) UnmarshalJSON(data []byte) error {`);
+  // encoding/json calls UnmarshalJSON with null for a field that is not a pointer
+  // (a required one): null leaves it as is, as it does for any other struct.
+  lines.push("\tif jsonValueKind(data) == 'n' {");
+  lines.push('\t\treturn nil');
+  lines.push('\t}');
+  lines.push(`\t*u = ${vu.name}{}`);
+  lines.push('\tswitch jsonValueKind(data) {');
+  for (const m of vu.members) {
+    const name = valueUnionMemberName(m);
+    lines.push(`\tcase ${bytes[jsonKindOf(m)!]}:`);
+    if (m.kind === 'array') {
+      lines.push(`\t\treturn json.Unmarshal(data, &u.${name})`);
+    } else {
+      lines.push(`\t\tu.${name} = new(${goType(m)})`);
+      lines.push(`\t\treturn json.Unmarshal(data, u.${name})`);
+    }
+  }
+  lines.push('\t}');
+  lines.push(`\treturn fmt.Errorf("${vu.name} takes ${expected}, got %s", data)`);
+  lines.push('}');
+  lines.push('');
+  lines.push(`func (u ${vu.name}) MarshalJSON() ([]byte, error) {`);
+  for (const m of vu.members) {
+    const name = valueUnionMemberName(m);
+    lines.push(`\tif u.${name} != nil {`);
+    lines.push(`\t\treturn json.Marshal(u.${name})`);
+    lines.push('\t}');
+  }
+  lines.push('\treturn []byte("null"), nil');
+  lines.push('}');
+}
+
+function emitValueKindHelper(lines: string[]): void {
+  lines.push("// jsonValueKind is the first byte of a JSON value: '[', '{', '\"', 't' or 'f',");
+  lines.push("// or '-' or a digit for a number.");
+  lines.push('func jsonValueKind(data []byte) byte {');
+  lines.push('\tfor _, b := range data {');
+  lines.push("\t\tif b != ' ' && b != '\\t' && b != '\\n' && b != '\\r' {");
+  lines.push('\t\t\treturn b');
+  lines.push('\t\t}');
+  lines.push('\t}');
+  lines.push('\treturn 0');
+  lines.push('}');
+}
+
 /** Shared helper for unions with no discriminator on the wire. */
-function emitUnionShapeHelper(lines: string[]): void {
-  lines.push('// unionMemberShape lists the JSON keys one member of an undiscriminated union declares.');
+function emitUnionShapeHelper(lines: string[], ir: IR): void {
+  lines.push('// unionMemberShape lists the JSON keys one member of an undiscriminated union');
+  lines.push('// declares.');
   lines.push('type unionMemberShape struct {');
+  lines.push('\tname string');
   lines.push('\tkeys map[string]struct{}');
   lines.push('}');
   lines.push('');
-  lines.push('// pickUnionMember selects the member that best fits the payload: most keys');
-  lines.push('// recognised, then fewest unrecognised, then fewest declared. Returns -1 when');
-  lines.push('// the payload is not a JSON object.');
-  lines.push('func pickUnionMember(data []byte, shapes []unionMemberShape) int {');
-  lines.push('\tvar raw map[string]json.RawMessage');
-  lines.push('\tif err := json.Unmarshal(data, &raw); err != nil {');
-  lines.push('\t\treturn -1');
+  lines.push('// requiredShape lists the keys a model cannot do without, and the fields that');
+  lines.push('// hold a model (or a list of them) with required keys of its own. A required');
+  lines.push('// field that may hold null is not listed: its key may be missing.');
+  lines.push('type requiredShape struct {');
+  lines.push('\tkeys   []string');
+  lines.push('\tnested []nestedRequiredShape');
+  lines.push('}');
+  lines.push('');
+  lines.push('type nestedRequiredShape struct {');
+  lines.push('\tkey   string');
+  lines.push('\tmodel string');
+  lines.push('}');
+  lines.push('');
+  lines.push('// requiredShapes holds the members of undiscriminated unions and the models');
+  lines.push('// nested in them that have a required key, here or deeper.');
+  const shapes = unionRequiredShapes(ir.unions, ir.models);
+  if (shapes.length === 0) {
+    lines.push('var requiredShapes = map[string]requiredShape{}');
+  } else {
+    lines.push('var requiredShapes = map[string]requiredShape{');
+    const rows = shapes.map((shape) => {
+      const parts: string[] = [];
+      if (shape.required.length > 0) parts.push(`keys: []string{${shape.required.map((k) => JSON.stringify(k)).join(', ')}}`);
+      if (shape.nested.length > 0) {
+        const nested = shape.nested.map((n) => `{key: ${JSON.stringify(n.key)}, model: ${JSON.stringify(n.model)}}`);
+        parts.push(`nested: []nestedRequiredShape{${nested.join(', ')}}`);
+      }
+      return [`${JSON.stringify(shape.model)}:`, `{${parts.join(', ')}},`];
+    });
+    for (const line of goAligned(rows)) lines.push(line);
+    lines.push('}');
+  }
+  lines.push('');
+  lines.push('// missingRequired reports the first required key the payload of a model lacks,');
+  lines.push('// in the model or in a model nested in it: encoding/json leaves a missing field');
+  lines.push('// at its zero value, so a union member that misses one gives way to the next.');
+  lines.push('// It runs only when a union picks a member: decoding a model on its own stays as');
+  lines.push('// lenient as encoding/json.');
+  lines.push('func missingRequired(model string, raw map[string]json.RawMessage) error {');
+  lines.push('\tshape := requiredShapes[model]');
+  lines.push('\tfor _, k := range shape.keys {');
+  lines.push('\t\tif _, ok := raw[k]; !ok {');
+  lines.push('\t\t\treturn fmt.Errorf("%s requires %q", model, k)');
+  lines.push('\t\t}');
   lines.push('\t}');
-  lines.push('\tbest := -1');
-  lines.push('\tbestMatched, bestUnknown, bestDeclared := 0, 0, 0');
-  lines.push('\tfor i, shape := range shapes {');
-  lines.push('\t\tmatched := 0');
-  lines.push('\t\tfor k := range raw {');
-  lines.push('\t\t\tif _, ok := shape.keys[k]; ok {');
-  lines.push('\t\t\t\tmatched++');
+  lines.push('\tfor _, n := range shape.nested {');
+  lines.push('\t\tif v, ok := raw[n.key]; ok {');
+  lines.push('\t\t\tif err := missingRequiredIn(n.model, v); err != nil {');
+  lines.push('\t\t\t\treturn err');
   lines.push('\t\t\t}');
   lines.push('\t\t}');
-  lines.push('\t\tunknown := len(raw) - matched');
-  lines.push('\t\tdeclared := len(shape.keys)');
-  lines.push('\t\tbetter := best == -1 ||');
-  lines.push('\t\t\tmatched > bestMatched ||');
-  lines.push('\t\t\t(matched == bestMatched && unknown < bestUnknown) ||');
-  lines.push('\t\t\t(matched == bestMatched && unknown == bestUnknown && declared < bestDeclared)');
-  lines.push('\t\tif better {');
-  lines.push('\t\t\tbest, bestMatched, bestUnknown, bestDeclared = i, matched, unknown, declared');
+  lines.push('\t}');
+  lines.push('\treturn nil');
+  lines.push('}');
+  lines.push('');
+  lines.push('// missingRequiredIn checks a field value: an object of the model, a list of them,');
+  lines.push('// or a value of another kind, which the decoder itself takes or refuses.');
+  lines.push('func missingRequiredIn(model string, data json.RawMessage) error {');
+  lines.push('\tswitch jsonValueKind(data) {');
+  lines.push("\tcase '{':");
+  lines.push('\t\tvar raw map[string]json.RawMessage');
+  lines.push('\t\tif json.Unmarshal(data, &raw) == nil {');
+  lines.push('\t\t\treturn missingRequired(model, raw)');
+  lines.push('\t\t}');
+  lines.push("\tcase '[':");
+  lines.push('\t\tvar items []json.RawMessage');
+  lines.push('\t\tif json.Unmarshal(data, &items) == nil {');
+  lines.push('\t\t\tfor _, item := range items {');
+  lines.push('\t\t\t\tif err := missingRequiredIn(model, item); err != nil {');
+  lines.push('\t\t\t\t\treturn err');
+  lines.push('\t\t\t\t}');
+  lines.push('\t\t\t}');
   lines.push('\t\t}');
   lines.push('\t}');
-  lines.push('\treturn best');
+  lines.push('\treturn nil');
+  lines.push('}');
+  lines.push('');
+  lines.push('// rankUnionMembers orders the members by how well they fit the payload: most');
+  lines.push('// keys recognised, then fewest unrecognised, then fewest declared, a tie keeping');
+  lines.push('// the declared order. Returns the payload keys too, and nothing when the payload');
+  lines.push('// is not a JSON object.');
+  lines.push('func rankUnionMembers(data []byte, shapes []unionMemberShape) ([]int, map[string]json.RawMessage) {');
+  lines.push('\tvar raw map[string]json.RawMessage');
+  lines.push('\tif err := json.Unmarshal(data, &raw); err != nil {');
+  lines.push('\t\treturn nil, nil');
+  lines.push('\t}');
+  lines.push('\tmatched := make([]int, len(shapes))');
+  lines.push('\torder := make([]int, len(shapes))');
+  lines.push('\tfor i, shape := range shapes {');
+  lines.push('\t\torder[i] = i');
+  lines.push('\t\tfor k := range raw {');
+  lines.push('\t\t\tif _, ok := shape.keys[k]; ok {');
+  lines.push('\t\t\t\tmatched[i]++');
+  lines.push('\t\t\t}');
+  lines.push('\t\t}');
+  lines.push('\t}');
+  lines.push('\tsort.SliceStable(order, func(a, b int) bool {');
+  lines.push('\t\tx, y := order[a], order[b]');
+  lines.push('\t\tif matched[x] != matched[y] {');
+  lines.push('\t\t\treturn matched[x] > matched[y]');
+  lines.push('\t\t}');
+  lines.push('\t\t// Same keys recognised means the same number unrecognised.');
+  lines.push('\t\treturn len(shapes[x].keys) < len(shapes[y].keys)');
+  lines.push('\t})');
+  lines.push('\treturn order, raw');
   lines.push('}');
 }
 
@@ -300,23 +483,38 @@ function emitStructuralUnion(lines: string[], u: IRUnion, models: IRModel[]): vo
   for (const ref of u.memberRefs) {
     const model = models.find((m) => m.name === ref);
     const keys = (model?.fields ?? []).map((f) => `${JSON.stringify(f.name)}: {}`);
-    lines.push(`\t{keys: map[string]struct{}{${keys.join(', ')}}},`);
+    lines.push(`\t{name: ${JSON.stringify(ref)}, keys: map[string]struct{}{${keys.join(', ')}}},`);
   }
   lines.push('}');
   lines.push('');
   lines.push(`// UnmarshalJSON decodes ${u.name}, which carries no discriminator field:`);
-  lines.push('// the member is chosen by which one best matches the payload keys. The raw');
-  lines.push('// payload is always kept in Raw so an unrecognised shape is never a decode error.');
+  lines.push('// members are tried in the order they match the payload keys, and the first one');
+  lines.push('// that decodes wins. The raw payload is always kept in Raw, so a payload that is');
+  lines.push('// not an object is not a decode error. A member that misses a required key, in');
+  lines.push('// itself or in a model nested in it, gives way to the next. When no member');
+  lines.push('// decodes, the error is the one of the member that fits the keys best.');
   lines.push(`func (u *${u.name}) UnmarshalJSON(data []byte) error {`);
   lines.push('\tu.Raw = append(json.RawMessage(nil), data...)');
-  lines.push(`\tswitch pickUnionMember(data, ${shapesVar}) {`);
+  lines.push('\tvar firstErr error');
+  lines.push(`\torder, raw := rankUnionMembers(data, ${shapesVar})`);
+  lines.push('\tfor _, i := range order {');
+  lines.push(`\t\terr := missingRequired(${shapesVar}[i].name, raw)`);
+  lines.push('\t\tswitch {');
+  lines.push('\t\tcase err != nil:');
   u.memberRefs.forEach((ref, i) => {
-    lines.push(`\tcase ${i}:`);
-    lines.push(`\t\tu.${ref} = &${ref}{}`);
-    lines.push(`\t\treturn json.Unmarshal(data, u.${ref})`);
+    lines.push(`\t\tcase i == ${i}:`);
+    lines.push(`\t\t\tv := &${ref}{}`);
+    lines.push('\t\t\tif err = json.Unmarshal(data, v); err == nil {');
+    lines.push(`\t\t\t\tu.${ref} = v`);
+    lines.push('\t\t\t\treturn nil');
+    lines.push('\t\t\t}');
   });
+  lines.push('\t\t}');
+  lines.push('\t\tif firstErr == nil {');
+  lines.push('\t\t\tfirstErr = err');
+  lines.push('\t\t}');
   lines.push('\t}');
-  lines.push('\treturn nil');
+  lines.push('\treturn firstErr');
   lines.push('}');
   lines.push('');
   lines.push(`func (u ${u.name}) MarshalJSON() ([]byte, error) {`);
@@ -443,15 +641,19 @@ function generateTypes(ir: IR): string {
   ].some((f) => f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time');
   const needFmtStrings = ir.models.some((m) => m.name === 'ApiError');
   const needIO = ir.models.some((m) => m.fields.some((f) => f.type.kind === 'binary'));
-  const hasUnions = ir.unions.length > 0;
-  const hasOptionalContainers = ir.models.some((m) => m.fields.some(
-    (f) => isOptionalField(f) && (f.type.kind === 'array' || f.type.kind === 'record') && !f.nullable,
+  const hasUnions = ir.unions.length > 0 || ir.valueUnions.length > 0;
+  const allModels = ir.models.flatMap((m) => [...m.inlineObjects, m]);
+  const requestModels = requestModelNames(ir);
+  const hasOptionalContainers = allModels.some((m) => m.fields.some(
+    (f) => !f.required && (f.type.kind === 'array' || f.type.kind === 'record'),
   ));
+  const hasNullFields = allModels.some((m) => requestModels.has(m.name) && nullableOptionalFields(m).length > 0);
 
   const imports: string[] = [];
-  if (hasUnions || hasOptionalContainers) imports.push('"encoding/json"');
-  if (needFmtStrings || hasUnions) imports.push('"fmt"');
+  if (hasUnions || hasOptionalContainers || hasNullFields) imports.push('"encoding/json"');
+  if (needFmtStrings || hasUnions || hasNullFields) imports.push('"fmt"');
   if (needIO) imports.push('"io"');
+  if (ir.unions.some((u) => !u.discriminatorField)) imports.push('"sort"');
   if (needFmtStrings) imports.push('"strings"');
   if (needTime) imports.push('"time"');
   imports.sort();
@@ -468,25 +670,33 @@ function generateTypes(ir: IR): string {
     lines.push('');
   }
 
-  // Collect all models (including inlines) for cross-referencing in error helpers
-  const allModels = ir.models.flatMap((m) => [...m.inlineObjects, m]);
-
   for (const m of ir.models) {
     for (const inl of m.inlineObjects) {
-      emitModel(lines, inl, allModels);
+      emitModel(lines, inl, allModels, requestModels);
       lines.push('');
     }
-    emitModel(lines, m, allModels);
+    emitModel(lines, m, allModels, requestModels);
     lines.push('');
   }
 
-  if (ir.unions.some((u) => !u.discriminatorField)) {
-    emitUnionShapeHelper(lines);
+  const hasStructuralUnions = ir.unions.some((u) => !u.discriminatorField);
+  if (hasStructuralUnions) {
+    emitUnionShapeHelper(lines, ir);
     lines.push('');
   }
 
   for (const u of ir.unions) {
     emitUnion(lines, u, ir.models);
+    lines.push('');
+  }
+
+  if (ir.valueUnions.length > 0 || hasStructuralUnions) {
+    emitValueKindHelper(lines);
+    lines.push('');
+  }
+
+  for (const vu of ir.valueUnions) {
+    emitValueUnion(lines, vu);
     lines.push('');
   }
 
@@ -951,7 +1161,24 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   }
 
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const useHasNext = rt?.metaRef === 'PaginationMeta';
+  // The meta of another API may lack has_next or carry next_page as an optional
+  // field: take both from the paginate model instead of assuming Pachca's shape.
+  const paginate = paginateModel(ir, rt?.metaRef);
+  const hasNextField = paginate?.fields.find((f) => f.name === 'has_next');
+  const nextPageField = paginate?.fields.find((f) => f.name === 'next_page');
+  const nextPageIsPointer = nextPageField ? isOptionalField(nextPageField) : false;
+  const useHasNext = hasNextField !== undefined;
+  const pushNextCursor = (indent: string): void => {
+    if (nextPageIsPointer) {
+      lines.push(`${indent}if result.Meta.Paginate.NextPage == nil {`);
+      lines.push(`${indent}\treturn items, nil`);
+      lines.push(`${indent}}`);
+      lines.push(`${indent}cursor = result.Meta.Paginate.NextPage`);
+    } else {
+      lines.push(`${indent}nextPage := result.Meta.Paginate.NextPage`);
+      lines.push(`${indent}cursor = &nextPage`);
+    }
+  };
 
   if (useHasNext) {
     lines.push('\thasNext := true');
@@ -967,11 +1194,14 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\t\tif len(result.Data) == 0 {');
     lines.push('\t\t\treturn items, nil');
     lines.push('\t\t}');
-    lines.push('\t\tnextPage := result.Meta.Paginate.NextPage');
-    lines.push('\t\tcursor = &nextPage');
-    lines.push('\t\tif result.Meta.Paginate.HasNext != nil {');
-    lines.push('\t\t\thasNext = *result.Meta.Paginate.HasNext');
-    lines.push('\t\t}');
+    pushNextCursor('\t\t');
+    if (hasNextField && isOptionalField(hasNextField)) {
+      lines.push('\t\tif result.Meta.Paginate.HasNext != nil {');
+      lines.push('\t\t\thasNext = *result.Meta.Paginate.HasNext');
+      lines.push('\t\t}');
+    } else {
+      lines.push('\t\thasNext = result.Meta.Paginate.HasNext');
+    }
     lines.push('\t}');
     lines.push('\treturn items, nil');
   } else {
@@ -988,8 +1218,7 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     lines.push(`\t\tif len(result.Data) == 0${metaNilCheck} {`);
     lines.push('\t\t\treturn items, nil');
     lines.push('\t\t}');
-    lines.push('\t\tnextPage := result.Meta.Paginate.NextPage');
-    lines.push('\t\tcursor = &nextPage');
+    pushNextCursor('\t\t');
     lines.push('\t}');
   }
   lines.push('}');
@@ -1402,7 +1631,11 @@ function generateClient(ir: IR): string {
   lines.push('\t}');
   lines.push('}');
   lines.push('');
-  return lines.join('\n');
+  // "time" is imported up front; a client without timeouts, pauses or dates never uses it,
+  // and Go refuses to compile an unused import.
+  const source = lines.join('\n');
+  const importEnd = source.indexOf('\n)\n');
+  return /\btime\./.test(source.slice(importEnd)) ? source : source.replace('\t"time"\n', '');
 }
 
 function generateUtils(): string {
@@ -1530,13 +1763,76 @@ function generateUtils(): string {
 
 // ── Examples ──────────────────────────────────────────────────────────
 
+// Examples run outside the package: they import it as `pachca`, so every
+// SDK name in a literal is qualified.
+const GO_PKG = 'pachca.';
+
+/** The type of a literal as an example spells it: SDK names qualified. */
+function goExampleType(ft: IRFieldType, asTime = false): string {
+  switch (ft.kind) {
+    case 'primitive':
+      return goPrimitive(ft, { forParam: asTime, forModelField: false, nullable: false });
+    case 'enum':
+      return ft.ref ? `${GO_PKG}${ft.ref}` : 'string';
+    case 'model':
+    case 'union':
+      if (ft.valueUnion) return `${GO_PKG}${ft.valueUnion}`;
+      return ft.ref ? `${GO_PKG}${ft.ref}` : 'any';
+    case 'array':
+      return `[]${goExampleType(ft.items!, asTime)}`;
+    case 'record':
+      return `map[string]${goExampleType(ft.valueType!, asTime)}`;
+    case 'literal':
+      return 'string';
+    case 'binary':
+      return 'io.Reader';
+  }
+}
+
+/** A date-time example as a time.Time expression: the SDK types these fields as time.Time. */
+function goTimeLiteral(value: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})?$/.exec(value);
+  if (!m) return 'time.Now()';
+  const [, y, mo, d, h, mi, se, frac, zone] = m;
+  const nsec = frac ? Number(frac.padEnd(9, '0').slice(0, 9)) : 0;
+  let loc = 'time.UTC';
+  if (zone && zone !== 'Z') {
+    const sign = zone[0] === '-' ? -1 : 1;
+    const zh = Number(zone.slice(1, 3));
+    const zm = Number(zone.slice(4, 6));
+    if (zh !== 0 || zm !== 0) {
+      const secs = zm === 0 ? `${sign < 0 ? '-' : ''}${zh}*60*60` : String(sign * (zh * 3600 + zm * 60));
+      loc = `time.FixedZone("", ${secs})`;
+    }
+  }
+  return `time.Date(${Number(y)}, ${Number(mo)}, ${Number(d)}, ${Number(h)}, ${Number(mi)}, ${Number(se)}, ${nsec}, ${loc})`;
+}
+
+/** A union literal: the union struct with its first member set. */
+function goUnionLiteral(
+  unionName: string,
+  memberRef: string,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string>,
+  indent: number,
+): string {
+  return `${GO_PKG}${unionName}{${memberRef}: &${goModelLiteral(memberRef, ir, models, visited, indent)}}`;
+}
+
+/**
+ * `asTime`: a date-time string here is a time.Time in the SDK — a query
+ * parameter, or a model field that is not nullable (see goPrimitive).
+ */
 function goLiteral(
   ft: IRFieldType,
   ir: IR,
   models: Map<string, IRModel>,
   visited: Set<string> = new Set(),
   indent: number = 0,
+  asTime: boolean = false,
 ): string {
+  const isTime = ft.kind === 'primitive' && ft.primitive === 'string' && ft.format === 'date-time' && asTime;
   if (ft.example !== undefined) {
     if (ft.kind === 'primitive') {
       if ((ft.primitive === 'integer' || ft.primitive === 'number') && typeof ft.example === 'number') {
@@ -1544,12 +1840,14 @@ function goLiteral(
         return String(ft.example);
       }
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return String(ft.example);
-      if (ft.primitive === 'string' && typeof ft.example === 'string') return JSON.stringify(ft.example);
+      if (ft.primitive === 'string' && typeof ft.example === 'string') {
+        return isTime ? goTimeLiteral(ft.example) : JSON.stringify(ft.example);
+      }
     }
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
       const member = e?.members.find((m) => m.value === ft.example);
-      if (e && member) return `${e.name}${goExportName(member.value)}`;
+      if (e && member) return `${GO_PKG}${e.name}${goExportName(member.value)}`;
     }
   }
   switch (ft.kind) {
@@ -1559,7 +1857,7 @@ function goLiteral(
       if (ft.primitive === 'boolean') return 'true';
       if (ft.primitive === 'any') return 'map[string]any{}';
       if (ft.primitive === 'string') {
-        if (ft.format === 'date-time') return '"2024-01-01T00:00:00Z"';
+        if (ft.format === 'date-time') return isTime ? goTimeLiteral('2024-01-01T00:00:00Z') : '"2024-01-01T00:00:00Z"';
         if (ft.format === 'date') return '"2024-01-01"';
       }
       return '"example"';
@@ -1567,27 +1865,33 @@ function goLiteral(
     case 'enum': {
       const e = ir.enums.find((en) => en.name === ft.ref);
       if (e && e.members.length > 0) {
-        return `${e.name}${goExportName(e.members[0].value)}`;
+        return `${GO_PKG}${e.name}${goExportName(e.members[0].value)}`;
       }
-      return `${ft.ref ?? 'any'}`;
+      return ft.ref ? `${GO_PKG}${ft.ref}("example")` : '"example"';
     }
     case 'model': {
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
-        return goModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+        return goUnionLiteral(u.name, u.memberRefs[0], ir, models, visited, indent);
       }
       return goModelLiteral(ft.ref ?? 'any', ir, models, visited, indent);
     }
     case 'array':
-      return `[]${goType(ft.items!)}{${goLiteral(ft.items!, ir, models, visited, indent)}}`;
+      return `[]${goExampleType(ft.items!, asTime)}{${goLiteral(ft.items!, ir, models, visited, indent, asTime)}}`;
     case 'record':
-      return `map[string]${goType(ft.valueType!)}{"key": ${goLiteral(ft.valueType!, ir, models, visited, indent)}}`;
+      return `map[string]${goExampleType(ft.valueType!, asTime)}{"key": ${goLiteral(ft.valueType!, ir, models, visited, indent, asTime)}}`;
     case 'union': {
+      if (ft.valueUnion && ft.members) {
+        const m = ft.members[0];
+        const value = goLiteral(m, ir, models, visited, indent, false);
+        const member = m.kind === 'array' ? value : m.kind === 'model' ? `&${value}` : `${GO_PKG}Ptr(${value})`;
+        return `${GO_PKG}${ft.valueUnion}{${valueUnionMemberName(m)}: ${member}}`;
+      }
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
-        return goModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+        return goUnionLiteral(u.name, u.memberRefs[0], ir, models, visited, indent);
       }
-      return `${ft.ref ?? 'any'}{}`;
+      return `${GO_PKG}${ft.ref ?? 'any'}{}`;
     }
     case 'literal':
       return `"${ft.literalValue}"`;
@@ -1603,9 +1907,9 @@ function goModelLiteral(
   visited: Set<string>,
   indent: number = 0,
 ): string {
-  if (visited.has(modelName)) return `${modelName}{}`;
+  if (visited.has(modelName)) return `${GO_PKG}${modelName}{}`;
   const model = models.get(modelName);
-  if (!model || model.fields.length === 0) return `${modelName}{}`;
+  if (!model || model.fields.length === 0) return `${GO_PKG}${modelName}{}`;
 
   const nextVisited = new Set(visited);
   nextVisited.add(modelName);
@@ -1615,7 +1919,7 @@ function goModelLiteral(
   const fields = model.fields.filter(
     (f) => (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
   );
-  if (fields.length === 0) return `${modelName}{}`;
+  if (fields.length === 0) return `${GO_PKG}${modelName}{}`;
 
   const childIndent = indent + 1;
   const pad = '\t'.repeat(childIndent);
@@ -1626,14 +1930,15 @@ function goModelLiteral(
     const opt = isOptionalField(f) &&
       !isOpenValue(f) &&
       (f.type.kind === 'primitive' || f.type.kind === 'model' || f.type.kind === 'enum' || f.type.kind === 'union');
-    const value = goLiteral(f.type, ir, models, nextVisited, childIndent);
+    // A model field holds time.Time unless it is nullable (goFieldInfo).
+    const value = goLiteral(f.type, ir, models, nextVisited, childIndent, !f.nullable);
     if (opt) {
-      return `${name}: Ptr(${value})`;
+      return `${name}: ${GO_PKG}Ptr(${value})`;
     }
     return `${name}: ${value}`;
   });
 
-  return `${modelName}{\n${entries.map((e) => `${pad}${e},`).join('\n')}\n${closePad}}`;
+  return `${GO_PKG}${modelName}{\n${entries.map((e) => `${pad}${e},`).join('\n')}\n${closePad}}`;
 }
 
 function goFingerprint(
@@ -1657,7 +1962,7 @@ function goFingerprint(
     case 'record':
       return `map[string]${goFingerprint(ft.valueType!, ir, models, visited)}`;
     case 'union':
-      return ft.ref ?? 'any';
+      return ft.valueUnion ?? ft.ref ?? 'any';
     case 'literal':
       return 'string';
     case 'binary':
@@ -1676,7 +1981,10 @@ function goModelFp(
 
   const fields = model.fields.map((f) => {
     const name = goExportName(f.name);
-    const type = goFingerprint(f.type, ir, models, nextVisited);
+    // A date-time field is time.Time unless nullable, as in the struct itself (goFieldInfo).
+    const type = f.type.kind === 'primitive'
+      ? goType(f.type, { forModelField: true, nullable: f.nullable })
+      : goFingerprint(f.type, ir, models, nextVisited);
     const opt = isOptionalField(f) && !isOpenValue(f) ? '*' : '';
     return `${name}: ${opt}${type}`;
   });
@@ -1756,13 +2064,14 @@ function goBuildOperationExample(
 
   if (op.requestBody) {
     const rb = op.requestBody;
+    const body = bodyExample(rb, ir, models);
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = snakeToCamel(rb.unwrapField.name);
-      params.push({ name: sdkName, value: goLiteral(rb.unwrapField.type, ir, models), isNamed: false });
-      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
+      params.push({ name: sdkName, value: goLiteral(body.type, body.ir, body.models), isNamed: false });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     } else if (rb.schemaRef) {
-      params.push({ name: 'request', value: goLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models), isNamed: false });
-      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
+      params.push({ name: 'request', value: goLiteral(body.type, body.ir, body.models), isNamed: false });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     }
   }
 
@@ -1774,15 +2083,16 @@ function goBuildOperationExample(
     const qEntries = op.queryParams.map((p) => {
       const name = goExportName(p.sdkName);
       const opt = !p.required && (p.type.kind !== 'array' && p.type.kind !== 'record');
-      const value = goLiteral(p.type, ir, models);
+      // A date-time query parameter is a time.Time in the params struct.
+      const value = goLiteral(p.type, ir, models, new Set(), 0, true);
       for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
       if (opt) {
-        return `${name}: Ptr(${value})`;
+        return `${name}: ${GO_PKG}Ptr(${value})`;
       }
       return `${name}: ${value}`;
     });
 
-    const paramsLiteral = `${hasReq ? '' : '&'}${pName}{\n${qEntries.map((e) => `\t${e},`).join('\n')}\n}`;
+    const paramsLiteral = `${hasReq ? '' : '&'}${GO_PKG}${pName}{\n${qEntries.map((e) => `\t${e},`).join('\n')}\n}`;
     params.push({ name: 'params', value: paramsLiteral, isNamed: false });
   }
 
@@ -1816,8 +2126,9 @@ function generateExamples(ir: IR): string {
   const models = buildModelIndex(ir);
   const result: Record<string, object> = {};
 
+  // Every method takes a context first: the init gives the examples their ctx.
   result['Client_Init'] = {
-    usage: 'client := pachca.NewPachcaClient("YOUR_TOKEN")',
+    usage: 'client := pachca.NewPachcaClient("YOUR_TOKEN")\nctx := context.Background()',
     imports: ['PachcaClient'],
   };
 
@@ -1830,6 +2141,8 @@ function generateExamples(ir: IR): string {
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
+      const named = namedBodyExamples(op, (o) => goBuildOperationExample(o, ir, models, serviceField));
+      if (named) entry.examples = named;
       result[op.operationId] = entry;
       if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
         result[`${op.operationId}_pollWebhookEvents`] = {

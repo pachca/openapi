@@ -64,14 +64,12 @@ export class SearchServiceImpl extends SearchService {
   async searchMessagesAll(params: Omit<SearchMessagesParams, 'cursor'>): Promise<MessageResult[]> {
     const items: MessageResult[] = [];
     let cursor: string | undefined;
-    let hasNext = true;
-    while (hasNext) {
+    do {
       const response = await this.searchMessages({ ...params, cursor } as SearchMessagesParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-      hasNext = response.meta.paginate.hasNext ?? true;
-    }
+    } while (true);
     return items;
   }
 }

@@ -13,11 +13,11 @@ import {
 
 export default class Api extends BaseCommand {
   static override description =
-    'Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs`';
+    'Произвольный запрос к API. Список и справка: `api ls` (список методов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs`';
 
   static override examples = [
     '<%= config.bin %> api GET /messages --query chat_id=123',
-    '<%= config.bin %> api POST /messages -F message[chat_id]=12345 -f message[content]="Привет"',
+    "<%= config.bin %> api POST /messages -F 'message[entity_id]=12345' -f 'message[content]=Привет'",
     '<%= config.bin %> api POST /messages --input payload.json',
     `<%= config.bin %> api POST /messages --data '{"message":{"entity_id":123,"content":"Привет"}}'`,
     '<%= config.bin %> api GET /profile -o yaml',
@@ -239,7 +239,7 @@ export default class Api extends BaseCommand {
     if (!entry) {
       outputError(
         {
-          error: `Эндпоинт не найден: ${method.toUpperCase()} ${path}. Список: pachca api ls`,
+          error: `Метод не найден: ${method.toUpperCase()} ${path}. Список: pachca api ls`,
           type: 'PACHCA_NOT_FOUND_ERROR',
           code: null,
         },

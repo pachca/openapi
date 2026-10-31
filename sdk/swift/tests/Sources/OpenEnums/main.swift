@@ -87,3 +87,5 @@ print("open enums ok")
 
 await checkRetries()
 await checkErrorBodies()
+checkAuditDetails()
+checkRequestBodies()

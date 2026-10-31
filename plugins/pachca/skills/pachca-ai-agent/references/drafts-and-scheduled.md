@@ -21,11 +21,11 @@ employee's authorization of the bot (`pachca-oauth`) either.
 
 ## What the agent does instead
 
-| The employee says                                | A bot-hosted agent                                                                                                                                                                                  |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "Answer in the thread"                           | Sends the reply                                                                                                                                                                                     |
-| "Prepare a reply to the client, I will check it" | Sends the text to the caller as a clearly marked proposal in the DM with the bot, and the caller sends it themselves                                                                                |
-| "Remind the team on Monday morning"              | Keeps its own scheduler and sends at that time with the bot token, or creates a reminder task ([New task](https://dev.pachca.com/api/tasks/create.md), `pachca_create_task`, `pachca tasks create`) |
+| The employee says                                | A bot-hosted agent                                                                                                                                                                                 |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Answer in the thread"                           | Sends the reply                                                                                                                                                                                    |
+| "Prepare a reply to the client, I will check it" | Sends the text to the caller as a clearly marked proposal in the DM with the bot, and the caller sends it themselves                                                                               |
+| "Remind the team on Monday morning"              | Keeps its own scheduler and sends at that time with the bot token, or creates a reminder ([New reminder](https://dev.pachca.com/api/tasks/create.md), `pachca_create_task`, `pachca tasks create`) |
 
 The proposal goes into the thread instead only when the person the reply is for
 cannot read that thread: they are a member of neither the thread nor its parent

@@ -82,6 +82,48 @@ describe('generated endpoints.json', () => {
     expect(post!.docs).toContain('**Метод**');
     expect(post!.describe).toContain('Эквивалентная команда');
   });
+
+  // Per-field examples mix options that never go together in one request (a
+  // bot-only display_name, a voice waveform on a picture), so a command built from
+  // them failed when pasted. A hand-written request example is used as a whole:
+  // the first of `examples`, else `example`.
+  it('equivalent command sends the hand-written request example', () => {
+    const entries = JSON.parse(fs.readFileSync(file, 'utf-8')) as EndpointIndexEntry[];
+    const kebab = (name: string) => name.replace(/_/g, '-');
+    let checked = 0;
+
+    for (const entry of entries) {
+      const spec = entry.spec as {
+        requestBody?: { content?: Record<string, { example?: unknown; examples?: Record<string, { value?: unknown }> }> };
+      };
+      const media = spec.requestBody?.content?.['application/json'];
+      const value = media?.examples ? Object.values(media.examples)[0]?.value : media?.example;
+      if (!value || typeof value !== 'object' || Array.isArray(value)) continue;
+
+      // The example's own keys, and those of the wrapper object (`{ message: {...} }`).
+      const keys = new Set<string>();
+      for (const [key, inner] of Object.entries(value)) {
+        keys.add(kebab(key));
+        if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
+          for (const innerKey of Object.keys(inner)) keys.add(kebab(innerKey));
+        }
+      }
+
+      const command = entry.describe.split('## Эквивалентная команда')[1]?.split('```')[1] ?? '';
+      const flags = [...command.matchAll(/\s--(?:no-)?([a-z][a-z0-9-]*)/g)]
+        .map((match) => match[1])
+        .filter((flag) => !['json', 'token'].includes(flag));
+      expect(flags.filter((flag) => !keys.has(flag)), `${entry.method} ${entry.path}`).toEqual([]);
+      checked++;
+    }
+
+    expect(checked).toBeGreaterThan(0);
+    const post = entries.find((e) => e.method === 'POST' && e.path === '/messages')!;
+    const postCommand = post.describe.split('## Эквивалентная команда')[1];
+    expect(postCommand).toContain('--entity-id=');
+    expect(postCommand).not.toContain('--display-name');
+    expect(postCommand).not.toContain('waveform');
+  });
 });
 
 describe('pachca api self-documentation (integration)', () => {

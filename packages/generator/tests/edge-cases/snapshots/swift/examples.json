@@ -6,7 +6,7 @@
     ]
   },
   "listEvents": {
-    "usage": "let scopes = [.chatsRead]\nlet filter = EventFilter()\nlet response = try await client.events.listEvents(isActive: true, scopes: scopes, filter: filter)",
+    "usage": "let scopes: [OAuthScope] = [.chatsRead]\nlet filter = EventFilter()\nlet response = try await client.events.listEvents(isActive: true, scopes: scopes, filter: filter)",
     "output": "ListEventsResponse(data: [Event])",
     "imports": [
       "EventFilter",

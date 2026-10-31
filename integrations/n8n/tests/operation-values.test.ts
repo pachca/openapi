@@ -82,3 +82,27 @@ describe('operation values (saved-workflow contract)', () => {
 		}
 	});
 });
+
+describe('the /tasks resource is shown as Reminder', () => {
+	// Pachca calls the entity a reminder («Напоминания», Reminders). Only the
+	// display name follows it: the value `task` sits in saved workflows.
+	const v2Node = fs.readFileSync(path.join(NODES_DIR, 'PachcaV2.node.ts'), 'utf-8');
+	const taskDescription = fs.readFileSync(path.join(NODES_DIR, 'TaskDescription.ts'), 'utf-8');
+
+	it('keeps the resource value task under the name Reminder', () => {
+		expect(v2Node).toContain("{ name: 'Reminder', value: 'task' }");
+		expect(v2Node).not.toContain("name: 'Task'");
+	});
+
+	it('names the actions after reminders', () => {
+		for (const action of ['Create a reminder', 'Delete a reminder', 'Get a reminder', 'Get many reminders', 'Update a reminder']) {
+			expect(taskDescription).toContain(`action: '${action}'`);
+		}
+		expect(taskDescription).not.toMatch(/action: '[^']*\btasks?\b/);
+	});
+
+	it('custom properties: the Task entity type is shown as Reminder and keeps its value', () => {
+		const customProperty = fs.readFileSync(path.join(NODES_DIR, 'CustomPropertyDescription.ts'), 'utf-8');
+		expect(customProperty).toContain("{ name: 'Reminder', value: 'Task' }");
+	});
+});

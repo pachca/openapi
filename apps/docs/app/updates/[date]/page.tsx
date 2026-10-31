@@ -1,15 +1,9 @@
 import { UpdatesPageContent } from '@/components/api/updates-page-content';
 import { getGuideData } from '@/lib/content-loader';
 import { loadUpdates, loadReleases, formatDateRu } from '@/lib/updates-parser';
+import { PRODUCT_TITLES } from '@/lib/feed-content';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-
-const PRODUCT_TITLES: Record<string, string> = {
-  cli: 'CLI',
-  sdk: 'SDK',
-  generator: 'Generator',
-  n8n: 'n8n Node',
-};
 
 export async function generateStaticParams() {
   const updates = loadUpdates();

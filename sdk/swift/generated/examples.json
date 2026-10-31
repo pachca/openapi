@@ -51,19 +51,14 @@
     "output": "BotSelfTokenResponse(id: Int, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Bool, redirectUris: [String], scopes: [String])?, webhook: BotSelfWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd), accessToken: String)"
   },
   "BotOperations_createBot": {
-    "usage": "let request = BotCreateRequest(\n    empty: false,\n    webhook: BotCreateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://example.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"],\n        template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine: .liquid,\n        challengeKey: \"challenge\",\n        linkPreviewEnabled: true,\n        ignoreSelfMessages: false,\n        eventsHistoryEnabled: false,\n        whoCanAdd: .creator,\n        canEdit: [.admin],\n        singleChat: false,\n        kind: .simple,\n        unfurlDomains: [\"example\"]\n    ),\n    oauthClient: BotOAuthClientRequest(\n        confidential: true,\n        redirectUris: [\"example\"],\n        scopes: [\"example\"]\n    ),\n    promo: BotPromoRequest(\n        description: \"Собирает сводку по задачам Jira и присылает её в чат\",\n        published: true,\n        promoImages: [\"example\"]\n    )\n)\nlet response = try await client.bots.createBot(request: request)",
+    "usage": "let request = BotCreateRequest(\n    webhook: BotCreateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://example.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"/task\"],\n        scopes: [\"messages:create\"]\n    ),\n    oauthClient: BotOAuthClientRequest(\n        confidential: true,\n        redirectUris: [\"https://example.com/oauth/callback\"],\n        scopes: [\"messages:read\"]\n    )\n)\nlet response = try await client.bots.createBot(request: request)",
     "output": "BotCreateResponse(id: Int, name: String, nickname: String, avatarUrl: String?, creatorId: Int?, createdAt: String, authorizedUsersCount: Int, lastUsedAt: String?, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind?, unfurlDomains: [String], lastRequestAt: String?, url: String?, secretToken: String?, lastRequestBody: String?), oauthClientEnabled: Bool, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Bool, redirectUris: [String], scopes: [String])?, promo: BotPromo(description: String?, published: Bool, promoImages: [BotPromoImage(key: String, url: String)])?, permissions: BotPermissions(updateOauthClient: Bool, recreateToken: Bool, destroy: Bool), clientSecret: String?, accessToken: String?)",
     "imports": [
-      "BotCanEdit",
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
       "BotOAuthClientRequest",
-      "BotPromoRequest",
-      "BotTemplateEngine",
-      "BotTriggerOn",
-      "BotWebhookKind",
-      "BotWhoCanAdd"
+      "BotTriggerOn"
     ]
   },
   "BotOperations_recreateBotToken": {
@@ -75,7 +70,7 @@
     "output": "BotResponse(id: Int, name: String, nickname: String, avatarUrl: String?, creatorId: Int?, createdAt: String, authorizedUsersCount: Int, lastUsedAt: String?, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind?, unfurlDomains: [String], lastRequestAt: String?, url: String?, secretToken: String?, lastRequestBody: String?), oauthClientEnabled: Bool, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Bool, redirectUris: [String], scopes: [String])?, promo: BotPromo(description: String?, published: Bool, promoImages: [BotPromoImage(key: String, url: String)])?, permissions: BotPermissions(updateOauthClient: Bool, recreateToken: Bool, destroy: Bool), clientSecret: String?)"
   },
   "BotOperations_createBotToken": {
-    "usage": "let request = BotTokenCreateRequest(name: \"Сервер уведомлений\", scopes: [\"example\"])\nlet response = try await client.bots.createBotToken(id: 1738816, request: request)",
+    "usage": "let request = BotTokenCreateRequest(name: \"Сервер уведомлений\", scopes: [\"messages:create\"])\nlet response = try await client.bots.createBotToken(id: 1738816, request: request)",
     "output": "BotAccessToken(id: Int64, token: String, name: String?, userId: Int64, scopes: [String], createdAt: String, revokedAt: String?, expiresIn: Int?, lastUsedAt: String?, authorizedAt: String?)",
     "imports": [
       "BotTokenCreateRequest"
@@ -114,7 +109,7 @@
     "output": "AvatarData(imageUrl: String)"
   },
   "BotOperations_updateBotToken": {
-    "usage": "let tokenId = Int64(4827)\nlet request = BotTokenUpdateRequest(name: \"Сервер уведомлений\", scopes: [\"example\"])\nlet response = try await client.bots.updateBotToken(id: 1738816, tokenId: tokenId, request: request)",
+    "usage": "let tokenId = Int64(4827)\nlet request = BotTokenUpdateRequest(name: \"Сервер уведомлений\", scopes: [\"messages:create\"])\nlet response = try await client.bots.updateBotToken(id: 1738816, tokenId: tokenId, request: request)",
     "output": "BotAccessToken(id: Int64, token: String, name: String?, userId: Int64, scopes: [String], createdAt: String, revokedAt: String?, expiresIn: Int?, lastUsedAt: String?, authorizedAt: String?)",
     "imports": [
       "BotTokenUpdateRequest"
@@ -165,7 +160,7 @@
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "let request = ExportRequest(\n    startAt: \"2025-03-20\",\n    endAt: \"2025-03-20\",\n    webhookUrl: \"https://example.com/webhooks/export\",\n    chatIds: [123],\n    skipChatsFile: false\n)\nlet response = try await client.chats.requestExport(request: request)",
+    "usage": "let request = ExportRequest(\n    startAt: \"2025-03-01\",\n    endAt: \"2025-03-20\",\n    chatIds: [1381521]\n)\nlet response = try await client.chats.requestExport(request: request)",
     "output": "ChatExport(id: Int)",
     "imports": [
       "ExportRequest"
@@ -206,7 +201,7 @@
     ]
   },
   "ChatMemberOperations_addTags": {
-    "usage": "let groupTagIds = [123]\ntry await client.members.addTags(id: 334, groupTagIds: groupTagIds)"
+    "usage": "let groupTagIds: [Int] = [123]\ntry await client.members.addTags(id: 334, groupTagIds: groupTagIds)"
   },
   "ChatMemberOperations_addMembers": {
     "usage": "let request = AddMembersRequest(memberIds: [123], silent: true)\ntry await client.members.addMembers(id: 334, request: request)",
@@ -266,16 +261,11 @@
     "output": "Draft(id: Int, entityType: MessageEntityType?, entityId: Int?, chatId: Int?, content: String, parentMessageId: Int?, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, schedule: DraftSchedule(startDate: String, endDate: String?, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: [Int]?, nthDay: Int?))?, nextSendAt: String?, createdAt: String, updatedAt: String)"
   },
   "DraftOperations_createDraft": {
-    "usage": "let request = DraftCreateRequest(\n    draft: DraftCreateRequestDraft(\n        entityType: .discussion,\n        entityId: 334,\n        content: \"Отчёт за неделю: продажи выросли на 10%\",\n        parentMessageId: 196093,\n        files: [DraftFileRequest(\n            id: 3560,\n            key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name: \"logo.png\",\n            fileType: .image,\n            size: Int64(12345),\n            width: 800,\n            height: 600,\n            durationMs: 5400,\n            waveform: \"4,8,12,20,16,10,6,3\"\n        )],\n        schedule: DraftScheduleRequest(\n            startDate: \"2026-09-17T12:00:00.000Z\",\n            endDate: \"2026-12-31T12:00:00.000Z\",\n            repetition: DraftRepetitionRequest(\n                interval: .weekly,\n                days: [123],\n                nthDay: 2\n            )\n        )\n    )\n)\nlet response = try await client.drafts.createDraft(request: request)",
+    "usage": "let request = DraftCreateRequest(\n    draft: DraftCreateRequestDraft(\n        entityType: .discussion,\n        entityId: 334,\n        content: \"Отчёт за неделю: продажи выросли на 10%\"\n    )\n)\nlet response = try await client.drafts.createDraft(request: request)",
     "output": "Draft(id: Int, entityType: MessageEntityType?, entityId: Int?, chatId: Int?, content: String, parentMessageId: Int?, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, schedule: DraftSchedule(startDate: String, endDate: String?, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: [Int]?, nthDay: Int?))?, nextSendAt: String?, createdAt: String, updatedAt: String)",
     "imports": [
       "DraftCreateRequest",
       "DraftCreateRequestDraft",
-      "DraftFileRequest",
-      "DraftRepetitionInterval",
-      "DraftRepetitionRequest",
-      "DraftScheduleRequest",
-      "FileType",
       "MessageEntityType"
     ]
   },
@@ -296,7 +286,7 @@
     "usage": "try await client.drafts.deleteDraft(id: 4821)"
   },
   "GroupTagOperations_listTags": {
-    "usage": "let names = [\"example\"]\nlet response = try await client.groupTags.listTags(names: names, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "usage": "let names: [String] = [\"example\"]\nlet response = try await client.groupTags.listTags(names: names, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "ListTagsResponse(data: [GroupTag], meta: PaginationMeta)"
   },
   "GroupTagOperations_getTag": {
@@ -349,16 +339,30 @@
     "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool)"
   },
   "MessageOperations_createMessage": {
-    "usage": "let request = MessageCreateRequest(\n    message: MessageCreateRequestMessage(\n        entityType: .discussion,\n        entityId: 334,\n        content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files: [MessageCreateRequestFile(\n            key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name: \"logo.png\",\n            fileType: .image,\n            size: Int64(12345),\n            width: 800,\n            height: 600,\n            durationMs: 5400,\n            waveform: \"4,8,12,20,16,10,6,3\"\n        )],\n        buttons: [[Button(\n            text: \"Подробнее\",\n            url: \"https://example.com/details\",\n            data: \"awesome\"\n        )]],\n        parentMessageId: 194270,\n        displayAvatarUrl: \"https://example.com/avatar.png\",\n        displayName: \"Бот Поддержки\",\n        skipInviteMentions: false\n    ),\n    linkPreview: false\n)\nlet response = try await client.messages.createMessage(request: request)",
+    "usage": "let request = MessageCreateRequest(message: MessageCreateRequestMessage(entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nlet response = try await client.messages.createMessage(request: request)",
     "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool)",
     "imports": [
-      "Button",
-      "FileType",
       "MessageCreateRequest",
-      "MessageCreateRequestFile",
-      "MessageCreateRequestMessage",
-      "MessageEntityType"
-    ]
+      "MessageCreateRequestMessage"
+    ],
+    "examples": {
+      "Минимальный запрос": {
+        "usage": "let request = MessageCreateRequest(message: MessageCreateRequestMessage(entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nlet response = try await client.messages.createMessage(request: request)",
+        "imports": [
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage"
+        ]
+      },
+      "Сообщение с кнопкой": {
+        "usage": "let request = MessageCreateRequest(\n    message: MessageCreateRequestMessage(\n        entityType: .discussion,\n        entityId: 334,\n        content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        buttons: [[Button(text: \"Подробнее\", url: \"https://example.com/details\")]]\n    )\n)\nlet response = try await client.messages.createMessage(request: request)",
+        "imports": [
+          "Button",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage",
+          "MessageEntityType"
+        ]
+      }
+    }
   },
   "LinkPreviewOperations_unfurl": {
     "usage": "let request = LinkPreviewsRequest(\n    linkPreviews: [\"key\": LinkPreview(\n        title: \"Статья: Отправка файлов\",\n        description: \"Пример отправки файлов на удаленный сервер\",\n        imageUrl: \"https://example.com/img/landing.png\",\n        image: LinkPreviewImage(\n            key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name: \"files-to-server.jpg\",\n            size: 695604\n        )\n    )]\n)\ntry await client.messages.unfurl(id: 194275, request: request)",
@@ -372,13 +376,11 @@
     "usage": "try await client.messages.pinMessage(id: 194275)"
   },
   "MessageOperations_updateMessage": {
-    "usage": "let request = MessageUpdateRequest(\n    message: MessageUpdateRequestMessage(\n        content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files: [MessageUpdateRequestFile(\n            key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name: \"logo.png\",\n            fileType: .image,\n            size: Int64(12345),\n            width: 800,\n            height: 600,\n            durationMs: 5400,\n            waveform: \"4,8,12,20,16,10,6,3\"\n        )],\n        buttons: [[Button(\n            text: \"Подробнее\",\n            url: \"https://example.com/details\",\n            data: \"awesome\"\n        )]],\n        displayAvatarUrl: \"https://example.com/avatar.png\",\n        displayName: \"Бот Поддержки\"\n    )\n)\nlet response = try await client.messages.updateMessage(id: 194275, request: request)",
+    "usage": "let request = MessageUpdateRequest(message: MessageUpdateRequestMessage(content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\", buttons: [[Button(text: \"Подробнее\", url: \"https://example.com/details\")]]))\nlet response = try await client.messages.updateMessage(id: 194275, request: request)",
     "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool)",
     "imports": [
       "Button",
-      "FileType",
       "MessageUpdateRequest",
-      "MessageUpdateRequestFile",
       "MessageUpdateRequestMessage"
     ]
   },
@@ -427,10 +429,9 @@
     "output": "AccessTokenInfo(id: Int64, token: String, name: String?, userId: Int64, scopes: [OAuthScope], createdAt: String, revokedAt: String?, expiresIn: Int?, lastUsedAt: String?, authorizedAt: String?)"
   },
   "OAuthFlowOperations_revokeToken": {
-    "usage": "let request = OAuthRevokeRequest(\n    token: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n    tokenTypeHint: .accessToken,\n    clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n)\ntry await client.oauth.revokeToken(request: request)",
+    "usage": "let request = OAuthRevokeRequest(\n    token: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n    clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n)\ntry await client.oauth.revokeToken(request: request)",
     "imports": [
-      "OAuthRevokeRequest",
-      "OAuthTokenTypeHint"
+      "OAuthRevokeRequest"
     ]
   },
   "OAuthFlowOperations_exchangeToken": {
@@ -475,7 +476,7 @@
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "let chatIds = [123]\nlet userIds = [123]\nlet response = try await client.search.searchMessages(query: \"футболки\", limit: 10, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", order: .desc, sort: .createdAt, createdFrom: \"2025-01-01T00:00:00.000Z\", createdTo: \"2025-02-01T00:00:00.000Z\", chatIds: chatIds, userIds: userIds, active: true)",
+    "usage": "let chatIds: [Int] = [123]\nlet userIds: [Int] = [123]\nlet response = try await client.search.searchMessages(query: \"футболки\", limit: 10, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", order: .desc, sort: .createdAt, createdFrom: \"2025-01-01T00:00:00.000Z\", createdTo: \"2025-02-01T00:00:00.000Z\", chatIds: chatIds, userIds: userIds, active: true)",
     "output": "SearchMessagesResponse(data: [Message], meta: SearchPaginationMeta)",
     "imports": [
       "MessageSearchSort",
@@ -483,7 +484,7 @@
     ]
   },
   "SearchOperations_searchUsers": {
-    "usage": "let companyRoles = [.admin]\nlet response = try await client.search.searchUsers(query: \"Олег\", limit: 10, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", sort: .byScore, order: .desc, createdFrom: \"2025-01-01T00:00:00.000Z\", createdTo: \"2025-02-01T00:00:00.000Z\", companyRoles: companyRoles)",
+    "usage": "let companyRoles: [UserRole] = [.admin]\nlet response = try await client.search.searchUsers(query: \"Олег\", limit: 10, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", sort: .byScore, order: .desc, createdFrom: \"2025-01-01T00:00:00.000Z\", createdTo: \"2025-02-01T00:00:00.000Z\", companyRoles: companyRoles)",
     "output": "SearchUsersResponse(data: [User], meta: SearchPaginationMeta)",
     "imports": [
       "SearchSortOrder",
@@ -492,7 +493,7 @@
     ]
   },
   "TaskOperations_listTasks": {
-    "usage": "let chatIds = [123]\nlet performerIds = [123]\nlet response = try await client.tasks.listTasks(status: .undone, chatIds: chatIds, performerIds: performerIds, authorId: 12, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "usage": "let chatIds: [Int] = [123]\nlet performerIds: [Int] = [123]\nlet response = try await client.tasks.listTasks(status: .undone, chatIds: chatIds, performerIds: performerIds, authorId: 12, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "ListTasksResponse(data: [Task], meta: PaginationMeta)",
     "imports": [
       "TaskStatus"
@@ -587,10 +588,12 @@
     ]
   },
   "FormOperations_openView": {
-    "usage": "let request = OpenViewRequest(\n    type: \"modal\",\n    triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n    callbackId: \"timeoff_request_form\",\n    view: OpenViewRequestView(\n        title: \"Уведомление об отпуске\",\n        closeText: \"Закрыть\",\n        submitText: \"Отправить заявку\",\n        blocks: [ViewBlockHeader(type: \"header\", text: \"Основная информация\")]\n    )\n)\ntry await client.views.openView(request: request)",
+    "usage": "let request = OpenViewRequest(\n    type: \"modal\",\n    triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n    callbackId: \"timeoff_request_form\",\n    view: OpenViewRequestView(\n        title: \"Уведомление об отпуске\",\n        closeText: \"Закрыть\",\n        submitText: \"Отправить заявку\",\n        blocks: [.viewBlockHeader(ViewBlockHeader(type: \"header\", text: \"Основная информация\"))]\n    )\n)\nlet response = try await client.views.openView(request: request)",
+    "output": "OpenViewResult(success: Bool)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",
+      "ViewBlockHeader",
       "ViewBlockUnion"
     ]
   }

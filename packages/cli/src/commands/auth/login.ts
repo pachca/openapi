@@ -35,7 +35,7 @@ export default class AuthLogin extends BaseCommand {
   static override examples = [
     '<%= config.bin %> auth login',
     '<%= config.bin %> auth login --profile personal',
-    '<%= config.bin %> auth login --profile ci --token $PACHCA_TOKEN',
+    'pbpaste | <%= config.bin %> auth login --profile bot-notify --token -',
   ];
 
   static override flags = {
@@ -73,7 +73,8 @@ export default class AuthLogin extends BaseCommand {
     if (flags.token === '-' && process.stdin.isTTY) {
       outputError(
         {
-          error: 'Option --token - reads the token from stdin. Pipe it in: echo "$TOKEN" | pachca auth login --token -',
+          error:
+            'Option --token - reads the token from stdin. Pipe it in, for example from the clipboard: pbpaste | pachca auth login --token -',
           type: 'PACHCA_USAGE_ERROR',
           code: null,
         },
@@ -152,6 +153,10 @@ export default class AuthLogin extends BaseCommand {
    * The address and the code are printed separately and the ready-made link with
    * the code baked in is never shown — a link like that works as phishing when it
    * is forwarded to someone else's device.
+   *
+   * They are printed even under `--quiet`: the browser opens either way, and a
+   * confirmation page with no code to type leaves the person stuck. `--quiet`
+   * drops only the waiting line and the final report.
    */
   private async deviceLogin(
     profileName: string,
@@ -165,13 +170,11 @@ export default class AuthLogin extends BaseCommand {
       this.failOAuth(error, 'Не удалось начать вход');
     }
 
-    if (!quiet) {
-      const copied = copyToClipboard(grant.user_code);
-      process.stderr.write(`\n  Откройте ${grant.verification_uri}\n`);
-      process.stderr.write(`  и введите код: ${grant.user_code}\n`);
-      if (copied) process.stderr.write(`  (код скопирован в буфер обмена)\n`);
-      process.stderr.write(`\n  Ожидаю подтверждения…\n`);
-    }
+    const copied = copyToClipboard(grant.user_code);
+    process.stderr.write(`\n  Откройте ${grant.verification_uri}\n`);
+    process.stderr.write(`  и введите код: ${grant.user_code}\n`);
+    if (copied) process.stderr.write(`  (код скопирован в буфер обмена)\n`);
+    if (!quiet) process.stderr.write(`\n  Ожидаю подтверждения…\n`);
 
     if (useBrowser) openBrowser(grant.verification_uri);
 

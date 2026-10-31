@@ -1,6 +1,6 @@
 {
   "Client_Init": {
-    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")\nctx := context.Background()",
     "imports": [
       "PachcaClient"
     ]
@@ -10,7 +10,7 @@
     "output": "Task{ID: int32, Title: string, IsDone: *bool}"
   },
   "TaskOperations_updateTask": {
-    "usage": "request := TaskUpdateRequest{\n\tTask: TaskUpdateRequestTask{\n\t\tTitle: Ptr(\"example\"),\n\t\tIsDone: Ptr(true),\n\t},\n}\nresponse, err := client.Tasks.UpdateTask(ctx, int32(123), int32(123), request)",
+    "usage": "request := pachca.TaskUpdateRequest{\n\tTask: pachca.TaskUpdateRequestTask{\n\t\tTitle: pachca.Ptr(\"example\"),\n\t\tIsDone: pachca.Ptr(true),\n\t},\n}\nresponse, err := client.Tasks.UpdateTask(ctx, int32(123), int32(123), request)",
     "output": "Task{ID: int32, Title: string, IsDone: *bool}",
     "imports": [
       "TaskUpdateRequest",

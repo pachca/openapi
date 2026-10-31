@@ -51,8 +51,8 @@ These files were captured by `scripts/freeze-v1.ts` and must not be modified. Th
 | File                    | Purpose                                                                                                                                                 |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GenericFunctions.ts`   | Cursor paginator, body wrapper, S3 upload, error handler, button transformer, form resolver, webhook signature verification, 5xx/429 retry with backoff |
-| `PachcaTrigger.node.ts` | Webhook trigger with auto-registration, 16 event types, signature verification                                                                          |
-| `V2/FormDescription.ts` | Form resource with template/JSON builder modes                                                                                                          |
+| `PachcaTrigger.node.ts` | Webhook trigger with auto-registration, 19 events, signature verification                                                                               |
+| `V2/FormDescription.ts` | Form resource with visual builder and JSON modes                                                                                                        |
 
 ### Source Data
 

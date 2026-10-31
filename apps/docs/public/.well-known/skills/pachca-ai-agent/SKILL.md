@@ -1,6 +1,6 @@
 ---
 name: pachca-ai-agent
-description: 'Build an AI agent that lives in Pachca as a bot: called by @mention in a chat or thread or messaged in a DM, it reads the thread for context, shows the agent-thinking timer, replies in the thread and formats a long result as an .md card; plus bot vs MCP. Use when: «AI-агент в Пачке», «агент отвечает по упоминанию в треде», «агент не слышит упоминание», «бот-агент в личных сообщениях», «как агенту собрать контекст треда», «реакция agent-thinking», «длинный ответ агента карточкой .md», «бот или MCP»; "AI agent bot in Pachca", "agent replies when mentioned", "agent does not hear a mention", "read thread context", "thinking indicator", "agent reply as an .md card", "bot vs MCP". Not for: working in Pachca from Claude or Cursor through MCP → pachca, pachca-messaging, pachca-search; drafts and scheduled messages (a bot cannot make them), sending a file or report from Claude, Cursor or the CLI → pachca-messaging; webhooks, tokens and settings of any bot → pachca-bots; acting on behalf of an employee → pachca-oauth.'
+description: 'Решить, бот или MCP, и сделать AI-агента в Пачке в виде бота: его зовут упоминанием в чате или треде либо пишут ему в личный чат, он собирает контекст треда, показывает таймер agent-thinking, отвечает в треде и оформляет длинный ответ карточкой .md. Когда: «AI-агент в Пачке», «агент отвечает по упоминанию в треде», «агент не слышит упоминание», «бот-агент в личных сообщениях», «как агенту собрать контекст треда», «реакция agent-thinking», «длинный ответ агента карточкой .md», «бот или MCP», "AI agent bot in Pachca", "agent replies when mentioned", "agent does not hear a mention", "read thread context", "thinking indicator", "agent reply as an .md card", "bot vs MCP". Not for: working in Pachca from Claude or Cursor through MCP → pachca, pachca-messaging, pachca-search; drafts and scheduled messages (a bot cannot make them), sending a file or report from Claude, Cursor or the CLI → pachca-messaging; webhooks, tokens and settings of any bot → pachca-bots; acting on behalf of an employee → pachca-oauth.'
 ---
 
 # AI agent in Pachca
@@ -196,7 +196,7 @@ employee sees how long the agent has been working. The timer runs up to 5 minute
   token: the bot token gets `403`, and the employee's authorization of the bot
   cannot add the drafts scopes. When a mistake is expensive, send the text to
   the caller as a clearly marked proposal and let them send it. For "remind the
-  team on Monday", keep your own scheduler or create a reminder task. Details:
+  team on Monday", keep your own scheduler or create a reminder. Details:
   [references/drafts-and-scheduled.md](references/drafts-and-scheduled.md). An
   agent with the employee's own sign-in → `pachca-messaging`.
 - **The agent sees more than the people it answers.** The bot token reads every
@@ -212,7 +212,7 @@ employee sees how long the agent has been working. The timer runs up to 5 minute
   cannot see it, or you cannot check, say that you cannot share it here instead
   of quoting it.
 - **The caller's own data needs the caller's consent.** If the agent needs the
-  employee's tasks or chats, the employee authorizes the bot; in a DM the bot
+  employee's reminders or chats, the employee authorizes the bot; in a DM the bot
   sends an authorization button → `pachca-oauth`.
 - **One reply, not a stream.** Sending is limited by rate and by the number of
   messages into one chat per day ([Limits](https://dev.pachca.com/api/limits.md)).

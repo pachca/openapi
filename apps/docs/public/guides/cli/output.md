@@ -25,7 +25,7 @@ pachca users list -o csv
 
 ### Колонки и заголовки
 
-По умолчанию таблица показывает 4-5 основных полей. Выбрать конкретные колонки:
+По умолчанию таблица показывает 4–5 основных полей команды, заголовок колонки — имя поля в верхнем регистре. Выбрать конкретные колонки:
 
 ```bash
 # Выбрать колонки
@@ -40,16 +40,16 @@ pachca users list --no-truncate
 
 ### Плоский вывод
 
-Флаг `--plain` — именованный режим для скриптов: TSV (значения через таб), без заголовка, колонка `id` первой, без цвета и обрезки. Удобно для `cut`/`awk` вместо комбинации `--columns ... --no-header -o csv`:
+Флаг `--plain` — именованный режим для скриптов: TSV (значения через таб), без заголовка, без цвета и обрезки. Без `--columns` колонки те же, что в таблице, и `id`, если оно есть, идёт первым. Удобно для `cut`/`awk` вместо комбинации `--columns ... --no-header -o csv`:
 
 ```bash
-# id <tab> name <tab> ...
+# id <tab> title <tab> first_name <tab> last_name <tab> email
 pachca users list --plain
 
-# Вторая колонка (name) каждой строки
-pachca users list --plain | cut -f2
+# Почта каждого сотрудника: вторая из выбранных колонок
+pachca users list --plain --columns id,email | cut -f2
 
-# Только нужные колонки сохраняют свой порядок
+# Выбранные колонки идут в заданном порядке
 pachca users list --plain --columns email,role
 ```
 
@@ -58,8 +58,8 @@ pachca users list --plain --columns email,role
 В пайпах CLI автоматически выводит JSON, если в конфиге не задан другой `defaults.output`, и отключает цвет и спиннер. Данные идут в stdout, а ошибки, предупреждения и прогресс — в stderr.
 
 ```bash
-# Передать в jq
-pachca users list | jq '.[].name'
+# Передать в jq: имя и фамилия каждого сотрудника
+pachca users list | jq -r '.[] | "\(.first_name) \(.last_name)"'
 
 # Текст сообщения из файла
 pachca messages create --entity-id 123 < message.txt
@@ -73,7 +73,7 @@ pachca chats download-export 123 --save ./export.zip
 
 ## Пагинация
 
-Pachca использует cursor-based пагинацию. Команды списков принимают флаги `--limit`, `--cursor` и `--all`:
+Пагинация в API курсорная. Команды списков принимают флаги `--limit`, `--cursor` и `--all`:
 
 ```bash
 # Первая страница (по умолчанию)
@@ -95,12 +95,7 @@ pachca api GET /users --query limit=20 | jq -r '.meta.paginate.next_page'
 pachca users list --limit 20 --cursor <next_page>
 ```
 
-В API существует **две группы методов с пагинацией**, у которых разная структура `meta` в ответе:
-
-- **Списочные методы** (`pachca users list`, `pachca chats list`, `pachca messages list` и т.д.) — `meta.paginate` с полями `next_page`, `prev_page`, `has_next`, `has_prev`. Признак конца — `has_next: false`.
-- **Методы поиска** (`pachca search list-users`, `pachca search list-chats`, `pachca search list-messages`) — `meta` с полями `total` и `paginate.next_page` (без `prev_page`/`has_next`/`has_prev`). Признак конца — пустой `data`. По `total` конец не определяют: в поиске сообщений по дате он с каждой страницей считает только оставшиеся совпадения.
-
-Подробнее — в разделе [Пагинация](/api/pagination).
+Курсор следующей страницы у всех методов лежит в `meta.paginate.next_page`, а признак последней страницы — `meta.paginate.has_next: false`. Чем отличаются ответы списочных методов и методов поиска, описано в разделе [Две группы методов с пагинацией](/api/pagination#dve-gruppy-metodov-s-paginatsiey).
 
 
 ## Связанные разделы

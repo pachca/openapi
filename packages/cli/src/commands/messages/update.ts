@@ -19,7 +19,7 @@ export default class MessagesUpdate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'content': Flags.string({
-      description: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов.",
+      description: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). Ник берут из ответа метода, а `user_id` — из данных: ник, составленный из имени, никого не упоминает. У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов.",
     }),
     'files': Flags.string({
       description: "Прикрепляемые файлы. Переданный набор заменяет прежний: чтобы оставить уже приложенный файл, передайте его снова с тем же `key`. Такой файл остаётся прежним вложением с тем же `id` и названием, а его поля из запроса не применяются. Чтобы показать файл под другим названием, загрузите его заново.",
@@ -45,7 +45,8 @@ export default class MessagesUpdate extends BaseCommand {
       for await (const chunk of process.stdin) {
         chunks.push(chunk as Buffer);
       }
-      flags['content'] = Buffer.concat(chunks).toString('utf-8').trimEnd();
+      const piped = Buffer.concat(chunks).toString('utf-8').trimEnd();
+      if (piped) flags['content'] = piped;
     }
 
     const body: Record<string, unknown> = { message: {

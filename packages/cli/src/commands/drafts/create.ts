@@ -2,6 +2,7 @@
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
+import { nullableInteger } from '../../lib/flags.js';
 
 export default class DraftsCreate extends BaseCommand {
   static override description = "Новый черновик";
@@ -26,7 +27,7 @@ export default class DraftsCreate extends BaseCommand {
     'content': Flags.string({
       description: "Текст черновика. Можно не передавать, если есть вложения, но пустым черновик быть не может. До 40 000 байт в UTF-8.",
     }),
-    'parent-message-id': Flags.integer({
+    'parent-message-id': nullableInteger({
       description: "Идентификатор сообщения, ответом на которое уйдёт черновик. Сообщение должно быть в том же чате.",
     }),
     'files': Flags.string({
@@ -47,7 +48,8 @@ export default class DraftsCreate extends BaseCommand {
       for await (const chunk of process.stdin) {
         chunks.push(chunk as Buffer);
       }
-      flags['content'] = Buffer.concat(chunks).toString('utf-8').trimEnd();
+      const piped = Buffer.concat(chunks).toString('utf-8').trimEnd();
+      if (piped) flags['content'] = piped;
     }
 
     const missingRequired: { flag: string; label: string; type: string }[] = [

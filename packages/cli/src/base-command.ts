@@ -5,6 +5,7 @@ import {
   ProfileNotFoundError,
   getAuthMethod,
   getDefaults,
+  profileFlag,
 } from './profiles.js';
 import { ApiError, getExitCode, formatDryRun, request, type RequestOptions, type ClientFlags, type ErrorType } from './client.js';
 import { outputData, outputError, outputSuccess, type OutputFormat, type OutputOptions } from './output.js';
@@ -197,9 +198,11 @@ export abstract class BaseCommand extends Command {
    * Make an authenticated API request.
    */
   protected async apiRequest(opts: Omit<RequestOptions, 'token'>): Promise<{ data: unknown; status: number; headers: Headers }> {
-    const { token } = this.resolveAuth();
     const clientFlags = this.getClientFlags();
 
+    // --dry-run sends nothing, so it needs no token: the preview masks the header
+    // either way. Resolving first made it fail with «Token not found» before login.
+    const token = clientFlags['dry-run'] ? '' : this.resolveAuth().token;
     const fullOpts: RequestOptions = { ...opts, token };
 
     if (clientFlags['dry-run']) {
@@ -255,9 +258,11 @@ export abstract class BaseCommand extends Command {
    * Explain a scope refusal instead of printing a bare 403.
    *
    * An agent cannot walk through a consent screen — the most useful thing it can
-   * do is hand control back to a human with the reason spelled out. The reason
-   * differs by how the profile was authorised: an OAuth login already asks for
-   * every scope, so a refusal there can only come from the role.
+   * do is hand control back to a human with the reason spelled out.
+   *
+   * `insufficient_scope` always means the token itself lacks the scope. A role
+   * that does not allow the action comes back as `role_forbidden` instead, see
+   * reportRoleRefusal. The fix differs by how the profile was authorised.
    */
   private reportScopeError(err: ApiError): never {
     const format = this.getOutputFormat();
@@ -268,47 +273,72 @@ export abstract class BaseCommand extends Command {
       this.exit(3);
     }
 
-    let profile;
-    try {
-      ({ profile } = resolveToken({
-        token: this.parsedFlags.token,
-        profile: this.parsedFlags.profile,
-      }));
-    } catch {
-      // no profile resolved — the token came in from a flag or the environment
-    }
-
-    // Two different causes, and the fix differs. Either the scope is not in the
-    // token, or it is there but the role no longer allows it — the API checks
-    // both on every call. Which one it is shows in the token's own scope list.
-    //
-    // Naming the cause needs the scope itself, and that comes from parsing the
-    // server's message. When it cannot be identified, fall back to the generic
-    // wording: guessing a branch here would send people to fix the wrong thing.
-    const granted = scope ? profile?.scopes : undefined;
-    const hasScope = !!scope && !!granted && granted.includes(scope);
+    const resolved = this.tryResolveProfile();
+    const profile = resolved?.profile;
 
     process.stderr.write(`✗ Не хватает права${scope ? ` ${scope}` : ''}.\n`);
 
-    if (granted && hasScope) {
-      process.stderr.write(`  Право у токена есть, но его не даёт текущая роль.\n`);
-      process.stderr.write(`  Обратитесь к администратору пространства.\n`);
-    } else if (granted) {
-      process.stderr.write(`  У токена этого права нет.\n`);
-      process.stderr.write(
-        getAuthMethod(profile!) === 'oauth'
-          ? `  Права выдаются по роли в момент входа — если роль с тех пор изменилась, войдите заново: pachca auth login\n`
-          : `  Выпустите токен с этим правом в интерфейсе Пачки.\n`,
-      );
+    if (!profile) {
+      process.stderr.write(`  У токена ${scope ? 'этого' : 'нужного'} права нет.\n`);
+      process.stderr.write(`  Проверить права токена: pachca oauth token-info -o json\n`);
+      this.exit(3);
+    }
+
+    // The scope list in the profile is a copy taken at login. When it still names
+    // the scope the server just refused, the copy is stale: the token's scopes were
+    // changed after login. Naming the scope needs the server's message to carry it.
+    const flag = profileFlag(resolved?.profileName);
+    const listedLocally = !!scope && !!profile.scopes?.includes(scope);
+    if (listedLocally) {
+      process.stderr.write(`  В сохранённом списке право есть, но у токена его уже нет: список устарел.\n`);
+      process.stderr.write(`  Обновить список: pachca auth status --remote${flag}\n`);
     } else {
-      process.stderr.write(`  Либо этого права нет у токена, либо его не даёт ваша роль.\n`);
-      process.stderr.write(
-        profile
-          ? `  Проверить права токена: pachca auth status\n`
-          : `  Проверить права токена: pachca api GET /oauth/token/info\n`,
-      );
+      process.stderr.write(`  У токена ${scope ? 'этого' : 'нужного'} права нет.\n`);
+    }
+
+    if (getAuthMethod(profile) === 'oauth') {
+      process.stderr.write(`  При входе через браузер права выдаются по роли на момент подтверждения.\n`);
+      process.stderr.write(`  Если роль с тех пор расширили, войдите заново: pachca auth login${flag}\n`);
+    } else {
+      process.stderr.write(`  Добавьте право токену в Пачке или выпустите новый токен с ним.\n`);
     }
     this.exit(3);
+  }
+
+  /**
+   * Explain a role refusal: the token carries the scope, but the role of the
+   * account behind it does not allow the action. No new login or token changes
+   * that, so say who can. The API names no scope here; a generated command
+   * knows the one its method requires.
+   */
+  private reportRoleRefusal(err: ApiError): never {
+    const format = this.getOutputFormat();
+    if (format === 'json' || !process.stderr.isTTY) {
+      outputError(err.details, format);
+      this.exit(3);
+    }
+
+    const profile = this.tryResolveProfile()?.profile;
+    const scope = (this.constructor as unknown as { scope?: string }).scope;
+    const right = scope ? `Право ${scope}` : 'Право';
+
+    if (profile?.type === 'bot') {
+      process.stderr.write(`✗ ${right} есть у токена, но его не даёт роль бота.\n`);
+      process.stderr.write(`  Это действие выполняют персональным токеном сотрудника с подходящей ролью.\n`);
+    } else {
+      process.stderr.write(`✗ ${right} есть у токена, но его не даёт роль.\n`);
+      process.stderr.write(`  Новый вход или новый токен не помогут: роль меняет администратор пространства.\n`);
+    }
+    this.exit(3);
+  }
+
+  /** The profile the call ran with, or undefined when the token came from --token or PACHCA_TOKEN. */
+  private tryResolveProfile(): ReturnType<typeof resolveToken> | undefined {
+    try {
+      return resolveToken({ token: this.parsedFlags.token, profile: this.parsedFlags.profile });
+    } catch {
+      return undefined;
+    }
   }
 
   /**
@@ -335,7 +365,7 @@ export abstract class BaseCommand extends Command {
         : 'token from --token or PACHCA_TOKEN is invalid or revoked';
     }
 
-    const flag = resolved.profileName === 'default' ? '' : ` --profile ${resolved.profileName}`;
+    const flag = profileFlag(resolved.profileName);
     if (getAuthMethod(resolved.profile) === 'oauth') {
       return human
         ? `Вход завершён или отозван. Войдите заново: pachca auth login${flag}`
@@ -352,6 +382,10 @@ export abstract class BaseCommand extends Command {
   protected override async catch(err: Error & { exitCode?: number }): Promise<void> {
     if (err instanceof ApiError && err.details.type === 'PACHCA_SCOPE_ERROR') {
       this.reportScopeError(err);
+    }
+
+    if (err instanceof ApiError && err.details.code === 403 && err.details.message === 'role_forbidden') {
+      this.reportRoleRefusal(err);
     }
 
     if (err instanceof ApiError) {

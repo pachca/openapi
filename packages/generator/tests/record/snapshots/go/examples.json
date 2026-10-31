@@ -1,12 +1,12 @@
 {
   "Client_Init": {
-    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")\nctx := context.Background()",
     "imports": [
       "PachcaClient"
     ]
   },
   "LinkPreviewOperations_createLinkPreviews": {
-    "usage": "request := LinkPreviewsRequest{\n\tLinkPreviews: map[string]LinkPreview{\"key\": LinkPreview{\n\t\tTitle: \"example\",\n\t\tDescription: Ptr(\"example\"),\n\t\tImageURL: Ptr(\"example\"),\n\t}},\n}\nclient.LinkPreviews.CreateLinkPreviews(ctx, int32(123), request)",
+    "usage": "request := pachca.LinkPreviewsRequest{\n\tLinkPreviews: map[string]pachca.LinkPreview{\"key\": pachca.LinkPreview{\n\t\tTitle: \"example\",\n\t\tDescription: pachca.Ptr(\"example\"),\n\t\tImageURL: pachca.Ptr(\"example\"),\n\t}},\n}\nclient.LinkPreviews.CreateLinkPreviews(ctx, int32(123), request)",
     "imports": [
       "LinkPreview",
       "LinkPreviewsRequest"

@@ -10,8 +10,13 @@ import {
   type IROperation,
   type IRParam,
   type IRResponseType,
+  type IRValueUnion,
+  jsonKindOf,
+  unionRequiredShapes,
+  valueUnionMemberName,
+  paginateHasNext,
 } from '../ir.js';
-import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToPascal,
@@ -43,6 +48,23 @@ const CS_BCL_CONFLICTS = new Set(['Task', 'Thread']);
 /** Fully-qualify type names that conflict with BCL types imported in Client.cs */
 function csClientTypeRef(name: string): string {
   return CS_BCL_CONFLICTS.has(name) ? `Pachca.Sdk.${name}` : name;
+}
+
+/**
+ * SDK type names that a project with the default implicit usings (System.IO,
+ * System.Threading, System.Threading.Tasks) also sees from the BCL: an example
+ * spells them in full, or the short name fails with CS0104.
+ */
+const CS_IMPLICIT_USING_CONFLICTS = new Set(['Task', 'TaskStatus', 'Thread', 'File']);
+
+function csExampleTypeRef(name: string): string {
+  return CS_IMPLICIT_USING_CONFLICTS.has(name) ? `Pachca.Sdk.${name}` : name;
+}
+
+/** The type of a list or dictionary element as an example spells it. */
+function csExampleType(ft: IRFieldType): string {
+  const t = csType(ft);
+  return (ft.kind === 'enum' || ft.kind === 'model' || ft.kind === 'union') && ft.ref === t ? csExampleTypeRef(t) : t;
 }
 
 /** Members of an open enum struct that a constant can't take the name of. */
@@ -86,7 +108,7 @@ function csType(ft: IRFieldType): string {
     case 'record':
       return `Dictionary<string, ${csType(ft.valueType!)}>`;
     case 'union':
-      return ft.ref ?? 'object';
+      return ft.valueUnion ?? ft.ref ?? 'object';
     case 'literal':
       return 'string';
     case 'binary':
@@ -102,6 +124,14 @@ function isValueType(ft: IRFieldType): boolean {
   }
   if (ft.kind === 'enum') return true;
   return false;
+}
+
+/**
+ * The name a caller writes in NullFields: the property name as nameof gives it and
+ * reflection sees it, without the @ a keyword takes.
+ */
+function nullFieldName(field: IRField): string {
+  return fieldSdkName(field).replace(/^@/, '');
 }
 
 function fieldSdkName(field: IRField): string {
@@ -176,8 +206,17 @@ function hasApiErrorModel(ir: IR): boolean {
 
 // ── Models.cs ────────────────────────────────────────────────────────
 
+/** Request models with properties the caller can send as null by name in NullFields. */
+function csNullableModels(ir: IR): IRModel[] {
+  const requestModels = requestModelNames(ir);
+  return [...buildModelIndex(ir).values()]
+    .filter((m) => requestModels.has(m.name) && nullableOptionalFields(m).length > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 function generateModels(ir: IR): string {
   const lines: string[] = [];
+  const nullableModels = new Set(csNullableModels(ir).map((m) => m.name));
   const unionMemberRefs = new Set<string>();
   for (const u of ir.unions) {
     for (const ref of u.memberRefs) unionMemberRefs.add(ref);
@@ -215,16 +254,26 @@ function generateModels(ir: IR): string {
     lines.push('');
     emitUnion(lines, u, ir);
   }
+  if (ir.unions.some((u) => !u.discriminatorField)) {
+    lines.push('');
+    emitUnionRequiredKeys(lines, ir);
+  }
+
+  // Value unions
+  for (const vu of ir.valueUnions) {
+    lines.push('');
+    emitValueUnion(lines, vu);
+  }
 
   // Models (skip union members)
   for (const m of ir.models) {
     if (unionMemberRefs.has(m.name)) continue;
     for (const inl of m.inlineObjects) {
       lines.push('');
-      emitModel(lines, inl, ir.models);
+      emitModel(lines, inl, ir.models, nullableModels.has(inl.name));
     }
     lines.push('');
-    emitModel(lines, m, ir.models);
+    emitModel(lines, m, ir.models, nullableModels.has(m.name));
   }
 
   // Response types
@@ -353,6 +402,137 @@ function emitEnumConverter(lines: string[], e: IREnum): void {
   lines.push('}');
 }
 
+/**
+ * A field that takes values of different JSON kinds is a wrapper with a property
+ * per member: the one the value fills is set, the others are null. The JSON
+ * token picks the member, and an object that does not fit its model throws, so
+ * a union member gives way to the next.
+ */
+function emitValueUnion(lines: string[], vu: IRValueUnion): void {
+  const typeOf = (m: IRFieldType) => csType(m);
+  const nullableOf = (m: IRFieldType) => `${typeOf(m)}?`;
+  if (vu.description) {
+    lines.push('/// <summary>');
+    for (const line of vu.description.split('\n')) lines.push(`/// ${line}`);
+    lines.push('/// </summary>');
+  }
+  lines.push(`[JsonConverter(typeof(${vu.name}Converter))]`);
+  lines.push(`public sealed class ${vu.name}`);
+  lines.push('{');
+  for (const m of vu.members) lines.push(`    public ${nullableOf(m)} ${valueUnionMemberName(m)} { get; }`);
+  lines.push('');
+  for (const m of vu.members) {
+    lines.push(`    public ${vu.name}(${typeOf(m)} value) { ${valueUnionMemberName(m)} = value; }`);
+  }
+  lines.push('');
+  for (const m of vu.members) {
+    lines.push(`    public static implicit operator ${vu.name}(${typeOf(m)} value) => new(value);`);
+  }
+  lines.push('}');
+  lines.push('');
+  const expected = vu.members.map((m) => valueUnionMemberName(m)).join(' or ');
+  lines.push(`internal sealed class ${vu.name}Converter : JsonConverter<${vu.name}>`);
+  lines.push('{');
+  lines.push(`    public override ${vu.name} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)`);
+  lines.push('    {');
+  lines.push('        switch (reader.TokenType)');
+  lines.push('        {');
+  const tokens: Record<string, string[]> = {
+    array: ['StartArray'],
+    object: ['StartObject'],
+    string: ['String'],
+    number: ['Number'],
+    boolean: ['True', 'False'],
+  };
+  for (const m of vu.members) {
+    for (const token of tokens[jsonKindOf(m)!]) lines.push(`            case JsonTokenType.${token}:`);
+    lines.push(`                return new ${vu.name}(JsonSerializer.Deserialize<${typeOf(m)}>(ref reader, options)!);`);
+  }
+  lines.push('            default:');
+  lines.push(`                throw new JsonException($"${vu.name} takes ${expected}, got {reader.TokenType}");`);
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('');
+  lines.push(`    public override void Write(Utf8JsonWriter writer, ${vu.name} value, JsonSerializerOptions options)`);
+  lines.push('    {');
+  for (const m of vu.members) {
+    const name = valueUnionMemberName(m);
+    lines.push(`        if (value.${name} != null)`);
+    lines.push('        {');
+    lines.push(`            JsonSerializer.Serialize(writer, value.${name}, options);`);
+    lines.push('            return;');
+    lines.push('        }');
+  }
+  lines.push('        writer.WriteNullValue();');
+  lines.push('    }');
+  lines.push('}');
+}
+
+/**
+ * The required keys of the members of unions without a discriminator and of the
+ * models nested in them, and the check every such union runs before it takes a
+ * member. Emitted once, keyed by the model name (the class name).
+ */
+function emitUnionRequiredKeys(lines: string[], ir: IR): void {
+  const shapes = unionRequiredShapes(ir.unions, ir.models);
+  lines.push('// UnionRequiredKeys lists, for a model a union without a discriminator may hold');
+  lines.push('// or nest, the keys it cannot do without and the fields that hold a model (or a');
+  lines.push('// list of them) with required keys of its own. A required field that may hold');
+  lines.push('// null is not listed: its key may be missing. System.Text.Json fills a missing');
+  lines.push('// field with its default, so a union checks the keys before it takes a member;');
+  lines.push('// decoding a model on its own stays as lenient as System.Text.Json.');
+  lines.push('internal static class UnionRequiredKeys');
+  lines.push('{');
+  lines.push('    private static readonly Dictionary<string, (string[] Keys, (string Key, string Model)[] Nested)> Shapes = new()');
+  lines.push('    {');
+  for (const shape of shapes) {
+    const keys = shape.required.length > 0 ? `new[] { ${shape.required.map((k) => JSON.stringify(k)).join(', ')} }` : 'Array.Empty<string>()';
+    const nested = shape.nested.length > 0
+      ? `new[] { ${shape.nested.map((n) => `(${JSON.stringify(n.key)}, ${JSON.stringify(n.model)})`).join(', ')} }`
+      : 'Array.Empty<(string, string)>()';
+    lines.push(`        [${JSON.stringify(shape.model)}] = (${keys}, ${nested}),`);
+  }
+  lines.push('    };');
+  lines.push('');
+  lines.push('    // Missing names the first required key the payload of a model lacks, in the');
+  lines.push('    // model or in a model nested in it, or returns null when nothing is missing.');
+  lines.push('    public static string? Missing(string model, JsonElement value)');
+  lines.push('    {');
+  lines.push('        if (!Shapes.TryGetValue(model, out var shape)) return null;');
+  lines.push('        var isObject = value.ValueKind == JsonValueKind.Object;');
+  lines.push('        foreach (var key in shape.Keys)');
+  lines.push('        {');
+  lines.push('            if (!isObject || !value.TryGetProperty(key, out _)) return $"{model} requires \\"{key}\\"";');
+  lines.push('        }');
+  lines.push('        if (!isObject) return null;');
+  lines.push('        foreach (var (key, nested) in shape.Nested)');
+  lines.push('        {');
+  lines.push('            if (value.TryGetProperty(key, out var inner) && MissingIn(nested, inner) is { } missing) return missing;');
+  lines.push('        }');
+  lines.push('        return null;');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    // A field value: an object of the model, a list of them, or a value of another');
+  lines.push('    // kind, which the converter itself takes or refuses.');
+  lines.push('    private static string? MissingIn(string model, JsonElement value)');
+  lines.push('    {');
+  lines.push('        switch (value.ValueKind)');
+  lines.push('        {');
+  lines.push('            case JsonValueKind.Object:');
+  lines.push('                return Missing(model, value);');
+  lines.push('            case JsonValueKind.Array:');
+  lines.push('                foreach (var item in value.EnumerateArray())');
+  lines.push('                {');
+  lines.push('                    if (MissingIn(model, item) is { } missing) return missing;');
+  lines.push('                }');
+  lines.push('                return null;');
+  lines.push('            default:');
+  lines.push('                return null;');
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('}');
+}
+
 /** Union whose members share no discriminator: decode by matching the payload shape. */
 function emitStructuralUnion(lines: string[], u: IRUnion, memberModels: IRModel[]): void {
   lines.push(`[JsonConverter(typeof(${u.name}Converter))]`);
@@ -360,11 +540,12 @@ function emitStructuralUnion(lines: string[], u: IRUnion, memberModels: IRModel[
   lines.push('{');
   lines.push('}');
   lines.push('');
-  lines.push(`// ${u.name} carries no discriminator field: the member is chosen by which`);
-  lines.push('// one best matches the payload keys (most recognised, then fewest unrecognised,');
-  lines.push('// then fewest declared).');
+  lines.push(`// ${u.name} carries no discriminator field: members are tried in the order`);
+  lines.push('// they match the payload keys (most recognised, then fewest unrecognised, then');
+  lines.push('// fewest declared), and the first one that decodes wins.');
   lines.push(`internal sealed class ${u.name}Converter : JsonConverter<${u.name}>`);
   lines.push('{');
+  // The required keys a member cannot do without are in UnionRequiredKeys.
   lines.push('    private static readonly (Type Type, HashSet<string> Keys)[] Shapes =');
   lines.push('    {');
   for (const memberModel of memberModels) {
@@ -383,31 +564,35 @@ function emitStructuralUnion(lines: string[], u: IRUnion, memberModels: IRModel[
   lines.push('        {');
   lines.push('            foreach (var property in root.EnumerateObject()) keys.Add(property.Name);');
   lines.push('        }');
-  lines.push('        Type? best = null;');
-  lines.push('        int bestMatched = 0, bestUnknown = 0, bestDeclared = 0;');
-  lines.push('        foreach (var (type, shapeKeys) in Shapes)');
+  lines.push('        // OrderBy is stable: a tie keeps the declared order.');
+  lines.push('        var ranked = Shapes');
+  lines.push('            .Select(shape => (shape.Type, Matched: keys.Count(shape.Keys.Contains), Declared: shape.Keys.Count))');
+  lines.push('            .OrderByDescending(c => c.Matched)');
+  lines.push('            .ThenBy(c => keys.Count - c.Matched)');
+  lines.push('            .ThenBy(c => c.Declared);');
+  lines.push('        var raw = root.GetRawText();');
+  lines.push('        JsonException? firstError = null;');
+  lines.push('        foreach (var candidate in ranked)');
   lines.push('        {');
-  lines.push('            var matched = 0;');
-  lines.push('            foreach (var key in keys)');
+  lines.push('            // System.Text.Json fills a missing field with its default: a member that');
+  lines.push('            // misses a required key, in itself or in a model nested in it, gives way');
+  lines.push('            // to the next one here.');
+  lines.push('            var missing = UnionRequiredKeys.Missing(candidate.Type.Name, root);');
+  lines.push('            if (missing != null)');
   lines.push('            {');
-  lines.push('                if (shapeKeys.Contains(key)) matched++;');
+  lines.push('                firstError ??= new JsonException(missing);');
+  lines.push('                continue;');
   lines.push('            }');
-  lines.push('            var unknown = keys.Count - matched;');
-  lines.push('            var declared = shapeKeys.Count;');
-  lines.push('            var better = best is null');
-  lines.push('                || matched > bestMatched');
-  lines.push('                || (matched == bestMatched && unknown < bestUnknown)');
-  lines.push('                || (matched == bestMatched && unknown == bestUnknown && declared < bestDeclared);');
-  lines.push('            if (better)');
+  lines.push('            try');
   lines.push('            {');
-  lines.push('                best = type;');
-  lines.push('                bestMatched = matched;');
-  lines.push('                bestUnknown = unknown;');
-  lines.push('                bestDeclared = declared;');
+  lines.push(`                return (${u.name})JsonSerializer.Deserialize(raw, candidate.Type, options)!;`);
+  lines.push('            }');
+  lines.push('            catch (JsonException e)');
+  lines.push('            {');
+  lines.push('                firstError ??= e;');
   lines.push('            }');
   lines.push('        }');
-  lines.push(`        if (best is null) throw new JsonException("No ${u.name} member matched the payload");`);
-  lines.push(`        return (${u.name})JsonSerializer.Deserialize(root.GetRawText(), best, options)!;`);
+  lines.push(`        throw firstError ?? new JsonException("No ${u.name} member matched the payload");`);
   lines.push('    }');
   lines.push('');
   lines.push(`    public override void Write(Utf8JsonWriter writer, ${u.name} value, JsonSerializerOptions options)`);
@@ -538,9 +723,11 @@ function emitModel(
   lines: string[],
   m: IRModel,
   allModels: IRModel[],
+  withNullFields = false,
 ): void {
   const fields = m.fields;
-  const ext = m.isError ? ' : Exception' : '';
+  const nullable = withNullFields ? nullableOptionalFields(m) : [];
+  const ext = m.isError ? ' : Exception' : nullable.length > 0 ? ' : INullFields' : '';
 
   if (fields.length === 0) {
     lines.push(`public class ${m.name}${ext} { }`);
@@ -587,6 +774,13 @@ function emitModel(
         }
       }
     }
+  }
+
+  if (nullable.length > 0) {
+    lines.push('');
+    lines.push(`    /// <summary>Properties to send as null: ${nullable.map(nullFieldName).join(', ')}. An unset property stays out of the body.</summary>`);
+    lines.push('    [JsonIgnore]');
+    lines.push('    public List<string>? NullFields { get; set; }');
   }
 
   if (m.name === 'ApiError') {
@@ -650,7 +844,70 @@ function emitResponseType(lines: string[], rt: IRResponseType): void {
 
 // ── Utils.cs ─────────────────────────────────────────────────────────
 
+/**
+ * An unset property stays out of the body (WhenWritingNull). A request model with
+ * properties the API takes as null carries NullFields: a property named there goes
+ * out as null, and a name the model does not take as null fails before the request
+ * is sent.
+ */
+function csNullFieldsHelpers(ir: IR): { usings: string; metadataUsing: string; interfaceDecl: string; resolver: string; members: string } {
+  const models = csNullableModels(ir);
+  if (models.length === 0) return { usings: '', metadataUsing: '', interfaceDecl: '', resolver: '', members: '' };
+  const entries = models
+    .map((m) => `        [typeof(${m.name})] = new() { ${nullableOptionalFields(m).map((f) => `"${nullFieldName(f)}"`).join(', ')} },`)
+    .join('\n');
+  return {
+    usings: 'using System.Reflection;\n',
+    metadataUsing: 'using System.Text.Json.Serialization.Metadata;\n',
+    interfaceDecl: `
+/// <summary>A request model with properties the API takes as null.</summary>
+internal interface INullFields
+{
+    List<string>? NullFields { get; }
+}
+`,
+    resolver: `
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { SendNullFields } },`,
+    members: `
+
+    // Properties of a request model the caller can send as null, by name in NullFields.
+    private static readonly Dictionary<Type, HashSet<string>> NullableProperties = new()
+    {
+${entries}
+    };
+
+    // A property named in NullFields goes out as null, whatever value it holds. A name
+    // the model does not take as null fails before the request is sent.
+    private static void SendNullFields(JsonTypeInfo typeInfo)
+    {
+        if (typeInfo.Kind != JsonTypeInfoKind.Object || !NullableProperties.TryGetValue(typeInfo.Type, out var nullable))
+            return;
+        var model = typeInfo.Type.Name;
+        typeInfo.OnSerializing = obj =>
+        {
+            foreach (var name in ((INullFields)obj).NullFields ?? new List<string>())
+            {
+                if (!nullable.Contains(name))
+                    throw new ArgumentException($"{model}: field \\"{name}\\" cannot be sent as null");
+            }
+        };
+        foreach (var property in typeInfo.Properties)
+        {
+            if (property.AttributeProvider is not PropertyInfo info || !nullable.Contains(info.Name) || property.Get is not { } get)
+                continue;
+            var name = info.Name;
+            property.Get = obj => IsNulled(obj, name) ? null : get(obj);
+            property.ShouldSerialize = (obj, value) => value != null || IsNulled(obj, name);
+        }
+    }
+
+    private static bool IsNulled(object obj, string name) =>
+        ((INullFields)obj).NullFields?.Contains(name) == true;`,
+  };
+}
+
 function generateUtils(ir: IR): string {
+  const nullFields = csNullFieldsHelpers(ir);
   return `#nullable enable
 
 using System;
@@ -658,13 +915,13 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
+${nullFields.usings}using System.Text;
 using System.Text.Json;
-using System.Threading;
+${nullFields.metadataUsing}using System.Threading;
 using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
-
+${nullFields.interfaceDecl}
 internal static class PachcaUtils
 {
     private const int MaxRetries = 3;
@@ -684,8 +941,8 @@ internal static class PachcaUtils
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-        PropertyNameCaseInsensitive = true,
-    };
+        PropertyNameCaseInsensitive = true,${nullFields.resolver}
+    };${nullFields.members}
 
     // Only the daily chat limit and the hour-long ban wait longer than a minute.
     private static readonly TimeSpan MaxRetryAfter = TimeSpan.FromSeconds(60);
@@ -1191,11 +1448,16 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, modifier
 
   const baseName = `${snakeToPascal(op.methodName)}Async`;
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const useHasNext = rt?.metaRef === 'PaginationMeta';
+  const hasNextForm = paginateHasNext(ir, rt?.metaRef);
+  const useHasNext = hasNextForm !== undefined;
 
   if (useHasNext) {
     const cursorExpr = rt?.metaIsRequired ? 'response.Meta.Paginate.NextPage' : 'response.Meta?.Paginate?.NextPage';
-    const hasNextExpr = rt?.metaIsRequired ? 'response.Meta.Paginate.HasNext ?? true' : 'response.Meta?.Paginate?.HasNext ?? true';
+    const hasNextExpr = !rt?.metaIsRequired
+      ? 'response.Meta?.Paginate?.HasNext ?? true'
+      : hasNextForm === 'required'
+        ? 'response.Meta.Paginate.HasNext'
+        : 'response.Meta.Paginate.HasNext ?? true';
     lines.push(`${indent2}var hasNext = true;`);
     lines.push(`${indent2}while (hasNext)`);
     lines.push(`${indent2}{`);
@@ -1749,7 +2011,7 @@ function csLiteral(
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
       const member = e?.members.find((m) => m.value === ft.example);
-      if (e && member) return `${e.name}.${csEnumMemberName(member.value, e.name)}`;
+      if (e && member) return `${csExampleTypeRef(e.name)}.${csEnumMemberName(member.value, e.name)}`;
     }
   }
   switch (ft.kind) {
@@ -1766,7 +2028,7 @@ function csLiteral(
     case 'enum': {
       const e = ir.enums.find((en) => en.name === ft.ref);
       if (e && e.members.length > 0) {
-        return `${e.name}.${csEnumMemberName(e.members[0].value, e.name)}`;
+        return `${csExampleTypeRef(e.name)}.${csEnumMemberName(e.members[0].value, e.name)}`;
       }
       return `default(${ft.ref ?? 'object'})`;
     }
@@ -1778,10 +2040,13 @@ function csLiteral(
       return csModelLiteral(ft.ref ?? 'object', ir, models, visited, indent);
     }
     case 'array':
-      return `new List<${csType(ft.items!)}> { ${csLiteral(ft.items!, ir, models, visited, indent)} }`;
+      return `new List<${csExampleType(ft.items!)}> { ${csLiteral(ft.items!, ir, models, visited, indent)} }`;
     case 'record':
-      return `new Dictionary<string, ${csType(ft.valueType!)}> { ["key"] = ${csLiteral(ft.valueType!, ir, models, visited, indent)} }`;
+      return `new Dictionary<string, ${csExampleType(ft.valueType!)}> { ["key"] = ${csLiteral(ft.valueType!, ir, models, visited, indent)} }`;
     case 'union': {
+      if (ft.valueUnion && ft.members) {
+        return `new ${csExampleTypeRef(ft.valueUnion)}(${csLiteral(ft.members[0], ir, models, visited, indent)})`;
+      }
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
         return csModelLiteral(u.memberRefs[0], ir, models, visited, indent);
@@ -1802,9 +2067,10 @@ function csModelLiteral(
   visited: Set<string>,
   indent: number = 0,
 ): string {
-  if (visited.has(modelName)) return `new ${modelName}()`;
+  const typeName = csExampleTypeRef(modelName);
+  if (visited.has(modelName)) return `new ${typeName}()`;
   const model = models.get(modelName);
-  if (!model || model.fields.length === 0) return `new ${modelName}()`;
+  if (!model || model.fields.length === 0) return `new ${typeName}()`;
 
   const nextVisited = new Set(visited);
   nextVisited.add(modelName);
@@ -1814,7 +2080,7 @@ function csModelLiteral(
   const fields = model.fields.filter(
     (f) => f.type.kind !== 'literal' && (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
   );
-  if (fields.length === 0) return `new ${modelName}()`;
+  if (fields.length === 0) return `new ${typeName}()`;
 
   const multiLine = fields.length > 2;
   const childIndent = indent + 1;
@@ -1829,9 +2095,9 @@ function csModelLiteral(
 
   const hasMultiLineChild = entries.some((e) => e.includes('\n'));
   if (multiLine || hasMultiLineChild) {
-    return `new ${modelName}\n${closePad}{\n${entries.map((e) => `${pad}${e}`).join(',\n')}\n${closePad}}`;
+    return `new ${typeName}\n${closePad}{\n${entries.map((e) => `${pad}${e}`).join(',\n')}\n${closePad}}`;
   }
-  return `new ${modelName} { ${entries.join(', ')} }`;
+  return `new ${typeName} { ${entries.join(', ')} }`;
 }
 
 function csFingerprint(
@@ -1855,7 +2121,7 @@ function csFingerprint(
     case 'record':
       return `Dictionary<string, ${csFingerprint(ft.valueType!, ir, models, visited)}>`;
     case 'union':
-      return ft.ref ?? 'object';
+      return ft.valueUnion ?? ft.ref ?? 'object';
     case 'literal':
       return 'string';
     case 'binary':
@@ -1951,13 +2217,14 @@ function buildOperationExample(
 
   if (op.requestBody) {
     const rb = op.requestBody;
+    const body = bodyExample(rb, ir, models);
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = paramSdkName(rb.unwrapField.name);
-      params.push({ name: sdkName, value: csLiteral(rb.unwrapField.type, ir, models) });
-      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
+      params.push({ name: sdkName, value: csLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     } else if (rb.schemaRef) {
-      params.push({ name: 'request', value: csLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
-      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
+      params.push({ name: 'request', value: csLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     }
   }
 
@@ -2007,6 +2274,8 @@ function generateExamples(ir: IR): string {
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
+      const named = namedBodyExamples(op, (o) => buildOperationExample(o, ir, models, serviceProp));
+      if (named) entry.examples = named;
       result[op.operationId] = entry;
       if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
         result[`${op.operationId}_pollWebhookEvents`] = {

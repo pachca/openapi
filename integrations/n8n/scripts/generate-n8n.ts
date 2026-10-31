@@ -334,6 +334,9 @@ const WEBHOOK_EVENT_MAP: Record<string, { name: string; value: string }> = {
   'company_member:suspend': { name: 'User Suspended', value: 'company_member_suspend' },
   'company_member:activate': { name: 'User Activated', value: 'company_member_activate' },
   'company_member:delete': { name: 'User Deleted', value: 'company_member_delete' },
+  'video_call:started': { name: 'Video Call Started', value: 'video_call_started' },
+  'video_call:finished': { name: 'Video Call Finished', value: 'video_call_finished' },
+  'video_call:recording_ready': { name: 'Video Call Recording Ready', value: 'video_call_recording_ready' },
 };
 
 /** Fallback placeholders for fields without OpenAPI examples */
@@ -502,12 +505,16 @@ function tagToResource(tag: string): string {
   return singular.join('');
 }
 
-/** Resource value → display name (Title Case, singular) */
+/**
+ * Resource value → display name (Title Case, singular). The `/tasks` entity is a
+ * reminder in Pachca («Напоминания», Reminders): the resource is shown as Reminder,
+ * and its value stays `task`, which saved workflows keep.
+ */
 function resourceDisplayName(resource: string): string {
   const MAP: Record<string, string> = {
     user: 'User', message: 'Message', chat: 'Chat', member: 'Chat Member',
     thread: 'Thread', reaction: 'Reaction', groupTag: 'Group Tag',
-    profile: 'Profile', customProperty: 'Custom Property', task: 'Task',
+    profile: 'Profile', customProperty: 'Custom Property', task: 'Reminder',
     bot: 'Bot', file: 'File', form: 'Form', readMember: 'Read Member',
     oauth: 'OAuth', search: 'Search', security: 'Security', draft: 'Draft',
     importantMessage: 'Important Message',
@@ -855,19 +862,121 @@ function quote(s: string): string {
 const ENUM_DISPLAY_OVERRIDES: Record<string, string> = {
   asc: 'Ascending',
   desc: 'Descending',
+  // Entity Type of custom properties: the `/tasks` entity is a reminder (see resourceDisplayName)
+  Task: 'Reminder',
 };
 
-function generateEnumOptions(values: unknown[], enumDescriptions?: Record<string, string>): string {
-  return values
-    .map(v => {
-      const val = String(v);
-      const name = ENUM_DISPLAY_OVERRIDES[val] ?? formatDisplayName(val);
-      const desc = enumDescriptions?.[val];
-      if (desc && desc.toLowerCase() !== name.toLowerCase()) {
-        return { name, val, str: `{ name: ${quote(name)}, value: ${quote(val)}, description: ${quote(desc)} }` };
-      }
-      return { name, val, str: `{ name: ${quote(name)}, value: ${quote(val)} }` };
-    })
+/**
+ * JSON null in a body field clears a value in the API: `kind: null` on Bot > Update
+ * deletes the incoming webhook, `parent_message_id: null` on Draft > Update removes
+ * the reply. An n8n field cannot hold null, so every nullable body field gets a way
+ * to send it, chosen by the field type:
+ *
+ * - enum options: one more option, None, with the string value `null`
+ *   (isNullableOptions);
+ * - JSON object: the literal `null` typed into the field (isNullableJson);
+ * - number, string or boolean in the Additional Fields of an update: a boolean
+ *   `Clear <Field>` next to it, which sends null and wins over the field value
+ *   (nullFlagFor).
+ *
+ * The router sends null by the `nullable` mark (option and JSON) or by the `nullFlag`
+ * name (the boolean) in the field map. Where the spec description says `null`, the
+ * node names the option or the boolean instead. A nullable scalar field outside the
+ * Additional Fields of an update gets no boolean, so its description must not promise
+ * null: the generator stops on such a field (see assertNullHandled).
+ */
+const NULL_OPTION_NAME = 'None';
+const NULL_OPTION_DESCRIPTIONS: Record<string, string> = {
+  'bot.kind': 'Deletes the incoming webhook',
+};
+
+function isNullableOptions(field: BodyField): boolean {
+  return !!field.nullable && !!field.enum?.length && !FIELD_OPTIONS_OVERRIDES[field.name] && toN8nType(field) === 'options';
+}
+
+function nullOption(resource: string, field: BodyField): { name: string; value: string; description: string } {
+  return {
+    name: NULL_OPTION_NAME,
+    value: 'null',
+    description: NULL_OPTION_DESCRIPTIONS[`${resource}.${field.name}`] ?? 'Sends null',
+  };
+}
+
+/** A nullable JSON object field: the router sends the literal `null` as JSON null */
+function isNullableJson(field: BodyField): boolean {
+  return !!field.nullable && toN8nType(field) === 'json';
+}
+
+const NULL_FLAG_TYPES = new Set(['number', 'string', 'boolean']);
+
+/** An update operation: there null clears a stored value, in a create it equals leaving the field out */
+function isUpdateOperation(op: OperationInfo): boolean {
+  return op.endpoint.method === 'PUT' || op.endpoint.method === 'PATCH';
+}
+
+/**
+ * The `Clear <Field>` boolean of a nullable number, string or boolean field in the
+ * Additional Fields of an update, or undefined when the field gets none. Its
+ * description takes what null does from the spec sentence that starts with `null`.
+ */
+function nullFlagFor(
+  resource: string,
+  op: OperationInfo,
+  field: BodyField,
+): { name: string; displayName: string; description: string } | undefined {
+  if (!field.nullable || field.required || field.enum?.length || !isUpdateOperation(op)) return undefined;
+  if (!NULL_FLAG_TYPES.has(toN8nType(field))) return undefined;
+  // Only a field of the Additional Fields collection: the boolean lives there
+  const onTop = (map: Record<string, Record<string, Set<string>>>) =>
+    !!(map[resource]?.[op.v2Op] ?? map[resource]?.[op.v1Op])?.has(field.name);
+  if (onTop(PROMOTED_TOP_LEVEL_FIELDS) || onTop(OPTIONAL_TOP_LEVEL_FIELDS)) return undefined;
+  const fieldName = getParamName(resource, op.v1Op, field.name);
+  const fieldDisplayName = formatDisplayName(field.name);
+  const specDesc = getFieldDescription(field.name, field.description, op.endpoint.id) ?? '';
+  const effect = specDesc.match(/`null` ([^.]+)\./)?.[1];
+  return {
+    name: `clear${fieldName.charAt(0).toUpperCase()}${fieldName.slice(1)}`,
+    displayName: `Clear ${fieldDisplayName}`,
+    description: `Whether to send null, which ${effect ?? 'clears the value'}. It takes precedence over ${fieldDisplayName}.`,
+  };
+}
+
+/**
+ * A nullable field whose description speaks of `null` anywhere ("`null` removes the
+ * reply", "and `null` disables it") needs a way to send it: an option, the JSON
+ * literal or the boolean. The check runs on the field as the node shows it.
+ */
+function assertNullHandled(resource: string, op: OperationInfo, field: BodyField, description: string, isInsideCollection: boolean): void {
+  if (!field.nullable || !description.includes('`null`')) return;
+  if (isNullableOptions(field) || isNullableJson(field)) return;
+  if (isInsideCollection && nullFlagFor(resource, op, field)) return;
+  throw new Error(
+    `${resource} > ${op.v2Op}: the description of ${field.name} promises null, and the node has no way to send it`,
+  );
+}
+
+function generateEnumOptions(
+  values: unknown[],
+  enumDescriptions?: Record<string, string>,
+  extra?: { name: string; value: string; description: string },
+): string {
+  const options = values.map(v => {
+    const val = String(v);
+    const name = ENUM_DISPLAY_OVERRIDES[val] ?? formatDisplayName(val);
+    const desc = enumDescriptions?.[val];
+    if (desc && desc.toLowerCase() !== name.toLowerCase()) {
+      return { name, val, str: `{ name: ${quote(name)}, value: ${quote(val)}, description: ${quote(desc)} }` };
+    }
+    return { name, val, str: `{ name: ${quote(name)}, value: ${quote(val)} }` };
+  });
+  if (extra) {
+    options.push({
+      name: extra.name,
+      val: extra.value,
+      str: `{ name: ${quote(extra.name)}, value: ${quote(extra.value)}, description: ${quote(extra.description)} }`,
+    });
+  }
+  return options
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(o => o.str)
     .join(',\n');
@@ -1070,17 +1179,19 @@ function generateResourceDescription(
     let requiredFields = op.fields.filter(f => (f.required || promotedSet?.has(f.name) || keptOnTop?.has(f.name)) && !f.readOnly);
     const optionalFields = op.fields.filter(f => !f.required && !promotedSet?.has(f.name) && !keptOnTop?.has(f.name) && !f.readOnly);
 
-    // Bot update: replace webhook json field with webhookUrl string field
+    // Bot update: replace webhook json field with webhookUrl string field. It stays
+    // optional: an update that renames a bot or deletes its incoming webhook (Kind =
+    // None) must not set an outgoing webhook on a bot that has none. The router sends
+    // `outgoing_url` only when the field is filled.
     if (resource === 'bot' && (op.v2Op === 'update' || op.v1Op === 'update')) {
       requiredFields = requiredFields.filter(f => f.name !== 'webhook');
       lines.push(`\t{`);
       lines.push(`\t\tdisplayName: 'Webhook URL',`);
       lines.push(`\t\tname: 'webhookUrl',`);
       lines.push(`\t\ttype: 'string',`);
-      lines.push(`\t\trequired: true,`);
       lines.push(`\t\tdefault: '',`);
       lines.push(`\t\tplaceholder: 'https://example.com/webhook',`);
-      lines.push(`\t\tdescription: 'URL for the outgoing webhook',`);
+      lines.push(`\t\tdescription: 'URL of the outgoing webhook. An empty field keeps the current address.',`);
       lines.push(`\t\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: [${allOpValues.map(quote).join(', ')}] } },`);
       lines.push(`\t},`);
     }
@@ -1123,9 +1234,33 @@ function generateResourceDescription(
       lines.push(`\t\tdefault: {},`);
       lines.push(`\t\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: [${allOpValues.map(quote).join(', ')}] } },`);
       lines.push(`\t\toptions: [`);
-      const sortedOptionalFields = [...filteredOptionalFields].sort((a, b) => formatDisplayName(a.name).localeCompare(formatDisplayName(b.name)));
-      for (const field of sortedOptionalFields) {
-        lines.push(generateFieldProperty(field, resource, op, allResourceValues, allOpValues, false, true));
+      // A nullable scalar of an update brings its `Clear <Field>` boolean (see nullFlagFor),
+      // sorted with the other options: n8n wants a collection in alphabetical order
+      const collectionOptions: Array<{ displayName: string; code: string }> = [];
+      for (const field of filteredOptionalFields) {
+        collectionOptions.push({
+          displayName: formatDisplayName(field.name),
+          code: generateFieldProperty(field, resource, op, allResourceValues, allOpValues, false, true),
+        });
+        const nullFlag = nullFlagFor(resource, op, field);
+        if (nullFlag) {
+          collectionOptions.push({
+            displayName: nullFlag.displayName,
+            code: [
+              `\t\t\t{`,
+              `\t\t\t\tdisplayName: ${quote(nullFlag.displayName)},`,
+              `\t\t\t\tname: ${quote(nullFlag.name)},`,
+              `\t\t\t\ttype: 'boolean',`,
+              `\t\t\t\tdefault: false,`,
+              `\t\t\t\tdescription: ${quote(sanitizeDescription(nullFlag.description))},`,
+              `\t\t\t},`,
+            ].join('\n'),
+          });
+        }
+      }
+      collectionOptions.sort((a, b) => a.displayName.localeCompare(b.displayName));
+      for (const option of collectionOptions) {
+        lines.push(option.code);
       }
       lines.push(`\t\t],`);
       lines.push(`\t},`);
@@ -1628,7 +1763,8 @@ function generateFieldProperty(
     lines.push(`${tab}\toptions: [${optStr}],`);
   } else if (n8nType === 'options' && field.enum) {
     const enumDescs = getEnumDescriptions(field.name, op.endpoint.id);
-    lines.push(`${tab}\toptions: [${generateEnumOptions(field.enum, enumDescs)}],`);
+    const extra = isNullableOptions(field) ? nullOption(resource, field) : undefined;
+    lines.push(`${tab}\toptions: [${generateEnumOptions(field.enum, enumDescs, extra)}],`);
   }
 
   if (n8nType === 'fixedCollection' && field.items?.properties) {
@@ -1695,7 +1831,15 @@ function generateFieldProperty(
 
   // Description — EN spec first, then RU fallback
   // Skip if identical to displayName (n8n lint: node-param-description-identical-to-display-name)
-  const rawDesc = getFieldDescription(field.name, field.description, op.endpoint.id);
+  const specDesc = getFieldDescription(field.name, field.description, op.endpoint.id);
+  const nullFlag = isInsideCollection ? nullFlagFor(resource, op, field) : undefined;
+  let rawDesc = specDesc;
+  if (specDesc && isNullableOptions(field)) {
+    rawDesc = specDesc.replace(/`null`/g, `"${NULL_OPTION_NAME}"`);
+  } else if (specDesc && nullFlag) {
+    rawDesc = specDesc.replace(/`null`/g, `"${nullFlag.displayName}"`);
+  }
+  if (specDesc) assertNullHandled(resource, op, field, specDesc, isInsideCollection);
   if (rawDesc && rawDesc.toLowerCase() !== displayName.toLowerCase()) {
     const desc = sanitizeDescription(n8nType === 'boolean' ? booleanDescription(rawDesc) : rawDesc);
     lines.push(`${tab}\tdescription: ${quote(desc)},`);
@@ -2050,7 +2194,7 @@ export class PachcaApi implements ICredentialType {
 \t\t\ttype: 'string',
 \t\t\ttypeOptions: { password: true },
 \t\t\tdefault: '',
-\t\t\tdescription: 'Used to verify incoming webhook requests from Pachca. Found in bot settings under the Webhook section.',
+\t\t\tdescription: 'Used to verify incoming webhook requests from Pachca. Copy the Signing secret from the Outgoing webhook tab in bot settings.',
 \t\t\thint: 'Only required when using the Pachca Trigger node',
 \t\t},
 \t\t{
@@ -2164,9 +2308,9 @@ function injectFileUploadFields(outputDir: string): void {
 
   let code = fs.readFileSync(filePath, 'utf-8');
 
-  // Replace empty fileFields with actual upload fields
-  const fieldsCode = `export const fileFields: INodeProperties[] = [
-\t{
+  // Upload fields of Create go first in fileFields: the generated array already
+  // holds the fields of the other File operations (Get), so it is never empty.
+  const uploadFields = `\t{
 \t\tdisplayName: 'File Source',
 \t\tname: 'fileSource',
 \t\ttype: 'options',
@@ -2220,12 +2364,13 @@ function injectFileUploadFields(outputDir: string): void {
 \t\t\t},
 \t\t],
 \t},
-];`;
+`;
 
-  code = code.replace(
-    /export const fileFields: INodeProperties\[\] = \[\n\];/,
-    fieldsCode,
-  );
+  const arrayStart = 'export const fileFields: INodeProperties[] = [\n';
+  if (!code.includes(arrayStart)) {
+    throw new Error('FileDescription.ts: fileFields array not found, file upload fields not injected');
+  }
+  code = code.replace(arrayStart, arrayStart + uploadFields);
 
   fs.writeFileSync(filePath, code);
   console.log('  Injected file upload fields into FileDescription.ts');
@@ -2318,7 +2463,7 @@ function generateTriggerNode(events: WebhookEventOption[]): string {
 \tIWebhookResponseData,
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
-import { verifyWebhookSignature, getTokenProfile, sanitizeBaseUrl } from './GenericFunctions';
+import { verifyWebhookSignature, getTokenProfile, isInsufficientScopeError, sanitizeBaseUrl } from './GenericFunctions';
 
 /** Maps n8n event value to webhook payload { type, event } for filtering */
 const EVENT_FILTER: Record<string, { type: string; event: string }> = {
@@ -2369,7 +2514,7 @@ ${optionEntries}
 \t\t\t\t\t{
 \t\t\t\t\t\tname: 'Automatic',
 \t\t\t\t\t\tvalue: 'automatic',
-\t\t\t\t\t\tdescription: 'The node registers and clears this webhook URL in Pachca automatically. A bot token self-registers via PUT /bot/webhook (no Bot ID needed). A personal token uses PUT /bots/:botId and needs the bots:write scope, editor access to the bot, and the Bot ID below.',
+\t\t\t\t\t\tdescription: 'The node registers and clears this webhook URL in Pachca automatically. A bot token self-registers via PUT /bot/webhook (no Bot ID needed) and needs the profile:read and bot_self:webhook:write scopes. A personal token uses PUT /bots/:botId and needs the bots:write scope, editor access to the bot, and the Bot ID below.',
 \t\t\t\t\t},
 \t\t\t\t\t{
 \t\t\t\t\t\tname: 'Manual',
@@ -2394,7 +2539,7 @@ ${optionEntries}
 \t\t\t},
 \t\t\t{
 \t\t\t\tdisplayName:
-\t\t\t\t\t'Automatic mode registers and clears this node\\'s webhook URL in Pachca on activate/deactivate. With a <b>bot token</b> it self-registers — no Bot ID needed. With a <b>personal token</b> it needs the <code>bots:write</code> scope, editor access to the target bot, and the <b>Bot ID</b> below.',
+\t\t\t\t\t'Automatic mode registers and clears this node\\'s webhook URL in Pachca on activate/deactivate. With a <b>bot token</b> it self-registers — no Bot ID needed: the token needs the <code>profile:read</code> and <code>bot_self:webhook:write</code> scopes. With a <b>personal token</b> it needs the <code>bots:write</code> scope, editor access to the target bot, and the <b>Bot ID</b> below. The node sets only the URL: tick the events in bot settings in Pachca (Outgoing webhook tab), and for New Message choose <b>Any messages</b> or list commands.',
 \t\t\t\tname: 'automaticSetupNotice',
 \t\t\t\ttype: 'notice',
 \t\t\t\tdefault: '',
@@ -2406,7 +2551,7 @@ ${optionEntries}
 \t\t\t},
 \t\t\t{
 \t\t\t\tdisplayName:
-\t\t\t\t\t'Copy the <b>Production URL</b> above and paste it into bot settings in Pachca (Outgoing Webhook tab → Webhook URL). Then activate the workflow. In manual mode n8n does not touch the bot webhook slot.',
+\t\t\t\t\t'Copy the <b>Production URL</b> above and paste it into bot settings in Pachca (Outgoing webhook tab → Webhook URL). On the same tab tick the events this node listens for, and for New Message choose <b>Any messages</b> or list commands. Then activate the workflow. In manual mode n8n does not touch the bot webhook slot.',
 \t\t\t\tname: 'manualSetupNotice',
 \t\t\t\ttype: 'notice',
 \t\t\t\tdefault: '',
@@ -2464,7 +2609,7 @@ ${optionEntries}
 \t\t\t\tconst setupMode = (this.getNodeParameter('webhookSetup', 'manual') as string) || 'manual';
 \t\t\t\tif (setupMode === 'manual') {
 \t\t\t\t\tthis.logger.info(
-\t\t\t\t\t\t'Pachca Trigger: manual webhook setup mode — n8n will not register the URL. Make sure the Production URL is pasted into Pachca bot settings (Outgoing Webhook tab → Webhook URL).',
+\t\t\t\t\t\t'Pachca Trigger: manual webhook setup mode — n8n will not register the URL. Make sure the Production URL is pasted into Pachca bot settings (Outgoing webhook tab → Webhook URL).',
 \t\t\t\t\t);
 \t\t\t\t\treturn true;
 \t\t\t\t}
@@ -2476,17 +2621,34 @@ ${optionEntries}
 
 \t\t\t\t// Detect token type via GET /profile. A bot token self-registers its own
 \t\t\t\t// webhook (PUT /bot/webhook, no Bot ID); a personal token registers a chosen
-\t\t\t\t// bot by id (PUT /bots/:id). Bot tokens always carry profile:read, so a failed
-\t\t\t\t// detection most likely means a personal token missing the scope — we fall back
-\t\t\t\t// to the personal-token path, which requires the Bot ID below.
+\t\t\t\t// bot by id (PUT /bots/:id). GET /profile needs the profile:read scope, and the
+\t\t\t\t// scopes of a bot token are chosen per token, so either token type may lack it.
+\t\t\t\t// With a Bot ID set the node goes on as a personal token; without one it stops
+\t\t\t\t// with the reason, since the Bot ID error would point the wrong way.
+\t\t\t\tconst botId = Number(this.getNodeParameter('botId', 0));
 \t\t\t\tlet isBotToken = false;
+\t\t\t\tlet profileScopeMissing = false;
 \t\t\t\ttry {
 \t\t\t\t\tconst profile = await getTokenProfile(this, credentials);
 \t\t\t\t\tisBotToken = profile.bot;
 \t\t\t\t} catch (error) {
+\t\t\t\t\tprofileScopeMissing = isInsufficientScopeError(error);
+\t\t\t\t\tif (!botId || botId <= 0) {
+\t\t\t\t\t\tif (profileScopeMissing) {
+\t\t\t\t\t\t\tthrow new NodeOperationError(
+\t\t\t\t\t\t\t\tthis.getNode(),
+\t\t\t\t\t\t\t\t'The token lacks the profile:read scope, so the node cannot tell a bot token from a personal one.',
+\t\t\t\t\t\t\t\t{
+\t\t\t\t\t\t\t\t\tdescription:
+\t\t\t\t\t\t\t\t\t\t'Automatic mode reads GET /profile to choose how to register the webhook URL. With a bot token, add the profile:read scope to this token in bot settings in Pachca (API tab) and activate the workflow again — the scopes of a bot token are chosen per token. With a personal token, fill in the Bot ID field of this node. Or switch Webhook Setup to Manual.',
+\t\t\t\t\t\t\t\t},
+\t\t\t\t\t\t\t);
+\t\t\t\t\t\t}
+\t\t\t\t\t\tthrow error;
+\t\t\t\t\t}
 \t\t\t\t\tconst message = error instanceof Error ? error.message : String(error);
 \t\t\t\t\tthis.logger.warn(
-\t\t\t\t\t\t\`Pachca Trigger: could not determine token type via GET /profile (\${message}). Proceeding as personal token — set Bot ID, or retry if this is a bot token.\`,
+\t\t\t\t\t\t\`Pachca Trigger: could not determine token type via GET /profile (\${message}). Proceeding as personal token with Bot ID \${botId}.\`,
 \t\t\t\t\t);
 \t\t\t\t}
 
@@ -2519,14 +2681,13 @@ ${optionEntries}
 
 \t\t\t\t// Personal token path — user must specify Bot ID explicitly; n8n cannot
 \t\t\t\t// infer which bot the user wants to manage from a personal token alone.
-\t\t\t\tconst botId = Number(this.getNodeParameter('botId', 0));
 \t\t\t\tif (!botId || botId <= 0) {
 \t\t\t\t\tthrow new NodeOperationError(
 \t\t\t\t\t\tthis.getNode(),
 \t\t\t\t\t\t'Bot ID is required for automatic webhook registration with a personal token.',
 \t\t\t\t\t\t{
 \t\t\t\t\t\t\tdescription:
-\t\t\t\t\t\t\t\t'Enter the Bot ID of the bot whose webhook URL should be registered. The personal token must have the bots:write scope and editor access to this bot. A bot token self-registers without a Bot ID — if you are using one, check that the token is valid.',
+\t\t\t\t\t\t\t\t'Enter the Bot ID of the bot whose webhook URL should be registered. The personal token must have the bots:write scope and editor access to this bot. A bot token self-registers without a Bot ID.',
 \t\t\t\t\t\t},
 \t\t\t\t\t);
 \t\t\t\t}
@@ -2545,7 +2706,10 @@ ${optionEntries}
 \t\t\t\t\t\t\t'Pachca rejected automatic webhook registration (403 Forbidden).',
 \t\t\t\t\t\t\t{
 \t\t\t\t\t\t\t\tdescription:
-\t\t\t\t\t\t\t\t\t'The personal token needs both the bots:write scope AND editor access to this bot in Pachca settings. Check the bot access list in Pachca, or switch to Manual mode.',
+\t\t\t\t\t\t\t\t\t'The personal token needs both the bots:write scope AND editor access to this bot in Pachca settings. Check the bot access list in Pachca, or switch to Manual mode.' +
+\t\t\t\t\t\t\t\t\t(profileScopeMissing
+\t\t\t\t\t\t\t\t\t\t? ' If this is a bot token, add the profile:read scope to it in bot settings in Pachca (API tab) and clear Bot ID — the node then registers the bot\\'s own webhook URL.'
+\t\t\t\t\t\t\t\t\t\t: ''),
 \t\t\t\t\t\t\t},
 \t\t\t\t\t\t);
 \t\t\t\t\t}
@@ -2714,6 +2878,17 @@ function buildFieldMapStr(resource: string, op: OperationInfo, f: BodyField): st
   // Object fields are rendered as a `json` node field, so the value arrives as a string
   if (f.type === 'object') {
     parts.push('isJson: true');
+  }
+
+  // The `null` option of a nullable enum field (see nullOption) and the literal `null`
+  // in a nullable JSON field go out as JSON null
+  if (isNullableOptions(f) || isNullableJson(f)) {
+    parts.push('nullable: true');
+  }
+  // The `Clear <Field>` boolean of a nullable scalar of an update (see nullFlagFor)
+  const nullFlag = nullFlagFor(resource, op, f);
+  if (nullFlag) {
+    parts.push(`nullFlag: '${nullFlag.name}'`);
   }
 
   // v1 compat: form fields that may be missing in v1 JSON mode or v1 workflows
@@ -3050,6 +3225,10 @@ interface FieldMap {
 \tlocator?: boolean;
 \tsubKey?: string;
 \tisJson?: boolean;
+\t/** The option value or the JSON text \`null\` is sent as JSON null */
+\tnullable?: boolean;
+\t/** The boolean of the collection that sends JSON null and wins over the field value */
+\tnullFlag?: string;
 \tdefault?: unknown;
 }
 
@@ -3174,6 +3353,11 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 // Generic Route Executor
 // ============================================================================
 
+/** The \`null\` option of a nullable enum field, or the literal \`null\` in a nullable JSON field */
+function isNullText(fm: FieldMap, value: unknown): boolean {
+\treturn fm.nullable === true && typeof value === 'string' && value.trim() === 'null';
+}
+
 async function executeRoute(
 \tthis: IExecuteFunctions,
 \troute: RouteConfig,
@@ -3259,7 +3443,9 @@ async function executeRoute(
 \t\t} else {
 \t\t\traw = this.getNodeParameter(fm.n8n, i);
 \t\t}
-\t\tif (fm.isArray && typeof raw === 'string') {
+\t\tif (isNullText(fm, raw)) {
+\t\t\tbody[fm.api] = null;
+\t\t} else if (fm.isArray && typeof raw === 'string') {
 \t\t\tbody[fm.api] = splitAndValidateCommaList(this, raw, fm.n8n, fm.arrayType!, i);
 \t\t} else if (fm.isJson && typeof raw === 'string') {
 \t\t\tbody[fm.api] = parseJsonObjectField(this, raw, fm.n8n, i);
@@ -3274,6 +3460,12 @@ async function executeRoute(
 \ttry { additional = this.getNodeParameter(collectionName, i, {}) as IDataObject; } catch { /* no collection */ }
 
 \tfor (const fm of route.optionalBodyMap ?? []) {
+\t\t// The Clear <Field> boolean of a nullable field sends null whatever the field holds
+\t\tif (fm.nullFlag && additional[fm.nullFlag] === true) {
+\t\t\tbody[fm.api] = null;
+\t\t\tcontinue;
+\t\t}
+
 \t\tlet val: unknown = additional[fm.n8n];
 
 \t\t// If not in collection, try as top-level param (v1 compat for V1_TOP_LEVEL_PARAMS)
@@ -3282,6 +3474,12 @@ async function executeRoute(
 \t\t}
 
 \t\tif (val === undefined || val === null || val === '') continue;
+
+\t\t// An n8n field cannot hold null: the \`null\` option or JSON text of a nullable field stands for it
+\t\tif (isNullText(fm, val)) {
+\t\t\tbody[fm.api] = null;
+\t\t\tcontinue;
+\t\t}
 
 \t\t// fixedCollection: extract inner array using subKey
 \t\tif (fm.subKey && typeof val === 'object' && !Array.isArray(val)) {

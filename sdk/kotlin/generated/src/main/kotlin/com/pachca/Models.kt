@@ -2,21 +2,28 @@ package com.pachca.sdk
 
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import kotlinx.serialization.KeepGeneratedSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Transient
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -24,6 +31,36 @@ object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor = PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: OffsetDateTime) = encoder.encodeString(value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
     override fun deserialize(decoder: Decoder): OffsetDateTime = OffsetDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+}
+
+/**
+ * Writes a request model as its generated serializer does: an unset field stays
+ * out of the body. A field named in nullFields goes out as null, whatever value
+ * it holds, and a name the model does not take as null fails before the request
+ * is sent.
+ */
+internal open class NullFieldsSerializer<T>(
+    private val generated: KSerializer<T>,
+    private val model: String,
+    private val keys: Map<String, String>,
+    private val nullFields: (T) -> Set<String>,
+) : KSerializer<T> {
+    override val descriptor: SerialDescriptor get() = generated.descriptor
+
+    override fun deserialize(decoder: Decoder): T = generated.deserialize(decoder)
+
+    override fun serialize(encoder: Encoder, value: T) {
+        val names = nullFields(value)
+        val unknown = names.firstOrNull { it !in keys }
+        if (unknown != null) throw SerializationException("$model: field \"$unknown\" cannot be sent as null")
+        if (names.isEmpty() || encoder !is JsonEncoder) {
+            generated.serialize(encoder, value)
+            return
+        }
+        val body = encoder.json.encodeToJsonElement(generated, value).jsonObject.toMutableMap()
+        for (name in names) body[keys.getValue(name)] = JsonNull
+        encoder.encodeJsonElement(JsonObject(body))
+    }
 }
 
 /** Тип аудит-события */
@@ -981,7 +1018,7 @@ value class ReactionEventType(val value: String) {
 enum class SearchEntityType(val value: String) {
     /** Пользователь */
     @SerialName("User") USER("User"),
-    /** Задача */
+    /** Напоминание */
     @SerialName("Task") TASK("Task"),
 }
 
@@ -1005,7 +1042,7 @@ enum class SortOrder(val value: String) {
     @SerialName("desc") DESC("desc"),
 }
 
-/** Тип задачи */
+/** Тип напоминания */
 @Serializable
 @JvmInline
 value class TaskKind(val value: String) {
@@ -1371,9 +1408,9 @@ value class WebhookEventType(val value: String) {
 @Serializable(with = AuditEventDetailsUnionSerializer::class)
 sealed interface AuditEventDetailsUnion
 
-// AuditEventDetailsUnion carries no discriminator field: the member is chosen by which one
-// best matches the payload keys (most recognised, then fewest unrecognised,
-// then fewest declared).
+// AuditEventDetailsUnion carries no discriminator field: members are tried in the order
+// they match the payload keys (most recognised, then fewest unrecognised, then
+// fewest declared), and the first one that decodes wins.
 object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
     override val descriptor = buildClassSerialDescriptor("AuditEventDetailsUnion")
 
@@ -1392,21 +1429,21 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
         setOf("chat_id", "message_id", "reason") to { json, element -> json.decodeFromJsonElement(AuditDetailsKms.serializer(), element) },
         setOf("dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched") to { json, element -> json.decodeFromJsonElement(AuditDetailsDlp.serializer(), element) },
         setOf("search_type", "query_present", "cursor_present", "limit", "filters") to { json, element -> json.decodeFromJsonElement(AuditDetailsSearch.serializer(), element) },
-        setOf("bot_id", "actor_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBot.serializer(), element) },
-        setOf("bot_id", "actor_id", "added_scopes", "removed_scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotScopes.serializer(), element) },
-        setOf("bot_id", "actor_id", "changes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotWebhookSettings.serializer(), element) },
-        setOf("bot_id", "actor_id", "client_id", "changes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClient.serializer(), element) },
-        setOf("client_id", "scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsOAuthAuthorizationGranted.serializer(), element) },
-        setOf("client_id", "revoked_tokens_count", "user_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsOAuthAuthorizationRevoked.serializer(), element) },
-        setOf("client_id", "scopes", "device_name") to { json, element -> json.decodeFromJsonElement(AuditDetailsDeviceAuthorizationApproved.serializer(), element) },
-        setOf("client_id", "scopes", "device_name") to { json, element -> json.decodeFromJsonElement(AuditDetailsDeviceAuthorizationDenied.serializer(), element) },
+        setOf("bot_id", "actor_id", "webhook_id", "application_id", "access_token_id", "access_token_preview", "scopes", "name") to { json, element -> json.decodeFromJsonElement(AuditDetailsBot.serializer(), element) },
+        setOf("bot_id", "actor_id", "added_scopes", "removed_scopes", "bot_name", "webhook_id", "previous_scopes", "new_scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotScopes.serializer(), element) },
+        setOf("bot_id", "actor_id", "changes", "bot_name", "webhook_id", "access_token_id", "access_token_preview", "application_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotWebhookSettings.serializer(), element) },
+        setOf("bot_id", "actor_id", "client_id", "changes", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClient.serializer(), element) },
+        setOf("client_id", "scopes", "application_id", "application_name", "bot_id", "bot_name", "authorization_grant_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsOAuthAuthorizationGranted.serializer(), element) },
+        setOf("client_id", "revoked_tokens_count", "user_id", "application_id", "application_name", "bot_id", "bot_name") to { json, element -> json.decodeFromJsonElement(AuditDetailsOAuthAuthorizationRevoked.serializer(), element) },
+        setOf("client_id", "scopes", "device_name", "application_id", "application_name", "device_grant_id", "token_kind") to { json, element -> json.decodeFromJsonElement(AuditDetailsDeviceAuthorizationApproved.serializer(), element) },
+        setOf("client_id", "scopes", "device_name", "application_id", "device_grant_id", "token_kind") to { json, element -> json.decodeFromJsonElement(AuditDetailsDeviceAuthorizationDenied.serializer(), element) },
         setOf("chat_id", "started_message_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallStarted.serializer(), element) },
         setOf("chat_id", "started_message_id", "duration", "max_members_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallFinished.serializer(), element) },
         setOf("chat_id", "started_message_id", "recording_id", "file_id", "duration", "size") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallRecording.serializer(), element) },
-        setOf("bot_id", "actor_id", "client_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClientSecretRotated.serializer(), element) },
-        setOf("bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClientDisabled.serializer(), element) },
-        setOf("token_kind", "token_name", "resource_owner_id", "scopes", "bot_id", "reason") to { json, element -> json.decodeFromJsonElement(AuditDetailsToken.serializer(), element) },
-        setOf("token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotTokenUpdated.serializer(), element) },
+        setOf("bot_id", "actor_id", "client_id", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClientSecretRotated.serializer(), element) },
+        setOf("bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClientDisabled.serializer(), element) },
+        setOf("token_kind", "token_name", "resource_owner_id", "scopes", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_id", "bot_name", "device_name", "actor_id", "webhook_id", "user_id", "source", "reason") to { json, element -> json.decodeFromJsonElement(AuditDetailsToken.serializer(), element) },
+        setOf("token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_name", "webhook_id", "name", "scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotTokenUpdated.serializer(), element) },
         setOf("method", "login_grant_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsUserLoginQr.serializer(), element) },
         setOf("login_grant_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsLoginGrantCreated.serializer(), element) },
         setOf("login_grant_id", "device") to { json, element -> json.decodeFromJsonElement(AuditDetailsLoginGrantApproved.serializer(), element) },
@@ -1456,27 +1493,22 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
         val jsonDecoder = decoder as? JsonDecoder ?: error("AuditEventDetailsUnionSerializer only supports JSON")
         val element = jsonDecoder.decodeJsonElement()
         val keys = element.jsonObject.keys
-        var best: Pair<Set<String>, (Json, JsonElement) -> AuditEventDetailsUnion>? = null
-        var bestMatched = 0
-        var bestUnknown = 0
-        var bestDeclared = 0
-        for (shape in shapes) {
-            val matched = keys.count { it in shape.first }
-            val unknown = keys.size - matched
-            val declared = shape.first.size
-            val better = best == null ||
-                matched > bestMatched ||
-                (matched == bestMatched && unknown < bestUnknown) ||
-                (matched == bestMatched && unknown == bestUnknown && declared < bestDeclared)
-            if (better) {
-                best = shape
-                bestMatched = matched
-                bestUnknown = unknown
-                bestDeclared = declared
+        // sortedWith is stable: a tie keeps the declared order.
+        val ranked = shapes.sortedWith(
+            compareByDescending<Pair<Set<String>, *>> { shape -> keys.count { it in shape.first } }
+                .thenBy { shape -> keys.count { it !in shape.first } }
+                .thenBy { shape -> shape.first.size },
+        )
+        var firstError: IllegalArgumentException? = null
+        for (shape in ranked) {
+            try {
+                return shape.second(jsonDecoder.json, element)
+            } catch (e: IllegalArgumentException) {
+                // SerializationException is one: a wrong type or a missing required field.
+                if (firstError == null) firstError = e
             }
         }
-        val chosen = best ?: error("No AuditEventDetailsUnion member matched the payload")
-        return chosen.second(jsonDecoder.json, element)
+        throw firstError ?: kotlinx.serialization.SerializationException("No AuditEventDetailsUnion member matched the payload")
     }
 }
 
@@ -1547,12 +1579,12 @@ data class AuditDetailsKms(
 
 @Serializable
 data class AuditDetailsDlp(
-    @SerialName("dlp_rule_id") val dlpRuleId: Int,
+    @SerialName("dlp_rule_id") val dlpRuleId: String,
     @SerialName("dlp_rule_name") val dlpRuleName: String,
     @SerialName("message_id") val messageId: Int,
     @SerialName("chat_id") val chatId: Int,
     @SerialName("user_id") val userId: Int,
-    @SerialName("action_message") val actionMessage: String,
+    @SerialName("action_message") val actionMessage: String? = null,
     @SerialName("conditions_matched") val conditionsMatched: Boolean,
 ) : AuditEventDetailsUnion
 
@@ -1561,43 +1593,70 @@ data class AuditDetailsSearch(
     @SerialName("search_type") val searchType: String,
     @SerialName("query_present") val queryPresent: Boolean,
     @SerialName("cursor_present") val cursorPresent: Boolean,
-    val limit: Int,
+    val limit: Int? = null,
     val filters: Map<String, JsonElement>,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsBot(
     @SerialName("bot_id") val botId: Int,
-    @SerialName("actor_id") val actorId: Int,
+    @SerialName("actor_id") val actorId: Int? = null,
+    @SerialName("webhook_id") val webhookId: Int? = null,
+    @SerialName("application_id") val applicationId: Int? = null,
+    @SerialName("access_token_id") val accessTokenId: Int? = null,
+    @SerialName("access_token_preview") val accessTokenPreview: String? = null,
+    val scopes: AuditDetailsBotScopesValue? = null,
+    val name: AuditDetailsTokenNameChange? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsBotScopes(
     @SerialName("bot_id") val botId: Int,
-    @SerialName("actor_id") val actorId: Int,
+    @SerialName("actor_id") val actorId: Int? = null,
     @SerialName("added_scopes") val addedScopes: List<String>,
     @SerialName("removed_scopes") val removedScopes: List<String>,
+    @SerialName("bot_name") val botName: String? = null,
+    @SerialName("webhook_id") val webhookId: Int,
+    @SerialName("previous_scopes") val previousScopes: List<String>,
+    @SerialName("new_scopes") val newScopes: List<String>,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsBotWebhookSettings(
     @SerialName("bot_id") val botId: Int,
-    @SerialName("actor_id") val actorId: Int,
+    @SerialName("actor_id") val actorId: Int? = null,
     val changes: Map<String, JsonElement>,
+    @SerialName("bot_name") val botName: String? = null,
+    @SerialName("webhook_id") val webhookId: Int? = null,
+    @SerialName("access_token_id") val accessTokenId: Int? = null,
+    @SerialName("access_token_preview") val accessTokenPreview: String? = null,
+    @SerialName("application_id") val applicationId: Int? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsBotOAuthClient(
     @SerialName("bot_id") val botId: Int,
-    @SerialName("actor_id") val actorId: Int,
+    @SerialName("actor_id") val actorId: Int? = null,
     @SerialName("client_id") val clientId: String,
     val changes: Map<String, JsonElement>,
+    @SerialName("application_id") val applicationId: Int? = null,
+    @SerialName("application_name") val applicationName: String? = null,
+    @SerialName("bot_name") val botName: String? = null,
+    @SerialName("webhook_id") val webhookId: Int? = null,
+    val scopes: List<String>? = null,
+    @SerialName("access_token_id") val accessTokenId: Int? = null,
+    @SerialName("access_token_preview") val accessTokenPreview: String? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsOAuthAuthorizationGranted(
-    @SerialName("client_id") val clientId: String,
+    @SerialName("client_id") val clientId: String? = null,
     val scopes: List<String>,
+    @SerialName("application_id") val applicationId: Int,
+    @SerialName("application_name") val applicationName: String? = null,
+    @SerialName("bot_id") val botId: Int? = null,
+    @SerialName("bot_name") val botName: String? = null,
+    @SerialName("authorization_grant_id") val authorizationGrantId: Int,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1605,6 +1664,10 @@ data class AuditDetailsOAuthAuthorizationRevoked(
     @SerialName("client_id") val clientId: String,
     @SerialName("revoked_tokens_count") val revokedTokensCount: Int,
     @SerialName("user_id") val userId: Int? = null,
+    @SerialName("application_id") val applicationId: Int,
+    @SerialName("application_name") val applicationName: String? = null,
+    @SerialName("bot_id") val botId: Int? = null,
+    @SerialName("bot_name") val botName: String? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1612,6 +1675,10 @@ data class AuditDetailsDeviceAuthorizationApproved(
     @SerialName("client_id") val clientId: String,
     val scopes: List<String>,
     @SerialName("device_name") val deviceName: String? = null,
+    @SerialName("application_id") val applicationId: Int,
+    @SerialName("application_name") val applicationName: String? = null,
+    @SerialName("device_grant_id") val deviceGrantId: Int,
+    @SerialName("token_kind") val tokenKind: String? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1619,26 +1686,29 @@ data class AuditDetailsDeviceAuthorizationDenied(
     @SerialName("client_id") val clientId: String,
     val scopes: List<String>,
     @SerialName("device_name") val deviceName: String? = null,
+    @SerialName("application_id") val applicationId: Int? = null,
+    @SerialName("device_grant_id") val deviceGrantId: Int,
+    @SerialName("token_kind") val tokenKind: String? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsVideoCallStarted(
     @SerialName("chat_id") val chatId: Int,
-    @SerialName("started_message_id") val startedMessageId: Int,
+    @SerialName("started_message_id") val startedMessageId: Int? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsVideoCallFinished(
     @SerialName("chat_id") val chatId: Int,
-    @SerialName("started_message_id") val startedMessageId: Int,
-    val duration: Int,
+    @SerialName("started_message_id") val startedMessageId: Int? = null,
+    val duration: Int? = null,
     @SerialName("max_members_count") val maxMembersCount: Int,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsVideoCallRecording(
     @SerialName("chat_id") val chatId: Int,
-    @SerialName("started_message_id") val startedMessageId: Int,
+    @SerialName("started_message_id") val startedMessageId: Int? = null,
     @SerialName("recording_id") val recordingId: Int,
     @SerialName("file_id") val fileId: Int,
     val duration: Int,
@@ -1648,37 +1718,71 @@ data class AuditDetailsVideoCallRecording(
 @Serializable
 data class AuditDetailsBotOAuthClientSecretRotated(
     @SerialName("bot_id") val botId: Int,
-    @SerialName("actor_id") val actorId: Int,
+    @SerialName("actor_id") val actorId: Int? = null,
     @SerialName("client_id") val clientId: String,
+    @SerialName("application_id") val applicationId: Int? = null,
+    @SerialName("application_name") val applicationName: String? = null,
+    @SerialName("bot_name") val botName: String? = null,
+    @SerialName("webhook_id") val webhookId: Int? = null,
+    val scopes: List<String>? = null,
+    @SerialName("access_token_id") val accessTokenId: Int? = null,
+    @SerialName("access_token_preview") val accessTokenPreview: String? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsBotOAuthClientDisabled(
     @SerialName("bot_id") val botId: Int,
-    @SerialName("actor_id") val actorId: Int,
+    @SerialName("actor_id") val actorId: Int? = null,
     @SerialName("client_id") val clientId: String,
     @SerialName("deleted_access_tokens_count") val deletedAccessTokensCount: Int,
     @SerialName("deleted_access_grants_count") val deletedAccessGrantsCount: Int,
+    @SerialName("application_id") val applicationId: Int? = null,
+    @SerialName("application_name") val applicationName: String? = null,
+    @SerialName("bot_name") val botName: String? = null,
+    @SerialName("webhook_id") val webhookId: Int? = null,
+    val scopes: List<String>? = null,
+    @SerialName("access_token_id") val accessTokenId: Int? = null,
+    @SerialName("access_token_preview") val accessTokenPreview: String? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsToken(
     @SerialName("token_kind") val tokenKind: String,
-    @SerialName("token_name") val tokenName: String,
+    @SerialName("token_name") val tokenName: String? = null,
     @SerialName("resource_owner_id") val resourceOwnerId: Int,
     val scopes: List<String>,
+    @SerialName("access_token_id") val accessTokenId: Int,
+    @SerialName("access_token_preview") val accessTokenPreview: String? = null,
+    @SerialName("application_id") val applicationId: Int? = null,
+    @SerialName("application_name") val applicationName: String? = null,
+    @SerialName("client_id") val clientId: String? = null,
     @SerialName("bot_id") val botId: Int? = null,
+    @SerialName("bot_name") val botName: String? = null,
+    @SerialName("device_name") val deviceName: String? = null,
+    @SerialName("actor_id") val actorId: Int? = null,
+    @SerialName("webhook_id") val webhookId: Int? = null,
+    @SerialName("user_id") val userId: Int? = null,
+    val source: String? = null,
     val reason: String? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsBotTokenUpdated(
     @SerialName("token_kind") val tokenKind: String,
-    @SerialName("token_name") val tokenName: String,
+    @SerialName("token_name") val tokenName: String? = null,
     @SerialName("resource_owner_id") val resourceOwnerId: Int,
     @SerialName("current_scopes") val currentScopes: List<String>,
     @SerialName("bot_id") val botId: Int? = null,
-    @SerialName("actor_id") val actorId: Int,
+    @SerialName("actor_id") val actorId: Int? = null,
+    @SerialName("access_token_id") val accessTokenId: Int,
+    @SerialName("access_token_preview") val accessTokenPreview: String? = null,
+    @SerialName("application_id") val applicationId: Int? = null,
+    @SerialName("application_name") val applicationName: String? = null,
+    @SerialName("client_id") val clientId: String? = null,
+    @SerialName("bot_name") val botName: String? = null,
+    @SerialName("webhook_id") val webhookId: Int,
+    val name: AuditDetailsTokenNameChange? = null,
+    val scopes: AuditDetailsTokenScopesChange? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1884,7 +1988,7 @@ data class MessageWebhookPayload(
 data class ReactionWebhookPayload(
     override val type: String = "reaction",
     val event: ReactionEventType,
-    @SerialName("chat_id") val chatId: Int,
+    @SerialName("chat_id") val chatId: Int? = null,
     @SerialName("message_id") val messageId: Int,
     val code: String,
     val name: String,
@@ -1911,9 +2015,9 @@ data class ButtonWebhookPayload(
 @SerialName("view")
 data class ViewSubmitWebhookPayload(
     override val type: String = "view",
-    @SerialName("callback_id") val callbackId: String,
-    @SerialName("private_metadata") val privateMetadata: String,
-    @SerialName("chat_id") val chatId: Int,
+    @SerialName("callback_id") val callbackId: String? = null,
+    @SerialName("private_metadata") val privateMetadata: String? = null,
+    @SerialName("chat_id") val chatId: Int? = null,
     @SerialName("user_id") val userId: Int,
     @SerialName("view_id") val viewId: String,
     @SerialName("submit_id") val submitId: String,
@@ -1954,8 +2058,8 @@ data class LinkSharedWebhookPayload(
     val links: List<WebhookLink>,
     @SerialName("user_id") val userId: Int,
     @SerialName("entity_type") val entityType: MessageEntityType,
-    @SerialName("entity_id") val entityId: Int,
-    val thread: WebhookMessageThread,
+    @SerialName("entity_id") val entityId: Int? = null,
+    val thread: WebhookMessageThread? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion {
@@ -1981,6 +2085,39 @@ data class VideoCallWebhookPayload(
     val size: Long? = null,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion
+
+/**
+ * Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
+ */
+@Serializable(with = AuditDetailsBotScopesValueSerializer::class)
+sealed interface AuditDetailsBotScopesValue {
+    data class StringList(val value: kotlin.collections.List<kotlin.String>) : AuditDetailsBotScopesValue
+    data class AuditDetailsTokenScopesChange(val value: com.pachca.sdk.AuditDetailsTokenScopesChange) : AuditDetailsBotScopesValue
+}
+
+object AuditDetailsBotScopesValueSerializer : KSerializer<AuditDetailsBotScopesValue> {
+    override val descriptor = buildClassSerialDescriptor("AuditDetailsBotScopesValue")
+
+    override fun serialize(encoder: Encoder, value: AuditDetailsBotScopesValue) {
+        val jsonEncoder = encoder as? JsonEncoder ?: error("AuditDetailsBotScopesValueSerializer only supports JSON")
+        val element = when (value) {
+            is AuditDetailsBotScopesValue.StringList -> jsonEncoder.json.encodeToJsonElement(value.value)
+            is AuditDetailsBotScopesValue.AuditDetailsTokenScopesChange -> jsonEncoder.json.encodeToJsonElement(value.value)
+        }
+        jsonEncoder.encodeJsonElement(element)
+    }
+
+    override fun deserialize(decoder: Decoder): AuditDetailsBotScopesValue {
+        val jsonDecoder = decoder as? JsonDecoder ?: error("AuditDetailsBotScopesValueSerializer only supports JSON")
+        val element = jsonDecoder.decodeJsonElement()
+        val json = jsonDecoder.json
+        return when {
+            element is JsonArray -> AuditDetailsBotScopesValue.StringList(json.decodeFromJsonElement<kotlin.collections.List<kotlin.String>>(element))
+            element is JsonObject -> AuditDetailsBotScopesValue.AuditDetailsTokenScopesChange(json.decodeFromJsonElement<com.pachca.sdk.AuditDetailsTokenScopesChange>(element))
+            else -> throw SerializationException("AuditDetailsBotScopesValue takes StringList or AuditDetailsTokenScopesChange, got $element")
+        }
+    }
+}
 
 @Serializable
 data class AccessTokenInfo(
@@ -2029,6 +2166,18 @@ data class ApiErrorItem(
     val message: String,
     val code: ValidationErrorCode,
     val payload: Map<String, JsonElement>? = null,
+)
+
+@Serializable
+data class AuditDetailsTokenNameChange(
+    val previous: String? = null,
+    val new: String? = null,
+)
+
+@Serializable
+data class AuditDetailsTokenScopesChange(
+    val previous: List<String>,
+    val new: List<String>,
 )
 
 @Serializable
@@ -2257,7 +2406,8 @@ data class BotTokenUpdateRequest(
     val scopes: List<String>? = null,
 )
 
-@Serializable
+@KeepGeneratedSerializer
+@Serializable(with = BotUpdateRequestWebhookSerializer::class)
 data class BotUpdateRequestWebhook(
     val name: String? = null,
     val nickname: String? = null,
@@ -2277,13 +2427,26 @@ data class BotUpdateRequestWebhook(
     @SerialName("single_chat") val singleChat: Boolean? = null,
     val kind: BotWebhookKind? = null,
     @SerialName("unfurl_domains") val unfurlDomains: List<String>? = null,
+    /** Fields to send as null: kind. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
 )
 
-@Serializable
+internal object BotUpdateRequestWebhookSerializer : NullFieldsSerializer<BotUpdateRequestWebhook>(
+    BotUpdateRequestWebhook.generatedSerializer(), "BotUpdateRequestWebhook", mapOf("kind" to "kind"), { it.nullFields },
+)
+
+@KeepGeneratedSerializer
+@Serializable(with = BotUpdateRequestSerializer::class)
 data class BotUpdateRequest(
     val webhook: BotUpdateRequestWebhook? = null,
     @SerialName("oauth_client") val oauthClient: BotOAuthClientRequest? = null,
     val promo: BotPromoRequest? = null,
+    /** Fields to send as null: oauthClient. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
+)
+
+internal object BotUpdateRequestSerializer : NullFieldsSerializer<BotUpdateRequest>(
+    BotUpdateRequest.generatedSerializer(), "BotUpdateRequest", mapOf("oauthClient" to "oauth_client"), { it.nullFields },
 )
 
 @Serializable
@@ -2434,7 +2597,8 @@ data class Draft(
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("updated_at") val updatedAt: OffsetDateTime,
 )
 
-@Serializable
+@KeepGeneratedSerializer
+@Serializable(with = DraftCreateRequestDraftSerializer::class)
 data class DraftCreateRequestDraft(
     @SerialName("entity_type") val entityType: MessageEntityType,
     @SerialName("entity_id") val entityId: Int,
@@ -2442,6 +2606,12 @@ data class DraftCreateRequestDraft(
     @SerialName("parent_message_id") val parentMessageId: Int? = null,
     val files: List<DraftFileRequest>? = null,
     val schedule: DraftScheduleRequest? = null,
+    /** Fields to send as null: parentMessageId, schedule. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
+)
+
+internal object DraftCreateRequestDraftSerializer : NullFieldsSerializer<DraftCreateRequestDraft>(
+    DraftCreateRequestDraft.generatedSerializer(), "DraftCreateRequestDraft", mapOf("parentMessageId" to "parent_message_id", "schedule" to "schedule"), { it.nullFields },
 )
 
 @Serializable
@@ -2469,11 +2639,18 @@ data class DraftRepetition(
     @SerialName("nth_day") val nthDay: Int? = null,
 )
 
-@Serializable
+@KeepGeneratedSerializer
+@Serializable(with = DraftRepetitionRequestSerializer::class)
 data class DraftRepetitionRequest(
     val interval: DraftRepetitionInterval,
     val days: List<Int>? = null,
     @SerialName("nth_day") val nthDay: Int? = null,
+    /** Fields to send as null: nthDay. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
+)
+
+internal object DraftRepetitionRequestSerializer : NullFieldsSerializer<DraftRepetitionRequest>(
+    DraftRepetitionRequest.generatedSerializer(), "DraftRepetitionRequest", mapOf("nthDay" to "nth_day"), { it.nullFields },
 )
 
 @Serializable
@@ -2483,19 +2660,33 @@ data class DraftSchedule(
     val repetition: DraftRepetition,
 )
 
-@Serializable
+@KeepGeneratedSerializer
+@Serializable(with = DraftScheduleRequestSerializer::class)
 data class DraftScheduleRequest(
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("start_date") val startDate: OffsetDateTime,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("end_date") val endDate: OffsetDateTime? = null,
     val repetition: DraftRepetitionRequest,
+    /** Fields to send as null: endDate. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
 )
 
-@Serializable
+internal object DraftScheduleRequestSerializer : NullFieldsSerializer<DraftScheduleRequest>(
+    DraftScheduleRequest.generatedSerializer(), "DraftScheduleRequest", mapOf("endDate" to "end_date"), { it.nullFields },
+)
+
+@KeepGeneratedSerializer
+@Serializable(with = DraftUpdateRequestDraftSerializer::class)
 data class DraftUpdateRequestDraft(
     val content: String? = null,
     @SerialName("parent_message_id") val parentMessageId: Int? = null,
     val files: List<DraftFileRequest>? = null,
     val schedule: DraftScheduleRequest? = null,
+    /** Fields to send as null: parentMessageId, schedule. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
+)
+
+internal object DraftUpdateRequestDraftSerializer : NullFieldsSerializer<DraftUpdateRequestDraft>(
+    DraftUpdateRequestDraft.generatedSerializer(), "DraftUpdateRequestDraft", mapOf("parentMessageId" to "parent_message_id", "schedule" to "schedule"), { it.nullFields },
 )
 
 @Serializable
@@ -2745,6 +2936,11 @@ data class OpenViewRequest(
 )
 
 @Serializable
+data class OpenViewResult(
+    val success: Boolean,
+)
+
+@Serializable
 data class PaginationMetaPaginate(
     @SerialName("next_page") val nextPage: String,
     @SerialName("prev_page") val prevPage: String? = null,
@@ -2774,6 +2970,7 @@ data class ReactionRequest(
 @Serializable
 data class SearchPaginationMetaPaginate(
     @SerialName("next_page") val nextPage: String,
+    @SerialName("has_next") val hasNext: Boolean,
 )
 
 @Serializable

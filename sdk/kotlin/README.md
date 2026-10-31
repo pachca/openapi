@@ -9,10 +9,20 @@ Kotlin клиент для [Pachca API](https://dev.pachca.com).
 
 ## Установка
 
+Пакет публикуется через [JitPack](https://jitpack.io/#pachca/openapi):
+
 ```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+
 // build.gradle.kts
 dependencies {
-    implementation("com.pachca:pachca-sdk:latest.release")
+    implementation("com.github.pachca:openapi:1.8.0")
 }
 ```
 
@@ -44,26 +54,27 @@ val users = pachca.users.listUsers()
 
 ## Конвенции
 
-- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Вход**: path-параметры передаются аргументами метода. Тело из одного обязательного поля, например роль участника чата, тоже разворачивается в аргумент. Остальные тела передаются одним объектом-запросом.
 - **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую. Если рядом с `data` есть `meta` (списки и метод `Новый чат`), SDK возвращает ответ целиком: `data` и `meta`.
+- **Значение null**: необязательное поле, которое не задано, в запрос не попадает. Чтобы отправить `null` там, где API его принимает (например, `null` в `webhook.kind` удаляет входящий вебхук бота), назовите поле в `nullFields` модели запроса так, как оно называется в Kotlin: `BotUpdateRequestWebhook(nullFields = setOf("kind"))`.
 
 ```kotlin
-// ≤2 поля → развёрнуто в аргументы
-pachca.reactions.addReaction(messageId, ReactionRequest(code = "👍"))
+// Тело из одного поля → аргумент
+pachca.members.updateMemberRole(chatId, userId, ChatMemberRole.ADMIN)
 pachca.messages.pinMessage(messageId)
 
-// >2 полей → объект-запрос
-pachca.messages.createMessage(MessageCreateRequest(...))
+// Тело из нескольких полей → объект-запрос
+pachca.reactions.addReaction(messageId, ReactionRequest(code = "👍"))
 
 // Ответ: API возвращает {"data": ...}, SDK возвращает объект напрямую
-val message = pachca.messages.createMessage(...)  // Message, не MessageResponse
+val message = pachca.messages.getMessage(messageId)  // Message, не MessageResponse
 ```
 
 Полное описание параметров: [документация API](https://dev.pachca.com)
 
 ## Пагинация
 
-Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
+Для методов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
 
 ```kotlin
 // Вручную
@@ -80,21 +91,27 @@ while (true) {
 val allChats = pachca.chats.listChatsAll()
 ```
 
-Доступные методы: `listChatsAll`, `listUsersAll`, `listTasksAll`, `listTagsAll`, `listMembersAll`, `listChatMessagesAll`, `listReactionsAll`, `searchChatsAll`, `searchMessagesAll`, `searchUsersAll` и др.
+Метод `*All` есть у каждого метода с пагинацией, полный список — на странице [Kotlin SDK](https://dev.pachca.com/guides/sdk/kotlin#avtopaginatsiya).
 
 ## Повторные запросы
 
-SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток). Ошибки сервера `5xx` повторяются только у запросов GET, PUT и DELETE: запрос POST сервер мог успеть выполнить, и повтор создал бы дубль. Ответ `504` с кодом `timeout` (поиск не уложился по времени) не повторяется: тот же запрос, скорее всего, снова не уложится, и его стоит сузить.
+SDK повторяет запросы сам. Паузы между попытками описаны на странице [Kotlin SDK](https://dev.pachca.com/guides/sdk/kotlin#povtornye-zaprosy), общие правила повторов — в разделе [Повторные запросы](https://dev.pachca.com/api/limits#povtornye-zaprosy-retry).
 
 ## Свой HTTP-клиент
 
-Для настройки прокси, сериализации и других параметров HTTP используйте конструктор с готовым Ktor `HttpClient`:
+Для настройки прокси, сериализации и других параметров HTTP используйте конструктор с готовым Ktor `HttpClient`. Заголовок `Authorization` и разбор JSON такой клиент настраивает сам. Повторов у него нет: SDK включает их только в клиенте, который создаёт по токену.
 
 ```kotlin
 import com.pachca.sdk.PachcaClient
 import com.pachca.sdk.PACHCA_API_URL
 import io.ktor.client.*
+import io.ktor.client.engine.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.http.Url
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.Json
 
 val http = HttpClient(CIO) {
     engine {
@@ -102,6 +119,9 @@ val http = HttpClient(CIO) {
     }
     defaultRequest {
         headers.append("Authorization", "Bearer $token")
+    }
+    install(ContentNegotiation) {
+        json(Json { ignoreUnknownKeys = true })
     }
 }
 
@@ -112,18 +132,46 @@ val client = PachcaClient(client = http, baseUrl = PACHCA_API_URL)
 
 ## Загрузка файлов
 
-Загрузка файла — трёхшаговый процесс:
+Загрузка файла идёт в три шага: параметры загрузки, отправка файла по адресу `directUrl` и сообщение с ключом файла. Подробнее — в разделе [Загрузка файлов](https://dev.pachca.com/api/file-uploads).
 
 ```kotlin
-// 1. Получить параметры загрузки
-val params = pachca.uploads.getUploadParams()
+val file = java.io.File("report.pdf")
+val bytes = file.readBytes()
 
-// 2. Загрузить файл на S3
-val file = File("photo.png")
-pachca.uploads.uploadFile(params, file)
+// 1. Получить параметры загрузки и подставить имя файла в ключ
+val params = pachca.files.getUploadParams()
+val key = params.key.replace("\${filename}", file.name)
 
-// 3. Прикрепить к сообщению (используя key из params)
+// 2. Загрузить файл по адресу directUrl
+pachca.files.uploadFile(
+    params.directUrl,
+    FileUploadRequest(
+        contentDisposition = params.contentDisposition,
+        acl = params.acl,
+        policy = params.policy,
+        xAmzCredential = params.xAmzCredential,
+        xAmzAlgorithm = params.xAmzAlgorithm,
+        xAmzDate = params.xAmzDate,
+        xAmzSignature = params.xAmzSignature,
+        key = key,
+        bucket = params.bucket,
+        file = bytes,
+    ),
+)
+
+// 3. Отправить сообщение с файлом
+pachca.messages.createMessage(
+    MessageCreateRequest(
+        message = MessageCreateRequestMessage(
+            entityId = chatId,
+            content = "Отчёт за неделю",
+            files = listOf(MessageCreateRequestFile(key = key, name = file.name, fileType = FileType.FILE, size = bytes.size.toLong())),
+        )
+    )
+)
 ```
+
+Полный пример: [`examples/upload.kt`](examples/upload.kt)
 
 ## Обработка ошибок
 
@@ -145,19 +193,27 @@ try {
 
 ```kotlin
 import com.pachca.sdk.*
-import io.mockk.coEvery
-import io.mockk.mockk
+import java.time.OffsetDateTime
 
-// Мок-сервис
-val mockMessages = mockk<MessagesService>()
-coEvery { mockMessages.getMessage(any()) } returns Message(
-    id = 1,
-    content = "Test message",
-    entityId = 123
-)
+// Мок-сервис: переопределите только нужные методы
+class FakeMessages : MessagesService {
+    override suspend fun getMessage(id: Int): Message = Message(
+        id = id,
+        entityType = MessageEntityType.DISCUSSION,
+        entityId = 123,
+        chatId = 123,
+        rootChatId = 123,
+        content = "Test message",
+        userId = 1,
+        createdAt = OffsetDateTime.now(),
+        url = "",
+        files = emptyList(),
+        important = false,
+    )
+}
 
 // Тест
-val client = PachcaClient.stub(messages = mockMessages)
+val client = PachcaClient.stub(messages = FakeMessages())
 
 val message = client.messages.getMessage(1)
 assertEquals("Test message", message.content)

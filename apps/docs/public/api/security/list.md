@@ -89,9 +89,9 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
     - **AuditDetailsKms**: При: kms_encrypt, kms_decrypt
       - `chat_id: integer, int32` (required) — Идентификатор чата
       - `message_id: integer, int32` (required) — Идентификатор сообщения
-      - `reason: string` (required) — Причина операции
+      - `reason: string` (required) — Причина операции: `message_create` — шифрование текста сообщения, `message_store_for_search` — сохранение текста для поиска, `file_upload` — загрузка файла (все три у kms_encrypt), `file_download` — скачивание файла (у kms_decrypt)
     - **AuditDetailsDlp**: При: dlp_violation_detected
-      - `dlp_rule_id: integer, int32` (required) — Идентификатор правила DLP
+      - `dlp_rule_id: string` (required) — Идентификатор правила DLP: строка из названия правила, например `pasport-rf`. При переименовании правила не меняется.
       - `dlp_rule_name: string` (required) — Название правила DLP
       - `message_id: integer, int32` (required) — Идентификатор сообщения
       - `chat_id: integer, int32` (required) — Идентификатор чата
@@ -109,17 +109,40 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
     - **AuditDetailsBot**: При: bot_deleted, а также bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued в записях до 7 октября 2026 года
       - `bot_id: integer, int32` (required) — Идентификатор бота
       - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+      - `webhook_id: integer, int32` — Идентификатор вебхука бота
+      - `application_id: integer, int32` (nullable) — Идентификатор приложения бота. `null`, если приложения у бота нет.
+      - `access_token_id: integer, int32` — Идентификатор токена. Есть у bot_token_created, bot_token_reissued и bot_token_updated.
+      - `access_token_preview: string` (nullable) — Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, `null`, если значение недоступно.
+      - `scopes: anyOf` — Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
+        **Возможные варианты:**
+
+        - **array of string**
+        - **AuditDetailsTokenScopesChange**: Смена скоупов токена в журнале аудита
+          - `previous: array of string` (required) — Скоупы токена до изменения
+          - `new: array of string` (required) — Скоупы токена после изменения
+      - `name: object` — Смена названия токена у bot_token_updated. Есть, если название передали в запросе.
+        - `previous: string` (required, nullable) — Прежнее название. `null`, если названия не было.
+        - `new: string` (required, nullable) — Новое название. `null`, если название убрали.
     - **AuditDetailsBotScopes**: При: bot_scopes_updated
       - `bot_id: integer, int32` (required) — Идентификатор бота
       - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
       - `added_scopes: array of string` (required) — Скоупы, добавленные токену бота
       - `removed_scopes: array of string` (required) — Скоупы, отозванные у токена бота
+      - `bot_name: string` — Имя бота. Нет в записях до 7 октября 2026 года.
+      - `webhook_id: integer, int32` (required) — Идентификатор вебхука бота
+      - `previous_scopes: array of string` (required) — Скоупы токена бота до изменения
+      - `new_scopes: array of string` (required) — Скоупы токена бота после изменения
     - **AuditDetailsBotWebhookSettings**: При: bot_webhook_settings_updated
       - `bot_id: integer, int32` (required) — Идентификатор бота
       - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
-      - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
+      - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), значение — объект с полями previous (прежнее значение) и new (новое значение).
         **Структура значений Record:**
         - Тип значения: `any`
+      - `bot_name: string` — Имя бота
+      - `webhook_id: integer, int32` — Идентификатор вебхука бота
+      - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.
+      - `access_token_preview: string` (nullable) — Токен, которым изменили настройки, в маскированном виде. `null`, если их изменили в интерфейсе Пачки.
+      - `application_id: integer, int32` (nullable) — Идентификатор приложения токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.
     - **AuditDetailsBotOAuthClient**: При: bot_oauth_client_updated
       - `bot_id: integer, int32` (required) — Идентификатор бота
       - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
@@ -127,21 +150,44 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `changes: Record<string, object>` (required) — Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).
         **Структура значений Record:**
         - Тип значения: `any`
+      - `application_id: integer, int32` — Идентификатор приложения бота
+      - `application_name: string` — Название приложения бота
+      - `bot_name: string` — Имя бота
+      - `webhook_id: integer, int32` — Идентификатор вебхука бота
+      - `scopes: array of string` — Права, которые бот запрашивает у сотрудника на экране согласия
+      - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.
+      - `access_token_preview: string` (nullable) — Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.
     - **AuditDetailsOAuthAuthorizationGranted**: При: oauth_authorization_granted
-      - `client_id: string` (required) — Идентификатор OAuth-клиента, которому выдан доступ
+      - `client_id: string` (required, nullable) — Идентификатор OAuth-клиента, которому выдан доступ. `null` в записях до 7 октября 2026 года о доступе, выданном боту.
       - `scopes: array of string` (required) — Скоупы, на которые выдан доступ
+      - `application_id: integer, int32` (required) — Идентификатор приложения, которому выдан доступ
+      - `application_name: string` — Название приложения. Нет в записях до 7 октября 2026 года.
+      - `bot_id: integer, int32` — Идентификатор бота. Есть, когда доступ выдан боту.
+      - `bot_name: string` — Имя бота. Есть вместе с `bot_id`.
+      - `authorization_grant_id: integer, int32` (required) — Идентификатор выданного кода авторизации
     - **AuditDetailsOAuthAuthorizationRevoked**: При: oauth_authorization_revoked
       - `client_id: string` (required) — Идентификатор OAuth-клиента, у которого отозван доступ
       - `revoked_tokens_count: integer, int32` (required) — Количество отозванных токенов
       - `user_id: integer, int32` — Идентификатор сотрудника, чей доступ отозван. Есть, когда доступ отозвал администратор.
+      - `application_id: integer, int32` (required) — Идентификатор приложения, у которого отозван доступ
+      - `application_name: string` — Название приложения. Нет в записях до 7 октября 2026 года.
+      - `bot_id: integer, int32` — Идентификатор бота. Есть, когда доступ отозван у бота.
+      - `bot_name: string` — Имя бота. Есть вместе с `bot_id`.
     - **AuditDetailsDeviceAuthorizationApproved**: При: oauth_device_authorization_approved
       - `client_id: string` (required) — Идентификатор OAuth-клиента, которому разрешён вход
       - `scopes: array of string` (required) — Скоупы, на которые согласился сотрудник
       - `device_name: string` (nullable) — Имя устройства, с которого выполняется вход. `null`, если приложение его не передало.
+      - `application_id: integer, int32` (required) — Идентификатор приложения, которому разрешён вход
+      - `application_name: string` — Название приложения. Нет в записях до 7 октября 2026 года.
+      - `device_grant_id: integer, int32` (required) — Идентификатор запроса на вход
+      - `token_kind: string` — Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.
     - **AuditDetailsDeviceAuthorizationDenied**: При: oauth_device_authorization_denied
       - `client_id: string` (required) — Идентификатор OAuth-клиента, которому отказано во входе
       - `scopes: array of string` (required) — Скоупы, которые клиент запрашивал
       - `device_name: string` (nullable) — Имя устройства, с которого выполнялся вход. `null`, если приложение его не передало.
+      - `application_id: integer, int32` (nullable) — Идентификатор приложения. При отказе во входе в CLI приходит `null`: приложение назначается входу только после подтверждения.
+      - `device_grant_id: integer, int32` (required) — Идентификатор запроса на вход
+      - `token_kind: string` — Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.
     - **AuditDetailsVideoCallStarted**: При: video_call_started
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
       - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
@@ -161,18 +207,43 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `bot_id: integer, int32` (required) — Идентификатор бота
       - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
       - `client_id: string` (required) — Идентификатор OAuth-клиента бота
+      - `application_id: integer, int32` — Идентификатор приложения бота
+      - `application_name: string` — Название приложения бота
+      - `bot_name: string` — Имя бота
+      - `webhook_id: integer, int32` — Идентификатор вебхука бота
+      - `scopes: array of string` — Права, которые бот запрашивает у сотрудника на экране согласия. Есть у bot_oauth_client_secret_issued.
+      - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.
+      - `access_token_preview: string` (nullable) — Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.
     - **AuditDetailsBotOAuthClientDisabled**: При: bot_oauth_client_disabled
       - `bot_id: integer, int32` (required) — Идентификатор бота
       - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
       - `client_id: string` (required) — Идентификатор OAuth-клиента бота
       - `deleted_access_tokens_count: integer, int32` (required) — Сколько токенов сотрудников отозвано
       - `deleted_access_grants_count: integer, int32` (required) — Сколько неиспользованных кодов авторизации отозвано
+      - `application_id: integer, int32` — Идентификатор приложения бота
+      - `application_name: string` — Название приложения бота
+      - `bot_name: string` — Имя бота
+      - `webhook_id: integer, int32` — Идентификатор вебхука бота
+      - `scopes: array of string` — Права, которые бот запрашивает у сотрудника на экране согласия
+      - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.
+      - `access_token_preview: string` (nullable) — Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.
     - **AuditDetailsToken**: При: access_token_created, access_token_updated, access_token_destroy, bot_token_created, bot_token_reissued, bot_token_recreated, bot_token_deleted, oauth_token_revoked
       - `token_kind: string` (required) — Вид токена: `personal` — персональный токен, `cli` — вход в CLI, `bot` — токен бота, `oauth` — токен, который сотрудник выдал боту на экране согласия, `client` — токен внешнего приложения, которому сотрудник выдал доступ
       - `token_name: string` (required, nullable) — Название токена, у входа в CLI — имя устройства. `null`, если названия нет.
       - `resource_owner_id: integer, int32` (required) — Идентификатор владельца токена: сотрудника, а у токена бота — самого бота
       - `scopes: array of string` (required) — Скоупы токена
+      - `access_token_id: integer, int32` (required) — Идентификатор токена
+      - `access_token_preview: string` (required, nullable) — Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.
+      - `application_id: integer, int32` — Идентификатор приложения, которому принадлежит токен
+      - `application_name: string` — Название приложения, которому принадлежит токен
+      - `client_id: string` — Идентификатор OAuth-клиента приложения
       - `bot_id: integer, int32` — Идентификатор бота. Есть у токенов бота и у токенов, которые сотрудник выдал боту.
+      - `bot_name: string` — Имя бота. Есть вместе с `bot_id`.
+      - `device_name: string` (nullable) — Имя устройства. Есть у входа в CLI, `null`, если имени нет.
+      - `actor_id: integer, int32` (nullable) — Идентификатор пользователя, выполнившего действие. Есть у событий токенов бота, `null`, если действие выполнено без инициатора.
+      - `webhook_id: integer, int32` — Идентификатор вебхука бота. Есть у событий токенов бота.
+      - `user_id: integer, int32` — Идентификатор сотрудника, чей токен отозван. Есть, когда токен отозвал администратор или сотрудника перевели в гости.
+      - `source: string` — Источник отзыва: `oauth_client` — приложение само отозвало токен. Есть только у oauth_token_revoked.
       - `reason: string` — Причина отзыва. `guest_downgrade` — токен отозван автоматически, когда сотрудника перевели в гости. Есть только в таких записях.
     - **AuditDetailsBotTokenUpdated**: При: bot_token_updated
       - `token_kind: string` (required) — Вид токена: `bot`
@@ -181,6 +252,19 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `current_scopes: array of string` (required) — Скоупы токена после изменения
       - `bot_id: integer, int32` — Идентификатор бота
       - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+      - `access_token_id: integer, int32` (required) — Идентификатор токена
+      - `access_token_preview: string` (required, nullable) — Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.
+      - `application_id: integer, int32` — Идентификатор приложения бота
+      - `application_name: string` — Название приложения бота
+      - `client_id: string` — Идентификатор OAuth-клиента бота
+      - `bot_name: string` — Имя бота
+      - `webhook_id: integer, int32` (required) — Идентификатор вебхука бота
+      - `name: object` — Смена названия токена. Есть, если название передали в запросе.
+        - `previous: string` (required, nullable) — Прежнее название. `null`, если названия не было.
+        - `new: string` (required, nullable) — Новое название. `null`, если название убрали.
+      - `scopes: object` — Смена скоупов токена. Есть, если скоупы передали в запросе.
+        - `previous: array of string` (required) — Скоупы токена до изменения
+        - `new: array of string` (required) — Скоупы токена после изменения
     - **AuditDetailsUserLoginQr**: При: user_login, если вход был по QR-коду
       - `method: string` (required) — Способ входа: `qr` — вход по QR-коду
       - `login_grant_id: string` (required) — Идентификатор запроса на вход по QR-коду, общий для всех событий одного входа

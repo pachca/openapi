@@ -6,7 +6,7 @@
     ]
   },
   "MemberOperations_addMembers": {
-    "usage": "let memberIds = [123]\ntry await client.members.addMembers(id: 123, memberIds: memberIds)"
+    "usage": "let memberIds: [Int] = [123]\ntry await client.members.addMembers(id: 123, memberIds: memberIds)"
   },
   "ChatOperations_createChat": {
     "usage": "let request = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        channel: true,\n        `public`: true,\n        memberIds: [123]\n    )\n)\nlet response = try await client.chats.createChat(request: request)",

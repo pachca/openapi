@@ -20,7 +20,7 @@ public class Item
     public int? Priority { get; set; }
 }
 
-public class ItemPatchRequestItem
+public class ItemPatchRequestItem : INullFields
 {
     [JsonPropertyName("name")]
     public string? Name { get; set; }
@@ -28,6 +28,10 @@ public class ItemPatchRequestItem
     public string? Description { get; set; }
     [JsonPropertyName("priority")]
     public int? Priority { get; set; }
+
+    /// <summary>Properties to send as null: Description. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
 public class ItemPatchRequest

@@ -8,7 +8,7 @@ import { CodeBlock } from './code-block';
 import { BoxedPanel } from './boxed-panel';
 import { CopyButton } from './copy-button';
 import { InlineCodeText } from './inline-code-text';
-import { generateRequestExample } from '@/lib/openapi/example-generator';
+import { generateRequestExamples } from '@/lib/openapi/example-generator';
 
 interface RequestBodySectionProps {
   endpoint: Endpoint;
@@ -34,9 +34,11 @@ export function RequestBodySection({ endpoint }: RequestBodySectionProps) {
   if (!content?.schema) return null;
 
   const isMultipart = contentType === 'multipart/form-data';
-  // Hide JSON example tab for multipart (binary blob makes no sense as JSON)
-  const requestExample = isMultipart ? undefined : generateRequestExample(requestBody);
-  const hasExample = requestExample !== undefined;
+  // Hide JSON example tab for multipart (binary blob makes no sense as JSON).
+  // Every authored example is shown, one panel each: the code tabs on the right
+  // send only the first one.
+  const requestExamples = isMultipart ? [] : generateRequestExamples(requestBody);
+  const hasExample = requestExamples.length > 0;
 
   return (
     <div className="py-6 pb-6 mb-0">
@@ -61,7 +63,7 @@ export function RequestBodySection({ endpoint }: RequestBodySectionProps) {
                   : 'text-text-tertiary hover:text-text-primary cursor-pointer'
               }`}
             >
-              Пример
+              {requestExamples.length > 1 ? 'Примеры' : 'Пример'}
             </button>
           </>
         )}
@@ -77,20 +79,35 @@ export function RequestBodySection({ endpoint }: RequestBodySectionProps) {
         {activeTab === 'schema' || !hasExample ? (
           <SchemaTree schema={content.schema} />
         ) : (
-          <BoxedPanel
-            className="my-4"
-            header={
-              <>
-                <span className="text-[13px] font-medium text-text-primary truncate">
-                  Пример тела запроса
-                </span>
-                <CopyButton text={JSON.stringify(requestExample, null, 2)} />
-              </>
-            }
-            contentClassName="px-6 py-2 pl-0 overflow-x-auto custom-scrollbar"
-          >
-            <CodeBlock code={JSON.stringify(requestExample, null, 2)} language="json" />
-          </BoxedPanel>
+          requestExamples.map((example, index) => {
+            const json = JSON.stringify(example.value, null, 2);
+            const label =
+              example.label ??
+              (requestExamples.length > 1 ? `Пример ${index + 1}` : 'Пример тела запроса');
+            return (
+              <div key={index} className="my-4">
+                {example.description && (
+                  <div className="mb-2 text-[14px] text-text-secondary leading-relaxed">
+                    <InlineCodeText text={example.description} />
+                  </div>
+                )}
+                <BoxedPanel
+                  className="my-0"
+                  header={
+                    <>
+                      <span className="text-[13px] font-medium text-text-primary truncate">
+                        {label}
+                      </span>
+                      <CopyButton text={json} />
+                    </>
+                  }
+                  contentClassName="px-6 py-2 pl-0 overflow-x-auto custom-scrollbar"
+                >
+                  <CodeBlock code={json} language="json" />
+                </BoxedPanel>
+              </div>
+            );
+          })
         )}
       </div>
     </div>

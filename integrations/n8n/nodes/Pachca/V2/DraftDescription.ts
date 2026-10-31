@@ -92,7 +92,7 @@ export const draftFields: INodeProperties[] = [
 							name: 'duration_ms',
 							type: 'number',
 							default: 0,
-							description: 'Duration in milliseconds. Required for a voice message (`file_type` is `voice`). A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.',
+							description: 'Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.',
 						},
 						{
 							displayName: 'File Type',
@@ -267,6 +267,13 @@ export const draftFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['draft'], operation: ['update'] } },
 		options: [
 			{
+				displayName: 'Clear Parent Message ID',
+				name: 'clearParentMessageId',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to send null, which removes the reply. It takes precedence over Parent Message ID.',
+			},
+			{
 				displayName: 'Content',
 				name: 'content',
 				type: 'string',
@@ -289,7 +296,7 @@ export const draftFields: INodeProperties[] = [
 							name: 'duration_ms',
 							type: 'number',
 							default: 0,
-							description: 'Duration in milliseconds. Required for a voice message (`file_type` is `voice`). A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.',
+							description: 'Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.',
 						},
 						{
 							displayName: 'File Type',
@@ -361,7 +368,7 @@ export const draftFields: INodeProperties[] = [
 				name: 'parentMessageId',
 				type: 'number',
 				default: 0,
-				description: 'ID of the message the draft will be sent as a reply to. `null` removes the reply.',
+				description: 'ID of the message the draft will be sent as a reply to. "Clear Parent Message ID" removes the reply.',
 				placeholder: '196093',
 			},
 			{

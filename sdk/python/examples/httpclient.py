@@ -16,16 +16,22 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "generated"))
 
 import httpx
 from pachca.client import PachcaClient, PACHCA_API_URL
+from pachca.utils import RetryTransport
 
 
 async def main():
     token = os.environ["PACHCA_TOKEN"]
     chat_id = int(os.environ["PACHCA_CHAT_ID"])
 
+    # A client of your own gets the SDK retries from RetryTransport. The proxy goes
+    # into the inner transport: a proxy set on the client would get a transport of
+    # its own, without the retries.
+    proxy_url = os.environ.get("HTTP_PROXY")
+    transport = httpx.AsyncHTTPTransport(proxy=httpx.Proxy(proxy_url) if proxy_url else None)
     http = httpx.AsyncClient(
         base_url=PACHCA_API_URL,
         headers={"Authorization": f"Bearer {token}"},
-        proxy=os.environ.get("HTTP_PROXY"),
+        transport=RetryTransport(transport),
     )
     client = PachcaClient.from_client(http)
 

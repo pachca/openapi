@@ -28,7 +28,9 @@
  * The spec
  *   - takes a form the generator does not know: a schema keyword or extension
  *     outside `KNOWN_KEYWORDS`, a type it does not build, an `allOf` of several
- *     models, a union that may be null or has a member that is no object, a
+ *     models, a union that may be null, has a member that is no object in an
+ *     argument, at an answer's body or its data, or one with no type in an
+ *     answer, a
  *     `$ref` outside the schemas or where a parameter, a body or an answer
  *     stands, a parameter in a cookie or described by content, a body in a media
  *     type it does not read, JSON in an answer other than 200, 201 or 202 — or
@@ -400,7 +402,9 @@ function enumValueOf(key: string, values: unknown[]): unknown {
  * outer type left `buttons` an array of arrays of nothing, and in a measured run
  * the model, with no idea what a button is, sent the question and added two
  * reactions instead. A map keeps the shape of its values, and a union keeps
- * its variants (`variantsAsOne`).
+ * its variants: objects fold into one object (`variantsAsOne`), and an answer's
+ * union of a list, an object or a scalar into one node of several types
+ * (`typesAsOne`).
  *
  * The two sides differ. An argument carries what the API refuses: enums, limits,
  * patterns, formats and one example. An answer carries types and the null a
@@ -416,7 +420,11 @@ function enumValueOf(key: string, values: unknown[]): unknown {
 function property(schema: any, doc: YamlNode, depth = 0, shape: Shape = { side: 'input' }): JsonSchema {
   const source = flatten(schema, doc);
   const variants = source?.anyOf ?? source?.oneOf;
-  if (!source?.type && Array.isArray(variants)) return variantsAsOne(source, variants, doc, depth, shape);
+  if (!source?.type && Array.isArray(variants)) {
+    return variants.every((variant: any) => flatten(variant, doc)?.type === 'object')
+      ? variantsAsOne(source, variants, doc, depth, shape)
+      : typesAsOne(source, variants, doc, depth, shape);
+  }
   const input = shape.side === 'input';
   const out: JsonSchema = {};
   for (const k of ['type', 'description', 'enum', 'default', ...SPEC_VALIDATION]) {
@@ -561,6 +569,54 @@ function variantsAsOne(source: any, variants: any[], doc: YamlNode, depth: numbe
     ...(kinds.length && input ? { required: ['type'] } : {}),
     ...(input ? { additionalProperties: false } : {}),
   };
+}
+
+/**
+ * A union whose variants are not all objects, spelled as one node that allows the
+ * type of every variant. The audit log writes the scopes of a bot token as a list
+ * in one record and as the scopes before and after the change in another; JSON
+ * Schema says that with a list of types, where `items` applies only to a list and
+ * `properties` only to an object — no composition keyword, which several clients
+ * drop a tool over (`lintSchema`).
+ *
+ * The variants merge the way the fields of a union do (`mergeVariants`). The
+ * description is the union's own: what an object variant says about itself as a
+ * whole is left out, as in `variantsAsOne`, and what a scalar says — the meaning
+ * of its values — stays. Where two or more variants are objects, the description
+ * also says which fields are whose, which the merged `properties` no longer can.
+ *
+ * Answers only (`specShapeProblems`): an argument needs one shape a model can
+ * write, and the API's checks of a merged argument would hold for no variant.
+ */
+function typesAsOne(source: any, variants: any[], doc: YamlNode, depth: number, shape: Shape): JsonSchema {
+  const labelOf = (node: any): string => {
+    if (node?.$ref) return String(node.$ref).split('/').pop()!;
+    const resolved = flatten(node, doc);
+    return resolved?.type === 'array' ? `array of ${labelOf(resolved.items)}` : String(resolved?.type ?? 'value');
+  };
+  const entries = variants.map((variant: any) => {
+    const resolved = flatten(variant, doc);
+    const schema = property(variant, doc, depth, shape);
+    const fields = resolved?.type === 'object' ? Object.keys(resolved.properties ?? {}) : undefined;
+    if (fields) delete schema.description;
+    return { label: labelOf(variant), schema, fields };
+  });
+  const merged = mergeVariants(entries.map(({ label, schema }) => ({ label, schema })));
+  const whose =
+    entries.filter((e) => e.fields).length > 1
+      ? `One of — ${entries.map((e) => (e.fields?.length ? `${e.label}: ${e.fields.join(', ')}` : e.label)).join('; ')}.`
+      : '';
+  const said = linksAsTools(String(source?.description ?? '')).replace(/\s+/g, ' ').trim();
+  const more = [merged.description, whose].filter(Boolean);
+  const description = [more.length ? sentence(said) : said, ...more].filter(Boolean).join(' ');
+  const out: JsonSchema = { ...(merged.type ? { type: merged.type } : {}), ...(description ? { description } : {}) };
+  for (const [k, value] of Object.entries(merged)) if (k !== 'type' && k !== 'description') out[k] = value;
+  // A format holds only for a string, so a moment keeps its format beside a list
+  // or a number, which `mergeVariants` drops for want of one on every variant.
+  const strings = entries.filter((e) => [e.schema.type].flat().includes('string'));
+  const format = strings[0]?.schema.format;
+  if (format !== undefined && strings.every((e) => e.schema.format === format)) out.format = format;
+  return out;
 }
 
 /** Names in a sentence: «a», «a and b», «a, b and c». */
@@ -816,20 +872,25 @@ const ANSWER_CODES = ['200', '201', '202'];
  * no fields, a cookie parameter a place no runtime can fill, a response written
  * as a `$ref` a tool with no answer at all. Checked over every operation that
  * becomes a tool or a step of one, before anything is built from it.
+ *
+ * A union of a list, an object or a scalar is one node of several types in an
+ * answer (`typesAsOne`), and stays refused in an argument, where a model needs
+ * one shape to write, and at an answer's body or its data, which are read by
+ * shape. So a schema is walked once for each side it is used on.
  */
 function specShapeProblems(docEn: YamlNode): string[] {
   const problems: string[] = [];
   const seen = new Set<string>();
-  const walk = (node: any, where: string, depth = 0): void => {
+  const walk = (node: any, where: string, side: Shape['side'], depth = 0): void => {
     if (!node || typeof node !== 'object' || depth > 30) return;
     if (node.$ref) {
       const name = String(node.$ref).split('/').pop()!;
       if (!String(node.$ref).startsWith('#/components/schemas/')) problems.push(`${where}: $ref ${node.$ref} points outside the schemas`);
-      if (seen.has(name)) return;
-      seen.add(name);
+      if (seen.has(`${side} ${name}`)) return;
+      seen.add(`${side} ${name}`);
       const target = docEn.components?.schemas?.[name];
       if (!target) problems.push(`${where}: $ref ${node.$ref} names no schema of the spec`);
-      walk(target, `schema ${name}`, depth + 1);
+      walk(target, `schema ${name}`, side, depth + 1);
       return;
     }
     for (const k of Object.keys(node)) {
@@ -841,15 +902,19 @@ function specShapeProblems(docEn: YamlNode): string[] {
     if (Array.isArray(variants)) {
       if (node.nullable) problems.push(`${where}: a union that may be null, which one object cannot spell`);
       variants.forEach((variant: any, i: number) => {
-        if (flatten(variant, docEn)?.type !== 'object') {
-          problems.push(`${where}: variant ${i + 1} of a union is not an object, and only objects fold into one`);
+        const type = flatten(variant, docEn)?.type;
+        if (type === 'object') return;
+        if (side === 'input') {
+          problems.push(`${where}: variant ${i + 1} of a union in an argument is not an object, and an argument folds only objects into one`);
+        } else if (!KNOWN_TYPES.has(type)) {
+          problems.push(`${where}: variant ${i + 1} of a union in an answer has no type of its own, and only typed variants fold into one`);
         }
       });
     }
-    for (const part of [...(node.allOf ?? []), ...(variants ?? [])]) walk(part, where, depth + 1);
-    if (node.items) walk(node.items, `${where}[]`, depth + 1);
-    for (const [name, child] of Object.entries<any>(node.properties ?? {})) walk(child, `${where}.${name}`, depth + 1);
-    if (node.additionalProperties && typeof node.additionalProperties === 'object') walk(node.additionalProperties, `${where}{}`, depth + 1);
+    for (const part of [...(node.allOf ?? []), ...(variants ?? [])]) walk(part, where, side, depth + 1);
+    if (node.items) walk(node.items, `${where}[]`, side, depth + 1);
+    for (const [name, child] of Object.entries<any>(node.properties ?? {})) walk(child, `${where}.${name}`, side, depth + 1);
+    if (node.additionalProperties && typeof node.additionalProperties === 'object') walk(node.additionalProperties, `${where}{}`, side, depth + 1);
   };
   for (const [p, item] of Object.entries<any>(docEn.paths ?? {})) {
     for (const method of HTTP_METHODS) {
@@ -863,13 +928,13 @@ function specShapeProblems(docEn: YamlNode): string[] {
         }
         if (!['path', 'query', 'header'].includes(param.in)) problems.push(`${k}: parameter ${param.name} is in ${param.in}, which no tool can fill`);
         if (param.content) problems.push(`${k}: parameter ${param.name} is described by content, and the generator reads schema`);
-        walk(param.schema, `${k} ${param.name}`);
+        walk(param.schema, `${k} ${param.name}`, 'input');
       }
       const body = op.requestBody;
       if (body?.$ref) problems.push(`${k}: the request body is a $ref, which the generator does not follow`);
       for (const [type, media] of Object.entries<any>(body?.content ?? {})) {
         if (!['application/json', 'multipart/form-data'].includes(type)) problems.push(`${k}: a request body in ${type}, which the generator does not read`);
-        walk(media?.schema, `${k} body`);
+        walk(media?.schema, `${k} body`, 'input');
       }
       for (const [code, response] of Object.entries<any>(op.responses ?? {})) {
         if (response?.$ref) {
@@ -879,11 +944,29 @@ function specShapeProblems(docEn: YamlNode): string[] {
         if (!/^2/.test(code)) continue;
         const json = response?.content?.['application/json'];
         if (json && !ANSWER_CODES.includes(code)) problems.push(`${k}: answers ${code} with JSON, and only ${ANSWER_CODES.join(', ')} become an outputSchema`);
-        if (json) walk(json.schema, `${k} ${code}`);
+        if (!json) continue;
+        walk(json.schema, `${k} ${code}`, 'output');
+        // The body and its data are read by shape: an object at the root
+        // (`outputSchema`), one record or a list of them in data, which the
+        // entity, its card, the view and single_read_omit go by (`answersList`,
+        // `responseEntity`). A union with a list or a value there would build
+        // and be misread, so it stays refused.
+        const answer = flatten(json.schema, docEn);
+        const places = [
+          ['body', answer, 'an object'],
+          ['data', flatten(answer?.properties?.data, docEn), 'one record or a list of records'],
+        ] as const;
+        for (const [place, node, read] of places) {
+          const variants = node && !node.type ? (node.anyOf ?? node.oneOf) : undefined;
+          if (Array.isArray(variants) && variants.some((variant: any) => flatten(variant, docEn)?.type !== 'object')) {
+            problems.push(`${k} ${code}: the answer's ${place} is a union with a variant that is not an object, and the ${place} is read as ${read}`);
+          }
+        }
       }
     }
   }
-  return problems;
+  // A schema used on both sides is walked twice, and says what holds on both once.
+  return [...new Set(problems)];
 }
 
 /**
@@ -1820,14 +1903,17 @@ function lostAcross(
     const variants = node.anyOf ?? node.oneOf;
     return !node.type && Array.isArray(variants) ? variants.map((v: any) => specResolve(v, doc)).filter(Boolean) : undefined;
   };
-  // A union's own node carries no keyword: `variantsAsOne` spells it as a plain object.
+  // A union's own node carries no keyword: `variantsAsOne` and `typesAsOne` spell
+  // it from its variants, so the type, the values and the null of each variant
+  // are held to the built node like those of any other node.
   const plain = nodes.filter((node) => !variantsOf(node));
   const united = nodes.length > 1 || plain.length < nodes.length;
   const lost: string[] = [];
   const input = side === 'input';
   const builtTypes = [built.type].flat();
   const named = valuesNamed(built.description);
-  for (const source of plain) {
+  const typed = nodes.flatMap((node) => variantsOf(node) ?? [node]).filter((node) => !variantsOf(node));
+  for (const source of typed) {
     if (source.type && !builtTypes.includes(source.type)) lost.push(`${tool}: ${at} is ${source.type} in the spec and ${built.type ?? 'untyped'} in the tool`);
     const values: unknown[] = Array.isArray(source.enum) ? source.enum : [];
     for (const value of values) {
@@ -1886,6 +1972,10 @@ function lostAcross(
     }
   } else if (across('format') === 'date-time' && built.format !== 'date-time') {
     lost.push(`${tool}: ${at} lost its format date-time`);
+  } else if (nodes.length === 1 && !plain.length && built.format !== 'date-time') {
+    // One union of its own (`typesAsOne`): a moment among its variants keeps the format.
+    const strings = typed.filter((source) => source.type === 'string');
+    if (strings.length && strings.every((source) => source.format === 'date-time')) lost.push(`${tool}: ${at} lost its format date-time`);
   }
   // Inside: a union's variants count as the objects they are.
   const inner = nodes.flatMap((node) => variantsOf(node) ?? [node]);

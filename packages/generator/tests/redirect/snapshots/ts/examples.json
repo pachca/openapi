@@ -6,7 +6,7 @@
     ]
   },
   "ExportOperations_downloadExport": {
-    "usage": "const response = client.common.downloadExport(123)",
+    "usage": "const response = await client.common.downloadExport(123)",
     "output": "string"
   }
 }

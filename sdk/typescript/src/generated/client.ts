@@ -101,6 +101,7 @@ import {
   SubmitViewResponseRequest,
   SubmitViewResponseResult,
   OpenViewRequest,
+  OpenViewResult,
 } from "./types.js";
 import { deserialize, deserializeType, serializeType, fetchWithRetry, toFormBody } from "./utils.js";
 
@@ -2411,12 +2412,14 @@ export class SearchServiceImpl extends SearchService {
   async searchChatsAll(params?: Omit<SearchChatsParams, 'cursor'>): Promise<Chat[]> {
     const items: Chat[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.searchChats({ ...params, cursor } as SearchChatsParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext;
+    }
     return items;
   }
 
@@ -2453,12 +2456,14 @@ export class SearchServiceImpl extends SearchService {
   async searchMessagesAll(params?: Omit<SearchMessagesParams, 'cursor'>): Promise<Message[]> {
     const items: Message[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.searchMessages({ ...params, cursor } as SearchMessagesParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext;
+    }
     return items;
   }
 
@@ -2491,12 +2496,14 @@ export class SearchServiceImpl extends SearchService {
   async searchUsersAll(params?: Omit<SearchUsersParams, 'cursor'>): Promise<User[]> {
     const items: User[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.searchUsers({ ...params, cursor } as SearchUsersParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext;
+    }
     return items;
   }
 }
@@ -2861,7 +2868,7 @@ export class ViewsService {
     throw new Error("Views.submitViewResponse is not implemented");
   }
 
-  async openView(request: OpenViewRequest): Promise<void> {
+  async openView(request: OpenViewRequest): Promise<OpenViewResult> {
     throw new Error("Views.openView is not implemented");
   }
 }
@@ -2890,15 +2897,17 @@ export class ViewsServiceImpl extends ViewsService {
     }
   }
 
-  async openView(request: OpenViewRequest): Promise<void> {
+  async openView(request: OpenViewRequest): Promise<OpenViewResult> {
     const response = await fetchWithRetry(`${this.baseUrl}/views/open`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serializeType("OpenViewRequest", request)),
     });
     switch (response.status) {
-      case 201:
-        return;
+      case 201: {
+        const body = await response.json();
+        return deserializeType("OpenViewResult", body) as OpenViewResult;
+      }
       default:
         throw await errorFromResponse(response);
     }

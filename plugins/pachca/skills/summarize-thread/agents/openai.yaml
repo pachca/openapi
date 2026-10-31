@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Summarize thread'
+  short_description: 'Retell a whole Pachca thread with links'
+policy:
+  allow_implicit_invocation: false

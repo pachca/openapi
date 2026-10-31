@@ -14,8 +14,9 @@ Tool `pachca_get_audit_events`, CLI `pachca security list`, scope
 What to know before answering from it:
 
 - Events are recorded only while the workspace is on Corporation; nothing is
-  backfilled after switching. Records are kept 90 days. For anything longer,
-  the security team must export them regularly.
+  backfilled after switching. No retention period is documented, so do not
+  promise one: for long-term records the security team exports the log
+  regularly.
 - Every event has an actor (an employee or a bot); `oauth_token_revoked` is the
   exception, its actor is the app.
 - `event_key` takes one type per request, so several types mean several
@@ -148,7 +149,10 @@ A rule has a name, a priority and a JSON body with `conditions` (required),
   with an «н» suffix: «секрет» matches «секретный» but not «секреты». Use a
   regex for other word forms.
 - **Action**: `AUDIT_LOG` (message passes, event logged), `BLOCK` (text
-  replaced, no log), `BLOCK_AND_AUDIT_LOG` (both). The replacement is
+  replaced, no `dlp_violation_detected`: the audit log gets only a
+  `message_updated` by the author with the author's IP and user agent,
+  indistinguishable from their own edit, so prefer `BLOCK_AND_AUDIT_LOG` when
+  blocks must be visible), `BLOCK_AND_AUDIT_LOG` (both). The replacement is
   `action.message`, or a default text if unset. Rules check only the message
   text, on send and on every edit: messages from employees and guests are
   checked, including those sent through the API with an employee's token.

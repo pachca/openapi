@@ -1604,7 +1604,7 @@ public enum SearchEntityType
 {
     /// <summary>Пользователь</summary>
     User,
-    /// <summary>Задача</summary>
+    /// <summary>Напоминание</summary>
     Task,
 }
 
@@ -1707,7 +1707,7 @@ internal class SortOrderConverter : JsonConverter<SortOrder>
     }
 }
 
-/// <summary>Тип задачи</summary>
+/// <summary>Тип напоминания</summary>
 [JsonConverter(typeof(TaskKindConverter))]
 public readonly struct TaskKind : IEquatable<TaskKind>
 {
@@ -2268,9 +2268,9 @@ public abstract class AuditEventDetailsUnion
 {
 }
 
-// AuditEventDetailsUnion carries no discriminator field: the member is chosen by which
-// one best matches the payload keys (most recognised, then fewest unrecognised,
-// then fewest declared).
+// AuditEventDetailsUnion carries no discriminator field: members are tried in the order
+// they match the payload keys (most recognised, then fewest unrecognised, then
+// fewest declared), and the first one that decodes wins.
 internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEventDetailsUnion>
 {
     private static readonly (Type Type, HashSet<string> Keys)[] Shapes =
@@ -2289,21 +2289,21 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         (typeof(AuditDetailsKms), new HashSet<string> { "chat_id", "message_id", "reason" }),
         (typeof(AuditDetailsDlp), new HashSet<string> { "dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched" }),
         (typeof(AuditDetailsSearch), new HashSet<string> { "search_type", "query_present", "cursor_present", "limit", "filters" }),
-        (typeof(AuditDetailsBot), new HashSet<string> { "bot_id", "actor_id" }),
-        (typeof(AuditDetailsBotScopes), new HashSet<string> { "bot_id", "actor_id", "added_scopes", "removed_scopes" }),
-        (typeof(AuditDetailsBotWebhookSettings), new HashSet<string> { "bot_id", "actor_id", "changes" }),
-        (typeof(AuditDetailsBotOAuthClient), new HashSet<string> { "bot_id", "actor_id", "client_id", "changes" }),
-        (typeof(AuditDetailsOAuthAuthorizationGranted), new HashSet<string> { "client_id", "scopes" }),
-        (typeof(AuditDetailsOAuthAuthorizationRevoked), new HashSet<string> { "client_id", "revoked_tokens_count", "user_id" }),
-        (typeof(AuditDetailsDeviceAuthorizationApproved), new HashSet<string> { "client_id", "scopes", "device_name" }),
-        (typeof(AuditDetailsDeviceAuthorizationDenied), new HashSet<string> { "client_id", "scopes", "device_name" }),
+        (typeof(AuditDetailsBot), new HashSet<string> { "bot_id", "actor_id", "webhook_id", "application_id", "access_token_id", "access_token_preview", "scopes", "name" }),
+        (typeof(AuditDetailsBotScopes), new HashSet<string> { "bot_id", "actor_id", "added_scopes", "removed_scopes", "bot_name", "webhook_id", "previous_scopes", "new_scopes" }),
+        (typeof(AuditDetailsBotWebhookSettings), new HashSet<string> { "bot_id", "actor_id", "changes", "bot_name", "webhook_id", "access_token_id", "access_token_preview", "application_id" }),
+        (typeof(AuditDetailsBotOAuthClient), new HashSet<string> { "bot_id", "actor_id", "client_id", "changes", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview" }),
+        (typeof(AuditDetailsOAuthAuthorizationGranted), new HashSet<string> { "client_id", "scopes", "application_id", "application_name", "bot_id", "bot_name", "authorization_grant_id" }),
+        (typeof(AuditDetailsOAuthAuthorizationRevoked), new HashSet<string> { "client_id", "revoked_tokens_count", "user_id", "application_id", "application_name", "bot_id", "bot_name" }),
+        (typeof(AuditDetailsDeviceAuthorizationApproved), new HashSet<string> { "client_id", "scopes", "device_name", "application_id", "application_name", "device_grant_id", "token_kind" }),
+        (typeof(AuditDetailsDeviceAuthorizationDenied), new HashSet<string> { "client_id", "scopes", "device_name", "application_id", "device_grant_id", "token_kind" }),
         (typeof(AuditDetailsVideoCallStarted), new HashSet<string> { "chat_id", "started_message_id" }),
         (typeof(AuditDetailsVideoCallFinished), new HashSet<string> { "chat_id", "started_message_id", "duration", "max_members_count" }),
         (typeof(AuditDetailsVideoCallRecording), new HashSet<string> { "chat_id", "started_message_id", "recording_id", "file_id", "duration", "size" }),
-        (typeof(AuditDetailsBotOAuthClientSecretRotated), new HashSet<string> { "bot_id", "actor_id", "client_id" }),
-        (typeof(AuditDetailsBotOAuthClientDisabled), new HashSet<string> { "bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count" }),
-        (typeof(AuditDetailsToken), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "scopes", "bot_id", "reason" }),
-        (typeof(AuditDetailsBotTokenUpdated), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id" }),
+        (typeof(AuditDetailsBotOAuthClientSecretRotated), new HashSet<string> { "bot_id", "actor_id", "client_id", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview" }),
+        (typeof(AuditDetailsBotOAuthClientDisabled), new HashSet<string> { "bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count", "application_id", "application_name", "bot_name", "webhook_id", "scopes", "access_token_id", "access_token_preview" }),
+        (typeof(AuditDetailsToken), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "scopes", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_id", "bot_name", "device_name", "actor_id", "webhook_id", "user_id", "source", "reason" }),
+        (typeof(AuditDetailsBotTokenUpdated), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id", "access_token_id", "access_token_preview", "application_id", "application_name", "client_id", "bot_name", "webhook_id", "name", "scopes" }),
         (typeof(AuditDetailsUserLoginQr), new HashSet<string> { "method", "login_grant_id" }),
         (typeof(AuditDetailsLoginGrantCreated), new HashSet<string> { "login_grant_id" }),
         (typeof(AuditDetailsLoginGrantApproved), new HashSet<string> { "login_grant_id", "device" }),
@@ -2319,31 +2319,35 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         {
             foreach (var property in root.EnumerateObject()) keys.Add(property.Name);
         }
-        Type? best = null;
-        int bestMatched = 0, bestUnknown = 0, bestDeclared = 0;
-        foreach (var (type, shapeKeys) in Shapes)
+        // OrderBy is stable: a tie keeps the declared order.
+        var ranked = Shapes
+            .Select(shape => (shape.Type, Matched: keys.Count(shape.Keys.Contains), Declared: shape.Keys.Count))
+            .OrderByDescending(c => c.Matched)
+            .ThenBy(c => keys.Count - c.Matched)
+            .ThenBy(c => c.Declared);
+        var raw = root.GetRawText();
+        JsonException? firstError = null;
+        foreach (var candidate in ranked)
         {
-            var matched = 0;
-            foreach (var key in keys)
+            // System.Text.Json fills a missing field with its default: a member that
+            // misses a required key, in itself or in a model nested in it, gives way
+            // to the next one here.
+            var missing = UnionRequiredKeys.Missing(candidate.Type.Name, root);
+            if (missing != null)
             {
-                if (shapeKeys.Contains(key)) matched++;
+                firstError ??= new JsonException(missing);
+                continue;
             }
-            var unknown = keys.Count - matched;
-            var declared = shapeKeys.Count;
-            var better = best is null
-                || matched > bestMatched
-                || (matched == bestMatched && unknown < bestUnknown)
-                || (matched == bestMatched && unknown == bestUnknown && declared < bestDeclared);
-            if (better)
+            try
             {
-                best = type;
-                bestMatched = matched;
-                bestUnknown = unknown;
-                bestDeclared = declared;
+                return (AuditEventDetailsUnion)JsonSerializer.Deserialize(raw, candidate.Type, options)!;
+            }
+            catch (JsonException e)
+            {
+                firstError ??= e;
             }
         }
-        if (best is null) throw new JsonException("No AuditEventDetailsUnion member matched the payload");
-        return (AuditEventDetailsUnion)JsonSerializer.Deserialize(root.GetRawText(), best, options)!;
+        throw firstError ?? new JsonException("No AuditEventDetailsUnion member matched the payload");
     }
 
     public override void Write(Utf8JsonWriter writer, AuditEventDetailsUnion value, JsonSerializerOptions options)
@@ -2439,7 +2443,7 @@ public class AuditDetailsKms : AuditEventDetailsUnion
 public class AuditDetailsDlp : AuditEventDetailsUnion
 {
     [JsonPropertyName("dlp_rule_id")]
-    public int DlpRuleId { get; set; } = default!;
+    public string DlpRuleId { get; set; } = default!;
     [JsonPropertyName("dlp_rule_name")]
     public string DlpRuleName { get; set; } = default!;
     [JsonPropertyName("message_id")]
@@ -2474,6 +2478,18 @@ public class AuditDetailsBot : AuditEventDetailsUnion
     public int BotId { get; set; } = default!;
     [JsonPropertyName("actor_id")]
     public int? ActorId { get; set; }
+    [JsonPropertyName("webhook_id")]
+    public int? WebhookId { get; set; }
+    [JsonPropertyName("application_id")]
+    public int? ApplicationId { get; set; }
+    [JsonPropertyName("access_token_id")]
+    public int? AccessTokenId { get; set; }
+    [JsonPropertyName("access_token_preview")]
+    public string? AccessTokenPreview { get; set; }
+    [JsonPropertyName("scopes")]
+    public AuditDetailsBotScopesValue? Scopes { get; set; }
+    [JsonPropertyName("name")]
+    public AuditDetailsTokenNameChange? Name { get; set; }
 }
 
 public class AuditDetailsBotScopes : AuditEventDetailsUnion
@@ -2486,6 +2502,14 @@ public class AuditDetailsBotScopes : AuditEventDetailsUnion
     public List<string> AddedScopes { get; set; } = default!;
     [JsonPropertyName("removed_scopes")]
     public List<string> RemovedScopes { get; set; } = default!;
+    [JsonPropertyName("bot_name")]
+    public string? BotName { get; set; }
+    [JsonPropertyName("webhook_id")]
+    public int WebhookId { get; set; } = default!;
+    [JsonPropertyName("previous_scopes")]
+    public List<string> PreviousScopes { get; set; } = default!;
+    [JsonPropertyName("new_scopes")]
+    public List<string> NewScopes { get; set; } = default!;
 }
 
 public class AuditDetailsBotWebhookSettings : AuditEventDetailsUnion
@@ -2496,6 +2520,16 @@ public class AuditDetailsBotWebhookSettings : AuditEventDetailsUnion
     public int? ActorId { get; set; }
     [JsonPropertyName("changes")]
     public Dictionary<string, object> Changes { get; set; } = default!;
+    [JsonPropertyName("bot_name")]
+    public string? BotName { get; set; }
+    [JsonPropertyName("webhook_id")]
+    public int? WebhookId { get; set; }
+    [JsonPropertyName("access_token_id")]
+    public int? AccessTokenId { get; set; }
+    [JsonPropertyName("access_token_preview")]
+    public string? AccessTokenPreview { get; set; }
+    [JsonPropertyName("application_id")]
+    public int? ApplicationId { get; set; }
 }
 
 public class AuditDetailsBotOAuthClient : AuditEventDetailsUnion
@@ -2508,14 +2542,38 @@ public class AuditDetailsBotOAuthClient : AuditEventDetailsUnion
     public string ClientId { get; set; } = default!;
     [JsonPropertyName("changes")]
     public Dictionary<string, object> Changes { get; set; } = default!;
+    [JsonPropertyName("application_id")]
+    public int? ApplicationId { get; set; }
+    [JsonPropertyName("application_name")]
+    public string? ApplicationName { get; set; }
+    [JsonPropertyName("bot_name")]
+    public string? BotName { get; set; }
+    [JsonPropertyName("webhook_id")]
+    public int? WebhookId { get; set; }
+    [JsonPropertyName("scopes")]
+    public List<string>? Scopes { get; set; }
+    [JsonPropertyName("access_token_id")]
+    public int? AccessTokenId { get; set; }
+    [JsonPropertyName("access_token_preview")]
+    public string? AccessTokenPreview { get; set; }
 }
 
 public class AuditDetailsOAuthAuthorizationGranted : AuditEventDetailsUnion
 {
     [JsonPropertyName("client_id")]
-    public string ClientId { get; set; } = default!;
+    public string? ClientId { get; set; }
     [JsonPropertyName("scopes")]
     public List<string> Scopes { get; set; } = default!;
+    [JsonPropertyName("application_id")]
+    public int ApplicationId { get; set; } = default!;
+    [JsonPropertyName("application_name")]
+    public string? ApplicationName { get; set; }
+    [JsonPropertyName("bot_id")]
+    public int? BotId { get; set; }
+    [JsonPropertyName("bot_name")]
+    public string? BotName { get; set; }
+    [JsonPropertyName("authorization_grant_id")]
+    public int AuthorizationGrantId { get; set; } = default!;
 }
 
 public class AuditDetailsOAuthAuthorizationRevoked : AuditEventDetailsUnion
@@ -2526,6 +2584,14 @@ public class AuditDetailsOAuthAuthorizationRevoked : AuditEventDetailsUnion
     public int RevokedTokensCount { get; set; } = default!;
     [JsonPropertyName("user_id")]
     public int? UserId { get; set; }
+    [JsonPropertyName("application_id")]
+    public int ApplicationId { get; set; } = default!;
+    [JsonPropertyName("application_name")]
+    public string? ApplicationName { get; set; }
+    [JsonPropertyName("bot_id")]
+    public int? BotId { get; set; }
+    [JsonPropertyName("bot_name")]
+    public string? BotName { get; set; }
 }
 
 public class AuditDetailsDeviceAuthorizationApproved : AuditEventDetailsUnion
@@ -2536,6 +2602,14 @@ public class AuditDetailsDeviceAuthorizationApproved : AuditEventDetailsUnion
     public List<string> Scopes { get; set; } = default!;
     [JsonPropertyName("device_name")]
     public string? DeviceName { get; set; }
+    [JsonPropertyName("application_id")]
+    public int ApplicationId { get; set; } = default!;
+    [JsonPropertyName("application_name")]
+    public string? ApplicationName { get; set; }
+    [JsonPropertyName("device_grant_id")]
+    public int DeviceGrantId { get; set; } = default!;
+    [JsonPropertyName("token_kind")]
+    public string? TokenKind { get; set; }
 }
 
 public class AuditDetailsDeviceAuthorizationDenied : AuditEventDetailsUnion
@@ -2546,6 +2620,12 @@ public class AuditDetailsDeviceAuthorizationDenied : AuditEventDetailsUnion
     public List<string> Scopes { get; set; } = default!;
     [JsonPropertyName("device_name")]
     public string? DeviceName { get; set; }
+    [JsonPropertyName("application_id")]
+    public int? ApplicationId { get; set; }
+    [JsonPropertyName("device_grant_id")]
+    public int DeviceGrantId { get; set; } = default!;
+    [JsonPropertyName("token_kind")]
+    public string? TokenKind { get; set; }
 }
 
 public class AuditDetailsVideoCallStarted : AuditEventDetailsUnion
@@ -2592,6 +2672,20 @@ public class AuditDetailsBotOAuthClientSecretRotated : AuditEventDetailsUnion
     public int? ActorId { get; set; }
     [JsonPropertyName("client_id")]
     public string ClientId { get; set; } = default!;
+    [JsonPropertyName("application_id")]
+    public int? ApplicationId { get; set; }
+    [JsonPropertyName("application_name")]
+    public string? ApplicationName { get; set; }
+    [JsonPropertyName("bot_name")]
+    public string? BotName { get; set; }
+    [JsonPropertyName("webhook_id")]
+    public int? WebhookId { get; set; }
+    [JsonPropertyName("scopes")]
+    public List<string>? Scopes { get; set; }
+    [JsonPropertyName("access_token_id")]
+    public int? AccessTokenId { get; set; }
+    [JsonPropertyName("access_token_preview")]
+    public string? AccessTokenPreview { get; set; }
 }
 
 public class AuditDetailsBotOAuthClientDisabled : AuditEventDetailsUnion
@@ -2606,6 +2700,20 @@ public class AuditDetailsBotOAuthClientDisabled : AuditEventDetailsUnion
     public int DeletedAccessTokensCount { get; set; } = default!;
     [JsonPropertyName("deleted_access_grants_count")]
     public int DeletedAccessGrantsCount { get; set; } = default!;
+    [JsonPropertyName("application_id")]
+    public int? ApplicationId { get; set; }
+    [JsonPropertyName("application_name")]
+    public string? ApplicationName { get; set; }
+    [JsonPropertyName("bot_name")]
+    public string? BotName { get; set; }
+    [JsonPropertyName("webhook_id")]
+    public int? WebhookId { get; set; }
+    [JsonPropertyName("scopes")]
+    public List<string>? Scopes { get; set; }
+    [JsonPropertyName("access_token_id")]
+    public int? AccessTokenId { get; set; }
+    [JsonPropertyName("access_token_preview")]
+    public string? AccessTokenPreview { get; set; }
 }
 
 public class AuditDetailsToken : AuditEventDetailsUnion
@@ -2618,8 +2726,30 @@ public class AuditDetailsToken : AuditEventDetailsUnion
     public int ResourceOwnerId { get; set; } = default!;
     [JsonPropertyName("scopes")]
     public List<string> Scopes { get; set; } = default!;
+    [JsonPropertyName("access_token_id")]
+    public int AccessTokenId { get; set; } = default!;
+    [JsonPropertyName("access_token_preview")]
+    public string? AccessTokenPreview { get; set; }
+    [JsonPropertyName("application_id")]
+    public int? ApplicationId { get; set; }
+    [JsonPropertyName("application_name")]
+    public string? ApplicationName { get; set; }
+    [JsonPropertyName("client_id")]
+    public string? ClientId { get; set; }
     [JsonPropertyName("bot_id")]
     public int? BotId { get; set; }
+    [JsonPropertyName("bot_name")]
+    public string? BotName { get; set; }
+    [JsonPropertyName("device_name")]
+    public string? DeviceName { get; set; }
+    [JsonPropertyName("actor_id")]
+    public int? ActorId { get; set; }
+    [JsonPropertyName("webhook_id")]
+    public int? WebhookId { get; set; }
+    [JsonPropertyName("user_id")]
+    public int? UserId { get; set; }
+    [JsonPropertyName("source")]
+    public string? Source { get; set; }
     [JsonPropertyName("reason")]
     public string? Reason { get; set; }
 }
@@ -2638,6 +2768,24 @@ public class AuditDetailsBotTokenUpdated : AuditEventDetailsUnion
     public int? BotId { get; set; }
     [JsonPropertyName("actor_id")]
     public int? ActorId { get; set; }
+    [JsonPropertyName("access_token_id")]
+    public int AccessTokenId { get; set; } = default!;
+    [JsonPropertyName("access_token_preview")]
+    public string? AccessTokenPreview { get; set; }
+    [JsonPropertyName("application_id")]
+    public int? ApplicationId { get; set; }
+    [JsonPropertyName("application_name")]
+    public string? ApplicationName { get; set; }
+    [JsonPropertyName("client_id")]
+    public string? ClientId { get; set; }
+    [JsonPropertyName("bot_name")]
+    public string? BotName { get; set; }
+    [JsonPropertyName("webhook_id")]
+    public int WebhookId { get; set; } = default!;
+    [JsonPropertyName("name")]
+    public AuditDetailsTokenNameChange? Name { get; set; }
+    [JsonPropertyName("scopes")]
+    public AuditDetailsTokenScopesChange? Scopes { get; set; }
 }
 
 public class AuditDetailsUserLoginQr : AuditEventDetailsUnion
@@ -3068,6 +3216,137 @@ public class VideoCallWebhookPayload : WebhookPayloadUnion
     public int WebhookTimestamp { get; set; } = default!;
 }
 
+// UnionRequiredKeys lists, for a model a union without a discriminator may hold
+// or nest, the keys it cannot do without and the fields that hold a model (or a
+// list of them) with required keys of its own. A required field that may hold
+// null is not listed: its key may be missing. System.Text.Json fills a missing
+// field with its default, so a union checks the keys before it takes a member;
+// decoding a model on its own stays as lenient as System.Text.Json.
+internal static class UnionRequiredKeys
+{
+    private static readonly Dictionary<string, (string[] Keys, (string Key, string Model)[] Nested)> Shapes = new()
+    {
+        ["AuditDetailsUserUpdated"] = (new[] { "changed_attrs" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsRoleChanged"] = (new[] { "new_company_role", "previous_company_role", "initiator_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsTagName"] = (new[] { "name" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsInitiator"] = (new[] { "initiator_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsInviter"] = (new[] { "inviter_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsChatRenamed"] = (new[] { "old_name", "new_name" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsChatPermission"] = (new[] { "public_access" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsTagChat"] = (new[] { "chat_id", "tag_name" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsChatId"] = (new[] { "chat_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsTokenScopes"] = (new[] { "scopes" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsKms"] = (new[] { "chat_id", "message_id", "reason" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsDlp"] = (new[] { "dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "conditions_matched" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsSearch"] = (new[] { "search_type", "query_present", "cursor_present", "filters" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBot"] = (new[] { "bot_id" }, new[] { ("scopes", "AuditDetailsTokenScopesChange") }),
+        ["AuditDetailsBotScopes"] = (new[] { "bot_id", "added_scopes", "removed_scopes", "webhook_id", "previous_scopes", "new_scopes" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBotWebhookSettings"] = (new[] { "bot_id", "changes" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBotOAuthClient"] = (new[] { "bot_id", "client_id", "changes" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsOAuthAuthorizationGranted"] = (new[] { "scopes", "application_id", "authorization_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsOAuthAuthorizationRevoked"] = (new[] { "client_id", "revoked_tokens_count", "application_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsDeviceAuthorizationApproved"] = (new[] { "client_id", "scopes", "application_id", "device_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsDeviceAuthorizationDenied"] = (new[] { "client_id", "scopes", "device_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsVideoCallStarted"] = (new[] { "chat_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsVideoCallFinished"] = (new[] { "chat_id", "max_members_count" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsVideoCallRecording"] = (new[] { "chat_id", "recording_id", "file_id", "duration", "size" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBotOAuthClientSecretRotated"] = (new[] { "bot_id", "client_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBotOAuthClientDisabled"] = (new[] { "bot_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsToken"] = (new[] { "token_kind", "resource_owner_id", "scopes", "access_token_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBotTokenUpdated"] = (new[] { "token_kind", "resource_owner_id", "current_scopes", "access_token_id", "webhook_id" }, new[] { ("scopes", "AuditDetailsTokenScopesChange") }),
+        ["AuditDetailsUserLoginQr"] = (new[] { "method", "login_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsLoginGrantCreated"] = (new[] { "login_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsLoginGrantApproved"] = (new[] { "login_grant_id", "device" }, new[] { ("device", "AuditLoginGrantDevice") }),
+        ["AuditDetailsLoginGrantDenied"] = (new[] { "login_grant_id", "device", "reason" }, new[] { ("device", "AuditLoginGrantDevice") }),
+        ["AuditDetailsTokenScopesChange"] = (new[] { "previous", "new" }, Array.Empty<(string, string)>()),
+        ["AuditLoginGrantDevice"] = (new[] { "name", "platform" }, Array.Empty<(string, string)>()),
+    };
+
+    // Missing names the first required key the payload of a model lacks, in the
+    // model or in a model nested in it, or returns null when nothing is missing.
+    public static string? Missing(string model, JsonElement value)
+    {
+        if (!Shapes.TryGetValue(model, out var shape)) return null;
+        var isObject = value.ValueKind == JsonValueKind.Object;
+        foreach (var key in shape.Keys)
+        {
+            if (!isObject || !value.TryGetProperty(key, out _)) return $"{model} requires \"{key}\"";
+        }
+        if (!isObject) return null;
+        foreach (var (key, nested) in shape.Nested)
+        {
+            if (value.TryGetProperty(key, out var inner) && MissingIn(nested, inner) is { } missing) return missing;
+        }
+        return null;
+    }
+
+    // A field value: an object of the model, a list of them, or a value of another
+    // kind, which the converter itself takes or refuses.
+    private static string? MissingIn(string model, JsonElement value)
+    {
+        switch (value.ValueKind)
+        {
+            case JsonValueKind.Object:
+                return Missing(model, value);
+            case JsonValueKind.Array:
+                foreach (var item in value.EnumerateArray())
+                {
+                    if (MissingIn(model, item) is { } missing) return missing;
+                }
+                return null;
+            default:
+                return null;
+        }
+    }
+}
+
+/// <summary>
+/// Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
+/// </summary>
+[JsonConverter(typeof(AuditDetailsBotScopesValueConverter))]
+public sealed class AuditDetailsBotScopesValue
+{
+    public List<string>? StringList { get; }
+    public AuditDetailsTokenScopesChange? AuditDetailsTokenScopesChange { get; }
+
+    public AuditDetailsBotScopesValue(List<string> value) { StringList = value; }
+    public AuditDetailsBotScopesValue(AuditDetailsTokenScopesChange value) { AuditDetailsTokenScopesChange = value; }
+
+    public static implicit operator AuditDetailsBotScopesValue(List<string> value) => new(value);
+    public static implicit operator AuditDetailsBotScopesValue(AuditDetailsTokenScopesChange value) => new(value);
+}
+
+internal sealed class AuditDetailsBotScopesValueConverter : JsonConverter<AuditDetailsBotScopesValue>
+{
+    public override AuditDetailsBotScopesValue Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.StartArray:
+                return new AuditDetailsBotScopesValue(JsonSerializer.Deserialize<List<string>>(ref reader, options)!);
+            case JsonTokenType.StartObject:
+                return new AuditDetailsBotScopesValue(JsonSerializer.Deserialize<AuditDetailsTokenScopesChange>(ref reader, options)!);
+            default:
+                throw new JsonException($"AuditDetailsBotScopesValue takes StringList or AuditDetailsTokenScopesChange, got {reader.TokenType}");
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, AuditDetailsBotScopesValue value, JsonSerializerOptions options)
+    {
+        if (value.StringList != null)
+        {
+            JsonSerializer.Serialize(writer, value.StringList, options);
+            return;
+        }
+        if (value.AuditDetailsTokenScopesChange != null)
+        {
+            JsonSerializer.Serialize(writer, value.AuditDetailsTokenScopesChange, options);
+            return;
+        }
+        writer.WriteNullValue();
+    }
+}
+
 public class AccessTokenInfo
 {
     [JsonPropertyName("id")]
@@ -3133,6 +3412,22 @@ public class ApiErrorItem
     public ValidationErrorCode Code { get; set; } = default!;
     [JsonPropertyName("payload")]
     public Dictionary<string, object>? Payload { get; set; }
+}
+
+public class AuditDetailsTokenNameChange
+{
+    [JsonPropertyName("previous")]
+    public string? Previous { get; set; }
+    [JsonPropertyName("new")]
+    public string? @New { get; set; }
+}
+
+public class AuditDetailsTokenScopesChange
+{
+    [JsonPropertyName("previous")]
+    public List<string> Previous { get; set; } = default!;
+    [JsonPropertyName("new")]
+    public List<string> @New { get; set; } = default!;
 }
 
 public class AuditEvent
@@ -3495,7 +3790,7 @@ public class BotTokenUpdateRequest
     public List<string>? Scopes { get; set; }
 }
 
-public class BotUpdateRequestWebhook
+public class BotUpdateRequestWebhook : INullFields
 {
     [JsonPropertyName("name")]
     public string? Name { get; set; }
@@ -3533,9 +3828,13 @@ public class BotUpdateRequestWebhook
     public BotWebhookKind? Kind { get; set; }
     [JsonPropertyName("unfurl_domains")]
     public List<string>? UnfurlDomains { get; set; }
+
+    /// <summary>Properties to send as null: Kind. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
-public class BotUpdateRequest
+public class BotUpdateRequest : INullFields
 {
     [JsonPropertyName("webhook")]
     public BotUpdateRequestWebhook? Webhook { get; set; }
@@ -3543,6 +3842,10 @@ public class BotUpdateRequest
     public BotOAuthClientRequest? OauthClient { get; set; }
     [JsonPropertyName("promo")]
     public BotPromoRequest? Promo { get; set; }
+
+    /// <summary>Properties to send as null: OauthClient. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
 public class BotWebhook
@@ -3781,7 +4084,7 @@ public class Draft
     public DateTimeOffset UpdatedAt { get; set; } = default!;
 }
 
-public class DraftCreateRequestDraft
+public class DraftCreateRequestDraft : INullFields
 {
     [JsonPropertyName("entity_type")]
     public MessageEntityType EntityType { get; set; } = default!;
@@ -3795,6 +4098,10 @@ public class DraftCreateRequestDraft
     public List<DraftFileRequest>? Files { get; set; }
     [JsonPropertyName("schedule")]
     public DraftScheduleRequest? Schedule { get; set; }
+
+    /// <summary>Properties to send as null: ParentMessageId, Schedule. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
 public class DraftCreateRequest
@@ -3835,7 +4142,7 @@ public class DraftRepetition
     public int? NthDay { get; set; }
 }
 
-public class DraftRepetitionRequest
+public class DraftRepetitionRequest : INullFields
 {
     [JsonPropertyName("interval")]
     public DraftRepetitionInterval Interval { get; set; } = default!;
@@ -3843,6 +4150,10 @@ public class DraftRepetitionRequest
     public List<int>? Days { get; set; }
     [JsonPropertyName("nth_day")]
     public int? NthDay { get; set; }
+
+    /// <summary>Properties to send as null: NthDay. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
 public class DraftSchedule
@@ -3855,7 +4166,7 @@ public class DraftSchedule
     public DraftRepetition Repetition { get; set; } = default!;
 }
 
-public class DraftScheduleRequest
+public class DraftScheduleRequest : INullFields
 {
     [JsonPropertyName("start_date")]
     public DateTimeOffset StartDate { get; set; } = default!;
@@ -3863,9 +4174,13 @@ public class DraftScheduleRequest
     public DateTimeOffset? EndDate { get; set; }
     [JsonPropertyName("repetition")]
     public DraftRepetitionRequest Repetition { get; set; } = default!;
+
+    /// <summary>Properties to send as null: EndDate. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
-public class DraftUpdateRequestDraft
+public class DraftUpdateRequestDraft : INullFields
 {
     [JsonPropertyName("content")]
     public string? Content { get; set; }
@@ -3875,6 +4190,10 @@ public class DraftUpdateRequestDraft
     public List<DraftFileRequest>? Files { get; set; }
     [JsonPropertyName("schedule")]
     public DraftScheduleRequest? Schedule { get; set; }
+
+    /// <summary>Properties to send as null: ParentMessageId, Schedule. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
 public class DraftUpdateRequest
@@ -4253,6 +4572,12 @@ public class OpenViewRequest
     public OpenViewRequestView View { get; set; } = default!;
 }
 
+public class OpenViewResult
+{
+    [JsonPropertyName("success")]
+    public bool Success { get; set; } = default!;
+}
+
 public class PaginationMetaPaginate
 {
     [JsonPropertyName("next_page")]
@@ -4295,6 +4620,8 @@ public class SearchPaginationMetaPaginate
 {
     [JsonPropertyName("next_page")]
     public string NextPage { get; set; } = default!;
+    [JsonPropertyName("has_next")]
+    public bool HasNext { get; set; } = default!;
 }
 
 public class SearchPaginationMeta

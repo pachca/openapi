@@ -58,19 +58,14 @@
     "output": "BotSelfTokenResponse(id: Int, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Boolean, redirectUris: List<String>, scopes: List<String>)?, webhook: BotSelfWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd), accessToken: String)"
   },
   "BotOperations_createBot": {
-    "usage": "val request = BotCreateRequest(\n    empty = false,\n    webhook = BotCreateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://example.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true,\n        ignoreSelfMessages = false,\n        eventsHistoryEnabled = false,\n        whoCanAdd = BotWhoCanAdd.CREATOR,\n        canEdit = listOf(BotCanEdit.ADMIN),\n        singleChat = false,\n        kind = BotWebhookKind.SIMPLE,\n        unfurlDomains = listOf(\"example\")\n    ),\n    oauthClient = BotOAuthClientRequest(\n        confidential = true,\n        redirectUris = listOf(\"example\"),\n        scopes = listOf(\"example\")\n    ),\n    promo = BotPromoRequest(\n        description = \"Собирает сводку по задачам Jira и присылает её в чат\",\n        published = true,\n        promoImages = listOf(\"example\")\n    )\n)\nval response = client.bots.createBot(request = request)",
+    "usage": "val request = BotCreateRequest(\n    webhook = BotCreateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://example.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"/task\"),\n        scopes = listOf(\"messages:create\")\n    ),\n    oauthClient = BotOAuthClientRequest(\n        confidential = true,\n        redirectUris = listOf(\"https://example.com/oauth/callback\"),\n        scopes = listOf(\"messages:read\")\n    )\n)\nval response = client.bots.createBot(request = request)",
     "output": "BotCreateResponse(id: Int, name: String, nickname: String, avatarUrl: String?, creatorId: Int?, createdAt: OffsetDateTime, authorizedUsersCount: Int, lastUsedAt: OffsetDateTime?, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind?, unfurlDomains: List<String>, lastRequestAt: OffsetDateTime?, url: String?, secretToken: String?, lastRequestBody: String?), oauthClientEnabled: Boolean, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Boolean, redirectUris: List<String>, scopes: List<String>)?, promo: BotPromo(description: String?, published: Boolean, promoImages: List<BotPromoImage(key: String, url: String)>)?, permissions: BotPermissions(updateOauthClient: Boolean, recreateToken: Boolean, destroy: Boolean), clientSecret: String?, accessToken: String?)",
     "imports": [
-      "BotCanEdit",
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
       "BotOAuthClientRequest",
-      "BotPromoRequest",
-      "BotTemplateEngine",
-      "BotTriggerOn",
-      "BotWebhookKind",
-      "BotWhoCanAdd"
+      "BotTriggerOn"
     ]
   },
   "BotOperations_recreateBotToken": {
@@ -82,7 +77,7 @@
     "output": "BotResponse(id: Int, name: String, nickname: String, avatarUrl: String?, creatorId: Int?, createdAt: OffsetDateTime, authorizedUsersCount: Int, lastUsedAt: OffsetDateTime?, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind?, unfurlDomains: List<String>, lastRequestAt: OffsetDateTime?, url: String?, secretToken: String?, lastRequestBody: String?), oauthClientEnabled: Boolean, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Boolean, redirectUris: List<String>, scopes: List<String>)?, promo: BotPromo(description: String?, published: Boolean, promoImages: List<BotPromoImage(key: String, url: String)>)?, permissions: BotPermissions(updateOauthClient: Boolean, recreateToken: Boolean, destroy: Boolean), clientSecret: String?)"
   },
   "BotOperations_createBotToken": {
-    "usage": "val request = BotTokenCreateRequest(name = \"Сервер уведомлений\", scopes = listOf(\"example\"))\nval response = client.bots.createBotToken(id = 1738816, request = request)",
+    "usage": "val request = BotTokenCreateRequest(name = \"Сервер уведомлений\", scopes = listOf(\"messages:create\"))\nval response = client.bots.createBotToken(id = 1738816, request = request)",
     "output": "BotAccessToken(id: Long, token: String, name: String?, userId: Long, scopes: List<String>, createdAt: OffsetDateTime, revokedAt: OffsetDateTime?, expiresIn: Int?, lastUsedAt: OffsetDateTime?, authorizedAt: OffsetDateTime?)",
     "imports": [
       "BotTokenCreateRequest"
@@ -121,7 +116,7 @@
     "output": "AvatarData(imageUrl: String)"
   },
   "BotOperations_updateBotToken": {
-    "usage": "val request = BotTokenUpdateRequest(name = \"Сервер уведомлений\", scopes = listOf(\"example\"))\nval response = client.bots.updateBotToken(id = 1738816, tokenId = 4827L, request = request)",
+    "usage": "val request = BotTokenUpdateRequest(name = \"Сервер уведомлений\", scopes = listOf(\"messages:create\"))\nval response = client.bots.updateBotToken(id = 1738816, tokenId = 4827L, request = request)",
     "output": "BotAccessToken(id: Long, token: String, name: String?, userId: Long, scopes: List<String>, createdAt: OffsetDateTime, revokedAt: OffsetDateTime?, expiresIn: Int?, lastUsedAt: OffsetDateTime?, authorizedAt: OffsetDateTime?)",
     "imports": [
       "BotTokenUpdateRequest"
@@ -172,7 +167,7 @@
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "val request = ExportRequest(\n    startAt = \"2025-03-20\",\n    endAt = \"2025-03-20\",\n    webhookUrl = \"https://example.com/webhooks/export\",\n    chatIds = listOf(123),\n    skipChatsFile = false\n)\nval response = client.chats.requestExport(request = request)",
+    "usage": "val request = ExportRequest(\n    startAt = \"2025-03-01\",\n    endAt = \"2025-03-20\",\n    chatIds = listOf(1381521)\n)\nval response = client.chats.requestExport(request = request)",
     "output": "ChatExport(id: Int)",
     "imports": [
       "ExportRequest"
@@ -273,16 +268,11 @@
     "output": "Draft(id: Int, entityType: MessageEntityType?, entityId: Int?, chatId: Int?, content: String, parentMessageId: Int?, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, schedule: DraftSchedule(startDate: OffsetDateTime, endDate: OffsetDateTime?, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: List<Int>?, nthDay: Int?))?, nextSendAt: OffsetDateTime?, createdAt: OffsetDateTime, updatedAt: OffsetDateTime)"
   },
   "DraftOperations_createDraft": {
-    "usage": "val request = DraftCreateRequest(\n    draft = DraftCreateRequestDraft(\n        entityType = MessageEntityType.DISCUSSION,\n        entityId = 334,\n        content = \"Отчёт за неделю: продажи выросли на 10%\",\n        parentMessageId = 196093,\n        files = listOf(DraftFileRequest(\n            id = 3560,\n            key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name = \"logo.png\",\n            fileType = FileType.IMAGE,\n            size = 12345L,\n            width = 800,\n            height = 600,\n            durationMs = 5400,\n            waveform = \"4,8,12,20,16,10,6,3\"\n        )),\n        schedule = DraftScheduleRequest(\n            startDate = OffsetDateTime.parse(\"2026-09-17T12:00:00.000Z\"),\n            endDate = OffsetDateTime.parse(\"2026-12-31T12:00:00.000Z\"),\n            repetition = DraftRepetitionRequest(\n                interval = DraftRepetitionInterval.WEEKLY,\n                days = listOf(123),\n                nthDay = 2\n            )\n        )\n    )\n)\nval response = client.drafts.createDraft(request = request)",
+    "usage": "val request = DraftCreateRequest(\n    draft = DraftCreateRequestDraft(\n        entityType = MessageEntityType.DISCUSSION,\n        entityId = 334,\n        content = \"Отчёт за неделю: продажи выросли на 10%\"\n    )\n)\nval response = client.drafts.createDraft(request = request)",
     "output": "Draft(id: Int, entityType: MessageEntityType?, entityId: Int?, chatId: Int?, content: String, parentMessageId: Int?, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, schedule: DraftSchedule(startDate: OffsetDateTime, endDate: OffsetDateTime?, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: List<Int>?, nthDay: Int?))?, nextSendAt: OffsetDateTime?, createdAt: OffsetDateTime, updatedAt: OffsetDateTime)",
     "imports": [
       "DraftCreateRequest",
       "DraftCreateRequestDraft",
-      "DraftFileRequest",
-      "DraftRepetitionInterval",
-      "DraftRepetitionRequest",
-      "DraftScheduleRequest",
-      "FileType",
       "MessageEntityType"
     ]
   },
@@ -356,19 +346,33 @@
     "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean)"
   },
   "MessageOperations_createMessage": {
-    "usage": "val request = MessageCreateRequest(\n    message = MessageCreateRequestMessage(\n        entityType = MessageEntityType.DISCUSSION,\n        entityId = 334,\n        content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files = listOf(MessageCreateRequestFile(\n            key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name = \"logo.png\",\n            fileType = FileType.IMAGE,\n            size = 12345L,\n            width = 800,\n            height = 600,\n            durationMs = 5400,\n            waveform = \"4,8,12,20,16,10,6,3\"\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"Подробнее\",\n            url = \"https://example.com/details\",\n            data = \"awesome\"\n        ))),\n        parentMessageId = 194270,\n        displayAvatarUrl = \"https://example.com/avatar.png\",\n        displayName = \"Бот Поддержки\",\n        skipInviteMentions = false\n    ),\n    linkPreview = false\n)\nval response = client.messages.createMessage(request = request)",
+    "usage": "val request = MessageCreateRequest(message = MessageCreateRequestMessage(entityId = 334, content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nval response = client.messages.createMessage(request = request)",
     "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean)",
     "imports": [
-      "Button",
-      "FileType",
       "MessageCreateRequest",
-      "MessageCreateRequestFile",
-      "MessageCreateRequestMessage",
-      "MessageEntityType"
-    ]
+      "MessageCreateRequestMessage"
+    ],
+    "examples": {
+      "Минимальный запрос": {
+        "usage": "val request = MessageCreateRequest(message = MessageCreateRequestMessage(entityId = 334, content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nval response = client.messages.createMessage(request = request)",
+        "imports": [
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage"
+        ]
+      },
+      "Сообщение с кнопкой": {
+        "usage": "val request = MessageCreateRequest(\n    message = MessageCreateRequestMessage(\n        entityType = MessageEntityType.DISCUSSION,\n        entityId = 334,\n        content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        buttons = listOf(listOf(Button(text = \"Подробнее\", url = \"https://example.com/details\")))\n    )\n)\nval response = client.messages.createMessage(request = request)",
+        "imports": [
+          "Button",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage",
+          "MessageEntityType"
+        ]
+      }
+    }
   },
   "LinkPreviewOperations_unfurl": {
-    "usage": "val request = LinkPreviewsRequest(\n    linkPreviews = mapOf(\"key\" to LinkPreview(\n        title = \"Статья: Отправка файлов\",\n        description = \"Пример отправки файлов на удаленный сервер\",\n        imageUrl = \"https://example.com/img/landing.png\",\n        image = LinkPreviewImage(\n            key = \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name = \"files-to-server.jpg\",\n            size = 695604\n        )\n    ))\n)\nclient.messages.unfurl(id = 194275, request = request)",
+    "usage": "val request = LinkPreviewsRequest(\n    linkPreviews = mapOf(\"key\" to LinkPreview(\n        title = \"Статья: Отправка файлов\",\n        description = \"Пример отправки файлов на удаленный сервер\",\n        imageUrl = \"https://example.com/img/landing.png\",\n        image = LinkPreviewImage(\n            key = \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/\\${filename}\",\n            name = \"files-to-server.jpg\",\n            size = 695604\n        )\n    ))\n)\nclient.messages.unfurl(id = 194275, request = request)",
     "imports": [
       "LinkPreview",
       "LinkPreviewImage",
@@ -379,13 +383,11 @@
     "usage": "client.messages.pinMessage(id = 194275)"
   },
   "MessageOperations_updateMessage": {
-    "usage": "val request = MessageUpdateRequest(\n    message = MessageUpdateRequestMessage(\n        content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files = listOf(MessageUpdateRequestFile(\n            key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name = \"logo.png\",\n            fileType = FileType.IMAGE,\n            size = 12345L,\n            width = 800,\n            height = 600,\n            durationMs = 5400,\n            waveform = \"4,8,12,20,16,10,6,3\"\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"Подробнее\",\n            url = \"https://example.com/details\",\n            data = \"awesome\"\n        ))),\n        displayAvatarUrl = \"https://example.com/avatar.png\",\n        displayName = \"Бот Поддержки\"\n    )\n)\nval response = client.messages.updateMessage(id = 194275, request = request)",
+    "usage": "val request = MessageUpdateRequest(message = MessageUpdateRequestMessage(content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\", buttons = listOf(listOf(Button(text = \"Подробнее\", url = \"https://example.com/details\")))))\nval response = client.messages.updateMessage(id = 194275, request = request)",
     "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean)",
     "imports": [
       "Button",
-      "FileType",
       "MessageUpdateRequest",
-      "MessageUpdateRequestFile",
       "MessageUpdateRequestMessage"
     ]
   },
@@ -434,10 +436,9 @@
     "output": "AccessTokenInfo(id: Long, token: String, name: String?, userId: Long, scopes: List<OAuthScope>, createdAt: OffsetDateTime, revokedAt: OffsetDateTime?, expiresIn: Int?, lastUsedAt: OffsetDateTime?, authorizedAt: OffsetDateTime?)"
   },
   "OAuthFlowOperations_revokeToken": {
-    "usage": "val request = OAuthRevokeRequest(\n    token = \"pato_bm90X2FfcmVhbF90b2tlbg\",\n    tokenTypeHint = OAuthTokenTypeHint.ACCESS_TOKEN,\n    clientId = \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    clientSecret = \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n)\nclient.oauth.revokeToken(request = request)",
+    "usage": "val request = OAuthRevokeRequest(\n    token = \"pato_bm90X2FfcmVhbF90b2tlbg\",\n    clientId = \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    clientSecret = \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n)\nclient.oauth.revokeToken(request = request)",
     "imports": [
-      "OAuthRevokeRequest",
-      "OAuthTokenTypeHint"
+      "OAuthRevokeRequest"
     ]
   },
   "OAuthFlowOperations_exchangeToken": {
@@ -594,10 +595,12 @@
     ]
   },
   "FormOperations_openView": {
-    "usage": "val request = OpenViewRequest(\n    type = \"modal\",\n    triggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    privateMetadata = \"{\\\"timeoff_id\\\":4378}\",\n    callbackId = \"timeoff_request_form\",\n    view = OpenViewRequestView(\n        title = \"Уведомление об отпуске\",\n        closeText = \"Закрыть\",\n        submitText = \"Отправить заявку\",\n        blocks = listOf(ViewBlockHeader(type = \"header\", text = \"Основная информация\"))\n    )\n)\nclient.views.openView(request = request)",
+    "usage": "val request = OpenViewRequest(\n    type = \"modal\",\n    triggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    privateMetadata = \"{\\\"timeoff_id\\\":4378}\",\n    callbackId = \"timeoff_request_form\",\n    view = OpenViewRequestView(\n        title = \"Уведомление об отпуске\",\n        closeText = \"Закрыть\",\n        submitText = \"Отправить заявку\",\n        blocks = listOf(ViewBlockHeader(type = \"header\", text = \"Основная информация\"))\n    )\n)\nval response = client.views.openView(request = request)",
+    "output": "OpenViewResult(success: Boolean)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",
+      "ViewBlockHeader",
       "ViewBlockUnion"
     ]
   }

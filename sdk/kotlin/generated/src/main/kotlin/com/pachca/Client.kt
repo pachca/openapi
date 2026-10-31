@@ -2162,7 +2162,8 @@ class SearchServiceImpl internal constructor(
     ): List<Chat> {
         val items = mutableListOf<Chat>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = searchChats(
                 query = query,
                 limit = limit,
@@ -2177,7 +2178,8 @@ class SearchServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext
+        }
         return items
     }
 
@@ -2224,7 +2226,8 @@ class SearchServiceImpl internal constructor(
     ): List<Message> {
         val items = mutableListOf<Message>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = searchMessages(
                 query = query,
                 limit = limit,
@@ -2240,7 +2243,8 @@ class SearchServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext
+        }
         return items
     }
 
@@ -2281,7 +2285,8 @@ class SearchServiceImpl internal constructor(
     ): List<User> {
         val items = mutableListOf<User>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = searchUsers(
                 query = query,
                 limit = limit,
@@ -2295,7 +2300,8 @@ class SearchServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext
+        }
         return items
     }
 }
@@ -2609,7 +2615,7 @@ interface ViewsService {
         throw NotImplementedError("Views.submitViewResponse is not implemented")
     }
 
-    suspend fun openView(request: OpenViewRequest) {
+    suspend fun openView(request: OpenViewRequest): OpenViewResult {
         throw NotImplementedError("Views.openView is not implemented")
     }
 }
@@ -2629,13 +2635,13 @@ class ViewsServiceImpl internal constructor(
         }
     }
 
-    override suspend fun openView(request: OpenViewRequest) {
+    override suspend fun openView(request: OpenViewRequest): OpenViewResult {
         val response = client.post("$baseUrl/views/open") {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
-        when (response.status.value) {
-            201 -> return
+        return when (response.status.value) {
+            201 -> response.body()
             else -> throw errorFromResponse(response)
         }
     }
@@ -2963,8 +2969,10 @@ class PachcaClient private constructor(
                     if (retryAfter != null && response?.status?.value == 429) {
                         (retryAfter * 1000L * jitter).toLong()
                     } else {
-                        val base = 10_000L * (1L shl retry)
-                        (base * jitter).toLong()
+                        // Ktor counts retries from 1. A 429 without Retry-After waits 1, 2 and 4 s,
+                        // as in the other SDKs, a 5xx and a network error 10, 20 and 40 s.
+                        val base = if (response?.status?.value == 429) 1_000L else 10_000L
+                        (base * (1L shl (retry - 1)) * jitter).toLong()
                     }
                 }
             }

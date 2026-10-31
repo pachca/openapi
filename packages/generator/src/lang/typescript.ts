@@ -10,8 +10,9 @@ import {
   type IROperation,
   type IRParam,
   type IRResponseType,
+  paginateHasNext,
 } from '../ir.js';
-import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToPascal,
@@ -63,6 +64,10 @@ function tsType(
     case 'enum':
     case 'model':
     case 'union':
+      // A value union is the union of its members: `string[] | ScopesChange`.
+      if (ft.kind === 'union' && ft.valueUnion && ft.members) {
+        return ft.members.map((m) => tsType(m, opts)).join(' | ');
+      }
       if (ft.ref && opts.parent && opts.inlineAsObject.has(ft.ref)) {
         const inl = opts.parent.inlineObjects.find((m) => m.name === ft.ref);
         if (inl) return inlineObjectType(inl, opts);
@@ -159,12 +164,15 @@ function emitEnum(lines: string[], e: IREnum): void {
 function emitErrorClass(lines: string[], m: IRModel): void {
   if (m.name === 'ApiError') {
     lines.push('export class ApiError extends Error {');
-    lines.push('  errors?: ApiErrorItem[];');
+    // The client always passes an array, empty when the body has no errors: callers read it without `?? []`.
+    lines.push('  errors: ApiErrorItem[];');
     lines.push('  /** HTTP status code of the response. An answer with an empty body or one that is not JSON comes with `errors` empty. */');
     lines.push('  status?: number;');
-    lines.push('  constructor(errors?: ApiErrorItem[], status?: number) {');
-    lines.push('    super(errors?.length ? errors.map((e) => `${e.key}: ${e.value}`).join(", ") : status !== undefined ? `HTTP ${status}` : "");');
-    lines.push('    this.errors = errors;');
+    // `new ApiError(null, 500)` from plain JavaScript worked while the field was optional: null still reads as empty.
+    lines.push('  constructor(errors: ApiErrorItem[] = [], status?: number) {');
+    lines.push('    const list = errors ?? [];');
+    lines.push('    super(list.length ? list.map((e) => `${e.key}: ${e.value}`).join(", ") : status !== undefined ? `HTTP ${status}` : "");');
+    lines.push('    this.errors = list;');
     lines.push('    this.status = status;');
     lines.push('  }');
     lines.push('}');
@@ -957,7 +965,8 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
 
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
   const metaOpt = rt?.metaIsRequired ? '' : '?';
-  const useHasNext = rt?.metaRef === 'PaginationMeta';
+  const hasNextForm = paginateHasNext(ir, rt?.metaRef);
+  const useHasNext = hasNextForm !== undefined;
 
   if (useHasNext) {
     lines.push('    let hasNext = true;');
@@ -966,7 +975,11 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     lines.push('      items.push(...response.data);');
     lines.push('      if (response.data.length === 0) break;');
     lines.push(`      cursor = response.meta${metaOpt}.paginate.nextPage;`);
-    lines.push(`      hasNext = response.meta${metaOpt}.paginate.hasNext ?? true;`);
+    lines.push(
+      hasNextForm === 'required' && rt?.metaIsRequired
+        ? '      hasNext = response.meta.paginate.hasNext;'
+        : `      hasNext = response.meta${metaOpt}.paginate.hasNext ?? true;`,
+    );
     lines.push('    }');
   } else {
     lines.push('    do {');
@@ -1083,6 +1096,17 @@ function renderTransformExpr(
   switch (ft.kind) {
     case 'model':
     case 'union':
+      // A value union takes the member of the JSON kind the value has.
+      if (ft.kind === 'union' && ft.valueUnion && ft.members) {
+        const list = ft.members.find((m) => m.kind === 'array');
+        const object = ft.members.find((m) => m.kind === 'model');
+        let expr = `${valueFn}(${valueName})`;
+        if (object) {
+          expr = `(${valueName} !== null && typeof ${valueName} === "object" && !Array.isArray(${valueName}) ? ${renderTransformExpr(object, mode, valueName, customUnionNames)} : ${expr})`;
+        }
+        if (list) expr = `(Array.isArray(${valueName}) ? ${renderTransformExpr(list, mode, valueName, customUnionNames)} : ${expr})`;
+        return expr;
+      }
       if (ft.ref && customUnionNames.has(ft.ref)) return `${valueFn}(${valueName})`;
       return ft.ref ? `${typeFn}(${JSON.stringify(ft.ref)}, ${valueName})` : `${valueFn}(${valueName})`;
     case 'array':
@@ -1372,6 +1396,7 @@ function tsLiteral(
     case 'record':
       return `{ key: ${tsLiteral(ft.valueType!, ir, models, visited, indent)} }`;
     case 'union': {
+      if (ft.valueUnion && ft.members) return tsLiteral(ft.members[0], ir, models, visited, indent);
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
         return tsModelLiteral(u.memberRefs[0], ir, models, visited, indent);
@@ -1445,6 +1470,7 @@ function tsFingerprint(
     case 'record':
       return `Record<string, ${tsFingerprint(ft.valueType!, ir, models, visited)}>`;
     case 'union':
+      if (ft.valueUnion && ft.members) return ft.members.map((m) => tsFingerprint(m, ir, models, visited)).join(' | ');
       return ft.ref ?? 'unknown';
     case 'literal':
       return 'string';
@@ -1527,6 +1553,7 @@ function tsBuildOperationExample(
   ir: IR,
   models: Map<string, IRModel>,
   serviceProp: string,
+  inlineAsObject: Set<string> = new Set(),
 ): { usage: string; output: string | null; imports: string[] } {
   const args: { name: string; value: string }[] = [];
   const imports = new Set<string>();
@@ -1542,13 +1569,14 @@ function tsBuildOperationExample(
 
   if (op.requestBody) {
     const rb = op.requestBody;
+    const body = bodyExample(rb, ir, models);
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = snakeToCamel(rb.unwrapField.name);
-      args.push({ name: sdkName, value: tsLiteral(rb.unwrapField.type, ir, models) });
-      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
+      args.push({ name: sdkName, value: tsLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     } else if (rb.schemaRef) {
-      args.push({ name: 'request', value: tsLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
-      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
+      args.push({ name: 'request', value: tsLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     }
   }
 
@@ -1588,17 +1616,20 @@ function tsBuildOperationExample(
   }
 
   const output = tsBuildOutputFingerprint(op, ir, models);
-  const rawCall = `client.${serviceProp}.${op.methodName}(${callArgs.join(', ')})`;
+  // Every method returns a Promise: without await the example would hand back the Promise, not the data.
+  const rawCall = `await client.${serviceProp}.${op.methodName}(${callArgs.join(', ')})`;
   const call = output ? `const response = ${rawCall}` : rawCall;
   const usage = declarations.length > 0
     ? [...declarations, call].join('\n')
     : call;
 
-  return { usage, output, imports: [...imports].sort() };
+  // A nested object written inline in types.ts has no exported name to import.
+  return { usage, output, imports: [...imports].filter((name) => !inlineAsObject.has(name)).sort() };
 }
 
 function generateExamples(ir: IR): string {
   const models = buildModelIndex(ir);
+  const inlineAsObject = buildInlineAsObjectSet(ir);
   const result: Record<string, object> = {};
 
   result['Client_Init'] = {
@@ -1611,10 +1642,12 @@ function generateExamples(ir: IR): string {
     const serviceProp = tagToProperty(svc.tag);
     for (const op of svc.operations) {
       if (op.isAlias) continue; // alias op — documented under its new service
-      const ex = tsBuildOperationExample(op, ir, models, serviceProp);
+      const ex = tsBuildOperationExample(op, ir, models, serviceProp, inlineAsObject);
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
+      const named = namedBodyExamples(op, (o) => tsBuildOperationExample(o, ir, models, serviceProp, inlineAsObject));
+      if (named) entry.examples = named;
       result[op.operationId] = entry;
       if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
         result[`${op.operationId}_pollWebhookEvents`] = {

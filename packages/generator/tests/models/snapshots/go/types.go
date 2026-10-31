@@ -26,9 +26,9 @@ type User struct {
 	IsActive         bool             `json:"is_active"`
 	CreatedAt        time.Time        `json:"created_at"`
 	TagIDs           []int32          `json:"tag_ids"`
-	PhoneNumber      *string          `json:"phone_number"`
-	BotID            *int64           `json:"bot_id"`
-	Birthday         *string          `json:"birthday"`
+	PhoneNumber      *string          `json:"phone_number,omitempty"`
+	BotID            *int64           `json:"bot_id,omitempty"`
+	Birthday         *string          `json:"birthday,omitempty"`
 	CustomProperties []CustomProperty `json:"custom_properties,omitempty"`
 	Status           *UserStatus      `json:"status,omitempty"`
 }
@@ -39,12 +39,14 @@ func (m User) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.CustomProperties != nil {
-		raw["custom_properties"] = m.CustomProperties
+		if raw["custom_properties"], err = json.Marshal(m.CustomProperties); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -52,7 +54,7 @@ func (m User) MarshalJSON() ([]byte, error) {
 type UserStatus struct {
 	Emoji     *string `json:"emoji,omitempty"`
 	Title     *string `json:"title,omitempty"`
-	ExpiresAt *string `json:"expires_at"`
+	ExpiresAt *string `json:"expires_at,omitempty"`
 }
 
 type CustomProperty struct {
@@ -77,7 +79,7 @@ type UserCreateRequest struct {
 type UserUpdateRequestUser struct {
 	FirstName   *string   `json:"first_name,omitempty"`
 	LastName    *string   `json:"last_name,omitempty"`
-	PhoneNumber *string   `json:"phone_number"`
+	PhoneNumber *string   `json:"phone_number,omitempty"`
 	Role        *UserRole `json:"role,omitempty"`
 }
 
@@ -111,15 +113,19 @@ func (m MessageCreateRequestMessage) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Files != nil {
-		raw["files"] = m.Files
+		if raw["files"], err = json.Marshal(m.Files); err != nil {
+			return nil, err
+		}
 	}
 	if m.Buttons != nil {
-		raw["buttons"] = m.Buttons
+		if raw["buttons"], err = json.Marshal(m.Buttons); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }
@@ -144,12 +150,14 @@ func (m ApiError) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Errors != nil {
-		raw["errors"] = m.Errors
+		if raw["errors"], err = json.Marshal(m.Errors); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }

@@ -109,7 +109,8 @@ function maskToken(token: string): string {
 export function formatDryRun(opts: RequestOptions, isJson: boolean): string | object {
   const url = buildUrl(opts.path, opts.query);
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${maskToken(opts.token)}`,
+    // The real request carries the token; the preview never shows it, and works without one.
+    ...(opts.noAuth ? {} : { Authorization: `Bearer ${maskToken(opts.token)}` }),
     ...(opts.body ? { 'Content-Type': 'application/json' } : {}),
     ...opts.headers,
   };

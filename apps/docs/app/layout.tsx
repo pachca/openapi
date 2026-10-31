@@ -53,7 +53,7 @@ const jsonLd = {
       '@type': 'WebSite',
       name: 'Пачка для разработчиков',
       description:
-        'REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.',
+        'REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и напоминаниями.',
       url: 'https://dev.pachca.com',
       inLanguage: 'ru',
       publisher: {
@@ -78,7 +78,7 @@ const jsonLd = {
       '@type': 'WebAPI',
       name: 'Pachca REST API',
       description:
-        'REST API для управления сообщениями, чатами, пользователями и задачами в мессенджере Пачка.',
+        'REST API для управления сообщениями, чатами, пользователями и напоминаниями в мессенджере Пачка.',
       documentation: 'https://dev.pachca.com',
       url: 'https://api.pachca.com/api/shared/v1',
       provider: { '@id': 'https://pachca.com/#organization' },

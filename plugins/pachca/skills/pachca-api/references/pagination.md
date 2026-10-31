@@ -1,14 +1,14 @@
 # Pagination: full walks and polling
 
-Full reference: <https://dev.pachca.com/api/pagination.md>. This file covers the parts a model gets wrong, and where the two differ, follow this file: a search walk ends on an empty `data`, not when the collected count reaches `meta.total` (see Pitfalls), the list group holds more methods than that page names, and a polling anchor may be kept between runs (see Rules for list methods).
+Full reference: <https://dev.pachca.com/api/pagination.md>. This file covers the parts a model gets wrong, and where the two differ, follow this file: the list group holds more methods than that page names, and a polling anchor may be kept between runs (see Rules for list methods).
 
 ## Know the group before you write the loop
 
-| Group                      | Methods                                                                                                                                                                                                            | `meta`                                                         | Stop when                                                    |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------ |
-| List                       | employees (no `query`), chats, workspace chats, chat members, chat messages, threads, reactions, message readers, tags, tag members, tasks, drafts, bots, bot tokens, workspace bots, audit log, bot event history | `meta.paginate.next_page`, `prev_page`, `has_next`, `has_prev` | `has_next: false`                                            |
-| Search                     | search employees, chats, messages                                                                                                                                                                                  | `meta.total`, `meta.paginate.next_page`                        | an empty `data` (never `total`, see Pitfalls)                |
-| Employee list with `query` | the employee list called with `query`                                                                                                                                                                              | `meta.paginate.next_page`, `has_next`                          | `has_next: false` (`next_page` still comes on the last page) |
+| Group                      | Methods                                                                                                                                                                                                                | `meta`                                                         | Stop when                                                    |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------ |
+| List                       | employees (no `query`), chats, workspace chats, chat members, chat messages, threads, reactions, message readers, tags, tag members, reminders, drafts, bots, bot tokens, workspace bots, audit log, bot event history | `meta.paginate.next_page`, `prev_page`, `has_next`, `has_prev` | `has_next: false`                                            |
+| Search                     | search employees, chats, messages                                                                                                                                                                                      | `meta.total`, `meta.paginate.next_page`, `has_next`            | `has_next: false` (never `total`, see Pitfalls)              |
+| Employee list with `query` | the employee list called with `query`                                                                                                                                                                                  | `meta.paginate.next_page`, `has_next`                          | `has_next: false` (`next_page` still comes on the last page) |
 
 For a method not in the table, read the `meta` schema on its page: `meta.total` means search, and `paginate.has_next` without `total` means list. For calls with `query`, the employee list page still shows the full list `meta`, so use the table for that case. In the CLI, typed list commands take `--limit`, `--cursor` and `--all`, but a run without `--all` prints only `data`, never `meta`, so it does not show the next cursor. To page by hand, use `pachca api GET <path> --query limit=50 --query cursor=<next_page>`: it prints the whole response, `meta` included.
 
@@ -19,8 +19,7 @@ cursor = none
 loop:
   page = GET list(limit = <explicit>, cursor = cursor if set)
   collect page.data
-  list group:   if not page.meta.paginate.has_next: stop
-  search group: if page.data is empty: stop
+  if not page.meta.paginate.has_next: stop
   cursor = page.meta.paginate.next_page
 ```
 
@@ -37,7 +36,7 @@ Prefer the SDK `*All()` methods (`*_all()` in Python, `*AllAsync()` in C#) or CL
 
 ## Polling for new records
 
-`prev_page` fetches records that sort above the first record you saw, without refetching everything. That catches new records only in lists sorted newest first: employees (no `query`), chats and chat messages with the default `order=desc`, threads, drafts, bots, bot tokens, workspace chats and workspace bots, audit log, bot event history. With `sort` and `order=asc` new records arrive at the tail instead (in these two lists `order` without `sort` changes nothing). Tasks, reactions and tags are always sorted oldest first, so new ones also arrive at the tail: keep `next_page` from the last page and poll with it (an empty response returns the same `next_page`). Chat members, tag members and message readers are not sorted by when someone joined or read, so a new one can land anywhere in the list: re-walk the whole list. A bot can follow chat membership through the `chat_member_add` and `chat_member_remove` events instead → pachca-bots.
+`prev_page` fetches records that sort above the first record you saw, without refetching everything. That catches new records only in lists sorted newest first: employees (no `query`), chats and chat messages with the default `order=desc`, threads, drafts, bots, bot tokens, workspace chats and workspace bots, audit log, bot event history. With `sort` and `order=asc` new records arrive at the tail instead (in these two lists `order` without `sort` changes nothing). Reminders, reactions and tags are always sorted oldest first, so new ones also arrive at the tail: keep `next_page` from the last page and poll with it (an empty response returns the same `next_page`). Chat members, tag members and message readers are not sorted by when someone joined or read, so a new one can land anywhere in the list: re-walk the whole list. A bot can follow chat membership through the `chat_member_add` and `chat_member_remove` events instead → pachca-bots.
 
 Only the raw response carries `prev_page`: HTTP, an SDK's typed responses and `pachca api`. An MCP list tool shows only the forward cursor (`Continue with cursor=…`, or `End of list.` on the last page), and a typed CLI command prints only `data`. Poll from code, an SDK or `pachca api GET <path> --query limit=50 --query cursor=<prev_page>`.
 
@@ -61,7 +60,6 @@ Search methods have no `prev_page`, so search results cannot be polled by cursor
 ## Pitfalls
 
 - Treating an empty page in a list method as the end.
-- Using `has_next` with a search method: it is not there.
-- Ending a search walk when the collected count reaches `meta.total`: on large result sets `total` can be capped, and on message search sorted by date (the default) each next page's `total` counts only the matches still ahead of the cursor, so the walk stops early. The end of a search is an empty `data`.
+- Ending a search walk when the collected count reaches `meta.total`: on large result sets `total` can be capped, and on message search sorted by date (the default) each next page's `total` counts only the matches still ahead of the cursor, so the walk stops early. The end of a search is `has_next: false`.
 - Resuming a half-finished walk the next day from a saved `next_page`: records added or re-sorted in between (a chat's `last_message_at`) are skipped. Start a new walk. Keeping a polling anchor between runs is fine.
 - Relying on the default `limit`: always pass it.

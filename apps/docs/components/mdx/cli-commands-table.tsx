@@ -22,23 +22,26 @@ export interface CommandRow {
   roles?: string;
   plan?: string;
   noAuth?: boolean;
+  /** Without `method`: a link title to `href`, with `summary` under it */
+  title?: string;
   params: ParamRow[];
 }
 
 const TH =
   'text-left py-4 pl-0! text-text-primary! font-semibold! text-[15px]! normal-case! tracking-normal! bg-transparent!';
 
-// Framed, self-contained panel. Two 50/50 columns mirroring the outer
-// command table: left half = token + type, right half = description.
-// No horizontal padding on the grid row, so the 50% boundary lines up
-// with the outer table's second column ("Метод API").
-function ParamsPanel({ params }: { params: ParamRow[] }) {
+// Framed, self-contained panel. Two columns mirroring the outer command
+// table: token + type on the left, description on the right. The split is
+// the table's own, and the grid row has no horizontal padding, so the
+// boundary lines up with the outer table's second column.
+function ParamsPanel({ params, split }: { params: ParamRow[]; split: number }) {
   return (
     <div className="my-2 rounded-xl border border-glass-border bg-glass backdrop-blur-md overflow-hidden text-[13px]">
       {params.map((p, i) => (
         <div
           key={p.token}
-          className={`grid grid-cols-2 py-3 ${i > 0 ? 'border-t border-glass-border' : ''}`}
+          className={`grid py-3 ${i > 0 ? 'border-t border-glass-border' : ''}`}
+          style={{ gridTemplateColumns: `${split}% 1fr` }}
         >
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 min-w-0 pl-5 pr-3">
             <span className="min-w-0 break-words text-text-primary">
@@ -54,7 +57,16 @@ function ParamsPanel({ params }: { params: ParamRow[] }) {
   );
 }
 
-export function CliCommandsTable({ commands }: { commands: CommandRow[] }) {
+export function CliCommandsTable({
+  commands,
+  headers = ['Команда', 'Метод API'],
+  commandWidth = 50,
+}: {
+  commands: CommandRow[];
+  headers?: [string, string];
+  /** Width of the command column in percent; the other column takes the rest. */
+  commandWidth?: number;
+}) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
   return (
@@ -65,13 +77,13 @@ export function CliCommandsTable({ commands }: { commands: CommandRow[] }) {
           two columns of the command table. */}
       <table className="w-full min-w-[620px] table-fixed border-none text-[14px]">
         <colgroup>
-          <col className="w-1/2" />
-          <col className="w-1/2" />
+          <col style={{ width: `${commandWidth}%` }} />
+          <col />
         </colgroup>
         <thead className="border-b border-glass-border">
           <tr>
-            <th className={TH}>Команда</th>
-            <th className={TH}>Метод API</th>
+            <th className={TH}>{headers[0]}</th>
+            <th className={TH}>{headers[1]}</th>
           </tr>
         </thead>
         <tbody>
@@ -85,7 +97,7 @@ export function CliCommandsTable({ commands }: { commands: CommandRow[] }) {
               <Fragment key={c.command}>
                 <tr className={isOpen ? '[&>td]:!border-b-0' : ''}>
                   <td className="py-4 pl-0! pr-3 align-top text-text-primary">
-                    <span className="inline-flex items-baseline gap-2">
+                    <span className="flex min-w-0 items-baseline gap-2">
                       {hasParams ? (
                         <button
                           type="button"
@@ -104,7 +116,11 @@ export function CliCommandsTable({ commands }: { commands: CommandRow[] }) {
                       ) : (
                         <span className="inline-block w-3.5 shrink-0" />
                       )}
-                      <CopyableInlineCode>{c.command}</CopyableInlineCode>
+                      {/* A long command (plugin commands with their parts) wraps at
+                          spaces inside its chip instead of running into the next column. */}
+                      <CopyableInlineCode className="min-w-0 whitespace-normal! break-words">
+                        {c.command}
+                      </CopyableInlineCode>
                     </span>
                   </td>
                   <td className="py-4 pl-0! align-top text-text-primary break-words">
@@ -119,6 +135,16 @@ export function CliCommandsTable({ commands }: { commands: CommandRow[] }) {
                       >
                         {c.summary}
                       </EndpointLink>
+                    ) : c.title ? (
+                      <>
+                        <a
+                          href={c.href}
+                          className="font-semibold text-text-primary underline underline-offset-[3px] decoration-1 decoration-current/30 hover:decoration-current hover:decoration-[1.5px] transition-all"
+                        >
+                          {c.title}
+                        </a>
+                        <div className="mt-1 text-text-secondary">{c.summary}</div>
+                      </>
                     ) : (
                       <span className="text-text-secondary">{c.summary}</span>
                     )}
@@ -127,7 +153,7 @@ export function CliCommandsTable({ commands }: { commands: CommandRow[] }) {
                 {isOpen && hasParams ? (
                   <tr>
                     <td colSpan={2} className="!px-0 !pt-0 !pb-4">
-                      <ParamsPanel params={c.params} />
+                      <ParamsPanel params={c.params} split={commandWidth} />
                     </td>
                   </tr>
                 ) : null}

@@ -2205,7 +2205,9 @@ paths:
 
         В ответ на запрос сервер вернёт `302 Found` с заголовком `Location`, содержащим временную ссылку на скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.
 
-        Ссылка действует 5 минут, используйте её сразу. Сам архив хранится 7 дней, а скачать его может только тот, кто заказал выгрузку. Другому сотруднику с тем же правом метод откажет.
+        Ссылка действует 5 минут, используйте её сразу. Скачать архив может только тот, кто заказал выгрузку: другому сотруднику с тем же правом метод откажет.
+
+        Сам архив хранится 7 дней. После этого метод по-прежнему отвечает `302`, но хранилище по ссылке возвращает ошибку, и выгрузку нужно заказать заново.
 
         Пока архив собирается, метод отвечает `404` с кодом `export_file_not_found`.
       parameters:
@@ -2812,7 +2814,7 @@ paths:
 
         Кто состоит в беседе, канале или треде. Боты приходят наравне с сотрудниками, с `bot: true`.
 
-        Владелец пространства может получить состав участников любого чата пространства. Администраторы и боты получают состав только тех чатов, где состоят сами, и открытых чатов пространства.
+        Владелец пространства может получить состав участников любого чата пространства. Администраторы и боты получают состав только тех чатов, где состоят сами, и открытых чатов пространства. Состав треда получает каждый, кто видит тред, подробнее — в разделе [Кто видит тред](/guides/threads#kto-vidit-tred).
 
         В выдачу попадают только действующие сотрудники: приостановленные не приходят, хотя членство у них сохраняется. Поле `role` в записи — роль сотрудника в пространстве. Роль участника в чате метод не отдаёт: кто в какой роли, показывает только фильтр `role` — по запросу на каждую роль.
       parameters:
@@ -2927,7 +2929,7 @@ paths:
 
         Добавлять участников могут сотрудники и боты. Гостю и мульти-гостю метод отвечает `403`, как и в интерфейсе, какая бы роль в чате у них ни была.
 
-        Роль в чате назначается в момент добавления: владелец пространства и администратор становятся администраторами чата, остальные — обычными участниками. Дальше роль в чате сама не пересчитывается: повышение сотрудника в пространстве не меняет его роль там, где он уже состоит. Менять роль нужно методом [Редактирование роли участника](PUT /chats/{id}/members/{user_id}).
+        Роль в чате назначается в момент добавления: в беседе и канале владелец пространства и администратор становятся администраторами чата, остальные — обычными участниками. Дальше роль в чате сама не пересчитывается: повышение сотрудника в пространстве не меняет его роль там, где он уже состоит. Менять роль нужно методом [Редактирование роли участника](PUT /chats/{id}/members/{user_id}).
 
         Тех, кто уже состоит в чате, метод пропускает молча и ошибкой это не считает. А вот неизвестный или неактивный идентификатор останавливает весь запрос: метод отвечает `404` и перечисляет такие значения, никто при этом не добавляется.
 
@@ -2940,7 +2942,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Идентификатор чата (беседа, канал или чат треда)
+          description: Идентификатор чата (беседа, канал или чат треда). В тред метод добавляет всех обычными участниками и без уведомления, поэтому упомяните добавленных в сообщении треда. Сотрудников не из родительского чата он добавляет туда при любой настройке «Использовать сквозные треды».
           schema:
             type: integer
             format: int32
@@ -3014,7 +3016,7 @@ paths:
       description: |-
         Исключение участника
 
-        Убирает сотрудника или бота из беседы, канала или треда. Из треда исключают по его `chat_id`: это может Создатель или Админ чата, где находится родительское сообщение, а в самостоятельном треде — его создатель и добавленные в тред владелец и администраторы пространства. В закрытой беседе исключённый теряет доступ к чату, но остаётся в тредах, где состоял.
+        Убирает сотрудника или бота из беседы, канала или треда. Из треда исключают по его `chat_id`: это может Создатель или Админ чата, где находится родительское сообщение, а в самостоятельном треде — его создатель и владелец и администраторы пространства, которых добавили в тред окном «Добавить участников» в интерфейсе Пачки, а не упоминанием. В закрытой беседе исключённый теряет доступ к чату, но остаётся в тредах, где состоял.
 
         Сотрудника, которого держит в чате привязанный тег, этим методом убрать нельзя: ответ придёт успешный, а сотрудник останется в чате. Снимите с него тег методом [Редактирование сотрудника](PUT /users/{id}) или отцепите тег от чата методом [Исключение тега из чата](DELETE /chats/{id}/group_tags/{tag_id}).
 
@@ -3609,6 +3611,8 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/FileUploadRequest'
+      security:
+        - {}
       x-external-url: directUrl
       x-requirements:
         auth: false
@@ -3693,6 +3697,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DraftCreateRequest'
+            example:
+              draft:
+                entity_type: discussion
+                entity_id: 334
+                content: 'Отчёт за неделю: продажи выросли на 10%'
       x-requirements:
         scope: drafts:write
     get:
@@ -4859,6 +4868,23 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MessageCreateRequest'
+            examples:
+              Минимальный запрос:
+                summary: Минимальный запрос
+                value:
+                  message:
+                    entity_id: 334
+                    content: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)
+              Сообщение с кнопкой:
+                summary: Сообщение с кнопкой
+                value:
+                  message:
+                    entity_type: discussion
+                    entity_id: 334
+                    content: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)
+                    buttons:
+                      - - text: Подробнее
+                          url: https://example.com/details
       x-requirements:
         scope: messages:create
     get:
@@ -5056,7 +5082,7 @@ paths:
       description: |-
         Редактирование сообщения
 
-        Меняет текст, файлы и кнопки уже отправленного сообщения. В интерфейсе у него появляется пометка о правке. Текст оформляется по тем же правилам, что и в методе [Новое сообщение](POST /messages).
+        Меняет текст, файлы и кнопки уже отправленного сообщения. В интерфейсе у него появляется пометка о правке, а уведомлений правка не присылает и непрочитанным сообщение не делает: кто его уже прочитал, изменений не заметит. Кто прочитал, показывает метод [Список прочитавших сообщение](GET /messages/{id}/read_member_ids). Текст оформляется по тем же правилам, что и в методе [Новое сообщение](POST /messages).
 
         Править можно только свои сообщения, и только обычные: системное, пересланное и голосовое метод не меняет. Ограничений по давности отправки нет.
 
@@ -5130,6 +5156,12 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MessageUpdateRequest'
+            example:
+              message:
+                content: 'Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.'
+                buttons:
+                  - - text: Подробнее
+                      url: https://example.com/details
       x-requirements:
         scope: messages:update
     delete:
@@ -5137,7 +5169,7 @@ paths:
       description: |-
         Удаление сообщения
 
-        Удаление сообщения доступно отправителю, админам и редакторам в чате. В личных сообщениях оба пользователя являются редакторами. В треде чужие сообщения удаляют по роли в чате, где находится родительское сообщение, а в самостоятельном треде — его создатель и добавленные в тред владелец и администраторы пространства. Ограничений по давности отправки сообщения нет.
+        Удаление сообщения доступно отправителю, админам и редакторам в чате. В личных сообщениях оба пользователя являются редакторами. В треде чужие сообщения удаляют по роли в чате, где находится родительское сообщение, а в самостоятельном треде — его создатель и владелец и администраторы пространства, которых добавили в тред окном «Добавить участников» в интерфейсе Пачки, а не упоминанием. Ограничений по давности отправки сообщения нет.
 
         Текст, файлы и реакции пропадают у всех и не восстанавливаются, закрепление снимается, а в переписке на месте сообщения остаётся пометка «Сообщение удалено».
 
@@ -5649,6 +5681,8 @@ paths:
         Самого вызывающего и автора сообщения в списке не будет никогда — считаются только остальные участники. Для сообщения в треде это участники треда, а не родительского чата.
 
         Имён метод не отдаёт. За ними ходят методом [Информация о сотруднике](GET /users/{id}) по каждому идентификатору.
+
+        Метод помогает решить, поправить своё сообщение или дописать новое. [Редактирование сообщения](PUT /messages/{id}) никого не уведомляет: пока адресаты сообщение не прочитали, его проще поправить, а прочитанное лучше дополнить ответом. Если исходный текст должен остаться верным, поправьте его и коротко ответьте, что изменили. Проверяйте прямо перед правкой, когда новый текст готов: сообщение могут прочитать, пока вы его пишете.
       parameters:
         - name: id
           in: path
@@ -5755,7 +5789,7 @@ paths:
 
         Пустой тред разговором ещё не является: сразу отправьте в него первое сообщение методом [Новое сообщение](POST /messages) с `entity_type: "thread"` и `id` треда из ответа. Названия у треда нет, и удалить его нельзя ни через API, ни в приложении.
 
-        Если у сообщения уже был создан тред, то в ответе на запрос вернётся информация об уже созданном ранее треде. Но чтобы просто прочитать тред, метод не нужен: идентификатор существующего треда приходит в поле `thread` самого сообщения. Тред под сообщением, которое само лежит в треде, завести нельзя: вложенных тредов в Пачке нет, и метод отвечает `400` с кодом `thread_message`.
+        Если у сообщения уже был создан тред, то в ответе на запрос вернётся информация об уже созданном ранее треде. Новый тред заводит только участник чата: тому, кто видит открытую беседу или канал, но не состоит в них, метод отвечает `403`, а уже созданный тред возвращает. Но чтобы просто прочитать тред, метод не нужен: идентификатор существующего треда приходит в поле `thread` самого сообщения. Тред под сообщением, которое само лежит в треде, завести нельзя: вложенных тредов в Пачке нет, и метод отвечает `400` с кодом `thread_message`.
       parameters:
         - name: id
           in: path
@@ -5848,6 +5882,9 @@ paths:
               token: pato_bm90X2FfcmVhbF90b2tlbg
               client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
               client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+      security:
+        - BearerAuth: []
+        - {}
       x-oauth-flow: true
   /oauth/token:
     post:
@@ -5915,6 +5952,8 @@ paths:
               client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
               client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
               code_verifier: dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+      security:
+        - {}
       x-oauth-authorize-url: https://app.pachca.com/apps/authorize
       x-oauth-flow: true
       x-requirements:
@@ -7192,7 +7231,7 @@ paths:
 
         Заводит тред, который ни к чему не привязан: место для разговора, диалога с агентом или звонка, которому не нужен отдельный чат. Собрать в нём можно любых сотрудников.
 
-        Создатель треда становится его единственным участником и владельцем: он может исключать участников и удалять чужие сообщения в треде, а его самого исключить нельзя. В более старых самостоятельных тредах создатель — обычный участник: есть ли у треда владелец, показывает [Список участников чата](GET /chats/{id}/members) с `role=owner`. Поля `message_id` и `message_chat_id` в ответе возвращаются как `null`. Добавить в тред участников проще всего упоминанием: `@ник` или `@тег` в начале или в конце текста сообщения. Можно и методом [Добавление участников](POST /chats/{id}/members) по `chat_id` треда.
+        Создатель треда становится его единственным участником и владельцем: он может исключать участников и удалять чужие сообщения в треде, а его самого исключить нельзя. В более старых самостоятельных тредах создатель — обычный участник: есть ли у треда владелец, показывает [Список участников чата](GET /chats/{id}/members) с `role=owner`. Поля `message_id` и `message_chat_id` в ответе возвращаются как `null`. Участников добавляет метод [Добавление участников](POST /chats/{id}/members) по `chat_id` треда. Уведомления он не присылает, поэтому в первом сообщении упомяните добавленных. Упоминание `@ник` или `@тег` в сообщении треда тоже добавляет участников, но только пока в пространстве включена настройка «Использовать сквозные треды» (так по умолчанию), а через API её значение не узнать.
 
         Названия у треда нет, поэтому сразу отправьте в него первое сообщение — по нему сотрудники и поймут, о чём речь. Его адресуют `id` треда с `entity_type: "thread"`. Удалить тред нельзя. Если обсуждать нужно конкретное сообщение в чате, заводите тред под ним методом [Новый тред](POST /messages/{id}/thread), а если нужно постоянное место с названием — создайте его методом [Новый чат](POST /chats).
       parameters: []
@@ -7736,7 +7775,7 @@ paths:
 
         Поле `list_tags` заменяет набор тегов целиком, поэтому присылайте вместе с новым тегом и те, что сохраняются. Снятый тег выводит сотрудника из чатов, куда его привёл этот тег, а имя, которого в пространстве ещё нет, создаёт новый тег вместе с назначением.
 
-        `suspended: true` приостанавливает сотрудника: он теряет доступ, но остаётся в чатах, тегах и задачах, а `suspended: false` возвращает его обратно. Насовсем убирает сотрудника [Удаление сотрудника](DELETE /users/{id}).
+        `suspended: true` приостанавливает сотрудника: он теряет доступ, но остаётся в чатах, тегах и напоминаниях, а `suspended: false` возвращает его обратно. Насовсем убирает сотрудника [Удаление сотрудника](DELETE /users/{id}).
 
         Владельца пространства редактирует только он сам, а его роль меняется лишь на администратора, иначе ответ `403`.
 
@@ -7831,11 +7870,11 @@ paths:
 
         Убирает сотрудника из пространства. Отменить это нельзя: вернуть его можно только новым приглашением, и это будет уже другой сотрудник.
 
-        Что происходит: он выходит из всех бесед и каналов, кроме личных переписок, с него снимаются все теги, задачи, где он был единственным исполнителем, удаляются, а из остальных он убирается. Написанные им сообщения и файлы остаются на месте.
+        Что происходит: он выходит из всех бесед и каналов, кроме личных переписок, с него снимаются все теги, напоминания, где он был единственным ответственным, удаляются, а из остальных он убирается. Написанные им сообщения и файлы остаются на месте.
 
         Владельца пространства удалить нельзя — метод ответит `403`. Повторный вызов отвечает `404`: удалённого сотрудника метод уже не находит.
 
-        Если сотрудник уходит в отпуск или увольнение ещё не финальное, пользуйтесь методом [Редактирование сотрудника](PUT /users/{id}) с `suspended: true`. Приостановка обратима и сохраняет чаты, теги и задачи.
+        Если сотрудник уходит в отпуск или увольнение ещё не финальное, пользуйтесь методом [Редактирование сотрудника](PUT /users/{id}) с `suspended: true`. Приостановка обратима и сохраняет чаты, теги и напоминания.
       parameters:
         - name: id
           in: path
@@ -8243,6 +8282,10 @@ paths:
       responses:
         '201':
           description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenViewResult'
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -8489,9 +8532,11 @@ paths:
 
         Поток работает, только когда в настройках бота включён пункт «Сохранять историю событий». Если пункт выключен или поток недоступен, метод отвечает `404` без тела. Метод работает только с токеном бота.
 
-        Ссылку открывают без токена, например через `EventSource` или `curl -N`: доступ даёт сама ссылка, поэтому храните её как секрет. Каждое событие приходит записью истории с полями `id`, `event_type`, `payload` и `created_at`, а служебные сообщения подключения отличаются полем `type`.
+        Ссылку открывают без токена, например через `EventSource` или `curl -N`: доступ даёт сама ссылка, поэтому храните её как секрет. Каждое событие приходит сообщением SSE без имени, в нём запись истории с полями `id`, `event_type`, `payload` и `created_at`. Служебные сообщения приходят именованными событиями SSE и отличаются полем `type`: `confirm_subscription` подтверждает подписку, а `disconnect` сообщает, что сервер закрыл подключение.
 
-        Ссылка действует до `expires_at`, а потом поток перестаёт присылать события, не закрывая соединение. Новую ссылку берите в последние пять минут перед `expires_at`: более ранний запрос вернёт ту же ссылку. Чтобы ничего не пропустить, после подключения дождитесь подтверждения подписки и только потом прочитайте [Историю событий](GET /webhooks/events), и так после каждого переподключения и смены ссылки. Доставка в поток не гарантирована: обработанные события по-прежнему удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), а повторы отсекайте по `id`. Если у бота есть адрес вебхука, повторная доставка на него приходит в поток ещё раз с новым `id`: такие повторы отсекают по ключу из `payload`, как в разделе [Идемпотентная обработка](/guides/webhook/handler#idempotentnaya-obrabotka). Подробнее — в разделе [Поллинг](/guides/webhook/polling).
+        Ссылка действует от одного до двух часов, до `expires_at`. В этот момент сервер присылает по ней `disconnect` и закрывает подключение, а `EventSource` после него сам не переподключается. Запрос в пределах того же часа по UTC возвращает ту же ссылку, а запрос в последний час перед `expires_at` даёт новую. Меняйте ссылку примерно за пять минут до `expires_at`: подключитесь по новой, пока работает старая, и закройте старое подключение, когда новое подтвердит подписку. Если `disconnect` всё же пришёл, получите новую ссылку и подключитесь заново.
+
+        Чтобы ничего не пропустить, после каждого подключения, в том числе после переподключения и смены ссылки, дождитесь подтверждения подписки и только потом прочитайте [Историю событий](GET /webhooks/events). Доставка в поток не гарантирована: обработанные события всё равно удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), а повторы отсекайте по `id`. Если у бота есть адрес вебхука, повторная доставка на него приходит в поток ещё раз с новым `id`: такие повторы отсекают по ключу из `payload`, как в разделе [Идемпотентная обработка](/guides/webhook/handler#idempotentnaya-obrabotka). Подробнее — в разделе [События в реальном времени](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
       parameters: []
       responses:
         '200':
@@ -8771,6 +8816,34 @@ components:
           format: int32
           nullable: true
           description: Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        application_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор приложения бота. `null`, если приложения у бота нет.
+        access_token_id:
+          type: integer
+          format: int32
+          description: Идентификатор токена. Есть у bot_token_created, bot_token_reissued и bot_token_updated.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: 'Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, `null`, если значение недоступно.'
+        scopes:
+          anyOf:
+            - type: array
+              items:
+                type: string
+            - $ref: '#/components/schemas/AuditDetailsTokenScopesChange'
+          description: 'Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.'
+        name:
+          allOf:
+            - $ref: '#/components/schemas/AuditDetailsTokenNameChange'
+          description: Смена названия токена у bot_token_updated. Есть, если название передали в запросе.
       description: 'При: bot_deleted, а также bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued в записях до 7 октября 2026 года'
     AuditDetailsBotOAuthClient:
       type: object
@@ -8796,6 +8869,34 @@ components:
           type: object
           additionalProperties: {}
           description: Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения бота
+        application_name:
+          type: string
+          description: Название приложения бота
+        bot_name:
+          type: string
+          description: Имя бота
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Права, которые бот запрашивает у сотрудника на экране согласия
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.
       description: 'При: bot_oauth_client_updated'
     AuditDetailsBotOAuthClientDisabled:
       type: object
@@ -8826,6 +8927,34 @@ components:
           type: integer
           format: int32
           description: Сколько неиспользованных кодов авторизации отозвано
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения бота
+        application_name:
+          type: string
+          description: Название приложения бота
+        bot_name:
+          type: string
+          description: Имя бота
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Права, которые бот запрашивает у сотрудника на экране согласия
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.
       description: 'При: bot_oauth_client_disabled'
     AuditDetailsBotOAuthClientSecretRotated:
       type: object
@@ -8846,6 +8975,34 @@ components:
         client_id:
           type: string
           description: Идентификатор OAuth-клиента бота
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения бота
+        application_name:
+          type: string
+          description: Название приложения бота
+        bot_name:
+          type: string
+          description: Имя бота
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Права, которые бот запрашивает у сотрудника на экране согласия. Есть у bot_oauth_client_secret_issued.
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.
       description: 'При: bot_oauth_client_secret_rotated, bot_oauth_client_secret_issued'
     AuditDetailsBotScopes:
       type: object
@@ -8854,6 +9011,9 @@ components:
         - actor_id
         - added_scopes
         - removed_scopes
+        - webhook_id
+        - previous_scopes
+        - new_scopes
       properties:
         bot_id:
           type: integer
@@ -8874,6 +9034,23 @@ components:
           items:
             type: string
           description: Скоупы, отозванные у токена бота
+        bot_name:
+          type: string
+          description: Имя бота. Нет в записях до 7 октября 2026 года.
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        previous_scopes:
+          type: array
+          items:
+            type: string
+          description: Скоупы токена бота до изменения
+        new_scopes:
+          type: array
+          items:
+            type: string
+          description: Скоупы токена бота после изменения
       description: 'При: bot_scopes_updated'
     AuditDetailsBotTokenUpdated:
       type: object
@@ -8883,6 +9060,9 @@ components:
         - resource_owner_id
         - current_scopes
         - actor_id
+        - access_token_id
+        - access_token_preview
+        - webhook_id
       properties:
         token_kind:
           type: string
@@ -8909,6 +9089,39 @@ components:
           format: int32
           nullable: true
           description: Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+        access_token_id:
+          type: integer
+          format: int32
+          description: Идентификатор токена
+        access_token_preview:
+          type: string
+          nullable: true
+          description: 'Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.'
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения бота
+        application_name:
+          type: string
+          description: Название приложения бота
+        client_id:
+          type: string
+          description: Идентификатор OAuth-клиента бота
+        bot_name:
+          type: string
+          description: Имя бота
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        name:
+          allOf:
+            - $ref: '#/components/schemas/AuditDetailsTokenNameChange'
+          description: Смена названия токена. Есть, если название передали в запросе.
+        scopes:
+          allOf:
+            - $ref: '#/components/schemas/AuditDetailsTokenScopesChange'
+          description: Смена скоупов токена. Есть, если скоупы передали в запросе.
       description: 'При: bot_token_updated'
     AuditDetailsBotWebhookSettings:
       type: object
@@ -8929,7 +9142,28 @@ components:
         changes:
           type: object
           additionalProperties: {}
-          description: Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
+          description: Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), значение — объект с полями previous (прежнее значение) и new (новое значение).
+        bot_name:
+          type: string
+          description: Имя бота
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота
+        access_token_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.
+        access_token_preview:
+          type: string
+          nullable: true
+          description: Токен, которым изменили настройки, в маскированном виде. `null`, если их изменили в интерфейсе Пачки.
+        application_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор приложения токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.
       description: 'При: bot_webhook_settings_updated'
     AuditDetailsChatId:
       type: object
@@ -8968,6 +9202,8 @@ components:
       required:
         - client_id
         - scopes
+        - application_id
+        - device_grant_id
       properties:
         client_id:
           type: string
@@ -8981,12 +9217,27 @@ components:
           type: string
           nullable: true
           description: Имя устройства, с которого выполняется вход. `null`, если приложение его не передало.
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения, которому разрешён вход
+        application_name:
+          type: string
+          description: Название приложения. Нет в записях до 7 октября 2026 года.
+        device_grant_id:
+          type: integer
+          format: int32
+          description: Идентификатор запроса на вход
+        token_kind:
+          type: string
+          description: 'Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.'
       description: 'При: oauth_device_authorization_approved'
     AuditDetailsDeviceAuthorizationDenied:
       type: object
       required:
         - client_id
         - scopes
+        - device_grant_id
       properties:
         client_id:
           type: string
@@ -9000,6 +9251,18 @@ components:
           type: string
           nullable: true
           description: Имя устройства, с которого выполнялся вход. `null`, если приложение его не передало.
+        application_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: 'Идентификатор приложения. При отказе во входе в CLI приходит `null`: приложение назначается входу только после подтверждения.'
+        device_grant_id:
+          type: integer
+          format: int32
+          description: Идентификатор запроса на вход
+        token_kind:
+          type: string
+          description: 'Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.'
       description: 'При: oauth_device_authorization_denied'
     AuditDetailsDlp:
       type: object
@@ -9013,9 +9276,8 @@ components:
         - conditions_matched
       properties:
         dlp_rule_id:
-          type: integer
-          format: int32
-          description: Идентификатор правила DLP
+          type: string
+          description: 'Идентификатор правила DLP: строка из названия правила, например `pasport-rf`. При переименовании правила не меняется.'
         dlp_rule_name:
           type: string
           description: Название правила DLP
@@ -9079,7 +9341,7 @@ components:
           description: Идентификатор сообщения
         reason:
           type: string
-          description: Причина операции
+          description: 'Причина операции: `message_create` — шифрование текста сообщения, `message_store_for_search` — сохранение текста для поиска, `file_upload` — загрузка файла (все три у kms_encrypt), `file_download` — скачивание файла (у kms_decrypt)'
       description: 'При: kms_encrypt, kms_decrypt'
     AuditDetailsLoginGrantApproved:
       type: object
@@ -9128,21 +9390,43 @@ components:
       required:
         - client_id
         - scopes
+        - application_id
+        - authorization_grant_id
       properties:
         client_id:
           type: string
-          description: Идентификатор OAuth-клиента, которому выдан доступ
+          nullable: true
+          description: Идентификатор OAuth-клиента, которому выдан доступ. `null` в записях до 7 октября 2026 года о доступе, выданном боту.
         scopes:
           type: array
           items:
             type: string
           description: Скоупы, на которые выдан доступ
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения, которому выдан доступ
+        application_name:
+          type: string
+          description: Название приложения. Нет в записях до 7 октября 2026 года.
+        bot_id:
+          type: integer
+          format: int32
+          description: Идентификатор бота. Есть, когда доступ выдан боту.
+        bot_name:
+          type: string
+          description: Имя бота. Есть вместе с `bot_id`.
+        authorization_grant_id:
+          type: integer
+          format: int32
+          description: Идентификатор выданного кода авторизации
       description: 'При: oauth_authorization_granted'
     AuditDetailsOAuthAuthorizationRevoked:
       type: object
       required:
         - client_id
         - revoked_tokens_count
+        - application_id
       properties:
         client_id:
           type: string
@@ -9155,6 +9439,20 @@ components:
           type: integer
           format: int32
           description: Идентификатор сотрудника, чей доступ отозван. Есть, когда доступ отозвал администратор.
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения, у которого отозван доступ
+        application_name:
+          type: string
+          description: Название приложения. Нет в записях до 7 октября 2026 года.
+        bot_id:
+          type: integer
+          format: int32
+          description: Идентификатор бота. Есть, когда доступ отозван у бота.
+        bot_name:
+          type: string
+          description: Имя бота. Есть вместе с `bot_id`.
       description: 'При: oauth_authorization_revoked'
     AuditDetailsRoleChanged:
       type: object
@@ -9232,6 +9530,8 @@ components:
         - token_name
         - resource_owner_id
         - scopes
+        - access_token_id
+        - access_token_preview
       properties:
         token_kind:
           type: string
@@ -9249,14 +9549,70 @@ components:
           items:
             type: string
           description: Скоупы токена
+        access_token_id:
+          type: integer
+          format: int32
+          description: Идентификатор токена
+        access_token_preview:
+          type: string
+          nullable: true
+          description: 'Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.'
+        application_id:
+          type: integer
+          format: int32
+          description: Идентификатор приложения, которому принадлежит токен
+        application_name:
+          type: string
+          description: Название приложения, которому принадлежит токен
+        client_id:
+          type: string
+          description: Идентификатор OAuth-клиента приложения
         bot_id:
           type: integer
           format: int32
           description: Идентификатор бота. Есть у токенов бота и у токенов, которые сотрудник выдал боту.
+        bot_name:
+          type: string
+          description: Имя бота. Есть вместе с `bot_id`.
+        device_name:
+          type: string
+          nullable: true
+          description: Имя устройства. Есть у входа в CLI, `null`, если имени нет.
+        actor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор пользователя, выполнившего действие. Есть у событий токенов бота, `null`, если действие выполнено без инициатора.
+        webhook_id:
+          type: integer
+          format: int32
+          description: Идентификатор вебхука бота. Есть у событий токенов бота.
+        user_id:
+          type: integer
+          format: int32
+          description: Идентификатор сотрудника, чей токен отозван. Есть, когда токен отозвал администратор или сотрудника перевели в гости.
+        source:
+          type: string
+          description: 'Источник отзыва: `oauth_client` — приложение само отозвало токен. Есть только у oauth_token_revoked.'
         reason:
           type: string
           description: Причина отзыва. `guest_downgrade` — токен отозван автоматически, когда сотрудника перевели в гости. Есть только в таких записях.
       description: 'При: access_token_created, access_token_updated, access_token_destroy, bot_token_created, bot_token_reissued, bot_token_recreated, bot_token_deleted, oauth_token_revoked'
+    AuditDetailsTokenNameChange:
+      type: object
+      required:
+        - previous
+        - new
+      properties:
+        previous:
+          type: string
+          nullable: true
+          description: Прежнее название. `null`, если названия не было.
+        new:
+          type: string
+          nullable: true
+          description: Новое название. `null`, если название убрали.
+      description: Смена названия токена в журнале аудита
     AuditDetailsTokenScopes:
       type: object
       required:
@@ -9268,6 +9624,23 @@ components:
             type: string
           description: Скоупы токена
       description: 'При: access_token_created, access_token_updated, access_token_destroy в записях до 7 октября 2026 года'
+    AuditDetailsTokenScopesChange:
+      type: object
+      required:
+        - previous
+        - new
+      properties:
+        previous:
+          type: array
+          items:
+            type: string
+          description: Скоупы токена до изменения
+        new:
+          type: array
+          items:
+            type: string
+          description: Скоупы токена после изменения
+      description: Смена скоупов токена в журнале аудита
     AuditDetailsUserLoginQr:
       type: object
       required:
@@ -9777,7 +10150,7 @@ components:
               type: array
               items:
                 type: string
-              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.
+              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Событие о сообщении приходит боту, когда первое слово текста совпадает с одной из команд целиком, с учётом регистра. Команду можно задать и без слэша в начале. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.
               example:
                 - /task
                 - /help
@@ -10552,7 +10925,7 @@ components:
               type: array
               items:
                 type: string
-              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.
+              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Событие о сообщении приходит боту, когда первое слово текста совпадает с одной из команд целиком, с учётом регистра. Команду можно задать и без слэша в начале. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.
               example:
                 - /task
                 - /help
@@ -10610,7 +10983,8 @@ components:
             kind:
               allOf:
                 - $ref: '#/components/schemas/BotWebhookKind'
-              description: Источник входящего вебхука. Если у бота входящего вебхука не было, он включается.
+              nullable: true
+              description: 'Источник входящего вебхука. Если у бота входящего вебхука не было, он включается. `null` удаляет входящий вебхук: адрес перестаёт работать, шаблон и настройки входящего вебхука сбрасываются, а при следующем включении бот получает новый адрес.'
               example: simple
             unfurl_domains:
               type: array
@@ -11595,7 +11969,7 @@ components:
         duration_ms:
           type: integer
           format: int32
-          description: Длительность в миллисекундах. Обязательна для голосового сообщения (`file_type` — `voice`). Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.
+          description: 'Длительность в миллисекундах: обязательна у голосового сообщения (`voice`), по желанию у видео (`video`), у остальных типов не сохраняется. Файл с длительностью без `file_type` считается голосовым. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422` и кодом `wrong_params`.'
           example: 5400
         waveform:
           type: string
@@ -11886,7 +12260,7 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: Длительность в миллисекундах у голосового, аудио- и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке.
+          description: Длительность в миллисекундах у голосового сообщения и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке.
           example: 5400
       description: Файл
     FileTarget:
@@ -12380,7 +12754,7 @@ components:
               example: 334
             content:
               type: string
-              description: 'Текст сообщения. Обязателен, если к сообщению не приложены файлы. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). `@all` упоминает всех участников чата, `@here` — тех, кто сейчас в сети, а `@` с названием тега без пробелов — сотрудников этого тега. Имя без `@` и упоминание внутри строчного кода или блока кода упоминанием не считаются. У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов. Сообщение уходит под именем владельца токена, у бота — с бейджем «Бот».'
+              description: 'Текст сообщения. Обязателен, если к сообщению не приложены файлы. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). Ник берут из ответа метода, а `user_id` — из данных: ник, составленный из имени, никого не упоминает. `@all` упоминает всех участников чата, `@here` — тех, кто сейчас в сети, а `@` с названием тега без пробелов — сотрудников этого тега. Имя без `@` и упоминание внутри строчного кода или блока кода упоминанием не считаются. У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов. Сообщение уходит под именем владельца токена, у бота — с бейджем «Бот».'
               example: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)
             files:
               type: array
@@ -12400,7 +12774,7 @@ components:
                   file_type:
                     allOf:
                       - $ref: '#/components/schemas/FileType'
-                    description: Тип файла
+                    description: Тип файла. Голосовое сообщение (`voice`) отправляют с персональным токеном, а с токеном бота ответ `403`.
                     example: image
                   size:
                     type: integer
@@ -12421,7 +12795,7 @@ components:
                     type: integer
                     format: int32
                     minimum: 1
-                    description: Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.
+                    description: 'Длительность в миллисекундах: обязательна у голосового сообщения (`voice`), по желанию у видео (`video`), у остальных типов не сохраняется. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422` и кодом `wrong_params`.'
                     example: 5400
                   waveform:
                     type: string
@@ -12462,7 +12836,7 @@ components:
               example: Бот Поддержки
             skip_invite_mentions:
               type: boolean
-              description: 'Пропуск добавления упомянутых сотрудников в тред. В треде упоминание работает ещё и как приглашение: упомянутого сотрудника, которого в треде нет, Пачка туда добавляет, и он получает доступ к треду и родительскому сообщению. Если в пространстве включена настройка «Использовать сквозные треды» (так по умолчанию), упоминание добавляет и сотрудника не из родительского чата, а с `true` в этом поле упоминание никого не добавляет. Упоминание от гостя или мульти-гостя при этом добавляет только тех, с кем у автора есть общий чат. Если настройка выключена, упоминание добавляет только участников родительского чата, и это поле ничего не меняет. В беседе и канале упоминание никого не добавляет, и этот параметр там ничего не меняет.'
+              description: 'Пропуск добавления упомянутых сотрудников в тред. В треде упоминание работает ещё и как приглашение: упомянутого сотрудника, которого в треде нет, Пачка туда добавляет, и он получает доступ к треду и родительскому сообщению. Если в пространстве включена настройка «Использовать сквозные треды» (так по умолчанию), упоминание добавляет и сотрудника не из родительского чата, а с `true` в этом поле упоминание никого не добавляет, и тот, кого в треде нет, не получает и уведомления. Упоминание от гостя или мульти-гостя при этом добавляет только тех, с кем у автора есть общий чат. Если настройка выключена, упоминание добавляет только участников родительского чата, и это поле ничего не меняет. В беседе и канале упоминание никого не добавляет, и этот параметр там ничего не меняет.'
               example: false
               default: false
           required:
@@ -12511,7 +12885,7 @@ components:
           properties:
             content:
               type: string
-              description: 'Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов.'
+              description: 'Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). Ник берут из ответа метода, а `user_id` — из данных: ник, составленный из имени, никого не упоминает. У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов.'
               example: 'Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.'
             files:
               type: array
@@ -12552,7 +12926,7 @@ components:
                     type: integer
                     format: int32
                     minimum: 1
-                    description: Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.
+                    description: 'Длительность в миллисекундах: обязательна у голосового сообщения (`voice`), по желанию у видео (`video`), у остальных типов не сохраняется. Файл с длительностью без `file_type` считается голосовым. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422` и кодом `wrong_params`.'
                     example: 5400
                   waveform:
                     type: string
@@ -13300,6 +13674,16 @@ components:
             - blocks
           description: Собранный объект представления
       description: Представление
+    OpenViewResult:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Признак того, что окно открыто. В успешном ответе всегда `true`.
+          example: true
+      description: Результат открытия представления
     PaginationMeta:
       type: object
       required:
@@ -13447,7 +13831,7 @@ components:
       description: Тип сущности для поиска
       x-enum-descriptions:
         User: Пользователь
-        Task: Задача
+        Task: Напоминание
     SearchPaginationMeta:
       type: object
       required:
@@ -13466,8 +13850,13 @@ components:
               type: string
               description: Курсор пагинации следующей страницы
               example: eyJxZCO2MiwiZGlyIjomSNYjIn3
+            has_next:
+              type: boolean
+              description: Есть ли ещё данные на следующей странице. На последней странице — `false`.
+              example: true
           required:
             - next_page
+            - has_next
           description: Вспомогательная информация
       description: Мета-информация для пагинации поисковых результатов
     SearchSortOrder:
@@ -13716,7 +14105,7 @@ components:
         - reminder
         - event
         - email
-      description: Тип задачи
+      description: Тип напоминания
       x-enum-descriptions:
         call: Позвонить контакту
         meeting: Встреча
@@ -14300,7 +14689,7 @@ components:
               type: array
               items:
                 type: string
-              description: 'Массив названий тегов, привязываемых к сотруднику. Список заменяет прежний целиком, пустой снимает все теги. Значение, которое не является массивом непустых строк, игнорируется: теги сотрудника не меняются. В тег можно добавить только бота, которого может добавить в чат любой сотрудник и у которого выключена настройка «Ограничить одним чатом». Если бот этим условиям не отвечает, а в списке есть тег, которого у него ещё нет, метод отвечает `422` на поле `group_tags` и ничего не меняет: с кодом `single_chat_bot_tag_denied`, когда бот ограничен одним чатом, и `restricted_bot_tag_denied`, когда добавлять его в чаты могут не все. Подробнее — в разделе [Бот в тегах](/guides/bots/settings#bot-v-tegah).'
+              description: 'Массив названий тегов, привязываемых к сотруднику. Список заменяет прежний целиком, пустой снимает все теги. Значение, которое не является массивом непустых строк, игнорируется: теги сотрудника не меняются. В тег можно добавить только бота, которого может добавить в чат любой сотрудник и у которого выключена настройка «Ограничить одним чатом». Если бот этим условиям не отвечает, а в списке есть тег, которого у него ещё нет, метод отвечает `422` на поле `group_tags` и ничего не меняет: с кодом `single_chat_bot_tag_denied`, когда бот ограничен одним чатом, и `restricted_bot_tag_denied`, когда в настройке «Кто может добавлять бота в чаты» выбран «Создатель» или «Создатель и Администраторы». Подробнее — в разделе [Бот в тегах](/guides/bots/settings#bot-v-tegah).'
               example:
                 - Product
                 - Design
@@ -15233,8 +15622,8 @@ components:
         expires_at:
           type: string
           format: date-time
-          description: Дата и время, до которых действует ссылка (ISO-8601, UTC+0)
-          example: '2026-10-27T12:20:00.000Z'
+          description: 'Дата и время, до которых действует ссылка (ISO-8601, UTC+0): от одного до двух часов после запроса. В этот момент сервер присылает `disconnect` и закрывает подключение по ней.'
+          example: '2026-10-27T13:00:00.000Z'
       description: Ссылка на поток событий бота
     WebhookLink:
       type: object

@@ -1,20 +1,20 @@
 {
   "Client_Init": {
-    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")\nctx := context.Background()",
     "imports": [
       "PachcaClient"
     ]
   },
   "EventOperations_listEvents": {
-    "usage": "params := ListEventsParams{\n\tDateFrom: \"2024-01-01\",\n\tDateTo: Ptr(\"2024-01-01\"),\n\tCreatedAfter: Ptr(\"2024-01-01T00:00:00Z\"),\n\tLimit: Ptr(int32(123)),\n}\nresponse, err := client.Export.ListEvents(ctx, params)",
+    "usage": "params := pachca.ListEventsParams{\n\tDateFrom: \"2024-01-01\",\n\tDateTo: pachca.Ptr(\"2024-01-01\"),\n\tCreatedAfter: pachca.Ptr(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)),\n\tLimit: pachca.Ptr(int32(123)),\n}\nresponse, err := client.Export.ListEvents(ctx, params)",
     "output": "ListEventsResponse{Data: []Event}",
     "imports": [
       "ListEventsParams"
     ]
   },
   "ExportOperations_createExport": {
-    "usage": "request := ExportRequest{\n\tStartAt: \"2025-03-20\",\n\tEndAt: \"2025-03-20\",\n\tWebhookURL: \"example\",\n}\nresponse, err := client.Export.CreateExport(ctx, request)",
-    "output": "Export{ID: int32, StartAt: string, EndAt: string, Status: string, CreatedAt: string}",
+    "usage": "request := pachca.ExportRequest{\n\tStartAt: \"2025-03-20\",\n\tEndAt: \"2025-03-20\",\n\tWebhookURL: \"example\",\n}\nresponse, err := client.Export.CreateExport(ctx, request)",
+    "output": "Export{ID: int32, StartAt: string, EndAt: string, Status: string, CreatedAt: time.Time}",
     "imports": [
       "ExportRequest"
     ]

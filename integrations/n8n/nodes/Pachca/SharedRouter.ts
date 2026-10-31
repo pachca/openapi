@@ -38,6 +38,10 @@ interface FieldMap {
 	locator?: boolean;
 	subKey?: string;
 	isJson?: boolean;
+	/** The option value or the JSON text `null` is sent as JSON null */
+	nullable?: boolean;
+	/** The boolean of the collection that sends JSON null and wins over the field value */
+	nullFlag?: string;
 	default?: unknown;
 }
 
@@ -185,9 +189,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'who_can_add', n8n: 'whoCanAdd' },
 				{ api: 'can_edit', n8n: 'canEdit', isArray: true, arrayType: 'string' },
 				{ api: 'single_chat', n8n: 'singleChat' },
-				{ api: 'kind', n8n: 'kind' },
+				{ api: 'kind', n8n: 'kind', nullable: true },
 				{ api: 'unfurl_domains', n8n: 'unfurlDomains', isArray: true, arrayType: 'string' },
-				{ api: 'oauth_client', n8n: 'oauthClient', isJson: true },
+				{ api: 'oauth_client', n8n: 'oauthClient', isJson: true, nullable: true },
 				{ api: 'promo', n8n: 'promo', isJson: true },
 			],
 		},
@@ -489,7 +493,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'content', n8n: 'content' },
 				{ api: 'parent_message_id', n8n: 'parentMessageId' },
 				{ api: 'files', n8n: 'files', subKey: 'file' },
-				{ api: 'schedule', n8n: 'schedule', isJson: true },
+				{ api: 'schedule', n8n: 'schedule', isJson: true, nullable: true },
 			],
 		},
 		getAll: {
@@ -510,9 +514,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			wrapperKey: 'draft',
 			optionalBodyMap: [
 				{ api: 'content', n8n: 'content' },
-				{ api: 'parent_message_id', n8n: 'parentMessageId' },
+				{ api: 'parent_message_id', n8n: 'parentMessageId', nullFlag: 'clearParentMessageId' },
 				{ api: 'files', n8n: 'files', subKey: 'file' },
-				{ api: 'schedule', n8n: 'schedule', isJson: true },
+				{ api: 'schedule', n8n: 'schedule', isJson: true, nullable: true },
 			],
 		},
 		delete: {
@@ -1049,6 +1053,11 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 // Generic Route Executor
 // ============================================================================
 
+/** The `null` option of a nullable enum field, or the literal `null` in a nullable JSON field */
+function isNullText(fm: FieldMap, value: unknown): boolean {
+	return fm.nullable === true && typeof value === 'string' && value.trim() === 'null';
+}
+
 async function executeRoute(
 	this: IExecuteFunctions,
 	route: RouteConfig,
@@ -1134,7 +1143,9 @@ async function executeRoute(
 		} else {
 			raw = this.getNodeParameter(fm.n8n, i);
 		}
-		if (fm.isArray && typeof raw === 'string') {
+		if (isNullText(fm, raw)) {
+			body[fm.api] = null;
+		} else if (fm.isArray && typeof raw === 'string') {
 			body[fm.api] = splitAndValidateCommaList(this, raw, fm.n8n, fm.arrayType!, i);
 		} else if (fm.isJson && typeof raw === 'string') {
 			body[fm.api] = parseJsonObjectField(this, raw, fm.n8n, i);
@@ -1149,6 +1160,12 @@ async function executeRoute(
 	try { additional = this.getNodeParameter(collectionName, i, {}) as IDataObject; } catch { /* no collection */ }
 
 	for (const fm of route.optionalBodyMap ?? []) {
+		// The Clear <Field> boolean of a nullable field sends null whatever the field holds
+		if (fm.nullFlag && additional[fm.nullFlag] === true) {
+			body[fm.api] = null;
+			continue;
+		}
+
 		let val: unknown = additional[fm.n8n];
 
 		// If not in collection, try as top-level param (v1 compat for V1_TOP_LEVEL_PARAMS)
@@ -1157,6 +1174,12 @@ async function executeRoute(
 		}
 
 		if (val === undefined || val === null || val === '') continue;
+
+		// An n8n field cannot hold null: the `null` option or JSON text of a nullable field stands for it
+		if (isNullText(fm, val)) {
+			body[fm.api] = null;
+			continue;
+		}
 
 		// fixedCollection: extract inner array using subKey
 		if (fm.subKey && typeof val === 'object' && !Array.isArray(val)) {

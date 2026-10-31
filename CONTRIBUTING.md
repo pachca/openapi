@@ -78,20 +78,32 @@ ad-hoc `bun -e` commands or the old `bin/` / `tests/` helpers.
 ## Agent skills and the plugin
 
 `plugins/pachca` is the Pachca plugin. Claude Code and the Claude app read
-`.claude-plugin/plugin.json` and `.mcp.json`. Codex, VS Code, GitHub Copilot and
-Cline read the Agent Plugins manifest `plugin.json` and `mcp.json`. Cursor reads
-`.cursor-plugin/plugin.json`, whose MCP server sends the token from `PACHCA_TOKEN`.
-The marketplaces at the repository root (`.claude-plugin/`, `.cursor-plugin/`,
-`.agents/plugins/`) all point at `./plugins/pachca`.
+`.claude-plugin/plugin.json` and `.mcp.json`, and so does VS Code: it checks the
+Claude manifest before a root `plugin.json` without the Agent Plugins `$schema`.
+Codex reads its own `.codex-plugin/plugin.json` and `.mcp.json`. GitHub Copilot
+CLI reads the root `plugin.json` in its legacy format, with skills from `skills/`
+and the server from `.mcp.json`. Cursor reads `.cursor-plugin/plugin.json`, whose MCP
+server sends the token from `PACHCA_TOKEN`. The marketplaces at the repository
+root (`.claude-plugin/`, `.cursor-plugin/`, `.agents/plugins/`) all point at
+`./plugins/pachca`.
 
-Everything in the plugin is written by hand except the `version` of its three
-manifests. Once the plugin files (all but `evals/`) differ from the committed
-ones, the docs build sets it one patch above the committed version, so it grows
-once per commit that changes the plugin, and rebuilding or reverting before the
-commit does not move it. The build keeps the content hash and version in
-`apps/docs/scripts/skills/plugin-version.json`. Do not edit either. Run
-`npx turbo build` and commit the manifests and that file with your change; if
-the version did not change, rerun with `--force`.
+The root `plugin.json` must not declare the Agent Plugins `$schema`. Codex reads
+such a root manifest before its own and then caps the plugin's MCP tools at
+64 KB of tool specs (`codex-rs/core/src/mcp_tool_exposure.rs`): only the first
+28 or so Pachca tools by name would reach the agent, without
+`pachca_send_message`. The build fails on that.
+
+Everything in the plugin is written by hand except the `version` of its four
+manifests. Once the plugin files (all but `evals/`) differ from the ones in
+`main`, the docs build sets it one patch above the version in `main`, so a
+release gets the next version however many commits of the branch change the
+plugin, and rebuilding or reverting does not move it. The build keeps the
+content hash and version in `apps/docs/scripts/skills/plugin-version.json`. Do
+not edit either. Run `npx turbo build` and commit the manifests and that file
+with your change; if the version did not change, rerun with `--force`. A changed
+plugin also needs a release entry with product `plugin` and that version in
+`apps/docs/data/releases.json`: `scripts/check-changelog-sync.mjs` fails
+without it.
 
 Skills live in `skills/<name>/`. Knowledge skills are named `pachca` or
 `pachca-<topic>`, keep only `name` and `description` in the frontmatter, and the
@@ -99,7 +111,7 @@ agent picks them by description. The build publishes them on dev.pachca.com: the
 discovery index, `/skill.md` and `/skills/<name>.zip` for uploads. Commands are
 skills with any other name, `argument-hint` and `disable-model-invocation: true`,
 plus `agents/openai.yaml` with `policy.allow_implicit_invocation: false` for
-Codex. They run only when the user calls them (`/pachca:catch-up` in Claude Code)
+Codex. They run only when the user calls them (`/pachca:summarize-thread` in Claude Code)
 and are not published. A command says in words what the user gives with it,
 without `$ARGUMENTS`, which only some programs fill in. The build fails on a
 broken link, a missing MCP tool, CLI command or skill, an internal id, or

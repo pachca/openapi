@@ -1,12 +1,12 @@
 {
   "Client_Init": {
-    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")\nctx := context.Background()",
     "imports": [
       "PachcaClient"
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "params := SearchMessagesParams{\n\tQuery: \"example\",\n\tChatIDs: []int32{int32(123)},\n\tUserIDs: []int32{int32(123)},\n\tLimit: Ptr(int32(123)),\n\tCursor: Ptr(\"example\"),\n}\nresponse, err := client.Search.SearchMessages(ctx, params)",
+    "usage": "params := pachca.SearchMessagesParams{\n\tQuery: \"example\",\n\tChatIDs: []int32{int32(123)},\n\tUserIDs: []int32{int32(123)},\n\tLimit: pachca.Ptr(int32(123)),\n\tCursor: pachca.Ptr(\"example\"),\n}\nresponse, err := client.Search.SearchMessages(ctx, params)",
     "output": "SearchMessagesResponse{Data: []MessageResult, Meta: PaginationMeta}",
     "imports": [
       "SearchMessagesParams"

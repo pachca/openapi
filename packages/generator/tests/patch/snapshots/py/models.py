@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 @dataclass
@@ -15,6 +16,8 @@ class ItemPatchRequestItem:
     name: str | None = None
     description: str | None = None
     priority: int | None = None
+    # Fields to send as null: description
+    null_fields: Sequence[str] = ()
 
 
 @dataclass

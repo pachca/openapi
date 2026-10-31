@@ -20,7 +20,7 @@
  *    name; the phrasing has no place there: «подними» reads like pinning, though
  *    a request with it usually asks for the feed of a chat.
  * 2. **What to put in a field.** A request that names no hour makes an all-day
- *    task rather than one at an invented time; the spec says how an all-day task
+ *    reminder rather than one at an invented time; the spec says how an all-day reminder
  *    is written and has no place for when to write one.
  * 3. **The consequence worth knowing** before a call, when it comes from how a
  *    model works rather than from the API: a window of seconds that a
@@ -49,15 +49,15 @@
  *
  * The server instructions (`mcp-core.ts`) hold only what a model needs before
  * it loads any tool, and a client keeps them whole only within 2048 characters:
- * the catalogue, where tasks are handed over by editing; what to say when a tool
+ * the catalogue, where reminders are handed over by editing; what to say when a tool
  * is missing — the caller's role, or the plan or kind of token it takes, in a
  * partial answer too, with nothing done in its place; who the caller is and the
  * dates of today and the days after it; that the model loads the tool before it
- * asks anything; that a request is about Pachca; that a chat, a person or a task
+ * asks anything; that a request is about Pachca; that a chat, a person or a reminder
  * is found by name and a message or a thread by its words across the caller's
  * chats rather than asked about; that talking a matter over separately is
  * posting it for colleagues in the thread of the message it continues, else in
- * an unattached one; that a date alone makes a task, even with no subject; that a change is carried out, the client
+ * an unattached one; that a date alone makes a reminder, even with no subject; that a change is carried out, the client
  * asking approval, unless its target is a guess, it is final while a reversible one would do, or it touches many at
  * once; that facts of the workspace and of the token come from responses; and
  * that how Pachca works is documented at dev.pachca.com. Every other rule lives
@@ -95,15 +95,15 @@ export interface ToolProse {
 }
 
 /**
- * A day with no hour in it, on either side of a task. The spec, on `all_day`,
- * says how an all-day task is written — the due date at 23:59:59 of its day, the
+ * A day with no hour in it, on either side of a reminder. The spec, on `all_day`,
+ * says how an all-day reminder is written — the due date at 23:59:59 of its day, the
  * one moment the web app shows without a time, and on an edit the due date
  * alone — and the note on the date-time argument how a named day is written;
  * this says when to write one.
  */
 const NO_HOUR_NOTE =
-  'Make the task all-day this way whenever the request names no hour — «к среде», «в любое время в понедельник», ' +
-  '«в течение дня» — instead of inventing one that then shows in the task.';
+  'Make the reminder all-day this way whenever the request names no hour — «к среде», «в любое время в понедельник», ' +
+  '«в течение дня» — instead of inventing one that then shows in the reminder.';
 
 /**
  * Whose words a message is, and the shape it takes: read where the text is
@@ -129,11 +129,11 @@ const FORM_WINDOW = (from: string): string =>
 
 export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   // ── Where a request lands on the wrong neighbour ────────────────────────
-  // The spec says handing a task over is an edit, and a model still made a new
-  // task with the new assignee: the words of the request are what this adds.
+  // The spec says handing a reminder over is an edit, and a model still made a new
+  // reminder with the new assignee: the words of the request are what this adds.
   create_task: {
     notFor: [
-      '«отдай её Вере», «пусть этим займётся Глеб» — the existing task changing hands.',
+      '«отдай её Вере», «пусть этим займётся Глеб» — the existing reminder changing hands.',
     ],
     arguments: {
       kind: 'When the request names no call, meeting, event or email, take reminder.',

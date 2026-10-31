@@ -34,13 +34,13 @@ public static class UploadExample
 
         // -- Step 2: Get upload params
         Console.WriteLine("2. Getting upload params...");
-        var uploadParams = await client.Common.GetUploadParamsAsync();
+        var uploadParams = await client.Files.GetUploadParamsAsync();
         var key = uploadParams.Key.Replace("${filename}", fileName);
         Console.WriteLine($"   Got direct_url: {uploadParams.DirectUrl}");
 
         // -- Step 3: Upload the file via SDK
         Console.WriteLine("3. Uploading file...");
-        await client.Common.UploadFileAsync(
+        await client.Files.UploadFileAsync(
             uploadParams.DirectUrl,
             new FileUploadRequest
             {

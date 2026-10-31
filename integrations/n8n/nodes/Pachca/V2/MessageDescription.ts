@@ -95,7 +95,7 @@ export const messageFields: INodeProperties[] = [
 		type: 'string',
 		typeOptions: { rows: 4 },
 		default: "",
-		description: 'Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. The message goes out under the token owner\'s name, and a bot\'s with the Bot badge.',
+		description: 'Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). Take the nickname from a method\'s response and the `user_id` from data: a nickname made up from a name mentions nobody. `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. The message goes out under the token owner\'s name, and a bot\'s with the Bot badge.',
 		displayOptions: { show: { resource: ['message'], operation: ['create'] } },
 		placeholder: 'Yesterday we sold 756 t-shirts (10% more than last Sunday)',
 	},
@@ -137,7 +137,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'duration_ms',
 							type: 'number',
 							default: 0,
-							description: 'Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.',
+							description: 'Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.',
 						},
 						{
 							displayName: 'File Type',
@@ -149,6 +149,7 @@ export const messageFields: INodeProperties[] = [
 { name: 'Video', value: 'video', description: 'Video file' },
 { name: 'Voice', value: 'voice', description: 'Voice message' }],
 							default: "",
+							description: 'File type. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`.',
 						},
 						{
 							displayName: 'Height',
@@ -218,7 +219,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'skipInviteMentions',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. With the workspace setting "Use cross-chat threads" on (the default), a mention also adds an employee from outside the parent chat, and with `true` in this field a mention adds nobody. A mention by a guest or a multi-guest then adds only those who share a chat with the author. With the setting off, a mention adds only members of the parent chat, and this field changes nothing. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there.',
+				description: 'Whether to skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. With the workspace setting "Use cross-chat threads" on (the default), a mention also adds an employee from outside the parent chat, and with `true` in this field a mention adds nobody, and a person who is not in the thread gets no notification either. A mention by a guest or a multi-guest then adds only those who share a chat with the author. With the setting off, a mention adds only members of the parent chat, and this field changes nothing. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there.',
 			},
 		],
 	},
@@ -412,7 +413,7 @@ export const messageFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 4 },
 				default: "",
-				description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters.',
+				description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). Take the nickname from a method\'s response and the `user_id` from data: a nickname made up from a name mentions nobody. For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters.',
 				placeholder: 'Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur, liaison, necessary, surveillance, questionnaire.',
 			},
 			{
@@ -445,7 +446,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'duration_ms',
 							type: 'number',
 							default: 0,
-							description: 'Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.',
+							description: 'Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.',
 						},
 						{
 							displayName: 'File Type',

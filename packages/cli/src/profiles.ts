@@ -41,6 +41,11 @@ export function getAuthMethod(profile: Profile): AuthMethod {
   return profile.auth === 'oauth' ? 'oauth' : 'token';
 }
 
+/** ` --profile <name>` to paste into a suggested command; empty for the default profile. */
+export function profileFlag(profileName?: string): string {
+  return !profileName || profileName === 'default' ? '' : ` --profile ${profileName}`;
+}
+
 /** True when the profile holds a refreshable OAuth session. */
 export function isRefreshable(profile: Profile): boolean {
   return getAuthMethod(profile) === 'oauth' && !!profile.refresh_token;
@@ -341,22 +346,24 @@ export function resolveToken(flags: {
   token?: string;
   profile?: string;
 }): { token: string; profileName?: string; profile?: Profile } {
+  const source = tokenSource(flags);
+
   // 1. --token flag (highest priority)
-  if (flags.token) {
-    return { token: flags.token };
+  if (source.kind === 'flag') {
+    return { token: flags.token! };
   }
 
   // 2. PACHCA_TOKEN env — unless a profile was named explicitly
-  if (!flags.profile && process.env.PACHCA_TOKEN) {
-    return { token: process.env.PACHCA_TOKEN };
+  if (source.kind === 'env') {
+    return { token: process.env.PACHCA_TOKEN! };
   }
 
   // 3. --profile flag or PACHCA_PROFILE env
-  const profileName = flags.profile || process.env.PACHCA_PROFILE || getActiveProfile();
-  if (!profileName) {
+  if (source.kind === 'none') {
     throw new TokenNotFoundError();
   }
 
+  const { profileName } = source;
   const profile = getProfile(profileName);
   if (!profile) {
     throw new ProfileNotFoundError(profileName);
@@ -366,6 +373,28 @@ export function resolveToken(flags: {
   }
 
   return { token: profile.token, profileName, profile };
+}
+
+/**
+ * Where the token for a call comes from, in the order `resolveToken` applies.
+ * Reads no secrets, so `doctor` can name the source even when the profile it
+ * points to is missing or its secret cannot be read.
+ */
+export type TokenSource =
+  | { kind: 'flag' }
+  | { kind: 'env' }
+  | { kind: 'profile'; profileName: string; via: '--profile' | 'PACHCA_PROFILE' | 'active_profile' }
+  | { kind: 'none' };
+
+export function tokenSource(flags: { token?: string; profile?: string }): TokenSource {
+  if (flags.token) return { kind: 'flag' };
+  if (!flags.profile && process.env.PACHCA_TOKEN) return { kind: 'env' };
+  if (flags.profile) return { kind: 'profile', profileName: flags.profile, via: '--profile' };
+  if (process.env.PACHCA_PROFILE) {
+    return { kind: 'profile', profileName: process.env.PACHCA_PROFILE, via: 'PACHCA_PROFILE' };
+  }
+  const active = getActiveProfile();
+  return active ? { kind: 'profile', profileName: active, via: 'active_profile' } : { kind: 'none' };
 }
 
 /**

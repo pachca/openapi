@@ -1,13 +1,13 @@
 > Расположение: Основы API
-> Краткое содержание: Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, черновики, задачи, теги, вебхуки и другие сущности
+> Краткое содержание: Справочник моделей данных Pachca API (сотрудники, чаты, сообщения, черновики, напоминания, теги, вебхуки и другие сущности): свойства каждой модели и методы, которые с ней работают
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
 
 # Модели
 
-Все модели данных, возвращаемые в ответах API. Каждая модель содержит связанные методы и таблицу свойств.
+Модели данных из ответов API. У каждой модели — таблица свойств и методы, которые с ней работают. Возвращают модель не все из них: удаление и действия вроде закрепления или архивации отвечают `204` без тела, а у отдельных методов своя форма ответа, описанная на их странице.
 
-> Методы [Получение подписи, ключа и других параметров](/api/files/uploads), [Загрузка файла](/api/files/direct-url), [Скачивание файла](/api/files/get) и [Отзыв токена](/api/oauth/revoke-token) не возвращают модели данных: первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом, а отзыв — пустым объектом.
+> Методы [Получение подписи, ключа и других параметров](/api/files/uploads), [Загрузка файла](/api/files/direct-url), [Скачивание файла](/api/files/get), [Отзыв токена](/api/oauth/revoke-token) и [Открытие представления](/api/views/open) не связаны ни с одной моделью, поэтому своего раздела у них нет. Первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом, отзыв — пустым объектом, а открытие представления — ответом `201` без тела.
 
 
 ## Дополнительное поле
@@ -252,7 +252,7 @@
   - `url: string` (required) — Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](/api/files/get): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`. Пример: `"https://files.example.com/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?X-Amz-Expires=604800&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
   - `width: integer, int32` (nullable) — Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1920`
   - `height: integer, int32` (nullable) — Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1080`
-  - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового, аудио- и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
+  - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового сообщения и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
 - `voice_content: object` (required) — Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.
   - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
   - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
@@ -348,7 +348,7 @@
   - `url: string` (required) — Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](/api/files/get): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`. Пример: `"https://files.example.com/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?X-Amz-Expires=604800&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
   - `width: integer, int32` (nullable) — Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1920`
   - `height: integer, int32` (nullable) — Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1080`
-  - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового, аудио- и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
+  - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового сообщения и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
 - `voice_content: object` (required) — Голосовое сообщение. `null`, если голосового вложения нет. Расшифровка в `transcript` у черновика всегда `null` — она запускается после отправки.
   - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
   - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
@@ -366,113 +366,13 @@
 - `updated_at: date-time` (required) — Дата и время последнего изменения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2026-09-16T10:00:00.000Z"`
 
 
-## Представление
+## Ответ на отправку формы
 
-- [Открытие представления](/api/views/open)
 - [Ответ на отправку формы](/api/views/submit-response)
 
-Представление
+Результат ответа на отправку формы
 
-- `type: string` (required) — Способ открытия представления. Пример: `"modal"`
-  Значения: `modal` — Модальное окно
-- `trigger_id: string` (required) — Уникальный идентификатор события (полученный, например, в исходящем вебхуке о нажатии кнопки). Пример: `"791a056b-006c-49dd-834b-c633fde52fe8"`
-- `private_metadata: string` (max length: 3000) — Необязательная строка, которая будет отправлена в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для передачи в формате `JSON` какой то дополнительной информации вместе с заполненной пользователем формой. Пример: `"{\"timeoff_id\":4378}"`
-- `callback_id: string` (max length: 255) — Необязательный идентификатор для распознавания этого представления, который будет отправлен в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для понимания, какую форму должен был заполнить пользователь. Пример: `"timeoff_request_form"`
-- `view: object` (required) — Собранный объект представления
-  - `title: string` (required, max length: 24, min length: 1) — Заголовок представления. Пример: `"Уведомление об отпуске"`
-  - `close_text: string` (default: Отменить, max length: 24, min length: 1) — Текст кнопки закрытия представления. Отображается только в десктоп-вебе. В мобильных приложениях (iOS/Android) кнопка закрытия — это крестик в шапке, и заданный текст там не показывается. Пример: `"Закрыть"`
-  - `submit_text: string` (default: Отправить, max length: 24, min length: 1) — Текст кнопки отправки формы. Пример: `"Отправить заявку"`
-  - `blocks: array (union)` (required, max items: 100) — Массив блоков представления. Имена блоков (`name`) не повторяются, в select и radio заранее выбрано не больше одного варианта, а `min_length` поля ввода не больше его `max_length`.
-    **Возможные типы элементов:**
-
-    - **ViewBlockHeader**: Блок header — заголовок
-      - `type: string` (required) — Тип блока
-        Значения: `header` — Для заголовков всегда header
-      - `text: string` (required, max length: 150, min length: 1) — Текст заголовка
-    - **ViewBlockPlainText**: Блок plain_text — обычный текст
-      - `type: string` (required) — Тип блока
-        Значения: `plain_text` — Для обычного текста всегда plain_text
-      - `text: string` (required, max length: 12000, min length: 1) — Текст
-    - **ViewBlockMarkdown**: Блок markdown — форматированный текст
-      - `type: string` (required) — Тип блока
-        Значения: `markdown` — Для форматированного текста всегда markdown
-      - `text: string` (required, max length: 12000, min length: 1) — Текст
-    - **ViewBlockDivider**: Блок divider — разделитель
-      - `type: string` (required) — Тип блока
-        Значения: `divider` — Для разделителя всегда divider
-    - **ViewBlockInput**: Блок input — текстовое поле ввода
-      - `type: string` (required) — Тип блока
-        Значения: `input` — Для текстового поля всегда input
-      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
-      - `label: string` (required, max length: 150, min length: 1) — Подпись к полю
-      - `placeholder: string` (max length: 150) — Подсказка внутри поля ввода, пока оно пустое
-      - `multiline: boolean` (default: false) — Многострочное поле
-      - `initial_value: string` (max length: 3000) — Начальное значение в поле
-      - `min_length: integer, int32` (min: 0, max: 3000) — Минимальная длина текста, который должен написать пользователь. Если пользователь напишет меньше, он получит ошибку.
-      - `max_length: integer, int32` (min: 1, max: 3000) — Максимальная длина текста, который должен написать пользователь. Если пользователь напишет больше, он получит ошибку.
-      - `required: boolean` (default: false) — Обязательность
-      - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
-    - **ViewBlockSelect**: Блок select — выпадающий список
-      - `type: string` (required) — Тип блока
-        Значения: `select` — Для выпадающего списка всегда select
-      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
-      - `label: string` (required, max length: 150, min length: 1) — Подпись к выпадающему списку
-      - `options: array of object` (required, max items: 100) — Массив доступных пунктов в выпадающем списке
-        - `text: string` (required, max length: 75, min length: 1) — Отображаемый текст
-        - `value: string` (required, max length: 255, min length: 1) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
-        - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
-        - `selected: boolean` — Изначально выбранный пункт. Только один пункт может быть выбран.
-      - `required: boolean` (default: false) — Обязательность
-      - `hint: string` (max length: 2000) — Подсказка, которая отображается под выпадающим списком серым цветом
-    - **ViewBlockRadio**: Блок radio — радиокнопки
-      - `type: string` (required) — Тип блока
-        Значения: `radio` — Для радиокнопок всегда radio
-      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
-      - `label: string` (required, max length: 150, min length: 1) — Подпись к группе радиокнопок
-      - `options: array of object` (required, max items: 20) — Массив радиокнопок
-        - `text: string` (required, max length: 75, min length: 1) — Отображаемый текст
-        - `value: string` (required, max length: 255, min length: 1) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
-        - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
-        - `checked: boolean` — Изначально выбранная радиокнопка. Только одна радиокнопка может быть выбрана.
-      - `required: boolean` (default: false) — Обязательность
-      - `hint: string` (max length: 2000) — Подсказка, которая отображается под группой радиокнопок серым цветом
-    - **ViewBlockCheckbox**: Блок checkbox — чекбоксы
-      - `type: string` (required) — Тип блока
-        Значения: `checkbox` — Для чекбоксов всегда checkbox
-      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
-      - `label: string` (required, max length: 150, min length: 1) — Подпись к группе чекбоксов
-      - `options: array of object` (required, max items: 20) — Массив чекбоксов
-        - `text: string` (required, max length: 75, min length: 1) — Отображаемый текст
-        - `value: string` (required, max length: 255, min length: 1) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
-        - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
-        - `checked: boolean` — Изначально выбранный пункт
-      - `required: boolean` (default: false) — Обязательность
-      - `hint: string` (max length: 2000) — Подсказка, которая отображается под группой чекбоксов серым цветом
-    - **ViewBlockDate**: Блок date — выбор даты
-      - `type: string` (required) — Тип блока
-        Значения: `date` — Для выбора даты всегда date
-      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
-      - `label: string` (required, max length: 150, min length: 1) — Подпись к полю
-      - `initial_date: date` — Начальное значение в поле в формате YYYY-MM-DD
-      - `required: boolean` (default: false) — Обязательность
-      - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
-    - **ViewBlockTime**: Блок time — выбор времени
-      - `type: string` (required) — Тип блока
-        Значения: `time` — Для выбора времени всегда time
-      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
-      - `label: string` (required, max length: 150, min length: 1) — Подпись к полю
-      - `initial_time: string` — Начальное значение в поле в формате HH:mm. Значение в формате HH:mm:ss тоже принимается — секунды отбрасываются.
-      - `required: boolean` (default: false) — Обязательность
-      - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
-    - **ViewBlockFileInput**: Блок file_input — загрузка файлов
-      - `type: string` (required) — Тип блока
-        Значения: `file_input` — Для загрузки файлов всегда file_input
-      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
-      - `label: string` (required, max length: 150, min length: 1) — Подпись к полю
-      - `filetypes: array of string` — Массив допустимых расширений файлов, указанные в виде строк (например, ["png","jpg","gif"]). Точка в начале не нужна, но допустима — она подставляется сама. Значение с косой чертой считается MIME-типом и остаётся как есть. Если это поле не указано, все расширения файлов будут приняты. Значение подставляется в фильтр окна выбора файла, поэтому расширение полученного файла проверяйте у себя.
-      - `max_files: integer, int32` (default: 10, min: 1, max: 10) — Максимальное количество файлов, которое может загрузить пользователь в это поле
-      - `required: boolean` (default: false) — Обязательность
-      - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
+- `success: boolean` (required) — Признак успешной обработки. Пример: `true`
 
 
 ## Параметры бота
@@ -484,6 +384,8 @@
 - [Удаление бота](/api/bots/delete)
 - [Ротация токена бота](/api/bots/recreate-token)
 - [Ротация секрета клиента](/api/bots/rotate-client-secret)
+
+Методы [Новый бот](/api/bots/create) и [Ротация токена бота](/api/bots/recreate-token) возвращают эту модель вместе с токеном бота в поле `access_token`. Токен приходит один раз, а при создании бота с `empty: true` его в ответе нет.
 
 Параметры бота
 
@@ -546,6 +448,8 @@
 
 - [Саморегистрация вебхука бота](/api/bots/update-webhook)
 - [Ротация собственного токена бота](/api/bots/recreate-token-self)
+
+Ротация собственного токена возвращает эту модель вместе с новым токеном в поле `access_token`, он приходит один раз.
 
 Параметры бота в ответах методов самого бота
 
@@ -798,7 +702,7 @@
 Ссылка на поток событий бота
 
 - `url: string` (required) — Ссылка на поток событий в формате Server-Sent Events. Открывается без токена, поэтому храните её как секрет. Пример: `"https://api.pachca.com/events?signed_stream=d2ViaG9vay1ldmVudHMvMTczODgxNi8x&jid=eyJhbGciOiJIUzI1NiJ9.eyJ3ZWJob29rX2lkIjoxfQ.c2lnbmF0dXJl"`
-- `expires_at: date-time` (required) — Дата и время, до которых действует ссылка (ISO-8601, UTC+0). Пример: `"2026-10-27T12:20:00.000Z"`
+- `expires_at: date-time` (required) — Дата и время, до которых действует ссылка (ISO-8601, UTC+0): от одного до двух часов после запроса. В этот момент сервер присылает `disconnect` и закрывает подключение по ней. Пример: `"2026-10-27T13:00:00.000Z"`
 
 
 ## Событие аудита
@@ -847,9 +751,9 @@
   - **AuditDetailsKms**: При: kms_encrypt, kms_decrypt
     - `chat_id: integer, int32` (required) — Идентификатор чата
     - `message_id: integer, int32` (required) — Идентификатор сообщения
-    - `reason: string` (required) — Причина операции
+    - `reason: string` (required) — Причина операции: `message_create` — шифрование текста сообщения, `message_store_for_search` — сохранение текста для поиска, `file_upload` — загрузка файла (все три у kms_encrypt), `file_download` — скачивание файла (у kms_decrypt)
   - **AuditDetailsDlp**: При: dlp_violation_detected
-    - `dlp_rule_id: integer, int32` (required) — Идентификатор правила DLP
+    - `dlp_rule_id: string` (required) — Идентификатор правила DLP: строка из названия правила, например `pasport-rf`. При переименовании правила не меняется.
     - `dlp_rule_name: string` (required) — Название правила DLP
     - `message_id: integer, int32` (required) — Идентификатор сообщения
     - `chat_id: integer, int32` (required) — Идентификатор чата
@@ -867,17 +771,40 @@
   - **AuditDetailsBot**: При: bot_deleted, а также bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued в записях до 7 октября 2026 года
     - `bot_id: integer, int32` (required) — Идентификатор бота
     - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+    - `webhook_id: integer, int32` — Идентификатор вебхука бота
+    - `application_id: integer, int32` (nullable) — Идентификатор приложения бота. `null`, если приложения у бота нет.
+    - `access_token_id: integer, int32` — Идентификатор токена. Есть у bot_token_created, bot_token_reissued и bot_token_updated.
+    - `access_token_preview: string` (nullable) — Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, `null`, если значение недоступно.
+    - `scopes: anyOf` — Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
+      **Возможные варианты:**
+
+      - **array of string**
+      - **AuditDetailsTokenScopesChange**: Смена скоупов токена в журнале аудита
+        - `previous: array of string` (required) — Скоупы токена до изменения
+        - `new: array of string` (required) — Скоупы токена после изменения
+    - `name: object` — Смена названия токена у bot_token_updated. Есть, если название передали в запросе.
+      - `previous: string` (required, nullable) — Прежнее название. `null`, если названия не было.
+      - `new: string` (required, nullable) — Новое название. `null`, если название убрали.
   - **AuditDetailsBotScopes**: При: bot_scopes_updated
     - `bot_id: integer, int32` (required) — Идентификатор бота
     - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
     - `added_scopes: array of string` (required) — Скоупы, добавленные токену бота
     - `removed_scopes: array of string` (required) — Скоупы, отозванные у токена бота
+    - `bot_name: string` — Имя бота. Нет в записях до 7 октября 2026 года.
+    - `webhook_id: integer, int32` (required) — Идентификатор вебхука бота
+    - `previous_scopes: array of string` (required) — Скоупы токена бота до изменения
+    - `new_scopes: array of string` (required) — Скоупы токена бота после изменения
   - **AuditDetailsBotWebhookSettings**: При: bot_webhook_settings_updated
     - `bot_id: integer, int32` (required) — Идентификатор бота
     - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
-    - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
+    - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), значение — объект с полями previous (прежнее значение) и new (новое значение).
       **Структура значений Record:**
       - Тип значения: `any`
+    - `bot_name: string` — Имя бота
+    - `webhook_id: integer, int32` — Идентификатор вебхука бота
+    - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.
+    - `access_token_preview: string` (nullable) — Токен, которым изменили настройки, в маскированном виде. `null`, если их изменили в интерфейсе Пачки.
+    - `application_id: integer, int32` (nullable) — Идентификатор приложения токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.
   - **AuditDetailsBotOAuthClient**: При: bot_oauth_client_updated
     - `bot_id: integer, int32` (required) — Идентификатор бота
     - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
@@ -885,21 +812,44 @@
     - `changes: Record<string, object>` (required) — Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).
       **Структура значений Record:**
       - Тип значения: `any`
+    - `application_id: integer, int32` — Идентификатор приложения бота
+    - `application_name: string` — Название приложения бота
+    - `bot_name: string` — Имя бота
+    - `webhook_id: integer, int32` — Идентификатор вебхука бота
+    - `scopes: array of string` — Права, которые бот запрашивает у сотрудника на экране согласия
+    - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.
+    - `access_token_preview: string` (nullable) — Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.
   - **AuditDetailsOAuthAuthorizationGranted**: При: oauth_authorization_granted
-    - `client_id: string` (required) — Идентификатор OAuth-клиента, которому выдан доступ
+    - `client_id: string` (required, nullable) — Идентификатор OAuth-клиента, которому выдан доступ. `null` в записях до 7 октября 2026 года о доступе, выданном боту.
     - `scopes: array of string` (required) — Скоупы, на которые выдан доступ
+    - `application_id: integer, int32` (required) — Идентификатор приложения, которому выдан доступ
+    - `application_name: string` — Название приложения. Нет в записях до 7 октября 2026 года.
+    - `bot_id: integer, int32` — Идентификатор бота. Есть, когда доступ выдан боту.
+    - `bot_name: string` — Имя бота. Есть вместе с `bot_id`.
+    - `authorization_grant_id: integer, int32` (required) — Идентификатор выданного кода авторизации
   - **AuditDetailsOAuthAuthorizationRevoked**: При: oauth_authorization_revoked
     - `client_id: string` (required) — Идентификатор OAuth-клиента, у которого отозван доступ
     - `revoked_tokens_count: integer, int32` (required) — Количество отозванных токенов
     - `user_id: integer, int32` — Идентификатор сотрудника, чей доступ отозван. Есть, когда доступ отозвал администратор.
+    - `application_id: integer, int32` (required) — Идентификатор приложения, у которого отозван доступ
+    - `application_name: string` — Название приложения. Нет в записях до 7 октября 2026 года.
+    - `bot_id: integer, int32` — Идентификатор бота. Есть, когда доступ отозван у бота.
+    - `bot_name: string` — Имя бота. Есть вместе с `bot_id`.
   - **AuditDetailsDeviceAuthorizationApproved**: При: oauth_device_authorization_approved
     - `client_id: string` (required) — Идентификатор OAuth-клиента, которому разрешён вход
     - `scopes: array of string` (required) — Скоупы, на которые согласился сотрудник
     - `device_name: string` (nullable) — Имя устройства, с которого выполняется вход. `null`, если приложение его не передало.
+    - `application_id: integer, int32` (required) — Идентификатор приложения, которому разрешён вход
+    - `application_name: string` — Название приложения. Нет в записях до 7 октября 2026 года.
+    - `device_grant_id: integer, int32` (required) — Идентификатор запроса на вход
+    - `token_kind: string` — Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.
   - **AuditDetailsDeviceAuthorizationDenied**: При: oauth_device_authorization_denied
     - `client_id: string` (required) — Идентификатор OAuth-клиента, которому отказано во входе
     - `scopes: array of string` (required) — Скоупы, которые клиент запрашивал
     - `device_name: string` (nullable) — Имя устройства, с которого выполнялся вход. `null`, если приложение его не передало.
+    - `application_id: integer, int32` (nullable) — Идентификатор приложения. При отказе во входе в CLI приходит `null`: приложение назначается входу только после подтверждения.
+    - `device_grant_id: integer, int32` (required) — Идентификатор запроса на вход
+    - `token_kind: string` — Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.
   - **AuditDetailsVideoCallStarted**: При: video_call_started
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
     - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
@@ -919,18 +869,43 @@
     - `bot_id: integer, int32` (required) — Идентификатор бота
     - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
     - `client_id: string` (required) — Идентификатор OAuth-клиента бота
+    - `application_id: integer, int32` — Идентификатор приложения бота
+    - `application_name: string` — Название приложения бота
+    - `bot_name: string` — Имя бота
+    - `webhook_id: integer, int32` — Идентификатор вебхука бота
+    - `scopes: array of string` — Права, которые бот запрашивает у сотрудника на экране согласия. Есть у bot_oauth_client_secret_issued.
+    - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.
+    - `access_token_preview: string` (nullable) — Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.
   - **AuditDetailsBotOAuthClientDisabled**: При: bot_oauth_client_disabled
     - `bot_id: integer, int32` (required) — Идентификатор бота
     - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
     - `client_id: string` (required) — Идентификатор OAuth-клиента бота
     - `deleted_access_tokens_count: integer, int32` (required) — Сколько токенов сотрудников отозвано
     - `deleted_access_grants_count: integer, int32` (required) — Сколько неиспользованных кодов авторизации отозвано
+    - `application_id: integer, int32` — Идентификатор приложения бота
+    - `application_name: string` — Название приложения бота
+    - `bot_name: string` — Имя бота
+    - `webhook_id: integer, int32` — Идентификатор вебхука бота
+    - `scopes: array of string` — Права, которые бот запрашивает у сотрудника на экране согласия
+    - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.
+    - `access_token_preview: string` (nullable) — Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.
   - **AuditDetailsToken**: При: access_token_created, access_token_updated, access_token_destroy, bot_token_created, bot_token_reissued, bot_token_recreated, bot_token_deleted, oauth_token_revoked
     - `token_kind: string` (required) — Вид токена: `personal` — персональный токен, `cli` — вход в CLI, `bot` — токен бота, `oauth` — токен, который сотрудник выдал боту на экране согласия, `client` — токен внешнего приложения, которому сотрудник выдал доступ
     - `token_name: string` (required, nullable) — Название токена, у входа в CLI — имя устройства. `null`, если названия нет.
     - `resource_owner_id: integer, int32` (required) — Идентификатор владельца токена: сотрудника, а у токена бота — самого бота
     - `scopes: array of string` (required) — Скоупы токена
+    - `access_token_id: integer, int32` (required) — Идентификатор токена
+    - `access_token_preview: string` (required, nullable) — Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.
+    - `application_id: integer, int32` — Идентификатор приложения, которому принадлежит токен
+    - `application_name: string` — Название приложения, которому принадлежит токен
+    - `client_id: string` — Идентификатор OAuth-клиента приложения
     - `bot_id: integer, int32` — Идентификатор бота. Есть у токенов бота и у токенов, которые сотрудник выдал боту.
+    - `bot_name: string` — Имя бота. Есть вместе с `bot_id`.
+    - `device_name: string` (nullable) — Имя устройства. Есть у входа в CLI, `null`, если имени нет.
+    - `actor_id: integer, int32` (nullable) — Идентификатор пользователя, выполнившего действие. Есть у событий токенов бота, `null`, если действие выполнено без инициатора.
+    - `webhook_id: integer, int32` — Идентификатор вебхука бота. Есть у событий токенов бота.
+    - `user_id: integer, int32` — Идентификатор сотрудника, чей токен отозван. Есть, когда токен отозвал администратор или сотрудника перевели в гости.
+    - `source: string` — Источник отзыва: `oauth_client` — приложение само отозвало токен. Есть только у oauth_token_revoked.
     - `reason: string` — Причина отзыва. `guest_downgrade` — токен отозван автоматически, когда сотрудника перевели в гости. Есть только в таких записях.
   - **AuditDetailsBotTokenUpdated**: При: bot_token_updated
     - `token_kind: string` (required) — Вид токена: `bot`
@@ -939,6 +914,19 @@
     - `current_scopes: array of string` (required) — Скоупы токена после изменения
     - `bot_id: integer, int32` — Идентификатор бота
     - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+    - `access_token_id: integer, int32` (required) — Идентификатор токена
+    - `access_token_preview: string` (required, nullable) — Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.
+    - `application_id: integer, int32` — Идентификатор приложения бота
+    - `application_name: string` — Название приложения бота
+    - `client_id: string` — Идентификатор OAuth-клиента бота
+    - `bot_name: string` — Имя бота
+    - `webhook_id: integer, int32` (required) — Идентификатор вебхука бота
+    - `name: object` — Смена названия токена. Есть, если название передали в запросе.
+      - `previous: string` (required, nullable) — Прежнее название. `null`, если названия не было.
+      - `new: string` (required, nullable) — Новое название. `null`, если название убрали.
+    - `scopes: object` — Смена скоупов токена. Есть, если скоупы передали в запросе.
+      - `previous: array of string` (required) — Скоупы токена до изменения
+      - `new: array of string` (required) — Скоупы токена после изменения
   - **AuditDetailsUserLoginQr**: При: user_login, если вход был по QR-коду
     - `method: string` (required) — Способ входа: `qr` — вход по QR-коду
     - `login_grant_id: string` (required) — Идентификатор запроса на вход по QR-коду, общий для всех событий одного входа

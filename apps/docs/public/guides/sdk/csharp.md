@@ -22,7 +22,7 @@ dotnet add package Pachca.Sdk
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
+Клиенту нужен токен бота или персональный токен. Какой выбрать и кто может его выпустить, описано в разделе [Какой токен выбрать](/api/authorization#kakoy-token-vybrat).
 
 ```csharp
 using Pachca.Sdk;
@@ -219,14 +219,25 @@ var response = await client.Chats.GetChatAsync(334);
 ```
 
 
+### Значение null
+
+Необязательное поле, которое не задано, в запрос не попадает, поэтому метод обновления меняет только то, что вы передали. Некоторые поля API принимают `null`: например, `null` в `oauth_client` выключает у бота авторизацию от имени сотрудника, а в `webhook.kind` удаляет входящий вебхук. Чтобы отправить `null`, назовите поле в `NullFields` той же модели запроса так, как оно называется в C#:
+
+```csharp
+var request = new BotUpdateRequest
+{
+    Webhook = new BotUpdateRequestWebhook
+    {
+        NullFields = [nameof(BotUpdateRequestWebhook.Kind)],
+    },
+};
+```
+
+`NullFields` есть у моделей запроса с такими полями, а в его описании перечислены имена, которые в нём можно указать. С другим именем SDK выбрасывает `ArgumentException` и запрос не отправляет.
+
 ## Пагинация
 
-SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `Meta`** — это важно учитывать при ручной пагинации:
-
-- **Списочные методы** (`client.Users.ListUsersAsync()`, `client.Chats.ListChatsAsync()`, `client.Messages.ListChatMessagesAsync()` и т.д.) — `Meta.Paginate` с полями `NextPage`, `PrevPage`, `HasNext`, `HasPrev`. Признак конца — `HasNext == false`. Курсор `PrevPage` нужен для polling новых записей «сверху» списка.
-- **Методы поиска** (`client.Search.SearchUsersAsync()`, `client.Search.SearchChatsAsync()`, `client.Search.SearchMessagesAsync()`) — `Meta` с полями `Total` и `Paginate.NextPage` (без `PrevPage`/`HasNext`/`HasPrev`). Признак конца — пустой `Data` или совпадение числа полученных записей с `Total`.
-
-Курсоры — непрозрачные токены, никогда не бывают `null`. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в PascalCase: `Meta.Paginate.NextPage`, `PrevPage`, `HasNext` и `HasPrev`, а у методов поиска ещё `Meta.Total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -237,12 +248,15 @@ var hasNext = true;
 
 while (hasNext)
 {
-    var response = await client.Chats.ListChatsAsync(cursor: cursor);
+    var response = await client.Chats.ListChatsAsync(limit: 50, cursor: cursor);
+    if (response.Data.Count == 0) break;
     chats.AddRange(response.Data);
     cursor = response.Meta.Paginate.NextPage;
-    hasNext = response.Meta.Paginate.HasNext;
+    hasNext = response.Meta.Paginate.HasNext ?? true;
 }
 ```
+
+В модели поле `HasNext` имеет тип `bool?`. Если оно `null`, цикл идёт дальше и останавливается на пустой странице. Так же обходят страницы методы `*AllAsync()`.
 
 ### Автопагинация
 
@@ -259,17 +273,24 @@ Console.WriteLine($"Всего: {chats.Count}");
 | Метод | Возвращает |
 |-------|-----------|
 | `Security.GetAuditEventsAllAsync()` | `List<AuditEvent>` |
+| `Bots.ListBotsAllAsync()` | `List<BotResponse>` |
+| `Bots.ListBotTokensAllAsync()` | `List<BotAccessToken>` |
+| `Bots.ListCompanyBotsAllAsync()` | `List<CompanyBotResponse>` |
 | `Bots.GetWebhookEventsAllAsync()` | `List<WebhookEvent>` |
 | `Chats.ListChatsAllAsync()` | `List<Chat>` |
+| `Chats.ListCompanyChatsAllAsync()` | `List<Chat>` |
+| `Drafts.ListDraftsAllAsync()` | `List<Draft>` |
 | `GroupTags.ListTagsAllAsync()` | `List<GroupTag>` |
 | `GroupTags.GetTagUsersAllAsync()` | `List<User>` |
+| `ImportantMessages.ListImportantMessagesAllAsync()` | `List<Message>` |
 | `Members.ListMembersAllAsync()` | `List<User>` |
 | `Messages.ListChatMessagesAllAsync()` | `List<Message>` |
 | `Reactions.ListReactionsAllAsync()` | `List<Reaction>` |
 | `Search.SearchChatsAllAsync()` | `List<Chat>` |
 | `Search.SearchMessagesAllAsync()` | `List<Message>` |
 | `Search.SearchUsersAllAsync()` | `List<User>` |
-| `Tasks.ListTasksAllAsync()` | `List<Task>` |
+| `Tasks.ListTasksAllAsync()` | `List<Pachca.Sdk.Task>` |
+| `Threads.ListThreadsAllAsync()` | `List<Pachca.Sdk.Thread>` |
 | `Users.ListUsersAllAsync()` | `List<User>` |
 
 ## Обработка ошибок
@@ -291,8 +312,8 @@ catch (ApiError e)
 {
     foreach (var err in e.Errors)
     {
-        Console.WriteLine($"{err.Key}: {err.Message}");  // "name", "не может быть пустым"
-        Console.WriteLine(err.Code);                     // "blank"
+        Console.WriteLine($"{err.Key}: {err.Message}");  // name: не может быть пустым
+        Console.WriteLine(err.Code);                     // blank
     }
 }
 ```
@@ -302,10 +323,10 @@ catch (ApiError e)
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `Key` | `string` | Поле, вызвавшее ошибку |
-| `Value` | `string?` | Переданное значение |
+| `Value` | `object?` | Переданное значение |
 | `Message` | `string` | Текст ошибки |
 | `Code` | `ValidationErrorCode` | Код валидации (`Blank`, `Invalid`, `Taken`, ...) |
-| `Payload` | `string?` | Дополнительные данные |
+| `Payload` | `Dictionary<string, object>?` | Дополнительные данные |
 
 Код статуса ответа — в поле `StatusCode`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже выбрасывает `ApiError`: с кодом статуса и пустым `Errors`. Так бывает с ответом `404` без тела от метода [Поток событий](/api/bots/get-stream), когда история событий выключена, и со страницей прокси при `502`.
 
@@ -331,15 +352,15 @@ catch (OAuthError e)
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
+Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- До **3 повторов** на каждый запрос
-- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
-- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
-- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
-- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
-- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
+- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 без заголовка:** 1 сек, 2 сек, 4 сек
+- **5xx:** ~10 сек, ~20 сек, ~40 сек
+
+Сетевую ошибку без ответа сервера SDK не повторяет: исключение `HttpRequestException` приходит сразу. Паузы прерывает `CancellationToken`, переданный в метод.
+
+Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
 
 ## Отмена запросов
 
@@ -352,27 +373,47 @@ var users = await client.Users.ListUsersAsync(cancellationToken: cts.Token);
 
 ## Загрузка файлов
 
-Загрузка файла — трёхшаговый процесс:
+Загрузка файла идёт в три шага: получить параметры загрузки, отправить файл по адресу `DirectUrl` и прикрепить его к сообщению по ключу. Поля каждого шага описаны в разделе [Файлы](/api/file-uploads).
 
 ```csharp
-// 1. Получить параметры загрузки
+var fileName = "report.pdf";
+var fileBytes = await System.IO.File.ReadAllBytesAsync(fileName);
+
+// 1. Получить параметры загрузки и подставить имя файла в ключ
 var uploadParams = await client.Files.GetUploadParamsAsync();
+var key = uploadParams.Key.Replace("${filename}", fileName);
 
-// 2. Загрузить файл на S3
-using var fileStream = File.OpenRead("photo.png");
-await client.Files.UploadFileAsync(uploadParams, fileStream, "photo.png");
+// 2. Загрузить файл по адресу DirectUrl
+await client.Files.UploadFileAsync(uploadParams.DirectUrl, new FileUploadRequest
+{
+    ContentDisposition = uploadParams.ContentDisposition,
+    Acl = uploadParams.Acl,
+    Policy = uploadParams.Policy,
+    XAmzCredential = uploadParams.XAmzCredential,
+    XAmzAlgorithm = uploadParams.XAmzAlgorithm,
+    XAmzDate = uploadParams.XAmzDate,
+    XAmzSignature = uploadParams.XAmzSignature,
+    Key = key,
+    Bucket = uploadParams.Bucket,
+    File = fileBytes,
+});
 
-// 3. Прикрепить к сообщению (используя key из uploadParams)
+// 3. Отправить сообщение с файлом
 await client.Messages.CreateMessageAsync(new MessageCreateRequest
 {
     Message = new MessageCreateRequestMessage
     {
         EntityId = chatId,
-        Content = "Фото",
-        Files = new List<MessageFile> { new() { Key = uploadParams.Key, Name = "photo.png" } }
+        Content = "Отчёт за неделю",
+        Files = new List<MessageCreateRequestFile>
+        {
+            new() { Key = key, Name = fileName, FileType = FileType.File, Size = fileBytes.Length }
+        }
     }
 });
 ```
+
+Тип `File` есть и в SDK, поэтому `System.IO.File` в примере записан полностью. Такие совпадения имён перечислены в разделе [Имена Task, Thread, File и TaskStatus](#imena-task-thread-file-i-taskstatus).
 
 ## Сериализация
 
@@ -403,7 +444,7 @@ using Pachca.Sdk;
 Chat chat;
 Message message;
 User user;
-Task task;
+Pachca.Sdk.Task task;
 GroupTag groupTag;
 
 // Запросы
@@ -415,7 +456,7 @@ TaskCreateRequest taskRequest;
 AuditEventKey eventKey;
 ChatAvailability availability;
 ChatMemberRole role;
-TaskStatus status;
+Pachca.Sdk.TaskStatus status;
 ValidationErrorCode errorCode;
 
 // Ошибки
@@ -425,53 +466,70 @@ OAuthError oauthError;
 
 Перечисление в ответе — структура со строкой `Value`: значение, которого SDK ещё не знает, приходит как есть, и `IsKnown` у него `false`. Значения такого перечисления сравниваются через `==`, а в `switch` — по `Value`. Ту же строку, что и `Value`, возвращает `ToString()`.
 
+### Имена Task, Thread, File и TaskStatus
+
+В SDK есть типы `Task`, `Thread`, `File` и `TaskStatus`. Проект .NET по умолчанию неявно подключает пространства имён `System.Threading.Tasks`, `System.Threading` и `System.IO`, где есть типы с теми же именами. Поэтому рядом с `using Pachca.Sdk;` такое короткое имя неоднозначно, и компилятор отвечает ошибкой `CS0104`. Запишите тип полностью, например `Pachca.Sdk.Task` или `System.IO.File`, или задайте псевдонимы в начале файла:
+
+```csharp
+using Pachca.Sdk;
+using Task = System.Threading.Tasks.Task;
+using PachcaTask = Pachca.Sdk.Task;
+```
+
+Тогда `Task` означает задачу .NET, например в `static async Task Main()`, а `PachcaTask` — напоминание Пачки.
+
+## Тело вебхука
+
+Тела событий вебхука описаны классами `MessageWebhookPayload`, `ReactionWebhookPayload`, `ButtonWebhookPayload`, `ViewSubmitWebhookPayload`, `ChatMemberWebhookPayload`, `CompanyMemberWebhookPayload`, `LinkSharedWebhookPayload` и `VideoCallWebhookPayload`. Их общий базовый класс `WebhookPayloadUnion` разбирается своим конвертером: класс он выбирает по полям `type` и `event`.
+
+```csharp
+using System.Text.Json;
+using Pachca.Sdk;
+
+// body — тело запроса строкой
+var payload = JsonSerializer.Deserialize<WebhookPayloadUnion>(body);
+if (payload is ButtonWebhookPayload button)
+{
+    Console.WriteLine($"{button.MessageId} {button.Data}");
+}
+```
+
+Подпись проверяйте по исходному телу до разбора, как в разделе [Безопасность](/guides/webhook/handler#bezopasnost). Те же классы отдают методы `PollWebhookEventsAsync` и `PollWebhookPayloadsAsync`, которые забирают события из истории: пример — в разделе [Пример поллинга](/guides/webhook/polling#primer-pollinga).
+
 ## Примеры
+
+**Отправка сообщения:**
 
 ```csharp
 using Pachca.Sdk;
 
 using var client = new PachcaClient("YOUR_TOKEN");
 
-// Отправка сообщения
-var request = new MessageCreateRequest
-{
-    Message = new MessageCreateRequestMessage
-    {
-        EntityType = MessageEntityType.Discussion,
-        EntityId = 334,
-        Content = "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-        Files = new List<MessageCreateRequestFile> { new MessageCreateRequestFile
-        {
-            Key = "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
-            Name = "logo.png",
-            FileType = FileType.Image,
-            Size = 12345L,
-            Width = 800,
-            Height = 600,
-            DurationMs = 5400,
-            Waveform = "4,8,12,20,16,10,6,3"
-        } },
-        Buttons = new List<List<Button>> { new List<Button> { new Button
-        {
-            Text = "Подробнее",
-            Url = "https://example.com/details",
-            Data = "awesome"
-        } } },
-        ParentMessageId = 194270,
-        DisplayAvatarUrl = "https://example.com/avatar.png",
-        DisplayName = "Бот Поддержки",
-        SkipInviteMentions = false
-    },
-    LinkPreview = false
-};
+var request = new MessageCreateRequest { Message = new MessageCreateRequestMessage { EntityId = 334, Content = "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)" } };
 var response = await client.Messages.CreateMessageAsync(request);
 // → Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?, Important: bool)
+```
 
-// Список сотрудников
+
+**Список сотрудников:**
+
+```csharp
+using Pachca.Sdk;
+
+using var client = new PachcaClient("YOUR_TOKEN");
+
 var response = await client.Users.ListUsersAsync("Олег", 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
 // → ListUsersResponse(Data: List<User>, Meta: PaginationMeta)
+```
 
-// Создание задачи
+
+**Создание напоминания:**
+
+```csharp
+using Pachca.Sdk;
+
+using var client = new PachcaClient("YOUR_TOKEN");
+
 var request = new TaskCreateRequest
 {
     Task = new TaskCreateRequestTask
@@ -489,7 +547,6 @@ var request = new TaskCreateRequest
 var response = await client.Tasks.CreateTaskAsync(request);
 // → Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>)
 ```
-
 
 
 

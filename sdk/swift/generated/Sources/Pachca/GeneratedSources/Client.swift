@@ -2517,12 +2517,14 @@ public final class SearchServiceImpl: SearchService {
     public override func searchChatsAll(query: String? = nil, limit: Int? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, active: Bool? = nil, chatSubtype: ChatSubtype? = nil, personal: Bool? = nil) async throws -> [Chat] {
         var items: [Chat] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await searchChats(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, active: active, chatSubtype: chatSubtype, personal: personal)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext
+        }
         return items
     }
 
@@ -2555,12 +2557,14 @@ public final class SearchServiceImpl: SearchService {
     public override func searchMessagesAll(query: String? = nil, limit: Int? = nil, order: SortOrder? = nil, sort: MessageSearchSort? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> [Message] {
         var items: [Message] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await searchMessages(query: query, limit: limit, cursor: cursor, order: order, sort: sort, createdFrom: createdFrom, createdTo: createdTo, chatIds: chatIds, userIds: userIds, active: active)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext
+        }
         return items
     }
 
@@ -2591,12 +2595,14 @@ public final class SearchServiceImpl: SearchService {
     public override func searchUsersAll(query: String? = nil, limit: Int? = nil, sort: SearchSortOrder? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, companyRoles: [UserRole]? = nil) async throws -> [User] {
         var items: [User] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await searchUsers(query: query, limit: limit, cursor: cursor, sort: sort, order: order, createdFrom: createdFrom, createdTo: createdTo, companyRoles: companyRoles)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext
+        }
         return items
     }
 }
@@ -2983,7 +2989,7 @@ open class ViewsService {
         throw pachcaNotImplemented("Views.submitViewResponse")
     }
 
-    open func openView(request body: OpenViewRequest) async throws -> Void {
+    open func openView(request body: OpenViewRequest) async throws -> OpenViewResult {
         throw pachcaNotImplemented("Views.openView")
     }
 }
@@ -3016,7 +3022,7 @@ public final class ViewsServiceImpl: ViewsService {
         }
     }
 
-    public override func openView(request body: OpenViewRequest) async throws -> Void {
+    public override func openView(request body: OpenViewRequest) async throws -> OpenViewResult {
         var request = URLRequest(url: URL(string: "\(baseURL)/views/open")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -3026,7 +3032,7 @@ public final class ViewsServiceImpl: ViewsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return
+            return try deserialize(OpenViewResult.self, from: data)
         default:
             throw pachcaErrorFromResponse(statusCode, data)
         }

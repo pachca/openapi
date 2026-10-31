@@ -11,68 +11,49 @@ import { toSlug } from '@/lib/utils/transliterate';
 import { MarkdownContent } from './markdown-content';
 import { HeadingLink } from './heading-link';
 import { InlineCodeText } from './inline-code-text';
-import { ArrowUpRight, Package } from 'lucide-react';
+import { ReleaseChanges } from './release-changes';
+import { ArrowUpRight } from 'lucide-react';
 
 const PRODUCT_LABELS: Record<ReleaseProduct, string> = {
+  mcp: 'MCP-инструменты',
+  plugin: 'MCP-плагин и скиллы',
   cli: 'CLI',
-  sdk: 'SDK',
-  generator: 'Generator',
+  sdk: 'SDK-библиотеки',
+  generator: 'SDK-генератор',
   n8n: 'n8n',
 };
 
-// Canonical order of release blocks within a single date (and of the
-// package badges row below them). Don't rely on JSON order in
-// `data/releases.json` — entries get added in different sequences.
+// Canonical order of release cards within a single date. Don't rely on JSON
+// order in `data/releases.json` — entries get added in different sequences.
 const PRODUCT_ORDER: Record<ReleaseProduct, number> = {
-  n8n: 0,
-  cli: 1,
-  sdk: 2,
-  generator: 3,
+  mcp: 0,
+  plugin: 1,
+  n8n: 2,
+  cli: 3,
+  sdk: 4,
+  generator: 5,
 };
 
 const PRODUCT_COLORS: Record<ReleaseProduct, string> = {
+  mcp: 'bg-method-patch/10 text-method-patch',
+  plugin: 'bg-method-patch/10 text-method-patch',
   cli: 'bg-method-get/10 text-method-get',
   sdk: 'bg-method-post/10 text-method-post',
   generator: 'bg-method-post/10 text-method-post',
   n8n: 'bg-primary/10 text-primary',
 };
 
-type PackageInfo = { href: (v: string) => string; title: string };
-
-const PRODUCT_PACKAGES: Record<ReleaseProduct, PackageInfo[]> = {
-  cli: [{ href: (v) => `https://www.npmjs.com/package/@pachca/cli/v/${v}`, title: 'CLI' }],
-  sdk: [
-    { href: (v) => `https://www.npmjs.com/package/@pachca/sdk/v/${v}`, title: 'TypeScript' },
-    { href: (v) => `https://pypi.org/project/pachca-sdk/${v}/`, title: 'Python' },
-    {
-      href: (v) => `https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated@v${v}`,
-      title: 'Go',
-    },
-    {
-      href: () => 'https://github.com/pachca/openapi/tree/main/sdk/kotlin',
-      title: 'Kotlin',
-    },
-    {
-      href: () => 'https://github.com/pachca/openapi/tree/main/sdk/swift',
-      title: 'Swift',
-    },
-    {
-      href: (v) => `https://www.nuget.org/packages/Pachca.Sdk/${v}`,
-      title: 'C#',
-    },
-  ],
-  generator: [
-    {
-      href: (v) => `https://www.npmjs.com/package/@pachca/generator/v/${v}`,
-      title: 'Generator',
-    },
-  ],
-  n8n: [
-    {
-      href: (v) => `https://www.npmjs.com/package/n8n-nodes-pachca/v/${v}`,
-      title: 'n8n',
-    },
-  ],
+// Where the badge of a release card leads: the docs page of the product, or
+// the release itself in the registry when the product has one package.
+const PRODUCT_LINKS: Record<ReleaseProduct, (v: string) => string> = {
+  // The version of an MCP release is the version of the tool set the server runs.
+  mcp: () => '/guides/mcp/overview',
+  plugin: () => '/guides/mcp/plugin',
+  cli: (v) => `https://www.npmjs.com/package/@pachca/cli/v/${v}`,
+  // Six languages in six registries: the overview links to each of them.
+  sdk: () => '/guides/sdk/overview',
+  generator: (v) => `https://www.npmjs.com/package/@pachca/generator/v/${v}`,
+  n8n: (v) => `https://www.npmjs.com/package/n8n-nodes-pachca/v/${v}`,
 };
 
 const CHANGE_TYPE_ICONS: Record<string, { icon: string; color: string }> = {
@@ -87,55 +68,78 @@ function resolveVersion(version: string): string {
   return parts[parts.length - 1];
 }
 
-function ProductBadge({ product }: { product: ReleaseProduct }) {
-  return (
-    <span
-      className={`inline-block px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${PRODUCT_COLORS[product]}`}
-    >
-      {PRODUCT_LABELS[product]}
-    </span>
-  );
-}
-
-function PackageLink({ href, title }: { href: string; title: string }) {
+function ProductBadge({ product, href }: { product: ReleaseProduct; href: string }) {
+  const external = href.startsWith('http');
+  // The badge sits inside a link: the text styles of prose links don't reach it.
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group no-underline! flex items-center gap-2 px-3 py-2 text-[14px] font-medium rounded-xl border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover hover:border-glass-heavy-border transition-all duration-200"
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      className="group no-underline! inline-flex"
     >
-      <Package className="w-4 h-4 shrink-0 text-text-primary" strokeWidth={2} />
-      <span className="text-[14px] font-medium text-text-primary">{title}</span>
-      <ArrowUpRight className="ml-auto shrink-0 w-3.5 h-3.5 text-text-tertiary transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      <span
+        className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${PRODUCT_COLORS[product]}`}
+      >
+        {PRODUCT_LABELS[product]}
+        <ArrowUpRight
+          className="w-2.5 h-2.5 shrink-0 transition-transform duration-200 group-hover:translate-x-px group-hover:-translate-y-px"
+          strokeWidth={2.5}
+        />
+      </span>
     </a>
   );
 }
 
+/** «1 изменение», «3 изменения», «12 изменений» */
+function pluralChanges(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${n} изменение`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${n} изменения`;
+  return `${n} изменений`;
+}
+
+// New things first, then changes, then fixes: the folded card shows what is new.
+const CHANGE_TYPE_ORDER: Record<string, number> = { '+': 0, '~': 1, '-': 2 };
+const VISIBLE_CHANGES = 3;
+
 function ReleaseEntry({ release }: { release: ParsedRelease }) {
+  const changes = [...release.changes].sort(
+    (a, b) => (CHANGE_TYPE_ORDER[a.type] ?? 1) - (CHANGE_TYPE_ORDER[b.type] ?? 1)
+  );
+  const hidden = changes.length - VISIBLE_CHANGES;
+  const items = changes.map((change, i) => {
+    const typeInfo = CHANGE_TYPE_ICONS[change.type] || CHANGE_TYPE_ICONS['~'];
+    return (
+      <div key={i} className="flex gap-2 text-[14px] leading-relaxed text-text-primary">
+        <span className={`shrink-0 font-mono font-bold ${typeInfo.color} w-3 text-center`}>
+          {typeInfo.icon}
+        </span>
+        <div className="min-w-0">
+          <InlineCodeText text={change.description} />
+        </div>
+      </div>
+    );
+  });
   return (
-    <div className="overflow-x-auto rounded-lg border border-glass-border bg-glass px-3 py-3 backdrop-blur-sm">
+    <div
+      data-release-card
+      className="overflow-x-auto rounded-lg border border-glass-border bg-glass px-3 py-3 backdrop-blur-sm"
+    >
       <div className="flex items-center gap-2 mb-2">
-        <ProductBadge product={release.product} />
+        <ProductBadge
+          product={release.product}
+          href={PRODUCT_LINKS[release.product](resolveVersion(release.version))}
+        />
         <span className="text-[13px] font-mono font-semibold text-text-tertiary">
           v{release.version}
         </span>
       </div>
-      <div className="space-y-1">
-        {release.changes.map((change, i) => {
-          const typeInfo = CHANGE_TYPE_ICONS[change.type] || CHANGE_TYPE_ICONS['~'];
-          return (
-            <div key={i} className="flex gap-2 text-[14px] leading-relaxed text-text-primary">
-              <span className={`shrink-0 font-mono font-bold ${typeInfo.color} w-3 text-center`}>
-                {typeInfo.icon}
-              </span>
-              <div className="min-w-0">
-                <InlineCodeText text={change.description} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <ReleaseChanges
+        items={items}
+        visible={VISIBLE_CHANGES}
+        moreLabel={`Показать ещё ${pluralChanges(hidden)}`}
+      />
     </div>
   );
 }
@@ -238,17 +242,6 @@ function DateGroupBlock({
             {releases.map((entry, i) => (
               <ReleaseEntry key={`release-${i}`} release={entry.data} />
             ))}
-            <div className="flex flex-wrap gap-2 pt-1">
-              {releases.flatMap((entry) =>
-                PRODUCT_PACKAGES[entry.data.product].map((pkg) => (
-                  <PackageLink
-                    key={`${entry.data.product}-${pkg.title}`}
-                    href={pkg.href(resolveVersion(entry.data.version))}
-                    title={pkg.title}
-                  />
-                ))
-              )}
-            </div>
           </div>
         )}
       </div>

@@ -5,12 +5,20 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
+
+/// <summary>A request model with properties the API takes as null.</summary>
+internal interface INullFields
+{
+    List<string>? NullFields { get; }
+}
 
 internal static class PachcaUtils
 {
@@ -32,7 +40,47 @@ internal static class PachcaUtils
     {
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
         PropertyNameCaseInsensitive = true,
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { SendNullFields } },
     };
+
+    // Properties of a request model the caller can send as null, by name in NullFields.
+    private static readonly Dictionary<Type, HashSet<string>> NullableProperties = new()
+    {
+        [typeof(BotUpdateRequest)] = new() { "OauthClient" },
+        [typeof(BotUpdateRequestWebhook)] = new() { "Kind" },
+        [typeof(DraftCreateRequestDraft)] = new() { "ParentMessageId", "Schedule" },
+        [typeof(DraftRepetitionRequest)] = new() { "NthDay" },
+        [typeof(DraftScheduleRequest)] = new() { "EndDate" },
+        [typeof(DraftUpdateRequestDraft)] = new() { "ParentMessageId", "Schedule" },
+    };
+
+    // A property named in NullFields goes out as null, whatever value it holds. A name
+    // the model does not take as null fails before the request is sent.
+    private static void SendNullFields(JsonTypeInfo typeInfo)
+    {
+        if (typeInfo.Kind != JsonTypeInfoKind.Object || !NullableProperties.TryGetValue(typeInfo.Type, out var nullable))
+            return;
+        var model = typeInfo.Type.Name;
+        typeInfo.OnSerializing = obj =>
+        {
+            foreach (var name in ((INullFields)obj).NullFields ?? new List<string>())
+            {
+                if (!nullable.Contains(name))
+                    throw new ArgumentException($"{model}: field \"{name}\" cannot be sent as null");
+            }
+        };
+        foreach (var property in typeInfo.Properties)
+        {
+            if (property.AttributeProvider is not PropertyInfo info || !nullable.Contains(info.Name) || property.Get is not { } get)
+                continue;
+            var name = info.Name;
+            property.Get = obj => IsNulled(obj, name) ? null : get(obj);
+            property.ShouldSerialize = (obj, value) => value != null || IsNulled(obj, name);
+        }
+    }
+
+    private static bool IsNulled(object obj, string name) =>
+        ((INullFields)obj).NullFields?.Contains(name) == true;
 
     // Only the daily chat limit and the hour-long ban wait longer than a minute.
     private static readonly TimeSpan MaxRetryAfter = TimeSpan.FromSeconds(60);

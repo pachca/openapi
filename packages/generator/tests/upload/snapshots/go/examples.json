@@ -1,12 +1,12 @@
 {
   "Client_Init": {
-    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")\nctx := context.Background()",
     "imports": [
       "PachcaClient"
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "request := FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: \"example\",\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tFile: bytes.NewReader(nil),\n}\nclient.Common.UploadFile(ctx, \"https://example.com\", request)",
+    "usage": "request := pachca.FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: \"example\",\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tFile: bytes.NewReader(nil),\n}\nclient.Common.UploadFile(ctx, \"https://example.com\", request)",
     "imports": [
       "FileUploadRequest"
     ]

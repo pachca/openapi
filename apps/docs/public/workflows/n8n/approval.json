@@ -5,8 +5,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "approval",
-        "responseMode": "onReceived",
-        "responseData": "allEntries"
+        "options": {}
       },
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
@@ -18,11 +17,14 @@
       "parameters": {
         "resource": "message",
         "operation": "create",
-        "entityId": "CHAT_ID",
-        "content": "Запрос на согласование:\n\n{{ $json.body.text || 'Новый запрос' }}",
-        "additionalFields": {
-          "buttons": "[[{\"text\": \"Согласовать\", \"data\": \"approve\"}, {\"text\": \"Отклонить\", \"data\": \"reject\"}]]"
-        }
+        "entityId": {
+          "__rl": true,
+          "value": "CHAT_ID",
+          "mode": "id"
+        },
+        "content": "=Запрос на согласование:\n\n{{ $json.body.text || 'Новый запрос' }}",
+        "buttonLayout": "raw_json",
+        "rawJsonButtons": "[[{\"text\":\"Согласовать\",\"data\":\"approve\"},{\"text\":\"Отклонить\",\"data\":\"reject\"}]]"
       },
       "name": "Отправить с кнопками",
       "type": "n8n-nodes-pachca.pachca",
@@ -31,8 +33,20 @@
     }
   ],
   "connections": {
-    "Webhook": { "main": [[{ "node": "Отправить с кнопками", "type": "main", "index": 0 }]] }
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Отправить с кнопками",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "pinData": {}
 }

@@ -5,7 +5,7 @@
 
 # Kotlin
 
-- [com.pachca:pachca-sdk](https://github.com/pachca/openapi/tree/main/sdk/kotlin) JitPack
+- [com.github.pachca:openapi](https://github.com/pachca/openapi/tree/main/sdk/kotlin) JitPack
 
 
 Типизированный клиент для Pachca API на Kotlin. Построен на Ktor с корутинами (`suspend`), kotlinx.serialization и встроенным retry. Требуется Kotlin 2.2+ и Java 11+.
@@ -15,18 +15,31 @@
 
   ### Шаг 1. Установка
 
-Добавьте зависимость в `build.gradle.kts`:
+Пакет публикуется через JitPack. Добавьте его репозиторий в `settings.gradle.kts`:
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+```
+
+И зависимость в `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.pachca:pachca-sdk:latest.release")
+    implementation("com.github.pachca:openapi:1.8.0")
 }
 ```
+
+Версия — номер выпуска SDK, все выпуски перечислены в [обновлениях](/updates).
 
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
+Клиенту нужен токен бота или персональный токен. Какой выбрать и кто может его выпустить, описано в разделе [Какой токен выбрать](/api/authorization#kakoy-token-vybrat).
 
 ```kotlin
 import com.pachca.sdk.PachcaClient
@@ -196,6 +209,7 @@ client.close()
 import com.pachca.sdk.ChatAvailability
 import com.pachca.sdk.ChatSortField
 import com.pachca.sdk.SortOrder
+import java.time.OffsetDateTime
 
 // Список чатов
 val lastMessageAtAfter = OffsetDateTime.parse("2025-01-01T00:00:00.000Z")
@@ -235,14 +249,21 @@ val response = client.chats.getChat(id = 334)
 ```
 
 
+### Значение null
+
+Необязательное поле, которое не задано, в запрос не попадает, поэтому метод обновления меняет только то, что вы передали. Некоторые поля API принимают `null`: например, `null` в `oauth_client` выключает у бота авторизацию от имени сотрудника, а в `webhook.kind` удаляет входящий вебхук. Чтобы отправить `null`, назовите поле в `nullFields` той же модели запроса так, как оно называется в Kotlin:
+
+```kotlin
+val request = BotUpdateRequest(
+    webhook = BotUpdateRequestWebhook(nullFields = setOf("kind")),
+)
+```
+
+`nullFields` есть у моделей запроса с такими полями, а в его описании перечислены имена, которые в нём можно указать. С другим именем SDK выбрасывает `SerializationException` и запрос не отправляет.
+
 ## Пагинация
 
-SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
-
-- **Списочные методы** (`client.users.listUsers()`, `client.chats.listChats()`, `client.messages.listChatMessages()` и т.д.) — `meta.paginate` с полями `nextPage`, `prevPage`, `hasNext`, `hasPrev`. Признак конца — `hasNext == false`. Курсор `prevPage` нужен для polling новых записей «сверху» списка.
-- **Методы поиска** (`client.search.searchUsers()`, `client.search.searchChats()`, `client.search.searchMessages()`) — `meta` с полями `total` и `paginate.nextPage` (без `prevPage`/`hasNext`/`hasPrev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
-
-Курсоры — непрозрачные токены, никогда не бывают `null`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -250,23 +271,26 @@ SDK работает с двумя группами методов, возвра
 var cursor: String? = null
 var hasNext = true
 while (hasNext) {
-    val response = client.users.listUsers(limit = 50, cursor = cursor)
-    for (user in response.data) {
-        println("${user.firstName} ${user.lastName}")
+    val response = client.chats.listChats(limit = 50, cursor = cursor)
+    if (response.data.isEmpty()) break
+    for (chat in response.data) {
+        println("${chat.id} ${chat.name}")
     }
     cursor = response.meta.paginate.nextPage
-    hasNext = response.meta.paginate.hasNext
+    hasNext = response.meta.paginate.hasNext ?: true
 }
 ```
+
+В модели поле `hasNext` имеет тип `Boolean?`. Если оно `null`, цикл идёт дальше и останавливается на пустой странице. Так же обходят страницы методы `*All()`.
 
 ### Автопагинация
 
 Для каждого метода с пагинацией есть `*All()` вариант:
 
 ```kotlin
-// Все пользователи одним списком
-val users = client.users.listUsersAll()
-println("Всего: ${users.size}")
+// Все чаты одним списком
+val chats = client.chats.listChatsAll()
+println("Всего: ${chats.size}")
 ```
 
 Доступные методы автопагинации:
@@ -274,10 +298,16 @@ println("Всего: ${users.size}")
 | Метод | Возвращает |
 |-------|-----------|
 | `security.getAuditEventsAll()` | `List<AuditEvent>` |
+| `bots.listBotsAll()` | `List<BotResponse>` |
+| `bots.listBotTokensAll()` | `List<BotAccessToken>` |
+| `bots.listCompanyBotsAll()` | `List<CompanyBotResponse>` |
 | `bots.getWebhookEventsAll()` | `List<WebhookEvent>` |
 | `chats.listChatsAll()` | `List<Chat>` |
+| `chats.listCompanyChatsAll()` | `List<Chat>` |
+| `drafts.listDraftsAll()` | `List<Draft>` |
 | `groupTags.listTagsAll()` | `List<GroupTag>` |
 | `groupTags.getTagUsersAll()` | `List<User>` |
+| `importantMessages.listImportantMessagesAll()` | `List<Message>` |
 | `members.listMembersAll()` | `List<User>` |
 | `messages.listChatMessagesAll()` | `List<Message>` |
 | `reactions.listReactionsAll()` | `List<Reaction>` |
@@ -285,6 +315,7 @@ println("Всего: ${users.size}")
 | `search.searchMessagesAll()` | `List<Message>` |
 | `search.searchUsersAll()` | `List<User>` |
 | `tasks.listTasksAll()` | `List<Task>` |
+| `threads.listThreadsAll()` | `List<Thread>` |
 | `users.listUsersAll()` | `List<User>` |
 
 ## Обработка ошибок
@@ -302,8 +333,8 @@ try {
     client.chats.createChat(request)
 } catch (error: ApiError) {
     for (e in error.errors) {
-        println("${e.key}: ${e.message}")  // "name: не может быть пустым"
-        println(e.code)                    // ValidationErrorCode.BLANK
+        println("${e.key}: ${e.message}")  // name: не может быть пустым
+        println(e.code)                    // blank
     }
 }
 ```
@@ -313,10 +344,10 @@ try {
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `key` | `String` | Поле, вызвавшее ошибку |
-| `value` | `String?` | Переданное значение |
+| `value` | `JsonElement?` | Переданное значение |
 | `message` | `String` | Текст ошибки |
 | `code` | `ValidationErrorCode` | Код валидации |
-| `payload` | `String?` | Дополнительные данные |
+| `payload` | `Map<String, JsonElement>?` | Дополнительные данные |
 
 Код статуса ответа — в поле `statusCode`. Если ответ с ошибкой пришёл без тела или не в JSON, SDK тоже выбрасывает `ApiError`: с кодом статуса и пустым `errors`. Так бывает с ответом `404` без тела от метода [Поток событий](/api/bots/get-stream), когда история событий выключена, и со страницей прокси при `502`.
 
@@ -339,17 +370,16 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`. Запросы GET, PUT и DELETE он повторяет и при ошибках сервера `5xx` (`500`, `502`, `503`, `504`):
+Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- До **3 повторов** на каждый запрос
-- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff с jitter
-- **429 с `Retry-After` дольше минуты** (суточный предел сообщений в чат или блокировка отправки) сразу приходит ошибкой `ApiError` с кодом `rate_limit`, без повторов
-- **5xx:** экспоненциальный backoff с jitter: ~20 сек, ~40 сек, ~80 сек
-- **5xx на POST** сразу приходит ошибкой, без повторов: сервер мог успеть выполнить запрос, и [повтор создал бы дубль](/api/limits#povtornye-zaprosy-retry)
-- **504 с кодом `timeout`** (поиск не уложился по времени) сразу приходит ошибкой `ApiError`, без повторов: тот же запрос, скорее всего, снова не уложится, и его стоит [сузить](/api/limits#povtornye-zaprosy-retry)
-- **Сетевая ошибка** без ответа сервера тоже повторяется только у GET, PUT и DELETE, а таймаут не повторяется
-- Реализовано через плагин Ktor `HttpRequestRetry`
-- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
+- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 без заголовка:** 1 сек, 2 сек, 4 сек
+- **5xx:** ~10 сек, ~20 сек, ~40 сек
+- **Сетевая ошибка у GET, PUT и DELETE:** ~10 сек, ~20 сек, ~40 сек
+
+Таймаут запроса и сетевую ошибку у POST SDK не повторяет. Повторы делает плагин Ktor `HttpRequestRetry`.
+
+Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
 
 ## Типы
 
@@ -368,7 +398,7 @@ val req: ChatCreateRequest
 
 // Перечисления
 val key: AuditEventKey = AuditEventKey.USER_LOGIN
-val availability: ChatAvailability = ChatAvailability.IS_OPEN
+val availability: ChatAvailability = ChatAvailability.PUBLIC
 val role: ChatMemberRole = ChatMemberRole.ADMIN
 val status: TaskStatus = TaskStatus.DONE
 
@@ -379,71 +409,83 @@ val oauthError: OAuthError
 
 Перечисление в ответе — `value class` со строкой `value`: значение, которого SDK ещё не знает, приходит как есть, и `isKnown` у него `false`. Поэтому `when` по такому перечислению заканчивается веткой `else`. Строку значения возвращает и `toString()`, а имя константы даёт `name`.
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Все перечисления SDK: `AuditEventKey`, `AuditLoginGrantDenyReason`, `AuditLoginGrantDevicePlatform`, `BotCanEdit`, `BotEventName`, `BotTemplateEngine`, `BotTriggerOn`, `BotWebhookKind`, `BotWhoCanAdd`, `ChatActivity`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSortField`, `ChatSubtype`, `CustomPropertyDataType`, `DraftRepetitionInterval`, `DraftType`, `FileTarget`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `MessageSearchSort`, `MessageSortField`, `OAuthErrorCode`, `OAuthScope`, `OAuthTokenTypeHint`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserCreateRole`, `UserEventType`, `UserRole`, `UserRoleInput`, `ValidationErrorCode`, `VideoCallEventType` и `WebhookEventType`.
+
+## Тело вебхука
+
+Тела событий вебхука описаны классами `MessageWebhookPayload`, `ReactionWebhookPayload`, `ButtonWebhookPayload`, `ViewSubmitWebhookPayload`, `ChatMemberWebhookPayload`, `CompanyMemberWebhookPayload`, `LinkSharedWebhookPayload` и `VideoCallWebhookPayload`. Их общий интерфейс `WebhookPayloadUnion` разбирается своим сериализатором: класс он выбирает по полям `type` и `event`. Разбирает тело `Json` из kotlinx.serialization, эта библиотека приходит в проект вместе с SDK:
+
+```kotlin
+import com.pachca.sdk.ButtonWebhookPayload
+import com.pachca.sdk.WebhookPayloadUnion
+import kotlinx.serialization.json.Json
+
+val json = Json { ignoreUnknownKeys = true }
+
+// body — тело запроса строкой
+when (val payload = json.decodeFromString<WebhookPayloadUnion>(body)) {
+    is ButtonWebhookPayload -> println("${payload.messageId} ${payload.data}")
+    else -> {}
+}
+```
+
+Подпись проверяйте по исходному телу до разбора, как в разделе [Безопасность](/guides/webhook/handler#bezopasnost). Те же классы отдают функции `pollWebhookEvents` и `pollWebhookPayloads`, которые забирают события из истории: пример — в разделе [Пример поллинга](/guides/webhook/polling#primer-pollinga).
 
 ## Зависимости
 
 | Пакет | Версия | Назначение |
 |-------|--------|-----------|
 | `kotlinx-serialization-json` | 1.9.0 | JSON-сериализация |
+| `kotlinx-coroutines-core` | 1.10.2 | Корутины |
 | `ktor-client-core` | 3.2.3 | HTTP-клиент |
 | `ktor-client-cio` | 3.2.3 | CIO-движок |
 | `ktor-client-auth` | 3.2.3 | Bearer-авторизация |
 | `ktor-client-content-negotiation` | 3.2.3 | Content negotiation |
+| `ktor-serialization-kotlinx-json` | 3.2.3 | JSON для Ktor |
+
+Первые три пакета приходят в проект вместе с SDK и доступны в вашем коде: их типы есть в API SDK (`JsonElement`, `Flow` и `HttpClient`), поэтому отдельно их подключать не нужно. Остальные SDK использует внутри.
 
 ## Примеры
 
+**Отправка сообщения:**
+
 ```kotlin
-import com.pachca.sdk.Button
-import com.pachca.sdk.FileType
 import com.pachca.sdk.MessageCreateRequest
-import com.pachca.sdk.MessageCreateRequestFile
 import com.pachca.sdk.MessageCreateRequestMessage
-import com.pachca.sdk.MessageEntityType
+import com.pachca.sdk.PachcaClient
+
+val client = PachcaClient("YOUR_TOKEN")
+
+val request = MessageCreateRequest(message = MessageCreateRequestMessage(entityId = 334, content = "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"))
+val response = client.messages.createMessage(request = request)
+// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean)
+```
+
+
+**Список сотрудников:**
+
+```kotlin
+import com.pachca.sdk.PachcaClient
+
+val client = PachcaClient("YOUR_TOKEN")
+
+val response = client.users.listUsers(query = "Олег", limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+// → ListUsersResponse(data: List<User>, meta: PaginationMeta)
+```
+
+
+**Создание напоминания:**
+
+```kotlin
 import com.pachca.sdk.PachcaClient
 import com.pachca.sdk.TaskCreateRequest
 import com.pachca.sdk.TaskCreateRequestCustomProperty
 import com.pachca.sdk.TaskCreateRequestTask
 import com.pachca.sdk.TaskKind
+import java.time.OffsetDateTime
 
 val client = PachcaClient("YOUR_TOKEN")
 
-// Отправка сообщения
-val request = MessageCreateRequest(
-    message = MessageCreateRequestMessage(
-        entityType = MessageEntityType.DISCUSSION,
-        entityId = 334,
-        content = "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-        files = listOf(MessageCreateRequestFile(
-            key = "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
-            name = "logo.png",
-            fileType = FileType.IMAGE,
-            size = 12345L,
-            width = 800,
-            height = 600,
-            durationMs = 5400,
-            waveform = "4,8,12,20,16,10,6,3"
-        )),
-        buttons = listOf(listOf(Button(
-            text = "Подробнее",
-            url = "https://example.com/details",
-            data = "awesome"
-        ))),
-        parentMessageId = 194270,
-        displayAvatarUrl = "https://example.com/avatar.png",
-        displayName = "Бот Поддержки",
-        skipInviteMentions = false
-    ),
-    linkPreview = false
-)
-val response = client.messages.createMessage(request = request)
-// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean)
-
-// Список сотрудников
-val response = client.users.listUsers(query = "Олег", limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
-// → ListUsersResponse(data: List<User>, meta: PaginationMeta)
-
-// Создание задачи
 val request = TaskCreateRequest(
     task = TaskCreateRequestTask(
         kind = TaskKind.REMINDER,
@@ -459,7 +501,6 @@ val request = TaskCreateRequest(
 val response = client.tasks.createTask(request = request)
 // → Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)>)
 ```
-
 
 
 

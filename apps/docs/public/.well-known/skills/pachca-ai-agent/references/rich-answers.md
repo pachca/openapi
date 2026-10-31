@@ -38,19 +38,18 @@ How to attach, by access path:
 
 - **API:** upload the file by the three-step
   [file upload](https://dev.pachca.com/api/file-uploads.md) scheme, then pass
-  the file key in `files` of the new message. The `.md` extension in the file
-  name turns the card on.
+  the file key in `files` of the new message with `name` and `file_type`. The
+  `.md` extension in the file name turns the card on.
 - **CLI:** `pachca upload report.md -o json` gets the signature, uploads the
   file from disk and returns only its `key`. Then pass the file record as JSON:
-  `pachca messages create --entity-type thread --entity-id <id> --files '[{"key":"<key>","name":"report.md","size":<bytes>}]'`
-  ([CLI files](https://dev.pachca.com/guides/cli/files.md)). `key` and `name`
-  are required, and the extension of `name` must match the one in `key`,
-  otherwise `422`. `file_type` can be left out, because Pachca takes the type
-  from the name: it matters only for a voice message (`voice`, with
-  `duration_ms` and `waveform`) or a video (`video`). `size` is optional: pass
-  it so the card shows the size right away. Upload a real `.md` file, not
-  stdin: `pachca upload -` names the file `stdin`, so it cannot be sent as
-  `report.md`.
+  `pachca messages create --entity-type thread --entity-id <id> --files '[{"key":"<key>","name":"report.md","file_type":"file","size":<bytes>}]'`
+  ([CLI files](https://dev.pachca.com/guides/cli/files.md)). `key`, `name` and
+  `file_type` are required, and the extension of `name` must match the one in
+  `key`, otherwise `422`. Set `file_type` every time: `file` for a `.md` or
+  `.html` report, `image` for a picture. `size` is optional: pass it so the
+  card shows the size right away. From stdin, name the file:
+  `pachca upload - --name report.md`. Without `--name` the key ends in
+  `stdin`, and the file cannot be sent as `report.md`.
 - **MCP:** a small file goes by its contents in `files` of `pachca_send_message`
   — up to 4 MB per call with files in base64, about 3 MB of source files. A file
   from disk the agent uploads itself and attaches by key

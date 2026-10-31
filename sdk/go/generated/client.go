@@ -3700,7 +3700,8 @@ func (s *SearchServiceImpl) SearchChatsAll(ctx context.Context, params *SearchCh
 	}
 	var items []Chat
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.SearchChats(ctx, params)
 		if err != nil {
@@ -3712,7 +3713,9 @@ func (s *SearchServiceImpl) SearchChatsAll(ctx context.Context, params *SearchCh
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		hasNext = result.Meta.Paginate.HasNext
 	}
+	return items, nil
 }
 
 func (s *SearchServiceImpl) SearchMessages(ctx context.Context, params *SearchMessagesParams) (*SearchMessagesResponse, error) {
@@ -3783,7 +3786,8 @@ func (s *SearchServiceImpl) SearchMessagesAll(ctx context.Context, params *Searc
 	}
 	var items []Message
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.SearchMessages(ctx, params)
 		if err != nil {
@@ -3795,7 +3799,9 @@ func (s *SearchServiceImpl) SearchMessagesAll(ctx context.Context, params *Searc
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		hasNext = result.Meta.Paginate.HasNext
 	}
+	return items, nil
 }
 
 func (s *SearchServiceImpl) SearchUsers(ctx context.Context, params *SearchUsersParams) (*SearchUsersResponse, error) {
@@ -3858,7 +3864,8 @@ func (s *SearchServiceImpl) SearchUsersAll(ctx context.Context, params *SearchUs
 	}
 	var items []User
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.SearchUsers(ctx, params)
 		if err != nil {
@@ -3870,7 +3877,9 @@ func (s *SearchServiceImpl) SearchUsersAll(ctx context.Context, params *SearchUs
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		hasNext = result.Meta.Paginate.HasNext
 	}
+	return items, nil
 }
 
 type TasksService interface {
@@ -4448,7 +4457,7 @@ func (s *UsersServiceImpl) DeleteUserStatus(ctx context.Context, userId int32) e
 
 type ViewsService interface {
 	SubmitViewResponse(ctx context.Context, viewId string, request SubmitViewResponseRequest) (*SubmitViewResponseResult, error)
-	OpenView(ctx context.Context, request OpenViewRequest) error
+	OpenView(ctx context.Context, request OpenViewRequest) (*OpenViewResult, error)
 }
 
 type ViewsServiceStub struct{}
@@ -4457,8 +4466,8 @@ func (s *ViewsServiceStub) SubmitViewResponse(ctx context.Context, viewId string
 	return nil, NotImplementedError{Method: "Views.submitViewResponse"}
 }
 
-func (s *ViewsServiceStub) OpenView(ctx context.Context, request OpenViewRequest) error {
-	return NotImplementedError{Method: "Views.openView"}
+func (s *ViewsServiceStub) OpenView(ctx context.Context, request OpenViewRequest) (*OpenViewResult, error) {
+	return nil, NotImplementedError{Method: "Views.openView"}
 }
 
 type ViewsServiceImpl struct {
@@ -4493,26 +4502,30 @@ func (s *ViewsServiceImpl) SubmitViewResponse(ctx context.Context, viewId string
 	}
 }
 
-func (s *ViewsServiceImpl) OpenView(ctx context.Context, request OpenViewRequest) error {
+func (s *ViewsServiceImpl) OpenView(ctx context.Context, request OpenViewRequest) (*OpenViewResult, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/views/open", s.baseURL), bytes.NewReader(body))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := doWithRetry(s.client, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusCreated:
-		return nil
+		var result OpenViewResult
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
 	default:
-		return errorFromResponse(resp)
+		return nil, errorFromResponse(resp)
 	}
 }
 

@@ -80,8 +80,7 @@ class SearchServiceImpl(SearchService):
     ) -> list[MessageResult]:
         items: list[MessageResult] = []
         cursor: str | None = None
-        has_next = True
-        while has_next:
+        while True:
             if params is None:
                 params = SearchMessagesParams()
             params.cursor = cursor
@@ -90,8 +89,6 @@ class SearchServiceImpl(SearchService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
-            reported_has_next = getattr(response.meta.paginate, "has_next", None)
-            has_next = True if reported_has_next is None else reported_has_next
         return items
 
 

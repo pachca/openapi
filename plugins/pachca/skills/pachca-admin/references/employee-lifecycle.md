@@ -134,7 +134,7 @@ the turn that receives it, find the employee and ask, without calling
 | Reversible         | Yes, `suspended: false`         | No. A new invitation creates a different employee                              |
 | Group chats        | Stays a member                  | Leaves all discussions and channels (direct chats stay)                        |
 | Tags               | Kept                            | All removed                                                                    |
-| Tasks              | Kept                            | Deleted where they were the only performer, otherwise they are removed from it |
+| Reminders          | Kept                            | Deleted where they were the only performer, otherwise they are removed from it |
 | Messages and files | Stay                            | Stay                                                                           |
 | Chat `owner_id`    | Unchanged                       | Unchanged, still points to them                                                |
 | Chats archived     | No                              | No                                                                             |
@@ -161,7 +161,7 @@ Order of work:
    can unarchive it: if the departing employee is its only Admin, have them
    unarchive it (`pachca_unarchive_chat`) before they leave, add the Owner or
    an Administrator, then archive it again if needed.
-4. If tasks where they are the only performer matter, reassign them before a
+4. If reminders where they are the only performer matter, reassign them before a
    deletion.
 5. Bots they created. A bot does not stop with its creator: it stays in its
    chats, its tokens keep working, and those tokens are not on the

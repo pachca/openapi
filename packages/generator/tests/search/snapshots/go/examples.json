@@ -1,12 +1,12 @@
 {
   "Client_Init": {
-    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")\nctx := context.Background()",
     "imports": [
       "PachcaClient"
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "params := SearchMessagesParams{\n\tQuery: \"example\",\n\tChatIDs: []int32{int32(123)},\n\tUserIDs: []int32{int32(123)},\n\tCreatedFrom: Ptr(\"2024-01-01T00:00:00Z\"),\n\tCreatedTo: Ptr(\"2024-01-01T00:00:00Z\"),\n\tSort: Ptr(SearchSortRelevance),\n\tLimit: Ptr(int32(123)),\n\tCursor: Ptr(\"example\"),\n}\nresponse, err := client.Search.SearchMessages(ctx, params)",
+    "usage": "params := pachca.SearchMessagesParams{\n\tQuery: \"example\",\n\tChatIDs: []int32{int32(123)},\n\tUserIDs: []int32{int32(123)},\n\tCreatedFrom: pachca.Ptr(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)),\n\tCreatedTo: pachca.Ptr(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)),\n\tSort: pachca.Ptr(pachca.SearchSortRelevance),\n\tLimit: pachca.Ptr(int32(123)),\n\tCursor: pachca.Ptr(\"example\"),\n}\nresponse, err := client.Search.SearchMessages(ctx, params)",
     "output": "SearchMessagesResponse{Data: []MessageSearchResult, Meta: SearchPaginationMeta}",
     "imports": [
       "SearchMessagesParams",

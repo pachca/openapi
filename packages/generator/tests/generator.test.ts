@@ -2,10 +2,12 @@ import { describe, it, expect, afterEach, beforeAll, afterAll } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import ts from 'typescript';
 import { generate, SUPPORTED_LANGS } from '../src/index.js';
 import { classifyEnumUsage, transform } from '../src/transform.js';
+import { paginateHasNext, unionRequiredShapes, type IRField, type IRFieldType, type IRModel } from '../src/ir.js';
 import { parseOpenAPI } from '@pachca/openapi-parser';
 
 const TESTS_DIR = path.resolve(__dirname, '.');
@@ -676,5 +678,649 @@ describe('error bodies', () => {
       answer(200, JSON.stringify({ data: { id: 7, name: 'Отчёты' } }), 'application/json');
       expect(await chats.getChat(7)).toMatchObject({ id: 7, name: 'Отчёты' });
     });
+  });
+});
+
+// Go sends an optional field only when the caller set it: for a nullable one
+// `null` switches a setting off or deletes an object (oauth_client, webhook.kind,
+// parent_message_id), so an unset field must never go out as null. NullFields
+// sends an explicit null.
+describe('Go request bodies', () => {
+  let types: string;
+
+  beforeAll(() => {
+    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-go-bodies-'));
+    generate(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'), out, ['go']);
+    types = fs.readFileSync(path.join(out, 'go', 'types.go'), 'utf-8');
+    fs.rmSync(out, { recursive: true, force: true });
+  });
+
+  const struct = (name: string) => types.match(new RegExp(`\\ntype ${name} struct \\{\\n[\\s\\S]*?\\n\\}`))?.[0] ?? '';
+
+  it('leaves out every optional field that is not set, nullable or not', () => {
+    expect(struct('BotUpdateRequest')).toMatch(/OAuthClient \*BotOAuthClientRequest +`json:"oauth_client,omitempty"`/);
+    expect(struct('BotUpdateRequestWebhook')).toMatch(/Kind +\*BotWebhookKind +`json:"kind,omitempty"`/);
+    expect(struct('DraftUpdateRequestDraft')).toMatch(/ParentMessageID \*int32 +`json:"parent_message_id,omitempty"`/);
+    expect(struct('DraftUpdateRequestDraft')).toMatch(/Schedule +\*DraftScheduleRequest +`json:"schedule,omitempty"`/);
+  });
+
+  it('keeps a required nullable field in the body', () => {
+    expect(struct('AuditEvent')).toMatch(/IpAddress +\*string +`json:"ip_address"`/);
+  });
+
+  it('sends null for a field named in NullFields, on request models only', () => {
+    expect(struct('BotUpdateRequest')).toContain('NullFields  []string                 `json:"-"` // fields to send as null: OAuthClient');
+    expect(struct('DraftUpdateRequestDraft')).toContain('// fields to send as null: ParentMessageID, Schedule');
+    expect(types).toContain('\t\tcase "Kind":\n\t\t\traw["kind"] = json.RawMessage("null")');
+    expect(types).toContain('return nil, fmt.Errorf("BotUpdateRequest: field %q cannot be sent as null", name)');
+    // A response model has nothing to send.
+    expect(struct('BotWebhook')).not.toContain('NullFields');
+    expect(struct('Message')).not.toContain('NullFields');
+  });
+});
+
+// Kotlin, Python, C# and Swift: a field named in nullFields goes out as null, on
+// request models only. Each SDK checks the bodies at runtime in sdk/*/tests.
+describe('null fields of request models', () => {
+  let out: string;
+  const read = (file: string) => fs.readFileSync(path.join(out, file), 'utf-8');
+
+  beforeAll(() => {
+    out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-null-fields-'));
+    generate(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'), out, ['kotlin', 'python', 'csharp', 'swift']);
+  });
+  afterAll(() => fs.rmSync(out, { recursive: true, force: true }));
+
+  it('Kotlin: nullFields and a serializer that writes null', () => {
+    const kt = read('kt/Models.kt');
+    expect(kt).toContain('@Serializable(with = BotUpdateRequestWebhookSerializer::class)');
+    expect(kt).toContain('    @Transient val nullFields: Set<String> = emptySet(),');
+    expect(kt).toContain('mapOf("parentMessageId" to "parent_message_id", "schedule" to "schedule")');
+    expect(kt).toContain('cannot be sent as null');
+    expect(kt).not.toMatch(/data class BotWebhook\([^)]*nullFields/);
+  });
+
+  it('Python: null_fields and the fields each model takes as null', () => {
+    expect(read('py/models.py')).toContain('    null_fields: Sequence[str] = ()');
+    const utils = read('py/utils.py');
+    expect(utils).toContain('    BotUpdateRequest: frozenset({"oauth_client"}),');
+    expect(utils).toContain('cannot be sent as null');
+  });
+
+  it('C#: NullFields and a contract modifier', () => {
+    expect(read('cs/Models.cs')).toContain('public class BotUpdateRequestWebhook : INullFields');
+    const utils = read('cs/Utils.cs');
+    expect(utils).toContain('[typeof(BotUpdateRequest)] = new() { "OauthClient" },');
+    expect(utils).toContain('TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { SendNullFields } },');
+  });
+
+  it('Swift: nullFields and its own encode(to:)', () => {
+    const swift = read('swift/Models.swift');
+    expect(swift).toContain('    public var nullFields: Set<String> = []');
+    expect(swift).toContain('            try container.encodeNil(forKey: .kind)');
+    expect(read('swift/Utils.swift')).not.toContain('stripNulls');
+  });
+
+  it('a keyword-named field goes by the name the caller writes, without the escape', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-null-keyword-'));
+    try {
+      const spec = {
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/items/{id}': {
+            put: {
+              operationId: 'updateItem',
+              summary: 'Изменение элемента',
+              tags: ['Items'],
+              parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+              requestBody: {
+                required: true,
+                content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemUpdateRequest' } } },
+              },
+              responses: { '204': { description: 'Нет содержимого' } },
+            },
+          },
+        },
+        components: {
+          schemas: {
+            ItemUpdateRequest: {
+              type: 'object',
+              properties: {
+                class: { type: 'string', nullable: true, description: 'Класс элемента.' },
+                name: { type: 'string', description: 'Название элемента.' },
+              },
+            },
+          },
+        },
+      };
+      const file = path.join(dir, 'spec.yaml');
+      fs.writeFileSync(file, JSON.stringify(spec));
+      const gen = path.join(dir, 'out');
+      generate(file, gen, ['kotlin', 'python', 'csharp', 'swift']);
+      const at = (f: string) => fs.readFileSync(path.join(gen, f), 'utf-8');
+      expect(at('kt/Models.kt')).toContain('mapOf("class" to "class")');
+      expect(at('py/utils.py')).toContain('    ItemUpdateRequest: frozenset({"class_"}),');
+      expect(at('cs/Utils.cs')).toContain('[typeof(ItemUpdateRequest)] = new() { "Class" },');
+      const swift = at('swift/Models.swift');
+      expect(swift).toContain('nullFields.subtracting(["class"])');
+      expect(swift).toContain('if nullFields.contains("class") {');
+      expect(swift).toContain('try container.encodeNil(forKey: .`class`)');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+// A union with no discriminator ranks its members by the payload keys and takes
+// the first one that decodes: a member that fits the keys but not the types (an
+// older record) gives way to the next instead of failing the whole page.
+describe('unions without a discriminator', () => {
+  const fixture = path.join(TESTS_DIR, 'union-no-discriminator', 'fixture.yaml');
+  let out: string;
+  const read = (file: string) => fs.readFileSync(path.join(out, file), 'utf-8');
+
+  beforeAll(() => {
+    out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-union-fallback-'));
+    generate(fixture, out, SUPPORTED_LANGS);
+  });
+  afterAll(() => fs.rmSync(out, { recursive: true, force: true }));
+
+  it('every runtime falls through to the next member when one does not decode', () => {
+    const go = read('go/types.go');
+    expect(go).toContain('func rankUnionMembers(data []byte, shapes []unionMemberShape) ([]int, map[string]json.RawMessage) {');
+    expect(go).toMatch(/if err = json\.Unmarshal\(data, v\); err == nil \{/);
+    expect(go).toContain('return firstErr');
+    const kt = read('kt/Models.kt');
+    expect(kt).toContain('for (shape in ranked) {');
+    expect(kt).toContain('} catch (e: IllegalArgumentException) {');
+    const cs = read('cs/Models.cs');
+    expect(cs).toContain('foreach (var candidate in ranked)');
+    expect(cs).toContain('catch (JsonException e)');
+    const py = read('py/utils.py');
+    expect(py).toContain('for member in _rank_union_members(members, value):');
+    expect(py).toContain('raise errors[0]');
+    const swift = read('swift/Models.swift');
+    expect(swift).toContain('for index in ranked {');
+    expect(swift).toContain('let keys = Set((try? decoder.container(keyedBy: AnyKey.self))?.allKeys.map(\\.stringValue) ?? [])');
+  });
+
+  it('Kotlin: a required nullable field of a member may hold null', () => {
+    const pachca = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-kt-members-'));
+    try {
+      generate(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'), pachca, ['kotlin']);
+      const models = fs.readFileSync(path.join(pachca, 'kt', 'Models.kt'), 'utf-8');
+      expect(models).toContain('@SerialName("token_name") val tokenName: String? = null,');
+      expect(models).toContain('@SerialName("action_message") val actionMessage: String? = null,');
+      expect(models).toContain('val limit: Int? = null,');
+    } finally {
+      fs.rmSync(pachca, { recursive: true, force: true });
+    }
+  });
+});
+
+// encoding/json and System.Text.Json fill a missing field with its zero value, so
+// Go and C# check the required keys themselves before they try a member, the way
+// Kotlin and Python fail on a missing required field.
+describe('unions without a discriminator: required keys', () => {
+  const fixture = path.join(TESTS_DIR, 'union-type-mismatch', 'fixture.yaml');
+  let out: string;
+  const read = (file: string) => fs.readFileSync(path.join(out, file), 'utf-8');
+
+  beforeAll(() => {
+    out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-union-required-'));
+    generate(fixture, out, ['go', 'csharp']);
+  });
+  afterAll(() => fs.rmSync(out, { recursive: true, force: true }));
+
+  it('Go lists the required keys of a member and skips a member that misses one', () => {
+    const go = read('go/types.go');
+    expect(go).toContain(
+      '{name: "DetailsBotTokenUpdated", keys: map[string]struct{}{"token_kind": {}, "resource_owner_id": {}, "current_scopes": {}, "access_token_id": {}, "bot_id": {}, "webhook_id": {}, "scopes": {}}},',
+    );
+    expect(go).toContain(
+      '\t"DetailsBotTokenUpdated": {keys: []string{"token_kind", "resource_owner_id", "access_token_id"}, nested: []nestedRequiredShape{{key: "scopes", model: "ScopesChange"}}},',
+    );
+    // A required field that may hold null is not listed: Kotlin and Swift take a missing one as null.
+    expect(go).toContain('\t"DetailsBot":             {keys: []string{"bot_id"}},');
+    expect(go).not.toContain('"DetailsEmpty": {');
+    expect(go).toContain('err := missingRequired(eventDetailsUnionShapes[i].name, raw)');
+  });
+
+  it('C# lists the required keys of a member and skips a member that misses one', () => {
+    const cs = read('cs/Models.cs');
+    expect(cs).toContain(
+      '(typeof(DetailsBotTokenUpdated), new HashSet<string> { "token_kind", "resource_owner_id", "current_scopes", "access_token_id", "bot_id", "webhook_id", "scopes" }),',
+    );
+    expect(cs).toContain('(typeof(DetailsEmpty), new HashSet<string>()),');
+    expect(cs).toContain(
+      '["DetailsBotTokenUpdated"] = (new[] { "token_kind", "resource_owner_id", "access_token_id" }, new[] { ("scopes", "ScopesChange") }),',
+    );
+    expect(cs).toContain('["DetailsBot"] = (new[] { "bot_id" }, Array.Empty<(string, string)>()),');
+    expect(cs).toContain('var missing = UnionRequiredKeys.Missing(candidate.Type.Name, root);');
+  });
+});
+
+// Kotlin, Python and Swift fail on a missing required field anywhere in a member,
+// so a union goes on to the next member. Go and C# check the keys of the models
+// nested in a member too (a model, a list of them, a field that takes a list or
+// an object), but only when a union picks a member: a model decoded on its own
+// stays as lenient as encoding/json and System.Text.Json.
+describe('unions without a discriminator: nested required keys', () => {
+  const fixture = path.join(TESTS_DIR, 'union-value-field', 'fixture.yaml');
+  let out: string;
+  const read = (file: string) => fs.readFileSync(path.join(out, file), 'utf-8');
+  const hasGo = (() => {
+    try {
+      execFileSync('go', ['version'], { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  beforeAll(() => {
+    out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-union-nested-required-'));
+    generate(fixture, out, ['go', 'csharp']);
+  });
+  afterAll(() => fs.rmSync(out, { recursive: true, force: true }));
+
+  it('lists the members and the models nested in them, each once, members first', () => {
+    const ir = transform(parseOpenAPI(fixture));
+    expect(unionRequiredShapes(ir.unions, ir.models)).toEqual([
+      { model: 'DetailsBot', required: ['bot_id'], nested: [{ key: 'scopes', model: 'ScopesChange' }] },
+      { model: 'DetailsBotScopes', required: ['bot_id', 'scopes'], nested: [] },
+      {
+        model: 'DetailsBotTokenUpdated',
+        required: ['token_kind', 'resource_owner_id', 'access_token_id'],
+        nested: [{ key: 'scopes', model: 'ScopesChange' }],
+      },
+      { model: 'DetailsToken', required: ['token_kind', 'resource_owner_id', 'scopes', 'access_token_id'], nested: [] },
+      { model: 'ScopesChange', required: ['previous', 'new'], nested: [] },
+    ]);
+  });
+
+  it('follows lists of models and a model that holds itself, and leaves out what has nothing to check', () => {
+    const field = (name: string, type: IRFieldType, required = false, nullable = false): IRField => ({ name, type, required, nullable });
+    const model = (name: string, fields: IRField[]): IRModel => ({ name, fields, isError: false, inlineObjects: [] });
+    const models = [
+      model('Folder', [
+        field('id', { kind: 'primitive', primitive: 'integer' }, true),
+        field('children', { kind: 'array', items: { kind: 'model', ref: 'Folder' } }),
+        field('owner', { kind: 'model', ref: 'Owner' }),
+        field('note', { kind: 'model', ref: 'Note' }),
+      ]),
+      model('Owner', [field('name', { kind: 'primitive', primitive: 'string' }, true, true)]),
+      model('Note', [field('text', { kind: 'primitive', primitive: 'string' })]),
+      model('Wrapper', [field('items', { kind: 'array', items: { kind: 'array', items: { kind: 'model', ref: 'Leaf' } } })]),
+      model('Leaf', [field('key', { kind: 'primitive', primitive: 'string' }, true)]),
+    ];
+    const unions = [{ name: 'Item', memberRefs: ['Folder', 'Wrapper'] }];
+    expect(unionRequiredShapes(unions, models)).toEqual([
+      { model: 'Folder', required: ['id'], nested: [{ key: 'children', model: 'Folder' }] },
+      { model: 'Wrapper', required: [], nested: [{ key: 'items', model: 'Leaf' }] },
+      { model: 'Leaf', required: ['key'], nested: [] },
+    ]);
+    // A union with a discriminator decodes by it: nothing to list.
+    expect(unionRequiredShapes([{ ...unions[0], discriminatorField: 'type' }], models)).toEqual([]);
+  });
+
+  it('Go and C# check the nested model of a field that takes a list or an object', () => {
+    const go = read('go/types.go');
+    expect(go).toContain(
+      '\t"DetailsBot":             {keys: []string{"bot_id"}, nested: []nestedRequiredShape{{key: "scopes", model: "ScopesChange"}}},',
+    );
+    expect(go).toContain('\t"ScopesChange":           {keys: []string{"previous", "new"}},');
+    expect(go).toContain('if err := missingRequiredIn(n.model, v); err != nil {');
+    const cs = read('cs/Models.cs');
+    expect(cs).toContain('["DetailsBot"] = (new[] { "bot_id" }, new[] { ("scopes", "ScopesChange") }),');
+    expect(cs).toContain('["ScopesChange"] = (new[] { "previous", "new" }, Array.Empty<(string, string)>()),');
+    expect(cs).toContain('if (value.TryGetProperty(key, out var inner) && MissingIn(nested, inner) is { } missing) return missing;');
+  });
+
+  it.skipIf(!hasGo)('Go: scopes {} gives way, a model on its own stays lenient', () => {
+    const mod = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-union-nested-go-'));
+    try {
+      fs.mkdirSync(path.join(mod, 'pachca'));
+      // The models alone: the client of a fixture without a time field imports time unused.
+      for (const file of ['types.go', 'utils.go']) {
+        fs.copyFileSync(path.join(out, 'go', file), path.join(mod, 'pachca', file));
+      }
+      fs.writeFileSync(path.join(mod, 'go.mod'), 'module fixture\n\ngo 1.21\n');
+      fs.writeFileSync(
+        path.join(mod, 'main.go'),
+        [
+          'package main',
+          '',
+          'import (',
+          '\t"encoding/json"',
+          '\t"fmt"',
+          '',
+          '\t"fixture/pachca"',
+          ')',
+          '',
+          'func pick(payload string) string {',
+          '\tvar u pachca.EventDetailsUnion',
+          '\tif err := json.Unmarshal([]byte(payload), &u); err != nil {',
+          '\t\treturn "error: " + err.Error()',
+          '\t}',
+          '\tswitch {',
+          '\tcase u.DetailsBot != nil:',
+          '\t\treturn "DetailsBot"',
+          '\tcase u.DetailsBotScopes != nil:',
+          '\t\treturn "DetailsBotScopes"',
+          '\tcase u.DetailsBotTokenUpdated != nil:',
+          '\t\treturn "DetailsBotTokenUpdated"',
+          '\tcase u.DetailsToken != nil:',
+          '\t\treturn "DetailsToken"',
+          '\tcase u.DetailsEmpty != nil:',
+          '\t\treturn "DetailsEmpty"',
+          '\t}',
+          '\treturn "none"',
+          '}',
+          '',
+          'func main() {',
+          '\tfmt.Println(pick(`{"bot_id":7,"actor_id":12,"scopes":{}}`))',
+          '\tfmt.Println(pick(`{"bot_id":7,"actor_id":12,"scopes":{"previous":["a"],"new":["a","b"]}}`))',
+          '\tfmt.Println(pick(`{"bot_id":7,"actor_id":12,"scopes":["a"]}`))',
+          '\tfmt.Println(pick(`{"token_kind":"bot","resource_owner_id":7,"access_token_id":4827,"bot_id":7,"scopes":{"previous":[]}}`))',
+          '\tfmt.Println(pick(`{"token_kind":"bot","resource_owner_id":7,"access_token_id":4827,"bot_id":7,"scopes":{"previous":[],"new":["a"]}}`))',
+          '\tvar bot pachca.DetailsBot',
+          '\terr := json.Unmarshal([]byte(`{"bot_id":7,"scopes":{}}`), &bot)',
+          '\tfmt.Println(err == nil && bot.Scopes != nil && bot.Scopes.ScopesChange != nil)',
+          '}',
+          '',
+        ].join('\n'),
+      );
+      const output = execFileSync('go', ['run', '.'], { cwd: mod, encoding: 'utf-8' });
+      expect(output.trim().split('\n')).toEqual([
+        'DetailsEmpty',
+        'DetailsBot',
+        'DetailsBot',
+        'DetailsEmpty',
+        'DetailsBotTokenUpdated',
+        'true',
+      ]);
+    } finally {
+      fs.rmSync(mod, { recursive: true, force: true });
+    }
+  }, 120_000);
+});
+
+// A field that takes a list or an object (`string[] | ScopesChange`, as TypeSpec
+// emits it: anyOf of an array and a $ref) is typed in every SDK and decoded by the
+// JSON kind of its value. Inside an undiscriminated union, the member that holds
+// such a field takes both kinds.
+describe('value unions', () => {
+  const fixture = path.join(TESTS_DIR, 'union-value-field', 'fixture.yaml');
+  let out: string;
+  const read = (file: string) => fs.readFileSync(path.join(out, file), 'utf-8');
+  const hasPython = (() => {
+    try {
+      execFileSync('python3', ['--version'], { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  beforeAll(() => {
+    out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-value-union-'));
+    generate(fixture, out, SUPPORTED_LANGS);
+  });
+  afterAll(() => fs.rmSync(out, { recursive: true, force: true }));
+
+  it('names the union after the model and the field, with Value when a schema has the name', () => {
+    const ir = transform(parseOpenAPI(fixture));
+    expect(ir.valueUnions.map((vu) => vu.name)).toEqual(['DetailsBotScopesValue', 'EventActor']);
+    const scopes = ir.models.find((m) => m.name === 'DetailsBot')!.fields.find((f) => f.name === 'scopes')!;
+    expect(scopes.type.valueUnion).toBe('DetailsBotScopesValue');
+    expect(scopes.type.members?.map((m) => m.kind)).toEqual(['array', 'model']);
+  });
+
+  it('a union whose members share a JSON kind stays an open value', () => {
+    const ir = transform(parseOpenAPI(path.join(TESTS_DIR, 'union-no-discriminator', 'fixture.yaml')));
+    expect(ir.valueUnions).toEqual([]);
+  });
+
+  it('every SDK types the field', () => {
+    expect(read('ts/types.ts')).toContain('scopes?: string[] | ScopesChange;');
+    expect(read('py/models.py')).toContain('scopes: list[str] | ScopesChange | None = None');
+    expect(read('go/types.go')).toMatch(/Scopes\s+\*DetailsBotScopesValue\s+`json:"scopes,omitempty"`/);
+    expect(read('go/types.go')).toContain("case '[':\n\t\treturn json.Unmarshal(data, &u.StringList)");
+    // A field that is not a pointer gets UnmarshalJSON with null: it stays as it is.
+    expect(read('go/types.go')).toContain("if jsonValueKind(data) == 'n' {\n\t\treturn nil\n\t}");
+    expect(read('kt/Models.kt')).toContain('val scopes: DetailsBotScopesValue? = null,');
+    expect(read('kt/Models.kt')).toContain('data class StringList(val value: kotlin.collections.List<kotlin.String>) : DetailsBotScopesValue');
+    expect(read('kt/Models.kt')).toContain('element is JsonObject -> DetailsBotScopesValue.ScopesChange(json.decodeFromJsonElement<com.pachca.sdk.ScopesChange>(element))');
+    expect(read('cs/Models.cs')).toContain('public DetailsBotScopesValue? Scopes { get; set; }');
+    expect(read('cs/Models.cs')).toContain('case JsonTokenType.StartArray:');
+    expect(read('swift/Models.swift')).toContain('public let scopes: DetailsBotScopesValue?');
+    expect(read('swift/Models.swift')).toContain('case stringList([String])');
+  });
+
+  it.skipIf(!hasPython)('Python: an old record with scopes as an object stays in DetailsBot', () => {
+    const pkg = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-value-union-py-'));
+    try {
+      fs.cpSync(path.join(out, 'py'), path.join(pkg, 'pachca'), { recursive: true });
+      const script = [
+        'import sys, types',
+        'stub = types.ModuleType("httpx")',
+        'stub.__getattr__ = lambda name: type(name, (), {})',
+        'sys.modules["httpx"] = stub',
+        `sys.path.insert(0, ${JSON.stringify(pkg)})`,
+        'from pachca.models import Actor, DetailsBot, DetailsBotTokenUpdated, DetailsToken, Event, ScopesChange',
+        'from pachca.utils import deserialize, serialize',
+        'def event(d, actor=None): return deserialize(Event, {"id": 1, "event_key": "bot_token_updated", "actor": actor, "details": d})',
+        'old = event({"bot_id": 7, "actor_id": 12, "webhook_id": 31, "scopes": {"previous": ["a"], "new": ["a", "b"]}}).details',
+        'assert isinstance(old, DetailsBot) and isinstance(old.scopes, ScopesChange) and old.scopes.new == ["a", "b"], old',
+        'created = event({"bot_id": 7, "actor_id": 12, "webhook_id": 31, "scopes": ["a"]}).details',
+        'assert isinstance(created, DetailsBot) and created.scopes == ["a"], created',
+        'token = event({"token_kind": "user", "resource_owner_id": 12, "scopes": ["a"], "access_token_id": 4828}).details',
+        'assert isinstance(token, DetailsToken), token',
+        'updated = event({"token_kind": "bot", "resource_owner_id": 7, "access_token_id": 4827, "bot_id": 7, "scopes": {"previous": [], "new": ["a"]}}).details',
+        'assert isinstance(updated, DetailsBotTokenUpdated), updated',
+        // A value deep inside the object has another type: the nested model is checked too.
+        'broken = event({"bot_id": 7, "actor_id": 12, "scopes": {"previous": "a", "new": []}}).details',
+        'assert not isinstance(broken, DetailsBot), broken',
+        'assert event({}, actor="system").actor == "system"',
+        'assert isinstance(event({}, actor={"id": 3}).actor, Actor)',
+        'assert serialize(old)["scopes"] == {"previous": ["a"], "new": ["a", "b"]}',
+        'print("ok")',
+      ].join('\n');
+      expect(execFileSync('python3', ['-c', script], { encoding: 'utf-8' }).trim()).toBe('ok');
+    } finally {
+      fs.rmSync(pkg, { recursive: true, force: true });
+    }
+  });
+});
+
+// Members that share a key with another type (scopes as a list or an object): the
+// member that fits the keys best but not the value's type gives way to the next.
+describe('unions without a discriminator: value types', () => {
+  const fixture = path.join(TESTS_DIR, 'union-type-mismatch', 'fixture.yaml');
+  let out: string;
+  const hasPython = (() => {
+    try {
+      execFileSync('python3', ['--version'], { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  beforeAll(() => {
+    out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-union-types-'));
+    generate(fixture, out, ['python']);
+  });
+  afterAll(() => fs.rmSync(out, { recursive: true, force: true }));
+
+  it('Python checks the value types when it picks a member', () => {
+    const py = fs.readFileSync(path.join(out, 'py', 'utils.py'), 'utf-8');
+    expect(py).toContain('return _deserialize_dataclass(member, value, strict=True)');
+    expect(py).toContain('if strict and not _fits(hints[f.name], v):');
+  });
+
+  it.skipIf(!hasPython)('Python: a token record goes past the member that takes scopes as an object', () => {
+    fs.renameSync(path.join(out, 'py'), path.join(out, 'pachca'));
+    const script = [
+      'import sys, types',
+      'stub = types.ModuleType("httpx")',
+      'stub.__getattr__ = lambda name: type(name, (), {})',
+      'sys.modules["httpx"] = stub',
+      `sys.path.insert(0, ${JSON.stringify(out)})`,
+      'from pachca.models import DetailsBot, DetailsBotTokenUpdated, DetailsToken, Event',
+      'from pachca.utils import deserialize',
+      'def details(d): return deserialize(Event, {"id": 1, "event_key": "bot_updated", "details": d}).details',
+      'token = details({"token_kind": "user", "resource_owner_id": 12, "scopes": ["messages:read"], "access_token_id": 4828})',
+      'assert isinstance(token, DetailsToken) and token.scopes == ["messages:read"], token',
+      'updated = details({"token_kind": "bot", "resource_owner_id": 7, "current_scopes": ["chats:read"], "scopes": {"previous": ["messages:read"], "new": ["chats:read"]}, "access_token_id": 4827, "webhook_id": 31})',
+      'assert isinstance(updated, DetailsBotTokenUpdated) and updated.scopes.new == ["chats:read"], updated',
+      'old = details({"bot_id": 7, "webhook_id": 31, "scopes": {"previous": [], "new": []}})',
+      'assert not isinstance(old, DetailsBot), old',
+      // A nested model is checked too: scopes.new is not a list, so DetailsBotTokenUpdated gives way.
+      'nested = details({"token_kind": "bot", "resource_owner_id": 7, "access_token_id": 4827, "scopes": {"previous": [], "new": "chats:read"}})',
+      'assert not isinstance(nested, DetailsBotTokenUpdated), nested',
+      'bot = details({"bot_id": 7, "webhook_id": 31, "scopes": ["messages:read"]})',
+      'assert isinstance(bot, DetailsBot), bot',
+      'print("ok")',
+    ].join('\n');
+    expect(execFileSync('python3', ['-c', script], { encoding: 'utf-8' }).trim()).toBe('ok');
+  });
+});
+
+// A .NET project sees System.Threading.Tasks.TaskStatus, Task, Thread and
+// System.IO.File through the default implicit usings: a C# example spells the
+// SDK type in full, or the short name fails with CS0104.
+describe('C# examples', () => {
+  it('spell in full an SDK type that the implicit usings also bring', () => {
+    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-cs-examples-'));
+    try {
+      generate(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'), out, ['csharp'], { examples: true });
+      const examples = JSON.parse(fs.readFileSync(path.join(out, 'cs', 'examples.json'), 'utf-8')) as Record<
+        string,
+        { usage: string; examples?: Record<string, { usage: string }> }
+      >;
+      // The named request examples are shown in the guides too.
+      const usages = Object.values(examples)
+        .flatMap((e) => [e.usage, ...Object.values(e.examples ?? {}).map((named) => named.usage)])
+        .join('\n');
+      expect(usages).toContain('Pachca.Sdk.TaskStatus.Undone');
+      expect(usages).not.toMatch(/(?<![.\w])TaskStatus\./);
+    } finally {
+      fs.rmSync(out, { recursive: true, force: true });
+    }
+  });
+});
+
+// A request body with named examples gets the usage of each under the
+// operation's entry (`examples`), so a guide can show the SDK call of any of
+// them. Every top-level key stays an operation: readers that look one up or
+// walk the keys see the same file as before.
+describe('named body examples', () => {
+  const DIRS: Record<string, string> = {
+    typescript: 'ts',
+    python: 'py',
+    go: 'go',
+    kotlin: 'kt',
+    swift: 'swift',
+    csharp: 'cs',
+  };
+  type Entry = {
+    usage: string;
+    output?: string;
+    imports?: string[];
+    examples?: Record<string, { summary?: string; usage: string; imports?: string[] }>;
+  };
+  const read = (out: string, lang: string) =>
+    JSON.parse(fs.readFileSync(path.join(out, DIRS[lang], 'examples.json'), 'utf-8')) as Record<string, Entry>;
+
+  it('writes each named example of the body under its key, the first one as the entry itself', () => {
+    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-named-examples-'));
+    try {
+      generate(path.join(TESTS_DIR, 'body-example', 'fixture.yaml'), out, SUPPORTED_LANGS, { examples: true });
+      for (const lang of SUPPORTED_LANGS) {
+        const examples = read(out, lang);
+        expect(Object.keys(examples), lang).toEqual([
+          'Client_Init',
+          'MessageOperations_createMessage',
+          'MessageOperations_updateMessage',
+        ]);
+        const entry = examples.MessageOperations_createMessage;
+        expect(Object.keys(entry.examples ?? {}), lang).toEqual(['minimal', 'full']);
+        const { minimal, full } = entry.examples!;
+        expect(minimal.usage, lang).toBe(entry.usage);
+        expect(minimal.imports, lang).toEqual(entry.imports);
+        expect(minimal.summary, lang).toBe('Текст с кнопкой');
+        expect(full.summary, lang).toBe('Сообщение с файлом');
+        expect(full.usage, lang).toContain('report.pdf');
+        expect(full.usage, lang).not.toContain('accept');
+        expect(full, lang).not.toHaveProperty('output');
+        // A single unnamed example has nothing to choose from.
+        expect(examples.MessageOperations_updateMessage, lang).not.toHaveProperty('examples');
+      }
+    } finally {
+      fs.rmSync(out, { recursive: true, force: true });
+    }
+  });
+
+  // guides/buttons.mdx shows the button message in every SDK language.
+  it('gives the Pachca button message to every language', () => {
+    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-test-named-examples-pachca-'));
+    try {
+      generate(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'), out, SUPPORTED_LANGS, { examples: true });
+      for (const lang of SUPPORTED_LANGS) {
+        const named = read(out, lang).MessageOperations_createMessage.examples ?? {};
+        expect(Object.keys(named), lang).toEqual(['Минимальный запрос', 'Сообщение с кнопкой']);
+        expect(named['Сообщение с кнопкой'].usage, lang).toContain('https://example.com/details');
+        expect(named['Сообщение с кнопкой'], lang).not.toHaveProperty('summary');
+      }
+    } finally {
+      fs.rmSync(out, { recursive: true, force: true });
+    }
+  });
+});
+
+// Every Go snapshot compiles: an unused "time" import in client.go and a
+// pagination loop that assumed Pachca's meta (has_next, a required next_page)
+// used to break the client of another API's spec.
+describe('Go snapshots compile', () => {
+  const hasGo = (() => {
+    try {
+      execFileSync('go', ['version'], { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+  const fixtures = fs
+    .readdirSync(TESTS_DIR)
+    .filter((name) => fs.existsSync(path.join(TESTS_DIR, name, 'snapshots', 'go', 'client.go')));
+
+  it.skipIf(!hasGo).each(fixtures)('%s', (name) => {
+    const mod = fs.mkdtempSync(path.join(os.tmpdir(), `gen-test-go-vet-${name}-`));
+    try {
+      const dir = path.join(TESTS_DIR, name, 'snapshots', 'go');
+      for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.go'))) {
+        fs.copyFileSync(path.join(dir, file), path.join(mod, file));
+      }
+      fs.writeFileSync(path.join(mod, 'go.mod'), `module example.com/fixture\n\ngo 1.22\n`);
+      execFileSync('go', ['vet', './...'], { cwd: mod, stdio: 'pipe' });
+    } finally {
+      fs.rmSync(mod, { recursive: true, force: true });
+    }
+  });
+});
+
+// The `*All()` helpers stop on `meta.paginate.has_next` wherever the spec declares
+// it, search included, and on an empty page where the meta has no such field.
+describe('has_next in pagination meta', () => {
+  it('finds the flag by the paginate model, not by the meta name', () => {
+    const pachca = transform(parseOpenAPI(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml')));
+    expect(paginateHasNext(pachca, 'PaginationMeta')).toBe('optional');
+    expect(paginateHasNext(pachca, 'SearchPaginationMeta')).toBe('required');
+
+    const crud = transform(parseOpenAPI(path.join(TESTS_DIR, 'crud', 'fixture.yaml')));
+    expect(paginateHasNext(crud, 'PaginationMeta')).toBeUndefined();
   });
 });

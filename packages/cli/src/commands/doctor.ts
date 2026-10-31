@@ -3,7 +3,6 @@ import * as process from 'node:process';
 import semver from 'semver';
 import { BaseCommand } from '../base-command.js';
 import {
-  getActiveProfile,
   getProfile,
   getConfigFilePath,
   getConfigFilePermissions,
@@ -12,6 +11,9 @@ import {
   isExpiring,
   isRefreshable,
   listProfiles,
+  profileFlag,
+  tokenSource,
+  type Profile,
 } from '../profiles.js';
 import { isSecretStoreAvailable } from '../secret-store.js';
 import { getBaseUrl } from '../client.js';
@@ -41,7 +43,6 @@ export default class Doctor extends BaseCommand {
     const format = this.getOutputFormat();
     const checks: Check[] = [];
     let networkOk = false;
-    let profileOk = false;
 
     // 1. Node.js version
     const nodeVersion = process.version.replace('v', '');
@@ -77,13 +78,20 @@ export default class Doctor extends BaseCommand {
       this.printCheck('error', `Сеть           ${host} недоступен (таймаут 5s)`, format);
     }
 
-    // 3. Config file. File permissions only matter for profiles that keep the
-    // secret there — for a keyring profile the file holds no token at all, and
-    // reporting its mode as a security state would be misleading.
+    // The token comes from the same place as for any other command, in the same
+    // order: --token, --profile, PACHCA_TOKEN, PACHCA_PROFILE, the active profile.
+    // In CI the token usually comes from PACHCA_TOKEN alone, with no config at all.
+    const source = tokenSource({ token: flags.token, profile: flags.profile });
+    const sourceLabel = source.kind === 'flag' ? '--token' : source.kind === 'env' ? 'PACHCA_TOKEN' : undefined;
+    const profileName = source.kind === 'profile' ? source.profileName : undefined;
+    const storedProfile = profileName ? listProfiles()[profileName] : undefined;
+    const relogin = `pachca auth login${profileFlag(profileName)}`;
+
+    // 3. Config file. File permissions only matter when a secret lives there: a
+    // keyring profile keeps no token in the file, and reporting its mode as a
+    // security state would be misleading.
     const configPath = getConfigFilePath();
-    const activeName = getActiveProfile();
-    const activeProfile = activeName ? listProfiles()[activeName] : undefined;
-    const storage = activeProfile ? getSecretStorage(activeProfile) : 'file';
+    const storage = storedProfile ? getSecretStorage(storedProfile) : 'file';
     if (fs.existsSync(configPath)) {
       const permissions = getConfigFilePermissions();
       if (storage === 'file' && permissions && Number.parseInt(permissions, 8) > 0o600) {
@@ -93,17 +101,24 @@ export default class Doctor extends BaseCommand {
         checks.push({ name: 'config', status: 'ok', path: configPath, permissions: permissions || '600' });
         this.printCheck('ok', `Конфиг         ${configPath} (права: ${permissions || '600'})`, format);
       }
+    } else if (sourceLabel) {
+      checks.push({ name: 'config', status: 'skipped', path: configPath, reason: `токен из ${sourceLabel}` });
+      this.printCheck('skipped', `Конфиг         не нужен: токен из ${sourceLabel}`, format);
     } else {
       checks.push({ name: 'config', status: 'error', path: configPath });
-      this.printCheck('error', `Конфиг         файл не найден (запустите pachca auth login)`, format);
+      this.printCheck(
+        'error',
+        `Конфиг         ${configPath} не найден (запустите pachca auth login или задайте PACHCA_TOKEN)`,
+        format,
+      );
     }
 
     // 3a. Secret store. A locked keyring is the most likely failure of the new
     // login, and without this check it surfaces below as "token is invalid".
     let secretReadable = true;
-    if (activeProfile && storage === 'keyring') {
+    if (storedProfile && storage === 'keyring') {
       const storeUp = isSecretStoreAvailable();
-      secretReadable = storeUp && !!getProfile(activeName!)?.token;
+      secretReadable = storeUp && !!getProfile(profileName!)?.token;
       if (secretReadable) {
         checks.push({ name: 'secret_store', status: 'ok', storage });
         this.printCheck('ok', `Хранилище      хранилище ключей ОС, секрет читается`, format);
@@ -112,21 +127,27 @@ export default class Doctor extends BaseCommand {
         this.printCheck(
           'error',
           storeUp
-            ? `Хранилище      секрет профиля не найден — войдите заново: pachca auth login`
+            ? `Хранилище      секрет профиля не найден — войдите заново: ${relogin}`
             : `Хранилище      хранилище ключей ОС недоступно — разблокируйте связку ключей`,
           format,
         );
       }
-    } else if (activeProfile) {
+    } else if (storedProfile) {
       checks.push({ name: 'secret_store', status: 'ok', storage: 'file' });
       this.printCheck('ok', `Хранилище      файл конфигурации`, format);
     }
 
     // 4. Profile
-    const profileName = getActiveProfile();
-    if (profileName) {
-      const profile = getProfile(profileName);
+    let token: string | undefined;
+    let profile: Profile | undefined;
+    if (sourceLabel) {
+      token = source.kind === 'flag' ? flags.token : process.env.PACHCA_TOKEN;
+      checks.push({ name: 'profile', status: 'skipped', source: sourceLabel, reason: `токен из ${sourceLabel}` });
+      this.printCheck('skipped', `Профиль        не используется: токен из ${sourceLabel}`, format);
+    } else if (source.kind === 'profile') {
+      profile = getProfile(source.profileName);
       if (profile) {
+        token = profile.token;
         const method = getAuthMethod(profile);
         const expiry =
           method === 'oauth' && profile.expires_at
@@ -134,10 +155,12 @@ export default class Doctor extends BaseCommand {
             : method === 'token'
               ? ', бессрочный'
               : '';
+        const via = source.via === 'active_profile' ? '' : ` из ${source.via}`;
         checks.push({
           name: 'profile',
           status: 'ok',
-          profile: profileName,
+          profile: source.profileName,
+          source: source.via,
           type: profile.type,
           user: profile.user,
           auth: method,
@@ -145,35 +168,48 @@ export default class Doctor extends BaseCommand {
         });
         this.printCheck(
           'ok',
-          `Профиль        ${profileName} (${profile.type}: ${profile.user}) — ${method === 'oauth' ? 'вход через браузер' : 'готовый токен'}${expiry}`,
+          `Профиль        ${source.profileName}${via} (${profile.type}: ${profile.user}) — ${method === 'oauth' ? 'вход через браузер' : 'готовый токен'}${expiry}`,
           format,
         );
-        profileOk = true;
       } else {
-        checks.push({ name: 'profile', status: 'error', profile: profileName });
-        this.printCheck('error', `Профиль        ${profileName} — профиль не найден в конфиге`, format);
+        checks.push({ name: 'profile', status: 'error', profile: source.profileName, source: source.via });
+        this.printCheck(
+          'error',
+          `Профиль        ${source.profileName} — профиль не найден в конфиге (список: pachca auth list)`,
+          format,
+        );
       }
     } else {
       checks.push({ name: 'profile', status: 'error' });
-      this.printCheck('error', `Профиль        не настроен (запустите pachca auth login)`, format);
+      this.printCheck('error', `Профиль        не настроен (запустите pachca auth login или задайте PACHCA_TOKEN)`, format);
     }
 
-    // 5. Token (skip if no network, no profile, or the secret is unreadable —
+    // 5. Token (skip if no network, no token, or the secret is unreadable —
     // asking the server with an empty Bearer would come back 401 and get
     // reported as an invalid token, sending the user to log in for nothing)
-    if (!networkOk || !profileOk || !secretReadable) {
-      const reason = !networkOk ? 'нет сети' : !profileOk ? 'нет профиля' : 'секрет недоступен';
+    if (!networkOk || !token || !secretReadable) {
+      const reason = !networkOk
+        ? 'нет сети'
+        : !secretReadable
+          ? 'секрет недоступен'
+          : !sourceLabel && !profile
+            ? 'нет профиля'
+            : 'нет токена';
       checks.push({ name: 'token', status: 'skipped', reason });
       this.printCheck('skipped', `Токен          пропущено (${reason})`, format);
     } else {
-      const profile = getProfile(profileName!)!;
       // An expired token that still has its refresh token is not a broken login:
       // the next command renews it on the init hook. Reporting it as invalid sent
       // people to log in again for nothing.
-      const willRenew = isRefreshable(profile) && isExpiring(profile);
+      const willRenew = !!profile && isRefreshable(profile) && isExpiring(profile);
+      const fix = sourceLabel
+        ? `проверьте ${sourceLabel}`
+        : profile && getAuthMethod(profile) === 'oauth'
+          ? `войдите заново: ${relogin}`
+          : `сохраните новый: ${relogin} --token <токен>`;
       try {
         const response = await fetch(`${baseUrl}/oauth/token/info`, {
-          headers: { Authorization: `Bearer ${profile.token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
           const body = (await response.json()) as { data: { scopes?: string[] } };
@@ -185,7 +221,7 @@ export default class Doctor extends BaseCommand {
           this.printCheck('ok', `Токен          срок истёк — обновится при следующей команде`, format);
         } else {
           checks.push({ name: 'token', status: 'error', http_status: response.status });
-          this.printCheck('error', `Токен          недействителен (${response.status}) — обновите: pachca auth login`, format);
+          this.printCheck('error', `Токен          недействителен (${response.status}) — ${fix}`, format);
         }
       } catch {
         checks.push({ name: 'token', status: 'error' });
@@ -223,19 +259,15 @@ export default class Doctor extends BaseCommand {
       }
     }
 
-    // Output JSON if requested
+    // A failed check exits with 1 in every format, so a CI step can rely on the
+    // exit code alone; `status` of each check says which one failed.
+    const hasErrors = checks.some((c) => c.status === 'error');
     if (format === 'json') {
       this.output({ checks });
-      return;
-    }
-
-    // Summary
-    const hasErrors = checks.some((c) => c.status === 'error');
-    if (!hasErrors) {
+    } else if (!hasErrors) {
       process.stderr.write('\nВсё в порядке.\n');
     }
 
-    // Exit with error if any check failed
     if (hasErrors) {
       this.exit(1);
     }

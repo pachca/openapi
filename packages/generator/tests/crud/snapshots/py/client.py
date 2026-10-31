@@ -121,8 +121,7 @@ class ChatsServiceImpl(ChatsService):
     ) -> list[Chat]:
         items: list[Chat] = []
         cursor: str | None = None
-        has_next = True
-        while has_next:
+        while True:
             if params is None:
                 params = ListChatsParams()
             params.cursor = cursor
@@ -130,9 +129,9 @@ class ChatsServiceImpl(ChatsService):
             items.extend(response.data)
             if not response.data:
                 break
-            cursor = response.meta.paginate.next_page
-            reported_has_next = getattr(response.meta.paginate, "has_next", None)
-            has_next = True if reported_has_next is None else reported_has_next
+            cursor = response.meta.paginate.next_page if response.meta else None
+            if not cursor:
+                break
         return items
 
     async def get_chat(

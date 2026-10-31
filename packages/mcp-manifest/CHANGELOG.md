@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.5.0 (2026-10-31)
+
+Reminders named as in the Pachca app, deleting an incoming webhook, the output of opening a form, audit details as the API writes them, and rules for mentions and missing scopes; schema_version stays 1.2.0.
+
+- `pachca_get_audit_events`: `details.dlp_rule_id` of `dlp_violation_detected` is a string made from the rule name, for example `pasport-rf`, as the API returns it, and it is listed among the untrusted fields.
+- `pachca_get_audit_events`: details list the token, application, bot and webhook fields the API writes (including bot token records from before 7 October 2026 and the `null` application of a refused CLI sign-in), the setting keys of `bot_webhook_settings_updated`, and the values of `reason` for `kms_*`.
+- `pachca_update_bot`: `kind` accepts `null`, which deletes the incoming webhook: the address stops working, the template and its settings are reset, and the next enabling gives a new address.
+- `pachca_create_bot` and `pachca_update_bot`: `commands` say how a command matches: the first word of the text, exactly, case included.
+- `pachca_open_form` has an output: `success`, always `true`.
+- `pachca_send_message`: a voice message (`file_type` `voice`) is sent with a personal token, and a bot token gets `403`.
+- `pachca_send_message`, `pachca_update_message`, `pachca_create_draft` and `pachca_update_draft`: `duration_ms` is required for a voice message, optional for a video and not saved for other types. Message and draft outputs describe `duration_ms` the same way.
+- `pachca_download_export`: after 7 days the method still answers with a link, but the archive is gone, so the export is requested again.
+- `pachca_create_task`, `pachca_list_tasks`, `pachca_get_task`, `pachca_update_task` and `pachca_delete_task` are titled and described as reminders, as the Pachca app names them: New reminder, List reminders, Reminder info, Edit reminder, Delete reminder. The tool names stay the same. The server instructions name reminders in the catalogue, and `pachca_update_user`, `pachca_delete_user` and `pachca_list_custom_fields` (`entity_type` `Task`) say reminder too.
+- `pachca_get_audit_events`: details of `bot_token_updated` carry `scopes` with the token scopes before and after the change (`previous` and `new`) when the request passed scopes.
+- `pachca_get_audit_events`: `details.scopes` of bot token records from before 7 October 2026 is described as the API wrote it: a list of scopes for `bot_token_created` and an object with `previous` and `new` for `bot_token_updated` when the request passed scopes.
+- `pachca_update_user`: `list_tags` names the "Who can add the bot to chats" values that lead to `restricted_bot_tag_denied`, "Creator" and "Creator and Administrators".
+- `pachca_send_message` and `pachca_update_message`: `content` says to take a nickname from a tool's answer and a `user_id` from data, since a nickname made up from a name mentions nobody.
+- A `403` with `insufficient_scope` tells the model not to retry: a person connected through the browser signs in again without narrowing the scopes, a personal token gets the scope in its menu, a bot's creator adds it to the bot's token.
+- `pachca_add_members`, `pachca_list_members`, `pachca_remove_member`, `pachca_delete_message`, `pachca_create_thread`, `pachca_create_unattached_thread` and `skip_invite_mentions` of `pachca_send_message` describe thread membership as the server keeps it: adding to a thread makes an ordinary member and notifies nobody, a mention adds nobody to an unattached thread while cross-chat threads are off, only a chat member starts a new thread, and a person outside the thread mentioned with `skip_invite_mentions` gets no notification.
+- `pachca_update_message` says an edit notifies nobody and does not make the message unread, and `pachca_list_message_readers` says how it helps decide between fixing a message and replying with an addition, checked right before acting.
+- `pachca_search_users`, `pachca_search_chats` and `pachca_search_messages`: the output `meta.paginate` has `has_next`, `false` on the last page, where `next_page` still comes.
+
 ## 1.4.0 (2026-10-28)
 
 Tools for the «Important» section, making an employee a guest, and tool texts that follow what the server actually does; schema_version stays 1.2.0.

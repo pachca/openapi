@@ -68,6 +68,18 @@ const SIMPLIFY_FIELDS: Record<string, string[]> = {
   export: ['id', 'status', 'created_at'],
 };
 
+/**
+ * Key fields of list operations whose items are not the resource's own object. The Bot
+ * resource also lists its tokens and the history events, and Group Tag lists the users of
+ * a tag: the resource fields above would leave only `id` of them — an event without its
+ * payload, a user without a name.
+ */
+const SIMPLIFY_FIELDS_BY_OPERATION: Record<string, string[]> = {
+  'bot:getAllTokens': ['id', 'name', 'scopes', 'created_at', 'last_used_at'],
+  'bot:getAllEvents': ['id', 'event_type', 'payload', 'created_at'],
+  'groupTag:getAllUsers': SIMPLIFY_FIELDS.user,
+};
+
 // ============================================================================
 // WEBHOOK SIGNATURE VERIFICATION
 // ============================================================================
@@ -213,13 +225,14 @@ export async function uploadAvatar(
  * Fetch the profile associated with the current credential token via GET /profile.
  *
  * Used by PachcaTrigger to distinguish bot tokens from personal (user) tokens
- * during automatic webhook registration: bot tokens cannot currently update
- * their own webhook URL via PUT /bots/{id} (backend limitation — in development),
- * while a personal token with the `bots:write` scope and editor access to the
- * target bot can register the URL for any bot whose ID the user provides.
+ * during automatic webhook registration: a bot token registers its own webhook
+ * URL via PUT /bot/webhook (scope `bot_self:webhook:write`), while a personal
+ * token with the `bots:write` scope and editor access to the target bot
+ * registers the URL via PUT /bots/{id} for the bot whose ID the user provides.
+ * GET /profile requires the `profile:read` scope.
  *
- * Throws on network/auth errors so callers can distinguish "not a bot" from
- * "failed to check".
+ * Throws on network/auth/scope errors so callers can distinguish "not a bot"
+ * from "failed to check".
  */
 export async function getTokenProfile(
   context: IHookFunctions,
@@ -238,6 +251,31 @@ export async function getTokenProfile(
     id: Number(data.id ?? 0),
     bot: Boolean(data.bot),
   };
+}
+
+/**
+ * Whether a request failed because the token lacks the scope the method requires: Pachca
+ * answers 403 with `{ error: 'insufficient_scope', error_description: 'Insufficient scope.
+ * Required: <scope>' }` and repeats the code in `WWW-Authenticate`. Reads the error thrown by
+ * `httpRequestWithAuthentication` (NodeApiError keeps the body in `context.data`) as well as a
+ * raw HTTP client error (`response.data`, `response.headers`).
+ *
+ * The scopes of a bot token are chosen per token, so a bot token may lack `profile:read` —
+ * PachcaTrigger uses this to tell that case from a failed request.
+ */
+export function isInsufficientScopeError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const err = error as {
+    context?: { data?: IDataObject };
+    response?: { data?: IDataObject; body?: IDataObject; headers?: Record<string, string> };
+    error?: unknown;
+  };
+  const bodies = [err.context?.data, err.response?.data, err.response?.body, err.error];
+  if (bodies.some(body => body && typeof body === 'object' && (body as IDataObject).error === 'insufficient_scope')) {
+    return true;
+  }
+  const challenge = err.response?.headers?.['www-authenticate'];
+  return typeof challenge === 'string' && /error="insufficient_scope"/.test(challenge);
 }
 
 /** Sanitize baseUrl: strip trailing slashes, validate protocol */
@@ -478,7 +516,7 @@ export async function makeApiRequestAllPages(
     const paginate = meta?.paginate as IDataObject | undefined;
     const nextCursor = (paginate?.next_page as string) ?? undefined;
 
-    // Termination: списочные методы и /users?query= — has_next === false; meta без has_next (методы поиска) — пустой data
+    // Termination: has_next === false, а в ответе без has_next — пустой data
     const hasNext = paginate?.has_next as boolean | undefined;
     if (typeof hasNext === 'boolean') {
       if (!hasNext) break;
@@ -504,7 +542,9 @@ export async function makeApiRequestAllPages(
     let simplify = false;
     try { simplify = this.getNodeParameter('simplify', itemIndex, false) as boolean; } catch { /* */ }
     if (simplify) {
-      const keyFields = SIMPLIFY_FIELDS[resource];
+      let operation = '';
+      try { operation = this.getNodeParameter('operation', itemIndex, '') as string; } catch { /* */ }
+      const keyFields = SIMPLIFY_FIELDS_BY_OPERATION[`${resource}:${operation}`] ?? SIMPLIFY_FIELDS[resource];
       if (keyFields) {
         return finalResults.map(item => ({
           json: Object.fromEntries(Object.entries(item).filter(([k]) => keyFields.includes(k))),

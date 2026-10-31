@@ -1,0 +1,277 @@
+openapi: 3.0.0
+info:
+  title: Test API — Body examples
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Messages
+paths:
+  # E1: several examples → the first one (the minimal) shapes the usage example,
+  # and each gets its own under `examples` by its key; a union of button
+  # variants takes the member the example matches.
+  /messages:
+    post:
+      operationId: MessageOperations_createMessage
+      description: Новое сообщение
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Message'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageCreateRequest'
+            examples:
+              minimal:
+                summary: Текст с кнопкой
+                value:
+                  message:
+                    entity_id: 334
+                    content: Отчёт готов
+                    buttons:
+                      - - text: Принять
+                          data: accept
+              full:
+                summary: Сообщение с файлом
+                value:
+                  message:
+                    entity_id: 334
+                    content: Отчёт готов
+                    files:
+                      - key: attaches/files/1/report.pdf
+                        name: report.pdf
+                        file_type: file
+                  link_preview: true
+
+  # E2: a single example; a model whose fields exclude each other keeps only those the example sets.
+  /messages/{id}:
+    put:
+      operationId: MessageOperations_updateMessage
+      description: Редактирование сообщения
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор сообщения
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Message'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageUpdateRequest'
+            example:
+              message:
+                content: Отчёт обновлён
+                files:
+                  - key: attaches/files/1/photo.png
+                    name: photo.png
+                    file_type: image
+                    width: 800
+                    height: 600
+
+components:
+  schemas:
+    FileType:
+      type: string
+      enum:
+        - file
+        - image
+        - voice
+
+    MessageFile:
+      type: object
+      required:
+        - key
+        - name
+        - file_type
+      properties:
+        key:
+          type: string
+          example: attaches/files/1/logo.png
+        name:
+          type: string
+          example: logo.png
+        file_type:
+          $ref: '#/components/schemas/FileType'
+        width:
+          type: integer
+          format: int32
+          description: Ширина картинки
+          example: 1024
+        height:
+          type: integer
+          format: int32
+          description: Высота картинки
+          example: 768
+        duration_ms:
+          type: integer
+          format: int32
+          description: Длительность голосового
+          example: 5400
+        waveform:
+          type: string
+          description: Волна голосового
+          example: '4,8,12'
+
+    UrlButton:
+      type: object
+      required:
+        - text
+        - url
+      properties:
+        text:
+          type: string
+          example: Подробнее
+        url:
+          type: string
+          example: https://example.com/details
+
+    DataButton:
+      type: object
+      required:
+        - text
+        - data
+      properties:
+        text:
+          type: string
+          example: Подробнее
+        data:
+          type: string
+          example: awesome
+
+    Button:
+      oneOf:
+        - $ref: '#/components/schemas/UrlButton'
+        - $ref: '#/components/schemas/DataButton'
+
+    MessageCreateRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: object
+          required:
+            - entity_id
+          properties:
+            entity_id:
+              type: integer
+              format: int32
+              example: 198
+            content:
+              type: string
+              example: Привет
+            files:
+              type: array
+              items:
+                $ref: '#/components/schemas/MessageFile'
+            buttons:
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Button'
+            display_name:
+              type: string
+              description: Только для бота
+              example: Бот Поддержки
+        link_preview:
+          type: boolean
+          default: false
+
+    MessageUpdateRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: object
+          properties:
+            content:
+              type: string
+              example: Привет
+            files:
+              type: array
+              items:
+                $ref: '#/components/schemas/MessageFile'
+
+    Message:
+      type: object
+      required:
+        - id
+        - content
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 194275
+        content:
+          type: string
+          example: Привет
+
+    ApiError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string

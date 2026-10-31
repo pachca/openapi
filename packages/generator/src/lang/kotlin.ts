@@ -10,8 +10,12 @@ import {
   type IROperation,
   type IRParam,
   type IRResponseType,
+  type IRValueUnion,
+  jsonKindOf,
+  valueUnionMemberName,
+  paginateHasNext,
 } from '../ir.js';
-import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToUpperSnake,
@@ -49,7 +53,7 @@ function ktType(ft: IRFieldType): string {
     case 'record':
       return `Map<String, ${ktType(ft.valueType!)}>`;
     case 'union':
-      return ft.ref ?? 'Any';
+      return ft.valueUnion ?? ft.ref ?? 'Any';
     case 'literal':
       return 'String';
     case 'binary':
@@ -57,9 +61,95 @@ function ktType(ft: IRFieldType): string {
   }
 }
 
+/**
+ * A type spelled in full: inside a value union its variants (`String`,
+ * `ScopesChange`) shadow the types of the same name.
+ */
+function ktQualifiedType(ft: IRFieldType): string {
+  switch (ft.kind) {
+    case 'primitive':
+      if (ft.primitive === 'integer') return ft.format === 'int64' ? 'kotlin.Long' : 'kotlin.Int';
+      if (ft.primitive === 'number') return 'kotlin.Double';
+      if (ft.primitive === 'boolean') return 'kotlin.Boolean';
+      if (ft.primitive === 'any') return 'kotlinx.serialization.json.JsonElement';
+      return 'kotlin.String';
+    case 'enum':
+    case 'model':
+      return ft.ref ? `com.pachca.sdk.${ft.ref}` : 'kotlin.String';
+    case 'array':
+      return `kotlin.collections.List<${ktQualifiedType(ft.items!)}>`;
+    case 'record':
+      return `kotlin.collections.Map<kotlin.String, ${ktQualifiedType(ft.valueType!)}>`;
+    default:
+      return 'kotlin.String';
+  }
+}
+
+/**
+ * A field that takes values of different JSON kinds is a sealed interface with a
+ * variant per member. The kind of the JSON value picks the variant, and an
+ * object that does not fit its model fails, so a union member gives way.
+ */
+function emitValueUnion(lines: string[], vu: IRValueUnion): void {
+  if (vu.description) {
+    lines.push('/**');
+    for (const line of vu.description.split('\n')) lines.push(` * ${line}`);
+    lines.push(' */');
+  }
+  lines.push(`@Serializable(with = ${vu.name}Serializer::class)`);
+  lines.push(`sealed interface ${vu.name} {`);
+  for (const m of vu.members) {
+    lines.push(`    data class ${valueUnionMemberName(m)}(val value: ${ktQualifiedType(m)}) : ${vu.name}`);
+  }
+  lines.push('}');
+  lines.push('');
+  const expected = vu.members.map((m) => valueUnionMemberName(m)).join(' or ');
+  lines.push(`object ${vu.name}Serializer : KSerializer<${vu.name}> {`);
+  lines.push(`    override val descriptor = buildClassSerialDescriptor(${JSON.stringify(vu.name)})`);
+  lines.push('');
+  lines.push(`    override fun serialize(encoder: Encoder, value: ${vu.name}) {`);
+  lines.push(`        val jsonEncoder = encoder as? JsonEncoder ?: error("${vu.name}Serializer only supports JSON")`);
+  lines.push('        val element = when (value) {');
+  for (const m of vu.members) {
+    lines.push(`            is ${vu.name}.${valueUnionMemberName(m)} -> jsonEncoder.json.encodeToJsonElement(value.value)`);
+  }
+  lines.push('        }');
+  lines.push('        jsonEncoder.encodeJsonElement(element)');
+  lines.push('    }');
+  lines.push('');
+  lines.push(`    override fun deserialize(decoder: Decoder): ${vu.name} {`);
+  lines.push(`        val jsonDecoder = decoder as? JsonDecoder ?: error("${vu.name}Serializer only supports JSON")`);
+  lines.push('        val element = jsonDecoder.decodeJsonElement()');
+  lines.push('        val json = jsonDecoder.json');
+  lines.push('        return when {');
+  const kindCheck: Record<string, string> = {
+    array: 'element is JsonArray',
+    object: 'element is JsonObject',
+    string: 'element is JsonPrimitive && element.isString',
+    boolean: 'element is JsonPrimitive && !element.isString && (element.content == "true" || element.content == "false")',
+    number: 'element is JsonPrimitive && !element.isString && element.content != "null"',
+  };
+  // A boolean is checked before a number: both are bare JSON primitives.
+  const order = ['array', 'object', 'string', 'boolean', 'number'];
+  for (const kind of order) {
+    const m = vu.members.find((x) => jsonKindOf(x) === kind);
+    if (!m) continue;
+    lines.push(`            ${kindCheck[kind]} -> ${vu.name}.${valueUnionMemberName(m)}(json.decodeFromJsonElement<${ktQualifiedType(m)}>(element))`);
+  }
+  lines.push(`            else -> throw SerializationException("${vu.name} takes ${expected}, got $element")`);
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('}');
+}
+
 function needsSerialName(field: IRField): boolean {
   if (field.type.kind === 'binary') return false;
   return fieldSdkName(field) !== field.name;
+}
+
+/** The name a caller writes in nullFields: the property name, without the backticks a keyword takes. */
+function nullFieldName(field: IRField): string {
+  return fieldSdkName(field).replace(/`/g, '');
 }
 
 function fieldSdkName(field: IRField): string {
@@ -200,6 +290,16 @@ function generateModels(ir: IR): string {
       m.inlineObjects.some((i) => i.fields.some((f) => usesAny(f.type)))) ||
     ir.params.some((p) => p.params.some((q) => usesAny(q.type)));
 
+  // Request models with fields the caller can send as null by name in nullFields.
+  const requestModels = requestModelNames(ir);
+  const nullableModels = new Set(
+    [...buildModelIndex(ir).values()]
+      .filter((m) => requestModels.has(m.name) && nullableOptionalFields(m).length > 0)
+      .map((m) => m.name),
+  );
+  const needNullFields = nullableModels.size > 0;
+  if (needNullFields) needTransient = true;
+
   // An open enum is a value class and names no entries.
   if (ir.enums.some((e) => !e.open)) needSerialName = true;
   if (ir.unions.length > 0) needSerialName = true;
@@ -222,6 +322,11 @@ function generateModels(ir: IR): string {
   lines.push('package com.pachca.sdk');
   lines.push('');
 
+  // Value unions: the JSON kinds their members take decide the imports.
+  const valueKinds = new Set(ir.valueUnions.flatMap((vu) => vu.members.map(jsonKindOf)));
+  const needValueUnion = ir.valueUnions.length > 0;
+  const needValuePrimitive = valueKinds.has('string') || valueKinds.has('number') || valueKinds.has('boolean');
+
   const needDateTime = ir.models.some((m) => m.fields.some((f) => f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time'))
     || ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
 
@@ -229,22 +334,31 @@ function generateModels(ir: IR): string {
   if (needDateTime) imports.push('import java.time.OffsetDateTime');
   if (needDateTime) imports.push('import java.time.format.DateTimeFormatter');
   const needCustomUnionSerializer = needWebhookPayloadUnionSerializer || needStructuralUnionSerializer;
-  if (needDateTime || needCustomUnionSerializer) imports.push('import kotlinx.serialization.KSerializer');
+  const needCustomSerializer = needCustomUnionSerializer || needNullFields;
+  if (needNullFields) imports.push('import kotlinx.serialization.KeepGeneratedSerializer');
+  if (needDateTime || needCustomSerializer || needValueUnion) imports.push('import kotlinx.serialization.KSerializer');
   if (needSerialName) imports.push('import kotlinx.serialization.SerialName');
   imports.push('import kotlinx.serialization.Serializable');
+  if (needNullFields || needValueUnion) imports.push('import kotlinx.serialization.SerializationException');
   if (needTransient) imports.push('import kotlinx.serialization.Transient');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveKind');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor');
-  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.descriptors.buildClassSerialDescriptor');
-  if (needDateTime || needCustomUnionSerializer) imports.push('import kotlinx.serialization.encoding.Decoder');
-  if (needDateTime || needCustomUnionSerializer) imports.push('import kotlinx.serialization.encoding.Encoder');
+  if (needNullFields) imports.push('import kotlinx.serialization.descriptors.SerialDescriptor');
+  if (needCustomUnionSerializer || needValueUnion) imports.push('import kotlinx.serialization.descriptors.buildClassSerialDescriptor');
+  if (needDateTime || needCustomSerializer || needValueUnion) imports.push('import kotlinx.serialization.encoding.Decoder');
+  if (needDateTime || needCustomSerializer || needValueUnion) imports.push('import kotlinx.serialization.encoding.Encoder');
   if (needStructuralUnionSerializer) imports.push('import kotlinx.serialization.json.Json');
-  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.JsonDecoder');
+  if (valueKinds.has('array')) imports.push('import kotlinx.serialization.json.JsonArray');
+  if (needCustomUnionSerializer || needValueUnion) imports.push('import kotlinx.serialization.json.JsonDecoder');
   if (needJsonElement) imports.push('import kotlinx.serialization.json.JsonElement');
-  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.JsonEncoder');
+  if (needCustomSerializer || needValueUnion) imports.push('import kotlinx.serialization.json.JsonEncoder');
+  if (needNullFields) imports.push('import kotlinx.serialization.json.JsonNull');
+  if (needNullFields || valueKinds.has('object')) imports.push('import kotlinx.serialization.json.JsonObject');
+  if (needValuePrimitive) imports.push('import kotlinx.serialization.json.JsonPrimitive');
   if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.contentOrNull');
-  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.decodeFromJsonElement');
-  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.jsonObject');
+  if (needCustomUnionSerializer || needValueUnion) imports.push('import kotlinx.serialization.json.decodeFromJsonElement');
+  if (needValueUnion) imports.push('import kotlinx.serialization.json.encodeToJsonElement');
+  if (needCustomSerializer) imports.push('import kotlinx.serialization.json.jsonObject');
   if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.jsonPrimitive');
   lines.push(imports.join('\n'));
 
@@ -254,6 +368,39 @@ function generateModels(ir: IR): string {
     lines.push('    override val descriptor = PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)');
     lines.push('    override fun serialize(encoder: Encoder, value: OffsetDateTime) = encoder.encodeString(value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))');
     lines.push('    override fun deserialize(decoder: Decoder): OffsetDateTime = OffsetDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)');
+    lines.push('}');
+  }
+
+  if (needNullFields) {
+    lines.push('');
+    lines.push('/**');
+    lines.push(' * Writes a request model as its generated serializer does: an unset field stays');
+    lines.push(' * out of the body. A field named in nullFields goes out as null, whatever value');
+    lines.push(' * it holds, and a name the model does not take as null fails before the request');
+    lines.push(' * is sent.');
+    lines.push(' */');
+    lines.push('internal open class NullFieldsSerializer<T>(');
+    lines.push('    private val generated: KSerializer<T>,');
+    lines.push('    private val model: String,');
+    lines.push('    private val keys: Map<String, String>,');
+    lines.push('    private val nullFields: (T) -> Set<String>,');
+    lines.push(') : KSerializer<T> {');
+    lines.push('    override val descriptor: SerialDescriptor get() = generated.descriptor');
+    lines.push('');
+    lines.push('    override fun deserialize(decoder: Decoder): T = generated.deserialize(decoder)');
+    lines.push('');
+    lines.push('    override fun serialize(encoder: Encoder, value: T) {');
+    lines.push('        val names = nullFields(value)');
+    lines.push('        val unknown = names.firstOrNull { it !in keys }');
+    lines.push('        if (unknown != null) throw SerializationException("$model: field \\"$unknown\\" cannot be sent as null")');
+    lines.push('        if (names.isEmpty() || encoder !is JsonEncoder) {');
+    lines.push('            generated.serialize(encoder, value)');
+    lines.push('            return');
+    lines.push('        }');
+    lines.push('        val body = encoder.json.encodeToJsonElement(generated, value).jsonObject.toMutableMap()');
+    lines.push('        for (name in names) body[keys.getValue(name)] = JsonNull');
+    lines.push('        encoder.encodeJsonElement(JsonObject(body))');
+    lines.push('    }');
     lines.push('}');
   }
 
@@ -269,16 +416,22 @@ function generateModels(ir: IR): string {
     emitUnion(lines, u, ir);
   }
 
+  // Value unions
+  for (const vu of ir.valueUnions) {
+    lines.push('');
+    emitValueUnion(lines, vu);
+  }
+
   // Models (skip union members)
   for (const m of ir.models) {
     if (unionMemberRefs.has(m.name)) continue;
     // Emit inline objects before parent
     for (const inl of m.inlineObjects) {
       lines.push('');
-      emitModel(lines, inl, ir.models);
+      emitModel(lines, inl, ir.models, nullableModels.has(inl.name));
     }
     lines.push('');
-    emitModel(lines, m, ir.models);
+    emitModel(lines, m, ir.models, nullableModels.has(m.name));
   }
 
   // Response types
@@ -397,9 +550,9 @@ function emitUnion(
 
   if (structural) {
     lines.push('');
-    lines.push(`// ${u.name} carries no discriminator field: the member is chosen by which one`);
-    lines.push('// best matches the payload keys (most recognised, then fewest unrecognised,');
-    lines.push('// then fewest declared).');
+    lines.push(`// ${u.name} carries no discriminator field: members are tried in the order`);
+    lines.push('// they match the payload keys (most recognised, then fewest unrecognised, then');
+    lines.push('// fewest declared), and the first one that decodes wins.');
     lines.push(`object ${u.name}Serializer : KSerializer<${u.name}> {`);
     lines.push(`    override val descriptor = buildClassSerialDescriptor("${u.name}")`);
     lines.push('');
@@ -428,27 +581,22 @@ function emitUnion(
     lines.push(`        val jsonDecoder = decoder as? JsonDecoder ?: error("${u.name}Serializer only supports JSON")`);
     lines.push('        val element = jsonDecoder.decodeJsonElement()');
     lines.push('        val keys = element.jsonObject.keys');
-    lines.push(`        var best: Pair<Set<String>, (Json, JsonElement) -> ${u.name}>? = null`);
-    lines.push('        var bestMatched = 0');
-    lines.push('        var bestUnknown = 0');
-    lines.push('        var bestDeclared = 0');
-    lines.push('        for (shape in shapes) {');
-    lines.push('            val matched = keys.count { it in shape.first }');
-    lines.push('            val unknown = keys.size - matched');
-    lines.push('            val declared = shape.first.size');
-    lines.push('            val better = best == null ||');
-    lines.push('                matched > bestMatched ||');
-    lines.push('                (matched == bestMatched && unknown < bestUnknown) ||');
-    lines.push('                (matched == bestMatched && unknown == bestUnknown && declared < bestDeclared)');
-    lines.push('            if (better) {');
-    lines.push('                best = shape');
-    lines.push('                bestMatched = matched');
-    lines.push('                bestUnknown = unknown');
-    lines.push('                bestDeclared = declared');
+    lines.push('        // sortedWith is stable: a tie keeps the declared order.');
+    lines.push('        val ranked = shapes.sortedWith(');
+    lines.push('            compareByDescending<Pair<Set<String>, *>> { shape -> keys.count { it in shape.first } }');
+    lines.push('                .thenBy { shape -> keys.count { it !in shape.first } }');
+    lines.push('                .thenBy { shape -> shape.first.size },');
+    lines.push('        )');
+    lines.push('        var firstError: IllegalArgumentException? = null');
+    lines.push('        for (shape in ranked) {');
+    lines.push('            try {');
+    lines.push('                return shape.second(jsonDecoder.json, element)');
+    lines.push('            } catch (e: IllegalArgumentException) {');
+    lines.push('                // SerializationException is one: a wrong type or a missing required field.');
+    lines.push('                if (firstError == null) firstError = e');
     lines.push('            }');
     lines.push('        }');
-    lines.push(`        val chosen = best ?: error("No ${u.name} member matched the payload")`);
-    lines.push('        return chosen.second(jsonDecoder.json, element)');
+    lines.push(`        throw firstError ?: kotlinx.serialization.SerializationException("No ${u.name} member matched the payload")`);
     lines.push('    }');
     lines.push('}');
   }
@@ -521,7 +669,8 @@ function emitUnion(
       }
       const sdkName = fieldSdkName(f);
       const typeName = ktType(f.type);
-      const isOpt = !f.required;
+      // A required nullable field may hold null, as in a plain model.
+      const isOpt = !f.required || f.nullable;
       const fullType = isOpt ? `${typeName}?` : typeName;
       const literalDefault = f.type.kind === 'literal' ? ` = "${f.type.literalValue ?? ''}"` : '';
       const default_ = isOpt ? ' = null' : literalDefault;
@@ -550,10 +699,17 @@ function emitModel(
   lines: string[],
   m: IRModel,
   allModels: IRModel[],
+  withNullFields = false,
 ): void {
   const fields = m.fields;
+  const nullable = withNullFields ? nullableOptionalFields(m) : [];
 
-  lines.push('@Serializable');
+  if (nullable.length > 0) {
+    lines.push('@KeepGeneratedSerializer');
+    lines.push(`@Serializable(with = ${m.name}Serializer::class)`);
+  } else {
+    lines.push('@Serializable');
+  }
 
   if (fields.length === 0) {
     const ext = m.isError ? ' : Exception()' : '';
@@ -618,9 +774,21 @@ function emitModel(
     lines.push('    /** HTTP status code of the answer, set by the client. An empty body or one that is not JSON leaves errors empty. */');
     lines.push('    @Transient val statusCode: Int? = null,');
   }
+  if (nullable.length > 0) {
+    lines.push(`    /** Fields to send as null: ${nullable.map(nullFieldName).join(', ')}. An unset field stays out of the body. */`);
+    lines.push('    @Transient val nullFields: Set<String> = emptySet(),');
+  }
 
   const ext = m.isError ? ' : Exception()' : '';
   lines.push(`)${ext}`);
+
+  if (nullable.length > 0) {
+    const keys = nullable.map((f) => `"${nullFieldName(f)}" to "${f.name}"`).join(', ');
+    lines.push('');
+    lines.push(`internal object ${m.name}Serializer : NullFieldsSerializer<${m.name}>(`);
+    lines.push(`    ${m.name}.generatedSerializer(), "${m.name}", mapOf(${keys}), { it.nullFields },`);
+    lines.push(')');
+  }
 
   if (m.name === 'ApiError') {
     const errorsField = m.fields.find((f) => f.name === 'errors');
@@ -1015,11 +1183,16 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     : `${op.methodName}(\n${callArgs.map(a => `${indent2}        ${a},`).join('\n')}\n${indent2}    )`;
 
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const useHasNext = rt?.metaRef === 'PaginationMeta';
+  const hasNextForm = paginateHasNext(ir, rt?.metaRef);
+  const useHasNext = hasNextForm !== undefined;
 
   if (useHasNext) {
     const cursorExpr = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate?.nextPage';
-    const hasNextExpr = rt?.metaIsRequired ? 'response.meta.paginate.hasNext ?: true' : 'response.meta?.paginate?.hasNext ?: true';
+    const hasNextExpr = !rt?.metaIsRequired
+      ? 'response.meta?.paginate?.hasNext ?: true'
+      : hasNextForm === 'required'
+        ? 'response.meta.paginate.hasNext'
+        : 'response.meta.paginate.hasNext ?: true';
     lines.push(`${indent2}var hasNext = true`);
     lines.push(`${indent2}while (hasNext) {`);
     lines.push(`${indent2}    val response = ${callStr}`);
@@ -1523,8 +1696,10 @@ function emitPachcaClient(
   lines.push('                    if (retryAfter != null && response?.status?.value == 429) {');
   lines.push('                        (retryAfter * 1000L * jitter).toLong()');
   lines.push('                    } else {');
-  lines.push('                        val base = 10_000L * (1L shl retry)');
-  lines.push('                        (base * jitter).toLong()');
+  lines.push('                        // Ktor counts retries from 1. A 429 without Retry-After waits 1, 2 and 4 s,');
+  lines.push('                        // as in the other SDKs, a 5xx and a network error 10, 20 and 40 s.');
+  lines.push('                        val base = if (response?.status?.value == 429) 1_000L else 10_000L');
+  lines.push('                        (base * (1L shl (retry - 1)) * jitter).toLong()');
   lines.push('                    }');
   lines.push('                }');
   lines.push('            }');
@@ -1560,6 +1735,11 @@ function emitPachcaClient(
 
 // ── Examples ──────────────────────────────────────────────────────────
 
+/** A Kotlin string literal: `$` starts a template there, so it is escaped. */
+function ktString(value: string): string {
+  return JSON.stringify(value).replace(/\$/g, '\\$');
+}
+
 function ktLiteral(
   ft: IRFieldType,
   ir: IR,
@@ -1575,8 +1755,8 @@ function ktLiteral(
       }
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return String(ft.example);
       if (ft.primitive === 'string' && typeof ft.example === 'string') {
-        if (ft.format === 'date-time') return `OffsetDateTime.parse(${JSON.stringify(ft.example)})`;
-        return JSON.stringify(ft.example);
+        if (ft.format === 'date-time') return `OffsetDateTime.parse(${ktString(ft.example)})`;
+        return ktString(ft.example);
       }
     }
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
@@ -1617,6 +1797,9 @@ function ktLiteral(
     case 'record':
       return `mapOf("key" to ${ktLiteral(ft.valueType!, ir, models, visited, indent)})`;
     case 'union': {
+      if (ft.valueUnion && ft.members) {
+        return `${ft.valueUnion}.${valueUnionMemberName(ft.members[0])}(${ktLiteral(ft.members[0], ir, models, visited, indent)})`;
+      }
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
         return ktModelLiteral(u.memberRefs[0], ir, models, visited, indent);
@@ -1690,7 +1873,7 @@ function ktFingerprint(
     case 'record':
       return `Map<String, ${ktFingerprint(ft.valueType!, ir, models, visited)}>`;
     case 'union':
-      return ft.ref ?? 'Any';
+      return ft.valueUnion ?? ft.ref ?? 'Any';
     case 'literal':
       return 'String';
     case 'binary':
@@ -1786,13 +1969,14 @@ function buildOperationExample(
 
   if (op.requestBody) {
     const rb = op.requestBody;
+    const body = bodyExample(rb, ir, models);
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = snakeToCamel(rb.unwrapField.name);
-      params.push({ name: sdkName, value: ktLiteral(rb.unwrapField.type, ir, models) });
-      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
+      params.push({ name: sdkName, value: ktLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     } else if (rb.schemaRef) {
-      params.push({ name: 'request', value: ktLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
-      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
+      params.push({ name: 'request', value: ktLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     }
   }
 
@@ -1841,6 +2025,8 @@ function generateExamples(ir: IR): string {
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
+      const named = namedBodyExamples(op, (o) => buildOperationExample(o, ir, models, serviceProp));
+      if (named) entry.examples = named;
       result[op.operationId] = entry;
       if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
         result[`${op.operationId}_pollWebhookEvents`] = {

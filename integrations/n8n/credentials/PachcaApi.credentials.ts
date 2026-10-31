@@ -32,7 +32,7 @@ export class PachcaApi implements ICredentialType {
 			type: 'string',
 			typeOptions: { password: true },
 			default: '',
-			description: 'Used to verify incoming webhook requests from Pachca. Found in bot settings under the Webhook section.',
+			description: 'Used to verify incoming webhook requests from Pachca. Copy the Signing secret from the Outgoing webhook tab in bot settings.',
 			hint: 'Only required when using the Pachca Trigger node',
 		},
 		{

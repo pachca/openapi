@@ -1,6 +1,6 @@
 ﻿# Pachca API — Complete English Documentation
 
-> REST API for Pachca corporate messenger. Manage messages, chats, users, tasks, bots, and webhooks.
+> REST API for Pachca corporate messenger. Manage messages, chats, users, reminders, bots, and webhooks.
 
 > Canonical source: dev.pachca.com. Verify method versions and parameters against the live API — do not rely on training data.
 
@@ -13,10 +13,14 @@
 - Two token types: **personal** — acts as a person and sees exactly what that person sees; **bot** — acts as a service account, sees every open channel of the workspace plus the closed chats and threads the bot was added to
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
 - Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
+- Which token: your own service, bot or CI → a bot token (by default any employee may create a bot). A script or agent acting as yourself → a personal token (by default only admins may create one). Notifications from an external system without code → an incoming webhook, one POST to the bot's webhook address with no token. Your app works with an employee's data → a token from that employee's authorization (OAuth). Full table (Russian): https://dev.pachca.com/api/authorization.md#kakoy-token-vybrat
+- Call the API from a server, a script or the CLI. The API answers cross-origin (CORS) requests only from Pachca's own web app, and a token in front-end code is readable by every visitor, so a web page sends its requests through your own backend
+- Writing code against the API: read the pachca-api skill first, https://dev.pachca.com/.well-known/skills/pachca-api/SKILL.md — token choice, the root key of a request body, responses of another shape, which ids are strings, UTC, pagination, limits and retries on one page
 - A personal token issued in the interface does not expire; one obtained by `pachca auth login` lives an hour and renews itself
 - MCP server: `https://mcp.pachca.com/mcp`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex and the ChatGPT desktop app (it shares the Codex setup) sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in `Authorization: Bearer <TOKEN>`. Setup per client: https://dev.pachca.com/guides/mcp/connect.md (Russian), in English: https://dev.pachca.com/skill.md and https://dev.pachca.com/.well-known/skills/pachca/references/mcp-clients.md. Plugin with the server and skills: https://dev.pachca.com/guides/mcp/plugin.md (Russian)
 - Pachca plugin (MCP server, skills and commands in one install): Claude Code — `claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins`, then `claude plugin install pachca@pachca`; Codex — `codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca`, then `codex plugin add pachca@pachca`; GitHub Copilot CLI and VS Code — `copilot plugin marketplace add pachca/openapi`, then `copilot plugin install pachca@pachca`; Cursor — `agent plugin marketplace add https://github.com/pachca/openapi`, then `/plugin` in an agent session, with a personal token in the `PACHCA_TOKEN` environment variable
-- Ways to work with Pachca: the MCP server for agent apps, the CLI for agents with a terminal, scripts and CI, the REST API and SDKs for your own integration, a bot for an agent that lives in Pachca, the n8n node. Which to pick (Russian): https://dev.pachca.com/guides/ai-agents/overview.md
+- MCP access: there is no separate MCP permission. Connecting is decided by the same two workspace settings as API access: by default personal tokens and browser sign-in are open to admins only, while bots are created by employees too, so an employee can connect an agent with their bot's token. Full rule (Russian): https://dev.pachca.com/api/authorization.md#kto-mozhet-sozdavat-tokeny, for admins: https://dev.pachca.com/guides/agents-access.md
+- Ways to work with Pachca: the REST API and SDKs for your own service, bot or CI, an incoming webhook for notifications without code, the CLI for scripts and agents with a terminal, the n8n node, the MCP server for agent apps and a bot for an agent that is called in Pachca chats. Which to pick for an integration (Russian): https://dev.pachca.com/guides/bots/overview.md, for connecting an agent: https://dev.pachca.com/guides/ai-agents/overview.md
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: `const client = new PachcaClient("YOUR_TOKEN")`
 - Python SDK: `client = PachcaClient("YOUR_TOKEN")`
@@ -38,7 +42,7 @@
 - Search endpoints (`/search/users`, `/search/chats`, `/search/messages`) have NO `prev_page`/`has_next`/`has_prev` — `prev_page` polling does not apply. Detect end by received count == `total` or an empty `data`. `SearchPaginationMeta` exposes only `next_page` and `total`
 - TypeScript auto-pagination: `client.users.listUsersAll()` returns flat array of all results
 - Python auto-pagination: `await client.users.list_users_all()` returns list of all results
-- Available for: users, chats, messages, members, tags, reactions, tasks, audit events, webhook events
+- Available for: users, chats, messages, members, tags, reactions, reminders (`client.tasks`), audit events, webhook events
 
 ## Webhooks (Real-time Events)
 - Create a bot in Pachca: Integrations → Bots → Create bot
@@ -79,7 +83,7 @@
 ## Idempotency and Reliability
 - Pachca API operations are NOT idempotent by default — duplicate POST requests create duplicate resources
 - Client-side deduplication: track request IDs, check before sending, store results with TTL
-- Webhooks use at-least-once delivery — handlers MUST be idempotent (dedup by event fields: id + type + event)
+- Webhooks: a delivery is retried only on a connection failure (see Delivery above), so pick up missed events from the event history. An event occasionally arrives twice — handlers MUST be idempotent. Build the dedup key per event type from its fields and never include `webhook_timestamp`, which changes on every delivery attempt (Russian: https://dev.pachca.com/guides/webhook/handler.md#idempotentnaya-obrabotka)
 - For multi-step operations: implement compensating actions (saga pattern) for failure recovery
 - Separate critical operations (create chat) from non-critical (send welcome message) with independent error handling
 
@@ -94,7 +98,7 @@
 | TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |
 | Python | `pachca-sdk` | `pip install pachca-sdk` |
 | Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |
-| Kotlin | `com.pachca:pachca-sdk` | `implementation("com.pachca:pachca-sdk:latest.release")` |
+| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.8.0")`, repository `maven("https://jitpack.io")` |
 | Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
 | C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
 
@@ -293,10 +297,10 @@ const SIGNING_SECRET = "your_signing_secret" // Bot card → Outgoing webhook �
 const app = express()
 
 app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
-  // Step 1: Verify HMAC-SHA256 signature
-  const signature = crypto.createHmac("sha256", SIGNING_SECRET)
-    .update(req.body).digest("hex")
-  if (signature !== req.headers["pachca-signature"]) {
+  // Step 1: Verify HMAC-SHA256 signature, compared in constant time
+  const expected = crypto.createHmac("sha256", SIGNING_SECRET).update(req.body).digest()
+  const received = Buffer.from(String(req.headers["pachca-signature"] ?? ""), "hex")
+  if (received.length !== expected.length || !crypto.timingSafeEqual(received, expected)) {
     return res.status(401).send("Invalid signature")
   }
 
@@ -314,14 +318,14 @@ app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
       if (event.event === "delete") console.log("Message deleted:", event.id)
       break
     case "reaction":
-      console.log(event.event === "new" ? "Reaction added:" : "Reaction removed:", event.emoji)
+      console.log(event.event === "new" ? "Reaction added:" : "Reaction removed:", event.code)
       break
     case "button":
       console.log("Button pressed:", event.data, "by user:", event.user_id)
       // Use event.trigger_id within 3 seconds to open a form
       break
-    case "view_submit":
-      console.log("Form submitted:", event.payload)
+    case "view":
+      console.log("Form submitted:", event.data) // field values by block name
       break
   }
 
@@ -344,7 +348,7 @@ def webhook():
 
     # Step 1: Verify HMAC-SHA256 signature
     expected = hmac.new(SIGNING_SECRET.encode(), raw_body, hashlib.sha256).hexdigest()
-    if expected != request.headers.get("Pachca-Signature"):
+    if not hmac.compare_digest(expected, request.headers.get("Pachca-Signature", "")):
         abort(401)
 
     # Step 2: Check timestamp for replay protection
@@ -367,12 +371,12 @@ def webhook():
 | message (new) | New message in chat | id, content, user_id, chat_id, entity_type, entity_id, created_at, url |
 | message (update) | Message edited | id, content, user_id, chat_id |
 | message (delete) | Message deleted | id, user_id, chat_id |
-| reaction (new/delete) | Reaction added/removed | message_id, user_id, emoji, chat_id |
-| button | Button pressed | message_id, user_id, data, trigger_id, chat_id |
-| view_submit | Form submitted | payload (form field values), user_id, trigger_id |
-| chat_member (new/delete) | Member added/removed from chat | chat_id, user_id, event |
-| company_member (new/update/delete) | Workspace member changes | user_id, event (no chat needed) |
-| link_shared | URL on one of the bot's domains shared anywhere in the workspace | url, message_id, chat_id |
+| reaction (new/delete) | Reaction added/removed | message_id, user_id, code, name, chat_id |
+| button (click) | Button pressed | message_id, user_id, data, trigger_id, chat_id |
+| view (submit) | Form submitted | data (form field values), callback_id, private_metadata, view_id, submit_id, user_id, chat_id |
+| chat_member (add/remove) | Members added to or removed from a chat or thread | chat_id, thread_id, user_ids |
+| company_member (invite/confirm/update/suspend/activate/delete) | Workspace member changes | user_ids (no chat needed) |
+| message (link_shared) | Link on one of the bot's domains shared anywhere in the workspace | links, message_id, chat_id, user_id |
 
 ### Alternative: Polling (when webhook URL is not available)
 Enable "Save event history" on the bot's Outgoing webhook tab (or `events_history_enabled` via the API when there is no URL at all), then poll:
@@ -612,7 +616,7 @@ Status fields: `emoji` (string), `title` (string), `expires_at` (ISO datetime or
 
 ## How to handle idempotency and partial failures in multi-service workflows
 
-Pachca API is **NOT idempotent** — duplicate POST requests create duplicate resources. Webhooks use **at-least-once** delivery. Both require explicit handling in distributed systems.
+Pachca API is **NOT idempotent** — duplicate POST requests create duplicate resources. A webhook event occasionally arrives twice, and a delivery is retried only on a connection failure, so missed events come from the event history. Both require explicit handling in distributed systems.
 
 ### 1. Client-side request deduplication
 
@@ -649,12 +653,37 @@ await idempotentCreateMessage("onboard-user-42", chatId, "Welcome!") // returns 
 ### 2. Webhook event deduplication
 
 ```typescript
-// Webhooks deliver at-least-once — same event may arrive multiple times
+// The same event may occasionally arrive twice
 const processedEvents = new Set<string>()
 
+// The key is built from the fields that tell one event from another, per type.
+// Never include webhook_timestamp: it changes on every delivery attempt
+function getEventKey(e: any): string {
+  const base = `${e.type}:${e.event}`
+  switch (e.type) {
+    case "message":
+      if (e.event === "link_shared") return `${base}:${e.message_id}:${e.links.map((l: any) => l.url).join(",")}`
+      if (e.event === "update") return `${base}:${e.id}:${e.changed_at}`
+      return `${base}:${e.id}`
+    case "reaction":
+      return `${base}:${e.message_id}:${e.user_id}:${e.code}:${e.created_at}`
+    case "button":
+      return `${base}:${e.trigger_id}` // new on every press
+    case "view":
+      return `${base}:${e.submit_id}` // new on every submit attempt
+    case "chat_member":
+      return `${base}:${e.chat_id}:${e.thread_id}:${e.user_ids.join(",")}:${e.created_at}`
+    case "company_member":
+      return `${base}:${e.user_ids.join(",")}:${e.created_at}`
+    case "video_call":
+      return `${base}:${e.video_room_id}:${e.recording_id ?? ""}`
+    default:
+      return `${base}:${e.id ?? e.message_id}`
+  }
+}
+
 function handleWebhookEvent(event: any) {
-  // Build unique key from event fields: type + event + id
-  const eventKey = `${event.type}:${event.event}:${event.id}:${event.webhook_timestamp}`
+  const eventKey = getEventKey(event)
 
   if (processedEvents.has(eventKey)) {
     return // Already processed, skip duplicate
@@ -680,7 +709,7 @@ import { PachcaClient, MessageEntityType } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
-// Saga: create project workspace (chat + members + welcome message + task)
+// Saga: create project workspace (chat + members + welcome message + reminder)
 // Each step has a compensating action for rollback on failure
 
 interface SagaStep {
@@ -799,7 +828,7 @@ setInterval(() => reconcileUsers(externalDb), 15 * 60 * 1000) // Every 15 minute
 
 ### Key principles for Pachca API distributed systems
 - **All POST endpoints create new resources** — never assume idempotency, always deduplicate on client side
-- **Webhooks are at-least-once** — handlers MUST be idempotent (dedup by event id + type + timestamp)
+- **A webhook event may arrive twice** — handlers MUST be idempotent (dedup by a key from the event fields, never by `webhook_timestamp`)
 - **Separate critical from non-critical operations** — chat creation (critical) vs welcome message (non-critical) should fail independently
 - **Use saga pattern with compensating actions** — for multi-step workflows where partial completion is worse than full rollback
 - **Implement periodic reconciliation** — webhooks can be missed; polling + reconciliation ensures eventual consistency
@@ -842,7 +871,7 @@ Order an export of the workspace messages for a period. The archive is prepared 
 Body: { start_at*, end_at*, webhook_url, chat_ids, skip_chats_file }
 
 ### GET /api/shared/v1/chats/exports/{id}
-In response to the request the server returns `302 Found` with a `Location` header containing a temporary download link for the file. Most HTTP clients automatically follow the redirect and download the file. The link is valid for 5 minutes, so use it right away. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission. While the archive is being assembled, the method responds `404` with the `export_file_not_found` code.
+In response to the request the server returns `302 Found` with a `Location` header containing a temporary download link for the file. Most HTTP clients automatically follow the redirect and download the file. The link is valid for 5 minutes, so use it right away. Only the employee who ordered the export can download the archive: the method refuses another employee holding the same permission. The archive itself is stored for 7 days. After that the method still responds `302`, but the storage returns an error at the link, and the export has to be ordered again. While the archive is being assembled, the method responds `404` with the `export_file_not_found` code.
 Parameters: id
 
 ### GET /api/shared/v1/chats/{id}
@@ -917,12 +946,12 @@ The employee's profile. A suspended employee is returned with `suspended: true`,
 Parameters: id
 
 ### PUT /api/shared/v1/users/{id}
-Changes the employee's profile: only the fields you pass are overwritten. Custom property IDs are returned by [List custom properties](/api/custom-properties/list). The request is applied as a whole: if any field fails validation, for example the new `email` is already taken, nothing changes. Changing the email sends letters to the old and the new address. In a free workspace they count towards the same daily limit as invitations from [New employee](/api/users/create), and beyond it the response is `422` with the `daily_invites_limit` code. The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not exist in the workspace yet creates a new tag together with the assignment. `suspended: true` suspends the employee: they lose access but remain in chats, tags, and tasks, while `suspended: false` brings them back. An employee is removed for good by [Delete employee](/api/users/delete). The workspace owner can be edited only by themselves, and their role can be changed only to administrator, otherwise the response is `403`. Making an employee or a multi-guest a guest (`guest` with `chat_ids`) removes all their tags and takes them out of the other conversations and channels, direct messages and threads aside. All of their tokens, the access given to bots and apps included, are revoked and respond `401`. Promotion restores none of this. An unknown role value is silently ignored by the method: the response is successful and the role stays as it was. For a bot the method changes only the name (`first_name`), nickname, tags and `suspended`, and skips the other fields in the request. Which nickname and which tags a bot can be given is said at the `nickname` and `list_tags` fields. If the bot's settings changed during the request, the `422` response comes with the `bot_changed_concurrently` code: retry the request. The employee's avatar is set and removed by separate methods, [Upload employee avatar](/api/users/update-avatar) and [Delete employee avatar](/api/users/remove-avatar).
+Changes the employee's profile: only the fields you pass are overwritten. Custom property IDs are returned by [List custom properties](/api/custom-properties/list). The request is applied as a whole: if any field fails validation, for example the new `email` is already taken, nothing changes. Changing the email sends letters to the old and the new address. In a free workspace they count towards the same daily limit as invitations from [New employee](/api/users/create), and beyond it the response is `422` with the `daily_invites_limit` code. The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not exist in the workspace yet creates a new tag together with the assignment. `suspended: true` suspends the employee: they lose access but remain in chats, tags, and reminders, while `suspended: false` brings them back. An employee is removed for good by [Delete employee](/api/users/delete). The workspace owner can be edited only by themselves, and their role can be changed only to administrator, otherwise the response is `403`. Making an employee or a multi-guest a guest (`guest` with `chat_ids`) removes all their tags and takes them out of the other conversations and channels, direct messages and threads aside. All of their tokens, the access given to bots and apps included, are revoked and respond `401`. Promotion restores none of this. An unknown role value is silently ignored by the method: the response is successful and the role stays as it was. For a bot the method changes only the name (`first_name`), nickname, tags and `suspended`, and skips the other fields in the request. Which nickname and which tags a bot can be given is said at the `nickname` and `list_tags` fields. If the bot's settings changed during the request, the `422` response comes with the `bot_changed_concurrently` code: retry the request. The employee's avatar is set and removed by separate methods, [Upload employee avatar](/api/users/update-avatar) and [Delete employee avatar](/api/users/remove-avatar).
 Parameters: id
 Body: { user: { first_name, last_name, email, phone_number, nickname, department, title, role, chat_ids, suspended, list_tags, custom_properties } }
 
 ### DELETE /api/shared/v1/users/{id}
-Removes an employee from the workspace. This cannot be undone: they can be brought back only with a new invitation, and that will already be a different employee. What happens: they leave all conversations and channels except direct messages, all tags are taken off them, the tasks where they were the only assignee are deleted, and they are removed from the remaining ones. The messages and files they wrote stay in place. The workspace owner cannot be deleted — the method responds `403`. A repeated call responds `404`: the method no longer finds a deleted employee. If the employee is going on vacation or the dismissal is not final yet, use [Edit employee](/api/users/update) with `suspended: true`. Suspension is reversible and keeps chats, tags, and tasks.
+Removes an employee from the workspace. This cannot be undone: they can be brought back only with a new invitation, and that will already be a different employee. What happens: they leave all conversations and channels except direct messages, all tags are taken off them, the reminders where they were the only assignee are deleted, and they are removed from the remaining ones. The messages and files they wrote stay in place. The workspace owner cannot be deleted — the method responds `403`. A repeated call responds `404`: the method no longer finds a deleted employee. If the employee is going on vacation or the dismissal is not final yet, use [Edit employee](/api/users/update) with `suspended: true`. Suspension is reversible and keeps chats, tags, and reminders.
 Parameters: id
 
 ### PUT /api/shared/v1/users/{user_id}/avatar
@@ -990,11 +1019,11 @@ The token owner leaves a conversation or a channel on their own. In a private co
 Parameters: id
 
 ### GET /api/shared/v1/chats/{id}/members
-Who belongs to a conversation, a channel, or a thread. Bots come on equal terms with employees, with `bot: true`. The workspace owner can retrieve the member list of any chat in the workspace. Admins and bots can only retrieve the member list of chats they belong to (or that are public). Only active employees make it into the results: suspended ones do not come, although their membership is kept. The `role` field of a record is the employee's role in the workspace. The method does not return a member's role in the chat: who holds which is shown only by the `role` filter, one request per role.
+Who belongs to a conversation, a channel, or a thread. Bots come on equal terms with employees, with `bot: true`. The workspace owner can retrieve the member list of any chat in the workspace. Admins and bots can only retrieve the member list of chats they belong to (or that are public). The member list of a thread is open to everyone who sees the thread, as the [Who sees a thread](/guides/threads#kto-vidit-tred) section describes. Only active employees make it into the results: suspended ones do not come, although their membership is kept. The `role` field of a record is the employee's role in the workspace. The method does not return a member's role in the chat: who holds which is shown only by the `role` filter, one request per role.
 Parameters: id, role?, limit?, cursor?
 
 ### POST /api/shared/v1/chats/{id}/members
-Adds employees and bots to a conversation, a channel, or a thread. A bot is added the same way as an employee: its `id` in `member_ids`. In a channel it receives the editor role, and in a conversation it becomes an ordinary member — and only after that can it write there. Members are added by employees and bots. For a guest and a multi-guest the method responds `403`, as in the interface, whatever their role in the chat. The role in the chat is assigned at the moment of adding: the workspace owner and an administrator become chat administrators, everyone else becomes an ordinary member. After that the chat role is not recalculated by itself: promoting an employee in the workspace does not change their role where they already belong. To change a role, use the [Change member role](/api/members/update) method. Those who already belong to the chat are silently skipped by the method, and this is not treated as an error. An unknown or inactive ID, however, stops the whole request: the method responds `404` and lists such values, and nobody is added. A bot is added only by someone its "Who can add the bot to chats" setting allows — see [Bot settings](/guides/bots/settings#kto-mozhet-dobavlyat-bota-v-chaty). If `member_ids` contains a bot you are not allowed to add, the method adds nobody and responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. If the same request also has an unknown ID, the response is `404` with both errors. A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel is not added either: the response is `409` with the `single_chat_bot_occupied` code and the IDs of such bots in `value`, and nobody from the request is added. Such a bot can still be added to threads. Adding a whole department at once is more convenient with a tag — [Add tags](/api/members/add-group-tags): then the chat membership is maintained by itself.
+Adds employees and bots to a conversation, a channel, or a thread. A bot is added the same way as an employee: its `id` in `member_ids`. In a channel it receives the editor role, and in a conversation it becomes an ordinary member — and only after that can it write there. Members are added by employees and bots. For a guest and a multi-guest the method responds `403`, as in the interface, whatever their role in the chat. The role in the chat is assigned at the moment of adding: in a conversation or a channel the workspace owner and an administrator become chat administrators, everyone else becomes an ordinary member. After that the chat role is not recalculated by itself: promoting an employee in the workspace does not change their role where they already belong. To change a role, use the [Change member role](/api/members/update) method. Those who already belong to the chat are silently skipped by the method, and this is not treated as an error. An unknown or inactive ID, however, stops the whole request: the method responds `404` and lists such values, and nobody is added. A bot is added only by someone its "Who can add the bot to chats" setting allows — see [Bot settings](/guides/bots/settings#kto-mozhet-dobavlyat-bota-v-chaty). If `member_ids` contains a bot you are not allowed to add, the method adds nobody and responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. If the same request also has an unknown ID, the response is `404` with both errors. A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel is not added either: the response is `409` with the `single_chat_bot_occupied` code and the IDs of such bots in `value`, and nobody from the request is added. Such a bot can still be added to threads. Adding a whole department at once is more convenient with a tag — [Add tags](/api/members/add-group-tags): then the chat membership is maintained by itself.
 Parameters: id
 Body: { member_ids*, silent }
 
@@ -1004,13 +1033,13 @@ Parameters: id, user_id
 Body: { role* }
 
 ### DELETE /api/shared/v1/chats/{id}/members/{user_id}
-Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its `chat_id`: this can be done by the Creator or an Admin of the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators added to the thread. In a private conversation the removed member loses access to the chat but stays in the threads they belonged to. An employee held in the chat by a linked tag cannot be removed with this method: the response will be successful, but the employee will stay in the chat. Take the tag off them with [Edit employee](/api/users/update) or unlink the tag from the chat with the [Remove tag from chat](/api/members/remove-group-tag) method. The chat owner cannot be removed: the method responds `400` with the `cannot_kick_owner` code. The owner can leave a conversation or a channel only on their own, with the [Leave chat](/api/members/leave) method, and the creator of an unattached thread stays in it.
+Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its `chat_id`: this can be done by the Creator or an Admin of the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators who were added to the thread through the "Add members" window in the Pachca app, not by a mention. In a private conversation the removed member loses access to the chat but stays in the threads they belonged to. An employee held in the chat by a linked tag cannot be removed with this method: the response will be successful, but the employee will stay in the chat. Take the tag off them with [Edit employee](/api/users/update) or unlink the tag from the chat with the [Remove tag from chat](/api/members/remove-group-tag) method. The chat owner cannot be removed: the method responds `400` with the `cannot_kick_owner` code. The owner can leave a conversation or a channel only on their own, with the [Leave chat](/api/members/leave) method, and the creator of an unattached thread stays in it.
 Parameters: id, user_id
 
 ## Threads
 
 ### POST /api/shared/v1/messages/{id}/thread
-Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. If a topic rather than a message needs discussing, start a thread with the [New unattached thread](/api/threads/create) method. A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either. An empty thread holds no talk yet: send the first message into it right away with the [New message](/api/messages/create) method, `entity_type: "thread"` and the thread's `id` from the response. A thread has no name, and it cannot be deleted either through the API or in the app. If a thread has already been created for the message, the response will return information about the previously created thread. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.
+Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. If a topic rather than a message needs discussing, start a thread with the [New unattached thread](/api/threads/create) method. A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either. An empty thread holds no talk yet: send the first message into it right away with the [New message](/api/messages/create) method, `entity_type: "thread"` and the thread's `id` from the response. A thread has no name, and it cannot be deleted either through the API or in the app. If a thread has already been created for the message, the response will return information about the previously created thread. Only a member of the chat starts a new thread: to someone who sees an open conversation or channel without belonging to it, the method responds `403`, while an existing thread is returned. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.
 Parameters: id
 
 ### GET /api/shared/v1/threads
@@ -1018,7 +1047,7 @@ Threads available to the token owner. Returns threads where you belong either to
 Parameters: last_message_at_after?, last_message_at_before?, limit?, cursor?
 
 ### POST /api/shared/v1/threads
-Creates a thread that is not linked to anything: a place to talk, a dialogue with an agent, or a call that needs no chat of its own. Any employees can be gathered in it. The thread creator becomes its only member and its owner: they can remove members and delete other people's messages in the thread, and they cannot be removed themselves. In older unattached threads the creator is an ordinary member: whether a thread has an owner is shown by [List chat members](/api/members/list) with `role=owner`. The `message_id` and `message_chat_id` fields in the response are returned as `null`. The easiest way to add members to the thread is a mention: `@nickname` or `@tag` at the start or the end of the message text. The [Add chat members](/api/members/add) method by the `chat_id` of the thread works too. A thread has no name, so send the first message into it right away — that is how employees will understand what it is about. It is addressed by the thread's `id` with `entity_type: "thread"`. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a thread under it with the [New thread](/api/threads/add) method, and if a permanent place with a name is needed, use the [New chat](/api/chats/create) method.
+Creates a thread that is not linked to anything: a place to talk, a dialogue with an agent, or a call that needs no chat of its own. Any employees can be gathered in it. The thread creator becomes its only member and its owner: they can remove members and delete other people's messages in the thread, and they cannot be removed themselves. In older unattached threads the creator is an ordinary member: whether a thread has an owner is shown by [List chat members](/api/members/list) with `role=owner`. The `message_id` and `message_chat_id` fields in the response are returned as `null`. Members are added by the [Add chat members](/api/members/add) method by the `chat_id` of the thread. It sends no notification, so mention the people you added in the first message. A `@nickname` or `@tag` mention in a thread message adds members too, but only while the workspace setting "Use cross-chat threads" is on (the default), and its value cannot be read through the API. A thread has no name, so send the first message into it right away — that is how employees will understand what it is about. It is addressed by the thread's `id` with `entity_type: "thread"`. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a thread under it with the [New thread](/api/threads/add) method, and if a permanent place with a name is needed, use the [New chat](/api/chats/create) method.
 
 ### GET /api/shared/v1/threads/{id}
 The identifiers of the thread and of the message it hangs under. The thread's `id` is used to write to it with the [New message](/api/messages/create) method with `entity_type: "thread"`, and its `chat_id` to read its messages. For a standalone thread `message_id` and `message_chat_id` come back as `null`. The response carries identifiers only: a thread has no name and no message counter, and what it is about can be seen from the messages inside. The messages of a thread are read with the [List chat messages](/api/messages/list) method, and its members with the [List chat members](/api/members/list) method, both by the `chat_id` of the thread. Access to a thread is broader than the results of [List threads](/api/threads/list): a thread that opens by `id` may well not appear in the list. In a web app link, `thread_message_id` is the ID of the message the thread hangs under. The thread itself is in the `thread` field of that message, and the message is returned by [Message info](/api/messages/get).
@@ -1039,12 +1068,12 @@ The message together with its author, attachments, and buttons. A deleted messag
 Parameters: id
 
 ### PUT /api/shared/v1/messages/{id}
-Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark. The text follows the same formatting rules as in the [New message](/api/messages/create) method. You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. There are no restrictions on how long ago the message was sent. Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.
+Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the [List users who read the message](/api/read-member/list-readers) method. The text follows the same formatting rules as in the [New message](/api/messages/create) method. You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. There are no restrictions on how long ago the message was sent. Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.
 Parameters: id
 Body: { message: { content, files, buttons, display_avatar_url, display_name } }
 
 ### DELETE /api/shared/v1/messages/{id}
-Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators added to the thread. There are no time restrictions on message deletion. The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a "Message deleted" note stays in place of the message in the chat. The thread created under this message stays, together with all the messages inside it. For a message that is already deleted the method responds `403`, and whether it is deleted is shown by the `deleted_at` field in the response of [Message info](/api/messages/get).
+Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators who were added to the thread through the "Add members" window in the Pachca app, not by a mention. There are no time restrictions on message deletion. The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a "Message deleted" note stays in place of the message in the chat. The thread created under this message stays, together with all the messages inside it. For a message that is already deleted the method responds `403`, and whether it is deleted is shown by the `deleted_at` field in the response of [Message info](/api/messages/get).
 Parameters: id
 
 ### POST /api/shared/v1/messages/{id}/link_previews
@@ -1063,7 +1092,7 @@ Parameters: id
 ## Read members
 
 ### GET /api/shared/v1/messages/{id}/read_member_ids
-Which of the chat members have read the feed up to this message. A flat array of IDs is returned. The caller themselves and the author of the message will never be in the list — only the other members are counted. For a message in a thread these are the members of the thread, not of the parent chat. The method does not return names. They are fetched with the [Employee info](/api/users/get) method for each ID.
+Which of the chat members have read the feed up to this message. A flat array of IDs is returned. The caller themselves and the author of the message will never be in the list — only the other members are counted. For a message in a thread these are the members of the thread, not of the parent chat. The method does not return names. They are fetched with the [Employee info](/api/users/get) method for each ID. The method helps decide whether to fix your message or write a new one. [Edit message](/api/messages/update) notifies nobody: while the addressees have not read the message, it is simpler to fix it, and a message they have read is better followed up with a reply. If the original must stay right, edit it and reply briefly with what you changed. Check right before the edit, once the new text is ready: the message can be read while you write.
 Parameters: id, limit?, cursor?
 
 ## Reactions
@@ -1112,24 +1141,24 @@ Parameters: query?, limit?, cursor?, sort?, order?, created_from?, created_to?, 
 ## Tasks
 
 ### GET /api/shared/v1/tasks
-The tasks available to the token owner. Without the `chat_ids` parameter all tasks of the active chats you are a member of are returned, other employees' tasks included, plus tasks with no chat that you created or that are assigned to you. The tasks you are an assignee of are picked by the `performer_ids` filter with your ID. The `chat_ids` parameter changes the selection — all tasks of the listed chats are returned.
+The reminders available to the token owner. Without the `chat_ids` parameter all reminders of the active chats you are a member of are returned, other employees' reminders included, plus reminders with no chat that you created or that are assigned to you. The reminders you are an assignee of are picked by the `performer_ids` filter with your ID. The `chat_ids` parameter changes the selection — all reminders of the listed chats are returned.
 Parameters: status?, chat_ids?, performer_ids?, author_id?, limit?, cursor?
 
 ### POST /api/shared/v1/tasks
-Creates a task and assigns the employees responsible for it. Specifying the task type is required when creating a task: call, meeting, simple reminder, event, or email. A description is not required — without it the task takes the name of its type as the text. If a description is passed, it is what becomes the task's text. A task must have assignees; if none are specified, you are assigned as the responsible one. Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the [List employees](/api/users/list) method. If no user exists with an ID from `performer_ids`, the method responds `404`. If the caller cannot see the employee, the response is `403`: this happens with an employee of another workspace, a suspended or a deleted one, and for a guest with anyone they share no chat with. In both cases the task is not created. A task can be linked with the `chat_id` field to a conversation or to a direct chat, the chat with yourself included. Then, besides the author and the assignees, the members of that chat see it. Whoever links it must belong to that chat. Tasks are not created in a channel, in a thread, or in an archived chat. Handing a task to somebody else means changing the assignee with [Edit task](/api/tasks/update). A task with a due date also appears as an event in a calendar connected to the workspace or to the token owner's profile. The assignees are invited to that event as attendees. Their own connected calendars do not create the event.
+Creates a reminder and assigns the employees responsible for it. Specifying the reminder type is required when creating a reminder: call, meeting, simple reminder, event, or email. A description is not required — without it the reminder takes the name of its type as the text. If a description is passed, it is what becomes the reminder's text. A reminder must have assignees; if none are specified, you are assigned as the responsible one. Any workspace employee can be assigned to a reminder that is not linked to any entity. You can get the current employee list using the [List employees](/api/users/list) method. If no user exists with an ID from `performer_ids`, the method responds `404`. If the caller cannot see the employee, the response is `403`: this happens with an employee of another workspace, a suspended or a deleted one, and for a guest with anyone they share no chat with. In both cases the reminder is not created. A reminder can be linked with the `chat_id` field to a conversation or to a direct chat, the chat with yourself included. Then, besides the author and the assignees, the members of that chat see it. Whoever links it must belong to that chat. Reminders are not created in a channel, in a thread, or in an archived chat. Handing a reminder to somebody else means changing the assignee with [Edit reminder](/api/tasks/update). A reminder with a due date also appears as an event in a calendar connected to the workspace or to the token owner's profile. The assignees are invited to that event as attendees. Their own connected calendars do not create the event.
 Body: { task: { kind*, content, due_at, priority, performer_ids, chat_id, all_day, custom_properties } }
 
 ### GET /api/shared/v1/tasks/{id}
-The task together with its author, assignees, and the chat it is linked to. A task is seen by its author, its assignees, and everyone who can access its chat. The rule is the same as for the `chat_ids` filter of [List tasks](/api/tasks/list): the chat members, and in open conversations and channels — any employee of the workspace. Access to the chat is enough only to read the task: it can be changed and deleted only by the author or one of the assignees.
+The reminder together with its author, assignees, and the chat it is linked to. A reminder is seen by its author, its assignees, and everyone who can access its chat. The rule is the same as for the `chat_ids` filter of [List reminders](/api/tasks/list): the chat members, and in open conversations and channels — any employee of the workspace. Access to the chat is enough only to read the reminder: it can be changed and deleted only by the author or one of the assignees.
 Parameters: id
 
 ### PUT /api/shared/v1/tasks/{id}
-Changes a task: only the fields you pass are overwritten. Handing a task over to another employee is an edit too. `performer_ids` replaces the whole list of assignees: read the current list with [Task info](/api/tasks/get) and pass everyone who stays together with the new assignee. A completed task is closed with this same method: `status: "done"` ticks it off and keeps it in the list, `status: "undone"` puts it back to work. Available to the author and the assignees. A member of the chat where the task hangs sees it but cannot change it. The link to a chat cannot be changed: to move a task to another chat, delete it and create it again with the `chat_id` you need.
+Changes a reminder: only the fields you pass are overwritten. Handing a reminder over to another employee is an edit too. `performer_ids` replaces the whole list of assignees: read the current list with [Reminder info](/api/tasks/get) and pass everyone who stays together with the new assignee. A completed reminder is closed with this same method: `status: "done"` ticks it off and keeps it in the list, `status: "undone"` puts it back to work. Available to the author and the assignees. A member of the chat where the reminder hangs sees it but cannot change it. The link to a chat cannot be changed: to move a reminder to another chat, delete it and create it again with the `chat_id` you need.
 Parameters: id
 Body: { task: { kind, content, due_at, priority, performer_ids, status, all_day, done_at, custom_properties } }
 
 ### DELETE /api/shared/v1/tasks/{id}
-Removes a task for good: it cannot be restored, and it disappears for the assignees as well. If the task went into a connected calendar, the event is deleted there too when the task is deleted by its author. When an assignee deletes it, the event can stay in the author's calendar. Available to the author and the assignees. A repeated call responds `404`. A completed task can be closed while keeping it in the list with [Edit task](/api/tasks/update) and `status: "done"`.
+Removes a reminder for good: it cannot be restored, and it disappears for the assignees as well. If the reminder went into a connected calendar, the event is deleted there too when the reminder is deleted by its author. When an assignee deletes it, the event can stay in the author's calendar. Available to the author and the assignees. A repeated call responds `404`. A completed reminder can be closed while keeping it in the list with [Edit reminder](/api/tasks/update) and `status: "done"`.
 Parameters: id
 
 ## Drafts
@@ -1248,7 +1277,7 @@ The bot's event history: the same thing that goes to the outgoing webhook, but f
 Parameters: limit?, cursor?
 
 ### GET /api/shared/v1/webhooks/events/stream
-A link by which the bot's events arrive as they happen, in the Server-Sent Events format. These are the same events that land in the [Event history](/api/bots/list-events). The stream suits a bot that does not receive webhooks at its own address but has to answer quickly, for example to a button click or a form submission. The stream works only when the "Save event history" option is enabled in the bot settings. If the option is off or the stream is unavailable, the method responds `404` without a body. The method works only with a bot token. The link is opened without a token, for example with `EventSource` or `curl -N`: the link itself grants access, so keep it secret. Each event comes as a history record with the `id`, `event_type`, `payload` and `created_at` fields, and the service messages of the connection are told apart by the `type` field. The link works until `expires_at`, and then the stream stops sending events without closing the connection. Get a new link within the last five minutes before `expires_at`: an earlier request returns the same link. Not to miss anything, after connecting wait for the subscription to be confirmed and only then read the [Event history](/api/bots/list-events), and do the same after every reconnection and change of link. Delivery to the stream is not guaranteed: keep deleting processed events with the [Delete history event](/api/bots/remove-event) method, and drop repeats by `id`. If the bot has a webhook address, a repeated delivery to it comes to the stream once more with a new `id`: such repeats are dropped by a key from `payload`, as in [Idempotent processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in [Polling](/guides/webhook/polling).
+A link by which the bot's events arrive as they happen, in the Server-Sent Events format. These are the same events that land in the [Event history](/api/bots/list-events). The stream suits a bot that does not receive webhooks at its own address but has to answer quickly, for example to a button click or a form submission. The stream works only when the "Save event history" option is enabled in the bot settings. If the option is off or the stream is unavailable, the method responds `404` without a body. The method works only with a bot token. The link is opened without a token, for example with `EventSource` or `curl -N`: the link itself grants access, so keep it secret. Each event comes as an unnamed SSE message carrying a history record with the `id`, `event_type`, `payload` and `created_at` fields. Service messages come as named SSE events and are told apart by the `type` field: `confirm_subscription` confirms the subscription, and `disconnect` reports that the server has closed the connection. The link works for one to two hours, until `expires_at`. At that moment the server sends `disconnect` over it and closes the connection, and after it `EventSource` does not reconnect by itself. A request within the same UTC hour returns the same link, and a request in the last hour before `expires_at` gives a new one. Change the link about five minutes before `expires_at`: connect with the new one while the old one still works, and close the old connection once the new one confirms the subscription. If `disconnect` does arrive, get a new link and connect again. Not to miss anything, after every connection, including a reconnection and a change of link, wait for the subscription to be confirmed and only then read the [Event history](/api/bots/list-events). Delivery to the stream is not guaranteed: still delete processed events with the [Delete history event](/api/bots/remove-event) method, and drop repeats by `id`. If the bot has a webhook address, a repeated delivery to it comes to the stream once more with a new `id`: such repeats are dropped by a key from `payload`, as in [Idempotent processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in [Real-time events](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
 
 ### DELETE /api/shared/v1/webhooks/events/{id}
 Removes an event from the bot's event history. When working through the history, delete an event right after processing it: the history does not clear itself, and everything left in it comes again on a repeat request. The method works only with the token of the bot the event belongs to.
@@ -1263,7 +1292,7 @@ Parameters: start_time?, end_time?, event_key?, actor_id?, actor_type?, entity_i
 ## Custom Properties
 
 ### GET /api/shared/v1/custom_properties
-The schema of the workspace's custom properties: the ID, the name, and the type of each. Only employees and tasks have such properties, their sets are independent, and the `entity_type` parameter picks the one you need. The values come with the entity itself — in the employee's profile or in the task. The IDs from here are needed in order to set those values. Properties of the "File" and "Multiple choice" types are not available through the API and do not make it into the results. The basic profile fields — name, phone, email, department, tags — do not either: these are not custom properties. The set of properties is defined by the workspace administrator, who also renames and deletes them. That is why the list is worth re-reading before work: addressing a property that no longer exists returns an error.
+The schema of the workspace's custom properties: the ID, the name, and the type of each. Only employees and reminders have such properties, their sets are independent, and the `entity_type` parameter picks the one you need. The values come with the entity itself — in the employee's profile or in the reminder. The IDs from here are needed in order to set those values. Properties of the "File" and "Multiple choice" types are not available through the API and do not make it into the results. The basic profile fields — name, phone, email, department, tags — do not either: these are not custom properties. The set of properties is defined by the workspace administrator, who also renames and deletes them. That is why the list is worth re-reading before work: addressing a property that no longer exists returns an error.
 Parameters: entity_type
 
 ## Files

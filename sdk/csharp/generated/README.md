@@ -13,7 +13,7 @@ dotnet add package Pachca.Sdk
 ```csharp
 using Pachca.Sdk;
 
-var client = new PachcaClient("YOUR_TOKEN");
+using var client = new PachcaClient("YOUR_TOKEN");
 
 // Отправка сообщения
 var message = await client.Messages.CreateMessageAsync(new MessageCreateRequest
@@ -28,35 +28,35 @@ var message = await client.Messages.CreateMessageAsync(new MessageCreateRequest
 // Получение сообщения
 var fetched = await client.Messages.GetMessageAsync(message.Id);
 
-// Список пользователей
-var users = await client.Users.ListUsersAsync();
+// Реакция
+await client.Reactions.AddReactionAsync(message.Id, new ReactionRequest { Code = "👀" });
+
+// Страница сообщений чата и курсор следующей страницы
+var page = await client.Messages.ListChatMessagesAsync(chatId: chatId);
+Console.WriteLine(page.Meta.Paginate.NextPage);
 ```
 
 ## Конвенции
 
-- **Вход**: path-параметры и body-поля передаются как аргументы метода или объект-запрос.
+- **Вход**: path-параметры передаются аргументами метода. Тело из одного обязательного поля, например роль участника чата, тоже разворачивается в аргумент. Остальные тела передаются одним объектом-запросом, query-параметры — именованными аргументами.
 - **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую. Если рядом с `data` есть `meta` (списки и метод `Новый чат`), SDK возвращает ответ целиком: `data` и `meta`.
+- **Значение null**: необязательное поле, которое не задано, в запрос не попадает. Чтобы отправить `null` там, где API его принимает (например, `null` в `webhook.kind` удаляет входящий вебхук бота), назовите свойство в `NullFields` модели запроса так, как оно называется в C#: `new BotUpdateRequestWebhook { NullFields = [nameof(BotUpdateRequestWebhook.Kind)] }`.
 
 ```csharp
-// Реакция на сообщение
-await client.Reactions.AddReactionAsync(messageId, new ReactionRequest { Code = "👍" });
-
-// Закрепление сообщения
+// Тело из одного поля → аргумент
+await client.Members.UpdateMemberRoleAsync(chatId, userId, ChatMemberRole.Admin);
 await client.Messages.PinMessageAsync(messageId);
 
-// Создание сообщения (объект-запрос)
-await client.Messages.CreateMessageAsync(new MessageCreateRequest
-{
-    Message = new MessageCreateRequestMessage { EntityId = 123, Content = "..." }
-});
+// Тело из нескольких полей → объект-запрос
+await client.Reactions.AddReactionAsync(messageId, new ReactionRequest { Code = "👍" });
 
 // Ответ: API возвращает { "data": Message }, SDK возвращает Message
-var message = await client.Messages.CreateMessageAsync(...); // Message, не MessageDataWrapper
+var message = await client.Messages.GetMessageAsync(messageId); // Message, не { "data": Message }
 ```
 
 ## Пагинация
 
-Для эндпоинтов с курсорной пагинацией SDK генерирует `*AllAsync`-методы, которые автоматически обходят все страницы:
+Для методов с курсорной пагинацией SDK генерирует `*AllAsync`-методы, которые автоматически обходят все страницы:
 
 ```csharp
 // Вручную
@@ -74,11 +74,11 @@ while (true)
 var allChats = await client.Chats.ListChatsAllAsync();
 ```
 
-Доступные методы: `ListChatsAllAsync`, `ListUsersAllAsync`, `ListTasksAllAsync`, `ListTagsAllAsync`, `ListMembersAllAsync`, `ListChatMessagesAllAsync`, `ListReactionsAllAsync`, `SearchChatsAllAsync`, `SearchMessagesAllAsync`, `SearchUsersAllAsync` и др.
+Метод `*AllAsync` есть у каждого метода с пагинацией, полный список — на странице [C# SDK](https://dev.pachca.com/guides/sdk/csharp#avtopaginatsiya).
 
 ## Повторные запросы
 
-SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток). Ошибки сервера `5xx` повторяются только у запросов GET, PUT и DELETE: запрос POST сервер мог успеть выполнить, и повтор создал бы дубль. Ответ `504` с кодом `timeout` (поиск не уложился по времени) не повторяется: тот же запрос, скорее всего, снова не уложится, и его стоит сузить.
+SDK повторяет запросы сам. Паузы между попытками описаны на странице [C# SDK](https://dev.pachca.com/guides/sdk/csharp#povtornye-zaprosy), общие правила повторов — в разделе [Повторные запросы](https://dev.pachca.com/api/limits#povtornye-zaprosy-retry).
 
 ## Свой HTTP-клиент
 
@@ -102,18 +102,47 @@ var client = new PachcaClient(PachcaConstants.PachcaApiUrl, http);
 
 ## Загрузка файлов
 
-Загрузка файла — трёхшаговый процесс:
+Загрузка файла идёт в три шага: параметры загрузки, отправка файла по адресу `DirectUrl` и сообщение с ключом файла. Подробнее — в разделе [Загрузка файлов](https://dev.pachca.com/api/file-uploads).
 
 ```csharp
-// 1. Получить параметры загрузки
-var uploadParams = await client.Common.GetUploadParamsAsync();
+var fileName = "report.pdf";
+var fileBytes = await System.IO.File.ReadAllBytesAsync(fileName);
 
-// 2. Загрузить файл на S3
-using var fileStream = File.OpenRead("photo.png");
-await client.Common.UploadFileAsync(uploadParams, fileStream, "photo.png");
+// 1. Получить параметры загрузки и подставить имя файла в ключ
+var uploadParams = await client.Files.GetUploadParamsAsync();
+var key = uploadParams.Key.Replace("${filename}", fileName);
 
-// 3. Прикрепить к сообщению (используя key из uploadParams)
+// 2. Загрузить файл по адресу DirectUrl
+await client.Files.UploadFileAsync(uploadParams.DirectUrl, new FileUploadRequest
+{
+    ContentDisposition = uploadParams.ContentDisposition,
+    Acl = uploadParams.Acl,
+    Policy = uploadParams.Policy,
+    XAmzCredential = uploadParams.XAmzCredential,
+    XAmzAlgorithm = uploadParams.XAmzAlgorithm,
+    XAmzDate = uploadParams.XAmzDate,
+    XAmzSignature = uploadParams.XAmzSignature,
+    Key = key,
+    Bucket = uploadParams.Bucket,
+    File = fileBytes,
+});
+
+// 3. Отправить сообщение с файлом
+await client.Messages.CreateMessageAsync(new MessageCreateRequest
+{
+    Message = new MessageCreateRequestMessage
+    {
+        EntityId = chatId,
+        Content = "Отчёт за неделю",
+        Files = new List<MessageCreateRequestFile>
+        {
+            new() { Key = key, Name = fileName, FileType = FileType.File, Size = fileBytes.Length },
+        },
+    }
+});
 ```
+
+Полный пример: [`../examples/UploadExample.cs`](../examples/UploadExample.cs)
 
 ## Обработка ошибок
 
@@ -156,7 +185,7 @@ using Pachca.Sdk;
 // Мок-сервис
 var mockMessages = new Mock<MessagesService>();
 mockMessages
-    .Setup(m => m.GetMessageAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+    .Setup(m => m.GetMessageAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
     .ReturnsAsync(new Message { Id = 1, Content = "Test message", EntityId = 123 });
 
 // Тест

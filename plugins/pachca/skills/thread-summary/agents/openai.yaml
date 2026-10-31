@@ -1,5 +1,0 @@
-interface:
-  display_name: 'Thread summary'
-  short_description: 'Retell a whole Pachca thread with links'
-policy:
-  allow_implicit_invocation: false

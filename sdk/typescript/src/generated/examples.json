@@ -6,34 +6,34 @@
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "const response = client.security.getAuditEvents({\n  startTime: \"2025-05-01T09:11:00.000Z\",\n  endTime: \"2025-05-02T09:11:00.000Z\",\n  eventKey: AuditEventKey.UserLogin,\n  actorId: \"98765\",\n  actorType: \"User\",\n  entityId: \"98765\",\n  entityType: \"User\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = await client.security.getAuditEvents({\n  startTime: \"2025-05-01T09:11:00.000Z\",\n  endTime: \"2025-05-02T09:11:00.000Z\",\n  eventKey: AuditEventKey.UserLogin,\n  actorId: \"98765\",\n  actorType: \"User\",\n  entityId: \"98765\",\n  entityType: \"User\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "GetAuditEventsResponse({ data: AuditEvent[], meta: PaginationMeta })",
     "imports": [
       "AuditEventKey"
     ]
   },
   "BotOperations_listBots": {
-    "usage": "const response = client.bots.listBots({\n  query: \"задач\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTczODgxNn0\"\n})",
+    "usage": "const response = await client.bots.listBots({\n  query: \"задач\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTczODgxNn0\"\n})",
     "output": "ListBotsResponse({ data: BotResponse[], meta: PaginationMeta })"
   },
   "BotOperations_getBot": {
-    "usage": "const response = client.bots.getBot(1738816)",
+    "usage": "const response = await client.bots.getBot(1738816)",
     "output": "BotResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null, url?: string | null, secretToken?: string, lastRequestBody?: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string })"
   },
   "BotOperations_getBotScopes": {
-    "usage": "const response = client.bots.getBotScopes(1738816)",
+    "usage": "const response = await client.bots.getBotScopes(1738816)",
     "output": "BotScopeCatalog({ scopes: BotScopeCatalogItem({ id: string, title: string, group: string, preset: string[] })[], groups: BotScopeCatalogGroup({ id: string, title: string, description: string })[], presets: BotScopeCatalogPreset({ id: string, title: string })[] })"
   },
   "BotOperations_listBotTokens": {
-    "usage": "const response = client.bots.listBotTokens(1738816, { limit: 1, cursor: \"eyJpZCI6NDgyN30\" })",
+    "usage": "const response = await client.bots.listBotTokens(1738816, { limit: 1, cursor: \"eyJpZCI6NDgyN30\" })",
     "output": "ListBotTokensResponse({ data: BotAccessToken[], meta: PaginationMeta })"
   },
   "CompanyBotOperations_listCompanyBots": {
-    "usage": "const response = client.bots.listCompanyBots({\n  query: \"задач\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTczODgxNn0\"\n})",
+    "usage": "const response = await client.bots.listCompanyBots({\n  query: \"задач\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTczODgxNn0\"\n})",
     "output": "ListCompanyBotsResponse({ data: CompanyBotResponse[], meta: PaginationMeta })"
   },
   "BotOperations_getWebhookEvents": {
-    "usage": "const response = client.bots.getWebhookEvents({ limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
+    "usage": "const response = await client.bots.getWebhookEvents({ limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
     "output": "GetWebhookEventsResponse({ data: WebhookEvent[], meta: PaginationMeta })"
   },
   "BotOperations_getWebhookEvents_pollWebhookEvents": {
@@ -43,58 +43,51 @@
     "usage": "for await (const payload of client.bots.pollWebhookPayloads({ intervalMs: 5_000 })) {\n  console.log(payload)\n}"
   },
   "BotOperations_getWebhookEventsStream": {
-    "usage": "const response = client.bots.getWebhookEventsStream()",
+    "usage": "const response = await client.bots.getWebhookEventsStream()",
     "output": "WebhookEventsStream({ url: string, expiresAt: string })"
   },
   "BotOperations_selfRecreateBotToken": {
-    "usage": "const response = client.bots.selfRecreateBotToken()",
+    "usage": "const response = await client.bots.selfRecreateBotToken()",
     "output": "BotSelfTokenResponse({ id: number, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, webhook: BotSelfWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })"
   },
   "BotOperations_createBot": {
-    "usage": "const request: BotCreateRequest = {\n  empty: false,\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://example.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true,\n    ignoreSelfMessages: false,\n    eventsHistoryEnabled: false,\n    whoCanAdd: BotWhoCanAdd.Creator,\n    canEdit: [BotCanEdit.Admin],\n    singleChat: false,\n    kind: BotWebhookKind.Simple,\n    unfurlDomains: [\"example\"]\n  },\n  oauthClient: {\n    confidential: true,\n    redirectUris: [\"example\"],\n    scopes: [\"example\"]\n  },\n  promo: {\n    description: \"Собирает сводку по задачам Jira и присылает её в чат\",\n    published: true,\n    promoImages: [\"example\"]\n  }\n}\nconst response = client.bots.createBot(request)",
+    "usage": "const request: BotCreateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://example.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"/task\"],\n    scopes: [\"messages:create\"]\n  },\n  oauthClient: {\n    confidential: true,\n    redirectUris: [\"https://example.com/oauth/callback\"],\n    scopes: [\"messages:read\"]\n  }\n}\nconst response = await client.bots.createBot(request)",
     "output": "BotCreateResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null, url?: string | null, secretToken?: string, lastRequestBody?: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string, accessToken?: string })",
     "imports": [
-      "BotCanEdit",
       "BotCreateRequest",
-      "BotCreateRequestWebhook",
       "BotEventName",
       "BotOAuthClientRequest",
-      "BotPromoRequest",
-      "BotTemplateEngine",
-      "BotTriggerOn",
-      "BotWebhookKind",
-      "BotWhoCanAdd"
+      "BotTriggerOn"
     ]
   },
   "BotOperations_recreateBotToken": {
-    "usage": "const response = client.bots.recreateBotToken(1738816)",
+    "usage": "const response = await client.bots.recreateBotToken(1738816)",
     "output": "BotCreateResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null, url?: string | null, secretToken?: string, lastRequestBody?: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string, accessToken?: string })"
   },
   "BotOperations_rotateBotClientSecret": {
-    "usage": "const response = client.bots.rotateBotClientSecret(1738816)",
+    "usage": "const response = await client.bots.rotateBotClientSecret(1738816)",
     "output": "BotResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null, url?: string | null, secretToken?: string, lastRequestBody?: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string })"
   },
   "BotOperations_createBotToken": {
-    "usage": "const request: BotTokenCreateRequest = { name: \"Сервер уведомлений\", scopes: [\"example\"] }\nconst response = client.bots.createBotToken(1738816, request)",
+    "usage": "const request: BotTokenCreateRequest = { name: \"Сервер уведомлений\", scopes: [\"messages:create\"] }\nconst response = await client.bots.createBotToken(1738816, request)",
     "output": "BotAccessToken({ id: number, token: string, name: string | null, userId: number, scopes: string[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null, authorizedAt: string | null })",
     "imports": [
       "BotTokenCreateRequest"
     ]
   },
   "BotOperations_reissueBotToken": {
-    "usage": "const response = client.bots.reissueBotToken(1738816, 4827)",
+    "usage": "const response = await client.bots.reissueBotToken(1738816, 4827)",
     "output": "BotAccessToken({ id: number, token: string, name: string | null, userId: number, scopes: string[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null, authorizedAt: string | null })"
   },
   "BotOperations_selfUpdateBotWebhook": {
-    "usage": "const request: BotWebhookSelfUpdateRequest = { webhook: { outgoingUrl: \"https://example.com/tasks/new\" } }\nconst response = client.bots.selfUpdateBotWebhook(request)",
+    "usage": "const request: BotWebhookSelfUpdateRequest = { webhook: { outgoingUrl: \"https://example.com/tasks/new\" } }\nconst response = await client.bots.selfUpdateBotWebhook(request)",
     "output": "BotSelfResponse({ id: number, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, webhook: BotSelfWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })",
     "imports": [
-      "BotWebhookSelfUpdateRequest",
-      "BotWebhookSelfUpdateRequestWebhook"
+      "BotWebhookSelfUpdateRequest"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "const request: BotUpdateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://example.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true,\n    ignoreSelfMessages: false,\n    eventsHistoryEnabled: false,\n    whoCanAdd: BotWhoCanAdd.Creator,\n    canEdit: [BotCanEdit.Admin],\n    singleChat: false,\n    kind: BotWebhookKind.Simple,\n    unfurlDomains: [\"example\"]\n  },\n  oauthClient: {\n    confidential: true,\n    redirectUris: [\"example\"],\n    scopes: [\"example\"]\n  },\n  promo: {\n    description: \"Собирает сводку по задачам Jira и присылает её в чат\",\n    published: true,\n    promoImages: [\"example\"]\n  }\n}\nconst response = client.bots.updateBot(1738816, request)",
+    "usage": "const request: BotUpdateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://example.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true,\n    ignoreSelfMessages: false,\n    eventsHistoryEnabled: false,\n    whoCanAdd: BotWhoCanAdd.Creator,\n    canEdit: [BotCanEdit.Admin],\n    singleChat: false,\n    kind: BotWebhookKind.Simple,\n    unfurlDomains: [\"example\"]\n  },\n  oauthClient: {\n    confidential: true,\n    redirectUris: [\"example\"],\n    scopes: [\"example\"]\n  },\n  promo: {\n    description: \"Собирает сводку по задачам Jira и присылает её в чат\",\n    published: true,\n    promoImages: [\"example\"]\n  }\n}\nconst response = await client.bots.updateBot(1738816, request)",
     "output": "BotResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null, url?: string | null, secretToken?: string, lastRequestBody?: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string })",
     "imports": [
       "BotCanEdit",
@@ -104,36 +97,35 @@
       "BotTemplateEngine",
       "BotTriggerOn",
       "BotUpdateRequest",
-      "BotUpdateRequestWebhook",
       "BotWebhookKind",
       "BotWhoCanAdd"
     ]
   },
   "BotOperations_updateBotAvatar": {
-    "usage": "const image = new Blob([])\nconst response = client.bots.updateBotAvatar(1738816, image)",
+    "usage": "const image = new Blob([])\nconst response = await client.bots.updateBotAvatar(1738816, image)",
     "output": "AvatarData({ imageUrl: string })"
   },
   "BotOperations_updateBotToken": {
-    "usage": "const request: BotTokenUpdateRequest = { name: \"Сервер уведомлений\", scopes: [\"example\"] }\nconst response = client.bots.updateBotToken(1738816, 4827, request)",
+    "usage": "const request: BotTokenUpdateRequest = { name: \"Сервер уведомлений\", scopes: [\"messages:create\"] }\nconst response = await client.bots.updateBotToken(1738816, 4827, request)",
     "output": "BotAccessToken({ id: number, token: string, name: string | null, userId: number, scopes: string[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null, authorizedAt: string | null })",
     "imports": [
       "BotTokenUpdateRequest"
     ]
   },
   "BotOperations_deleteBot": {
-    "usage": "client.bots.deleteBot(1738816)"
+    "usage": "await client.bots.deleteBot(1738816)"
   },
   "BotOperations_deleteBotAvatar": {
-    "usage": "client.bots.deleteBotAvatar(1738816)"
+    "usage": "await client.bots.deleteBotAvatar(1738816)"
   },
   "BotOperations_deleteBotToken": {
-    "usage": "client.bots.deleteBotToken(1738816, 4827)"
+    "usage": "await client.bots.deleteBotToken(1738816, 4827)"
   },
   "BotOperations_deleteWebhookEvent": {
-    "usage": "client.bots.deleteWebhookEvent(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
+    "usage": "await client.bots.deleteWebhookEvent(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "const response = client.chats.listChats({\n  sort: ChatSortField.Id,\n  order: SortOrder.Desc,\n  availability: ChatAvailability.IsMember,\n  archived: true,\n  lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\",\n  lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\",\n  personal: false,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = await client.chats.listChats({\n  sort: ChatSortField.Id,\n  order: SortOrder.Desc,\n  availability: ChatAvailability.IsMember,\n  archived: true,\n  lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\",\n  lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\",\n  personal: false,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListChatsResponse({ data: Chat[], meta: PaginationMeta })",
     "imports": [
       "ChatAvailability",
@@ -142,119 +134,117 @@
     ]
   },
   "ChatOperations_getChat": {
-    "usage": "const response = client.chats.getChat(334)",
+    "usage": "const response = await client.chats.getChat(334)",
     "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null })"
   },
   "ExportOperations_downloadExport": {
-    "usage": "const response = client.chats.downloadExport(22322)",
+    "usage": "const response = await client.chats.downloadExport(22322)",
     "output": "string"
   },
   "CompanyChatOperations_listCompanyChats": {
-    "usage": "const response = client.chats.listCompanyChats({\n  activity: ChatActivity.Active,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = await client.chats.listCompanyChats({\n  activity: ChatActivity.Active,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListCompanyChatsResponse({ data: Chat[], meta: PaginationMeta })",
     "imports": [
       "ChatActivity"
     ]
   },
   "ChatOperations_createChat": {
-    "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"🤿 aqua\",\n    memberIds: [123],\n    groupTagIds: [123],\n    channel: true,\n    public: false\n  }\n}\nconst response = client.chats.createChat(request)",
+    "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"🤿 aqua\",\n    memberIds: [123],\n    groupTagIds: [123],\n    channel: true,\n    public: false\n  }\n}\nconst response = await client.chats.createChat(request)",
     "output": "CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[], notFoundGroupTagIds: number[] }) })",
     "imports": [
-      "ChatCreateRequest",
-      "ChatCreateRequestChat"
+      "ChatCreateRequest"
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "const request: ExportRequest = {\n  startAt: \"2025-03-20\",\n  endAt: \"2025-03-20\",\n  webhookUrl: \"https://example.com/webhooks/export\",\n  chatIds: [123],\n  skipChatsFile: false\n}\nconst response = client.chats.requestExport(request)",
+    "usage": "const request: ExportRequest = {\n  startAt: \"2025-03-01\",\n  endAt: \"2025-03-20\",\n  chatIds: [1381521]\n}\nconst response = await client.chats.requestExport(request)",
     "output": "ChatExport({ id: number })",
     "imports": [
       "ExportRequest"
     ]
   },
   "ChatOperations_updateChat": {
-    "usage": "const request: ChatUpdateRequest = { chat: { name: \"Бассейн\", public: true } }\nconst response = client.chats.updateChat(334, request)",
+    "usage": "const request: ChatUpdateRequest = { chat: { name: \"Бассейн\", public: true } }\nconst response = await client.chats.updateChat(334, request)",
     "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null })",
     "imports": [
-      "ChatUpdateRequest",
-      "ChatUpdateRequestChat"
+      "ChatUpdateRequest"
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "client.chats.archiveChat(334)"
+    "usage": "await client.chats.archiveChat(334)"
   },
   "ChatOperations_updateChatAvatar": {
-    "usage": "const image = new Blob([])\nconst response = client.chats.updateChatAvatar(334, image)",
+    "usage": "const image = new Blob([])\nconst response = await client.chats.updateChatAvatar(334, image)",
     "output": "AvatarData({ imageUrl: string })"
   },
   "ChatOperations_unarchiveChat": {
-    "usage": "client.chats.unarchiveChat(334)"
+    "usage": "await client.chats.unarchiveChat(334)"
   },
   "ChatOperations_markChatUnread": {
-    "usage": "const request: MarkChatUnreadRequest = { messageId: 1194275 }\nclient.chats.markChatUnread(334, request)",
+    "usage": "const request: MarkChatUnreadRequest = { messageId: 1194275 }\nawait client.chats.markChatUnread(334, request)",
     "imports": [
       "MarkChatUnreadRequest"
     ]
   },
   "ChatOperations_deleteChatAvatar": {
-    "usage": "client.chats.deleteChatAvatar(334)"
+    "usage": "await client.chats.deleteChatAvatar(334)"
   },
   "ChatMemberOperations_listMembers": {
-    "usage": "const response = client.members.listMembers(334, {\n  role: ChatMemberRoleFilter.All,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = await client.members.listMembers(334, {\n  role: ChatMemberRoleFilter.All,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListMembersResponse({ data: User[], meta: PaginationMeta })",
     "imports": [
       "ChatMemberRoleFilter"
     ]
   },
   "ChatMemberOperations_addTags": {
-    "usage": "const groupTagIds = [123]\nclient.members.addTags(334, groupTagIds)"
+    "usage": "const groupTagIds = [123]\nawait client.members.addTags(334, groupTagIds)"
   },
   "ChatMemberOperations_addMembers": {
-    "usage": "const request: AddMembersRequest = { memberIds: [123], silent: true }\nclient.members.addMembers(334, request)",
+    "usage": "const request: AddMembersRequest = { memberIds: [123], silent: true }\nawait client.members.addMembers(334, request)",
     "imports": [
       "AddMembersRequest"
     ]
   },
   "ChatMemberOperations_updateMemberRole": {
-    "usage": "client.members.updateMemberRole(334, 186, ChatMemberRole.Admin)",
+    "usage": "await client.members.updateMemberRole(334, 186, ChatMemberRole.Admin)",
     "imports": [
       "ChatMemberRole"
     ]
   },
   "ChatMemberOperations_removeTag": {
-    "usage": "client.members.removeTag(334, 86)"
+    "usage": "await client.members.removeTag(334, 86)"
   },
   "ChatMemberOperations_leaveChat": {
-    "usage": "client.members.leaveChat(334)"
+    "usage": "await client.members.leaveChat(334)"
   },
   "ChatMemberOperations_removeMember": {
-    "usage": "client.members.removeMember(334, 186)"
+    "usage": "await client.members.removeMember(334, 186)"
   },
   "CommonOperations_listProperties": {
-    "usage": "const response = client.customProperties.listProperties({ entityType: SearchEntityType.User })",
+    "usage": "const response = await client.customProperties.listProperties({ entityType: SearchEntityType.User })",
     "output": "ListPropertiesResponse({ data: CustomPropertyDefinition[] })",
     "imports": [
       "SearchEntityType"
     ]
   },
   "FileOperations_downloadFile": {
-    "usage": "const response = client.files.downloadFile(3560, { target: FileTarget.Thumb })",
+    "usage": "const response = await client.files.downloadFile(3560, { target: FileTarget.Thumb })",
     "output": "Blob",
     "imports": [
       "FileTarget"
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "const request: FileUploadRequest = {\n  contentDisposition: \"example\",\n  acl: \"example\",\n  policy: \"example\",\n  xAmzCredential: \"example\",\n  xAmzAlgorithm: \"example\",\n  xAmzDate: \"example\",\n  xAmzSignature: \"example\",\n  key: \"example\",\n  bucket: \"example\",\n  file: new Blob([])\n}\nclient.files.uploadFile(\"https://example.com\", request)",
+    "usage": "const request: FileUploadRequest = {\n  contentDisposition: \"example\",\n  acl: \"example\",\n  policy: \"example\",\n  xAmzCredential: \"example\",\n  xAmzAlgorithm: \"example\",\n  xAmzDate: \"example\",\n  xAmzSignature: \"example\",\n  key: \"example\",\n  bucket: \"example\",\n  file: new Blob([])\n}\nawait client.files.uploadFile(\"https://example.com\", request)",
     "imports": [
       "FileUploadRequest"
     ]
   },
   "UploadOperations_getUploadParams": {
-    "usage": "const response = client.files.getUploadParams()",
+    "usage": "const response = await client.files.getUploadParams()",
     "output": "UploadParams({ contentDisposition: string, acl?: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, bucket?: string, directUrl: string })"
   },
   "DraftOperations_listDrafts": {
-    "usage": "const response = client.drafts.listDrafts({\n  type: DraftType.All,\n  entityType: MessageEntityType.Discussion,\n  entityId: 334,\n  limit: 25,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = await client.drafts.listDrafts({\n  type: DraftType.All,\n  entityType: MessageEntityType.Discussion,\n  entityId: 334,\n  limit: 25,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListDraftsResponse({ data: Draft[], meta: PaginationMeta })",
     "imports": [
       "DraftType",
@@ -262,25 +252,19 @@
     ]
   },
   "DraftOperations_getDraft": {
-    "usage": "const response = client.drafts.getDraft(4821)",
+    "usage": "const response = await client.drafts.getDraft(4821)",
     "output": "Draft({ id: number, entityType: MessageEntityType | null, entityId: number | null, chatId: number | null, content: string, parentMessageId: number | null, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, schedule: DraftSchedule({ startDate: string, endDate: string | null, repetition: DraftRepetition({ interval: DraftRepetitionInterval, days?: number[], nthDay?: number | null }) }) | null, nextSendAt: string | null, createdAt: string, updatedAt: string })"
   },
   "DraftOperations_createDraft": {
-    "usage": "const request: DraftCreateRequest = {\n  draft: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Отчёт за неделю: продажи выросли на 10%\",\n    parentMessageId: 196093,\n    files: [{\n      id: 3560,\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    schedule: {\n      startDate: \"2026-09-17T12:00:00.000Z\",\n      endDate: \"2026-12-31T12:00:00.000Z\",\n      repetition: {\n        interval: DraftRepetitionInterval.Weekly,\n        days: [123],\n        nthDay: 2\n      }\n    }\n  }\n}\nconst response = client.drafts.createDraft(request)",
+    "usage": "const request: DraftCreateRequest = {\n  draft: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Отчёт за неделю: продажи выросли на 10%\"\n  }\n}\nconst response = await client.drafts.createDraft(request)",
     "output": "Draft({ id: number, entityType: MessageEntityType | null, entityId: number | null, chatId: number | null, content: string, parentMessageId: number | null, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, schedule: DraftSchedule({ startDate: string, endDate: string | null, repetition: DraftRepetition({ interval: DraftRepetitionInterval, days?: number[], nthDay?: number | null }) }) | null, nextSendAt: string | null, createdAt: string, updatedAt: string })",
     "imports": [
       "DraftCreateRequest",
-      "DraftCreateRequestDraft",
-      "DraftFileRequest",
-      "DraftRepetitionInterval",
-      "DraftRepetitionRequest",
-      "DraftScheduleRequest",
-      "FileType",
       "MessageEntityType"
     ]
   },
   "DraftOperations_updateDraft": {
-    "usage": "const request: DraftUpdateRequest = {\n  draft: {\n    content: \"Отчёт за неделю: продажи выросли на 10%\",\n    parentMessageId: 196093,\n    files: [{\n      id: 3560,\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    schedule: {\n      startDate: \"2026-09-17T12:00:00.000Z\",\n      endDate: \"2026-12-31T12:00:00.000Z\",\n      repetition: {\n        interval: DraftRepetitionInterval.Weekly,\n        days: [123],\n        nthDay: 2\n      }\n    }\n  }\n}\nconst response = client.drafts.updateDraft(4821, request)",
+    "usage": "const request: DraftUpdateRequest = {\n  draft: {\n    content: \"Отчёт за неделю: продажи выросли на 10%\",\n    parentMessageId: 196093,\n    files: [{\n      id: 3560,\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    schedule: {\n      startDate: \"2026-09-17T12:00:00.000Z\",\n      endDate: \"2026-12-31T12:00:00.000Z\",\n      repetition: {\n        interval: DraftRepetitionInterval.Weekly,\n        days: [123],\n        nthDay: 2\n      }\n    }\n  }\n}\nconst response = await client.drafts.updateDraft(4821, request)",
     "output": "Draft({ id: number, entityType: MessageEntityType | null, entityId: number | null, chatId: number | null, content: string, parentMessageId: number | null, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, schedule: DraftSchedule({ startDate: string, endDate: string | null, repetition: DraftRepetition({ interval: DraftRepetitionInterval, days?: number[], nthDay?: number | null }) }) | null, nextSendAt: string | null, createdAt: string, updatedAt: string })",
     "imports": [
       "DraftFileRequest",
@@ -288,56 +272,53 @@
       "DraftRepetitionRequest",
       "DraftScheduleRequest",
       "DraftUpdateRequest",
-      "DraftUpdateRequestDraft",
       "FileType"
     ]
   },
   "DraftOperations_deleteDraft": {
-    "usage": "client.drafts.deleteDraft(4821)"
+    "usage": "await client.drafts.deleteDraft(4821)"
   },
   "GroupTagOperations_listTags": {
-    "usage": "const response = client.groupTags.listTags({\n  names: [\"example\"],\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = await client.groupTags.listTags({\n  names: [\"example\"],\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListTagsResponse({ data: GroupTag[], meta: PaginationMeta })"
   },
   "GroupTagOperations_getTag": {
-    "usage": "const response = client.groupTags.getTag(9111)",
+    "usage": "const response = await client.groupTags.getTag(9111)",
     "output": "GroupTag({ id: number, name: string, usersCount: number })"
   },
   "GroupTagOperations_getTagUsers": {
-    "usage": "const response = client.groupTags.getTagUsers(9111, { limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
+    "usage": "const response = await client.groupTags.getTagUsers(9111, { limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
     "output": "GetTagUsersResponse({ data: User[], meta: PaginationMeta })"
   },
   "GroupTagOperations_createTag": {
-    "usage": "const request: GroupTagRequest = { groupTag: { name: \"Новое название тега\" } }\nconst response = client.groupTags.createTag(request)",
+    "usage": "const request: GroupTagRequest = { groupTag: { name: \"Новое название тега\" } }\nconst response = await client.groupTags.createTag(request)",
     "output": "GroupTag({ id: number, name: string, usersCount: number })",
     "imports": [
-      "GroupTagRequest",
-      "GroupTagRequestGroupTag"
+      "GroupTagRequest"
     ]
   },
   "GroupTagOperations_updateTag": {
-    "usage": "const request: GroupTagRequest = { groupTag: { name: \"Новое название тега\" } }\nconst response = client.groupTags.updateTag(9111, request)",
+    "usage": "const request: GroupTagRequest = { groupTag: { name: \"Новое название тега\" } }\nconst response = await client.groupTags.updateTag(9111, request)",
     "output": "GroupTag({ id: number, name: string, usersCount: number })",
     "imports": [
-      "GroupTagRequest",
-      "GroupTagRequestGroupTag"
+      "GroupTagRequest"
     ]
   },
   "GroupTagOperations_deleteTag": {
-    "usage": "client.groupTags.deleteTag(9111)"
+    "usage": "await client.groupTags.deleteTag(9111)"
   },
   "ImportantMessageOperations_listImportantMessages": {
-    "usage": "const response = client.importantMessages.listImportantMessages({ limit: 25, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
+    "usage": "const response = await client.importantMessages.listImportantMessages({ limit: 25, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
     "output": "ListImportantMessagesResponse({ data: Message[], meta: PaginationMeta })"
   },
   "ImportantMessageOperations_addMessageToImportant": {
-    "usage": "client.importantMessages.addMessageToImportant(194275)"
+    "usage": "await client.importantMessages.addMessageToImportant(194275)"
   },
   "ImportantMessageOperations_removeMessageFromImportant": {
-    "usage": "client.importantMessages.removeMessageFromImportant(194275)"
+    "usage": "await client.importantMessages.removeMessageFromImportant(194275)"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "const response = client.messages.listChatMessages({\n  chatId: 198,\n  sort: MessageSortField.Id,\n  order: SortOrder.Desc,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = await client.messages.listChatMessages({\n  chatId: 198,\n  sort: MessageSortField.Id,\n  order: SortOrder.Desc,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListChatMessagesResponse({ data: Message[], meta: PaginationMeta })",
     "imports": [
       "MessageSortField",
@@ -345,129 +326,134 @@
     ]
   },
   "MessageOperations_getMessage": {
-    "usage": "const response = client.messages.getMessage(194275)",
+    "usage": "const response = await client.messages.getMessage(194275)",
     "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean })"
   },
   "MessageOperations_createMessage": {
-    "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    files: [{\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    buttons: [[{\n      text: \"Подробнее\",\n      url: \"https://example.com/details\",\n      data: \"awesome\"\n    }]],\n    parentMessageId: 194270,\n    displayAvatarUrl: \"https://example.com/avatar.png\",\n    displayName: \"Бот Поддержки\",\n    skipInviteMentions: false\n  },\n  linkPreview: false\n}\nconst response = client.messages.createMessage(request)",
+    "usage": "const request: MessageCreateRequest = { message: { entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\" } }\nconst response = await client.messages.createMessage(request)",
     "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean })",
     "imports": [
-      "Button",
-      "FileType",
-      "MessageCreateRequest",
-      "MessageCreateRequestFile",
-      "MessageCreateRequestMessage",
-      "MessageEntityType"
-    ]
+      "MessageCreateRequest"
+    ],
+    "examples": {
+      "Минимальный запрос": {
+        "usage": "const request: MessageCreateRequest = { message: { entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\" } }\nconst response = await client.messages.createMessage(request)",
+        "imports": [
+          "MessageCreateRequest"
+        ]
+      },
+      "Сообщение с кнопкой": {
+        "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    buttons: [[{ text: \"Подробнее\", url: \"https://example.com/details\" }]]\n  }\n}\nconst response = await client.messages.createMessage(request)",
+        "imports": [
+          "Button",
+          "MessageCreateRequest",
+          "MessageEntityType"
+        ]
+      }
+    }
   },
   "LinkPreviewOperations_unfurl": {
-    "usage": "const request: LinkPreviewsRequest = {\n  linkPreviews: { key: {\n    title: \"Статья: Отправка файлов\",\n    description: \"Пример отправки файлов на удаленный сервер\",\n    imageUrl: \"https://example.com/img/landing.png\",\n    image: {\n      key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n      name: \"files-to-server.jpg\",\n      size: 695604\n    }\n  } }\n}\nclient.messages.unfurl(194275, request)",
+    "usage": "const request: LinkPreviewsRequest = {\n  linkPreviews: { key: {\n    title: \"Статья: Отправка файлов\",\n    description: \"Пример отправки файлов на удаленный сервер\",\n    imageUrl: \"https://example.com/img/landing.png\",\n    image: {\n      key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n      name: \"files-to-server.jpg\",\n      size: 695604\n    }\n  } }\n}\nawait client.messages.unfurl(194275, request)",
     "imports": [
       "LinkPreview",
-      "LinkPreviewImage",
       "LinkPreviewsRequest"
     ]
   },
   "MessageOperations_pinMessage": {
-    "usage": "client.messages.pinMessage(194275)"
+    "usage": "await client.messages.pinMessage(194275)"
   },
   "MessageOperations_updateMessage": {
-    "usage": "const request: MessageUpdateRequest = {\n  message: {\n    content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n    files: [{\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    buttons: [[{\n      text: \"Подробнее\",\n      url: \"https://example.com/details\",\n      data: \"awesome\"\n    }]],\n    displayAvatarUrl: \"https://example.com/avatar.png\",\n    displayName: \"Бот Поддержки\"\n  }\n}\nconst response = client.messages.updateMessage(194275, request)",
+    "usage": "const request: MessageUpdateRequest = { message: { content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\", buttons: [[{ text: \"Подробнее\", url: \"https://example.com/details\" }]] } }\nconst response = await client.messages.updateMessage(194275, request)",
     "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean })",
     "imports": [
       "Button",
-      "FileType",
-      "MessageUpdateRequest",
-      "MessageUpdateRequestFile",
-      "MessageUpdateRequestMessage"
+      "MessageUpdateRequest"
     ]
   },
   "MessageOperations_deleteMessage": {
-    "usage": "client.messages.deleteMessage(194275)"
+    "usage": "await client.messages.deleteMessage(194275)"
   },
   "MessageOperations_unpinMessage": {
-    "usage": "client.messages.unpinMessage(194275)"
+    "usage": "await client.messages.unpinMessage(194275)"
   },
   "ReactionOperations_listReactions": {
-    "usage": "const response = client.reactions.listReactions(194275, { limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
+    "usage": "const response = await client.reactions.listReactions(194275, { limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
     "output": "ListReactionsResponse({ data: Reaction[], meta: PaginationMeta })"
   },
   "ReactionOperations_addReaction": {
-    "usage": "const request: ReactionRequest = { code: \"👍\", name: \"agent-thinking\" }\nconst response = client.reactions.addReaction(7231942, request)",
+    "usage": "const request: ReactionRequest = { code: \"👍\", name: \"agent-thinking\" }\nconst response = await client.reactions.addReaction(7231942, request)",
     "output": "Reaction({ userId: number, createdAt: string, code: string, name: string })",
     "imports": [
       "ReactionRequest"
     ]
   },
   "ReactionOperations_removeReaction": {
-    "usage": "client.reactions.removeReaction(7231942, { code: \"👍\", name: \"agent-thinking\" })"
+    "usage": "await client.reactions.removeReaction(7231942, { code: \"👍\", name: \"agent-thinking\" })"
   },
   "ReadMemberOperations_listReadMembers": {
-    "usage": "const response = client.readMembers.listReadMembers(194275, { limit: 300, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
+    "usage": "const response = await client.readMembers.listReadMembers(194275, { limit: 300, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
     "output": "unknown"
   },
   "ThreadOperations_listThreads": {
-    "usage": "const response = client.threads.listThreads({\n  lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\",\n  lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = await client.threads.listThreads({\n  lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\",\n  lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListThreadsResponse({ data: Thread[], meta: PaginationMeta })"
   },
   "ThreadOperations_getThread": {
-    "usage": "const response = client.threads.getThread(265142)",
+    "usage": "const response = await client.threads.getThread(265142)",
     "output": "Thread({ id: number, chatId: number, messageId: number | null, messageChatId: number | null, updatedAt: string })"
   },
   "ThreadOperations_createThread": {
-    "usage": "const response = client.threads.createThread(154332686)",
+    "usage": "const response = await client.threads.createThread(154332686)",
     "output": "Thread({ id: number, chatId: number, messageId: number | null, messageChatId: number | null, updatedAt: string })"
   },
   "ThreadOperations_createStandaloneThread": {
-    "usage": "const response = client.threads.createStandaloneThread()",
+    "usage": "const response = await client.threads.createStandaloneThread()",
     "output": "Thread({ id: number, chatId: number, messageId: number | null, messageChatId: number | null, updatedAt: string })"
   },
   "OAuthOperations_getTokenInfo": {
-    "usage": "const response = client.oauth.getTokenInfo()",
+    "usage": "const response = await client.oauth.getTokenInfo()",
     "output": "AccessTokenInfo({ id: number, token: string, name: string | null, userId: number, scopes: OAuthScope[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null, authorizedAt: string | null })"
   },
   "OAuthFlowOperations_revokeToken": {
-    "usage": "const request: OAuthRevokeRequest = {\n  token: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n  tokenTypeHint: OAuthTokenTypeHint.AccessToken,\n  clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n  clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n}\nclient.oauth.revokeToken(request)",
+    "usage": "const request: OAuthRevokeRequest = {\n  token: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n  clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n  clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n}\nawait client.oauth.revokeToken(request)",
     "imports": [
-      "OAuthRevokeRequest",
-      "OAuthTokenTypeHint"
+      "OAuthRevokeRequest"
     ]
   },
   "OAuthFlowOperations_exchangeToken": {
-    "usage": "const request: OAuthTokenRequest = {\n  grantType: \"authorization_code\",\n  code: \"ZmFrZV9hdXRoX2NvZGU\",\n  redirectUri: \"https://bot.example.com/oauth/callback\",\n  clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n  clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\",\n  codeVerifier: \"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"\n}\nconst response = client.oauth.exchangeToken(request)",
+    "usage": "const request: OAuthTokenRequest = {\n  grantType: \"authorization_code\",\n  code: \"ZmFrZV9hdXRoX2NvZGU\",\n  redirectUri: \"https://bot.example.com/oauth/callback\",\n  clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n  clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\",\n  codeVerifier: \"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"\n}\nconst response = await client.oauth.exchangeToken(request)",
     "output": "OAuthToken({ accessToken: string, tokenType: string, refreshToken: string, scope: string, createdAt: number })",
     "imports": [
       "OAuthTokenRequest"
     ]
   },
   "ProfileOperations_getProfile": {
-    "usage": "const response = client.profile.getProfile()",
+    "usage": "const response = await client.profile.getProfile()",
     "output": "User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })"
   },
   "ProfileOperations_getStatus": {
-    "usage": "const response = client.profile.getStatus()",
+    "usage": "const response = await client.profile.getStatus()",
     "output": "UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })"
   },
   "ProfileAvatarOperations_updateProfileAvatar": {
-    "usage": "const image = new Blob([])\nconst response = client.profile.updateProfileAvatar(image)",
+    "usage": "const image = new Blob([])\nconst response = await client.profile.updateProfileAvatar(image)",
     "output": "AvatarData({ imageUrl: string })"
   },
   "ProfileOperations_updateStatus": {
-    "usage": "const request: StatusUpdateRequest = {\n  status: {\n    emoji: \"🎮\",\n    title: \"Очень занят\",\n    expiresAt: \"2024-04-08T10:00:00.000Z\",\n    isAway: true,\n    awayMessage: \"Вернусь после 15:00\"\n  }\n}\nconst response = client.profile.updateStatus(request)",
+    "usage": "const request: StatusUpdateRequest = {\n  status: {\n    emoji: \"🎮\",\n    title: \"Очень занят\",\n    expiresAt: \"2024-04-08T10:00:00.000Z\",\n    isAway: true,\n    awayMessage: \"Вернусь после 15:00\"\n  }\n}\nconst response = await client.profile.updateStatus(request)",
     "output": "UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })",
     "imports": [
-      "StatusUpdateRequest",
-      "StatusUpdateRequestStatus"
+      "StatusUpdateRequest"
     ]
   },
   "ProfileAvatarOperations_deleteProfileAvatar": {
-    "usage": "client.profile.deleteProfileAvatar()"
+    "usage": "await client.profile.deleteProfileAvatar()"
   },
   "ProfileOperations_deleteStatus": {
-    "usage": "client.profile.deleteStatus()"
+    "usage": "await client.profile.deleteStatus()"
   },
   "SearchOperations_searchChats": {
-    "usage": "const response = client.search.searchChats({\n  query: \"Разработка\",\n  limit: 10,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n  order: SortOrder.Desc,\n  createdFrom: \"2025-01-01T00:00:00.000Z\",\n  createdTo: \"2025-02-01T00:00:00.000Z\",\n  active: true,\n  chatSubtype: ChatSubtype.Discussion,\n  personal: false\n})",
+    "usage": "const response = await client.search.searchChats({\n  query: \"Разработка\",\n  limit: 10,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n  order: SortOrder.Desc,\n  createdFrom: \"2025-01-01T00:00:00.000Z\",\n  createdTo: \"2025-02-01T00:00:00.000Z\",\n  active: true,\n  chatSubtype: ChatSubtype.Discussion,\n  personal: false\n})",
     "output": "SearchChatsResponse({ data: Chat[], meta: SearchPaginationMeta })",
     "imports": [
       "ChatSubtype",
@@ -475,7 +461,7 @@
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "const response = client.search.searchMessages({\n  query: \"футболки\",\n  limit: 10,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n  order: SortOrder.Desc,\n  sort: MessageSearchSort.CreatedAt,\n  createdFrom: \"2025-01-01T00:00:00.000Z\",\n  createdTo: \"2025-02-01T00:00:00.000Z\",\n  chatIds: [123],\n  userIds: [123],\n  active: true\n})",
+    "usage": "const response = await client.search.searchMessages({\n  query: \"футболки\",\n  limit: 10,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n  order: SortOrder.Desc,\n  sort: MessageSearchSort.CreatedAt,\n  createdFrom: \"2025-01-01T00:00:00.000Z\",\n  createdTo: \"2025-02-01T00:00:00.000Z\",\n  chatIds: [123],\n  userIds: [123],\n  active: true\n})",
     "output": "SearchMessagesResponse({ data: Message[], meta: SearchPaginationMeta })",
     "imports": [
       "MessageSearchSort",
@@ -483,7 +469,7 @@
     ]
   },
   "SearchOperations_searchUsers": {
-    "usage": "const response = client.search.searchUsers({\n  query: \"Олег\",\n  limit: 10,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n  sort: SearchSortOrder.ByScore,\n  order: SortOrder.Desc,\n  createdFrom: \"2025-01-01T00:00:00.000Z\",\n  createdTo: \"2025-02-01T00:00:00.000Z\",\n  companyRoles: [UserRole.Admin]\n})",
+    "usage": "const response = await client.search.searchUsers({\n  query: \"Олег\",\n  limit: 10,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n  sort: SearchSortOrder.ByScore,\n  order: SortOrder.Desc,\n  createdFrom: \"2025-01-01T00:00:00.000Z\",\n  createdTo: \"2025-02-01T00:00:00.000Z\",\n  companyRoles: [UserRole.Admin]\n})",
     "output": "SearchUsersResponse({ data: User[], meta: SearchPaginationMeta })",
     "imports": [
       "SearchSortOrder",
@@ -492,105 +478,101 @@
     ]
   },
   "TaskOperations_listTasks": {
-    "usage": "const response = client.tasks.listTasks({\n  status: TaskStatus.Undone,\n  chatIds: [123],\n  performerIds: [123],\n  authorId: 12,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = await client.tasks.listTasks({\n  status: TaskStatus.Undone,\n  chatIds: [123],\n  performerIds: [123],\n  authorId: 12,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListTasksResponse({ data: Task[], meta: PaginationMeta })",
     "imports": [
       "TaskStatus"
     ]
   },
   "TaskOperations_getTask": {
-    "usage": "const response = client.tasks.getTask(22283)",
+    "usage": "const response = await client.tasks.getTask(22283)",
     "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[] })"
   },
   "TaskOperations_createTask": {
-    "usage": "const request: TaskCreateRequest = {\n  task: {\n    kind: TaskKind.Reminder,\n    content: \"Забрать со склада 21 заказ\",\n    dueAt: \"2020-06-05T12:00:00.000+03:00\",\n    priority: 2,\n    performerIds: [123],\n    chatId: 456,\n    allDay: false,\n    customProperties: [{ id: 78, value: \"Синий склад\" }]\n  }\n}\nconst response = client.tasks.createTask(request)",
+    "usage": "const request: TaskCreateRequest = {\n  task: {\n    kind: TaskKind.Reminder,\n    content: \"Забрать со склада 21 заказ\",\n    dueAt: \"2020-06-05T12:00:00.000+03:00\",\n    priority: 2,\n    performerIds: [123],\n    chatId: 456,\n    allDay: false,\n    customProperties: [{ id: 78, value: \"Синий склад\" }]\n  }\n}\nconst response = await client.tasks.createTask(request)",
     "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[] })",
     "imports": [
       "TaskCreateRequest",
       "TaskCreateRequestCustomProperty",
-      "TaskCreateRequestTask",
       "TaskKind"
     ]
   },
   "TaskOperations_updateTask": {
-    "usage": "const request: TaskUpdateRequest = {\n  task: {\n    kind: TaskKind.Reminder,\n    content: \"Забрать со склада 21 заказ\",\n    dueAt: \"2020-06-05T12:00:00.000+03:00\",\n    priority: 2,\n    performerIds: [123],\n    status: TaskStatus.Done,\n    allDay: false,\n    doneAt: \"2020-06-05T12:00:00.000Z\",\n    customProperties: [{ id: 78, value: \"Синий склад\" }]\n  }\n}\nconst response = client.tasks.updateTask(22283, request)",
+    "usage": "const request: TaskUpdateRequest = {\n  task: {\n    kind: TaskKind.Reminder,\n    content: \"Забрать со склада 21 заказ\",\n    dueAt: \"2020-06-05T12:00:00.000+03:00\",\n    priority: 2,\n    performerIds: [123],\n    status: TaskStatus.Done,\n    allDay: false,\n    doneAt: \"2020-06-05T12:00:00.000Z\",\n    customProperties: [{ id: 78, value: \"Синий склад\" }]\n  }\n}\nconst response = await client.tasks.updateTask(22283, request)",
     "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[] })",
     "imports": [
       "TaskKind",
       "TaskStatus",
       "TaskUpdateRequest",
-      "TaskUpdateRequestCustomProperty",
-      "TaskUpdateRequestTask"
+      "TaskUpdateRequestCustomProperty"
     ]
   },
   "TaskOperations_deleteTask": {
-    "usage": "client.tasks.deleteTask(22283)"
+    "usage": "await client.tasks.deleteTask(22283)"
   },
   "UserOperations_listUsers": {
-    "usage": "const response = client.users.listUsers({\n  query: \"Олег\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = await client.users.listUsers({\n  query: \"Олег\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListUsersResponse({ data: User[], meta: PaginationMeta })"
   },
   "UserOperations_getUser": {
-    "usage": "const response = client.users.getUser(12)",
+    "usage": "const response = await client.users.getUser(12)",
     "output": "User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })"
   },
   "UserStatusOperations_getUserStatus": {
-    "usage": "const response = client.users.getUserStatus(12)",
+    "usage": "const response = await client.users.getUserStatus(12)",
     "output": "UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })"
   },
   "UserOperations_createUser": {
-    "usage": "const request: UserCreateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegp@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Продукт\",\n    title: \"CIO\",\n    role: UserCreateRole.User,\n    suspended: false,\n    listTags: [\"example\"],\n    chatIds: [123],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  },\n  skipEmailNotify: false\n}\nconst response = client.users.createUser(request)",
+    "usage": "const request: UserCreateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegp@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Продукт\",\n    title: \"CIO\",\n    role: UserCreateRole.User,\n    suspended: false,\n    listTags: [\"example\"],\n    chatIds: [123],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  },\n  skipEmailNotify: false\n}\nconst response = await client.users.createUser(request)",
     "output": "User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
-      "UserCreateRequestUser",
       "UserCreateRole"
     ]
   },
   "UserOperations_updateUser": {
-    "usage": "const request: UserUpdateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegpetrov@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Отдел разработки\",\n    title: \"Старший разработчик\",\n    role: UserRoleInput.User,\n    chatIds: [123],\n    suspended: false,\n    listTags: [\"example\"],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  }\n}\nconst response = client.users.updateUser(12, request)",
+    "usage": "const request: UserUpdateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegpetrov@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Отдел разработки\",\n    title: \"Старший разработчик\",\n    role: UserRoleInput.User,\n    chatIds: [123],\n    suspended: false,\n    listTags: [\"example\"],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  }\n}\nconst response = await client.users.updateUser(12, request)",
     "output": "User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })",
     "imports": [
       "UserRoleInput",
       "UserUpdateRequest",
-      "UserUpdateRequestCustomProperty",
-      "UserUpdateRequestUser"
+      "UserUpdateRequestCustomProperty"
     ]
   },
   "UserAvatarOperations_updateUserAvatar": {
-    "usage": "const image = new Blob([])\nconst response = client.users.updateUserAvatar(12, image)",
+    "usage": "const image = new Blob([])\nconst response = await client.users.updateUserAvatar(12, image)",
     "output": "AvatarData({ imageUrl: string })"
   },
   "UserStatusOperations_updateUserStatus": {
-    "usage": "const request: StatusUpdateRequest = {\n  status: {\n    emoji: \"🎮\",\n    title: \"Очень занят\",\n    expiresAt: \"2024-04-08T10:00:00.000Z\",\n    isAway: true,\n    awayMessage: \"Вернусь после 15:00\"\n  }\n}\nconst response = client.users.updateUserStatus(12, request)",
+    "usage": "const request: StatusUpdateRequest = {\n  status: {\n    emoji: \"🎮\",\n    title: \"Очень занят\",\n    expiresAt: \"2024-04-08T10:00:00.000Z\",\n    isAway: true,\n    awayMessage: \"Вернусь после 15:00\"\n  }\n}\nconst response = await client.users.updateUserStatus(12, request)",
     "output": "UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })",
     "imports": [
-      "StatusUpdateRequest",
-      "StatusUpdateRequestStatus"
+      "StatusUpdateRequest"
     ]
   },
   "UserOperations_deleteUser": {
-    "usage": "client.users.deleteUser(12)"
+    "usage": "await client.users.deleteUser(12)"
   },
   "UserAvatarOperations_deleteUserAvatar": {
-    "usage": "client.users.deleteUserAvatar(12)"
+    "usage": "await client.users.deleteUserAvatar(12)"
   },
   "UserStatusOperations_deleteUserStatus": {
-    "usage": "client.users.deleteUserStatus(12)"
+    "usage": "await client.users.deleteUserStatus(12)"
   },
   "FormOperations_submitViewResponse": {
-    "usage": "const request: SubmitViewResponseRequest = { submitId: \"791a056b-006c-49dd-834b-c633fde52fe8\", errors: { key: \"example\" } }\nconst response = client.views.submitViewResponse(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request)",
+    "usage": "const request: SubmitViewResponseRequest = { submitId: \"791a056b-006c-49dd-834b-c633fde52fe8\", errors: { key: \"example\" } }\nconst response = await client.views.submitViewResponse(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request)",
     "output": "SubmitViewResponseResult({ success: boolean })",
     "imports": [
       "SubmitViewResponseRequest"
     ]
   },
   "FormOperations_openView": {
-    "usage": "const request: OpenViewRequest = {\n  type: \"modal\",\n  triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n  callbackId: \"timeoff_request_form\",\n  view: {\n    title: \"Уведомление об отпуске\",\n    closeText: \"Закрыть\",\n    submitText: \"Отправить заявку\",\n    blocks: [{ type: \"header\", text: \"Основная информация\" }]\n  }\n}\nclient.views.openView(request)",
+    "usage": "const request: OpenViewRequest = {\n  type: \"modal\",\n  triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n  callbackId: \"timeoff_request_form\",\n  view: {\n    title: \"Уведомление об отпуске\",\n    closeText: \"Закрыть\",\n    submitText: \"Отправить заявку\",\n    blocks: [{ type: \"header\", text: \"Основная информация\" }]\n  }\n}\nconst response = await client.views.openView(request)",
+    "output": "OpenViewResult({ success: boolean })",
     "imports": [
       "OpenViewRequest",
-      "OpenViewRequestView",
+      "ViewBlockHeader",
       "ViewBlockUnion"
     ]
   }

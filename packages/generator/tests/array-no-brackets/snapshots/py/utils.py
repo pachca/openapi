@@ -4,14 +4,19 @@ import dataclasses
 import json
 import keyword
 import types
-from dataclasses import asdict, fields
+from dataclasses import fields
 from datetime import datetime
 from enum import Enum
-from typing import Callable, Type, TypeVar, Union, get_args, get_origin, get_type_hints
+from typing import Any, Callable, Type, TypeVar, Union, get_args, get_origin, get_type_hints
 
 import httpx
 
 T = TypeVar("T")
+
+
+def parse_datetime(value: str) -> datetime:
+    """Parse an ISO 8601 time. Before Python 3.11 `fromisoformat` does not accept the `Z` suffix."""
+    return datetime.fromisoformat(value[:-1] + "+00:00" if value.endswith("Z") else value)
 
 
 def _is_dataclass_type(tp: object) -> bool:
@@ -43,22 +48,54 @@ def _declared_keys(member: type) -> set[str]:
     return {f.name[:-1] if f.name.endswith("_") else f.name for f in fields(member)}
 
 
-def _match_union_member(members: list[type], data: dict) -> type:
-    """Pick the union member that best fits a payload with no discriminator.
+def _rank_union_members(members: list[type], data: dict) -> list[type]:
+    """Order the members of a union with no discriminator by how well they fit a payload.
 
     Ranks by: most payload keys recognised, then fewest unrecognised, then
     fewest declared fields (so an empty member only wins an empty payload).
+    A tie keeps the declared order.
     """
     keys = {k.replace("-", "_").lower() for k in data}
-    best = members[0]
-    best_score: tuple[int, int, int] | None = None
-    for member in members:
+
+    def score(member: type) -> tuple[int, int, int]:
         declared = _declared_keys(member)
-        matched = len(keys & declared)
-        score = (-matched, len(keys - declared), len(declared))
-        if best_score is None or score < best_score:
-            best, best_score = member, score
-    return best
+        return (-len(keys & declared), len(keys - declared), len(declared))
+
+    return sorted(members, key=score)
+
+
+def _fits(tp: object, value: object) -> bool:
+    """Whether a JSON value has the shape a field type takes.
+
+    A list fits a list, an object fits a model or a dict, a string fits a string,
+    an enum or a time, a number fits a number and a boolean a boolean. None fits
+    any field. A union member whose field does not fit gives way to the next one.
+    """
+    if value is None or tp is Any:
+        return True
+    origin = get_origin(tp)
+    if origin is Union or origin is types.UnionType:
+        return any(_fits(arg, value) for arg in get_args(tp) if arg is not type(None))
+    if origin is list:
+        args = get_args(tp)
+        return isinstance(value, list) and (not args or all(_fits(args[0], item) for item in value))
+    if origin is dict:
+        return isinstance(value, dict)
+    if not isinstance(tp, type):
+        return True
+    if _is_dataclass_type(tp) or tp is dict:
+        return isinstance(value, dict)
+    if tp is list:
+        return isinstance(value, list)
+    if tp is bool:
+        return isinstance(value, bool)
+    if issubclass(tp, (str, Enum)) or tp is datetime:
+        return isinstance(value, str)
+    if tp is int:
+        return isinstance(value, int) and not isinstance(value, bool)
+    if tp is float:
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return True
 
 
 def _resolve_list_item_type(tp: object) -> object | None:
@@ -77,7 +114,10 @@ def _resolve_list_item_type(tp: object) -> object | None:
 CustomUnionDeserializer = Callable[[dict], object]
 
 
-def _deserialize_instance(tp: object, value: object) -> object:
+def _deserialize_instance(tp: object, value: object, strict: bool = False) -> object:
+    """Decode a JSON value into a field type. With strict, a nested model or a list
+    of models checks its value types too, so a union member gives way to the next
+    one when a value deep inside it has another type."""
     custom = _CUSTOM_UNION_DESERIALIZERS.get(tp)
     if custom is not None and isinstance(value, dict):
         return custom(value)
@@ -92,15 +132,24 @@ def _deserialize_instance(tp: object, value: object) -> object:
                 field_name, by_value = disc
                 chosen = by_value.get(value.get(field_name))
                 if chosen is not None:
-                    return _deserialize_dataclass(chosen, value)
-            return _deserialize_dataclass(_match_union_member(members, value), value)
+                    return _deserialize_dataclass(chosen, value, strict)
+            # The first member that decodes wins: one that fits the keys best but
+            # misses a required field, or holds a value of another type (a list
+            # where it takes an object), gives way to the next.
+            errors: list[Exception] = []
+            for member in _rank_union_members(members, value):
+                try:
+                    return _deserialize_dataclass(member, value, strict=True)
+                except (TypeError, ValueError) as error:
+                    errors.append(error)
+            raise errors[0]
         nested = _resolve_type(tp)
         if nested is not None:
-            return _deserialize_dataclass(nested, value)
+            return _deserialize_dataclass(nested, value, strict)
     if isinstance(value, list):
         item_tp = _resolve_list_item_type(tp)
         if item_tp is not None:
-            return [_deserialize_instance(item_tp, item) for item in value]
+            return [_deserialize_instance(item_tp, item, strict) for item in value]
     if isinstance(value, str):
         raw_tp = tp
         if get_origin(tp) is not None:
@@ -109,7 +158,7 @@ def _deserialize_instance(tp: object, value: object) -> object:
                     raw_tp = arg
                     break
         if raw_tp is datetime:
-            return datetime.fromisoformat(value)
+            return parse_datetime(value)
         if isinstance(raw_tp, type) and issubclass(raw_tp, Enum):
             # An open enum keeps a value it does not list in a member with is_known False;
             # a closed one refuses it, and the raw string is kept as is.
@@ -120,7 +169,10 @@ def _deserialize_instance(tp: object, value: object) -> object:
     return value
 
 
-def _deserialize_dataclass(cls: Type[T], data: dict) -> T:
+def _deserialize_dataclass(cls: Type[T], data: dict, strict: bool = False) -> T:
+    """Build a dataclass from a dict. With strict, a value whose type does not
+    fit its field raises TypeError, here or in a nested model, so a union tries
+    its next member."""
     field_map = {f.name: f for f in fields(cls)}
     hints = get_type_hints(cls)
     norm = {k.replace("-", "_").lower(): v for k, v in data.items()}
@@ -131,7 +183,9 @@ def _deserialize_dataclass(cls: Type[T], data: dict) -> T:
             if k not in field_map:
                 continue
         f = field_map[k]
-        kwargs[k] = _deserialize_instance(hints[f.name], v)
+        if strict and not _fits(hints[f.name], v):
+            raise TypeError(f"{cls.__name__}.{f.name} does not take {type(v).__name__}")
+        kwargs[k] = _deserialize_instance(hints[f.name], v, strict)
     return cls(**kwargs)
 
 _CUSTOM_UNION_DESERIALIZERS: dict[object, CustomUnionDeserializer] = {
@@ -148,22 +202,57 @@ def deserialize(cls: Type[T], data: dict) -> T:
     return _deserialize_instance(cls, data)
 
 
-def _strip_nones(val: object) -> object:
+# Fields of a request model the caller can send as null, by name in null_fields.
+_NULLABLE_FIELDS: dict[type, frozenset[str]] = {
+}
+
+
+def _json_key(name: str) -> str:
+    return name[:-1] if name.endswith("_") and keyword.iskeyword(name[:-1]) else name
+
+
+def _to_json(val: object) -> object:
+    if dataclasses.is_dataclass(val) and not isinstance(val, type):
+        nullable = _NULLABLE_FIELDS.get(type(val))
+        null_fields: frozenset[str] = frozenset()
+        if nullable is not None:
+            names = getattr(val, "null_fields", ())
+            # A single name passed as a string is one field, not its letters.
+            null_fields = frozenset((names,) if isinstance(names, str) else names)
+            unknown = sorted(null_fields - nullable)
+            if unknown:
+                raise ValueError(f"{type(val).__name__}: field {unknown[0]!r} cannot be sent as null")
+        out: dict[str, object] = {}
+        for f in fields(val):
+            if nullable is not None and f.name == "null_fields":
+                continue
+            if f.name in null_fields:
+                out[_json_key(f.name)] = None
+                continue
+            v = getattr(val, f.name)
+            if v is not None:
+                out[_json_key(f.name)] = _to_json(v)
+        return out
     if isinstance(val, dict):
-        return {
-            (k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): _strip_nones(v)
-            for k, v in val.items() if v is not None
-        }
-    if isinstance(val, list):
-        return [_strip_nones(v) for v in val]
+        return {_json_key(k): _to_json(v) for k, v in val.items() if v is not None}
+    if isinstance(val, (list, tuple)):
+        return [_to_json(v) for v in val]
     if isinstance(val, datetime):
         return val.isoformat()
     return val
 
 
 def serialize(obj: object) -> dict:
-    """Convert a dataclass to a dict, recursively omitting None values."""
-    return _strip_nones(asdict(obj))
+    """Convert a dataclass to a dict for the request body.
+
+    A field that is None stays out of the body. A field named in null_fields
+    goes out as null, whatever value it holds, and a name the model does not
+    take as null raises ValueError before the request is sent.
+    """
+    result = _to_json(obj)
+    if not isinstance(result, dict):
+        raise TypeError(f"serialize takes a dataclass, got {type(obj).__name__}")
+    return result
 
 
 _MAX_RETRIES = 3

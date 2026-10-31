@@ -246,8 +246,10 @@
         "check-models",
         "check-commands",
         "check-n8n-resources",
+        "check-sdk-install",
         "check-examples",
         "check-anchors",
+        "check-urls",
         "@pachca/spec#enum:check"
       ],
       "cache": false
@@ -259,6 +261,9 @@
       "cache": true
     },
     "check-n8n-resources": {
+      "cache": false
+    },
+    "check-sdk-install": {
       "cache": false
     },
     "check-commands": {
@@ -336,6 +341,21 @@
       "inputs": [
         "src/**",
         "tests/**"
+      ],
+      "cache": true
+    },
+    "n8n-nodes-pachca#test": {
+      "dependsOn": [
+        "^build",
+        "generate-cli",
+        "generate-n8n"
+      ],
+      "inputs": [
+        "nodes/**",
+        "credentials/**",
+        "tests/**",
+        "vitest.config.mjs",
+        "$TURBO_ROOT$/apps/docs/public/workflows/n8n/**"
       ],
       "cache": true
     },

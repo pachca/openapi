@@ -71,7 +71,7 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболк�
     - `url: string` (required) — Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](/api/files/get): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`. Пример: `"https://files.example.com/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?X-Amz-Expires=604800&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
     - `width: integer, int32` (nullable) — Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1920`
     - `height: integer, int32` (nullable) — Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1080`
-    - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового, аудио- и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
+    - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового сообщения и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
   - `voice_content: object` (required) — Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.
     - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
     - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
@@ -98,6 +98,7 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболк�
   - `total: integer, int32` (required) — Общее количество найденных результатов. Пример: `42`
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`
+    - `has_next: boolean` (required) — Есть ли ещё данные на следующей странице. На последней странице — `false`. Пример: `true`
 
 **Пример ответа:**
 
@@ -162,7 +163,8 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболк�
   "meta": {
     "total": 42,
     "paginate": {
-      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3",
+      "has_next": true
     }
   }
 }

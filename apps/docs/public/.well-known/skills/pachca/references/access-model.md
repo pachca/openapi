@@ -65,7 +65,10 @@ Two workspace settings, changed by the owner or an admin (→ `pachca-admin`):
 Tightening a setting stops new issuing. Access issued before keeps working: bots and their tokens, personal
 tokens, CLI logins and consent grants. With «Только администраторы» in **Кто может создавать интеграции**, a
 creator without the admin role also loses access to the card of their bot, while the bot and its tokens keep
-working. With «Только администраторы» in **Кто может создавать персональные токены**, employees can still
+working. Bot management methods and MCP bot tools (`pachca_list_bots`, `pachca_create_bot` and others) then answer
+`403` to an employee with any of their tokens. There is no separate MCP switch: agent access is governed by the
+same two settings, and while employees may create bots, an agent can be connected with the employee's own bot
+token. With «Только администраторы» in **Кто может создавать персональные токены**, employees can still
 delete their personal tokens but can no longer edit them. To cut old access, revoke it as below.
 
 ## Revoking access

@@ -3,46 +3,68 @@
   "nodes": [
     {
       "parameters": {
-        "events": ["button_pressed"]
+        "event": "button_pressed"
       },
       "name": "Pachca Trigger",
       "type": "n8n-nodes-pachca.pachcaTrigger",
-      "typeVersion": 2,
+      "typeVersion": 1,
       "position": [0, 0]
     },
     {
       "parameters": {
-        "mode": "rules",
         "rules": {
           "values": [
             {
               "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
                 "conditions": [
                   {
+                    "id": "1",
                     "leftValue": "={{ $json.data }}",
                     "rightValue": "approve",
-                    "operator": { "type": "string", "operation": "equals" }
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
                   }
-                ]
+                ],
+                "combinator": "and"
               },
               "renameOutput": true,
               "outputKey": "Одобрено"
             },
             {
               "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
                 "conditions": [
                   {
+                    "id": "2",
                     "leftValue": "={{ $json.data }}",
                     "rightValue": "reject",
-                    "operator": { "type": "string", "operation": "equals" }
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
                   }
-                ]
+                ],
+                "combinator": "and"
               },
               "renameOutput": true,
               "outputKey": "Отклонено"
             }
           ]
-        }
+        },
+        "options": {}
       },
       "name": "Switch",
       "type": "n8n-nodes-base.switch",
@@ -53,8 +75,12 @@
       "parameters": {
         "resource": "message",
         "operation": "update",
-        "messageId": "={{ $('Pachca Trigger').item.json.message_id }}",
-        "content": "Запрос **одобрен**"
+        "id": "={{ $('Pachca Trigger').item.json.message_id }}",
+        "additionalFields": {
+          "content": "Запрос **одобрен**"
+        },
+        "buttonLayout": "raw_json",
+        "rawJsonButtons": "[]"
       },
       "name": "Одобрено",
       "type": "n8n-nodes-pachca.pachca",
@@ -65,8 +91,12 @@
       "parameters": {
         "resource": "message",
         "operation": "update",
-        "messageId": "={{ $('Pachca Trigger').item.json.message_id }}",
-        "content": "Запрос **отклонён**"
+        "id": "={{ $('Pachca Trigger').item.json.message_id }}",
+        "additionalFields": {
+          "content": "Запрос **отклонён**"
+        },
+        "buttonLayout": "raw_json",
+        "rawJsonButtons": "[]"
       },
       "name": "Отклонено",
       "type": "n8n-nodes-pachca.pachca",
@@ -75,14 +105,38 @@
     }
   ],
   "connections": {
-    "Pachca Trigger": { "main": [[{ "node": "Switch", "type": "main", "index": 0 }]] },
+    "Pachca Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Switch": {
       "main": [
-        [{ "node": "Одобрено", "type": "main", "index": 0 }],
-        [{ "node": "Отклонено", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Одобрено",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Отклонено",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "pinData": {}
 }

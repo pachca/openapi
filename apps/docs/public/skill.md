@@ -1,21 +1,11 @@
 ---
 name: pachca
-description: >-
-  Вход в Пачку (Pachca) для агента: подключить агента или MCP-клиента (MCP через браузер или токеном, плагин,
-  CLI), проверить подключение, выбрать токен, разобрать отказ 401/403 инструмента или CLI и отсутствие
-  инструмента (роль, тариф, тип токена, участие в чате). Когда: «подключи Пачку», «настрой MCP Пачки», «войди
-  в Пачку через CLI», «каким токеном подключить агента», «экран входа MCP», «агент получил 403
-  insufficient_scope», «нет инструмента Пачки (экспорт, журнал аудита)», «что умеет Пачка». English: "connect
-  Pachca", "set up Pachca MCP", "Pachca CLI login", "which token for my agent or MCP client", "MCP sign-in
-  screen", "MCP tool or CLI returned 401/403", "a Pachca tool is missing". Not for: writing messages →
-  pachca-messaging, search and summaries → pachca-search, administration, who may create tokens →
-  pachca-admin, building a bot → pachca-bots, an agent living in Pachca → pachca-ai-agent, OAuth for employees
-  → pachca-oauth, a token for a script or service, 401/403 in your own code → pachca-api.
+description: 'Вход в Пачку (Pachca) для агента: подключить агента или MCP-клиента (MCP через браузер или токеном, плагин, CLI), проверить подключение, выбрать токен, разобрать отказ 401/403 инструмента или CLI и отсутствие инструмента (роль, тариф, тип токена, участие в чате). Когда: «подключи Пачку», «настрой MCP Пачки», «войди в Пачку через CLI», «каким токеном подключить агента», «экран входа MCP», «агент получил 403 insufficient_scope», «нет инструмента Пачки (экспорт, журнал аудита)», «что умеет Пачка», "connect Pachca", "set up Pachca MCP", "Pachca CLI login", "which token for my agent or MCP client", "MCP sign-in screen", "MCP tool or CLI returned 401/403", "a Pachca tool is missing". Not for: writing messages → pachca-messaging; search and summaries → pachca-search; administration, who may create tokens → pachca-admin; building a bot → pachca-bots; an agent living in Pachca → pachca-ai-agent; OAuth for employees → pachca-oauth; a token for a script or service, 401/403 in your own code → pachca-api.'
 ---
 
 # Pachca
 
-Pachca is a corporate messenger: a workspace of employees with chats, channels, threads, tasks, tags and bots.
+Pachca is a corporate messenger: a workspace of employees with chats, channels, threads, reminders, tags and bots.
 All of it is reachable through one public API, exposed three ways: the MCP server (a `pachca_*` tool per API
 method), the CLI `@pachca/cli` (a `pachca <section> <action>` command per method) and the REST API. This skill
 gets you connected, explains why something is or is not available, and routes you to the skill for the work.
@@ -96,8 +86,15 @@ the other clients, and installing the skills without the plugin:
 
 Do it right:
 
-- Browser sign-in needs a client that supports OAuth with a Client ID Metadata Document. If sign-in fails or
-  the client asks you to register a client, connect with a personal token in the header instead.
+- Browser sign-in needs a client that supports OAuth with a Client ID Metadata Document. Codex does from
+  0.148.0: an older Codex says `Dynamic client registration not supported`, so ask the person to update it
+  (`codex --version`). If sign-in still fails or the client asks you to register a client, connect with a
+  personal token in the header instead.
+- Do not narrow the scopes of a browser sign-in (`codex mcp login --scopes`, `scopes` in the client's config):
+  the program asks for the scopes and the consent screen only shows them, with no choice. A narrowed
+  connection lists the same tools and refuses the rest with `insufficient_scope`. A missing scope takes a new
+  sign-in without the narrowing; retrying the call does not help. To limit an agent, give it a read-only
+  personal token instead (below).
 - The consent screen has no workspace picker: access goes to the workspace open in the browser. Wrong
   workspace: revoke the connection, switch workspaces in Pachca, connect again.
 - Several workspaces: add the server several times under different names (`pachca-main`, `pachca-partner`),
@@ -155,7 +152,7 @@ shapes, pagination, limits, errors, uploads and SDKs → [`pachca-api`](https://
 | You or your agent on your own machine, an MCP client app               | personal: CLI login, MCP browser sign-in, or a personal token in the header |
 | A script or personal automation acting as you                          | personal, created in the UI                                                 |
 | No employee present: CI, server, cloud worker, chat bot, notifications | bot, with only the scopes it needs                                          |
-| A bot that needs an employee's own data: their tasks, their chats      | by authorization (OAuth) → [`pachca-oauth`](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md)                                   |
+| A bot that needs an employee's own data: their reminders, their chats  | by authorization (OAuth) → [`pachca-oauth`](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md)                                   |
 
 ## Who may connect
 
@@ -202,7 +199,15 @@ Each call passes five checks, and any one can refuse:
 5. **Token kind**: only a bot token has forms, link unfurling, event history, changing its own webhook and
    rotating its own token. Only a personal token has drafts, scheduled messages, «Важное» and bot management.
 
-The MCP server lists only the tools that fit the token's role, plan and kind. A missing tool is the answer,
+The MCP server lists only the tools that fit the token's role, plan and kind. Some programs show only part of
+it. A list of Pachca tools that stops part-way through the alphabet was cut by the program, not by Pachca: in
+Codex a plugin older than 1.0.5 gets only 64 KB of tool descriptions, so update it
+(`codex plugin marketplace upgrade pachca`, then a new session) or add the server by hand with
+`codex mcp add pachca --url https://mcp.pachca.com/mcp`. Codex also hides every MCP tool behind its tool search
+once all servers together have more than 100, and that search can miss a tool asked for among others. VS Code
+folds a server's tools into a group once the chat has 64 tools or more: call the group's `activate_…` tool to
+open it. Before you call a tool missing, search
+for it by its exact name alone, such as `pachca_send_message`. A tool that this search does not find is the answer,
 not a glitch: tell the user which role, plan or token kind the action needs, and do not reach for the same
 result through other tools. Owner privileges, multi-guest limits and role changes:
 [references/access-model.md](https://dev.pachca.com/.well-known/skills/pachca/references/access-model.md).
@@ -262,7 +267,7 @@ result through other tools. Owner privileges, multi-guest limits and role change
 | Task                                                                                             | Skill              |
 | ------------------------------------------------------------------------------------------------ | ------------------ |
 | Write, reply, mention, draft, schedule, send files, reactions, pins, «Важное»                    | [`pachca-messaging`](https://dev.pachca.com/.well-known/skills/pachca-messaging/SKILL.md) |
-| Find messages, chats, people; read a thread; digests; decisions and tasks from a discussion      | [`pachca-search`](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md)    |
+| Find messages, chats, people; read a thread; digests; decisions and reminders from a discussion  | [`pachca-search`](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md)    |
 | Owner or admin: employees, tags, channels, roles, API access, all tokens, audit log, export, DLP | [`pachca-admin`](https://dev.pachca.com/.well-known/skills/pachca-admin/SKILL.md)     |
 | Build a bot or integration: webhooks, events, tokens, scopes, buttons, forms, unfurling          | [`pachca-bots`](https://dev.pachca.com/.well-known/skills/pachca-bots/SKILL.md)      |
 | An AI agent that lives in Pachca as a bot and answers in threads                                 | [`pachca-ai-agent`](https://dev.pachca.com/.well-known/skills/pachca-ai-agent/SKILL.md)  |

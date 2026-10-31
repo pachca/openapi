@@ -1,0 +1,175 @@
+openapi: 3.0.0
+info:
+  title: Test API — Union members that share a key with another type
+  version: 1.0.0
+# Members share the key `scopes` with different types: a list in DetailsToken and
+# DetailsBot, an object in DetailsBotTokenUpdated (like AuditEventDetailsUnion in
+# the real spec). A token record fits DetailsBotTokenUpdated best by keys (fewer
+# declared fields), so only the type of `scopes` sends it on to DetailsToken.
+paths:
+  /events:
+    get:
+      operationId: getEvents
+      summary: Список событий
+      tags:
+        - Events
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+components:
+  schemas:
+    DetailsEmpty:
+      type: object
+      description: Пустые детали.
+
+    DetailsBot:
+      type: object
+      required:
+        - bot_id
+      properties:
+        bot_id:
+          type: integer
+          description: Идентификатор бота.
+        webhook_id:
+          type: integer
+          nullable: true
+          description: Идентификатор вебхука.
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Права токена.
+      description: Детали бота.
+
+    DetailsBotTokenUpdated:
+      type: object
+      required:
+        - token_kind
+        - resource_owner_id
+        - access_token_id
+      properties:
+        token_kind:
+          type: string
+          description: Тип токена.
+        resource_owner_id:
+          type: integer
+          description: Владелец токена.
+        current_scopes:
+          type: array
+          items:
+            type: string
+          description: Права токена после изменения.
+        access_token_id:
+          type: integer
+          description: Идентификатор токена.
+        bot_id:
+          type: integer
+          nullable: true
+          description: Идентификатор бота.
+        webhook_id:
+          type: integer
+          nullable: true
+          description: Идентификатор вебхука.
+        scopes:
+          $ref: '#/components/schemas/ScopesChange'
+      description: Изменение токена бота.
+
+    DetailsToken:
+      type: object
+      required:
+        - token_kind
+        - resource_owner_id
+        - scopes
+        - access_token_id
+      properties:
+        token_kind:
+          type: string
+          description: Тип токена.
+        resource_owner_id:
+          type: integer
+          description: Владелец токена.
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Права токена.
+        access_token_id:
+          type: integer
+          description: Идентификатор токена.
+        bot_id:
+          type: integer
+          nullable: true
+          description: Идентификатор бота.
+        webhook_id:
+          type: integer
+          nullable: true
+          description: Идентификатор вебхука.
+        application_id:
+          type: integer
+          nullable: true
+          description: Идентификатор приложения.
+        device_name:
+          type: string
+          nullable: true
+          description: Название устройства.
+      description: Детали токена.
+
+    ScopesChange:
+      type: object
+      required:
+        - previous
+        - new
+      properties:
+        previous:
+          type: array
+          items:
+            type: string
+          description: Права до изменения.
+        new:
+          type: array
+          items:
+            type: string
+          description: Права после изменения.
+      description: Изменение прав токена.
+
+    EventDetailsUnion:
+      anyOf:
+        - $ref: '#/components/schemas/DetailsEmpty'
+        - $ref: '#/components/schemas/DetailsBot'
+        - $ref: '#/components/schemas/DetailsBotTokenUpdated'
+        - $ref: '#/components/schemas/DetailsToken'
+      description: Детали события. Структура зависит от значения event_key.
+
+    Event:
+      type: object
+      required:
+        - id
+        - event_key
+        - details
+      properties:
+        id:
+          type: integer
+          description: Идентификатор события.
+        event_key:
+          type: string
+          enum:
+            - bot_updated
+            - bot_token_updated
+            - access_token_created
+          description: Тип события.
+        details:
+          allOf:
+            - $ref: '#/components/schemas/EventDetailsUnion'
+          description: Дополнительные детали события.
+      description: Событие журнала аудита.

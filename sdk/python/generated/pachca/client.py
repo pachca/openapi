@@ -132,6 +132,7 @@ from .models import (
     SubmitViewResponseRequest,
     SubmitViewResponseResult,
     OpenViewRequest,
+    OpenViewResult,
 )
 from .utils import deserialize, serialize, RetryTransport
 
@@ -2703,7 +2704,8 @@ class SearchServiceImpl(SearchService):
     ) -> list[Chat]:
         items: list[Chat] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = SearchChatsParams()
             params.cursor = cursor
@@ -2712,6 +2714,8 @@ class SearchServiceImpl(SearchService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def search_messages(
@@ -2757,7 +2761,8 @@ class SearchServiceImpl(SearchService):
     ) -> list[Message]:
         items: list[Message] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = SearchMessagesParams()
             params.cursor = cursor
@@ -2766,6 +2771,8 @@ class SearchServiceImpl(SearchService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def search_users(
@@ -2806,7 +2813,8 @@ class SearchServiceImpl(SearchService):
     ) -> list[User]:
         items: list[User] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = SearchUsersParams()
             params.cursor = cursor
@@ -2815,6 +2823,8 @@ class SearchServiceImpl(SearchService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
 
@@ -3220,7 +3230,7 @@ class ViewsService:
     async def open_view(
         self,
         request: OpenViewRequest,
-    ) -> None:
+    ) -> OpenViewResult:
         raise NotImplementedError("Views.openView is not implemented")
 
 
@@ -3246,14 +3256,14 @@ class ViewsServiceImpl(ViewsService):
     async def open_view(
         self,
         request: OpenViewRequest,
-    ) -> None:
+    ) -> OpenViewResult:
         response = await self._client.post(
             "/views/open",
             json=serialize(request),
         )
         match response.status_code:
             case 201:
-                return
+                return deserialize(OpenViewResult, response.json())
             case _:
                 raise _error_from_response(response)
 

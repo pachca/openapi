@@ -10,10 +10,10 @@ import {
   parseOpenAPI,
 } from './openapi/parser';
 import { generateCurl } from './code-generators/curl';
-import { narrowRequestBody } from './code-generators/utils';
+import { narrowRequestBody, selectRequestExample } from './code-generators/utils';
 import { groupEndpointsByTag, generateUrlFromOperation, generateTitle } from './openapi/mapper';
 import { schemaToMarkdown } from './markdown-generator';
-import { getSdkExampleForLang } from './sdk-examples';
+import { getSdkExampleForLang, getSdkExamples } from './sdk-examples';
 import { API_CLIENTS } from './api-clients';
 import type { Schema } from './openapi/types';
 import { HTTP_CODES } from './schemas/guide-schemas';
@@ -21,6 +21,7 @@ import { getOrderedPages } from './ordered-pages';
 import { generateNavigation, compareEndpointsForNav } from './navigation';
 import { sortTagsByOrder } from './guides-config';
 import { SCOPE_ROLES, SCOPE_ROLE_LABELS } from './scope-roles';
+import { splitAsks } from './prompts';
 
 // ============================================
 // Helper functions
@@ -274,6 +275,28 @@ export async function expandMdxComponents(content: string): Promise<string> {
         return `### Шаг ${stepNum}. ${title}\n\n${dedent(content).trim()}\n\n`;
       }
     );
+  });
+
+  // <Prompts><Prompt ask="«…»">…</Prompt></Prompts> -> the table «Просьба / Что сделает агент»,
+  // each phrase of `ask` in italics as the page showed them before the component.
+  result = result.replace(/<Prompts>([\s\S]*?)<\/Prompts>/g, (_, inner) => {
+    let md = '| Просьба | Что сделает агент |\n|---|---|\n';
+    const rows = [...inner.matchAll(/<Prompt\s+ask="([^"]*)">([\s\S]*?)<\/Prompt>/g)];
+    // A <Prompt> written another way would vanish from the .md without an error.
+    if (rows.length !== (inner.match(/<Prompt\b/g) ?? []).length) {
+      throw new Error('<Prompts>: every <Prompt> must be written as <Prompt ask="…">…</Prompt>');
+    }
+    for (const m of rows) {
+      const asks = splitAsks(m[1])
+        .map((phrase) => `*«${phrase}»*`)
+        .join(', ');
+      const does = dedent(m[2])
+        .trim()
+        .replace(/\s*\n\s*/g, ' ');
+      md += `| ${asks} | ${does} |\n`;
+    }
+    // The source keeps its own blank line after </Prompts>.
+    return md.trimEnd();
   });
 
   // <HttpCodes />
@@ -639,6 +662,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
   }
 
   // <ApiCodeExample operationId="..." title="..." params={{ ... }} />
+  // <ApiCodeExample operationId="..." example="..." />
   // <ApiCodeExample lang="python" operations={[...]} showInit={false} />
   if (result.includes('<ApiCodeExample')) {
     const apiCodeRegex = /<ApiCodeExample\s+([\s\S]*?)\/>/g;
@@ -655,12 +679,21 @@ export async function expandMdxComponents(content: string): Promise<string> {
       const operationId = attrs.match(/operationId="([^"]+)"/)?.[1];
       const title = attrs.match(/title="([^"]+)"/)?.[1];
       const paramsMatch = attrs.match(/params=\{\{([^}]*)\}\}/);
+      // Every JSX spelling of a string, as for `params`: a missed one would
+      // silently show the first example in the .md while the page shows this one.
+      const exampleMatch = attrs.match(
+        /(?:^|\s)example=(?:"([^"]+)"|'([^']+)'|\{\s*"([^"]+)"\s*\}|\{\s*'([^']+)'\s*\})/
+      );
+      const exampleName = exampleMatch?.slice(1).find((value) => value !== undefined);
       const langsMatch = attrs.match(/langs=\{\s*\[([\s\S]*?)\]\s*\}/);
-      const requestedSdkLangs = langsMatch
+      // `langs` filters the language dropdown on the page, so the .md shows
+      // exactly these languages, in this order.
+      const requestedLangs = langsMatch
         ? [...langsMatch[1].matchAll(/["']([^"']+)["']/g)]
             .map((langMatch) => langMatch[1])
-            .filter(isSdkLang)
+            .filter((value) => isSdkLang(value) || value === 'curl' || value === 'cli')
         : [];
+      const requestedSdkLangs = requestedLangs.filter(isSdkLang);
       const sdkLangsForBlock = requestedSdkLangs.length > 0 ? requestedSdkLangs : SDK_LANGS;
 
       const ops: Array<{ id: string; comment?: string }> = [];
@@ -671,9 +704,44 @@ export async function expandMdxComponents(content: string): Promise<string> {
       }
       if (operationId) ops.push({ id: operationId });
 
+      // `example` that a shown SDK language has no code for: the page renders
+      // an error (`SdkExampleMissing`), and so does the .md.
+      const sdkExampleMissing = (missing: readonly string[]): string =>
+        `*Request example "${exampleName}" (${operationId}) has no SDK code in: ${missing.join(', ')}*\n`;
+
+      // A named request example belongs to one operation.
+      if (exampleName && !operationId) {
+        result = result.replace(
+          fullMatch,
+          `*operationId is required for example="${exampleName}"*\n`
+        );
+        continue;
+      }
+
       // SDK language mode: generate from examples.json
       if (lang && isSdkLang(lang)) {
         const showInit = !attrs.includes('showInit={false}');
+        if (exampleName && operationId) {
+          const code = getSdkExampleForLang(
+            lang,
+            [{ id: operationId, example: exampleName }],
+            showInit
+          );
+          let md = '';
+          if (code) {
+            if (title) md += `**${title}**\n\n`;
+            md += `\`\`\`${lang}\n${code}\n\`\`\`\n`;
+          } else {
+            // A name the spec lacks reads as in the other modes, before the SDK one.
+            const endpoint = await getEndpointByOperation(operationId);
+            if (!endpoint) md = `*Endpoint not found: ${operationId}*\n`;
+            else if (!selectRequestExample(endpoint.requestBody, exampleName)) {
+              md = `*Request example not found: ${exampleName} (${operationId})*\n`;
+            } else md = sdkExampleMissing([lang]);
+          }
+          result = result.replace(fullMatch, md);
+          continue;
+        }
         const code = getSdkExampleForLang(lang, ops, showInit);
 
         if (code) {
@@ -713,6 +781,9 @@ export async function expandMdxComponents(content: string): Promise<string> {
         continue;
       }
 
+      // lang="curl" | "cli" is one block on the page and ignores `langs`.
+      const singleLang = lang === 'curl' || lang === 'cli' ? lang : undefined;
+
       // Parse and apply param overrides
       let finalEndpoint = endpoint;
       if (paramsMatch) {
@@ -737,17 +808,70 @@ export async function expandMdxComponents(content: string): Promise<string> {
         };
       }
 
+      // `example` keeps one authored request body by its title, after `params`,
+      // as `ApiCodeExample` does on the page.
+      if (exampleName) {
+        const requestBody = selectRequestExample(finalEndpoint.requestBody, exampleName);
+        if (!requestBody) {
+          result = result.replace(
+            fullMatch,
+            `*Request example not found: ${exampleName} (${operationId})*\n`
+          );
+          continue;
+        }
+        finalEndpoint = { ...finalEndpoint, requestBody };
+      }
+
+      // The same SDK code as in the page dropdown: from examples.json, so
+      // `params` shape only the curl and CLI examples, and `example` picks the
+      // named request in every language.
+      const sdkExamples = getSdkExamples(operationId, exampleName);
+      // Without `langs` the page dropdown shows every SDK language.
+      const shownSdkLangs = singleLang
+        ? []
+        : requestedLangs.length > 0
+          ? requestedSdkLangs
+          : SDK_LANGS;
+      const missingSdkLangs = exampleName ? shownSdkLangs.filter((l) => !sdkExamples[l]) : [];
+      if (missingSdkLangs.length > 0) {
+        result = result.replace(fullMatch, sdkExampleMissing(missingSdkLangs));
+        continue;
+      }
+
       const baseUrl = await getBaseUrl();
+      const exampleFor = async (
+        blockLang: string
+      ): Promise<{ fence: string; code: string } | undefined> => {
+        if (blockLang === 'cli') {
+          const { generateCLI } = await import('./code-generators/cli');
+          return { fence: 'bash', code: generateCLI(finalEndpoint) };
+        }
+        if (blockLang === 'curl') {
+          return { fence: 'bash', code: generateCurl(finalEndpoint, baseUrl) };
+        }
+        if (isSdkLang(blockLang) && sdkExamples[blockLang]) {
+          return { fence: blockLang, code: sdkExamples[blockLang] };
+        }
+        return undefined;
+      };
+
+      // One block for lang="curl" | "cli", and curl alone without `langs`.
+      const blockLangs = singleLang
+        ? [singleLang]
+        : requestedLangs.length > 0
+          ? requestedLangs
+          : ['curl'];
+      const blocks: string[] = [];
+      for (const blockLang of blockLangs) {
+        const example = await exampleFor(blockLang);
+        if (!example) continue;
+        const fenced = `\`\`\`${example.fence}\n${example.code}\n\`\`\`\n`;
+        blocks.push(blockLangs.length > 1 ? `### ${blockLang}\n\n${fenced}` : fenced);
+      }
+
       let md = '';
       if (title) md += `**${title}**\n\n`;
-
-      // If lang is specified (curl/cli), use that; otherwise default to curl
-      if (lang === 'cli') {
-        const { generateCLI } = await import('./code-generators/cli');
-        md += '```bash\n' + generateCLI(finalEndpoint) + '\n```\n';
-      } else {
-        md += '```bash\n' + generateCurl(finalEndpoint, baseUrl) + '\n```\n';
-      }
+      md += blocks.join('\n');
 
       result = result.replace(fullMatch, md);
     }
@@ -779,6 +903,21 @@ export async function expandMdxComponents(content: string): Promise<string> {
     }
     md += '\n';
     result = result.replace(/<CliCommands\s*\/>/g, md);
+  }
+
+  // <PluginCommands /> -> one markdown table: the command with its arguments,
+  // the section it opens and what each argument takes. Source: plugin-commands.ts.
+  if (result.includes('<PluginCommands')) {
+    const { PLUGIN_COMMANDS } = await import('./plugin-commands');
+    let md = '| Команда | Что делает |\n|---------|------------|\n';
+    for (const c of PLUGIN_COMMANDS) {
+      const args = c.args
+        .map((a) => `\`${a.token}\`${a.required ? '*' : ' (по желанию)'}: ${a.description}`)
+        .join(' ');
+      md += `| \`${c.usage}\` | [${c.title}](#${c.anchor}). ${c.summary} ${args} |\n`;
+    }
+    md += '\n';
+    result = result.replace(/<PluginCommands\s*\/>/g, md);
   }
 
   // <McpTools /> -> one markdown table in the order of the API sidebar, as on the

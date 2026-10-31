@@ -38,14 +38,14 @@
 pachca messages list --chat-id 123 --sort id --order asc
 
 # Чаты по дате последнего сообщения
-pachca chats list --sort last-message-at --order desc
+pachca chats list --sort last_message_at --order desc
 ```
 
-Доступные поля сортировки зависят от команды — подсказки встроены в `--help`. Если `--order` не указан, используется `desc`.
+Доступные поля сортировки зависят от команды, их список показывает `--help`. Поле указывают как в API, через подчёркивание, подробнее в разделе [Имена флагов](#imena-flagov). Если `--order` не указан, используется `desc`.
 
 ### Имена флагов
 
-Флаги CLI используют **kebab-case** (через дефис), а не snake_case как в API-документации — это [стандартная конвенция](https://clig.dev/#arguments-and-flags) для CLI-инструментов:
+Имена флагов CLI пишутся в **kebab-case**, через дефис, по [стандартной конвенции](https://clig.dev/#arguments-and-flags) для CLI-инструментов. В API-документации те же поля названы в snake_case:
 
 ```text noCopy
 API-документация          CLI-флаг
@@ -59,12 +59,12 @@ custom_properties     →   --custom-properties
 parent_message_id     →   --parent-message-id
 ```
 
-При отправке запроса CLI автоматически конвертирует имена обратно в snake_case для API. Проверить можно через `--dry-run`:
+При отправке запроса CLI автоматически конвертирует имена обратно в snake_case для API. Значения флагов CLI не переписывает, поэтому варианты из перечня пишутся как в API: `--sort last_message_at`. Проверить тело запроса можно через `--dry-run`:
 
 ```bash
-pachca users update 123 --first-name "Иван" --phone-number "+7900" --dry-run
+pachca users update 123 --first-name "Иван" --phone-number "+7900" --dry-run -o json | jq -c .body
 
-# {"user": {"first_name": "Иван", "phone_number": "+7900"}}
+# {"user":{"first_name":"Иван","phone_number":"+7900"}}
 ```
 
 ### Boolean-флаги
@@ -85,6 +85,20 @@ pachca chats create --name "Новости" --channel --public
 pachca chats update 123 --no-public
 ```
 
+### Значение null
+
+Если поле API принимает `null`, передайте во флаге слово `null`: CLI отправит в теле запроса JSON null. Так удаляют входящий вебхук бота и снимают ответ с черновика:
+
+```bash
+# Удалить входящий вебхук бота (webhook.kind: null)
+pachca bots update 456 --kind null
+
+# Снять ответ с черновика (draft.parent_message_id: null)
+pachca drafts update 789 --parent-message-id null
+```
+
+Что `null` значит для конкретного поля, сказано в справке флага: `pachca bots update --help`.
+
 ### Предпросмотр запроса
 
 Флаг `--dry-run` показывает HTTP-запрос без отправки — для отладки и проверки параметров:
@@ -92,12 +106,19 @@ pachca chats update 123 --no-public
 ```bash
 pachca messages create --entity-id 123 --content "Привет" --dry-run
 
-# POST https://api.pachca.com/api/shared/v1/messages
-# Authorization: Bearer ••••••••
-# Content-Type: application/json
+#   POST https://api.pachca.com/api/shared/v1/messages
+#   Authorization: Bearer ••••••••
+#   Content-Type: application/json
 #
-# {"message": {"entity_id": 123, "content": "Привет"}}
+#   {
+#     "message": {
+#       "entity_id": 123,
+#       "content": "Привет"
+#     }
+#   }
 ```
+
+В пайпе или с `-o json` тот же запрос приходит объектом с полями `dry_run`, `method`, `url`, `headers` и `body`, его удобно разбирать через `jq`. Предпросмотру токен не нужен: `--dry-run` работает и до `pachca auth login`, а токен в заголовке `Authorization` заменён маской.
 
 ### Деструктивные операции
 
@@ -116,9 +137,9 @@ pachca users delete 1234 --force
 | Код | Значение |
 |-----|----------|
 | `0` | Успех |
-| `1` | API или runtime ошибка: `400`, `409`, `429`, `5xx` и `403` с массивом `errors` |
-| `2` | Неверные флаги или аргументы, а также ошибка валидации `422` от API |
-| `3` | Ошибка аутентификации: `401` или `403` из-за самого токена (`insufficient_scope`, `role_forbidden`) |
+| `1` | Ошибка API, сети или таймаут: `400`, `409`, `429`, `5xx` и `403` с массивом `errors` |
+| `2` | Неверные флаги или аргументы, удаление без `--force` в неинтерактивном режиме, ошибка валидации `422` от API |
+| `3` | Ошибка аутентификации: токен не найден, вход завершён, `401` или `403` по праву токена или роли его владельца (`insufficient_scope`, `role_forbidden`) |
 | `4` | Ресурс не найден (404) |
 
 Код `403` бывает двух видов. Отказ из-за скоупа токена или роли его владельца даёт код `3`, а отказ в доступе к самому объекту (чат закрыт, правило чата не разрешает действие) приходит с массивом `errors` и даёт код `1` с типом `PACHCA_API_ERROR`. Подробнее о двух структурах ответа — в разделе [Ошибки](/api/errors#poyasneniya-oshibki).
@@ -132,7 +153,7 @@ pachca users get 123 || case $? in
 
 ## Ошибки
 
-При `-o json` (или в пайпе) ошибки выводятся в stderr как JSON. Формат один для ошибок API, сети, авторизации, проверки флагов самим CLI и неизвестной команды:
+При `-o json` (или в пайпе) ошибки выводятся в stderr как JSON. Формат один для ошибок API, сети, авторизации, проверки флагов самим CLI и неизвестной команды. Набор полей зависит от источника ошибки:
 
 ```json title="API-ошибка (422)"
 {
@@ -157,6 +178,16 @@ pachca users get 123 || case $? in
 }
 ```
 
+```json title="Проверка флагов самим CLI"
+{
+  "error": "Обязательный флаг --entity-id не передан",
+  "code": null,
+  "type": "PACHCA_VALIDATION_ERROR",
+  "flag": "--entity-id",
+  "hint": "Обязательные: --entity-id <integer>. pachca introspect messages create"
+}
+```
+
 ```json title="Ошибка авторизации"
 {
   "error": "Token not found",
@@ -169,28 +200,33 @@ pachca users get 123 || case $? in
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `error` | `string` | Сообщение об ошибке |
-| `code` | `number \| null` | HTTP-код ответа (`null` для клиентских ошибок) |
+| `code` | `number \| null` | HTTP-код ответа, `null` для ошибок до запроса или без ответа API |
 | `type` | `string` | Тип ошибки (см. таблицу ниже) |
+| `message` | `string?` | Подробность к `error`: код ошибки API (`insufficient_scope`, `role_forbidden`, `invalid_token`), текст сетевой ошибки или таймаута, причина неудачного входа |
 | `request_id` | `string?` | ID запроса к API (для обращения в поддержку) |
 | `hint` | `string?` | Подсказка, как исправить ошибку |
-| `field` | `string?` | Поле, вызвавшее ошибку |
-| `errors` | `array?` | Список ошибок при множественной валидации |
+| `field` | `string?` | Поле запроса, на которое указал API |
+| `validation_code` | `string?` | Код ошибки валидации от API, когда ошибка одна |
+| `flag` | `string?` | Флаг, который не прошёл проверку самого CLI, например `--entity-id` |
+| `scope` | `string?` | Право, которого не хватило токену, при `PACHCA_SCOPE_ERROR` |
+| `errors` | `array?` | Список ошибок, когда их несколько: от API с полями `field`, `message`, `code`, `value`, от проверки CLI с полями `message` и `flag` |
+| `suggestions` | `array?` | Похожие команды при `PACHCA_COMMAND_NOT_FOUND` |
 
 | Тип | Описание |
 |-----|----------|
 | `PACHCA_API_ERROR` | Ошибка API: `400`, `403` с массивом `errors`, `409`, `429`, `5xx` и другие неожиданные ответы |
-| `PACHCA_AUTH_ERROR` | Ошибка аутентификации: токен не найден, `401` или `403` с `role_forbidden` |
-| `PACHCA_VALIDATION_ERROR` | Ошибка валидации (422) |
+| `PACHCA_AUTH_ERROR` | Ошибка аутентификации: токен не найден, вход через браузер завершён (`Session expired`), `401` или `403` с `role_forbidden` |
+| `PACHCA_VALIDATION_ERROR` | Ошибка валидации `422` от API или проверка флагов самим CLI до запроса: пропущен обязательный флаг без терминала, значение длиннее допустимого или неверный JSON во флаге. У проверки CLI `code: null` и поле `flag`. |
 | `PACHCA_SCOPE_ERROR` | Токену не хватает скоупа (`403` с `insufficient_scope`) |
 | `PACHCA_NETWORK_ERROR` | Сеть недоступна |
 | `PACHCA_TIMEOUT_ERROR` | Таймаут запроса |
-| `PACHCA_USAGE_ERROR` | Неверные флаги или аргументы |
+| `PACHCA_USAGE_ERROR` | Команду вызвали неверно: взаимоисключающие флаги, нет полей для обновления, профиль или файл не найден |
 | `PACHCA_DESTRUCTIVE_OP_ERROR` | Удаление без `--force` в неинтерактивном режиме |
 | `PACHCA_COMMAND_NOT_FOUND` | Команда не найдена, похожие команды приходят в `suggestions` |
 | `PACHCA_AUTH_LOGIN_ERROR` | Не удался вход командой `pachca auth login` |
 | `PACHCA_NOT_FOUND_ERROR` | Справка `pachca api` с `--describe`, `--spec` или `--docs` не нашла такой метод |
 
-Ошибки разбора флагов и аргументов (неизвестный флаг, значение не того типа, пропущенный аргумент) CLI выводит обычным текстом даже при `-o json`. Код выхода у них тоже `2`, но разобрать stderr через `jq` не получится.
+Ошибки разбора флагов и аргументов (неизвестный флаг, значение не того типа или не из списка `--help`, пропущенный аргумент) CLI выводит обычным текстом даже при `-o json`. Код выхода у них тоже `2`, но разобрать stderr через `jq` не получится.
 
 ```bash title="Обработка ошибок в скрипте"
 # Получить ошибку как JSON
@@ -208,11 +244,11 @@ esac
 
 | Переменная | Описание |
 |-----------|---------|
-| `PACHCA_TOKEN` | Bearer-токен, удобно для CI. Уступает только флагам `--token` и `--profile`, порядок — в разделе [Приоритет токена](/guides/cli/authentication#prioritet-tokena) |
+| `PACHCA_TOKEN` | Bearer-токен, удобно для CI. Уступает только флагам `--token` и `--profile`, порядок — в разделе [Приоритет токена](/guides/cli/authentication#prioritet-tokena). |
 | `PACHCA_PROFILE` | Профиль для команды, когда не заданы `--profile` и `PACHCA_TOKEN` |
-| `PACHCA_HOME` | Переопределить каталог конфига (по умолчанию `~/.config/pachca`). Удобно для изоляции в CI/тестах/агентах. |
-| `PACHCA_API_URL` | Другой адрес сервера API — все команды пойдут туда. По умолчанию `https://api.pachca.com/api/shared/v1` |
-| `PACHCA_SECRET_STORE` | `file` — хранить токен в файле конфига, а не в хранилище ключей ОС |
+| `PACHCA_HOME` | Родительский каталог конфига: CLI хранит файлы в `$PACHCA_HOME/pachca`. Удобно для изоляции в CI, тестах и у агентов. Порядок выбора каталога — в разделе [Настройки](/guides/cli/installation#nastroyki). |
+| `PACHCA_API_URL` | Другой адрес сервера API — все команды пойдут туда. По умолчанию `https://api.pachca.com/api/shared/v1`. |
+| `PACHCA_SECRET_STORE` | `file` — хранить токен в файле конфига вместо хранилища ключей ОС |
 | `PACHCA_TIMEOUT` | Таймаут запроса в секундах (по умолчанию 30) |
 | `PACHCA_PROMPT_DISABLED` | Отключить интерактивные промпты (для агентов) |
 | `CI` | Автоматический неинтерактивный режим |

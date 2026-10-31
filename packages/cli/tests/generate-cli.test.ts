@@ -191,6 +191,27 @@ describe('generate-cli', () => {
     });
   });
 
+  describe('nullable body fields', () => {
+    it('bots/update --kind reads the literal null and says so in its help', () => {
+      const content = fs.readFileSync(path.join(COMMANDS_DIR, 'bots', 'update.ts'), 'utf-8');
+      expect(content).toContain("import { nullableString } from '../../lib/flags.js';");
+      expect(content).toMatch(/'kind': nullableString\(\{\s*description: "[^"]*Чтобы передать null, укажите `--kind null`\."/);
+      expect(content).toContain("kind: flags['kind'],");
+    });
+
+    it('drafts/update --parent-message-id is an integer that also takes null', () => {
+      const content = fs.readFileSync(path.join(COMMANDS_DIR, 'drafts', 'update.ts'), 'utf-8');
+      expect(content).toContain("'parent-message-id': nullableInteger({");
+      expect(content).toContain('Чтобы передать null, укажите `--parent-message-id null`.');
+    });
+
+    it('a field the spec does not mark nullable keeps its plain flag', () => {
+      const content = fs.readFileSync(path.join(COMMANDS_DIR, 'bots', 'update.ts'), 'utf-8');
+      expect(content).toContain("'trigger-on': Flags.string({");
+      expect(content).toContain("'template': Flags.string({");
+    });
+  });
+
   describe('multipart wire names', () => {
     it('direct-url should use correct wire names in formData.append', () => {
       const content = fs.readFileSync(

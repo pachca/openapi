@@ -76,8 +76,7 @@ class SearchServiceImpl internal constructor(
     ): List<MessageResult> {
         val items = mutableListOf<MessageResult>()
         var cursor: String? = null
-        var hasNext = true
-        while (hasNext) {
+        do {
             val response = searchMessages(
                 query = query,
                 chatIds = chatIds,
@@ -88,8 +87,7 @@ class SearchServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-            hasNext = response.meta.paginate.hasNext ?: true
-        }
+        } while (true)
         return items
     }
 }
@@ -195,8 +193,10 @@ class PachcaClient private constructor(
                     if (retryAfter != null && response?.status?.value == 429) {
                         (retryAfter * 1000L * jitter).toLong()
                     } else {
-                        val base = 10_000L * (1L shl retry)
-                        (base * jitter).toLong()
+                        // Ktor counts retries from 1. A 429 without Retry-After waits 1, 2 and 4 s,
+                        // as in the other SDKs, a 5xx and a network error 10, 20 and 40 s.
+                        val base = if (response?.status?.value == 429) 1_000L else 10_000L
+                        (base * (1L shl (retry - 1)) * jitter).toLong()
                     }
                 }
             }

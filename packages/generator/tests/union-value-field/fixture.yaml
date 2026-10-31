@@ -1,0 +1,194 @@
+openapi: 3.0.0
+info:
+  title: Test API — A union member field that takes a list or an object
+  version: 1.0.0
+# DetailsBot.scopes is a list in new records and an object {previous, new} in old
+# ones (like AuditDetailsBot.scopes in the real spec): TypeSpec emits
+# `string[] | ScopesChange` as anyOf of an array and a $ref. The SDK decodes the
+# field by the JSON kind of its value, and a union member whose field holds either
+# kind fits. Event.actor mixes a string with a model.
+paths:
+  /events:
+    get:
+      operationId: getEvents
+      summary: Список событий
+      tags:
+        - Events
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+components:
+  schemas:
+    DetailsEmpty:
+      type: object
+      description: Пустые детали.
+
+    DetailsBot:
+      type: object
+      required:
+        - bot_id
+        - actor_id
+      properties:
+        bot_id:
+          type: integer
+          description: Идентификатор бота.
+        actor_id:
+          type: integer
+          nullable: true
+          description: Кто выполнил действие.
+        webhook_id:
+          type: integer
+          description: Идентификатор вебхука.
+        scopes:
+          anyOf:
+            - type: array
+              items:
+                type: string
+            - $ref: '#/components/schemas/ScopesChange'
+          description: Права токена у bot_token_created, изменение прав у bot_token_updated в старых записях.
+      description: Детали бота.
+
+    DetailsBotScopes:
+      type: object
+      required:
+        - bot_id
+        - scopes
+      properties:
+        bot_id:
+          type: integer
+          description: Идентификатор бота.
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Права бота.
+      description: Права бота. Его имя занимает DetailsBot + scopes.
+
+    DetailsBotTokenUpdated:
+      type: object
+      required:
+        - token_kind
+        - resource_owner_id
+        - access_token_id
+      properties:
+        token_kind:
+          type: string
+          description: Тип токена.
+        resource_owner_id:
+          type: integer
+          description: Владелец токена.
+        access_token_id:
+          type: integer
+          description: Идентификатор токена.
+        bot_id:
+          type: integer
+          nullable: true
+          description: Идентификатор бота.
+        webhook_id:
+          type: integer
+          description: Идентификатор вебхука.
+        scopes:
+          allOf:
+            - $ref: '#/components/schemas/ScopesChange'
+          description: Изменение прав токена.
+      description: Изменение токена бота.
+
+    DetailsToken:
+      type: object
+      required:
+        - token_kind
+        - resource_owner_id
+        - scopes
+        - access_token_id
+      properties:
+        token_kind:
+          type: string
+          description: Тип токена.
+        resource_owner_id:
+          type: integer
+          description: Владелец токена.
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Права токена.
+        access_token_id:
+          type: integer
+          description: Идентификатор токена.
+      description: Детали токена.
+
+    ScopesChange:
+      type: object
+      required:
+        - previous
+        - new
+      properties:
+        previous:
+          type: array
+          items:
+            type: string
+          description: Права до изменения.
+        new:
+          type: array
+          items:
+            type: string
+          description: Права после изменения.
+      description: Изменение прав токена.
+
+    Actor:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          description: Идентификатор.
+        name:
+          type: string
+          description: Имя.
+      description: Автор события.
+
+    EventDetailsUnion:
+      anyOf:
+        - $ref: '#/components/schemas/DetailsEmpty'
+        - $ref: '#/components/schemas/DetailsBot'
+        - $ref: '#/components/schemas/DetailsBotScopes'
+        - $ref: '#/components/schemas/DetailsBotTokenUpdated'
+        - $ref: '#/components/schemas/DetailsToken'
+      description: Детали события. Структура зависит от значения event_key.
+
+    Event:
+      type: object
+      required:
+        - id
+        - event_key
+        - details
+      properties:
+        id:
+          type: integer
+          description: Идентификатор события.
+        event_key:
+          type: string
+          description: Тип события.
+        actor:
+          anyOf:
+            - type: string
+            - $ref: '#/components/schemas/Actor'
+          nullable: true
+          description: Автор события. Строка у системных событий.
+        details:
+          allOf:
+            - $ref: '#/components/schemas/EventDetailsUnion'
+          description: Дополнительные детали события.
+      description: Событие журнала аудита.

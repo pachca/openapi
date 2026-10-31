@@ -22,6 +22,8 @@ import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { McpTools } from '@/components/mdx/mcp-tools';
+import { PluginCommands } from '@/components/mdx/plugin-commands';
+import { Prompts, Prompt } from '@/components/mdx/prompts';
 import { GlobalFlags } from '@/components/mdx/global-flags';
 import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
@@ -36,7 +38,7 @@ import { FormPlayground } from '@/components/mdx/form-playground';
 import { ScopeRolesTable } from '@/components/api/scope-roles-table';
 import { getOrderedPages } from '@/lib/ordered-pages';
 import { generateNavigation } from '@/lib/navigation';
-import type { Schema } from '@/lib/openapi/types';
+import type { Endpoint, Schema } from '@/lib/openapi/types';
 import { HTTP_CODES } from '@/lib/schemas/guide-schemas';
 
 /**
@@ -272,6 +274,7 @@ export async function ApiCards() {
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="Custom title" />
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="With filters" params={{ event_key: "user_login", limit: 50 }} />
  * <ApiCodeExample operationId="MessageOperations_createMessage" responseMode="minimal" />
+ * <ApiCodeExample operationId="MessageOperations_createMessage" example="Сообщение с кнопкой" />
  *
  * Single-language mode (no dropdown, no header, inline copy button):
  * <ApiCodeExample lang="typescript" operationId="ChatOperations_createChat" />
@@ -283,6 +286,11 @@ export async function ApiCards() {
  *
  * operationId = {InterfaceName}_{methodName} from TypeSpec (see openapi.yaml)
  * params — override parameter and body field values; only specified + required ones are included (curl/cli only)
+ * example — request body example to show, by its key or `summary` (the `@opExample` title); without it
+ *   the first one. Every language shows it: curl and cli from the spec, the SDK languages from the
+ *   `examples` field of the operation's examples.json entry. Needs `operationId`. An unknown name, or
+ *   a shown SDK language without that example, renders an error. Applied after `params`, and `params`
+ *   that name body fields drop the spec's examples, so use one or the other for the body.
  * responseMode — "full" (default): all fields with values; "minimal": null for nullable, [] for optional arrays
  * lang — single language: no dropdown/header, renders as simple code block
  * langs — filter languages in multi-language dropdown (e.g. ["typescript", "python", "go", "kotlin", "swift", "csharp"])
@@ -295,6 +303,7 @@ interface ApiCodeExampleProps {
   title?: string;
   show?: 'request' | 'response' | 'both';
   params?: Record<string, unknown>;
+  example?: string;
   responseMode?: 'full' | 'minimal';
   lang?: 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'csharp' | 'curl' | 'cli';
   langs?: Array<'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'csharp' | 'curl' | 'cli'>;
@@ -303,11 +312,70 @@ interface ApiCodeExampleProps {
   showInit?: boolean;
 }
 
+/**
+ * The endpoint the curl and CLI examples of a guide are generated from, in
+ * both the single- and the multi-language mode. `params` keep the named and
+ * the required query parameters and body fields, with the given values: a
+ * guide that asks for three fields should not get every optional one that
+ * happens to have an example in the spec. `example` then keeps one authored
+ * request body by its title. The .md twin is in `lib/mdx-expander.ts`, so the
+ * page and its .md show the same request. `null` when the spec has no request
+ * example with that title.
+ */
+async function guideEndpoint(
+  endpoint: Endpoint,
+  params: Record<string, unknown> | undefined,
+  example: string | undefined
+): Promise<Endpoint | null> {
+  if (!params && !example) return endpoint;
+  const { narrowRequestBody, selectRequestExample } = await import('@/lib/code-generators/utils');
+
+  let result = endpoint;
+  if (params) {
+    const paramNames = Object.keys(params);
+    result = {
+      ...endpoint,
+      parameters: endpoint.parameters
+        .filter((p) => p.in !== 'query' || p.required || paramNames.includes(p.name))
+        .map((p) => (paramNames.includes(p.name) ? { ...p, example: params[p.name] } : p)),
+      requestBody: narrowRequestBody(endpoint.requestBody, params),
+    };
+  }
+  if (example) {
+    const requestBody = selectRequestExample(result.requestBody, example);
+    if (!requestBody) return null;
+    result = { ...result, requestBody };
+  }
+  return result;
+}
+
+/**
+ * `example` that a shown SDK language has no code for: the generator writes a
+ * named example into examples.json only when the spec names it. The .md twin
+ * is in `lib/mdx-expander.ts`.
+ */
+function SdkExampleMissing({
+  example,
+  operationId,
+  missing,
+}: {
+  example: string;
+  operationId: string;
+  missing: string[];
+}) {
+  return (
+    <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+      Request example &quot;{example}&quot; ({operationId}) has no SDK code in: {missing.join(', ')}
+    </div>
+  );
+}
+
 export async function ApiCodeExample({
   operationId,
   title,
   show = 'request',
   params,
+  example,
   responseMode,
   lang,
   langs,
@@ -315,6 +383,15 @@ export async function ApiCodeExample({
   operations,
   showInit = true,
 }: ApiCodeExampleProps) {
+  // A named request example belongs to one operation.
+  if (example && !operationId) {
+    return (
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+        operationId is required for example=&quot;{example}&quot;
+      </div>
+    );
+  }
+
   // Single-language mode: render as simple code block
   if (lang) {
     const { GuideCodeBlock } = await import('@/components/api/guide-code-block');
@@ -336,15 +413,13 @@ export async function ApiCodeExample({
           </div>
         );
       }
-      let finalEndpoint = endpoint;
-      if (params) {
-        const paramNames = Object.keys(params);
-        finalEndpoint = {
-          ...endpoint,
-          parameters: endpoint.parameters
-            .filter((p) => p.in !== 'query' || p.required || paramNames.includes(p.name))
-            .map((p) => (paramNames.includes(p.name) ? { ...p, example: params[p.name] } : p)),
-        };
+      const finalEndpoint = await guideEndpoint(endpoint, params, example);
+      if (!finalEndpoint) {
+        return (
+          <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+            Request example not found: {example} ({operationId})
+          </div>
+        );
       }
       const { generateCurl } = await import('@/lib/code-generators/curl');
       const { generateCLI } = await import('@/lib/code-generators/cli');
@@ -355,6 +430,27 @@ export async function ApiCodeExample({
     }
 
     // SDK languages: load from examples.json
+    if (example && operationId) {
+      const code = getSdkExampleForLang(lang, [{ id: operationId, example }], showInit);
+      if (code) return <GuideCodeBlock language={lang} code={code} />;
+      // A name the spec lacks reads as in the other modes, before the SDK one.
+      const endpoint = await getEndpointByOperation(operationId);
+      if (!endpoint) {
+        return (
+          <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+            Endpoint not found: {operationId}
+          </div>
+        );
+      }
+      if (!(await guideEndpoint(endpoint, undefined, example))) {
+        return (
+          <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+            Request example not found: {example} ({operationId})
+          </div>
+        );
+      }
+      return <SdkExampleMissing example={example} operationId={operationId} missing={[lang]} />;
+    }
     const ops = operations ?? (operationId ? [{ id: operationId }] : []);
     const code = getSdkExampleForLang(lang, ops, showInit);
 
@@ -424,23 +520,24 @@ export async function ApiCodeExample({
     );
   }
 
-  let finalEndpoint = endpoint;
-  if (params) {
-    const { narrowRequestBody } = await import('@/lib/code-generators/utils');
-    const paramNames = Object.keys(params);
-    finalEndpoint = {
-      ...endpoint,
-      parameters: endpoint.parameters
-        .filter((p) => p.in !== 'query' || p.required || paramNames.includes(p.name))
-        .map((p) => (paramNames.includes(p.name) ? { ...p, example: params[p.name] } : p)),
-      // Body fields are narrowed the same way: a guide that asks for three
-      // fields should not get every optional one that happens to have an
-      // example in the spec.
-      requestBody: narrowRequestBody(endpoint.requestBody, params),
-    };
+  const finalEndpoint = await guideEndpoint(endpoint, params, example);
+  if (!finalEndpoint) {
+    return (
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+        Request example not found: {example} ({operationId})
+      </div>
+    );
   }
 
-  const sdkEx = getSdkExamples(operationId);
+  // With `example` every tab shows that request, the SDK ones included.
+  const sdkEx = getSdkExamples(operationId, example);
+  if (example) {
+    const sdkLangs = ['typescript', 'python', 'go', 'kotlin', 'swift', 'csharp'];
+    const missing = sdkLangs.filter((l) => (!langs || langs.some((v) => v === l)) && !sdkEx[l]);
+    if (missing.length > 0) {
+      return <SdkExampleMissing example={example} operationId={operationId} missing={missing} />;
+    }
+  }
 
   return (
     <CodeExamples
@@ -503,8 +600,8 @@ export async function ScopeRoles() {
 
 // Update manually when a new product release goes out
 const LATEST_PRODUCT_UPDATE = {
-  date: '15 октября 2026',
-  title: 'Большое обновление ботов 🤖',
+  date: '28 октября 2026',
+  title: 'MCP-сервер Пачки 🔌',
 };
 
 export function ProductUpdatesLink() {
@@ -584,6 +681,9 @@ export const customMdxComponents = {
   FormPlayground,
   CliCommands,
   McpTools,
+  PluginCommands,
+  Prompts,
+  Prompt,
   GlobalFlags,
   SdkCommands,
   NpmBadge,

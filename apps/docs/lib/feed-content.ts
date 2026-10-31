@@ -6,10 +6,13 @@ import type { ParsedRelease } from './updates-parser';
  * markdown→HTML / summary logic lives here to avoid drift between formats.
  */
 
+// Product names in release titles: feeds, the updates date page, its OG image and llms.txt.
 export const PRODUCT_TITLES: Record<ParsedRelease['product'], string> = {
+  mcp: 'MCP-инструменты',
+  plugin: 'MCP-плагин и скиллы',
   cli: 'CLI',
-  sdk: 'SDK',
-  generator: 'Generator',
+  sdk: 'SDK-библиотеки',
+  generator: 'SDK-генератор',
   n8n: 'n8n Node',
 };
 

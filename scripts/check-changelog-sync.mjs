@@ -80,6 +80,19 @@ const PACKAGES = [
     sourceChangelogs: [],
   },
   {
+    // The plugin is not published to a registry: hosts read it from this
+    // repository. Its version is set by the docs build (one patch above the one
+    // in main once the plugin files change) and recorded in plugin-version.json,
+    // so a changed plugin needs a release entry with that version. The eval
+    // suite under evals/ is not part of the plugin.
+    product: 'plugin',
+    label: 'plugin',
+    dirs: ['plugins/pachca', ':(exclude)plugins/pachca/evals'],
+    ownChangelogs: [],
+    sourceChangelogs: [],
+    versionSource: { file: 'apps/docs/scripts/skills/plugin-version.json', type: 'record' },
+  },
+  {
     // Not on the portal: the version is in package.json and the history in
     // CHANGELOG.md (see `selfVersioned` in the header). The package keeps
     // committed copies of the manifest and its schema that the build makes
@@ -88,6 +101,9 @@ const PACKAGES = [
     product: 'mcp-manifest',
     label: 'mcp-manifest',
     dirs: ['packages/mcp-manifest'],
+    // The server that runs the manifest is on the portal as product `mcp`: a new
+    // manifest version needs a release entry there with the same version.
+    portalProduct: 'mcp',
     selfVersioned: {
       changelog: 'packages/mcp-manifest/CHANGELOG.md',
       packageJson: 'packages/mcp-manifest/package.json',
@@ -111,6 +127,9 @@ function ownChangelogVersion(versionSource) {
     const content = readFileSync(versionSource.file, 'utf-8');
     if (versionSource.type === 'json') {
       return JSON.parse(content)[0]?.version ?? null;
+    }
+    if (versionSource.type === 'record') {
+      return JSON.parse(content).version ?? null;
     }
     const m = content.match(/^##\s+(\d+\.\d+\.\d+|\d{4}\.\d{1,2}\.\d+)\b/m);
     return m ? m[1] : null;
@@ -138,7 +157,8 @@ function resolveBase() {
 }
 
 function changedFiles(base, paths) {
-  const out = sh(`git diff --name-only ${base} HEAD -- ${paths.join(' ')}`);
+  // Quoted: a pathspec such as `:(exclude)dir` would otherwise reach the shell.
+  const out = sh(`git diff --name-only ${base} HEAD -- ${paths.map((p) => `'${p}'`).join(' ')}`);
   return out ? out.split('\n').filter(Boolean) : [];
 }
 
@@ -320,6 +340,17 @@ function checkSelfVersioned(pkg) {
       `${pkg.label}: version mismatch — ${changelog} says "${declared}" but ` +
         `${packageJson} says "${version}". Make them agree.`
     );
+  }
+
+  if (changelogWritten && pkg.portalProduct) {
+    const portalVersion = releasesVersion(pkg.portalProduct);
+    if (portalVersion !== declared) {
+      errors.push(
+        `${pkg.label}: ${changelog} declares ${declared} but ${RELEASES} has ` +
+          `"${portalVersion}" for product "${pkg.portalProduct}".\n` +
+          `      Add a release entry with product "${pkg.portalProduct}" and version ${declared}.`
+      );
+    }
   }
 
   if (releasesVersion(pkg.product)) {

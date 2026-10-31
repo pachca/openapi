@@ -3,6 +3,7 @@ import { runCommand } from '@oclif/test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { Readable } from 'node:stream';
 import {
   mockFetch, mockFetchForEndpoint, mockEntity, fetchCalls,
 } from './mock-helpers.js';
@@ -207,6 +208,60 @@ describe('manual commands — functional tests', () => {
       expect(error).toBeUndefined();
       const content = fs.readFileSync(path.join(tmpDir, 'pachca', 'config.toml'), 'utf-8');
       expect(content).toContain('my-bot');
+    });
+
+    describe('вход через браузер', () => {
+      // A device code that is already expired: the instructions are printed, then
+      // polling stops at once, so the test needs no timers and no confirmation.
+      function mockExpiredDeviceCode() {
+        globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+          if (String(url).includes('/oauth/device_authorization')) {
+            return Promise.resolve({
+              ok: true,
+              status: 200,
+              text: () => Promise.resolve(JSON.stringify({
+                device_code: 'dev-code',
+                user_code: 'BCDF-GHJK',
+                verification_uri: 'https://app.pachca.com/apps/authorize',
+                expires_in: 0,
+                interval: 5,
+              })),
+            });
+          }
+          return Promise.reject(new Error(`unexpected request: ${url}`));
+        });
+      }
+
+      beforeEach(() => {
+        // A person at a terminal: the only case where the CLI starts this login.
+        Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
+        Object.defineProperty(process.stdout, 'isTTY', { value: true, writable: true, configurable: true });
+        setEnv('CI', undefined);
+        setEnv('PACHCA_PROMPT_DISABLED', undefined);
+        setEnv('PACHCA_SKIP_NEW_VERSION_CHECK', '1');
+        // No clipboard tool on PATH, so the test never touches the real clipboard.
+        setEnv('PATH', tmpDir);
+      });
+
+      it('печатает адрес и код', async () => {
+        mockExpiredDeviceCode();
+        const { stderr, error } = await runCommand(['auth', 'login', '--no-browser'], { root: CLI_ROOT });
+        expect(error).toBeTruthy();
+        expect(stderr).toContain('Откройте https://app.pachca.com/apps/authorize');
+        expect(stderr).toContain('введите код: BCDF-GHJK');
+        expect(stderr).toContain('Ожидаю подтверждения');
+        expect(stderr).not.toContain('user_code=');
+      });
+
+      it('с --quiet всё равно печатает адрес и код, но не строку ожидания', async () => {
+        // The browser opens under --quiet too, and the page is useless without the code.
+        mockExpiredDeviceCode();
+        const { stderr, error } = await runCommand(['auth', 'login', '--no-browser', '--quiet'], { root: CLI_ROOT });
+        expect(error).toBeTruthy();
+        expect(stderr).toContain('Откройте https://app.pachca.com/apps/authorize');
+        expect(stderr).toContain('введите код: BCDF-GHJK');
+        expect(stderr).not.toContain('Ожидаю подтверждения');
+      });
     });
 
     it('no --token + --no-input → error', async () => {
@@ -673,6 +728,238 @@ describe('manual commands — functional tests', () => {
       const tokenCheck = JSON.parse(stdout).checks.find((c: { name: string }) => c.name === 'token');
 
       expect(tokenCheck?.status).toBe('error');
+    });
+
+    // doctor checks the token the other commands would use, in the same order:
+    // --token, --profile, PACHCA_TOKEN, PACHCA_PROFILE, the active profile.
+
+    /** Network and npm answer; token/info answers 200 only for `validToken`. Returns the tokens it was asked about. */
+    function mockDoctorFetch(validToken: string): string[] {
+      const asked: string[] = [];
+      globalThis.fetch = vi.fn().mockImplementation((url: string, init?: { headers?: Record<string, string> }) => {
+        const tokenInfo = typeof url === 'string' && url.includes('token/info');
+        const auth = init?.headers?.Authorization ?? '';
+        if (tokenInfo) asked.push(auth.replace('Bearer ', ''));
+        const ok = !tokenInfo || auth === `Bearer ${validToken}`;
+        return Promise.resolve({
+          ok,
+          status: ok ? 200 : 401,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () =>
+            Promise.resolve(tokenInfo ? { data: { scopes: ['users:read', 'messages:create'] } } : { 'dist-tags': { latest: '0.0.0' } }),
+          text: () => Promise.resolve('{}'),
+        });
+      });
+      return asked;
+    }
+
+    function check(stdout: string, name: string): Record<string, unknown> | undefined {
+      return JSON.parse(stdout).checks.find((c: { name: string }) => c.name === name);
+    }
+
+    it('только PACHCA_TOKEN, без конфига → проверки проходят, код выхода 0', async () => {
+      setEnv('PACHCA_TOKEN', 'ci-token');
+      const asked = mockDoctorFetch('ci-token');
+
+      const { stdout, error } = await runCommand(['doctor', '--json'], { root: CLI_ROOT });
+
+      expect(check(stdout, 'config')).toMatchObject({ status: 'skipped' });
+      expect(check(stdout, 'profile')).toMatchObject({ status: 'skipped', source: 'PACHCA_TOKEN' });
+      expect(check(stdout, 'token')).toMatchObject({ status: 'ok', scopes_count: 2 });
+      expect(asked).toEqual(['ci-token']);
+      expect(error?.oclif?.exit ?? 0).toBe(0);
+    });
+
+    it('--token проверяется вместо активного профиля', async () => {
+      setupProfile();
+      const asked = mockDoctorFetch('pasted');
+
+      const { stdout } = await runCommand(['doctor', '--json', '--token', 'pasted'], { root: CLI_ROOT });
+
+      expect(check(stdout, 'profile')).toMatchObject({ status: 'skipped', source: '--token' });
+      expect(check(stdout, 'token')).toMatchObject({ status: 'ok' });
+      expect(asked).toEqual(['pasted']);
+    });
+
+    it('--profile выбирает профиль и побеждает PACHCA_TOKEN', async () => {
+      setupMultiProfiles();
+      setEnv('PACHCA_TOKEN', 'env-token');
+      const asked = mockDoctorFetch('token-bot');
+
+      const { stdout } = await runCommand(['doctor', '--json', '--profile', 'bot'], { root: CLI_ROOT });
+
+      expect(check(stdout, 'profile')).toMatchObject({ status: 'ok', profile: 'bot', source: '--profile', type: 'bot' });
+      expect(check(stdout, 'token')).toMatchObject({ status: 'ok' });
+      expect(asked).toEqual(['token-bot']);
+    });
+
+    it('PACHCA_PROFILE выбирает профиль вместо активного', async () => {
+      setupMultiProfiles();
+      setEnv('PACHCA_PROFILE', 'bot');
+      const asked = mockDoctorFetch('token-bot');
+
+      const { stdout } = await runCommand(['doctor', '--json'], { root: CLI_ROOT });
+
+      expect(check(stdout, 'profile')).toMatchObject({ profile: 'bot', source: 'PACHCA_PROFILE' });
+      expect(asked).toEqual(['token-bot']);
+    });
+
+    it('--profile с несуществующим профилем → ошибка профиля', async () => {
+      setupProfile();
+      mockDoctorFetch('test-token');
+
+      const { stdout, error } = await runCommand(['doctor', '--json', '--profile', 'missing'], { root: CLI_ROOT });
+
+      expect(check(stdout, 'profile')).toMatchObject({ status: 'error', profile: 'missing' });
+      expect(check(stdout, 'token')).toMatchObject({ status: 'skipped' });
+      expect(error?.oclif?.exit).toBe(1);
+    });
+
+    it('недействительный PACHCA_TOKEN → ошибка токена и код выхода 1 в JSON', async () => {
+      setEnv('PACHCA_TOKEN', 'revoked');
+      mockDoctorFetch('something-else');
+
+      const { stdout, error } = await runCommand(['doctor', '--json'], { root: CLI_ROOT });
+
+      expect(check(stdout, 'token')).toMatchObject({ status: 'error', http_status: 401 });
+      expect(error?.oclif?.exit).toBe(1);
+    });
+
+    it('без токена и конфига → ошибки конфига и профиля, код выхода 1 в JSON', async () => {
+      mockDoctorFetch('none');
+
+      const { stdout, error } = await runCommand(['doctor', '--json'], { root: CLI_ROOT });
+
+      expect(check(stdout, 'config')).toMatchObject({ status: 'error' });
+      expect(check(stdout, 'profile')).toMatchObject({ status: 'error' });
+      expect(error?.oclif?.exit).toBe(1);
+    });
+  });
+
+  describe('upload', () => {
+    const params = {
+      'Content-Disposition': 'attachment',
+      acl: 'private',
+      policy: 'policy',
+      'x-amz-credential': 'credential',
+      'x-amz-algorithm': 'AWS4-HMAC-SHA256',
+      'x-amz-date': '20261030T000000Z',
+      'x-amz-signature': 'signature',
+      key: 'attaches/files/93746/0f1e2d3c/${filename}',
+      direct_url: 'https://storage.example.com/upload',
+    };
+
+    function mockUpload() {
+      globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+        const signature = String(url).endsWith('/uploads');
+        return Promise.resolve({
+          ok: true,
+          status: signature ? 200 : 204,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve(signature ? params : {}),
+          text: () => Promise.resolve(signature ? JSON.stringify(params) : ''),
+        });
+      });
+    }
+
+    function sentForm(): FormData {
+      const [url, opts] = fetchCalls()[1] as [string, { body: FormData; headers?: Record<string, string> }];
+      expect(url).toBe(params.direct_url);
+      return opts.body;
+    }
+
+    /** Feed `data` to the command as stdin for the duration of `run`. */
+    async function withStdin<T>(data: string, run: () => Promise<T>): Promise<T> {
+      const original = Object.getOwnPropertyDescriptor(process, 'stdin')!;
+      Object.defineProperty(process, 'stdin', { value: Readable.from([Buffer.from(data)]), configurable: true });
+      try {
+        return await run();
+      } finally {
+        Object.defineProperty(process, 'stdin', original);
+      }
+    }
+
+    it('файл с диска → ключ с именем файла', async () => {
+      setupProfile();
+      mockUpload();
+      const file = path.join(tmpDir, 'report.pdf');
+      fs.writeFileSync(file, '%PDF');
+
+      const { stdout } = await runCommand(['upload', file, '--json'], { root: CLI_ROOT });
+
+      expect(JSON.parse(stdout).key).toBe('attaches/files/93746/0f1e2d3c/report.pdf');
+      expect(sentForm().get('key')).toBe('attaches/files/93746/0f1e2d3c/report.pdf');
+    });
+
+    it('--name задаёт имя в ключе и у файла в форме', async () => {
+      setupProfile();
+      mockUpload();
+      const file = path.join(tmpDir, 'out.bin');
+      fs.writeFileSync(file, '%PDF');
+
+      const { stdout } = await runCommand(['upload', file, '--name', 'Отчёт-за-квартал.pdf', '--json'], { root: CLI_ROOT });
+
+      expect(JSON.parse(stdout).key).toBe('attaches/files/93746/0f1e2d3c/Отчёт-за-квартал.pdf');
+      expect((sentForm().get('file') as File).name).toBe('Отчёт-за-квартал.pdf');
+    });
+
+    it('stdin с --name → ключ с расширением, без предупреждения', async () => {
+      setupProfile();
+      mockUpload();
+
+      const { stdout, stderr } = await withStdin('a,b\n1,2\n', () =>
+        runCommand(['upload', '-', '--name', 'data.csv', '--json'], { root: CLI_ROOT }),
+      );
+
+      expect(JSON.parse(stdout).key).toBe('attaches/files/93746/0f1e2d3c/data.csv');
+      expect(await (sentForm().get('file') as File).text()).toBe('a,b\n1,2\n');
+      expect(stderr).not.toContain('⚠');
+    });
+
+    it('stdin без --name → имя stdin и подсказка про --name', async () => {
+      setupProfile();
+      mockUpload();
+
+      const { stdout, stderr } = await withStdin('hello', () =>
+        runCommand(['upload', '-', '--json'], { root: CLI_ROOT }),
+      );
+
+      expect(JSON.parse(stdout).key).toBe('attaches/files/93746/0f1e2d3c/stdin');
+      expect(stderr).toContain('--name');
+    });
+
+    it('stdin без --name и отказ хранилища → без подсказки о загруженном файле', async () => {
+      setupProfile();
+      globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+        const signature = String(url).endsWith('/uploads');
+        return Promise.resolve({
+          ok: signature,
+          status: signature ? 200 : 403,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve(signature ? params : {}),
+          text: () => Promise.resolve(signature ? JSON.stringify(params) : ''),
+        });
+      });
+
+      const { stderr, error } = await withStdin('hello', () =>
+        runCommand(['upload', '-', '--json'], { root: CLI_ROOT }),
+      );
+
+      expect(error).toBeTruthy();
+      expect(stderr).not.toContain('загружен под именем stdin');
+    });
+
+    it('--name с путём → PACHCA_USAGE_ERROR до запроса подписи', async () => {
+      setupProfile();
+      mockUpload();
+      const file = path.join(tmpDir, 'report.pdf');
+      fs.writeFileSync(file, '%PDF');
+
+      const { stderr, error } = await runCommand(['upload', file, '--name', '../report.pdf', '--json'], { root: CLI_ROOT });
+
+      expect(JSON.parse(stderr.trim())).toMatchObject({ type: 'PACHCA_USAGE_ERROR', flag: '--name' });
+      expect(error?.oclif?.exit).toBe(2);
+      expect(fetchCalls()).toHaveLength(0);
     });
   });
 

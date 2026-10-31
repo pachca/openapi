@@ -9,8 +9,12 @@ import {
   type IRResponseType,
   type IRService,
   type IRUnion,
+  type IRValueUnion,
+  jsonKindOf,
+  valueUnionMemberName,
+  paginateHasNext,
 } from '../ir.js';
-import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, tagToProperty, tagToServiceName, serviceToImplName } from '../naming.js';
 
 const SWIFT_KEYWORDS = new Set([
@@ -40,7 +44,7 @@ function swiftType(ft: IRFieldType, opts: { nullable?: boolean } = {}): string {
     case 'enum':
     case 'model':
     case 'union':
-      base = ft.ref ?? 'String';
+      base = ft.valueUnion ?? ft.ref ?? 'String';
       break;
     case 'array':
       base = `[${swiftType(ft.items!)}]`;
@@ -168,7 +172,49 @@ function isSelfReferencing(m: IRModel): boolean {
   return m.fields.some((f) => fieldRefsModel(f.type, m.name));
 }
 
-function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
+/** The name a caller writes in nullFields: the property name, without the backticks a keyword takes. */
+function nullFieldName(f: IRField): string {
+  return swiftIdentifier(f.name).replace(/`/g, '');
+}
+
+/**
+ * A request model with fields the API takes as null carries nullFields and its own
+ * encode(to:): an unset field stays out of the body, a field named in nullFields
+ * goes out as null whatever value it holds, and a name the model does not take as
+ * null throws EncodingError before the request is sent.
+ */
+function emitNullFieldsEncode(lines: string[], m: IRModel, nullable: IRField[]): void {
+  const names = nullable.map((f) => JSON.stringify(nullFieldName(f))).join(', ');
+  lines.push('');
+  lines.push('    public func encode(to encoder: Encoder) throws {');
+  lines.push(`        if let unknown = nullFields.subtracting([${names}]).sorted().first {`);
+  lines.push('            throw EncodingError.invalidValue(nullFields, EncodingError.Context(');
+  lines.push('                codingPath: encoder.codingPath,');
+  lines.push(`                debugDescription: "${m.name}: field \\"\\(unknown)\\" cannot be sent as null"`);
+  lines.push('            ))');
+  lines.push('        }');
+  lines.push('        var container = encoder.container(keyedBy: CodingKeys.self)');
+  for (const f of m.fields) {
+    const id = swiftIdentifier(f.name);
+    const optional = !f.required || f.nullable;
+    const write = optional
+      ? `try container.encodeIfPresent(${id}, forKey: .${id})`
+      : `try container.encode(${id}, forKey: .${id})`;
+    if (nullable.includes(f)) {
+      lines.push(`        if nullFields.contains("${nullFieldName(f)}") {`);
+      lines.push(`            try container.encodeNil(forKey: .${id})`);
+      lines.push('        } else {');
+      lines.push(`            ${write}`);
+      lines.push('        }');
+    } else {
+      lines.push(`        ${write}`);
+    }
+  }
+  lines.push('    }');
+}
+
+function emitModel(lines: string[], m: IRModel, allModels: IRModel[], withNullFields = false): void {
+  const nullable = withNullFields ? nullableOptionalFields(m) : [];
   const proto = m.isError ? 'Codable, Error' : 'Codable';
   const keyword = isSelfReferencing(m) ? 'class' : 'struct';
   lines.push(`public ${keyword} ${m.name}: ${proto} {`);
@@ -191,17 +237,25 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
     lines.push('    public var statusCode: Int?');
     fieldInfos.push({ name: 'statusCode', type: 'Int?', optional: true, mutable: true });
   }
+  if (nullable.length > 0) {
+    // Not in the body: CodingKeys below leave it out.
+    lines.push(`    /// Fields to send as null: ${nullable.map(nullFieldName).join(', ')}. An unset field stays out of the body.`);
+    lines.push('    public var nullFields: Set<String> = []');
+  }
   // Generate public memberwise init
   lines.push('');
   const initParams = fieldInfos.map((fi) => {
     const defaultVal = fi.optional ? ' = nil' : '';
     return `${fi.name}: ${fi.type}${defaultVal}`;
   });
+  if (nullable.length > 0) initParams.push('nullFields: Set<String> = []');
   lines.push(`    public init(${initParams.join(', ')}) {`);
   for (const fi of fieldInfos) {
     lines.push(`        self.${fi.name} = ${fi.name}`);
   }
+  if (nullable.length > 0) lines.push('        self.nullFields = nullFields');
   lines.push('    }');
+  if (nullable.length > 0) emitNullFieldsEncode(lines, m, nullable);
 
   if (m.name === 'ApiError') {
     const errorsField = m.fields.find((f) => f.name === 'errors');
@@ -229,11 +283,11 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
     }
   }
 
-  emitCodingKeys(lines, m.fields, m.name === 'ApiError');
+  emitCodingKeys(lines, m.fields, m.name === 'ApiError' || nullable.length > 0);
   lines.push('}');
 }
 
-/** Union whose members share no discriminator: try each member, most specific first. */
+/** Union whose members share no discriminator: try the members in the order they match the payload keys. */
 function emitStructuralUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   lines.push(`public enum ${u.name}: Codable {`);
   for (const ref of u.memberRefs) {
@@ -241,26 +295,46 @@ function emitStructuralUnion(lines: string[], u: IRUnion, models: IRModel[]): vo
     lines.push(`    case ${c}(${ref})`);
   }
   lines.push('');
-  // Synthesized decoders only fail on a missing required key, so ordering by
-  // required-field count descending makes the most demanding member win and
-  // leaves the loosest one (typically an empty object) as the fallback.
-  const ordered = [...u.memberRefs].sort((a, b) => {
-    const req = (ref: string) =>
-      (models.find((m) => m.name === ref)?.fields ?? []).filter((f) => !isOptionalField(f)).length;
-    const all = (ref: string) => (models.find((m) => m.name === ref)?.fields ?? []).length;
-    return req(b) - req(a) || all(b) - all(a) || a.localeCompare(b);
-  });
+  // The same order as the other SDKs: most payload keys recognised, then fewest
+  // unrecognised, then fewest declared, a tie keeping the declared order. A
+  // member that fits the keys but misses a required one or holds a value of
+  // another type gives way to the next.
+  lines.push('    private struct AnyKey: CodingKey {');
+  lines.push('        let stringValue: String');
+  lines.push('        var intValue: Int? { nil }');
+  lines.push('        init?(stringValue: String) { self.stringValue = stringValue }');
+  lines.push('        init?(intValue: Int) { nil }');
+  lines.push('    }');
+  lines.push('');
   lines.push('    public init(from decoder: Decoder) throws {');
-  lines.push(`        // ${u.name} carries no discriminator field: members are tried from most`);
-  lines.push('        // to least demanding, so the loosest one only wins when nothing else fits.');
-  for (const ref of ordered) {
+  lines.push(`        // ${u.name} carries no discriminator field: members are tried in the order`);
+  lines.push('        // they match the payload keys, and the first one that decodes wins.');
+  lines.push(`        let shapes: [(keys: Set<String>, decode: (Decoder) throws -> ${u.name})] = [`);
+  for (const ref of u.memberRefs) {
     const c = ref.charAt(0).toLowerCase() + ref.slice(1);
-    lines.push(`        if let value = try? ${ref}(from: decoder) {`);
-    lines.push(`            self = .${c}(value)`);
-    lines.push('            return');
-    lines.push('        }');
+    const keys = (models.find((m) => m.name === ref)?.fields ?? []).map((f) => JSON.stringify(f.name));
+    const set = keys.length > 0 ? `[${keys.join(', ')}]` : '[]';
+    lines.push(`            (${set}, { .${c}(try ${ref}(from: $0)) }),`);
   }
-  lines.push('        throw DecodingError.dataCorrupted(');
+  lines.push('        ]');
+  lines.push('        let keys = Set((try? decoder.container(keyedBy: AnyKey.self))?.allKeys.map(\\.stringValue) ?? [])');
+  lines.push('        let ranked = shapes.indices.sorted { a, b in');
+  lines.push('            let matchedA = keys.intersection(shapes[a].keys).count');
+  lines.push('            let matchedB = keys.intersection(shapes[b].keys).count');
+  lines.push('            if matchedA != matchedB { return matchedA > matchedB }');
+  lines.push('            if shapes[a].keys.count != shapes[b].keys.count { return shapes[a].keys.count < shapes[b].keys.count }');
+  lines.push('            return a < b');
+  lines.push('        }');
+  lines.push('        var firstError: Error?');
+  lines.push('        for index in ranked {');
+  lines.push('            do {');
+  lines.push('                self = try shapes[index].decode(decoder)');
+  lines.push('                return');
+  lines.push('            } catch {');
+  lines.push('                if firstError == nil { firstError = error }');
+  lines.push('            }');
+  lines.push('        }');
+  lines.push('        throw firstError ?? DecodingError.dataCorrupted(');
   lines.push(`            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "No ${u.name} member matched the payload")`);
   lines.push('        )');
   lines.push('    }');
@@ -270,6 +344,73 @@ function emitStructuralUnion(lines: string[], u: IRUnion, models: IRModel[]): vo
   for (const ref of u.memberRefs) {
     const c = ref.charAt(0).toLowerCase() + ref.slice(1);
     lines.push(`        case .${c}(let value):`);
+    lines.push('            try value.encode(to: encoder)');
+  }
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('}');
+}
+
+function valueUnionCase(m: IRFieldType): string {
+  const name = valueUnionMemberName(m);
+  return swiftIdentifier(name.charAt(0).toLowerCase() + name.slice(1));
+}
+
+/**
+ * A field that takes values of different JSON kinds is an enum with a case per
+ * member. The kind of the JSON value picks the case: a list, an object, then a
+ * plain value, so an object that does not fit its model reports its own error.
+ */
+function emitValueUnion(lines: string[], vu: IRValueUnion): void {
+  if (vu.description) lines.push(`/// ${vu.description.replace(/\n/g, ' ')}`);
+  lines.push(`public enum ${vu.name}: Codable {`);
+  for (const m of vu.members) lines.push(`    case ${valueUnionCase(m)}(${swiftType(m)})`);
+  lines.push('');
+  const object = vu.members.find((m) => jsonKindOf(m) === 'object');
+  if (object) {
+    lines.push('    private struct AnyKey: CodingKey {');
+    lines.push('        let stringValue: String');
+    lines.push('        var intValue: Int? { nil }');
+    lines.push('        init?(stringValue: String) { self.stringValue = stringValue }');
+    lines.push('        init?(intValue: Int) { nil }');
+    lines.push('    }');
+    lines.push('');
+  }
+  lines.push('    public init(from decoder: Decoder) throws {');
+  const list = vu.members.find((m) => jsonKindOf(m) === 'array');
+  if (list) {
+    lines.push('        if (try? decoder.unkeyedContainer()) != nil {');
+    lines.push(`            self = .${valueUnionCase(list)}(try ${swiftType(list)}(from: decoder))`);
+    lines.push('            return');
+    lines.push('        }');
+  }
+  if (object) {
+    lines.push('        if (try? decoder.container(keyedBy: AnyKey.self)) != nil {');
+    lines.push(`            self = .${valueUnionCase(object)}(try ${swiftType(object)}(from: decoder))`);
+    lines.push('            return');
+    lines.push('        }');
+  }
+  const plain = vu.members.filter((m) => m !== list && m !== object);
+  if (plain.length > 0) {
+    lines.push('        let container = try decoder.singleValueContainer()');
+    for (const m of plain) {
+      lines.push(`        if let value = try? container.decode(${swiftType(m)}.self) {`);
+      lines.push(`            self = .${valueUnionCase(m)}(value)`);
+      lines.push('            return');
+      lines.push('        }');
+    }
+  }
+  const expected = vu.members.map((m) => swiftType(m)).join(' or ');
+  lines.push('        throw DecodingError.typeMismatch(');
+  lines.push(`            ${vu.name}.self,`);
+  lines.push(`            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Expected ${expected}")`);
+  lines.push('        )');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    public func encode(to encoder: Encoder) throws {');
+  lines.push('        switch self {');
+  for (const m of vu.members) {
+    lines.push(`        case .${valueUnionCase(m)}(let value):`);
     lines.push('            try value.encode(to: encoder)');
   }
   lines.push('        }');
@@ -373,16 +514,21 @@ function generateModels(ir: IR): string {
     emitEnum(lines, e);
     lines.push('');
   }
+  const requestModels = requestModelNames(ir);
   for (const m of ir.models) {
     for (const inl of m.inlineObjects) {
-      emitModel(lines, inl, ir.models);
+      emitModel(lines, inl, ir.models, requestModels.has(inl.name));
       lines.push('');
     }
-    emitModel(lines, m, ir.models);
+    emitModel(lines, m, ir.models, requestModels.has(m.name));
     lines.push('');
   }
   for (const u of ir.unions) {
     emitUnion(lines, u, ir.models);
+    lines.push('');
+  }
+  for (const vu of ir.valueUnions) {
+    emitValueUnion(lines, vu);
     lines.push('');
   }
   for (const rt of ir.responses) {
@@ -647,11 +793,16 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, fnPrefix
   }
 
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const useHasNext = rt?.metaRef === 'PaginationMeta';
+  const hasNextForm = paginateHasNext(ir, rt?.metaRef);
+  const useHasNext = hasNextForm !== undefined;
 
   if (useHasNext) {
     const cursorExpr = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate.nextPage';
-    const hasNextExpr = rt?.metaIsRequired ? 'response.meta.paginate.hasNext ?? true' : 'response.meta?.paginate.hasNext ?? true';
+    const hasNextExpr = !rt?.metaIsRequired
+      ? 'response.meta?.paginate.hasNext ?? true'
+      : hasNextForm === 'required'
+        ? 'response.meta.paginate.hasNext'
+        : 'response.meta.paginate.hasNext ?? true';
     lines.push('        var hasNext = true');
     lines.push('        while hasNext {');
     lines.push(`            let response = try await ${op.methodName}(${callArgs.join(', ')})`);
@@ -1093,10 +1244,11 @@ function generateUtils(ir: IR): string {
     '    return encoder',
     '}()',
     '',
+    '// The encoder leaves out every optional field that is not set. A null in the',
+    '// body is one the caller asked for: a field named in nullFields of a request',
+    '// model, or a null inside a free-form value.',
     'func serialize<T: Encodable>(_ value: T) throws -> Data {',
-    '    let data = try pachcaEncoder.encode(value)',
-    '    let json = try JSONSerialization.jsonObject(with: data)',
-    '    return try JSONSerialization.data(withJSONObject: stripNulls(json))',
+    '    return try pachcaEncoder.encode(value)',
     '}',
     '',
     'func deserialize<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {',
@@ -1206,21 +1358,6 @@ function generateUtils(ir: IR): string {
     '',
   );
 
-  lines.push(
-    'private func stripNulls(_ value: Any) -> Any {',
-    '    if let dict = value as? [String: Any] {',
-    '        return dict.compactMapValues { v -> Any? in',
-    '            if v is NSNull { return nil }',
-    '            return stripNulls(v)',
-    '        }',
-    '    }',
-    '    if let arr = value as? [Any] {',
-    '        return arr.map(stripNulls)',
-    '    }',
-    '    return value',
-    '}',
-    '',
-  );
   return lines.join('\n');
 }
 
@@ -1270,7 +1407,7 @@ function swiftLiteral(
     case 'model': {
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
-        return swiftModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+        return swiftUnionLiteral(u.memberRefs[0], ir, models, visited, indent);
       }
       return swiftModelLiteral(ft.ref ?? 'String', ir, models, visited, indent);
     }
@@ -1279,9 +1416,12 @@ function swiftLiteral(
     case 'record':
       return `["key": ${swiftLiteral(ft.valueType!, ir, models, visited, indent)}]`;
     case 'union': {
+      if (ft.valueUnion && ft.members) {
+        return `.${valueUnionCase(ft.members[0])}(${swiftLiteral(ft.members[0], ir, models, visited, indent)})`;
+      }
       const u = ir.unions.find((un) => un.name === ft.ref);
       if (u && u.memberRefs.length > 0) {
-        return swiftModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+        return swiftUnionLiteral(u.memberRefs[0], ir, models, visited, indent);
       }
       return `${ft.ref ?? 'String'}`;
     }
@@ -1290,6 +1430,18 @@ function swiftLiteral(
     case 'binary':
       return 'Data()';
   }
+}
+
+/** A union value is an enum case wrapping its member: `.viewBlockHeader(ViewBlockHeader(...))` (see emitUnion). */
+function swiftUnionLiteral(
+  memberRef: string,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string>,
+  indent: number,
+): string {
+  const caseName = memberRef.charAt(0).toLowerCase() + memberRef.slice(1);
+  return `.${caseName}(${swiftModelLiteral(memberRef, ir, models, visited, indent)})`;
 }
 
 function swiftModelLiteral(
@@ -1357,7 +1509,7 @@ function swiftFingerprint(
     case 'record':
       return `[String: ${swiftFingerprint(ft.valueType!, ir, models, visited)}]`;
     case 'union':
-      return ft.ref ?? 'String';
+      return ft.valueUnion ?? ft.ref ?? 'String';
     case 'literal':
       return 'String';
     case 'binary':
@@ -1439,7 +1591,7 @@ function swiftBuildOperationExample(
   models: Map<string, IRModel>,
   serviceProp: string,
 ): { usage: string; output: string | null; imports: string[] } {
-  const callArgs: { label: string; value: string }[] = [];
+  const callArgs: { label: string; value: string; type?: IRFieldType }[] = [];
   const imports = new Set<string>();
 
   if (op.externalUrl) {
@@ -1447,33 +1599,36 @@ function swiftBuildOperationExample(
   }
 
   for (const p of op.pathParams) {
-    callArgs.push({ label: snakeToCamel(p.sdkName), value: swiftLiteral(p.type, ir, models) });
+    callArgs.push({ label: snakeToCamel(p.sdkName), value: swiftLiteral(p.type, ir, models), type: p.type });
     for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
   }
 
   if (op.requestBody) {
     const rb = op.requestBody;
+    const body = bodyExample(rb, ir, models);
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = swiftIdentifier(rb.unwrapField.name);
-      callArgs.push({ label: sdkName, value: swiftLiteral(rb.unwrapField.type, ir, models) });
-      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
+      callArgs.push({ label: sdkName, value: swiftLiteral(body.type, body.ir, body.models), type: body.type });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     } else if (rb.schemaRef) {
-      callArgs.push({ label: 'request', value: swiftLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
-      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
+      callArgs.push({ label: 'request', value: swiftLiteral(body.type, body.ir, body.models) });
+      for (const r of collectTypeRefs(body.type, body.ir, body.models)) imports.add(r);
     }
   }
 
   for (const q of op.queryParams) {
-    callArgs.push({ label: snakeToCamel(q.sdkName), value: swiftLiteral(q.type, ir, models) });
+    callArgs.push({ label: snakeToCamel(q.sdkName), value: swiftLiteral(q.type, ir, models), type: q.type });
     for (const r of collectTypeRefs(q.type, ir, models)) imports.add(r);
   }
 
   const declarations: string[] = [];
   const finalArgs: string[] = [];
 
-  for (const { label, value } of callArgs) {
+  for (const { label, value, type } of callArgs) {
     if ((value.includes('(') || value.includes('[')) && !value.startsWith('.') && !value.startsWith('"')) {
-      declarations.push(`let ${label} = ${value}`);
+      // An array or a dictionary of enum cases (`[.admin]`) has no type of its own: it is spelled out.
+      const annotation = type && (type.kind === 'array' || type.kind === 'record') ? `: ${swiftType(type)}` : '';
+      declarations.push(`let ${label}${annotation} = ${value}`);
       finalArgs.push(`${label}: ${label}`);
     } else {
       finalArgs.push(`${label}: ${value}`);
@@ -1508,6 +1663,8 @@ function swiftGenerateExamples(ir: IR): string {
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
+      const named = namedBodyExamples(op, (o) => swiftBuildOperationExample(o, ir, models, serviceProp));
+      if (named) entry.examples = named;
       result[op.operationId] = entry;
       if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
         result[`${op.operationId}_pollWebhookEvents`] = {

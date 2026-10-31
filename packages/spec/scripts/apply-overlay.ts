@@ -107,6 +107,10 @@ const RU_TO_EN: Record<string, string> = {
 	'Пример отправки файлов на удаленный сервер': 'Example of sending files to a remote server',
 	'Синий склад': 'Blue warehouse',
 
+	// Example titles (`summary` of request examples)
+	'Минимальный запрос': 'Minimal request',
+	'Сообщение с кнопкой': 'Message with a button',
+
 	// Example values — messages content
 	'Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)':
 		'Yesterday we sold 756 t-shirts (10% more than last Sunday)',

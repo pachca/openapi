@@ -1,9 +1,22 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import datetime
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import Any, Union
+
+try:
+    from enum import StrEnum
+except ImportError:  # Python 3.10
+    from enum import Enum
+
+    class StrEnum(str, Enum):  # noqa: UP042
+        def __str__(self) -> str:
+            return self._value_
+
+        def __format__(self, format_spec: str) -> str:
+            return self._value_.__format__(format_spec)
+
 
 class OpenStrEnum(StrEnum):
     """An enum of responses: a value this SDK does not list yet becomes a member that keeps it, with is_known False."""
@@ -393,7 +406,7 @@ class SearchEntityType(StrEnum):
     """Тип сущности для поиска"""
 
     USER = "User"  # Пользователь
-    TASK = "Task"  # Задача
+    TASK = "Task"  # Напоминание
 
 
 class SearchSortOrder(StrEnum):
@@ -412,7 +425,7 @@ class SortOrder(StrEnum):
 
 
 class TaskKind(OpenStrEnum):
-    """Тип задачи"""
+    """Тип напоминания"""
 
     CALL = "call"  # Позвонить контакту
     MEETING = "meeting"  # Встреча
@@ -597,6 +610,12 @@ class ApiErrorItem:
 class AuditDetailsBot:
     bot_id: int
     actor_id: int | None = None
+    webhook_id: int | None = None
+    application_id: int | None = None
+    access_token_id: int | None = None
+    access_token_preview: str | None = None
+    scopes: list[str] | AuditDetailsTokenScopesChange | None = None
+    name: AuditDetailsTokenNameChange | None = None
 
 
 @dataclass
@@ -605,6 +624,13 @@ class AuditDetailsBotOAuthClient:
     client_id: str
     changes: dict[str, Any]
     actor_id: int | None = None
+    application_id: int | None = None
+    application_name: str | None = None
+    bot_name: str | None = None
+    webhook_id: int | None = None
+    scopes: list[str] | None = None
+    access_token_id: int | None = None
+    access_token_preview: str | None = None
 
 
 @dataclass
@@ -614,6 +640,13 @@ class AuditDetailsBotOAuthClientDisabled:
     deleted_access_tokens_count: int
     deleted_access_grants_count: int
     actor_id: int | None = None
+    application_id: int | None = None
+    application_name: str | None = None
+    bot_name: str | None = None
+    webhook_id: int | None = None
+    scopes: list[str] | None = None
+    access_token_id: int | None = None
+    access_token_preview: str | None = None
 
 
 @dataclass
@@ -621,6 +654,13 @@ class AuditDetailsBotOAuthClientSecretRotated:
     bot_id: int
     client_id: str
     actor_id: int | None = None
+    application_id: int | None = None
+    application_name: str | None = None
+    bot_name: str | None = None
+    webhook_id: int | None = None
+    scopes: list[str] | None = None
+    access_token_id: int | None = None
+    access_token_preview: str | None = None
 
 
 @dataclass
@@ -628,7 +668,11 @@ class AuditDetailsBotScopes:
     bot_id: int
     added_scopes: list[str]
     removed_scopes: list[str]
+    webhook_id: int
+    previous_scopes: list[str]
+    new_scopes: list[str]
     actor_id: int | None = None
+    bot_name: str | None = None
 
 
 @dataclass
@@ -636,9 +680,18 @@ class AuditDetailsBotTokenUpdated:
     token_kind: str
     resource_owner_id: int
     current_scopes: list[str]
+    access_token_id: int
+    webhook_id: int
     token_name: str | None = None
     bot_id: int | None = None
     actor_id: int | None = None
+    access_token_preview: str | None = None
+    application_id: int | None = None
+    application_name: str | None = None
+    client_id: str | None = None
+    bot_name: str | None = None
+    name: AuditDetailsTokenNameChange | None = None
+    scopes: AuditDetailsTokenScopesChange | None = None
 
 
 @dataclass
@@ -646,6 +699,11 @@ class AuditDetailsBotWebhookSettings:
     bot_id: int
     changes: dict[str, Any]
     actor_id: int | None = None
+    bot_name: str | None = None
+    webhook_id: int | None = None
+    access_token_id: int | None = None
+    access_token_preview: str | None = None
+    application_id: int | None = None
 
 
 @dataclass
@@ -668,19 +726,26 @@ class AuditDetailsChatRenamed:
 class AuditDetailsDeviceAuthorizationApproved:
     client_id: str
     scopes: list[str]
+    application_id: int
+    device_grant_id: int
     device_name: str | None = None
+    application_name: str | None = None
+    token_kind: str | None = None
 
 
 @dataclass
 class AuditDetailsDeviceAuthorizationDenied:
     client_id: str
     scopes: list[str]
+    device_grant_id: int
     device_name: str | None = None
+    application_id: int | None = None
+    token_kind: str | None = None
 
 
 @dataclass
 class AuditDetailsDlp:
-    dlp_rule_id: int
+    dlp_rule_id: str
     dlp_rule_name: str
     message_id: int
     chat_id: int
@@ -731,15 +796,24 @@ class AuditDetailsLoginGrantDenied:
 
 @dataclass
 class AuditDetailsOAuthAuthorizationGranted:
-    client_id: str
     scopes: list[str]
+    application_id: int
+    authorization_grant_id: int
+    client_id: str | None = None
+    application_name: str | None = None
+    bot_id: int | None = None
+    bot_name: str | None = None
 
 
 @dataclass
 class AuditDetailsOAuthAuthorizationRevoked:
     client_id: str
     revoked_tokens_count: int
+    application_id: int
     user_id: int | None = None
+    application_name: str | None = None
+    bot_id: int | None = None
+    bot_name: str | None = None
 
 
 @dataclass
@@ -774,14 +848,37 @@ class AuditDetailsToken:
     token_kind: str
     resource_owner_id: int
     scopes: list[str]
+    access_token_id: int
     token_name: str | None = None
+    access_token_preview: str | None = None
+    application_id: int | None = None
+    application_name: str | None = None
+    client_id: str | None = None
     bot_id: int | None = None
+    bot_name: str | None = None
+    device_name: str | None = None
+    actor_id: int | None = None
+    webhook_id: int | None = None
+    user_id: int | None = None
+    source: str | None = None
     reason: str | None = None
+
+
+@dataclass
+class AuditDetailsTokenNameChange:
+    previous: str | None = None
+    new: str | None = None
 
 
 @dataclass
 class AuditDetailsTokenScopes:
     scopes: list[str]
+
+
+@dataclass
+class AuditDetailsTokenScopesChange:
+    previous: list[str]
+    new: list[str]
 
 
 @dataclass
@@ -1066,6 +1163,8 @@ class BotUpdateRequestWebhook:
     single_chat: bool | None = None
     kind: BotWebhookKind | None = None
     unfurl_domains: list[str] | None = None
+    # Fields to send as null: kind
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1073,6 +1172,8 @@ class BotUpdateRequest:
     webhook: BotUpdateRequestWebhook | None = None
     oauth_client: BotOAuthClientRequest | None = None
     promo: BotPromoRequest | None = None
+    # Fields to send as null: oauth_client
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1263,6 +1364,8 @@ class DraftCreateRequestDraft:
     parent_message_id: int | None = None
     files: list[DraftFileRequest] | None = None
     schedule: DraftScheduleRequest | None = None
+    # Fields to send as null: parent_message_id, schedule
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1295,6 +1398,8 @@ class DraftRepetitionRequest:
     interval: DraftRepetitionInterval
     days: list[int] | None = None
     nth_day: int | None = None
+    # Fields to send as null: nth_day
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1309,6 +1414,8 @@ class DraftScheduleRequest:
     start_date: datetime
     repetition: DraftRepetitionRequest
     end_date: datetime | None = None
+    # Fields to send as null: end_date
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1317,6 +1424,8 @@ class DraftUpdateRequestDraft:
     parent_message_id: int | None = None
     files: list[DraftFileRequest] | None = None
     schedule: DraftScheduleRequest | None = None
+    # Fields to send as null: parent_message_id, schedule
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1599,6 +1708,11 @@ class OpenViewRequest:
 
 
 @dataclass
+class OpenViewResult:
+    success: bool
+
+
+@dataclass
 class PaginationMetaPaginate:
     next_page: str
     prev_page: str | None = None
@@ -1641,6 +1755,7 @@ class ReactionWebhookPayload:
 @dataclass
 class SearchPaginationMetaPaginate:
     next_page: str
+    has_next: bool
 
 
 @dataclass

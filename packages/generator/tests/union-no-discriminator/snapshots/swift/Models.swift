@@ -75,26 +75,40 @@ public enum EventDetailsUnion: Codable {
     case detailsCall(DetailsCall)
     case detailsRename(DetailsRename)
 
+    private struct AnyKey: CodingKey {
+        let stringValue: String
+        var intValue: Int? { nil }
+        init?(stringValue: String) { self.stringValue = stringValue }
+        init?(intValue: Int) { nil }
+    }
+
     public init(from decoder: Decoder) throws {
-        // EventDetailsUnion carries no discriminator field: members are tried from most
-        // to least demanding, so the loosest one only wins when nothing else fits.
-        if let value = try? DetailsCall(from: decoder) {
-            self = .detailsCall(value)
-            return
+        // EventDetailsUnion carries no discriminator field: members are tried in the order
+        // they match the payload keys, and the first one that decodes wins.
+        let shapes: [(keys: Set<String>, decode: (Decoder) throws -> EventDetailsUnion)] = [
+            ([], { .detailsEmpty(try DetailsEmpty(from: $0)) }),
+            (["chat_id"], { .detailsChat(try DetailsChat(from: $0)) }),
+            (["chat_id", "duration", "recording_size"], { .detailsCall(try DetailsCall(from: $0)) }),
+            (["old_name", "new_name"], { .detailsRename(try DetailsRename(from: $0)) }),
+        ]
+        let keys = Set((try? decoder.container(keyedBy: AnyKey.self))?.allKeys.map(\.stringValue) ?? [])
+        let ranked = shapes.indices.sorted { a, b in
+            let matchedA = keys.intersection(shapes[a].keys).count
+            let matchedB = keys.intersection(shapes[b].keys).count
+            if matchedA != matchedB { return matchedA > matchedB }
+            if shapes[a].keys.count != shapes[b].keys.count { return shapes[a].keys.count < shapes[b].keys.count }
+            return a < b
         }
-        if let value = try? DetailsRename(from: decoder) {
-            self = .detailsRename(value)
-            return
+        var firstError: Error?
+        for index in ranked {
+            do {
+                self = try shapes[index].decode(decoder)
+                return
+            } catch {
+                if firstError == nil { firstError = error }
+            }
         }
-        if let value = try? DetailsChat(from: decoder) {
-            self = .detailsChat(value)
-            return
-        }
-        if let value = try? DetailsEmpty(from: decoder) {
-            self = .detailsEmpty(value)
-            return
-        }
-        throw DecodingError.dataCorrupted(
+        throw firstError ?? DecodingError.dataCorrupted(
             DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "No EventDetailsUnion member matched the payload")
         )
     }

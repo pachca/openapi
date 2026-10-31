@@ -17,12 +17,14 @@ func (m Category) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var raw map[string]any
+	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
 	if m.Children != nil {
-		raw["children"] = m.Children
+		if raw["children"], err = json.Marshal(m.Children); err != nil {
+			return nil, err
+		}
 	}
 	return json.Marshal(raw)
 }

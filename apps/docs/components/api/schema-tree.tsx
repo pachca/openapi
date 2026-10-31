@@ -66,6 +66,17 @@ interface SchemaTreeProps {
   parentPath?: string;
 }
 
+/** Type label for an inline union variant without a name: `array of string`, `string`. */
+function inlineVariantLabel(variant: Schema): string | null {
+  if (variant.properties) return null;
+  if (variant.type === 'array') {
+    return variant.items && !variant.items.$ref && !variant.items.properties
+      ? `array of ${variant.items.type || 'any'}`
+      : null;
+  }
+  return typeof variant.type === 'string' ? variant.type : null;
+}
+
 function RequiredBadge() {
   return <span className="text-[14px] font-bold text-method-delete ml-0">*</span>;
 }
@@ -488,7 +499,7 @@ function SchemaTreeInner({
             // Если вариант - это $ref, показываем название
             const variantName = variant.$ref
               ? variant.$ref.split('/').pop()
-              : `Вариант ${index + 1}`;
+              : variant.title || inlineVariantLabel(variant) || `Вариант ${index + 1}`;
 
             return (
               <VariantSection

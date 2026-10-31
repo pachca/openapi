@@ -5,6 +5,7 @@ import { getGuideData } from '@/lib/content-loader';
 import { getSectionTitle } from '@/lib/tabs-config';
 import { loadUpdates, loadReleases, formatDateRu } from '@/lib/updates-parser';
 import { parseSeasonSlug } from '@/lib/seasons';
+import { PRODUCT_TITLES } from '@/lib/feed-content';
 import { type NextRequest } from 'next/server';
 
 // In-memory cache: URL → PNG buffer (max 50 entries)
@@ -124,13 +125,6 @@ async function generateMethodImage(path: string) {
   );
 }
 
-const OG_PRODUCT_TITLES: Record<string, string> = {
-  cli: 'CLI',
-  sdk: 'SDK',
-  generator: 'Generator',
-  n8n: 'n8n Node',
-};
-
 async function generateUpdatesImage(date: string | null) {
   if (!date) {
     return generateGuideImage('updates');
@@ -151,7 +145,7 @@ async function generateUpdatesImage(date: string | null) {
       return generateGuideImage('updates');
     }
     displayDate = formatDateRu(date);
-    const products = [...new Set(releases.map((r) => OG_PRODUCT_TITLES[r.product]))];
+    const products = [...new Set(releases.map((r) => PRODUCT_TITLES[r.product]))];
     title = products.join(', ') + ' ' + releases.map((r) => `v${r.version}`).join(', ');
   }
 

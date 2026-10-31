@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 )
 
 // errorFromResponse reads an error answer, an ApiError. An empty body or

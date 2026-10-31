@@ -54,19 +54,14 @@
     "output": "BotSelfTokenResponse(Id: int, OauthClient: BotOAuthClient(ClientId: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: List<string>, Scopes: List<string>)?, Webhook: BotSelfWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd), AccessToken: string)"
   },
   "BotOperations_createBot": {
-    "usage": "var request = new BotCreateRequest\n{\n    Empty = false,\n    Webhook = new BotCreateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://example.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" },\n        Template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        TemplateEngine = BotTemplateEngine.Liquid,\n        ChallengeKey = \"challenge\",\n        LinkPreviewEnabled = true,\n        IgnoreSelfMessages = false,\n        EventsHistoryEnabled = false,\n        WhoCanAdd = BotWhoCanAdd.Creator,\n        CanEdit = new List<BotCanEdit> { BotCanEdit.Admin },\n        SingleChat = false,\n        Kind = BotWebhookKind.Simple,\n        UnfurlDomains = new List<string> { \"example\" }\n    },\n    OauthClient = new BotOAuthClientRequest\n    {\n        Confidential = true,\n        RedirectUris = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" }\n    },\n    Promo = new BotPromoRequest\n    {\n        Description = \"Собирает сводку по задачам Jira и присылает её в чат\",\n        Published = true,\n        PromoImages = new List<string> { \"example\" }\n    }\n};\nvar response = await client.Bots.CreateBotAsync(request);",
+    "usage": "var request = new BotCreateRequest\n{\n    Webhook = new BotCreateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://example.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"/task\" },\n        Scopes = new List<string> { \"messages:create\" }\n    },\n    OauthClient = new BotOAuthClientRequest\n    {\n        Confidential = true,\n        RedirectUris = new List<string> { \"https://example.com/oauth/callback\" },\n        Scopes = new List<string> { \"messages:read\" }\n    }\n};\nvar response = await client.Bots.CreateBotAsync(request);",
     "output": "BotCreateResponse(Id: int, Name: string, Nickname: string, AvatarUrl: string?, CreatorId: int?, CreatedAt: DateTimeOffset, AuthorizedUsersCount: int, LastUsedAt: DateTimeOffset?, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd, Kind: BotWebhookKind?, UnfurlDomains: List<string>, LastRequestAt: DateTimeOffset?, Url: string?, SecretToken: string?, LastRequestBody: string?), OauthClientEnabled: bool, OauthClient: BotOAuthClient(ClientId: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: List<string>, Scopes: List<string>)?, Promo: BotPromo(Description: string?, Published: bool, PromoImages: List<BotPromoImage(Key: string, Url: string)>)?, Permissions: BotPermissions(UpdateOauthClient: bool, RecreateToken: bool, Destroy: bool), ClientSecret: string?, AccessToken: string?)",
     "imports": [
-      "BotCanEdit",
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
       "BotOAuthClientRequest",
-      "BotPromoRequest",
-      "BotTemplateEngine",
-      "BotTriggerOn",
-      "BotWebhookKind",
-      "BotWhoCanAdd"
+      "BotTriggerOn"
     ]
   },
   "BotOperations_recreateBotToken": {
@@ -78,7 +73,7 @@
     "output": "BotResponse(Id: int, Name: string, Nickname: string, AvatarUrl: string?, CreatorId: int?, CreatedAt: DateTimeOffset, AuthorizedUsersCount: int, LastUsedAt: DateTimeOffset?, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd, Kind: BotWebhookKind?, UnfurlDomains: List<string>, LastRequestAt: DateTimeOffset?, Url: string?, SecretToken: string?, LastRequestBody: string?), OauthClientEnabled: bool, OauthClient: BotOAuthClient(ClientId: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: List<string>, Scopes: List<string>)?, Promo: BotPromo(Description: string?, Published: bool, PromoImages: List<BotPromoImage(Key: string, Url: string)>)?, Permissions: BotPermissions(UpdateOauthClient: bool, RecreateToken: bool, Destroy: bool), ClientSecret: string?)"
   },
   "BotOperations_createBotToken": {
-    "usage": "var request = new BotTokenCreateRequest { Name = \"Сервер уведомлений\", Scopes = new List<string> { \"example\" } };\nvar response = await client.Bots.CreateBotTokenAsync(1738816, request);",
+    "usage": "var request = new BotTokenCreateRequest { Name = \"Сервер уведомлений\", Scopes = new List<string> { \"messages:create\" } };\nvar response = await client.Bots.CreateBotTokenAsync(1738816, request);",
     "output": "BotAccessToken(Id: long, Token: string, Name: string?, UserId: long, Scopes: List<string>, CreatedAt: DateTimeOffset, RevokedAt: DateTimeOffset?, ExpiresIn: int?, LastUsedAt: DateTimeOffset?, AuthorizedAt: DateTimeOffset?)",
     "imports": [
       "BotTokenCreateRequest"
@@ -117,7 +112,7 @@
     "output": "AvatarData(ImageUrl: string)"
   },
   "BotOperations_updateBotToken": {
-    "usage": "var request = new BotTokenUpdateRequest { Name = \"Сервер уведомлений\", Scopes = new List<string> { \"example\" } };\nvar response = await client.Bots.UpdateBotTokenAsync(1738816, 4827L, request);",
+    "usage": "var request = new BotTokenUpdateRequest { Name = \"Сервер уведомлений\", Scopes = new List<string> { \"messages:create\" } };\nvar response = await client.Bots.UpdateBotTokenAsync(1738816, 4827L, request);",
     "output": "BotAccessToken(Id: long, Token: string, Name: string?, UserId: long, Scopes: List<string>, CreatedAt: DateTimeOffset, RevokedAt: DateTimeOffset?, ExpiresIn: int?, LastUsedAt: DateTimeOffset?, AuthorizedAt: DateTimeOffset?)",
     "imports": [
       "BotTokenUpdateRequest"
@@ -168,7 +163,7 @@
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "var request = new ExportRequest\n{\n    StartAt = \"2025-03-20\",\n    EndAt = \"2025-03-20\",\n    WebhookUrl = \"https://example.com/webhooks/export\",\n    ChatIds = new List<int> { 123 },\n    SkipChatsFile = false\n};\nvar response = await client.Chats.RequestExportAsync(request);",
+    "usage": "var request = new ExportRequest\n{\n    StartAt = \"2025-03-01\",\n    EndAt = \"2025-03-20\",\n    ChatIds = new List<int> { 1381521 }\n};\nvar response = await client.Chats.RequestExportAsync(request);",
     "output": "ChatExport(Id: int)",
     "imports": [
       "ExportRequest"
@@ -269,16 +264,11 @@
     "output": "Draft(Id: int, EntityType: MessageEntityType?, EntityId: int?, ChatId: int?, Content: string, ParentMessageId: int?, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Schedule: DraftSchedule(StartDate: DateTimeOffset, EndDate: DateTimeOffset?, Repetition: DraftRepetition(Interval: DraftRepetitionInterval, Days: List<int>?, NthDay: int?))?, NextSendAt: DateTimeOffset?, CreatedAt: DateTimeOffset, UpdatedAt: DateTimeOffset)"
   },
   "DraftOperations_createDraft": {
-    "usage": "var request = new DraftCreateRequest\n{\n    Draft = new DraftCreateRequestDraft\n    {\n        EntityType = MessageEntityType.Discussion,\n        EntityId = 334,\n        Content = \"Отчёт за неделю: продажи выросли на 10%\",\n        ParentMessageId = 196093,\n        Files = new List<DraftFileRequest> { new DraftFileRequest\n        {\n            Id = 3560,\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345L,\n            Width = 800,\n            Height = 600,\n            DurationMs = 5400,\n            Waveform = \"4,8,12,20,16,10,6,3\"\n        } },\n        Schedule = new DraftScheduleRequest\n        {\n            StartDate = DateTimeOffset.Parse(\"2026-09-17T12:00:00.000Z\"),\n            EndDate = DateTimeOffset.Parse(\"2026-12-31T12:00:00.000Z\"),\n            Repetition = new DraftRepetitionRequest\n            {\n                Interval = DraftRepetitionInterval.Weekly,\n                Days = new List<int> { 123 },\n                NthDay = 2\n            }\n        }\n    }\n};\nvar response = await client.Drafts.CreateDraftAsync(request);",
+    "usage": "var request = new DraftCreateRequest\n{\n    Draft = new DraftCreateRequestDraft\n    {\n        EntityType = MessageEntityType.Discussion,\n        EntityId = 334,\n        Content = \"Отчёт за неделю: продажи выросли на 10%\"\n    }\n};\nvar response = await client.Drafts.CreateDraftAsync(request);",
     "output": "Draft(Id: int, EntityType: MessageEntityType?, EntityId: int?, ChatId: int?, Content: string, ParentMessageId: int?, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Schedule: DraftSchedule(StartDate: DateTimeOffset, EndDate: DateTimeOffset?, Repetition: DraftRepetition(Interval: DraftRepetitionInterval, Days: List<int>?, NthDay: int?))?, NextSendAt: DateTimeOffset?, CreatedAt: DateTimeOffset, UpdatedAt: DateTimeOffset)",
     "imports": [
       "DraftCreateRequest",
       "DraftCreateRequestDraft",
-      "DraftFileRequest",
-      "DraftRepetitionInterval",
-      "DraftRepetitionRequest",
-      "DraftScheduleRequest",
-      "FileType",
       "MessageEntityType"
     ]
   },
@@ -352,16 +342,30 @@
     "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?, Important: bool)"
   },
   "MessageOperations_createMessage": {
-    "usage": "var request = new MessageCreateRequest\n{\n    Message = new MessageCreateRequestMessage\n    {\n        EntityType = MessageEntityType.Discussion,\n        EntityId = 334,\n        Content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        Files = new List<MessageCreateRequestFile> { new MessageCreateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345L,\n            Width = 800,\n            Height = 600,\n            DurationMs = 5400,\n            Waveform = \"4,8,12,20,16,10,6,3\"\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        ParentMessageId = 194270,\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\",\n        SkipInviteMentions = false\n    },\n    LinkPreview = false\n};\nvar response = await client.Messages.CreateMessageAsync(request);",
+    "usage": "var request = new MessageCreateRequest { Message = new MessageCreateRequestMessage { EntityId = 334, Content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\" } };\nvar response = await client.Messages.CreateMessageAsync(request);",
     "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?, Important: bool)",
     "imports": [
-      "Button",
-      "FileType",
       "MessageCreateRequest",
-      "MessageCreateRequestFile",
-      "MessageCreateRequestMessage",
-      "MessageEntityType"
-    ]
+      "MessageCreateRequestMessage"
+    ],
+    "examples": {
+      "Минимальный запрос": {
+        "usage": "var request = new MessageCreateRequest { Message = new MessageCreateRequestMessage { EntityId = 334, Content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\" } };\nvar response = await client.Messages.CreateMessageAsync(request);",
+        "imports": [
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage"
+        ]
+      },
+      "Сообщение с кнопкой": {
+        "usage": "var request = new MessageCreateRequest\n{\n    Message = new MessageCreateRequestMessage\n    {\n        EntityType = MessageEntityType.Discussion,\n        EntityId = 334,\n        Content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        Buttons = new List<List<Button>> { new List<Button> { new Button { Text = \"Подробнее\", Url = \"https://example.com/details\" } } }\n    }\n};\nvar response = await client.Messages.CreateMessageAsync(request);",
+        "imports": [
+          "Button",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage",
+          "MessageEntityType"
+        ]
+      }
+    }
   },
   "LinkPreviewOperations_unfurl": {
     "usage": "var request = new LinkPreviewsRequest\n{\n    LinkPreviews = new Dictionary<string, LinkPreview> { [\"key\"] = new LinkPreview\n    {\n        Title = \"Статья: Отправка файлов\",\n        Description = \"Пример отправки файлов на удаленный сервер\",\n        ImageUrl = \"https://example.com/img/landing.png\",\n        Image = new LinkPreviewImage\n        {\n            Key = \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            Name = \"files-to-server.jpg\",\n            Size = 695604\n        }\n    } }\n};\nawait client.Messages.UnfurlAsync(194275, request);",
@@ -375,13 +379,11 @@
     "usage": "await client.Messages.PinMessageAsync(194275);"
   },
   "MessageOperations_updateMessage": {
-    "usage": "var request = new MessageUpdateRequest\n{\n    Message = new MessageUpdateRequestMessage\n    {\n        Content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        Files = new List<MessageUpdateRequestFile> { new MessageUpdateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345L,\n            Width = 800,\n            Height = 600,\n            DurationMs = 5400,\n            Waveform = \"4,8,12,20,16,10,6,3\"\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\"\n    }\n};\nvar response = await client.Messages.UpdateMessageAsync(194275, request);",
+    "usage": "var request = new MessageUpdateRequest { Message = new MessageUpdateRequestMessage { Content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\", Buttons = new List<List<Button>> { new List<Button> { new Button { Text = \"Подробнее\", Url = \"https://example.com/details\" } } } } };\nvar response = await client.Messages.UpdateMessageAsync(194275, request);",
     "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?, Important: bool)",
     "imports": [
       "Button",
-      "FileType",
       "MessageUpdateRequest",
-      "MessageUpdateRequestFile",
       "MessageUpdateRequestMessage"
     ]
   },
@@ -430,10 +432,9 @@
     "output": "AccessTokenInfo(Id: long, Token: string, Name: string?, UserId: long, Scopes: List<OAuthScope>, CreatedAt: DateTimeOffset, RevokedAt: DateTimeOffset?, ExpiresIn: int?, LastUsedAt: DateTimeOffset?, AuthorizedAt: DateTimeOffset?)"
   },
   "OAuthFlowOperations_revokeToken": {
-    "usage": "var request = new OAuthRevokeRequest\n{\n    Token = \"pato_bm90X2FfcmVhbF90b2tlbg\",\n    TokenTypeHint = OAuthTokenTypeHint.AccessToken,\n    ClientId = \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    ClientSecret = \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n};\nawait client.Oauth.RevokeTokenAsync(request);",
+    "usage": "var request = new OAuthRevokeRequest\n{\n    Token = \"pato_bm90X2FfcmVhbF90b2tlbg\",\n    ClientId = \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    ClientSecret = \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n};\nawait client.Oauth.RevokeTokenAsync(request);",
     "imports": [
-      "OAuthRevokeRequest",
-      "OAuthTokenTypeHint"
+      "OAuthRevokeRequest"
     ]
   },
   "OAuthFlowOperations_exchangeToken": {
@@ -495,7 +496,7 @@
     ]
   },
   "TaskOperations_listTasks": {
-    "usage": "var chatIds = new List<int> { 123 };\nvar performerIds = new List<int> { 123 };\nvar response = await client.Tasks.ListTasksAsync(TaskStatus.Undone, chatIds, performerIds, 12, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "usage": "var chatIds = new List<int> { 123 };\nvar performerIds = new List<int> { 123 };\nvar response = await client.Tasks.ListTasksAsync(Pachca.Sdk.TaskStatus.Undone, chatIds, performerIds, 12, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
     "output": "ListTasksResponse(Data: List<Task>, Meta: PaginationMeta)",
     "imports": [
       "TaskStatus"
@@ -516,7 +517,7 @@
     ]
   },
   "TaskOperations_updateTask": {
-    "usage": "var request = new TaskUpdateRequest\n{\n    Task = new TaskUpdateRequestTask\n    {\n        Kind = TaskKind.Reminder,\n        Content = \"Забрать со склада 21 заказ\",\n        DueAt = DateTimeOffset.Parse(\"2020-06-05T12:00:00.000+03:00\"),\n        Priority = 2,\n        PerformerIds = new List<int> { 123 },\n        Status = TaskStatus.Done,\n        AllDay = false,\n        DoneAt = DateTimeOffset.Parse(\"2020-06-05T12:00:00.000Z\"),\n        CustomProperties = new List<TaskUpdateRequestCustomProperty> { new TaskUpdateRequestCustomProperty { Id = 78, Value = \"Синий склад\" } }\n    }\n};\nvar response = await client.Tasks.UpdateTaskAsync(22283, request);",
+    "usage": "var request = new TaskUpdateRequest\n{\n    Task = new TaskUpdateRequestTask\n    {\n        Kind = TaskKind.Reminder,\n        Content = \"Забрать со склада 21 заказ\",\n        DueAt = DateTimeOffset.Parse(\"2020-06-05T12:00:00.000+03:00\"),\n        Priority = 2,\n        PerformerIds = new List<int> { 123 },\n        Status = Pachca.Sdk.TaskStatus.Done,\n        AllDay = false,\n        DoneAt = DateTimeOffset.Parse(\"2020-06-05T12:00:00.000Z\"),\n        CustomProperties = new List<TaskUpdateRequestCustomProperty> { new TaskUpdateRequestCustomProperty { Id = 78, Value = \"Синий склад\" } }\n    }\n};\nvar response = await client.Tasks.UpdateTaskAsync(22283, request);",
     "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>)",
     "imports": [
       "TaskKind",
@@ -590,10 +591,12 @@
     ]
   },
   "FormOperations_openView": {
-    "usage": "var request = new OpenViewRequest\n{\n    TriggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    PrivateMetadata = \"{\\\"timeoff_id\\\":4378}\",\n    CallbackId = \"timeoff_request_form\",\n    View = new OpenViewRequestView\n    {\n        Title = \"Уведомление об отпуске\",\n        CloseText = \"Закрыть\",\n        SubmitText = \"Отправить заявку\",\n        Blocks = new List<ViewBlockUnion> { new ViewBlockHeader { Text = \"Основная информация\" } }\n    }\n};\nawait client.Views.OpenViewAsync(request);",
+    "usage": "var request = new OpenViewRequest\n{\n    TriggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    PrivateMetadata = \"{\\\"timeoff_id\\\":4378}\",\n    CallbackId = \"timeoff_request_form\",\n    View = new OpenViewRequestView\n    {\n        Title = \"Уведомление об отпуске\",\n        CloseText = \"Закрыть\",\n        SubmitText = \"Отправить заявку\",\n        Blocks = new List<ViewBlockUnion> { new ViewBlockHeader { Text = \"Основная информация\" } }\n    }\n};\nvar response = await client.Views.OpenViewAsync(request);",
+    "output": "OpenViewResult(Success: bool)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",
+      "ViewBlockHeader",
       "ViewBlockUnion"
     ]
   }

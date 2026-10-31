@@ -90,11 +90,11 @@ Action items
 - Prepare the migration plan — Gleb Orlov — by 27 October — <url>
 ```
 
-## From action items to tasks
+## From action items to reminders
 
-Creating tasks is covered in [tasks.md](tasks.md). Show the extracted
+Creating reminders is covered in [tasks.md](tasks.md). Show the extracted
 items first when they go to other employees; create them after the user
-agrees, then report what was created: task, assignee, due date.
+agrees, then report what was created: reminder, assignee, due date.
 
 ## Read more
 

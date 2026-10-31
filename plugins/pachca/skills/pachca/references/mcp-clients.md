@@ -30,7 +30,8 @@ qwen mcp add --transport http pachca https://mcp.pachca.com/mcp --header "Author
   on mobile too. On Team and Enterprise the Claude organization owner adds it in **Organization settings >
   Connectors**, members press **Connect**. The same connector shows up in Claude Code signed in with that
   claude.ai account, cloud sessions included. A cloud session loads neither the plugin nor the user's local
-  CLI, so this connector is its only way to Pachca, and the plugin's commands are not there.
+  CLI, so the plugin's commands are not there: Pachca comes through this connector or through a server in the
+  repository's committed `.mcp.json`.
 - Cursor, in `~/.cursor/mcp.json` under `mcpServers`:
   `"pachca": {"url": "https://mcp.pachca.com/mcp", "headers": {"Authorization": "Bearer ${env:PACHCA_TOKEN}"}}`.
 - OpenCode, in `~/.config/opencode/opencode.json`:

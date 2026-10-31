@@ -63,7 +63,6 @@ Approaches:
 - **Creating things.** Threads, documents and meeting invites ask people for attention: create them only when the user asked for them (for threads, see the rules under «Choose where to write»).
 - **Closing.** When a discussion reaches a decision, a short summary of what was decided and who does what, with a link to where it is written down, saves everyone rereading. When your question is answered, acknowledge it and stop.
 - **Voice.** Write in the user's voice, plainly, without canned phrases, cheering or praise. Apologies, thanks for someone's work and feedback carry the user's own voice: offer a draft rather than sending.
-- **Saying that an agent wrote it.** Some employees want colleagues to know the text came from their agent: the «Отправлено через …» badge is easy to miss, and a personal token created in Pachca's interface shows none. When the user asks for it, in the request or in their instructions for agents, open with one short line, for example «Пишет агент Олега по его просьбе». When the ask came only in the request, offer to add it to their instructions for agents so it holds next time.
 
 ## Formatting
 

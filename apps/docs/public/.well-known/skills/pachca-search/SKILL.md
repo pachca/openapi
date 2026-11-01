@@ -1,6 +1,6 @@
 ---
 name: pachca-search
-description: 'Поиск, пересказ и напоминания в Пачке: какой поиск что охватывает, чтение треда целиком, дайджест каналов и тредов за период, решения и поручения из обсуждения в виде напоминаний, напоминание на заданное время себе или коллеге (Пачка уведомит в срок), список напоминаний и своего «Важного», кто в теге или чате. Когда: «найди, где обсуждали», «кто писал про», «где меня упоминали», «найди чат», «найди сотрудника», «перескажи тред», «что было в канале за неделю», «дайджест», «какие решения приняли», «поставь задачи по итогам», «напомни мне завтра в 9:00», «мои напоминания», «что у меня в важном», «кто в теге», «кто в чате», "find where we discussed", "summarize this thread", "channel digest", "remind me tomorrow at 9", "my reminders". Not for: posting, pinning, reacting to or editing a message, including finding it first, or one sent later at a set time → pachca-messaging; changing employees, tags or chat members → pachca-admin; a bot that answers in threads → pachca-ai-agent; scripts → pachca-api.'
+description: 'Поиск, пересказ и напоминания в Пачке: какой поиск что охватывает, тред целиком, разбор проблемы или замечаний из треда, дайджест за период, поручения в напоминания, напоминание на время себе или коллеге, свои напоминания и «Важное», кто в теге или чате. Когда: «найди, где обсуждали», «кто писал про», «где меня упоминали», «найди чат», «найди сотрудника», «перескажи тред», «что поправить по треду», «в чём проблема по треду», «что было в канале за неделю», «дайджест», «какие решения приняли», «поставь задачи по итогам», «напомни мне завтра в 9:00», «мои напоминания», «что у меня в важном», «кто в теге», «кто в чате», "find where we discussed", "summarize this thread", "what feedback is in the thread", "channel digest", "remind me tomorrow at 9". Not for: posting, pinning, reacting to or editing a message, finding it first included, or one sent later at a set time → pachca-messaging; changing employees, tags or chat members → pachca-admin; a bot that answers in threads → pachca-ai-agent; scripts → pachca-api.'
 ---
 
 # Pachca: finding and summarizing
@@ -15,7 +15,8 @@ the first page, or taking the wrong id of a thread.
 - Find where something was discussed, who said it, where someone was
   mentioned, a chat by name, an employee by name, title or department.
 - Retell a thread or a chat, or build a digest of channels and threads for
-  a period.
+  a period. Explain the problem a thread reports, or list the remarks made
+  in a thread and check each against the code.
 - Pull decisions, open questions and action items out of a discussion, and
   create reminders from them. Set a reminder for yourself or a colleague. List
   someone's reminders.
@@ -88,8 +89,10 @@ Do not promise what does not exist:
   search each name in the person's `list_tags`, and `"@all"` / `"@here"`
   if broadcast calls count. Search ignores the `@`, so keep only hits
   whose `content` has `@First Last`, `@nickname` or the mention itself.
-- "Retell this thread", a pasted link: read the feed, do not search it.
-  See [references/threads.md](references/threads.md).
+- "Retell this thread", «что поправить по треду», «в чём проблема по
+  треду», a pasted link: read the feed, do not search it. The retelling,
+  the account of a problem and the list of remarks:
+  [references/threads.md](references/threads.md).
 - "Who is in this chat": `pachca_list_members` (`pachca members list`) with
   the chat's id in `id`: a chat record's `id`, or the `chat_id` of a message
   or a thread. A thread has its own list, separate from the parent chat's.

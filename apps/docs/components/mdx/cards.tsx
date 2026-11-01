@@ -146,7 +146,6 @@ const GUIDE_ICONS: Record<string, string> = {
   '/guides/mcp/connect': 'Plug',
   '/guides/mcp/tools': 'Wrench',
   '/guides/mcp/plugin': 'Puzzle',
-  '/guides/mcp/commands': 'Terminal',
   '/guides/mcp/skills': 'Sparkles',
   '/guides/ai-agents/interaction': 'BotMessageSquare',
   '/guides/ai-agents/watch-thread': 'Eye',

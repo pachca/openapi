@@ -264,15 +264,16 @@ result through other tools. Owner privileges, multi-guest limits and role change
 
 ## Where to go next
 
-| Task                                                                                             | Skill              |
-| ------------------------------------------------------------------------------------------------ | ------------------ |
-| Write, reply, mention, draft, schedule, send files, reactions, pins, «Важное»                    | [`pachca-messaging`](https://dev.pachca.com/.well-known/skills/pachca-messaging/SKILL.md) |
-| Find messages, chats, people; read a thread; digests; decisions and reminders from a discussion  | [`pachca-search`](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md)    |
-| Owner or admin: employees, tags, channels, roles, API access, all tokens, audit log, export, DLP | [`pachca-admin`](https://dev.pachca.com/.well-known/skills/pachca-admin/SKILL.md)     |
-| Build a bot or integration: webhooks, events, tokens, scopes, buttons, forms, unfurling          | [`pachca-bots`](https://dev.pachca.com/.well-known/skills/pachca-bots/SKILL.md)      |
-| An AI agent that lives in Pachca as a bot and answers in threads                                 | [`pachca-ai-agent`](https://dev.pachca.com/.well-known/skills/pachca-ai-agent/SKILL.md)  |
-| An app acting for each employee: OAuth with PKCE, refresh, revocation                            | [`pachca-oauth`](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md)     |
-| Direct API, SDK, CLI in scripts and CI: pagination, limits, errors, uploads                      | [`pachca-api`](https://dev.pachca.com/.well-known/skills/pachca-api/SKILL.md)       |
+| Task                                                                                             | Skill                 |
+| ------------------------------------------------------------------------------------------------ | --------------------- |
+| Write, reply, mention, draft, schedule, send files, reactions, pins, «Важное»                    | [`pachca-messaging`](https://dev.pachca.com/.well-known/skills/pachca-messaging/SKILL.md)    |
+| Find messages, chats, people; read a thread; digests; decisions and reminders from a discussion  | [`pachca-search`](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md)       |
+| Watch a thread from this session and reply in it as new messages come, through the CLI           | [`pachca-watch-thread`](https://dev.pachca.com/.well-known/skills/pachca-watch-thread/SKILL.md) |
+| Owner or admin: employees, tags, channels, roles, API access, all tokens, audit log, export, DLP | [`pachca-admin`](https://dev.pachca.com/.well-known/skills/pachca-admin/SKILL.md)        |
+| Build a bot or integration: webhooks, events, tokens, scopes, buttons, forms, unfurling          | [`pachca-bots`](https://dev.pachca.com/.well-known/skills/pachca-bots/SKILL.md)         |
+| An AI agent that lives in Pachca as a bot and answers in threads                                 | [`pachca-ai-agent`](https://dev.pachca.com/.well-known/skills/pachca-ai-agent/SKILL.md)     |
+| An app acting for each employee: OAuth with PKCE, refresh, revocation                            | [`pachca-oauth`](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md)        |
+| Direct API, SDK, CLI in scripts and CI: pagination, limits, errors, uploads                      | [`pachca-api`](https://dev.pachca.com/.well-known/skills/pachca-api/SKILL.md)          |
 
 ## Read more
 

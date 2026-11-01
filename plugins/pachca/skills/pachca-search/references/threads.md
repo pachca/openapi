@@ -59,8 +59,74 @@ a thread when there is none.
 4. Need more context? Read the parent chat (`message_chat_id`) only if
    you have access to it. Being in the thread alone gives the thread and
    the parent message, nothing else of that chat.
-5. Summarize (see [digests.md](digests.md)): decisions, open questions,
-   action items, each with its message link.
+5. Answer what was asked: a retelling, an account of a problem or a list
+   of remarks, as in the next section.
+
+## Retell a thread, a problem or remarks
+
+Given several threads, take each one separately, in the order given. A
+link to a message without a thread (`thread` is `null` and its
+`entity_type` is not `thread`) gets that answer: say so and do not
+create a thread.
+
+Resolve each author once with `pachca_get_user` when the response does not
+name them. A `404` means the author was deleted or is hidden from you:
+refer to them by `user_id`, do not guess a name from the text, and keep
+their messages in the answer.
+
+**A retelling** has four parts, in the user's language:
+
+- **Context**: what the thread is about, in two or three sentences;
+- **Decisions**: what was agreed, who agreed, the message link;
+- **Open questions**: what is still unanswered and who should answer;
+- **Action items**: what, who, by when, if the thread says so.
+
+Later messages override earlier ones, and what counts as a decision is in
+[digests.md](digests.md). Quote nothing you did not read. With a window,
+read the whole thread for context but retell only what is new in it. «С
+моего последнего сообщения» starts at the user's own last message in the
+thread (its `user_id` is yours). «С прошлого раза» in the same session
+starts after the newest message your previous retelling of this thread
+covered. With a question («ответили ли мне»), end with a direct answer
+to it.
+
+**A problem.** When the thread reports a problem (a bug, a failure, a
+customer's complaint) or the question is «в чём проблема», answer in
+plain words instead of the four parts: what is broken, where and for whom
+it shows, since when, how to reproduce it, what was tried and found (open
+screenshots and logs with `pachca_download_file`), who is on it and what
+was decided, and what is still unknown, with links to the messages. The
+cause usually lies in code, logs or systems outside Pachca: when this
+session has them, offer to look there next, otherwise say what to check.
+
+**Remarks.** When the question is about feedback («что нужно поправить»,
+«какие замечания», «разбери отзывы»), answer with a numbered list rather
+than a retelling, so the user can pick by number. For each remark: what is
+wrong and where (a screen, a page, a method), who said it, how it should
+be, the message link and its attachments. Look at screenshots and files
+with `pachca_download_file`; a video you cannot view is named as not
+viewed. A later message that withdraws or settles a remark closes it.
+When this session has the code or the task the thread is about, check
+each remark against the code and its history (`git log`) and mark it
+done, to fix or a separate task, saying what you checked; a remark you
+could not check is marked so. «Убедись, что всё поправили» is this list
+with every remark checked. End by asking which remarks to take.
+
+Taking them is the user's next request: change the code as they ask,
+create tasks in an outside tracker only when they name it, through its own
+tools (Pachca reminders follow the reminders part of SKILL.md; when they
+say «задачи» and name no place, ask which), and reply in the thread only
+when they ask, on the message the remark came
+from (`parent_message_id`), following pachca-messaging. When the work is
+done, offer one reply in the thread item by item: what was fixed, where to
+check it (a build, a page, a link), what was put off and why; show the
+text and post after a yes.
+
+Do not post the answer unless the user asks. If they ask, show the text
+first and post after a clear yes (pachca-messaging). Action items become
+reminders only when the user asks for that: see the reminders part of
+SKILL.md. Watching a thread and replying as new messages come is the
+`pachca-watch-thread` skill.
 
 ## Facts that change the answer
 

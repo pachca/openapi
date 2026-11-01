@@ -264,15 +264,16 @@ result through other tools. Owner privileges, multi-guest limits and role change
 
 ## Where to go next
 
-| Task                                                                                             | Skill              |
-| ------------------------------------------------------------------------------------------------ | ------------------ |
-| Write, reply, mention, draft, schedule, send files, reactions, pins, «Важное»                    | `pachca-messaging` |
-| Find messages, chats, people; read a thread; digests; decisions and reminders from a discussion  | `pachca-search`    |
-| Owner or admin: employees, tags, channels, roles, API access, all tokens, audit log, export, DLP | `pachca-admin`     |
-| Build a bot or integration: webhooks, events, tokens, scopes, buttons, forms, unfurling          | `pachca-bots`      |
-| An AI agent that lives in Pachca as a bot and answers in threads                                 | `pachca-ai-agent`  |
-| An app acting for each employee: OAuth with PKCE, refresh, revocation                            | `pachca-oauth`     |
-| Direct API, SDK, CLI in scripts and CI: pagination, limits, errors, uploads                      | `pachca-api`       |
+| Task                                                                                             | Skill                 |
+| ------------------------------------------------------------------------------------------------ | --------------------- |
+| Write, reply, mention, draft, schedule, send files, reactions, pins, «Важное»                    | `pachca-messaging`    |
+| Find messages, chats, people; read a thread; digests; decisions and reminders from a discussion  | `pachca-search`       |
+| Watch a thread from this session and reply in it as new messages come, through the CLI           | `pachca-watch-thread` |
+| Owner or admin: employees, tags, channels, roles, API access, all tokens, audit log, export, DLP | `pachca-admin`        |
+| Build a bot or integration: webhooks, events, tokens, scopes, buttons, forms, unfurling          | `pachca-bots`         |
+| An AI agent that lives in Pachca as a bot and answers in threads                                 | `pachca-ai-agent`     |
+| An app acting for each employee: OAuth with PKCE, refresh, revocation                            | `pachca-oauth`        |
+| Direct API, SDK, CLI in scripts and CI: pagination, limits, errors, uploads                      | `pachca-api`          |
 
 ## Read more
 

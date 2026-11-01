@@ -22,6 +22,12 @@ const redirects: Redirect[] = [
   { source: '/guides/cli/workflows', destination: '/guides/cli/overview', permanent: true },
   { source: '/guides/cli/workflows.md', destination: '/guides/cli/overview.md', permanent: true },
 
+  // Команд в плагине больше нет: пересказ и разбор треда взял скилл pachca-search,
+  // слежение за тредом стало скиллом pachca-watch-thread. Оба описаны на странице
+  // скиллов.
+  { source: '/guides/mcp/commands', destination: '/guides/mcp/skills', permanent: true },
+  { source: '/guides/mcp/commands.md', destination: '/guides/mcp/skills.md', permanent: true },
+
   // Семь прежних скиллов убраны 28.10.2026, их роль взяли новые. Старые адреса
   // ведут на скилл-вход: в нём таблица, какой скилл за что отвечает.
   {

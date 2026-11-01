@@ -22,7 +22,8 @@ called it is responsible for the result.
 Not this skill:
 
 - An agent that works in Pachca for an employee from Claude, Cursor or Codex →
-  `pachca` (connection), `pachca-messaging`, `pachca-search`.
+  `pachca` (connection), `pachca-messaging`, `pachca-search`; one that watches a
+  thread from that session and replies as messages come → `pachca-watch-thread`.
 - Drafts and scheduled messages from Claude, Cursor or the CLI → `pachca-messaging`.
   A bot cannot make them at all (see "A bot cannot draft").
 - Webhook signature, retries, idempotency, polling, tokens, bot settings,

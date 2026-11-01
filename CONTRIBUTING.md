@@ -108,14 +108,16 @@ without it.
 Skills live in `skills/<name>/`. Knowledge skills are named `pachca` or
 `pachca-<topic>`, keep only `name` and `description` in the frontmatter, and the
 agent picks them by description. The build publishes them on dev.pachca.com: the
-discovery index, `/skill.md` and `/skills/<name>.zip` for uploads. Commands are
-skills with any other name, `argument-hint` and `disable-model-invocation: true`,
-plus `agents/openai.yaml` with `policy.allow_implicit_invocation: false` for
-Codex. They run only when the user calls them (`/pachca:summarize-thread` in Claude Code)
-and are not published. A command says in words what the user gives with it,
-without `$ARGUMENTS`, which only some programs fill in. The build fails on a
-broken link, a missing MCP tool, CLI command or skill, an internal id, or
-manifests out of step; see `apps/docs/scripts/skills/generate.ts`.
+discovery index, `/skill.md` and `/skills/<name>.zip` for uploads. The user can
+also call a skill directly (`/pachca:pachca-watch-thread` in Claude Code). The
+build still accepts commands: skills with any other name, `argument-hint` and
+`disable-model-invocation: true`, plus `agents/openai.yaml` with
+`policy.allow_implicit_invocation: false` for Codex, which run only when the
+user calls them and are not published. The plugin has none: a task the agent
+can do from an ordinary request belongs in a skill. A command says in words what
+the user gives with it, without `$ARGUMENTS`, which only some programs fill in.
+The build fails on a broken link, a missing MCP tool, CLI command or skill, an
+internal id, or manifests out of step; see `apps/docs/scripts/skills/generate.ts`.
 
 Evals live in `plugins/pachca/evals` and run with `claude plugin eval`
 (Claude Code 2.1.269+). Each run calls the model with your own account:

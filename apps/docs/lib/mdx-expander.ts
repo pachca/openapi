@@ -905,21 +905,6 @@ export async function expandMdxComponents(content: string): Promise<string> {
     result = result.replace(/<CliCommands\s*\/>/g, md);
   }
 
-  // <PluginCommands /> -> one markdown table: the command with its arguments,
-  // the section it opens and what each argument takes. Source: plugin-commands.ts.
-  if (result.includes('<PluginCommands')) {
-    const { PLUGIN_COMMANDS } = await import('./plugin-commands');
-    let md = '| Команда | Что делает |\n|---------|------------|\n';
-    for (const c of PLUGIN_COMMANDS) {
-      const args = c.args
-        .map((a) => `\`${a.token}\`${a.required ? '*' : ' (по желанию)'}: ${a.description}`)
-        .join(' ');
-      md += `| \`${c.usage}\` | [${c.title}](#${c.anchor}). ${c.summary} ${args} |\n`;
-    }
-    md += '\n';
-    result = result.replace(/<PluginCommands\s*\/>/g, md);
-  }
-
   // <McpTools /> -> one markdown table in the order of the API sidebar, as on the
   // page: tool name, the method it calls as an endpoint link (resolved at write),
   // who gets the tool and whether it reads or changes data.

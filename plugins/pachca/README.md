@@ -14,7 +14,7 @@ claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins
 claude plugin install pachca@pachca
 ```
 
-The same plugin installs in the Claude app, Codex, VS Code with GitHub Copilot and Cursor. The steps for each program are on [Plugin](https://dev.pachca.com/guides/mcp/plugin) (in Russian).
+The same plugin installs in the Claude app, Codex, VS Code with GitHub Copilot and Cursor. The steps for each program are on the [Plugin](https://dev.pachca.com/guides/mcp/plugin) page (in Russian).
 
 ## Sign-in and data
 

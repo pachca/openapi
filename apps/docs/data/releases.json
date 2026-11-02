@@ -10,7 +10,7 @@
       },
       {
         "type": "+",
-        "description": "Скилл `pachca-watch-thread` вместо команды `watch-thread`: агент берёт его по просьбе «следи за тредом», а явно скилл вызывают командой `/pachca:pachca-watch-thread`. Скилл ставится и без плагина через `npx skills`."
+        "description": "Скилл `pachca-watch-thread` вместо команды `watch-thread`: агент берёт его по просьбе «следи за тредом», а в Claude Code его можно вызвать и явно, набрав `/pachca:pachca-watch-thread`. Скилл ставится и без плагина через `npx skills`."
       },
       {
         "type": "-",

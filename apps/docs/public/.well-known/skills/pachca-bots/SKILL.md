@@ -66,7 +66,7 @@ Agent doing this with tools: creating a bot or token returns a secret shown once
 
 - Chat events (new messages, edits and deletions, reactions, button clicks, chat member changes, video calls) come only from chats and threads the bot is a member of, an open conversation or channel included: the bot can read it via API without membership but gets no events until added. Workspace member changes and link unfurling cover the whole workspace, and a form submission goes to the bot that opened the form, so these need no membership ([references/events.md](references/events.md)).
 - Add to a conversation or channel with `pachca_add_members` (`pachca members add`), bot `id` in `member_ids`. Add to a thread alone with its `chat_id`: the bot sees the thread and its parent message, not the chat history.
-- A `@nickname` mention in a thread adds the bot only if it is a «Публичный бот» and the author is not a guest. A bot outside the parent chat is added this way only while the workspace setting «Использовать сквозные треды» is on (the default). A non-public bot is never added by a mention, even when its creator or an admin writes it: add it by the thread's `chat_id` as above. A mention in a conversation or channel adds no one.
+- A `@nickname` mention in a thread adds the bot only if it is a «Публичный бот» and the author is not a guest or multi-guest. A bot outside the parent chat is added this way only while the workspace setting «Использовать сквозные треды» is on (the default). A non-public bot is never added by a mention, even when its creator or an admin writes it: add it by the thread's `chat_id` as above. A mention in a conversation or channel adds no one.
 - DMs: an employee can write to the bot only if it is public, shares a non-archived conversation or channel with them, or wrote first (`entity_type: "user"`). A bot cannot be added to an existing DM between two people.
 - Opening a DM with the bot fires no event. The bot learns about the employee from their first message — or writes first.
 
@@ -123,7 +123,7 @@ A form opens only from a Data-button click in the bot's message, by `trigger_id`
 
 ## Showcase
 
-- «Публичный бот»: in search and the Overview list; anyone may DM it; any employee (not guests) may add it. Published bot: a card with a page; needs authorization enabled and a saved description (screenshots optional).
+- «Публичный бот»: in search and the Overview list; anyone may DM it; any employee (not guests or multi-guests) may add it. Published bot: a card with a page; needs authorization enabled and a saved description (screenshots optional).
 - Publishing does not let anyone write to the bot. Authorization happens in the DM, so make a published bot public too.
 - Deleting the OAuth client also revokes every authorization granted at once — ask first. [Showcase](https://dev.pachca.com/guides/bots/showcase.md).
 

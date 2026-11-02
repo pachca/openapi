@@ -30,8 +30,10 @@ qwen mcp add --transport http pachca https://mcp.pachca.com/mcp --header "Author
   on mobile too. On Team and Enterprise the Claude organization owner adds it in **Organization settings >
   Connectors**, members press **Connect**. The same connector shows up in Claude Code signed in with that
   claude.ai account, cloud sessions included. A cloud session loads neither the plugin nor the user's local
-  CLI, so the plugin's skills and the thread watcher are not there: Pachca comes through this connector or
-  through a server in the repository's committed `.mcp.json`.
+  CLI, so the plugin's skills and the thread watcher are not there. Pachca comes through this connector or
+  through a server in the repository's committed `.mcp.json`. Such a server takes the connector's place and
+  needs its own sign-in. Never put an `Authorization` header in it: everyone who opens the project would get it
+  instead of the browser sign-in.
 - Cursor, in `~/.cursor/mcp.json` under `mcpServers`:
   `"pachca": {"url": "https://mcp.pachca.com/mcp", "headers": {"Authorization": "Bearer ${env:PACHCA_TOKEN}"}}`.
 - OpenCode, in `~/.config/opencode/opencode.json`:
@@ -49,11 +51,13 @@ another run with nobody to sign in (over SSH `claude mcp login` is enough), stdi
 `npx skills add https://dev.pachca.com -g -a <agent> -y` (Node.js 22.20 or newer), where `<agent>` is the
 client's name, for example `opencode`, `devin`, `cline`, `kilo`, `qwen-code`, `gemini-cli`, `cursor`, `codex`,
 `github-copilot` or `claude-code`. Always pass `-a` and `-y`: run by an agent without them, it installs into
-every agent it finds. Not in a program that has the Pachca plugin: each skill would load twice. With `-g` the
-skills also land in folders several programs read: `~/.agents/skills/` is read by Codex, Cursor and VS Code,
-`~/.claude/skills/` by Claude Code, Cursor, VS Code and OpenCode. Without `-g` the same happens in the project
-folders `.agents/skills/` and `.claude/skills/`. If one of these programs has the plugin, unpack the archives by
-hand into a folder only the other agent reads, for example `~/.config/opencode/skills/` for OpenCode.
+every agent it finds. Not in a program that has the Pachca plugin: each skill would be installed twice, and in
+VS Code and Copilot the `npx skills` copy is used instead of the plugin's, so the skills stop updating with the
+plugin. With `-g` the skills also land in folders several programs read. Of the programs with the plugin,
+`~/.agents/skills/` is read by Codex, Cursor and VS Code, `~/.claude/skills/` by Claude Code, Cursor and
+VS Code. Without `-g` the same happens in the project folders `.agents/skills/` and `.claude/skills/`. If one
+of these programs has the plugin, unpack the archives by hand into a folder only the other agent reads, for
+example `~/.config/opencode/skills/` for OpenCode.
 
 - SourceCraft Code Assistant has no agent name: `npx skills add https://dev.pachca.com -a universal -y`
   installs into the project. With `-g` the skills land in a folder it does not read: for all projects, unpack

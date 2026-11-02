@@ -341,7 +341,15 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   }
   content += '\n';
   content +=
-    'Установка. Плагин «Пачка» ставит MCP-сервер и скиллы:\n\n' +
+    'Установка. Доступ к Пачке даёт MCP-сервер `https://mcp.pachca.com/mcp` (адрес в настройках MCP программы, вход ' +
+    'через браузер, а в Cursor и программах без такого входа персональный токен в заголовке `Authorization`) или CLI (`npm install -g @pachca/cli`, затем `pachca auth login` в своём терминале). Шаги для ' +
+    `каждой программы — [Подключение к MCP](${SITE_URL}/guides/mcp/connect.md). Скиллы ставит ` +
+    `одна команда \`npx skills add ${SITE_URL} -g -a <агент> -y\`, где \`<агент>\` — это \`claude-code\`, \`codex\`, ` +
+    '`cursor`, `github-copilot`, `opencode`, `devin`, `cline`, `kilo`, `qwen-code`, `gemini-cli` и другие. Нужен ' +
+    'Node.js 22.20 или новее. Если команду запускает агент, флаги `-a` и `-y` обязательны: без `-a` она может без ' +
+    'вопросов поставить скиллы во все найденные агенты.\n\n';
+  content +=
+    'Плагин «Пачка» необязателен. Он ставит MCP-сервер и скиллы одной установкой и обновляет скиллы вместе с собой:\n\n' +
     '- Claude Code: `claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins`, ' +
     'затем `claude plugin install pachca@pachca`. Вход: `/mcp` или `claude mcp login plugin:pachca:pachca`. ' +
     'Сервер, добавленный вручную по тому же адресу, заменяет сервер плагина, поэтому с плагином `claude mcp add` не нужен.\n' +
@@ -353,22 +361,18 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     '- Cursor: `agent plugin marketplace add https://github.com/pachca/openapi`, затем `/plugin` в сессии агента. ' +
     'Сервер плагина берёт персональный токен из переменной окружения `PACHCA_TOKEN`, после её задания Cursor нужно перезапустить.\n\n';
   content +=
-    `Только скиллы, для остальных агентов: \`npx skills add ${SITE_URL} -g -a <агент> -y\`, где \`<агент>\` — это ` +
-    '`opencode`, `devin`, `cline`, `kilo`, `qwen-code`, `gemini-cli` и другие. Нужен Node.js 22.20 или новее. ' +
-    'Если команду запускает агент, флаги `-a` и `-y` обязательны: без `-a` она может без вопросов ' +
-    'поставить скиллы во все найденные агенты. Общие папки скиллов читают и программы с плагином (Claude Code, ' +
-    'Codex, Cursor, VS Code), поэтому рядом с плагином скиллы распаковывают архивом в папку, которую читает только ' +
-    'нужный агент, иначе у программы с плагином окажется по две копии каждого скилла. ' +
+    'В программу с плагином скиллы через `npx skills` не ставят: общие папки скиллов читают и программы с плагином ' +
+    '(Claude Code, Codex, Cursor, VS Code), и у агента окажется по две копии каждого скилла. Рядом с плагином скиллы ' +
+    'для другого агента распаковывают архивом в папку, которую читает только он. ' +
     `Архивы: \`${SITE_URL}/.well-known/agent-skills/<скилл>.tar.gz\` без общей папки внутри и ZIP с папкой скилла ` +
-    `для Yandex AI Studio и приложения Claude \`${SITE_URL}/skills/<скилл>.zip\`. Что знает каждый скилл, установка без плагина и ` +
+    `для Yandex AI Studio и приложения Claude \`${SITE_URL}/skills/<скилл>.zip\`. Что знает каждый скилл, установка и ` +
     `папки агентов — [Скиллы](${SITE_URL}/guides/mcp/skills.md), установка плагина — ` +
     `[Плагин](${SITE_URL}/guides/mcp/plugin.md).\n\n`;
   // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
   // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
   content +=
     `Индекс скиллов (Agent Skills Discovery 0.2.0): \`${SITE_URL}/.well-known/agent-skills/index.json\`, ` +
-    `прежний формат и файлы скиллов по отдельности: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
-  content += `Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman), доками (HTML, llms.txt) и метаданными.\n\n`;
+    `прежний формат и файлы скиллов по отдельности: \`${SITE_URL}/.well-known/skills/index.json\`.\n\n`;
 
   content += '## Руководства\n\n';
   content += `Длинные описания здесь сокращены, полные — в [/guides/llms.txt](${SITE_URL}/guides/llms.txt).\n\n`;
@@ -405,6 +409,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // и коллекции для инструментов, а не doc-страницы (иначе их сэмплят как страницы).
   content += `- OpenAPI 3.0 spec: \`${SITE_URL}/openapi.yaml\` — машиночитаемая спецификация API для кодогенерации и инструментов\n`;
   content += `- Postman collection: \`${SITE_URL}/pachca.postman_collection.json\` — готовая коллекция для импорта в Postman/Bruno/Insomnia\n`;
+  content += `- Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman), доками (HTML, llms.txt) и метаданными\n`;
   content += `- [Скилл pachca](${SITE_URL}/skill.md): вход для AI-агента, подключение к Пачке, выбор токена и куда идти дальше\n`;
   content += '- [Веб-сайт](https://pachca.com/)\n';
   content += '- [Получить помощь](mailto:team@pachca.com)\n';
@@ -501,7 +506,11 @@ function insertLlmsDocumentMap(content: string): string {
     { name: 'SDK', desc: 'Типизированные клиенты для 6 языков', idx: sdkIdx },
     { name: 'CLI Quick Start', desc: 'Установка, команды, точечная справка по API', idx: cliIdx },
     { name: 'MCP-сервер', desc: 'Адрес, вход, доступ и инструменты MCP', idx: mcpIdx },
-    { name: 'Скиллы', desc: 'Что знают скиллы, установка плагином и без него', idx: skillsIdx },
+    {
+      name: 'Скиллы',
+      desc: 'Что знают скиллы, установка одной командой, плагин по желанию',
+      idx: skillsIdx,
+    },
     { name: 'Руководства', desc: 'Страницы-руководства (Markdown по `.md`)', idx: guidesIdx },
     { name: 'API-методы', desc: 'Все методы API, сгруппированы по разделам', idx: apiIdx },
     { name: 'Обновления', desc: 'Журнал обновлений по датам', idx: updIdx },

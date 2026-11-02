@@ -23,7 +23,7 @@ export interface SidebarSection {
   items: SidebarPageItem[];
   /**
    * Prefix for the titles of the section's pages outside the sidebar (browser
-   * tab, llms.txt), as a group gives its children: «MCP, Обзор».
+   * tab, llms.txt), as a group gives its children: «MCP и скиллы, Обзор».
    */
   titlePrefix?: string;
 }
@@ -115,8 +115,8 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
     ],
   },
   {
-    title: 'MCP',
-    titlePrefix: 'MCP',
+    title: 'MCP и скиллы',
+    titlePrefix: 'MCP и скиллы',
     items: [
       { title: 'Обзор', path: '/guides/mcp/overview' },
       { title: 'Подключение', path: '/guides/mcp/connect' },
@@ -327,7 +327,7 @@ export function getNestedParentTitle(pathname: string): string | null {
 /**
  * Page title for places outside the sidebar (browser tab, search results): the
  * parent group, section prefix or CLI/SDK/n8n tab goes first, so a shared title
- * like "Обзор" reads as «MCP, Обзор» or «CLI, Обзор». Other pages keep their own title.
+ * like "Обзор" reads as «MCP и скиллы, Обзор» or «CLI, Обзор». Other pages keep their own title.
  */
 export function getContextualTitle(pathname: string, title: string): string {
   const parent = getNestedParentTitle(pathname);

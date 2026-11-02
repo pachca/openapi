@@ -27,9 +27,10 @@ the first page, or taking the wrong id of a thread.
 
 Not here: posting the result or replying, pinning, reacting to or editing
 a message (finding it on the way included), and messages sent later at a
-set time (pachca-messaging), changing tags, employees or chat members
-(pachca-admin), a bot that lives in threads (pachca-ai-agent), token,
-scopes and 429 handling in code (pachca-api).
+set time (pachca-messaging), watching a thread and replying as new
+messages come (pachca-watch-thread), changing tags, employees or chat
+members (pachca-admin), a bot that lives in threads (pachca-ai-agent),
+token, scopes and 429 handling in code (pachca-api).
 
 ## You see what the token owner sees
 

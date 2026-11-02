@@ -62,12 +62,12 @@ a thread when there is none.
 5. Answer what was asked: a retelling, an account of a problem or a list
    of remarks, as in the next section.
 
-## Retell a thread, a problem or remarks
+## A retelling, an account of a problem or a list of remarks
 
-Given several threads, take each one separately, in the order given. A
-link to a message without a thread (`thread` is `null` and its
-`entity_type` is not `thread`) gets that answer: say so and do not
-create a thread.
+Given several threads, take each one separately, in the order given. For
+a link to a message without a thread (`thread` is `null` and its
+`entity_type` is not `thread`), say that the message has no thread and do
+not create one.
 
 Resolve each author once with `pachca_get_user` when the response does not
 name them. A `404` means the author was deleted or is hidden from you:

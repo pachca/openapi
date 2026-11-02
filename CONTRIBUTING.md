@@ -112,8 +112,8 @@ discovery index, `/skill.md` and `/skills/<name>.zip` for uploads. The user can
 also call a skill directly (`/pachca:pachca-watch-thread` in Claude Code). The
 build still accepts commands: skills with any other name, `argument-hint` and
 `disable-model-invocation: true`, plus `agents/openai.yaml` with
-`policy.allow_implicit_invocation: false` for Codex, which run only when the
-user calls them and are not published. The plugin has none: a task the agent
+`policy.allow_implicit_invocation: false` for Codex. Commands run only when
+the user calls them and are not published. The plugin has none: a task the agent
 can do from an ordinary request belongs in a skill. A command says in words what
 the user gives with it, without `$ARGUMENTS`, which only some programs fill in.
 The build fails on a broken link, a missing MCP tool, CLI command or skill, an

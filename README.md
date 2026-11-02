@@ -11,12 +11,12 @@
 
 > English version: [README.en.md](README.en.md)
 
-Всё для работы с API [Пачки](https://pachca.com), корпоративного мессенджера: документация, MCP-сервер и плагин для AI-агентов, CLI, SDK на шести языках и нода для n8n. API описан на TypeSpec, и из этого описания собирается остальное: OpenAPI, страницы методов, CLI, SDK, нода n8n, набор инструментов MCP-сервера и файлы для агентов. Скиллы плагина пишутся руками, а сборка сверяет их с тем же описанием.
+Всё для работы с API [Пачки](https://pachca.com), корпоративного мессенджера: документация, MCP-сервер и скиллы для AI-агентов, CLI, SDK на шести языках и нода для n8n. API описан на TypeSpec, и из этого описания собирается остальное: OpenAPI, страницы методов, CLI, SDK, нода n8n, набор инструментов MCP-сервера и файлы для агентов. Скиллы пишутся руками, а сборка сверяет их с тем же описанием.
 
 | Что | Кому | В репозитории |
 |-----|------|---------------|
 | [MCP-сервер](#mcp-сервер) | Сотруднику в программе с AI-агентом: инструмент на каждый метод API | набор инструментов: исходники в `packages/spec`, пакет `packages/mcp-manifest`; сам сервер работает в бэкенде Пачки |
-| [Плагин «Пачка»](#плагин-и-скиллы) | Claude Code, приложению Claude, Codex, VS Code с GitHub Copilot и Cursor: MCP-сервер и девять скиллов | `plugins/pachca` |
+| [Скиллы и плагин](#скиллы-и-плагин) | Агенту с MCP-сервером, CLI или кодом на API: девять скиллов о том, как правильно работать в Пачке, и плагин «Пачка» для Claude Code, приложения Claude, Codex, VS Code и Cursor | `plugins/pachca` |
 | [CLI](#cli) | Терминалу, скриптам, CI и агентам с терминалом | `packages/cli` |
 | [SDK](#sdk) и [генератор](#генератор) | Своему коду на TypeScript, Python, Go, Kotlin, Swift и C# | `sdk/`, `packages/generator` |
 | [n8n](#n8n) | Автоматизациям без кода | `integrations/n8n` |
@@ -27,7 +27,7 @@
 
 ## MCP-сервер
 
-`https://mcp.pachca.com/mcp` — инструмент на каждый метод API. Какие инструменты видит агент, зависит от роли сотрудника, тарифа и типа токена. Claude Code, Claude, VS Code и GitHub Copilot, Codex и приложение ChatGPT на компьютере входят через браузер, остальные программы передают токен в заголовке. Сервер опубликован в официальном реестре MCP под именем `com.pachca/mcp`, описание для реестра — [`server.json`](server.json). В Claude Code, приложении Claude, Codex, VS Code с GitHub Copilot и Cursor сервер вместе со скиллами ставит [плагин «Пачка»](#плагин-и-скиллы).
+`https://mcp.pachca.com/mcp` — инструмент на каждый метод API. Какие инструменты видит агент, зависит от роли сотрудника, тарифа и типа токена. Claude Code, Claude, VS Code и GitHub Copilot, Codex и приложение ChatGPT на компьютере входят через браузер, остальные программы передают токен в заголовке. Сервер опубликован в официальном реестре MCP под именем `com.pachca/mcp`, описание для реестра — [`server.json`](server.json). К серверу ставят [скиллы](#скиллы-и-плагин), а в Claude Code, приложении Claude, Codex, VS Code с GitHub Copilot и Cursor сервер и скиллы ставит и одна установка плагина «Пачка».
 
 ```bash
 claude mcp add --transport http pachca https://mcp.pachca.com/mcp
@@ -56,9 +56,18 @@ pachca api POST /messages -F 'message[entity_id]=123' -f 'message[content]=Пр�
 
 **Документация**: https://dev.pachca.com/guides/cli
 
-## Плагин и скиллы
+## Скиллы и плагин
 
-Плагин «Пачка» ставит MCP-сервер и скиллы. Скиллы — знание о том, как правильно делать задачи в Пачке: куда писать и что подтверждать, как искать и пересказывать, какой токен выбрать, почему не хватает прав. Агент берёт скилл сам, когда задача ему подходит. Справочник по аргументам агент берёт из описаний инструментов MCP-сервера, `pachca <команда> --help` и страниц методов, поэтому скиллы его не повторяют. Скиллы работают с любым способом подключения: MCP, CLI или API. Скилл можно вызвать и явно, например `/pachca:pachca-watch-thread` в Claude Code.
+Скиллы — знание о том, как правильно делать задачи в Пачке: куда писать и что подтверждать, как искать и пересказывать, какой токен выбрать, почему не хватает прав. Агент берёт скилл сам, когда задача ему подходит. Справочник по аргументам агент берёт из описаний инструментов MCP-сервера, `pachca <команда> --help` и страниц методов, поэтому скиллы его не повторяют. Скиллы работают с любым способом доступа: MCP-сервер, CLI, API или SDK. Скилл можно вызвать и явно, например в Claude Code `/pachca-watch-thread`, а с плагином `/pachca:pachca-watch-thread`. Как это сделать в остальных программах, сказано в разделе [Вызов скилла](https://dev.pachca.com/guides/mcp/skills#vyzov-skilla) страницы «Скиллы».
+
+Скиллы ставит одна команда, ей нужен Node.js 22.20 или новее:
+
+```bash
+# claude-code, codex, cursor, github-copilot, opencode, devin, cline, kilo, qwen-code, gemini-cli и другие
+npx skills add https://dev.pachca.com -g -a claude-code -y
+```
+
+Плагин «Пачка» необязателен. Он ставит MCP-сервер и скиллы одной установкой в Claude Code, приложение Claude, Codex, VS Code с GitHub Copilot и Cursor, а скиллы обновляются вместе с ним:
 
 ```bash
 # Claude Code
@@ -75,12 +84,9 @@ copilot plugin install pachca@pachca
 
 # Cursor CLI: затем в сессии агента выполните /plugin и установите pachca
 agent plugin marketplace add https://github.com/pachca/openapi
-
-# Только скиллы, для OpenCode, Devin, Cline, Kilo Code, Qwen Code и других агентов (Node.js 22.20+)
-npx skills add https://dev.pachca.com -g -a opencode -y
 ```
 
-В Cursor сервер плагина подключается персональным токеном из переменной `PACHCA_TOKEN`. В агент, где уже стоит плагин, скиллы через `npx skills` не ставьте: у него окажется по две копии каждого скилла. Cursor, приложение Claude и вход в Пачку — на странице [Плагин](https://dev.pachca.com/guides/mcp/plugin), скиллы без Node.js — в разделе [Установка вручную](https://dev.pachca.com/guides/mcp/skills#ustanovka-vruchnuyu) страницы «Скиллы».
+В Cursor сервер плагина подключается персональным токеном из переменной `PACHCA_TOKEN`. В агент, где уже стоит плагин, скиллы через `npx skills` не ставьте: у него окажется по две копии каждого скилла. Cursor, приложение Claude и вход в Пачку — на странице [Плагин](https://dev.pachca.com/guides/mcp/plugin), скиллы без Node.js и в GigaCode CLI — в разделе [Установка вручную](https://dev.pachca.com/guides/mcp/skills#ustanovka-vruchnuyu) страницы «Скиллы».
 
 | Скилл | Когда пригодится |
 |-------|------------------|
@@ -94,9 +100,7 @@ npx skills add https://dev.pachca.com -g -a opencode -y
 | `pachca-oauth` | Приложение от имени каждого сотрудника |
 | `pachca-api` | Скрипты, SDK и CI: пагинация, лимиты, ошибки, файлы |
 
-Как вызвать скилл явно в других программах, кроме Claude Code, сказано в разделе [Вызов скилла](https://dev.pachca.com/guides/mcp/skills#vyzov-skilla) страницы «Скиллы».
-
-Скиллы пишутся руками в `plugins/pachca/skills/<name>/`. Сборка публикует их на dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) и проверяет ссылки, имена инструментов MCP и команд CLI. В скиллах только инструкции, кроме `pachca-watch-thread`: он запускает в фоне скрипт `scripts/watch.mjs` на Node.js, который следит за тредом через CLI, поэтому ему нужен `@pachca/cli` с входом `pachca auth login`. Прогоны плагина через `claude plugin eval` лежат в `plugins/pachca/evals`, как их запускать — в [CONTRIBUTING.md](CONTRIBUTING.md#agent-skills-and-the-plugin).
+Скиллы пишутся руками в `plugins/pachca/skills/<name>/`. Сборка публикует их на dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) и проверяет ссылки, имена инструментов MCP и команд CLI. В скиллах только инструкции, кроме `pachca-watch-thread`: он запускает в фоне скрипт `scripts/watch.mjs` на Node.js, который следит за тредом через CLI, поэтому ему нужен `@pachca/cli` с входом `pachca auth login` или персональным токеном в переменной `PACHCA_TOKEN`. Прогоны плагина через `claude plugin eval` лежат в `plugins/pachca/evals`, как их запускать — в [CONTRIBUTING.md](CONTRIBUTING.md#agent-skills-and-the-plugin).
 
 ## n8n
 

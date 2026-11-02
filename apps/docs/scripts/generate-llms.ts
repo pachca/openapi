@@ -328,7 +328,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     `[Подключение к MCP](${SITE_URL}/guides/mcp/connect.md), все инструменты: ` +
     `[Инструменты MCP](${SITE_URL}/guides/mcp/tools.md).\n\n`;
 
-  content += '## Плагин и скиллы\n\n';
+  content += '## Скиллы\n\n';
   content +=
     'Знание о том, как правильно делать задачи в Пачке: куда писать, что подтверждать, какой токен взять, ' +
     'как устроены права. Справочник по аргументам — в описаниях инструментов MCP, `pachca <команда> --help` ' +
@@ -360,8 +360,9 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     'Codex, Cursor, VS Code), поэтому рядом с плагином скиллы распаковывают архивом в папку, которую читает только ' +
     'нужный агент, иначе у программы с плагином окажется по две копии каждого скилла. ' +
     `Архивы: \`${SITE_URL}/.well-known/agent-skills/<скилл>.tar.gz\` без общей папки внутри и ZIP с папкой скилла ` +
-    `для Yandex AI Studio и приложения Claude \`${SITE_URL}/skills/<скилл>.zip\`. Папки агентов и шаги — ` +
-    `[Плагин и скиллы](${SITE_URL}/guides/mcp/plugin.md).\n\n`;
+    `для Yandex AI Studio и приложения Claude \`${SITE_URL}/skills/<скилл>.zip\`. Что знает каждый скилл — ` +
+    `[Скиллы](${SITE_URL}/guides/mcp/skills.md), шаги установки и папки агентов — ` +
+    `[Плагин](${SITE_URL}/guides/mcp/plugin.md).\n\n`;
   // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
   // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
   content +=
@@ -453,7 +454,7 @@ function insertLlmsDocumentMap(content: string): string {
   const sdkIdx = idxOf('## SDK');
   const cliIdx = idxOf('## CLI Quick Start');
   const mcpIdx = idxOf('## MCP-сервер');
-  const skillsIdx = idxOf('## Плагин и скиллы');
+  const skillsIdx = idxOf('## Скиллы');
   const guidesIdx = idxOf('## Руководства');
   const updIdx = idxOf('## Обновления');
   const addIdx = idxOf('## Дополнительно');
@@ -500,7 +501,7 @@ function insertLlmsDocumentMap(content: string): string {
     { name: 'SDK', desc: 'Типизированные клиенты для 6 языков', idx: sdkIdx },
     { name: 'CLI Quick Start', desc: 'Установка, команды, точечная справка по API', idx: cliIdx },
     { name: 'MCP-сервер', desc: 'Адрес, вход, доступ и инструменты MCP', idx: mcpIdx },
-    { name: 'Плагин и скиллы', desc: 'Скиллы для AI-агентов, установка плагина', idx: skillsIdx },
+    { name: 'Скиллы', desc: 'Что знают скиллы, установка плагином и без него', idx: skillsIdx },
     { name: 'Руководства', desc: 'Страницы-руководства (Markdown по `.md`)', idx: guidesIdx },
     { name: 'API-методы', desc: 'Все методы API, сгруппированы по разделам', idx: apiIdx },
     { name: 'Обновления', desc: 'Журнал обновлений по датам', idx: updIdx },

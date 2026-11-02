@@ -80,7 +80,7 @@ agent plugin marketplace add https://github.com/pachca/openapi
 npx skills add https://dev.pachca.com -g -a opencode -y
 ```
 
-В Cursor сервер плагина подключается персональным токеном из переменной `PACHCA_TOKEN`. В агент, где уже стоит плагин, скиллы через `npx skills` не ставьте: у него окажется по две копии каждого скилла. Cursor, приложение Claude, вход в Пачку и скиллы без Node.js — на странице [Плагин и скиллы](https://dev.pachca.com/guides/mcp/plugin).
+В Cursor сервер плагина подключается персональным токеном из переменной `PACHCA_TOKEN`. В агент, где уже стоит плагин, скиллы через `npx skills` не ставьте: у него окажется по две копии каждого скилла. Cursor, приложение Claude, вход в Пачку и скиллы без Node.js — на странице [Плагин](https://dev.pachca.com/guides/mcp/plugin).
 
 | Скилл | Когда пригодится |
 |-------|------------------|
@@ -94,7 +94,7 @@ npx skills add https://dev.pachca.com -g -a opencode -y
 | `pachca-oauth` | Приложение от имени каждого сотрудника |
 | `pachca-api` | Скрипты, SDK и CI: пагинация, лимиты, ошибки, файлы |
 
-Как вызвать скилл явно в других программах, кроме Claude Code, сказано в разделе [Вызов скилла](https://dev.pachca.com/guides/mcp/plugin#vyzov-skilla) страницы «Плагин и скиллы».
+Как вызвать скилл явно в других программах, кроме Claude Code, сказано в разделе [Вызов скилла](https://dev.pachca.com/guides/mcp/skills#vyzov-skilla) страницы «Скиллы».
 
 Скиллы пишутся руками в `plugins/pachca/skills/<name>/`. Сборка публикует их на dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) и проверяет ссылки, имена инструментов MCP и команд CLI. В скиллах только инструкции, кроме `pachca-watch-thread`: он запускает в фоне скрипт `scripts/watch.mjs` на Node.js, который следит за тредом через CLI, поэтому ему нужен `@pachca/cli` с входом `pachca auth login`. Прогоны плагина через `claude plugin eval` лежат в `plugins/pachca/evals`, как их запускать — в [CONTRIBUTING.md](CONTRIBUTING.md#agent-skills-and-the-plugin).
 

@@ -641,6 +641,6 @@ asyncio.run(main())
 
 - [MCP-сервер](/guides/mcp/overview)
 - [Инструменты MCP](/guides/mcp/tools)
-- [Плагин и скиллы](/guides/mcp/plugin)
+- [Плагин](/guides/mcp/plugin)
 - [Авторизация](/api/authorization)
 - [Авторизация от имени сотрудника: Согласие и отзыв](/guides/oauth/consent)

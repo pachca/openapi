@@ -121,8 +121,8 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
       { title: 'Обзор', path: '/guides/mcp/overview' },
       { title: 'Подключение', path: '/guides/mcp/connect' },
       { title: 'Инструменты', path: '/guides/mcp/tools' },
-      { title: 'Плагин и скиллы', path: '/guides/mcp/plugin' },
       { title: 'Скиллы', path: '/guides/mcp/skills' },
+      { title: 'Плагин', path: '/guides/mcp/plugin' },
     ],
   },
   {

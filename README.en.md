@@ -80,7 +80,7 @@ agent plugin marketplace add https://github.com/pachca/openapi
 npx skills add https://dev.pachca.com -g -a opencode -y
 ```
 
-In Cursor the plugin's server connects with a personal token from the `PACHCA_TOKEN` variable. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app, signing in to Pachca and installing skills without Node.js are covered on the [Plugin and skills](https://dev.pachca.com/guides/mcp/plugin) page.
+In Cursor the plugin's server connects with a personal token from the `PACHCA_TOKEN` variable. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app, signing in to Pachca and installing skills without Node.js are covered on the [Plugin](https://dev.pachca.com/guides/mcp/plugin) page (in Russian).
 
 | Skill | Use it for |
 |-------|------------|
@@ -94,7 +94,7 @@ In Cursor the plugin's server connects with a personal token from the `PACHCA_TO
 | `pachca-oauth` | An app acting on behalf of each employee |
 | `pachca-api` | Scripts, SDKs and CI: pagination, limits, errors, files |
 
-How to call a skill directly in programs other than Claude Code is in the [Calling a skill](https://dev.pachca.com/guides/mcp/plugin#vyzov-skilla) section of the Plugin and skills page (in Russian).
+How to call a skill directly in programs other than Claude Code is in the [Calling a skill](https://dev.pachca.com/guides/mcp/skills#vyzov-skilla) section of the Skills page (in Russian).
 
 Skills are written by hand in `plugins/pachca/skills/<name>/`. The build publishes them on dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) and checks their links and the MCP tool and CLI command names. Skills hold instructions only, except `pachca-watch-thread`: it runs a background Node.js script, `scripts/watch.mjs`, that watches the thread through the CLI, so it needs `@pachca/cli` signed in with `pachca auth login`. Plugin evals for `claude plugin eval` live in `plugins/pachca/evals`; how to run them is in [CONTRIBUTING.md](CONTRIBUTING.md#agent-skills-and-the-plugin).
 

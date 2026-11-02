@@ -1,9 +1,9 @@
 # Pachca plugin
 
-This plugin connects an AI agent to [Pachca](https://pachca.com), a corporate messenger. It brings two things:
+This plugin connects an AI agent to [Pachca](https://pachca.com), a team chat app. It has two parts:
 
-- **The MCP server** `pachca` at `https://mcp.pachca.com/mcp`, with a tool for each Pachca API method. Which tools an agent gets depends on the employee's role, the workspace plan and the kind of token.
-- **Nine skills** on doing things right in Pachca: connecting and choosing a token, writing and replying in threads, search, summaries and reviews of a thread, watching a thread and replying in it while the session is open, administration, bots, AI agents that live in Pachca, OAuth apps and API scripts. The agent reads a skill when a task matches it, and you can also call one directly, such as `/pachca:pachca-watch-thread` in Claude Code.
+- **The MCP server** `pachca` at `https://mcp.pachca.com/mcp`, with a tool for each Pachca API method; each tool's description carries that method's rules. Which tools an agent gets depends on the employee's role, the workspace plan and the kind of token.
+- **Nine skills** on Pachca tasks that take several steps: connecting and choosing a token, writing and replying in threads, search, summaries and reviews of a thread, watching a thread and replying in it while the session is open, administration, bots, AI agents that live in Pachca, OAuth apps and API scripts. The agent reads a skill when a task matches it, and you can also call one directly, such as `/pachca:pachca-watch-thread` in Claude Code.
 
 ## Install
 

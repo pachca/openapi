@@ -6,7 +6,7 @@
     "name": "Pachca",
     "url": "https://dev.pachca.com"
   },
-  "homepage": "https://dev.pachca.com/guides/mcp/plugin",
+  "homepage": "https://dev.pachca.com/guides/ai-agents/plugin",
   "repository": "https://github.com/pachca/openapi",
   "license": "MIT",
   "keywords": ["pachca", "messenger", "chat", "mcp", "team"],
@@ -17,7 +17,7 @@
     "shortDescription": "Messages, search, summaries and threads in Pachca",
     "developerName": "Pachca",
     "category": "Productivity",
-    "websiteURL": "https://dev.pachca.com/guides/mcp/plugin",
+    "websiteURL": "https://dev.pachca.com/guides/ai-agents/plugin",
     "defaultPrompt": [
       "Что я пропустил в Пачке со вчерашнего дня?",
       "Найди в Пачке, где обсуждали переезд на новый сервер",

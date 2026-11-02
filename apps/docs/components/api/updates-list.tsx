@@ -48,7 +48,7 @@ const PRODUCT_COLORS: Record<ReleaseProduct, string> = {
 const PRODUCT_LINKS: Record<ReleaseProduct, (v: string) => string> = {
   // The version of an MCP release is the version of the tool set the server runs.
   mcp: () => '/guides/mcp/overview',
-  plugin: () => '/guides/mcp/plugin',
+  plugin: () => '/guides/ai-agents/plugin',
   cli: (v) => `https://www.npmjs.com/package/@pachca/cli/v/${v}`,
   // Six languages in six registries: the overview links to each of them.
   sdk: () => '/guides/sdk/overview',

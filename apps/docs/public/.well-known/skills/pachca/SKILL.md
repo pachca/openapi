@@ -281,7 +281,7 @@ result through other tools. Owner privileges, multi-guest limits and role change
 - [MCP server: rights, safety, limits](https://dev.pachca.com/guides/mcp/overview.md)
 - [Connecting to MCP, per client](https://dev.pachca.com/guides/mcp/connect.md)
 - [MCP tools: who gets which tool](https://dev.pachca.com/guides/mcp/tools.md)
-- [Pachca plugin for agent apps](https://dev.pachca.com/guides/mcp/plugin.md)
+- [Pachca plugin for agent apps](https://dev.pachca.com/guides/ai-agents/plugin.md)
 - [CLI](https://dev.pachca.com/guides/cli/overview.md) and [CLI authorization](https://dev.pachca.com/guides/cli/authentication.md)
 - [Authorization: token kinds, scopes, who may issue](https://dev.pachca.com/api/authorization.md)
 - [Permissions and roles](https://dev.pachca.com/guides/permissions.md)

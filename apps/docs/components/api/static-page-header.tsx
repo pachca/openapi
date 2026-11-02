@@ -20,7 +20,9 @@ export function StaticPageHeader({
           {sectionTitle}
         </div>
       )}
-      <h1 className="text-4xl font-extrabold text-text-primary mb-2! tracking-tight">{title}</h1>
+      <h1 className="text-4xl font-extrabold text-text-primary mb-2! tracking-tight hyphens-auto wrap-break-word">
+        {title}
+      </h1>
       <div className="mb-8">
         <MarkdownActions pageUrl={pageUrl} pageTitle={title} />
       </div>

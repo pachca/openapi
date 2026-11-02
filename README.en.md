@@ -58,7 +58,7 @@ Every API method is available as a command: typed flags, validation, four output
 
 ## Skills and plugin
 
-Skills are know-how for doing things in Pachca the right way: where to post and what to confirm, how to find and summarize, which token to pick, why a permission is missing. The agent picks a skill by itself when a task matches it. The argument reference comes from the MCP tool descriptions, `pachca <command> --help` and the method pages, so the skills do not repeat it. Skills work with any access path: the MCP server, the CLI, the API or an SDK. You can also call a skill directly, such as `/pachca-watch-thread` in Claude Code, or `/pachca:pachca-watch-thread` with the plugin. How to do it in other programs is in the [Calling a skill](https://dev.pachca.com/guides/mcp/skills#vyzov-skilla) section of the Skills page (in Russian).
+Skills are know-how for doing things in Pachca the right way: where to post and what to confirm, how to find and summarize, which token to pick, why a permission is missing. The agent picks a skill by itself when a task matches it. The argument reference comes from the MCP tool descriptions, `pachca <command> --help` and the method pages, so the skills do not repeat it. Skills work with any access path: the MCP server, the CLI, the API or an SDK. You can also call a skill directly, such as `/pachca-watch-thread` in Claude Code, or `/pachca:pachca-watch-thread` with the plugin. How to do it in other programs is in the [Calling a skill](https://dev.pachca.com/guides/ai-agents/skills#vyzov-skilla) section of the Skills page (in Russian).
 
 One command installs the skills; it needs Node.js 22.20 or newer:
 
@@ -86,7 +86,7 @@ copilot plugin install pachca@pachca
 agent plugin marketplace add https://github.com/pachca/openapi
 ```
 
-In Cursor the plugin's server connects with a personal token from the `PACHCA_TOKEN` variable. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app and signing in to Pachca are covered on the [Plugin](https://dev.pachca.com/guides/mcp/plugin) page, installing skills without Node.js or in GigaCode CLI in the [Manual installation](https://dev.pachca.com/guides/mcp/skills#ustanovka-vruchnuyu) section of the Skills page (both in Russian).
+In Cursor the plugin's server connects with a personal token from the `PACHCA_TOKEN` variable. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app and signing in to Pachca are covered on the [Plugin](https://dev.pachca.com/guides/ai-agents/plugin) page, installing skills without Node.js or in GigaCode CLI in the [Manual installation](https://dev.pachca.com/guides/ai-agents/skills#ustanovka-vruchnuyu) section of the Skills page (both in Russian).
 
 | Skill | Use it for |
 |-------|------------|

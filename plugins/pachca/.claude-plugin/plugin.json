@@ -7,7 +7,7 @@
     "name": "Pachca",
     "url": "https://dev.pachca.com"
   },
-  "homepage": "https://dev.pachca.com/guides/mcp/plugin",
+  "homepage": "https://dev.pachca.com/guides/ai-agents/plugin",
   "repository": "https://github.com/pachca/openapi",
   "license": "MIT",
   "keywords": ["pachca", "messenger", "chat", "mcp", "team"]

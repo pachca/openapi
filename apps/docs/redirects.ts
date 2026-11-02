@@ -25,8 +25,19 @@ const redirects: Redirect[] = [
   // Команд в плагине больше нет: пересказ и разбор треда взял скилл pachca-search,
   // слежение за тредом стало скиллом pachca-watch-thread. Оба описаны на странице
   // скиллов.
-  { source: '/guides/mcp/commands', destination: '/guides/mcp/skills', permanent: true },
-  { source: '/guides/mcp/commands.md', destination: '/guides/mcp/skills.md', permanent: true },
+  { source: '/guides/mcp/commands', destination: '/guides/ai-agents/skills', permanent: true },
+  {
+    source: '/guides/mcp/commands.md',
+    destination: '/guides/ai-agents/skills.md',
+    permanent: true,
+  },
+
+  // Скиллы и плагин переехали из раздела MCP в «AI-агенты»: скиллы работают
+  // с MCP, CLI, API и SDK, а плагин ставит в программу агента и сервер, и скиллы.
+  { source: '/guides/mcp/skills', destination: '/guides/ai-agents/skills', permanent: true },
+  { source: '/guides/mcp/skills.md', destination: '/guides/ai-agents/skills.md', permanent: true },
+  { source: '/guides/mcp/plugin', destination: '/guides/ai-agents/plugin', permanent: true },
+  { source: '/guides/mcp/plugin.md', destination: '/guides/ai-agents/plugin.md', permanent: true },
 
   // Семь прежних скиллов убраны 28.10.2026, их роль взяли новые. Старые адреса
   // ведут на скилл-вход: в нём таблица, какой скилл за что отвечает.

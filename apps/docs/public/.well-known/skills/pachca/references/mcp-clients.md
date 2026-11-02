@@ -69,4 +69,4 @@ example `~/.config/opencode/skills/` for OpenCode.
 - The Claude app without the plugin: upload each skill's ZIP, such as
   `https://dev.pachca.com/skills/pachca.zip`, in **Customize > Skills > + > Create skill > Upload a skill**.
 
-Details: [Installing the skills](https://dev.pachca.com/guides/mcp/skills.md), section «Установка скиллов».
+Details: [Installing the skills](https://dev.pachca.com/guides/ai-agents/skills.md), section «Установка скиллов».

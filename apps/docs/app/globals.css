@@ -382,6 +382,9 @@ a:focus:not(:focus-visible) {
 
 .prose code:not(pre code) {
   @apply bg-glass text-text-primary px-1.5 py-0.5 rounded-md text-[13px] font-mono font-normal border border-glass-border whitespace-nowrap;
+  /* На узком экране длинный адрес или путь в одну строку не помещается и
+     раздвигает страницу вбок: там коду можно переноситься. */
+  @apply max-sm:whitespace-normal max-sm:wrap-anywhere max-sm:box-decoration-clone;
 }
 
 .prose table {

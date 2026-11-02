@@ -11,7 +11,7 @@
 
 > Русская версия: [README.md](README.md)
 
-Everything for working with the API of [Pachca](https://pachca.com), a corporate messenger: the docs, an MCP server and skills for AI agents, a CLI, SDKs in six languages and an n8n node. The API is described in TypeSpec, and the rest is built from that description: the OpenAPI spec, the method pages, the CLI, the SDKs, the n8n node, the MCP server's tool set and the files for agents. The skills are written by hand, and the build checks them against the same description.
+Everything for working with the API of [Pachca](https://pachca.com), a team chat app: the docs, an MCP server and skills for AI agents, a CLI, SDKs in six languages and an n8n node. The API is described in TypeSpec, and the rest is built from that description: the OpenAPI spec, the method pages, the CLI, the SDKs, the n8n node, the MCP server's tool set and the files for agents. The skills are written by hand, and the build checks them against the same description.
 
 | What | For whom | In this repo |
 |------|----------|--------------|

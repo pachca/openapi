@@ -5,7 +5,7 @@ description: 'Вход в Пачку (Pachca) для агента: подклю�
 
 # Pachca
 
-Pachca is a corporate messenger: a workspace of employees with chats, channels, threads, reminders, tags and bots.
+Pachca is a team chat app: a workspace of employees with chats, channels, threads, reminders, tags and bots.
 All of it is reachable through one public API, exposed three ways: the MCP server (a `pachca_*` tool per API
 method), the CLI `@pachca/cli` (a `pachca <section> <action>` command per method) and the REST API. This skill
 gets you connected, explains why something is or is not available, and routes you to the skill for the work.

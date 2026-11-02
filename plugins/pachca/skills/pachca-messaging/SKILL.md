@@ -7,7 +7,7 @@ description: 'Писать в Пачку: разметка, упоминания
 
 ## When to use
 
-Any time you put text into Pachca for the user: a message, a thread comment, a direct message, a draft, a scheduled message, a file, a reaction, a pin or a «Важное» mark, or an edit or deletion of a message. The tool descriptions, `pachca --help` and the API pages are the reference for arguments. This skill covers what they do not say: where to post, when to ask first, and what breaks.
+Any time you put text into Pachca for the user: a message, a thread comment, a direct message, a draft, a scheduled message, a file, a reaction, a pin or a «Важное» mark, or an edit or deletion of a message. The tool descriptions, `pachca --help` and the API pages are the reference for arguments, and the MCP tool descriptions also give each method's rules. This skill adds how to write to colleagues: where to post, when to ask first, and what breaks a message, in more depth than the server instructions and also for the CLI and the API.
 
 Access paths: prefer the MCP tools (`pachca_send_message`, `pachca_create_draft`, …). In a terminal the CLI does the same (`pachca messages create`, `pachca drafts create`, `pachca upload`). With neither, call the REST API directly. All three call the same methods with the same permissions.
 

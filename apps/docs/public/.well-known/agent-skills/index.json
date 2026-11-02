@@ -6,7 +6,7 @@
       "type": "archive",
       "description": "Вход в Пачку (Pachca) для агента: подключить агента или MCP-клиента (MCP через браузер или токеном, плагин, CLI), проверить подключение, выбрать токен, разобрать отказ 401/403 инструмента или CLI и отсутствие инструмента (роль, тариф, тип токена, участие в чате). Когда: «подключи Пачку», «настрой MCP Пачки», «войди в Пачку через CLI», «каким токеном подключить агента», «экран входа MCP», «агент получил 403 insufficient_scope», «нет инструмента Пачки (экспорт, журнал аудита)», «что умеет Пачка», \"connect Pachca\", \"set up Pachca MCP\", \"Pachca CLI login\", \"which token for my agent or MCP client\", \"MCP sign-in screen\", \"MCP tool or CLI returned 401/403\", \"a Pachca tool is missing\". Not for: writing messages → pachca-messaging; search and summaries → pachca-search; administration, who may create tokens → pachca-admin; building a bot → pachca-bots; an agent living in Pachca → pachca-ai-agent; OAuth for employees → pachca-oauth; a token for a script or service, 401/403 in your own code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca.tar.gz",
-      "digest": "sha256:725fc41a720e5c76fba36fcac5cd57ceb61dd89ec7c593e288b5035753be12da"
+      "digest": "sha256:ca35061f9543876f551bb53ad92292dfe9ee3963eca06111261a628ac03ac0d7"
     },
     {
       "name": "pachca-admin",
@@ -41,7 +41,7 @@
       "type": "archive",
       "description": "Писать в Пачку: разметка, упоминания, куда писать (тред, ответ с цитатой, личный чат), черновик, который отправит сотрудник, пост об изменениях, отложенные и регулярные сообщения в чат, файлы, пересылка, реакции, закрепление, «Важное», правка, удаление, поиск нужного сообщения, когда сначала спросить, лимиты. Когда: «напиши в чат», «отправь сообщение», «ответь в треде», «напиши в личку», «упомяни», «подготовь черновик, я отправлю сам», «напиши пост об изменениях», «запланируй сообщение», «напоминай в канал каждый понедельник», «отправь отчёт файлом .md», «перешли сообщение», «поставь реакцию», «закрепи сообщение», «отметь как важное», «исправь сообщение», \"send a message\", \"reply in the thread\", \"DM someone\", \"draft for me to send\", \"schedule a message\", \"pin\". Not for: search or summaries as the goal, a reminder for an employee → pachca-search; watch a thread, wait for replies → pachca-watch-thread; buttons, forms, clicks → pachca-bots; an AI agent as a bot → pachca-ai-agent; uploads from code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-messaging.tar.gz",
-      "digest": "sha256:b7889c426033e214ba5bd7ec46c14d55da0c2f551a9a1ed756531211bb02baa2"
+      "digest": "sha256:a7f45e8047fdc4334772797ac15399bf7af8f40ef1a6e8bb04ffcbb7916d2c14"
     },
     {
       "name": "pachca-oauth",

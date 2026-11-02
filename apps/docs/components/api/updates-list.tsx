@@ -16,7 +16,7 @@ import { ArrowUpRight } from 'lucide-react';
 
 const PRODUCT_LABELS: Record<ReleaseProduct, string> = {
   mcp: 'MCP-инструменты',
-  plugin: 'MCP-плагин и скиллы',
+  plugin: 'Плагин и скиллы',
   cli: 'CLI',
   sdk: 'SDK-библиотеки',
   generator: 'SDK-генератор',

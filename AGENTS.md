@@ -18,7 +18,7 @@ single source of truth; everything else is generated from it.
 | `packages/openapi-parser` | Shared OpenAPI parser |
 | `packages/mcp-manifest` | npm package `@pachca/mcp-manifest`: the MCP tool manifest and its JSON Schema, copied from `packages/spec` by the build |
 | `apps/docs` | Next.js 16 docs site (dev.pachca.com): `content/` MDX, `lib/`, `scripts/` generators, `public/` generated artifacts |
-| `plugins/pachca` | The Pachca plugin for Claude Code, the Claude app, Codex, VS Code and GitHub Copilot, and Cursor: hand-written skills (knowledge skills and slash-only commands), MCP configs and one manifest per host |
+| `plugins/pachca` | The Pachca plugin for Claude Code, the Claude app, Codex, VS Code and GitHub Copilot, and Cursor: hand-written skills, MCP configs and one manifest per host |
 | `integrations/n8n` | n8n community node |
 
 ## Build & check

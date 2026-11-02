@@ -1,12 +1,13 @@
 ---
 title: Обзор
-description: "Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+"
+description: "Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками, AI-агент с CLI и скиллы. Node.js 20+"
 related:
   - /guides/cli/authentication
   - /guides/cli/output
   - /guides/cli/scripting
   - /guides/cli/files
   - /guides/cli/commands
+  - { path: /guides/ai-agents/skills, title: Скиллы }
 ---
 
 # CLI
@@ -90,3 +91,13 @@ pachca api ls  # список всех методов
 ```
 
 Подробнее — [Прямые запросы](/guides/cli/api-requests).
+
+## AI-агент с CLI
+
+Агент, который может запускать команды, делает через CLI всё то же, что через MCP-сервер, а контекста модели тратит меньше: команды он узнаёт из `--help`, а не из описаний инструментов. Чтобы агент делал задачи так, как принято в Пачке, поставьте [скиллы](/guides/ai-agents/skills): они работают и с CLI. Команде установки нужен Node.js 22.20 или новее, другие способы — в разделе [Установка скиллов](/guides/ai-agents/skills#ustanovka-skillov). Для другой программы замените `claude-code` на её имя:
+
+```bash
+npx skills add https://dev.pachca.com -g -a claude-code -y
+```
+
+Вход `pachca auth login` выполните в своём терминале: в командах, которые запускает агент, диалога входа обычно нет. Через CLI агент и [следит за тредом](/guides/ai-agents/watch-thread). Как ещё подключить Пачку к агенту — на странице [AI-агенты](/guides/ai-agents/overview).

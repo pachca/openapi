@@ -1,0 +1,21 @@
+schema_version: "1.1"
+name: route-pachca-watch-thread-08
+description: "Routes to pachca-watch-thread, no sibling skill fires"
+tags: [routing, pachca-watch-thread]
+runs: 3
+execution:
+  prompt: "Keep an eye on the Pachca thread about the outage and answer questions addressed to me"
+  max_turns: 3
+  allowed_tools: [Skill]
+graders:
+  - name: fires
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?(?:pachca-watch-thread)\""
+  - name: no-sibling
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?pachca-(?!watch-thread\")[a-z-]+\""
+    min: 0
+    max: 0
+    arm: both

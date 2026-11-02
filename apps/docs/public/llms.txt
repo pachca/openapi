@@ -6,7 +6,7 @@
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~489K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~486K токенов — обычно не помещается в контекст целиком).
 
 > English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~33K токенов).
 
@@ -75,11 +75,11 @@
 | SDK | Типизированные клиенты для 6 языков | 96–124 |
 | CLI Quick Start | Установка, команды, точечная справка по API | 125–142 |
 | MCP-сервер | Адрес, вход, доступ и инструменты MCP | 143–152 |
-| Плагин и скиллы | Скиллы для AI-агентов, установка плагина | 153–180 |
-| Руководства | Страницы-руководства (Markdown по `.md`) | 181–266 |
+| Скиллы | Что знают скиллы, установка одной командой, плагин по желанию | 153–181 |
+| Руководства | Страницы-руководства (Markdown по `.md`) | 182–266 |
 | API-методы | Все методы API, сгруппированы по разделам | 267–408 |
 | Обновления | Журнал обновлений по датам | 409–416 |
-| Дополнительно | Прочие ссылки и контакты | 417–424 |
+| Дополнительно | Прочие ссылки и контакты | 417–425 |
 
 ## Своя интеграция
 
@@ -150,7 +150,7 @@ Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex и приложение 
 
 Как устроен: [MCP-сервер](https://dev.pachca.com/guides/mcp/overview.md), подключение программ: [Подключение к MCP](https://dev.pachca.com/guides/mcp/connect.md), все инструменты: [Инструменты MCP](https://dev.pachca.com/guides/mcp/tools.md).
 
-## Плагин и скиллы
+## Скиллы
 
 Знание о том, как правильно делать задачи в Пачке: куда писать, что подтверждать, какой токен взять, как устроены права. Справочник по аргументам — в описаниях инструментов MCP, `pachca <команда> --help` и страницах методов. Вход — скилл `pachca`, он же отдаётся по адресу `https://dev.pachca.com/skill.md`.
 
@@ -158,45 +158,45 @@ Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex и приложение 
 |-------|-------|
 | [pachca](https://dev.pachca.com/.well-known/skills/pachca/SKILL.md) | Вход: подключение агента через MCP, плагин или CLI, выбор токена, проверка подключения, отказ 401/403 или нет инструмента |
 | [pachca-messaging](https://dev.pachca.com/.well-known/skills/pachca-messaging/SKILL.md) | Как писать: оформление, упоминания, куда отвечать, черновики, отложенные и повторяющиеся, файлы, пересылка, реакции, закрепы, правки |
-| [pachca-search](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md) | Поиск и пересказ: сообщения, чаты, сотрудники, тред целиком, дайджесты, решения и напоминания по итогам, кто в теге или чате |
+| [pachca-search](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md) | Поиск и пересказ: сообщения, чаты, сотрудники, тред целиком, разбор проблемы или замечаний из треда, дайджесты, решения и напоминания по итогам, кто в теге или чате |
+| [pachca-watch-thread](https://dev.pachca.com/.well-known/skills/pachca-watch-thread/SKILL.md) | Слежение за тредом: агент в программе на компьютере следит за тредом через CLI и отвечает в нём по вашей задаче, пока открыта сессия |
 | [pachca-admin](https://dev.pachca.com/.well-known/skills/pachca-admin/SKILL.md) | Администрирование: сотрудники, состав тегов и чатов, доступ к API, вкладка «Все токены», журнал аудита, экспорт, DLP |
 | [pachca-bots](https://dev.pachca.com/.well-known/skills/pachca-bots/SKILL.md) | Боты и интеграции: вебхуки, события, токены и права, кнопки, формы, разворачивание ссылок, витрина |
 | [pachca-ai-agent](https://dev.pachca.com/.well-known/skills/pachca-ai-agent/SKILL.md) | AI-агент в Пачке: зовут упоминанием, контекст треда, реакция agent-thinking, ответ в тред, карточка .md, бот или MCP |
 | [pachca-oauth](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md) | Приложение от имени сотрудника: OAuth с PKCE, обмен кода, хранение токенов, отзыв |
 | [pachca-api](https://dev.pachca.com/.well-known/skills/pachca-api/SKILL.md) | API из кода и CI: токены, пагинация, лимиты и 429, ошибки, файлы, SDK, CLI в скриптах |
 
-Установка. Плагин «Пачка» ставит MCP-сервер, скиллы и команды:
+Установка. Доступ к Пачке даёт MCP-сервер `https://mcp.pachca.com/mcp` (адрес в настройках MCP программы, вход через браузер, а в Cursor и программах без такого входа персональный токен в заголовке `Authorization`) или CLI (`npm install -g @pachca/cli`, затем `pachca auth login` в своём терминале). Шаги для каждой программы — [Подключение к MCP](https://dev.pachca.com/guides/mcp/connect.md). Скиллы ставит одна команда `npx skills add https://dev.pachca.com -g -a <агент> -y`, где `<агент>` — это `claude-code`, `codex`, `cursor`, `github-copilot`, `opencode`, `devin`, `cline`, `kilo`, `qwen-code`, `gemini-cli` и другие. Нужен Node.js 22.20 или новее. Если команду запускает агент, флаги `-a` и `-y` обязательны: без `-a` она может без вопросов поставить скиллы во все найденные агенты.
+
+Плагин «Пачка» необязателен. Он ставит MCP-сервер и скиллы одной установкой и обновляет скиллы вместе с собой:
 
 - Claude Code: `claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins`, затем `claude plugin install pachca@pachca`. Вход: `/mcp` или `claude mcp login plugin:pachca:pachca`. Сервер, добавленный вручную по тому же адресу, заменяет сервер плагина, поэтому с плагином `claude mcp add` не нужен.
 - Codex: `codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca`, затем `codex plugin add pachca@pachca`. Вход: `codex mcp login pachca`. Где входить некому, сервер с персональным токеном `codex mcp add pachca --url https://mcp.pachca.com/mcp --bearer-token-env-var PACHCA_TOKEN` заменяет сервер плагина.
 - GitHub Copilot CLI и VS Code: `copilot plugin marketplace add pachca/openapi`, затем `copilot plugin install pachca@pachca`. Вход в Copilot CLI: `/mcp auth pachca`.
 - Cursor: `agent plugin marketplace add https://github.com/pachca/openapi`, затем `/plugin` в сессии агента. Сервер плагина берёт персональный токен из переменной окружения `PACHCA_TOKEN`, после её задания Cursor нужно перезапустить.
 
-Только скиллы, для остальных агентов: `npx skills add https://dev.pachca.com -g -a <агент> -y`, где `<агент>` — это `opencode`, `devin`, `cline`, `kilo`, `qwen-code`, `gemini-cli` и другие. Нужен Node.js 22.20 или новее. Если команду запускает агент, флаги `-a` и `-y` обязательны: без `-a` она может без вопросов поставить скиллы во все найденные агенты. Общие папки скиллов читают и программы с плагином (Claude Code, Codex, Cursor, VS Code), поэтому рядом с плагином скиллы распаковывают архивом в папку, которую читает только нужный агент, иначе у программы с плагином окажется по две копии каждого скилла. Команды плагина ставятся только с плагином. Архивы: `https://dev.pachca.com/.well-known/agent-skills/<скилл>.tar.gz` без общей папки внутри и ZIP с папкой скилла для Yandex AI Studio и приложения Claude `https://dev.pachca.com/skills/<скилл>.zip`. Папки агентов и шаги — [Плагин и скиллы](https://dev.pachca.com/guides/mcp/plugin.md).
+В программу с плагином скиллы через `npx skills` не ставят: общие папки скиллов читают и программы с плагином (Claude Code, Codex, Cursor, VS Code), и у агента окажется по две копии каждого скилла. Рядом с плагином скиллы для другого агента распаковывают архивом в папку, которую читает только он. Архивы: `https://dev.pachca.com/.well-known/agent-skills/<скилл>.tar.gz` без общей папки внутри и ZIP с папкой скилла для Yandex AI Studio и приложения Claude `https://dev.pachca.com/skills/<скилл>.zip`. Что знает каждый скилл, установка и папки агентов — [Скиллы](https://dev.pachca.com/guides/ai-agents/skills.md), установка плагина — [Плагин](https://dev.pachca.com/guides/ai-agents/plugin.md).
 
-Индекс скиллов (Agent Skills Discovery 0.2.0): `https://dev.pachca.com/.well-known/agent-skills/index.json`, прежний формат и файлы скиллов по отдельности: `https://dev.pachca.com/.well-known/skills/index.json`
-
-Каталог API (RFC 9727): `https://dev.pachca.com/.well-known/api-catalog` — один JSON со всеми описаниями (OpenAPI, Postman), доками (HTML, llms.txt) и метаданными.
+Индекс скиллов (Agent Skills Discovery 0.2.0): `https://dev.pachca.com/.well-known/agent-skills/index.json`, прежний формат и файлы скиллов по отдельности: `https://dev.pachca.com/.well-known/skills/index.json`.
 
 ## Руководства
 
 Длинные описания здесь сокращены, полные — в [/guides/llms.txt](https://dev.pachca.com/guides/llms.txt).
 
-- [Обзор](https://dev.pachca.com/index.md): Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n, MCP-сервер…
+- [Обзор](https://dev.pachca.com/index.md): Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n…
 - [Быстрый старт](https://dev.pachca.com/guides/quickstart.md): Первое сообщение через API Пачки за 5 минут: токен бота или персональный токен, проверка авторизации…
-- [AI-агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview.md): Как подключить Пачку к AI-агенту и что выбрать — плагин и скиллы, MCP-сервер, CLI, API и SDK, n8n…
-- [AI-агенты, Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction.md): Как устроен AI-агент в Пачке: агент — это бот, которого зовут по нику в треде или пишут ему в личные сообщения…
-- [AI-агенты, Агент следит за тредом](https://dev.pachca.com/guides/ai-agents/watch-thread.md): Как попросить AI-агента в программе на своём компьютере следить за тредом Пачки и отвечать в нём: команда watch-thread плагина «Пачка»…
+- [AI-агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview.md): AI-агенты и Пачка: доступ к Пачке через MCP-сервер или CLI и скиллы как знание о том, как в ней работать, что можно поручить агенту…
+- [AI-агенты, Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction.md): Как устроен AI-агент в Пачке: агент — это бот, которого зовут по нику в чате или треде либо пишут ему в личные сообщения…
+- [AI-агенты, Агент следит за тредом](https://dev.pachca.com/guides/ai-agents/watch-thread.md): Как попросить AI-агента в программе на своём компьютере следить за тредом Пачки и отвечать в нём: скилл pachca-watch-thread…
 - [AI-агенты, Черновик вместо отправки](https://dev.pachca.com/guides/ai-agents/drafts.md): Агент готовит сообщение черновиком, а отправляет сотрудник: зачем это нужно, почему работает только личным токеном…
-- [AI-агенты, Оформление ответов](https://dev.pachca.com/guides/ai-agents/markdown.md): Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чеклисты, подсветка кода, diff…
+- [AI-агенты, Оформление ответов](https://dev.pachca.com/guides/ai-agents/markdown.md): Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чек-листы, подсветка кода, diff…
+- [AI-агенты, Скиллы](https://dev.pachca.com/guides/ai-agents/skills.md): Девять скиллов Пачки подробно: подключение и права, сообщения и правила переписки, поиск, пересказ и разбор треда и напоминания…
+- [AI-агенты, Плагин](https://dev.pachca.com/guides/ai-agents/plugin.md): Плагин «Пачка» — необязательный способ поставить MCP-сервер и скиллы одной установкой в Claude Code, приложение Claude, Codex…
 - [Треды](https://dev.pachca.com/guides/threads.md): Треды в Пачке для разработчиков: сквозные и самостоятельные треды как уникальная особенность…
 - [Теги](https://dev.pachca.com/guides/tags.md): Теги в Пачке: тег как состав беседы или канала с автоматической синхронизацией участников, упоминание тега в сообщении и в треде…
-- [MCP, Обзор](https://dev.pachca.com/guides/mcp/overview.md): MCP-сервер Пачки: адрес https://mcp.pachca.com/mcp, инструменты, скиллы и команды плагина «Пачка»…
-- [MCP, Подключение](https://dev.pachca.com/guides/mcp/connect.md): Как подключить MCP-сервер Пачки: рекомендуемый путь для каждой программы (плагин или подключение), кто может подключить…
+- [MCP, Обзор](https://dev.pachca.com/guides/mcp/overview.md): MCP-сервер Пачки: что это и зачем, адрес https://mcp.pachca.com/mcp, что можно попросить агента…
+- [MCP, Подключение](https://dev.pachca.com/guides/mcp/connect.md): Как подключить MCP-сервер Пачки за четыре шага: сервер по адресу, вход, скиллы, проверка. Плагин «Пачка» как вариант одной установкой…
 - [MCP, Инструменты](https://dev.pachca.com/guides/mcp/tools.md): Все инструменты MCP-сервера Пачки: инструмент на каждый метод публичного API, кроме служебных, какой метод вызывает каждый…
-- [MCP, Плагин и скиллы](https://dev.pachca.com/guides/mcp/plugin.md): Плагин «Пачка» для Claude Code, приложения Claude, Codex, VS Code с GitHub Copilot и Cursor: MCP-сервер, скиллы…
-- [MCP, Команды плагина](https://dev.pachca.com/guides/mcp/commands.md): Команды плагина «Пачка» подробно: пересказ треда, слежение за тредом и пост об изменениях. Как вызвать команду, что агент делает по шагам…
-- [MCP, Скиллы](https://dev.pachca.com/guides/mcp/skills.md): Восемь скиллов плагина «Пачка» подробно: подключение и права, сообщения и правила переписки, поиск, пересказ и напоминания…
 - [Боты, Обзор](https://dev.pachca.com/guides/bots/overview.md): Боты в Пачке: сервисный участник пространства, на котором строятся интеграции. Что умеет бот, с чего начать под вашу задачу…
 - [Боты, Первый бот](https://dev.pachca.com/guides/bots/first-bot.md): Первый бот в Пачке по шагам: создать бота и токен с нужными правами, добавить бота в чат, отправить сообщение через API на cURL…
 - [Боты, Общение с ботом](https://dev.pachca.com/guides/bots/conversations.md): Как бот в Пачке общается с сотрудниками в личных сообщениях, беседах, каналах и тредах: что настроить, как бот узнаёт о сообщениях…
@@ -407,16 +407,17 @@ Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex и приложение 
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 
 ## Обновления
+- [02 ноября 2026 — Подключение к MCP в четыре шага, скиллы и плагин в разделе «AI-агенты»](https://dev.pachca.com/updates/2026-11-02.md)
 - [31 октября 2026 — Скиллы и команды плагина «Пачка», руководства по ботам и изменения API](https://dev.pachca.com/updates/2026-10-31.md)
 - [28 октября 2026 — MCP-сервер, плагин «Пачка», раздел «Важное» и перевод в гости](https://dev.pachca.com/updates/2026-10-28.md)
 - [21 октября 2026 — Вход по QR-коду в журнале аудита](https://dev.pachca.com/updates/2026-10-21.md)
 - [20 октября 2026 — Номер выгрузки в ответе, аватар бота и OAuth в SDK](https://dev.pachca.com/updates/2026-10-20.md)
-- [13 октября 2026 — Раздел «Интеграции», API ботов и авторизация от имени сотрудника](https://dev.pachca.com/updates/2026-10-13.md)
 - Все записи по датам: [/updates/llms.txt](https://dev.pachca.com/updates/llms.txt)
 
 ## Дополнительно
 - OpenAPI 3.0 spec: `https://dev.pachca.com/openapi.yaml` — машиночитаемая спецификация API для кодогенерации и инструментов
 - Postman collection: `https://dev.pachca.com/pachca.postman_collection.json` — готовая коллекция для импорта в Postman/Bruno/Insomnia
+- Каталог API (RFC 9727): `https://dev.pachca.com/.well-known/api-catalog` — один JSON со всеми описаниями (OpenAPI, Postman), доками (HTML, llms.txt) и метаданными
 - [Скилл pachca](https://dev.pachca.com/skill.md): вход для AI-агента, подключение к Пачке, выбор токена и куда идти дальше
 - [Веб-сайт](https://pachca.com/)
 - [Получить помощь](mailto:team@pachca.com)

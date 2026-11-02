@@ -138,8 +138,10 @@ export function WebhookSchemaSection({
             }`}
             strokeWidth={2.5}
           />
-          <span className="text-[13px] font-medium text-text-primary">{title}</span>
-          <span className="text-[11px] text-text-secondary ml-auto">{type}</span>
+          <span className="text-[13px] font-medium text-text-primary min-w-0 wrap-anywhere">
+            {title}
+          </span>
+          <span className="text-[11px] text-text-secondary ml-auto shrink-0">{type}</span>
         </div>
       )}
 

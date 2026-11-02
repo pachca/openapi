@@ -11,13 +11,13 @@
 
 > Русская версия: [README.md](README.md)
 
-Everything for working with the API of [Pachca](https://pachca.com), a corporate messenger: the docs, an MCP server and a plugin for AI agents, a CLI, SDKs in six languages and an n8n node. The API is described in TypeSpec, and the rest is built from that description: the OpenAPI spec, the method pages, the CLI, the SDKs, the n8n node, the MCP server's tool set and the files for agents. The plugin's skills and commands are written by hand, and the build checks them against the same description.
+Everything for working with the API of [Pachca](https://pachca.com), a corporate messenger: the docs, an MCP server and skills for AI agents, a CLI, SDKs in six languages and an n8n node. The API is described in TypeSpec, and the rest is built from that description: the OpenAPI spec, the method pages, the CLI, the SDKs, the n8n node, the MCP server's tool set and the files for agents. The skills are written by hand, and the build checks them against the same description.
 
 | What | For whom | In this repo |
 |------|----------|--------------|
 | [MCP server](#mcp-server) | An employee in a program with an AI agent: one tool per API method | tool set: sources in `packages/spec`, package `packages/mcp-manifest`; the server itself runs in Pachca's backend |
-| [Pachca plugin](#plugin-skills-and-commands) | Claude Code, the Claude app, Codex, VS Code with GitHub Copilot and Cursor: the MCP server, eight skills and three commands | `plugins/pachca` |
 | [CLI](#cli) | The terminal, scripts, CI and agents with a terminal | `packages/cli` |
+| [Skills and plugin](#skills-and-plugin) | An agent with the MCP server, the CLI or code on the API: nine skills on doing things right in Pachca, and the Pachca plugin for Claude Code, the Claude app, Codex, VS Code and Cursor | `plugins/pachca` |
 | [SDKs](#sdk) and the [generator](#generator) | Your own code in TypeScript, Python, Go, Kotlin, Swift and C# | `sdk/`, `packages/generator` |
 | [n8n](#n8n) | Automations without code | `integrations/n8n` |
 | [Docs](https://dev.pachca.com) and [files for agents](#ai-integrations) | Developers and agents: guides, methods, `llms.txt`, Markdown of every page | `apps/docs` |
@@ -27,7 +27,7 @@ Everything for working with the API of [Pachca](https://pachca.com), a corporate
 
 ## MCP server
 
-`https://mcp.pachca.com/mcp` — one tool per API method. Which tools an agent sees depends on the employee's role, the workspace plan and the kind of token. Claude Code, Claude, VS Code and GitHub Copilot, Codex and the ChatGPT desktop app sign in through the browser, other clients send a token in a header. The server is published in the official MCP Registry as `com.pachca/mcp`, described by [`server.json`](server.json). In Claude Code, the Claude app, Codex, VS Code with GitHub Copilot and Cursor the [Pachca plugin](#plugin-skills-and-commands) installs the server together with skills and commands.
+`https://mcp.pachca.com/mcp` — one tool per API method. Which tools an agent sees depends on the employee's role, the workspace plan and the kind of token. Claude Code, Claude, VS Code and GitHub Copilot, Codex and the ChatGPT desktop app sign in through the browser, other clients send a token in a header. The server is published in the official MCP Registry as `com.pachca/mcp`, described by [`server.json`](server.json). The server gives access, and the [skills](#skills-and-plugin) teach the agent to do things the way Pachca expects; they install separately, with one command.
 
 ```bash
 claude mcp add --transport http pachca https://mcp.pachca.com/mcp
@@ -38,7 +38,7 @@ claude mcp add --transport http pachca https://mcp.pachca.com/mcp
 ## CLI
 
 ```bash
-# Zero-install (npx)
+# Without installing (npx)
 npx @pachca/cli messages create --entity-id=123 --content="Hello!" --token $PACHCA_TOKEN
 
 # For regular use
@@ -54,11 +54,34 @@ pachca api POST /messages -F 'message[entity_id]=123' -f 'message[content]=Hello
 
 Every API method is available as a command: typed flags, validation, four output formats (table, JSON, YAML, CSV), cursor pagination, multiple auth profiles, and a non-interactive mode for CI and AI agents. The `pachca api` command sends direct requests to any method and ships a built-in API reference (`ls`, `--describe`, `--spec`, `--docs`) from the same OpenAPI spec — an agent never needs to open the docs website.
 
+An agent that can run commands does everything through the CLI that it does through the MCP server and spends less of the model's context: it learns the commands from `--help`. The [skills](#skills-and-plugin) work with the CLI too. Run `pachca auth login` in your own terminal, not in an agent's command; more in the [AI agent with the CLI](https://dev.pachca.com/guides/cli/overview#ai-agent-s-cli) section (in Russian).
+
 **Docs**: https://dev.pachca.com/guides/cli
 
-## Plugin, skills and commands
+## Skills and plugin
 
-The Pachca plugin installs the MCP server, skills and commands. Skills are know-how for doing things in Pachca the right way: where to post and what to confirm, how to find and summarize, which token to pick, why a permission is missing. The agent picks a skill by itself when a task matches it. The argument reference comes from the MCP tool descriptions, `pachca <command> --help` and the method pages, so the skills do not repeat it. Skills work with any access path: MCP, CLI or API. Commands run when you call them; in a Claude app chat a command may also start on its own when a request fits.
+Skills are know-how for doing things in Pachca the right way: where to post and what to confirm, how to find and summarize, which token to pick, why a permission is missing. An MCP tool or a CLI command describes one API method, and a skill tells how to chain calls into a task. The argument reference comes from the MCP tool descriptions, `pachca <command> --help` and the method pages, so the skills do not repeat it. Skills work with any access path: the MCP server, the CLI, the API or an SDK. The agent picks a skill by itself when a task matches it.
+
+| Skill | Use it for |
+|-------|------------|
+| `pachca` | The way into Pachca, leading on to the right skill: connecting over MCP, CLI or API, picking a token, a missing permission or tool |
+| `pachca-messaging` | Writing, replying in a thread, mentions, drafts, scheduled messages, files |
+| `pachca-search` | Finding a discussion, chat or employee, summarizing a thread, explaining a problem or going through the feedback in a thread, digests, reminders from a discussion |
+| `pachca-watch-thread` | Watching a thread through the CLI and replying in it while the session is open, and with no thread yet, opening one under a message or starting an unattached thread with a colleague |
+| `pachca-admin` | Employees, tags, chat members, API access, audit log, export, DLP |
+| `pachca-bots` | A bot or integration: webhooks, events, tokens, buttons, forms, link unfurling |
+| `pachca-ai-agent` | An AI agent that lives in Pachca and answers in threads |
+| `pachca-oauth` | An app acting on behalf of each employee |
+| `pachca-api` | Scripts, SDKs and CI: pagination, limits, errors, files |
+
+One command installs the skills; it needs Node.js 22.20 or newer. You can also ask the agent: "Install the Pachca skills: npx skills add https://dev.pachca.com -g -a <this program> -y".
+
+```bash
+# claude-code, codex, cursor, github-copilot, opencode, devin, cline, kilo, qwen-code, gemini-cli and others
+npx skills add https://dev.pachca.com -g -a claude-code -y
+```
+
+The Pachca plugin is optional: it installs the MCP server and skills in one go in Claude Code, the Claude app, Codex, VS Code with GitHub Copilot and Cursor, and its skills update with it:
 
 ```bash
 # Claude Code
@@ -75,33 +98,13 @@ copilot plugin install pachca@pachca
 
 # Cursor CLI: then run /plugin in an agent session and install pachca
 agent plugin marketplace add https://github.com/pachca/openapi
-
-# Skills only, for OpenCode, Devin, Cline, Kilo Code, Qwen Code and other agents (Node.js 22.20+)
-npx skills add https://dev.pachca.com -g -a opencode -y
 ```
 
-In Cursor the plugin's server connects with a personal token from the `PACHCA_TOKEN` variable. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app, signing in to Pachca and installing skills without Node.js are covered on the [Plugin and skills](https://dev.pachca.com/guides/mcp/plugin) page.
+In Cursor the plugin's server connects with a personal token from the `PACHCA_TOKEN` variable. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app and signing in to Pachca are covered on the [Plugin](https://dev.pachca.com/guides/ai-agents/plugin) page, installing skills without Node.js or in GigaCode CLI in the [Manual installation](https://dev.pachca.com/guides/ai-agents/skills#ustanovka-vruchnuyu) section of the Skills page (both in Russian).
 
-| Skill | Use it for |
-|-------|------------|
-| `pachca` | The way into Pachca, leading on to the right skill: connecting over MCP, CLI or API, picking a token, a missing permission or tool |
-| `pachca-messaging` | Writing, replying in a thread, mentions, drafts, scheduled messages, files |
-| `pachca-search` | Finding a discussion, chat or employee, summarizing a thread, digests, reminders from a discussion |
-| `pachca-admin` | Employees, tags, chat members, API access, audit log, export, DLP |
-| `pachca-bots` | A bot or integration: webhooks, events, tokens, buttons, forms, link unfurling |
-| `pachca-ai-agent` | An AI agent that lives in Pachca and answers in threads |
-| `pachca-oauth` | An app acting on behalf of each employee |
-| `pachca-api` | Scripts, SDKs and CI: pagination, limits, errors, files |
+You can also call a skill directly, such as `/pachca-watch-thread` in Claude Code, or `/pachca:pachca-watch-thread` with the plugin. How to do it in other programs is in the [Calling a skill](https://dev.pachca.com/guides/ai-agents/skills#vyzov-skilla) section of the Skills page (in Russian).
 
-| Command | What it does |
-|---------|--------------|
-| `summarize-thread` | Retells a thread: what it is about, what was decided, what is still open and who was asked to do what. You can pass several threads, ask for only what is new since a given time and ask a question it answers at the end. Feedback in the thread comes as a list, each item with its status in the code |
-| `watch-thread` | Watches a thread through the CLI and replies in it while the session is open. Without a thread it opens one under a message or starts an unattached thread with a colleague |
-| `post-changes` | Writes a post about what was done for a task or in the session, in the style of the chat's earlier posts, and leaves it as a draft in the chat's input box |
-
-In Claude Code the commands are `/pachca:summarize-thread`, `/pachca:watch-thread` and `/pachca:post-changes`; how to call them in other programs is in the table in the [Plugin commands](https://dev.pachca.com/guides/mcp/plugin#komandy-plagina) section of the Plugin and skills page, and what each command does step by step is on the [Plugin commands](https://dev.pachca.com/guides/mcp/commands) page (both in Russian).
-
-Skills and commands are written by hand in `plugins/pachca/skills/<name>/`. The build publishes the eight knowledge skills on dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) and checks their links and the MCP tool and CLI command names. The plugin's commands are not published on the site. Knowledge skills hold instructions only. The `watch-thread` command runs a background Node.js script, `scripts/watch.mjs`, that watches the thread through the CLI, so it needs `@pachca/cli` signed in with `pachca auth login`. Plugin evals for `claude plugin eval` live in `plugins/pachca/evals`; how to run them is in [CONTRIBUTING.md](CONTRIBUTING.md#agent-skills-and-the-plugin).
+Skills are written by hand in `plugins/pachca/skills/<name>/`. The build publishes them on dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) and checks their links and the MCP tool and CLI command names. Skills hold instructions only, except `pachca-watch-thread`: it runs a background Node.js script, `scripts/watch.mjs`, that watches the thread through the CLI, so it needs `@pachca/cli` signed in with `pachca auth login` or a personal token in the `PACHCA_TOKEN` variable. Plugin evals for `claude plugin eval` live in `plugins/pachca/evals`; how to run them is in [CONTRIBUTING.md](CONTRIBUTING.md#agent-skills-and-the-plugin).
 
 ## n8n
 

@@ -9,7 +9,7 @@ import type { ParsedRelease } from './updates-parser';
 // Product names in release titles: feeds, the updates date page, its OG image and llms.txt.
 export const PRODUCT_TITLES: Record<ParsedRelease['product'], string> = {
   mcp: 'MCP-инструменты',
-  plugin: 'MCP-плагин и скиллы',
+  plugin: 'Плагин и скиллы',
   cli: 'CLI',
   sdk: 'SDK-библиотеки',
   generator: 'SDK-генератор',

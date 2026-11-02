@@ -108,6 +108,8 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
           { title: 'Агент следит за тредом', path: '/guides/ai-agents/watch-thread' },
           { title: 'Черновик вместо отправки', path: '/guides/ai-agents/drafts' },
           { title: 'Оформление ответов', path: '/guides/ai-agents/markdown' },
+          { title: 'Скиллы', path: '/guides/ai-agents/skills' },
+          { title: 'Плагин', path: '/guides/ai-agents/plugin' },
         ],
       },
       { title: 'Треды', path: '/guides/threads' },
@@ -121,9 +123,6 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
       { title: 'Обзор', path: '/guides/mcp/overview' },
       { title: 'Подключение', path: '/guides/mcp/connect' },
       { title: 'Инструменты', path: '/guides/mcp/tools' },
-      { title: 'Плагин и скиллы', path: '/guides/mcp/plugin' },
-      { title: 'Команды плагина', path: '/guides/mcp/commands' },
-      { title: 'Скиллы', path: '/guides/mcp/skills' },
     ],
   },
   {

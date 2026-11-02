@@ -145,9 +145,8 @@ const GUIDE_ICONS: Record<string, string> = {
   '/guides/mcp/overview': 'Server',
   '/guides/mcp/connect': 'Plug',
   '/guides/mcp/tools': 'Wrench',
-  '/guides/mcp/plugin': 'Puzzle',
-  '/guides/mcp/commands': 'Terminal',
-  '/guides/mcp/skills': 'Sparkles',
+  '/guides/ai-agents/plugin': 'Puzzle',
+  '/guides/ai-agents/skills': 'Sparkles',
   '/guides/ai-agents/interaction': 'BotMessageSquare',
   '/guides/ai-agents/watch-thread': 'Eye',
   '/guides/ai-agents/markdown': 'FileDiff',
@@ -306,7 +305,7 @@ export function Card({ title, icon, href, download, compact, methods, children }
         style={{ height: 'var(--boxed-header-height)' }}
       >
         {Icon && <Icon className="w-4 h-4 shrink-0 text-text-primary" strokeWidth={2} />}
-        <span className="text-[14px] font-medium text-text-primary whitespace-nowrap shrink-0">
+        <span className="text-[14px] font-medium text-text-primary whitespace-nowrap truncate min-w-0">
           {title}
         </span>
         {children && (

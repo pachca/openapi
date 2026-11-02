@@ -133,7 +133,9 @@ export const SKILL_SUMMARIES: Record<string, string> = {
   'pachca-messaging':
     'Как писать: оформление, упоминания, куда отвечать, черновики, отложенные и повторяющиеся, файлы, пересылка, реакции, закрепы, правки',
   'pachca-search':
-    'Поиск и пересказ: сообщения, чаты, сотрудники, тред целиком, дайджесты, решения и напоминания по итогам, кто в теге или чате',
+    'Поиск и пересказ: сообщения, чаты, сотрудники, тред целиком, разбор проблемы или замечаний из треда, дайджесты, решения и напоминания по итогам, кто в теге или чате',
+  'pachca-watch-thread':
+    'Слежение за тредом: агент в программе на компьютере следит за тредом через CLI и отвечает в нём по вашей задаче, пока открыта сессия',
   'pachca-admin':
     'Администрирование: сотрудники, состав тегов и чатов, доступ к API, вкладка «Все токены», журнал аудита, экспорт, DLP',
   'pachca-bots':
@@ -1124,7 +1126,7 @@ single source of truth; everything else is generated from it.
 | \`packages/openapi-parser\` | Shared OpenAPI parser |
 | \`packages/mcp-manifest\` | npm package \`@pachca/mcp-manifest\`: the MCP tool manifest and its JSON Schema, copied from \`packages/spec\` by the build |
 | \`apps/docs\` | Next.js 16 docs site (dev.pachca.com): \`content/\` MDX, \`lib/\`, \`scripts/\` generators, \`public/\` generated artifacts |
-| \`plugins/pachca\` | The Pachca plugin for Claude Code, the Claude app, Codex, VS Code and GitHub Copilot, and Cursor: hand-written skills (knowledge skills and slash-only commands), MCP configs and one manifest per host |
+| \`plugins/pachca\` | The Pachca plugin for Claude Code, the Claude app, Codex, VS Code and GitHub Copilot, and Cursor: hand-written skills, MCP configs and one manifest per host |
 | \`integrations/n8n\` | n8n community node |
 
 ## Build & check

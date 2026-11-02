@@ -328,7 +328,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     `[Подключение к MCP](${SITE_URL}/guides/mcp/connect.md), все инструменты: ` +
     `[Инструменты MCP](${SITE_URL}/guides/mcp/tools.md).\n\n`;
 
-  content += '## Плагин и скиллы\n\n';
+  content += '## Скиллы\n\n';
   content +=
     'Знание о том, как правильно делать задачи в Пачке: куда писать, что подтверждать, какой токен взять, ' +
     'как устроены права. Справочник по аргументам — в описаниях инструментов MCP, `pachca <команда> --help` ' +
@@ -341,7 +341,15 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   }
   content += '\n';
   content +=
-    'Установка. Плагин «Пачка» ставит MCP-сервер, скиллы и команды:\n\n' +
+    'Установка. Доступ к Пачке даёт MCP-сервер `https://mcp.pachca.com/mcp` (адрес в настройках MCP программы, вход ' +
+    'через браузер, а в Cursor и программах без такого входа персональный токен в заголовке `Authorization`) или CLI (`npm install -g @pachca/cli`, затем `pachca auth login` в своём терминале). Шаги для ' +
+    `каждой программы — [Подключение к MCP](${SITE_URL}/guides/mcp/connect.md). Скиллы ставит ` +
+    `одна команда \`npx skills add ${SITE_URL} -g -a <агент> -y\`, где \`<агент>\` — это \`claude-code\`, \`codex\`, ` +
+    '`cursor`, `github-copilot`, `opencode`, `devin`, `cline`, `kilo`, `qwen-code`, `gemini-cli` и другие. Нужен ' +
+    'Node.js 22.20 или новее. Если команду запускает агент, флаги `-a` и `-y` обязательны: без `-a` она может без ' +
+    'вопросов поставить скиллы во все найденные агенты.\n\n';
+  content +=
+    'Плагин «Пачка» необязателен. Он ставит MCP-сервер и скиллы одной установкой и обновляет скиллы вместе с собой:\n\n' +
     '- Claude Code: `claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins`, ' +
     'затем `claude plugin install pachca@pachca`. Вход: `/mcp` или `claude mcp login plugin:pachca:pachca`. ' +
     'Сервер, добавленный вручную по тому же адресу, заменяет сервер плагина, поэтому с плагином `claude mcp add` не нужен.\n' +
@@ -353,22 +361,18 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     '- Cursor: `agent plugin marketplace add https://github.com/pachca/openapi`, затем `/plugin` в сессии агента. ' +
     'Сервер плагина берёт персональный токен из переменной окружения `PACHCA_TOKEN`, после её задания Cursor нужно перезапустить.\n\n';
   content +=
-    `Только скиллы, для остальных агентов: \`npx skills add ${SITE_URL} -g -a <агент> -y\`, где \`<агент>\` — это ` +
-    '`opencode`, `devin`, `cline`, `kilo`, `qwen-code`, `gemini-cli` и другие. Нужен Node.js 22.20 или новее. ' +
-    'Если команду запускает агент, флаги `-a` и `-y` обязательны: без `-a` она может без вопросов ' +
-    'поставить скиллы во все найденные агенты. Общие папки скиллов читают и программы с плагином (Claude Code, ' +
-    'Codex, Cursor, VS Code), поэтому рядом с плагином скиллы распаковывают архивом в папку, которую читает только ' +
-    'нужный агент, иначе у программы с плагином окажется по две копии каждого скилла. Команды плагина ' +
-    'ставятся только с плагином. ' +
+    'В программу с плагином скиллы через `npx skills` не ставят: общие папки скиллов читают и программы с плагином ' +
+    '(Claude Code, Codex, Cursor, VS Code), и у агента окажется по две копии каждого скилла. Рядом с плагином скиллы ' +
+    'для другого агента распаковывают архивом в папку, которую читает только он. ' +
     `Архивы: \`${SITE_URL}/.well-known/agent-skills/<скилл>.tar.gz\` без общей папки внутри и ZIP с папкой скилла ` +
-    `для Yandex AI Studio и приложения Claude \`${SITE_URL}/skills/<скилл>.zip\`. Папки агентов и шаги — ` +
-    `[Плагин и скиллы](${SITE_URL}/guides/mcp/plugin.md).\n\n`;
+    `для Yandex AI Studio и приложения Claude \`${SITE_URL}/skills/<скилл>.zip\`. Что знает каждый скилл, установка и ` +
+    `папки агентов — [Скиллы](${SITE_URL}/guides/ai-agents/skills.md), установка плагина — ` +
+    `[Плагин](${SITE_URL}/guides/ai-agents/plugin.md).\n\n`;
   // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
   // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
   content +=
     `Индекс скиллов (Agent Skills Discovery 0.2.0): \`${SITE_URL}/.well-known/agent-skills/index.json\`, ` +
-    `прежний формат и файлы скиллов по отдельности: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
-  content += `Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman), доками (HTML, llms.txt) и метаданными.\n\n`;
+    `прежний формат и файлы скиллов по отдельности: \`${SITE_URL}/.well-known/skills/index.json\`.\n\n`;
 
   content += '## Руководства\n\n';
   content += `Длинные описания здесь сокращены, полные — в [/guides/llms.txt](${SITE_URL}/guides/llms.txt).\n\n`;
@@ -405,6 +409,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // и коллекции для инструментов, а не doc-страницы (иначе их сэмплят как страницы).
   content += `- OpenAPI 3.0 spec: \`${SITE_URL}/openapi.yaml\` — машиночитаемая спецификация API для кодогенерации и инструментов\n`;
   content += `- Postman collection: \`${SITE_URL}/pachca.postman_collection.json\` — готовая коллекция для импорта в Postman/Bruno/Insomnia\n`;
+  content += `- Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman), доками (HTML, llms.txt) и метаданными\n`;
   content += `- [Скилл pachca](${SITE_URL}/skill.md): вход для AI-агента, подключение к Пачке, выбор токена и куда идти дальше\n`;
   content += '- [Веб-сайт](https://pachca.com/)\n';
   content += '- [Получить помощь](mailto:team@pachca.com)\n';
@@ -454,7 +459,7 @@ function insertLlmsDocumentMap(content: string): string {
   const sdkIdx = idxOf('## SDK');
   const cliIdx = idxOf('## CLI Quick Start');
   const mcpIdx = idxOf('## MCP-сервер');
-  const skillsIdx = idxOf('## Плагин и скиллы');
+  const skillsIdx = idxOf('## Скиллы');
   const guidesIdx = idxOf('## Руководства');
   const updIdx = idxOf('## Обновления');
   const addIdx = idxOf('## Дополнительно');
@@ -501,7 +506,11 @@ function insertLlmsDocumentMap(content: string): string {
     { name: 'SDK', desc: 'Типизированные клиенты для 6 языков', idx: sdkIdx },
     { name: 'CLI Quick Start', desc: 'Установка, команды, точечная справка по API', idx: cliIdx },
     { name: 'MCP-сервер', desc: 'Адрес, вход, доступ и инструменты MCP', idx: mcpIdx },
-    { name: 'Плагин и скиллы', desc: 'Скиллы для AI-агентов, установка плагина', idx: skillsIdx },
+    {
+      name: 'Скиллы',
+      desc: 'Что знают скиллы, установка одной командой, плагин по желанию',
+      idx: skillsIdx,
+    },
     { name: 'Руководства', desc: 'Страницы-руководства (Markdown по `.md`)', idx: guidesIdx },
     { name: 'API-методы', desc: 'Все методы API, сгруппированы по разделам', idx: apiIdx },
     { name: 'Обновления', desc: 'Журнал обновлений по датам', idx: updIdx },
@@ -558,8 +567,8 @@ function generateLibraryRules(): string {
 - Call the API from a server, a script or the CLI. The API answers cross-origin (CORS) requests only from Pachca's own web app, and a token in front-end code is readable by every visitor, so a web page sends its requests through your own backend
 - Writing code against the API: read the pachca-api skill first, ${SITE_URL}/.well-known/skills/pachca-api/SKILL.md — token choice, the root key of a request body, responses of another shape, which ids are strings, UTC, pagination, limits and retries on one page
 - A personal token issued in the interface does not expire; one obtained by \`pachca auth login\` lives an hour and renews itself
-- MCP server: \`https://mcp.pachca.com/mcp\`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex and the ChatGPT desktop app (it shares the Codex setup) sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in \`Authorization: Bearer <TOKEN>\`. Setup per client: ${SITE_URL}/guides/mcp/connect.md (Russian), in English: ${SITE_URL}/skill.md and ${SITE_URL}/.well-known/skills/pachca/references/mcp-clients.md. Plugin with the server and skills: ${SITE_URL}/guides/mcp/plugin.md (Russian)
-- Pachca plugin (MCP server, skills and commands in one install): Claude Code — \`claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins\`, then \`claude plugin install pachca@pachca\`; Codex — \`codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca\`, then \`codex plugin add pachca@pachca\`; GitHub Copilot CLI and VS Code — \`copilot plugin marketplace add pachca/openapi\`, then \`copilot plugin install pachca@pachca\`; Cursor — \`agent plugin marketplace add https://github.com/pachca/openapi\`, then \`/plugin\` in an agent session, with a personal token in the \`PACHCA_TOKEN\` environment variable
+- MCP server: \`https://mcp.pachca.com/mcp\`, one tool per API method under the same rights as the token. Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex and the ChatGPT desktop app (it shares the Codex setup) sign in through the browser (OAuth Client ID Metadata Document) and get a one-hour token that renews itself; other clients send a personal or bot token in \`Authorization: Bearer <TOKEN>\`. Setup per client: ${SITE_URL}/guides/mcp/connect.md (Russian), in English: ${SITE_URL}/skill.md and ${SITE_URL}/.well-known/skills/pachca/references/mcp-clients.md. Plugin with the server and skills: ${SITE_URL}/guides/ai-agents/plugin.md (Russian)
+- Pachca plugin (MCP server and skills in one install): Claude Code — \`claude plugin marketplace add pachca/openapi --sparse .claude-plugin plugins\`, then \`claude plugin install pachca@pachca\`; Codex — \`codex plugin marketplace add pachca/openapi --sparse .agents/plugins --sparse plugins/pachca\`, then \`codex plugin add pachca@pachca\`; GitHub Copilot CLI and VS Code — \`copilot plugin marketplace add pachca/openapi\`, then \`copilot plugin install pachca@pachca\`; Cursor — \`agent plugin marketplace add https://github.com/pachca/openapi\`, then \`/plugin\` in an agent session, with a personal token in the \`PACHCA_TOKEN\` environment variable
 - MCP access: there is no separate MCP permission. Connecting is decided by the same two workspace settings as API access: by default personal tokens and browser sign-in are open to admins only, while bots are created by employees too, so an employee can connect an agent with their bot's token. Full rule (Russian): ${SITE_URL}/api/authorization.md#kto-mozhet-sozdavat-tokeny, for admins: ${SITE_URL}/guides/agents-access.md
 - Ways to work with Pachca: the REST API and SDKs for your own service, bot or CI, an incoming webhook for notifications without code, the CLI for scripts and agents with a terminal, the n8n node, the MCP server for agent apps and a bot for an agent that is called in Pachca chats. Which to pick for an integration (Russian): ${SITE_URL}/guides/bots/overview.md, for connecting an agent: ${SITE_URL}/guides/ai-agents/overview.md
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
@@ -2418,7 +2427,7 @@ function assertGeneratedMarkdownIntegrity(llmsTxt: string) {
   walk(publicDir);
 
   const LEAK_TAGS =
-    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero|McpTools|CliCommands|PluginCommands|Prompts|Prompt)\b/;
+    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero|McpTools|CliCommands|Prompts|Prompt)\b/;
   const errors: string[] = [];
 
   for (const file of mdFiles) {

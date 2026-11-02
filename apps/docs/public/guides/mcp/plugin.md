@@ -1,5 +1,5 @@
 > Расположение: MCP
-> Краткое содержание: Плагин «Пачка» одной установкой ставит MCP-сервер и скиллы в Claude Code, приложение Claude, Codex, VS Code с GitHub Copilot и Cursor: установка, вход в Пачку и проверка подключения в каждой программе, обновления, плагин для всей организации в приложении Claude. Скиллы без плагина для SourceCraft Code Assistant, OpenCode, Devin Desktop и других агентов, для Yandex AI Studio и GigaChat
+> Краткое содержание: Плагин «Пачка» одной установкой ставит MCP-сервер и скиллы в Claude Code, приложение Claude, Codex, VS Code с GitHub Copilot и Cursor: установка, вход в Пачку и проверка подключения в каждой программе, обновления, плагин для всей организации в приложении Claude
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
 
@@ -10,7 +10,7 @@
 - **MCP-сервер.** Подключение к [MCP-серверу](/guides/mcp/overview) Пачки даёт агенту инструменты: читать чаты и треды, искать, отправлять сообщения и ставить напоминания.
 - **Скиллы.** Это знание о том, как правильно делать задачи в Пачке: куда писать и что подтверждать, как найти и пересказать обсуждение, как следить за тредом и отвечать в нём, какой токен выбрать и почему не хватает прав. Что знает каждый скилл и как вызвать его явно, описано на странице [Скиллы](/guides/mcp/skills).
 
-Плагин работает в Claude Code, приложении Claude, Codex, VS Code с GitHub Copilot и Cursor, а в остальные агенты скиллы ставятся без него. Рекомендуемый путь для каждой программы собран в разделе [Какой путь выбрать](/guides/mcp/connect#kakoy-put-vybrat).
+Плагин работает в Claude Code, приложении Claude, Codex, VS Code с GitHub Copilot и Cursor, а в остальные агенты скиллы ставятся без него, как в разделе [Установка скиллов](/guides/mcp/skills#ustanovka-skillov). Рекомендуемый путь для каждой программы собран в разделе [Какой путь выбрать](/guides/mcp/connect#kakoy-put-vybrat).
 
 | Программа                                                   | Что получит агент                        | Вход в Пачку                                                 |
 | ----------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------ |
@@ -19,8 +19,8 @@
 | [Codex](#codex)                                             | MCP-сервер и скиллы                      | через браузер                                                |
 | [VS Code и GitHub Copilot](#vs-code-i-github-copilot)       | MCP-сервер и скиллы                      | через браузер                                                |
 | [Cursor](#cursor)                                           | MCP-сервер и скиллы                      | персональный токен                                           |
-| [Другие агенты](#skilly-bez-plagina)                        | скиллы, MCP-сервер подключается отдельно | по [инструкции для программы](/guides/mcp/connect) |
-| [Yandex AI Studio и GigaChat](#yandex-ai-studio-i-gigachat) | скиллы, MCP-сервер подключается отдельно | токен бота                                                   |
+| [Другие агенты](/guides/mcp/skills#ustanovka-skillov)       | скиллы, MCP-сервер подключается отдельно | по [инструкции для программы](/guides/mcp/connect) |
+| [Yandex AI Studio и GigaChat](/guides/mcp/skills#yandex-ai-studio-i-gigachat) | скиллы, MCP-сервер подключается отдельно | токен бота                                                   |
 
 Вход в Пачку через браузер и персональные токены по умолчанию есть у администраторов, а сотрудникам их открывает Администратор в настройках пространства. Что ему написать — в разделе [Кто может подключить](/guides/mcp/connect#kto-mozhet-podklyuchit).
 
@@ -37,7 +37,7 @@ claude plugin install pachca@pachca
 
 В расширении Claude Code для VS Code введите `/plugins`, добавьте `pachca/openapi` на вкладке **Marketplaces** и нажмите **Install** у плагина на вкладке **Plugins**. В приложении Claude на вкладке **Code** нажмите **+** у поля ввода и выберите **Add plugins**: плагин появится в списке, если маркетплейс уже добавлен из терминала или VS Code. Терминал, VS Code и вкладка **Code** на одном компьютере читают одни настройки, поэтому плагин достаточно поставить один раз.
 
-Только скиллы, без MCP-сервера, ставит команда из раздела [Скиллы без плагина](#skilly-bez-plagina) с агентом `claude-code`. В облачных сессиях Claude Code плагин не загружается. Пачка доступна там через коннектор, подключённый в [приложении Claude](/guides/mcp/connect#claude).
+Только скиллы, без MCP-сервера, ставит команда из раздела [Установка скиллов](/guides/mcp/skills#ustanovka-skillov) с агентом `claude-code`. В облачных сессиях Claude Code плагин не загружается. Пачка доступна там через коннектор, подключённый в [приложении Claude](/guides/mcp/connect#claude).
 
 ### Вход в Пачку
 
@@ -154,7 +154,7 @@ codex mcp login pachca
 codex plugin marketplace upgrade pachca
 ```
 
-Расширение Codex для редактора плагины не ставит. Для него поставьте [скиллы без плагина](#skilly-bez-plagina) с агентом `codex` и подключите сервер, как в разделе [Codex](/guides/mcp/connect#codex).
+Расширение Codex для редактора плагины не ставит. Для него поставьте скиллы командой из раздела [Установка скиллов](/guides/mcp/skills#ustanovka-skillov) с агентом `codex` и подключите сервер, как в разделе [Codex](/guides/mcp/connect#codex).
 
 ## VS Code и GitHub Copilot
 
@@ -238,88 +238,7 @@ agent plugin marketplace add https://github.com/pachca/openapi
 
 В Cursor сервер плагина называется `plugin-pachca-pachca`. Если переменная `PACHCA_TOKEN` не задана, он не подключится. Сервер Пачки в `mcp.json` с плагином не нужен, уберите его.
 
-Без плагина поставьте скиллы командой из раздела [Скиллы без плагина](#skilly-bez-plagina) с агентом `cursor` и подключите сервер, как в разделе [Cursor](/guides/mcp/connect#cursor).
-
-## Скиллы без плагина
-
-В остальные агенты скиллы ставит команда `npx skills`. Ей нужен Node.js 22.20 или новее.
-
-```bash
-npx skills add https://dev.pachca.com -g -a opencode -y
-```
-
-- `-a` задаёт агента: `opencode`, `devin`, `cline`, `kilo`, `qwen-code`, `gemini-cli`, `cursor`, `codex`, `github-copilot`, `claude-code` и другие. Несколько агентов перечислите через пробел.
-- `-g` ставит скиллы для всех проектов. Без него скиллы попадут в текущий проект, а рядом появится файл `skills-lock.json`.
-- `-y` ставит без вопросов. Без флагов команда спросит, какие скиллы, для каких агентов и куда поставить.
-
-> **Внимание:** Когда команду запускает агент, она может не задать вопросов и без флага `-a` поставить скиллы во все агенты, которые найдёт на компьютере. Тогда в проекте появятся десятки папок. Поэтому агенту указывайте `-a` и `-y` явно.
-
-
-Если в программе уже стоит плагин «Пачка», скиллы этой командой в неё не ставьте: у агента окажется по две копии каждого скилла. С флагом `-g` скиллы часто попадают в папки, которые читают сразу несколько программ: `~/.agents/skills/` читают Codex, Cursor и VS Code, а `~/.claude/skills/` читают Claude Code, Cursor, VS Code и OpenCode. Если плагин «Пачка» стоит в одной из этих программ, вторая копия скиллов окажется и в ней. Без `-g` вторая копия появится так же, только в этом проекте: скиллы попадут в папку проекта `.agents/skills/`, которую читают Codex, Cursor и VS Code, или `.claude/skills/`, которую читают Claude Code, Cursor и VS Code. Поэтому для другого агента распакуйте скиллы в папку, которую читает только он, как в разделе [Установка вручную](#ustanovka-vruchnuyu), например в `~/.config/opencode/skills/` для OpenCode.
-
-Свежие скиллы ставит команда:
-
-```bash
-npx skills update
-```
-
-Семи прежних скиллов Пачки больше нет. Если они у вас стоят, удалите их, а новые поставьте командой из начала раздела. Без `-g` команда удалит скиллы из текущего проекта.
-
-```bash
-npx skills remove pachca-chats pachca-forms pachca-messages pachca-profile pachca-security pachca-tasks pachca-users -g -y
-```
-
-У SourceCraft Code Assistant своего имени в команде нет. Он читает папки `.agents/skills/` проекта и `~/.agents/skills/`. В проект скиллы ставит команда:
-
-```bash
-npx skills add https://dev.pachca.com -a universal -y
-```
-
-Для всех проектов распакуйте скиллы в `~/.agents/skills/`, как в разделе [Установка вручную](#ustanovka-vruchnuyu). Флаг `-g` с агентом `universal` не подходит: так скиллы попадут в папку, которую SourceCraft не читает. В GigaCode CLI скиллы ставятся [вручную](#ustanovka-vruchnuyu).
-
-В Devin Desktop ставьте только скиллы, с агентом `devin`: сервер плагина там не сможет войти в Пачку. MCP-сервер в программах без плагина подключается отдельно: [OpenCode](/guides/mcp/connect#opencode), [Qwen Code и GigaCode CLI](/guides/mcp/connect#qwen-code-i-gigacode-cli), [SourceCraft Code Assistant](/guides/mcp/connect#sourcecraft-code-assistant), [Devin Desktop](/guides/mcp/connect#devin-desktop), [Cline](/guides/mcp/connect#cline), [Kilo Code](/guides/mcp/connect#kilo-code), [Gemini CLI](/guides/mcp/connect#gemini-cli).
-
-### Установка вручную
-
-Скиллы лежат на сайте архивами `https://dev.pachca.com/.well-known/agent-skills/<скилл>.tar.gz`. В архиве нет общей папки, поэтому каждый скилл распакуйте в папку с его именем: программа сверяет имя папки с именем скилла. Пример для папки `~/.agents/skills/`, которую читают Cursor, Codex, GitHub Copilot, OpenCode, Cline, Kilo Code, Gemini CLI, Devin Desktop и SourceCraft Code Assistant:
-
-```bash
-for s in pachca pachca-messaging pachca-search pachca-watch-thread pachca-admin pachca-bots pachca-ai-agent pachca-oauth pachca-api; do
-  mkdir -p ~/.agents/skills/$s
-  curl -fsSL https://dev.pachca.com/.well-known/agent-skills/$s.tar.gz | tar -xz -C ~/.agents/skills/$s
-done
-```
-
-Команда написана для macOS и Linux. В Windows распакуйте архивы так же, в папку `%USERPROFILE%\.agents\skills\<скилл>\`. Для GigaCode CLI замените папку на `~/.gigacode/skills/`, для Qwen Code на `~/.qwen/skills/`. Чтобы обновить скиллы, выполните команду ещё раз.
-
-Для приложения Claude и Yandex AI Studio те же скиллы лежат архивами ZIP с папкой скилла внутри: `https://dev.pachca.com/skills/<скилл>.zip`. В приложении Claude такой архив загружают в **Customize** > **Skills** > **+** > **Create skill** > **Upload a skill**. Это путь без плагина.
-
-## Yandex AI Studio и GigaChat
-
-В Yandex AI Studio скилл загружают ZIP-архивом с папкой скилла внутри:
-
-1. Скачайте архив скилла, например `https://dev.pachca.com/skills/pachca-search.zip`. Агенту, который ищет и пишет в Пачке, пригодятся `pachca-search` и `pachca-messaging`.
-2. Откройте **Agent Core** > **Навыки**, нажмите **Создать навык** и перетащите архив в окно.
-3. В **Agent Atelier** > **Текстовые агенты** выберите агента, в поле **Навыки** нажмите **Добавить**, выберите скилл и нажмите **Сохранить версию**.
-
-Для этого нужна роль `ai.canvasAgents.editor`. Сервер Пачки агенту подключают отдельно, как в разделе [Yandex AI Studio](/guides/mcp/connect#yandex-ai-studio).
-
-GigaChat скиллы сам не загружает, поэтому передайте агенту текст скилла как системную инструкцию. Агенту из раздела [Агент на GigaChat](/guides/mcp/connect#agent-na-gigachat), который ищет и пересказывает, подойдёт `pachca-search`:
-
-```bash
-curl -fsSL --create-dirs -o skills/pachca-search/SKILL.md https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md
-```
-
-В `agent.py` из того раздела прочитайте скилл и передайте его в `create_agent`:
-
-```python title="agent.py"
-from pathlib import Path
-
-skill = Path("skills/pachca-search/SKILL.md").read_text(encoding="utf-8")
-agent = create_agent(GigaChat(model="GigaChat-2-Max"), tools, system_prompt=skill)
-```
-
-Файлы из папки `references/`, на которые ссылается скилл, так агенту недоступны. Если они нужны, скачайте их и добавьте к тексту.
+Без плагина поставьте скиллы командой из раздела [Установка скиллов](/guides/mcp/skills#ustanovka-skillov) с агентом `cursor` и подключите сервер, как в разделе [Cursor](/guides/mcp/connect#cursor).
 
 
 ## Связанные разделы

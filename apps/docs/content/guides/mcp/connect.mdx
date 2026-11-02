@@ -11,7 +11,7 @@ related:
 
 # Подключение к MCP
 
-MCP (Model Context Protocol) — протокол, по которому программа с AI-агентом получает инструменты Пачки: агент читает чаты и треды, ищет обсуждения, отправляет сообщения и ставит напоминания. Сервер Пачки работает по адресу `https://mcp.pachca.com/mcp`. Что он умеет — в разделе [MCP-сервер](/guides/mcp/overview).
+Сервер Пачки работает по адресу `https://mcp.pachca.com/mcp`.
 
 ## Какой путь выбрать
 
@@ -24,12 +24,12 @@ MCP (Model Context Protocol) — протокол, по которому про�
 | Приложение Claude на тарифах Team и Enterprise | [коннектор](#claude) от владельца организации Claude, затем плагин | через браузер |
 | Приложение Claude на тарифе Free | [коннектор](#claude) | через браузер |
 | Codex CLI и Codex в приложении ChatGPT на компьютере | [плагин «Пачка»](/guides/mcp/plugin#codex) | через браузер |
-| Расширение Codex для редактора | [сервер](#codex) и [скиллы без плагина](/guides/mcp/plugin#skilly-bez-plagina) | через браузер |
+| Расширение Codex для редактора | [сервер](#codex) и [скиллы без плагина](/guides/mcp/skills#ustanovka-skillov) | через браузер |
 | VS Code с GitHub Copilot и GitHub Copilot CLI | [плагин «Пачка»](/guides/mcp/plugin#vs-code-i-github-copilot) | через браузер |
 | Cursor | [плагин «Пачка»](/guides/mcp/plugin#cursor) | персональный токен |
-| SourceCraft Code Assistant, Qwen Code, GigaCode CLI, OpenCode, Devin Desktop, Cline, Kilo Code, Gemini CLI и другие программы | сервер по инструкции для программы ниже и [скиллы без плагина](/guides/mcp/plugin#skilly-bez-plagina) | персональный токен |
+| SourceCraft Code Assistant, Qwen Code, GigaCode CLI, OpenCode, Devin Desktop, Cline, Kilo Code, Gemini CLI и другие программы | сервер по инструкции для программы ниже и [скиллы без плагина](/guides/mcp/skills#ustanovka-skillov) | персональный токен |
 | Запуск, где входить некому: автоматические сборки и проверки (CI), контейнер, задача по расписанию | [Claude Code без браузера](#claude-code-bez-brauzera) или [Codex с токеном](#codex-s-tokenom) | персональный токен |
-| Агент в Yandex AI Studio или на GigaChat | [сервер с токеном бота](#token-bota) и [скиллы](/guides/mcp/plugin#yandex-ai-studio-i-gigachat) | токен бота |
+| Агент в Yandex AI Studio или на GigaChat | [сервер с токеном бота](#token-bota) и [скиллы](/guides/mcp/skills#yandex-ai-studio-i-gigachat) | токен бота |
 
 Плагин подключает тот же сервер, поэтому ставьте что-то одно: плагин или сервер вручную. В Claude Code сервер Пачки, добавленный вручную, заменяет сервер плагина, а в Cursor рядом с плагином он лишний, поэтому перед установкой плагина удалите его. Как плагин уживается с ручным сервером в остальных программах, сказано в разделе программы.
 
@@ -537,7 +537,7 @@ claude --strict-mcp-config --mcp-config pachca-mcp.json --allowedTools "mcp__pac
 5. Нажмите **Подключиться** и в списке **Инструменты** отметьте только те, что нужны агенту. Нажмите **Сохранить**. Список инструментов появляется, только когда сервер подключился, поэтому он же проверяет подключение.
 6. Откройте **Agent Atelier** > **Текстовые агенты**, создайте агента или откройте существующего. В поле **MCP-серверы** выберите сервер Пачки и нажмите **Сохранить версию**.
 
-Если агента вызывают через Responses API, а он меняет данные, укажите для сервера Пачки `"require_approval": "always"`: каждый вызов инструмента будет ждать подтверждения. Скиллы Пачки подключаются в том же окне агента, в поле **Навыки**. Подробнее — в разделе [Yandex AI Studio и GigaChat](/guides/mcp/plugin#yandex-ai-studio-i-gigachat).
+Если агента вызывают через Responses API, а он меняет данные, укажите для сервера Пачки `"require_approval": "always"`: каждый вызов инструмента будет ждать подтверждения. Скиллы Пачки подключаются в том же окне агента, в поле **Навыки**. Подробнее — в разделе [Yandex AI Studio и GigaChat](/guides/mcp/skills#yandex-ai-studio-i-gigachat).
 
 ### Агент на GigaChat
 
@@ -588,7 +588,7 @@ async def main():
 asyncio.run(main())
 ```
 
-Запустите `python agent.py`: если скрипт напечатал пересказ, агент подключился к Пачке. Как передать агенту скилл Пачки — в разделе [Yandex AI Studio и GigaChat](/guides/mcp/plugin#yandex-ai-studio-i-gigachat).
+Запустите `python agent.py`: если скрипт напечатал пересказ, агент подключился к Пачке. Как передать агенту скилл Пачки — в разделе [Yandex AI Studio и GigaChat](/guides/mcp/skills#yandex-ai-studio-i-gigachat).
 
 ## Управление подключениями
 

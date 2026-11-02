@@ -360,8 +360,8 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     'Codex, Cursor, VS Code), поэтому рядом с плагином скиллы распаковывают архивом в папку, которую читает только ' +
     'нужный агент, иначе у программы с плагином окажется по две копии каждого скилла. ' +
     `Архивы: \`${SITE_URL}/.well-known/agent-skills/<скилл>.tar.gz\` без общей папки внутри и ZIP с папкой скилла ` +
-    `для Yandex AI Studio и приложения Claude \`${SITE_URL}/skills/<скилл>.zip\`. Что знает каждый скилл — ` +
-    `[Скиллы](${SITE_URL}/guides/mcp/skills.md), шаги установки и папки агентов — ` +
+    `для Yandex AI Studio и приложения Claude \`${SITE_URL}/skills/<скилл>.zip\`. Что знает каждый скилл, установка без плагина и ` +
+    `папки агентов — [Скиллы](${SITE_URL}/guides/mcp/skills.md), установка плагина — ` +
     `[Плагин](${SITE_URL}/guides/mcp/plugin.md).\n\n`;
   // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
   // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.

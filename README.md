@@ -80,7 +80,7 @@ agent plugin marketplace add https://github.com/pachca/openapi
 npx skills add https://dev.pachca.com -g -a opencode -y
 ```
 
-В Cursor сервер плагина подключается персональным токеном из переменной `PACHCA_TOKEN`. В агент, где уже стоит плагин, скиллы через `npx skills` не ставьте: у него окажется по две копии каждого скилла. Cursor, приложение Claude, вход в Пачку и скиллы без Node.js — на странице [Плагин](https://dev.pachca.com/guides/mcp/plugin).
+В Cursor сервер плагина подключается персональным токеном из переменной `PACHCA_TOKEN`. В агент, где уже стоит плагин, скиллы через `npx skills` не ставьте: у него окажется по две копии каждого скилла. Cursor, приложение Claude и вход в Пачку — на странице [Плагин](https://dev.pachca.com/guides/mcp/plugin), скиллы без Node.js — в разделе [Установка вручную](https://dev.pachca.com/guides/mcp/skills#ustanovka-vruchnuyu) страницы «Скиллы».
 
 | Скилл | Когда пригодится |
 |-------|------------------|

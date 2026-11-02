@@ -80,7 +80,7 @@ agent plugin marketplace add https://github.com/pachca/openapi
 npx skills add https://dev.pachca.com -g -a opencode -y
 ```
 
-In Cursor the plugin's server connects with a personal token from the `PACHCA_TOKEN` variable. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app, signing in to Pachca and installing skills without Node.js are covered on the [Plugin](https://dev.pachca.com/guides/mcp/plugin) page (in Russian).
+In Cursor the plugin's server connects with a personal token from the `PACHCA_TOKEN` variable. Do not add skills with `npx skills` to an agent that already has the plugin: it would get two copies of each skill. Cursor, the Claude app and signing in to Pachca are covered on the [Plugin](https://dev.pachca.com/guides/mcp/plugin) page, installing skills without Node.js in the [Manual installation](https://dev.pachca.com/guides/mcp/skills#ustanovka-vruchnuyu) section of the Skills page (both in Russian).
 
 | Skill | Use it for |
 |-------|------------|

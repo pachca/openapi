@@ -17,7 +17,7 @@ Everything for working with the API of [Pachca](https://pachca.com), a corporate
 |------|----------|--------------|
 | [MCP server](#mcp-server) | An employee in a program with an AI agent: one tool per API method | tool set: sources in `packages/spec`, package `packages/mcp-manifest`; the server itself runs in Pachca's backend |
 | [CLI](#cli) | The terminal, scripts, CI and agents with a terminal | `packages/cli` |
-| [Skills and plugin](#skills-and-plugin) | An agent with the MCP server, the CLI or code on the API: nine skills on doing things right in Pachca, and the Pachca plugin for Claude Code, the Claude app, Codex, VS Code and Cursor | `plugins/pachca` |
+| [Skills and plugin](#skills-and-plugin) | An agent with the MCP server, the CLI or code on the API: nine skills on Pachca tasks that take several steps, and the Pachca plugin for Claude Code, the Claude app, Codex, VS Code and Cursor | `plugins/pachca` |
 | [SDKs](#sdk) and the [generator](#generator) | Your own code in TypeScript, Python, Go, Kotlin, Swift and C# | `sdk/`, `packages/generator` |
 | [n8n](#n8n) | Automations without code | `integrations/n8n` |
 | [Docs](https://dev.pachca.com) and [files for agents](#ai-integrations) | Developers and agents: guides, methods, `llms.txt`, Markdown of every page | `apps/docs` |
@@ -27,7 +27,7 @@ Everything for working with the API of [Pachca](https://pachca.com), a corporate
 
 ## MCP server
 
-`https://mcp.pachca.com/mcp` — one tool per API method. Which tools an agent sees depends on the employee's role, the workspace plan and the kind of token. Claude Code, Claude, VS Code and GitHub Copilot, Codex and the ChatGPT desktop app sign in through the browser, other clients send a token in a header. The server is published in the official MCP Registry as `com.pachca/mcp`, described by [`server.json`](server.json). The server gives access, and the [skills](#skills-and-plugin) teach the agent to do things the way Pachca expects; they install separately, with one command.
+`https://mcp.pachca.com/mcp` — one tool per API method. Which tools an agent sees depends on the employee's role, the workspace plan and the kind of token. Claude Code, Claude, VS Code and GitHub Copilot, Codex and the ChatGPT desktop app sign in through the browser, other clients send a token in a header. The server is published in the official MCP Registry as `com.pachca/mcp`, described by [`server.json`](server.json). The server gives each method's rules in its tool descriptions and the general rules of conduct in its instructions, and the [skills](#skills-and-plugin) help the agent finish tasks that take several steps; they install separately, with one command.
 
 ```bash
 claude mcp add --transport http pachca https://mcp.pachca.com/mcp
@@ -60,7 +60,7 @@ An agent that can run commands does everything through the CLI that it does thro
 
 ## Skills and plugin
 
-Skills are know-how for doing things in Pachca the right way: where to post and what to confirm, how to find and summarize, which token to pick, why a permission is missing. An MCP tool or a CLI command describes one API method, and a skill tells how to chain calls into a task. The argument reference comes from the MCP tool descriptions, `pachca <command> --help` and the method pages, so the skills do not repeat it. Skills work with any access path: the MCP server, the CLI, the API or an SDK. The agent picks a skill by itself when a task matches it.
+Skills are know-how for Pachca tasks that take several steps: retelling a whole thread in order, a digest, connecting a client and picking a token, building a bot, an OAuth app or a script. An agent on the MCP server already gets each method's rules and the general rules of conduct from the tool descriptions and the server instructions. The skills go deeper into messaging colleagues, and tell an agent on the CLI, the API or an SDK up front what matters for the task. An MCP tool or a CLI command describes one API method, and a skill tells how to chain calls into a task. The argument reference comes from the MCP tool descriptions, `pachca <command> --help` and the method pages, so the skills do not repeat it. Skills work with any access path: the MCP server, the CLI, the API or an SDK. The agent picks a skill by itself when a task matches it.
 
 | Skill | Use it for |
 |-------|------------|

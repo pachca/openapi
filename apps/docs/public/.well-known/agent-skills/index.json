@@ -6,7 +6,7 @@
       "type": "archive",
       "description": "Вход в Пачку (Pachca) для агента: подключить агента или MCP-клиента (MCP через браузер или токеном, плагин, CLI), проверить подключение, выбрать токен, разобрать отказ 401/403 инструмента или CLI и отсутствие инструмента (роль, тариф, тип токена, участие в чате). Когда: «подключи Пачку», «настрой MCP Пачки», «войди в Пачку через CLI», «каким токеном подключить агента», «экран входа MCP», «агент получил 403 insufficient_scope», «нет инструмента Пачки (экспорт, журнал аудита)», «что умеет Пачка», \"connect Pachca\", \"set up Pachca MCP\", \"Pachca CLI login\", \"which token for my agent or MCP client\", \"MCP sign-in screen\", \"MCP tool or CLI returned 401/403\", \"a Pachca tool is missing\". Not for: writing messages → pachca-messaging; search and summaries → pachca-search; administration, who may create tokens → pachca-admin; building a bot → pachca-bots; an agent living in Pachca → pachca-ai-agent; OAuth for employees → pachca-oauth; a token for a script or service, 401/403 in your own code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca.tar.gz",
-      "digest": "sha256:ca35061f9543876f551bb53ad92292dfe9ee3963eca06111261a628ac03ac0d7"
+      "digest": "sha256:082d938c03cb93813d9fedd2a766cdb23b8cd410a5cd0d2174620e68ceec804b"
     },
     {
       "name": "pachca-admin",
@@ -41,7 +41,7 @@
       "type": "archive",
       "description": "Писать в Пачку: разметка, упоминания, куда писать (тред, ответ с цитатой, личный чат), черновик, который отправит сотрудник, пост об изменениях, отложенные и регулярные сообщения в чат, файлы, пересылка, реакции, закрепление, «Важное», правка, удаление, поиск нужного сообщения, когда сначала спросить, лимиты. Когда: «напиши в чат», «отправь сообщение», «ответь в треде», «напиши в личку», «упомяни», «подготовь черновик, я отправлю сам», «напиши пост об изменениях», «запланируй сообщение», «напоминай в канал каждый понедельник», «отправь отчёт файлом .md», «перешли сообщение», «поставь реакцию», «закрепи сообщение», «отметь как важное», «исправь сообщение», \"send a message\", \"reply in the thread\", \"DM someone\", \"draft for me to send\", \"schedule a message\", \"pin\". Not for: search or summaries as the goal, a reminder for an employee → pachca-search; watch a thread, wait for replies → pachca-watch-thread; buttons, forms, clicks → pachca-bots; an AI agent as a bot → pachca-ai-agent; uploads from code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-messaging.tar.gz",
-      "digest": "sha256:a7f45e8047fdc4334772797ac15399bf7af8f40ef1a6e8bb04ffcbb7916d2c14"
+      "digest": "sha256:2739e30a7f7e72bc856c250262f6997ed5052d855aaa96017c9194a9c3e04b2c"
     },
     {
       "name": "pachca-oauth",
@@ -55,7 +55,7 @@
       "type": "archive",
       "description": "Поиск, пересказ и напоминания в Пачке: какой поиск что охватывает, тред целиком, разбор проблемы или замечаний из треда, дайджест за период, поручения в напоминания, напоминание на время себе или коллеге, свои напоминания и «Важное», кто в теге или чате. Когда: «найди, где обсуждали», «кто писал про», «где меня упоминали», «найди чат», «найди сотрудника», «перескажи тред», «что поправить по треду», «в чём проблема по треду», «что было в канале за неделю», «дайджест», «какие решения приняли», «поставь задачи по итогам», «напомни мне завтра в 9:00», «мои напоминания», «что у меня в важном», «кто в теге», «кто в чате», \"find where we discussed\", \"summarize this thread\", \"what feedback is in the thread\", \"channel digest\", \"remind me tomorrow at 9\". Not for: posting, pinning, reacting to or editing a message, finding it first included, or one sent later at a set time → pachca-messaging; changing employees, tags or chat members → pachca-admin; a bot that answers in threads → pachca-ai-agent; scripts → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-search.tar.gz",
-      "digest": "sha256:971b74da5d98aff8127f232b8a41fdc7b365d5a72b9990d10ea6e778ab490191"
+      "digest": "sha256:70cec08eebbdb85d126682a4d369e3f9fffc6100a003b44f0824ebf79f781ee1"
     },
     {
       "name": "pachca-watch-thread",

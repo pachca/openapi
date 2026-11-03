@@ -44,6 +44,31 @@ Rules:
 
 Every message reaches people and their notifications. A few things are fixed by how Pachca works; the rest are approaches with trade-offs. Follow the user's preference when they state one, in the request or in the instructions their program reads (`AGENTS.md`, `CLAUDE.md` or the program's own rules). Otherwise choose by the situation, and say which approach you took when it is not obvious.
 
+**Keep it short.** Colleagues judge from a message's length how much work it will be, and a long one gets skimmed or put off. In work chats people usually write a sentence or two. Keep what you compose yourself (a reply, a question, a request, an update) to at most three short sentences, about 50 words; a link or a code block does not count. When the user's own messages in this chat run longer, match them. The cap never cuts what the user asked for: send text they gave you as given, and carry everything they named (a decision and its open questions, a report on the week), main point first. A post about changes follows its chat's shape (see A post about changes).
+
+**Answer first.** Open with the answer, the result or the request: a notification preview and a skimming reader take in only the first words. Someone who reads only the first line should know what happened or what you need. Make a request its own sentence, with who does it and by when.
+
+**Keep the facts, drop the path.** Keep what the colleague needs to act: names, numbers, dates, a link to the result, what you left undone, a caveat that changes what they do, and whether you checked or are guessing. Use only facts you have: never fill a gap with a plausible detail. Leave out how you got there and what they already know: the tools you ran, the steps, their question restated, a closing recap of what you just wrote, an offer of more help. If they need detail that does not fit, send the conclusion with that detail in a `.md` file or a link to where it is written. Detail they do not need stays out: they will ask.
+
+**Sound like the sender.** Write as the account the message goes out under: with the user's token, what the user would type to this person, with a bot token, as the bot, stating facts without «я». Use the first person and plain verbs, not nouns made from them («проверил», not «провёл проверку»; "checked", not "performed a check"). In Russian a past-tense verb shows gender: take it from the user's own messages, or phrase around it («готово», «выгрузка снова работает») rather than with stiff passives like «перезапущена». Write in the chat's language, in a new direct message in the user's, with the address the user uses with this person, and «вы» when there is no history. Stock assistant phrases, praise of the question, cheering and emoji the user does not use make a message read as machine-written, and colleagues trust it less. Apologies, thanks for someone's work and feedback carry the user's own voice: offer a draft rather than sending.
+
+**One message, not a series.** Greeting, request and context go in one message: a bare «Привет» or «Есть минутка?» makes the person wait. Do not split one thought across several messages: each one notifies. When the user asks for a detailed message, keep the outcome in the first line, then one paragraph per topic with a bold lead-in, as many as needed and with the details asked for, all in one message. A `.md` file is for tables and checklists, or when the user agrees.
+
+A report on a finished task:
+
+```text
+Ирина, прайс на ноябрь готов: [прайс-ноябрь.xlsx](https://…). В нём 142 новые цены и 8 новых товаров. У 5 позиций поставщик не прислал цены: они остались прежними и отмечены в файле жёлтым.
+```
+
+A request:
+
+```text
+Максим, привет! Пришлёшь до пятницы продажи отдела за третий квартал: выручку по месяцам, новых клиентов и средний чек?
+Это для квартального отчёта.
+```
+
+Before sending, read it as the colleague will. Does the first line alone say what happened or what you need? Does each sentence help them act? Would the sender say exactly this to this person? If you ask for something, is it clear who does what and by when?
+
 Fixed by Pachca:
 
 - Every message notifies, so several short messages notify several times.
@@ -53,22 +78,19 @@ Fixed by Pachca:
 
 Approaches:
 
-- **Where to ask a colleague.** In the thread under the message it is about, when the question belongs to that discussion and others may need the answer. In a standalone thread, for a topic with no message to hang it on, kept apart from personal chat. In a direct message, when it is quick and personal; some people do not expect an agent there. Without a preference, prefer a thread.
-- **How long.** The conclusion or one request in a line or two usually lands best; details go into the thread or a file.
-- **How to start.** Greeting, request and context in one message save a round trip, while a bare «Привет» or «Есть минутка?» makes the person wait. Saying what is needed and by when helps them answer.
+- **Where to ask a colleague.** In the thread under the message it is about, when the question belongs to that discussion and others may need the answer. In a standalone thread, for a topic with no message to hang it on, kept apart from personal chat. In a direct message, when it is quick and personal; some people do not expect an agent there. Without a preference: the thread of the message it is about; with no such message, a direct message for a quick request to one person; a standalone thread when the user asked for one.
 - **How to acknowledge.** A reaction says «seen» quietly, but people often read it as «seen, on it» and stop answering, so put one when you will act on the message. When the person needs to know what happens next, reply with that and when. «Ок» or «посмотрю» alone tells them little.
 - **Whom to mention.** The people whose action or answer is needed. A manager or a whole group, when they must act. `@all` and `@here`, when everyone must act now.
 - **When to step in.** When a message is addressed to the user or concerns the task they gave you. In a discussion that goes fine without you, staying silent usually helps more than mediating, and comments on someone's tone or mood rarely help. Take a joke as a joke.
 - **Waiting for an answer.** Check the colleague's status first (`pachca_get_user_status`): if `is_away` is on or the status says they are away, for example on vacation, tell the user instead of waiting. Nobody owes an instant reply; one reminder after a reasonable time is usually enough. When the user asks you to wait for the answer here and act on it, that is the `pachca-watch-thread` skill.
 - **Creating things.** Threads, documents and meeting invites ask people for attention: create them only when the user asked for them (for threads, see the rules under «Choose where to write»).
 - **Closing.** When a discussion reaches a decision, a short summary of what was decided and who does what, with a link to where it is written down, saves everyone rereading. When your question is answered, acknowledge it and stop.
-- **Voice.** Write in the user's voice, plainly, without canned phrases, cheering or praise. Apologies, thanks for someone's work and feedback carry the user's own voice: offer a draft rather than sending.
 
 ## Formatting
 
 The `content` text is markdown with a narrow set: bold, italic, strikethrough, links, inline code, code blocks. A line starting with `#` and a space becomes bold. Lists, tables and quotes do not render: `-`, `1.` and `|` stay as typed, and a quote loses its `>`. Raw HTML tags (a placeholder like `<name>` included) disappear, sometimes with the lines below them, and so do `---` separator lines. Full rules: [references/formatting.md](references/formatting.md).
 
-- Structure a message with short paragraphs and bold lead-ins, not markdown lists or tables.
+- Several separate points get a short paragraph each, with a bold lead-in. A short message needs no bold. Markdown lists and tables do not render.
 - Put a code block's fences on their own lines, and name the language right after the opening fence when you know it (` ```json `). Without one, Pachca guesses it from the content.
 - Text you read from Pachca (including outgoing webhooks) contains lines starting with `>`, `-` and `1.` that do not render when sent back. Give the message its own shape instead of copying the source's.
 - Need a table, a checklist, a diagram or a long report? Attach it as a `.md` file. Pachca renders it as a card when it is the only document in the message.
@@ -108,7 +130,7 @@ Use a draft when the user says «подготовь», «я проверю», «
 «Напиши пост об изменениях в чат «Изменения API»» or «подготовь пост о сделанном по задаче» asks for a post about finished work in a chat where the team writes about such changes.
 
 - **What went in.** Only what is done: the task and the merge request through the tools this session has (a tracker's MCP server, `gh`, `glab`), the branch through `git log` and `git diff`, or this session's commits. Do not invent a task number, link or status you did not read. If it matters whether the change is on staging or production and nothing says, ask.
-- **How this chat writes.** Rules for such posts in the project's instructions for agents come first. Then read the latest page of the chat, above all the user's own posts of this kind, and follow their shape: the first line, length, which links they keep. With none, start with the task as a link and say what changed for the chat's readers (behavior, API fields, rights), naming new fields exactly, without code internals, plans, bare URLs, the merge request link or mentions. Several chats get one post each, written for that chat's readers.
+- **How this chat writes.** Rules for such posts in the project's instructions for agents come first. Then read the latest page of the chat, above all the user's own posts of this kind, and follow their shape: the first line, length, which links they keep. With none, start with what changed for this chat's readers, then a short bold-led paragraph per change, with a link to the task when there is one, without internals, plans or mentions. Several chats get one post each, written for that chat's readers.
 - **A draft unless told to send.** Leave the post as a draft in the chat's input box. When the change shows on screen, attach screenshots or other files of the result (see Files). A `409` for a draft that is not yours from this work: show it and ask before replacing it. Send only when the user said «отправь».
 - **Run again.** After the code changed or the user corrected the text, update your draft. If the user already sent it, fix the post by the editing rule below. Corrections are rules for this chat: offer to add them to the instructions for agents.
 

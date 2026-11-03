@@ -79,7 +79,7 @@ message of a thread). Then:
 - **Action item**: what, who, by when. If the discussion names no owner or
   no date, leave the field empty and say so: do not assign one.
 
-A shape that works:
+A shape that works for the answer to the user (to post it in Pachca, follow pachca-messaging: lists do not render there, so give each item a short bold-led paragraph with a real link):
 
 ```text
 Decisions

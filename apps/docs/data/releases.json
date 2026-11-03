@@ -1,17 +1,6 @@
 [
   {
     "product": "plugin",
-    "version": "1.0.8",
-    "date": "2026-11-03",
-    "changes": [
-      {
-        "type": "~",
-        "description": "`pachca`: как подключить MCP-сервер Пачки в DeepSeek Harness, через файл `cordis.patch.yml` и персональный токен из переменной `PACHCA_TOKEN`"
-      }
-    ]
-  },
-  {
-    "product": "plugin",
     "version": "1.0.7",
     "date": "2026-11-02",
     "changes": [

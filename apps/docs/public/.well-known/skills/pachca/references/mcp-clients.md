@@ -40,26 +40,6 @@ qwen mcp add --transport http pachca https://mcp.pachca.com/mcp --header "Author
   `"mcp": {"pachca": {"type": "remote", "url": "https://mcp.pachca.com/mcp", "headers": {"Authorization": "Bearer {env:PACHCA_TOKEN}"}, "oauth": false}}`.
 - Qwen Code and GigaCode CLI settings files: the address goes in `httpUrl`. There `url` means the older SSE
   transport.
-- DeepSeek Harness desktop app (macOS and Windows): no MCP settings in the UI and no browser sign-in, so it takes a
-  personal token from `PACHCA_TOKEN`. Open `~/.dsh/profiles/desktop/cordis.patch.yml`
-  (`%USERPROFILE%\.dsh\profiles\desktop\cordis.patch.yml` on Windows; it appears after the first launch) and
-  replace its last line `[]` with this block, or add the block after existing entries that start with `-`.
-  Appending after `[]` breaks the YAML and the app will not start. Keep the `- insert:` line: without it the
-  entry reads as an edit of a block that does not exist and is skipped with only a log warning. The window never
-  shows connection errors. File edits apply live, a new `PACHCA_TOKEN` needs a full quit (Cmd+Q on macOS, quit
-  from the tray menu on Windows) and reopening. Check in a new chat.
-
-  ```yaml
-  - insert:
-      - id: mcp-pachca
-        name: '@deepseek-ai/dsh-mcp-client'
-        config:
-          serverName: pachca
-          transport: streamable-http
-          url: https://mcp.pachca.com/mcp
-          headers:
-            Authorization: !!js '`Bearer ${process.env.PACHCA_TOKEN}`'
-  ```
 
 Kilo Code, Cline, SourceCraft Code Assistant, Devin Desktop without the `devin` command, Claude Code in CI or
 another run with nobody to sign in (over SSH `claude mcp login` is enough), stdio-only clients through

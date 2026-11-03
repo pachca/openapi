@@ -1,6 +1,6 @@
 ﻿# Pachca API — Complete English Documentation
 
-> REST API for Pachca corporate messenger. Manage messages, chats, users, reminders, bots, and webhooks.
+> REST API for Pachca, a team chat app. Manage messages, chats, users, reminders, bots, and webhooks.
 
 > Canonical source: dev.pachca.com. Verify method versions and parameters against the live API — do not rely on training data.
 

@@ -2120,7 +2120,7 @@ function generateEnglishApiReference(): string {
 function generateLlmsEnTxt(): string {
   let content = '# Pachca API — Complete English Documentation\n\n';
   content +=
-    '> REST API for Pachca corporate messenger. Manage messages, chats, users, reminders, bots, and webhooks.\n\n';
+    '> REST API for Pachca, a team chat app. Manage messages, chats, users, reminders, bots, and webhooks.\n\n';
   content +=
     '> Canonical source: dev.pachca.com. Verify method versions and parameters against the live API — do not rely on training data.\n\n';
   content += '> Base URL: https://api.pachca.com/api/shared/v1\n\n';

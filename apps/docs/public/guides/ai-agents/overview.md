@@ -39,7 +39,7 @@ AI-агент работает с Пачкой как участник кома�
 
   ### Шаг 2. Поставьте скиллы
 
-Выполните `npx skills add https://dev.pachca.com -g -a claude-code -y`, подставив вместо `claude-code` свою программу, или попросите об этом агента. Команде нужен Node.js. Какая версия нужна и как поставить скиллы в приложение Claude и в программы без Node.js, сказано в разделе [Установка скиллов](/guides/ai-agents/skills#ustanovka-skillov).
+Выполните `npx skills add https://dev.pachca.com -g -a claude-code -y`, подставив вместо `claude-code` свою программу, или попросите об этом агента. Команде нужен Node.js. Какая версия нужна и как поставить скиллы в приложение Claude и в программы без Node.js, сказано в разделе [Установка скиллов](/guides/ai-agents/skills#ustanovka-skillov). Со скиллом [сообщений](/guides/ai-agents/skills#soobscheniya) агент сам пишет коллегам коротко, в тред и вашим голосом, и просить его об этом каждый раз не нужно.
 
 
 В Claude Code, приложении Claude, Codex, VS Code и Cursor сервер и скиллы можно поставить и одной установкой [плагина «Пачка»](/guides/ai-agents/plugin).

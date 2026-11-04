@@ -30,13 +30,13 @@ export default class UsersCreate extends BaseCommand {
       description: "Телефон (макс. 255 символов)",
     }),
     'nickname': Flags.string({
-      description: "Имя пользователя (макс. 255 символов)",
+      description: "Имя пользователя: латинские и кириллические буквы, цифры, `_`, `-` и `.`, иначе ответ `400` с кодом `invalid`. Ники `here` и `all` зарезервированы: на них ответ `400` с кодом `use_of_system_words`. (макс. 255 символов)",
     }),
     'department': Flags.string({
       description: "Департамент (макс. 255 символов)",
     }),
     'title': Flags.string({
-      description: "Должность",
+      description: "Должность (макс. 255 символов)",
     }),
     'role': Flags.string({
       description: "Уровень доступа",
@@ -103,6 +103,9 @@ export default class UsersCreate extends BaseCommand {
     }
     if (flags['department'] && String(flags['department']).length > 255) {
       validationErrors.push({ message: `--department: максимум 255 символов (передано: ${String(flags['department']).length})`, flag: 'department' });
+    }
+    if (flags['title'] && String(flags['title']).length > 255) {
+      validationErrors.push({ message: `--title: максимум 255 символов (передано: ${String(flags['title']).length})`, flag: 'title' });
     }
     if (validationErrors.length > 0) {
       this.validationError(validationErrors);

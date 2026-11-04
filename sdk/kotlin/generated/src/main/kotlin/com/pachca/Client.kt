@@ -1688,7 +1688,7 @@ interface ReactionsService {
 
     suspend fun removeReaction(
         id: Int,
-        code: String,
+        code: String? = null,
         name: String? = null,
     ) {
         throw NotImplementedError("Reactions.removeReaction is not implemented")
@@ -1741,11 +1741,11 @@ class ReactionsServiceImpl internal constructor(
 
     override suspend fun removeReaction(
         id: Int,
-        code: String,
+        code: String?,
         name: String?,
     ) {
         val response = client.delete("$baseUrl/messages/$id/reactions") {
-            parameter("code", code)
+            code?.let { parameter("code", it) }
             name?.let { parameter("name", it) }
         }
         when (response.status.value) {

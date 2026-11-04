@@ -52,6 +52,7 @@ internal static class PachcaUtils
         [typeof(DraftRepetitionRequest)] = new() { "NthDay" },
         [typeof(DraftScheduleRequest)] = new() { "EndDate" },
         [typeof(DraftUpdateRequestDraft)] = new() { "ParentMessageId", "Schedule" },
+        [typeof(StatusUpdateRequestStatus)] = new() { "ExpiresAt", "AwayMessage" },
     };
 
     // A property named in NullFields goes out as null, whatever value it holds. A name

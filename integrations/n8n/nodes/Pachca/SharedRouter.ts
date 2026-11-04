@@ -689,7 +689,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'DELETE' as IHttpRequestMethods,
 			path: '/messages/{id}/reactions',
 			pathParams: [{ api: 'id', n8n: 'reactionsMessageId' }],
-			queryMap: [{ api: 'code', n8n: 'reactionsReactionCode', required: true }, { api: 'name', n8n: 'name' }],
+			queryMap: [{ api: 'code', n8n: 'reactionsReactionCode' }, { api: 'name', n8n: 'name' }],
 		},
 		getAll: {
 			method: 'GET' as IHttpRequestMethods,
@@ -761,9 +761,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			optionalBodyMap: [
 				{ api: 'emoji', n8n: 'statusEmoji' },
 				{ api: 'title', n8n: 'statusTitle' },
-				{ api: 'expires_at', n8n: 'statusExpiresAt' },
+				{ api: 'expires_at', n8n: 'statusExpiresAt', nullFlag: 'clearStatusExpiresAt' },
 				{ api: 'is_away', n8n: 'isAway' },
-				{ api: 'away_message', n8n: 'awayMessage' },
+				{ api: 'away_message', n8n: 'awayMessage', nullFlag: 'clearAwayMessage' },
 			],
 		},
 		deleteStatus: {
@@ -799,10 +799,8 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/tasks',
 			wrapperKey: 'task',
-			bodyMap: [
-				{ api: 'kind', n8n: 'taskKind' },
-			],
 			optionalBodyMap: [
+				{ api: 'kind', n8n: 'taskKind' },
 				{ api: 'content', n8n: 'taskContent' },
 				{ api: 'due_at', n8n: 'taskDueAt' },
 				{ api: 'priority', n8n: 'taskPriority' },
@@ -932,9 +930,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			optionalBodyMap: [
 				{ api: 'emoji', n8n: 'emoji' },
 				{ api: 'title', n8n: 'title' },
-				{ api: 'expires_at', n8n: 'expiresAt' },
+				{ api: 'expires_at', n8n: 'expiresAt', nullFlag: 'clearExpiresAt' },
 				{ api: 'is_away', n8n: 'isAway' },
-				{ api: 'away_message', n8n: 'awayMessage' },
+				{ api: 'away_message', n8n: 'awayMessage', nullFlag: 'clearAwayMessage' },
 			],
 		},
 		deleteStatus: {

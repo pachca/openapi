@@ -70,7 +70,7 @@
 - `expires_at: date-time` (required, nullable) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан — такой статус не сбрасывается автоматически. Пример: `"2024-04-08T10:00:00.000Z"`
 - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
 - `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. `null`, если текст не задан.
-  - `text: string` (required, max length: 1024) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
+  - `text: string` (required, max length: 1024) — Текст сообщения: обычный текст без разметки, упоминание сотрудника показано как `@` с именем и фамилией. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @Олег Петров."`
 
 
 ## Аватар
@@ -110,7 +110,7 @@
 - `email: string` (required, nullable, max length: 255) — Электронная почта. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя и мульти-гостя — никогда. В своей карточке поле приходит всегда. Пример: `"olegp@example.com"`
 - `phone_number: string` (required, nullable, max length: 255) — Телефон. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя и мульти-гостя — никогда. В своей карточке поле приходит всегда. Пример: `"+79001234567"`
 - `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
-- `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
+- `title: string` (required, nullable, max length: 255) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
 - `role: string` (required) — Уровень доступа
   Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
 - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -123,18 +123,18 @@
   - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
   - `data_type: string` (required) — Тип поля
     Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-  - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
+  - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число — целое и передаётся строкой, например `"42"`, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
 - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
   - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
   - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
   - `expires_at: date-time` (required, nullable) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан — такой статус не сбрасывается автоматически. Пример: `"2024-04-08T10:00:00.000Z"`
   - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
   - `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. `null`, если текст не задан.
-    - `text: string` (required, max length: 1024) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
+    - `text: string` (required, max length: 1024) — Текст сообщения: обычный текст без разметки, упоминание сотрудника показано как `@` с именем и фамилией. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @Олег Петров."`
 - `bot: boolean` (required) — Является ботом. Пример: `false`
 - `sso: boolean` (required) — Использует ли пользователь SSO. Пример: `false`
 - `created_at: date-time` (required) — Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2020-06-08T09:32:57.000Z"`
-- `last_activity_at: date-time` (required, nullable) — Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если сотрудник ещё ни разу не заходил в Пачку — в этом случае `invite_status` возвращает `sent`. Пример: `"2025-01-20T13:40:07.000Z"`
+- `last_activity_at: date-time` (required, nullable) — Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если сотрудник ещё ни разу не заходил в Пачку или не заходил после смены почты — в этом случае `invite_status` возвращает `sent`. Пример: `"2025-01-20T13:40:07.000Z"`
 - `time_zone: string` (required, nullable, max length: 32) — Часовой пояс пользователя. `null`, если сотрудник не задал личный часовой пояс — тогда применяется часовой пояс компании. Пример: `"Europe/Moscow"`
 - `image_url: string` (required, nullable) — Ссылка на скачивание аватарки пользователя. `null`, если аватарка не загружена. Пример: `"https://app.pachca.com/users/12/photo.jpg"`
 
@@ -175,7 +175,7 @@
 Чат
 
 - `id: integer, int32` (required) — Идентификатор созданного чата. Пример: `334`
-- `name: string` (required, max length: 255) — Название. Пример: `"🤿 aqua"`
+- `name: string` (required, max length: 255) — Название беседы или канала. У личного чата пустая строка, а в методе [Поиск чатов](/api/search/list-chats) у него приходит полное имя собеседника, в чате с самим собой — имя владельца токена. Пример: `"🤿 aqua"`
 - `created_at: date-time` (required) — Дата и время создания чата (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
 - `owner_id: integer, int32` (required) — Идентификатор пользователя, создавшего чат. Пример: `185`
 - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
@@ -257,7 +257,9 @@
   - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
   - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
   - `transcript: string` (required, nullable) — Расшифровка голосового сообщения в текст. `null`, пока расшифровка не готова или недоступна. Пример: `"Привет, посмотри пожалуйста последний отчёт"`
-- `buttons: array of array` (required, nullable) — Массив строк, каждая из которых представлена массивом кнопок. `null`, если сообщение отправлено без кнопок.
+  - `transcript_status: string` (required) — Статус расшифровки. `null`, если расшифровка не запрашивалась: она выключена в пространстве, файл зашифрован, это черновик или сообщение отправлено до появления этого поля и расшифровки у него нет. При `success` текст лежит в `transcript`, а пустая строка в нём означает, что речи в записи нет. Статусом `failed` приходит и расшифровка, которая долго не завершается, поэтому он ещё может смениться на `success`.
+    Значения: `pending` — Расшифровка запрошена и ещё не готова, `failed` — Расшифровка не удалась, `success` — Расшифровка готова
+- `buttons: array of array` (required, nullable) — Массив строк, каждая из которых представлена массивом кнопок. `null`, если при отправке поле `buttons` не передавали, и у удалённого сообщения. Пустые `buttons` при отправке или правке приходят как `[]`: сообщение без кнопок узнают и по `null`, и по пустому массиву.
 - `thread: object` (required, nullable) — Тред, созданный к этому сообщению. `null`, если тред не создан, а также у сообщений, которые сами находятся внутри треда.
   - `id: integer, int64` (required) — Идентификатор треда. Чтобы написать в тред, передайте его в `entity_id` метода [Новое сообщение](/api/messages/create) с `entity_type: "thread"`. Пример: `265142`
   - `chat_id: integer, int64` (required) — Идентификатор чата треда. По нему читают сообщения треда методом [Список сообщений чата](/api/messages/list). Пример: `2637266155`
@@ -272,7 +274,7 @@
 - `parent_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `null`
 - `display_avatar_url: string` (nullable) — Ссылка на аватарку отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
 - `display_name: string` (nullable) — Полное имя отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
-- `changed_at: date-time` (required, nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2021-08-28T16:10:00.000Z"`
+- `changed_at: date-time` (required, nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Заполняется уже при создании сообщения и обычно отличается от `created_at` на доли секунды или больше: у `created_at` доли секунды всегда нулевые. `null` у сообщений, отправленных до появления этого поля. Пример: `"2021-08-28T16:10:00.000Z"`
 - `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются. Пример: `null`
 - `important: boolean` (required) — Сообщение в разделе «Важное» владельца токена. У токена бота всегда `false`. Пример: `false`
 
@@ -319,7 +321,7 @@
   - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
   - `data_type: string` (required) — Тип поля
     Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-  - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
+  - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число — целое и передаётся строкой, например `"42"`, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
 
 
 ## Черновик
@@ -349,10 +351,12 @@
   - `width: integer, int32` (nullable) — Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1920`
   - `height: integer, int32` (nullable) — Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1080`
   - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового сообщения и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
-- `voice_content: object` (required) — Голосовое сообщение. `null`, если голосового вложения нет. Расшифровка в `transcript` у черновика всегда `null` — она запускается после отправки.
+- `voice_content: object` (required) — Голосовое сообщение. `null`, если голосового вложения нет. Расшифровка в `transcript` и её статус в `transcript_status` у черновика всегда `null` — она запускается после отправки.
   - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
   - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
   - `transcript: string` (required, nullable) — Расшифровка голосового сообщения в текст. `null`, пока расшифровка не готова или недоступна. Пример: `"Привет, посмотри пожалуйста последний отчёт"`
+  - `transcript_status: string` (required) — Статус расшифровки. `null`, если расшифровка не запрашивалась: она выключена в пространстве, файл зашифрован, это черновик или сообщение отправлено до появления этого поля и расшифровки у него нет. При `success` текст лежит в `transcript`, а пустая строка в нём означает, что речи в записи нет. Статусом `failed` приходит и расшифровка, которая долго не завершается, поэтому он ещё может смениться на `success`.
+    Значения: `pending` — Расшифровка запрошена и ещё не готова, `failed` — Расшифровка не удалась, `success` — Расшифровка готова
 - `schedule: object` (required) — Расписание отправки. `null` у обычного черновика.
   - `start_date: date-time` (required) — Первая отправка (ISO-8601). Из неё берутся время суток, число месяца и день недели, по которым дальше строится повтор. Пример: `"2026-09-17T12:00:00.000Z"`
   - `end_date: date-time` (required, nullable) — Дата, после которой повтор прекращается (ISO-8601). `null`, если конец не задан. Пример: `"2026-12-31T12:00:00.000Z"`
@@ -400,7 +404,7 @@
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -411,7 +415,7 @@
     Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
   - `challenge_key: string` (required, nullable) — Название поля проверки для верификации входящего вебхука. `null`, если не задано. Пример: `"challenge"`
   - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
-  - `ignore_self_messages: boolean` (required) — Не присылать боту события о его собственных сообщениях и реакциях. Пример: `false`
+  - `ignore_self_messages: boolean` (required) — Не присылать боту события о сообщениях, которые он отправил сам, и о реакциях на эти сообщения, кто бы их ни поставил или снял. Нажатия кнопок приходят всегда. Пример: `false`
   - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
   - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Пример: `false`
   - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
@@ -463,7 +467,7 @@
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -474,7 +478,7 @@
     Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
   - `challenge_key: string` (required, nullable) — Название поля проверки для верификации входящего вебхука. `null`, если не задано. Пример: `"challenge"`
   - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
-  - `ignore_self_messages: boolean` (required) — Не присылать боту события о его собственных сообщениях и реакциях. Пример: `false`
+  - `ignore_self_messages: boolean` (required) — Не присылать боту события о сообщениях, которые он отправил сам, и о реакциях на эти сообщения, кто бы их ни поставил или снял. Нажатия кнопок приходят всегда. Пример: `false`
   - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
   - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Пример: `false`
   - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
@@ -540,7 +544,7 @@
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required, nullable) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -551,7 +555,7 @@
     Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
   - `challenge_key: string` (required, nullable) — Название поля проверки для верификации входящего вебхука. `null`, если не задано. Пример: `"challenge"`
   - `link_preview_enabled: boolean` (required, nullable) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
-  - `ignore_self_messages: boolean` (required, nullable) — Не присылать боту события о его собственных сообщениях и реакциях. Пример: `false`
+  - `ignore_self_messages: boolean` (required, nullable) — Не присылать боту события о сообщениях, которые он отправил сам, и о реакциях на эти сообщения, кто бы их ни поставил или снял. Нажатия кнопок приходят всегда. Пример: `false`
   - `events_history_enabled: boolean` (required, nullable) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
   - `single_chat: boolean` (required, nullable) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Пример: `false`
   - `can_edit: array of string` (required, nullable) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
@@ -567,7 +571,7 @@
 Событие исходящего вебхука
 
 - `id: string` (required) — Идентификатор события. Пример: `"01KAJZ2XDSS2S3DSW9EXJZ0TBV"`
-- `event_type: string` (required) — Тип события. Пример: `"message_new"`
+- `event_type: string` (required) — Тип события: значение из `events` бота, например `message_new`. У отправленной формы — `view_submit`, она приходит с подпиской на `button_click`. Пример: `"message_new"`
 - `payload: anyOf` (required) — Объект вебхука
   **Возможные варианты:**
 
@@ -583,7 +587,7 @@
     - `content: string` (required) — Текст сообщения. Пример: `"Текст сообщения"`
     - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
     - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
-    - `changed_at: date-time` (nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2025-05-15T14:35:00.000Z"`
+    - `changed_at: date-time` (nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Заполняется уже при создании сообщения и обычно отличается от `created_at` на доли секунды или больше: у `created_at` доли секунды всегда нулевые. `null` у сообщений, отправленных до появления этого поля. Пример: `"2025-05-15T14:35:00.000Z"`
     - `url: string` (required) — Прямая ссылка на сообщение. Пример: `"https://app.pachca.com/chats/9012?message=1245817"`
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Пример: `9012`
     - `parent_message_id: integer, int32` (nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `3456`
@@ -636,7 +640,7 @@
       Значения: `add` — Добавление, `remove` — Удаление
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором изменился состав участников. Пример: `9012`
     - `thread_id: integer, int32` (nullable) — Идентификатор треда. `null`, если участники добавлены в обычный чат или канал, а не в тред. Пример: `5678`
-    - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие. Пример: `[2345,6789]`
+    - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие, не больше 100. Если событие затронуло больше пользователей, приходит несколько вебхуков. Пример: `[2345,6789]`
     - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ssZ. В этом вебхуке время приходит без долей секунды, в отличие от остальных. Пример: `"2025-05-15T14:30:00Z"`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
   - **CompanyMemberWebhookPayload**: Структура исходящего вебхука об участниках пространства
@@ -644,7 +648,7 @@
       Значения: `company_member` — Для участника пространства всегда company_member
     - `event: string` (required) — Тип события
       Значения: `invite` — Приглашение, `confirm` — Подтверждение, `update` — Обновление, `suspend` — Приостановка, `activate` — Активация, `delete` — Удаление
-    - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие. Пример: `[2345,6789]`
+    - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие, не больше 100. Если событие затронуло больше пользователей, приходит несколько вебхуков. Пример: `[2345,6789]`
     - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ssZ. В этом вебхуке время приходит без долей секунды, в отличие от остальных. Пример: `"2025-05-15T14:30:00Z"`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
   - **LinkSharedWebhookPayload**: Структура исходящего вебхука о разворачивании ссылок
@@ -675,7 +679,7 @@
     - `video_room_id: integer, int32` (required) — Идентификатор видеозвонка. Пример: `9012`
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок. Пример: `23438`
     - `owner_id: integer, int32` (required) — Идентификатор пользователя, начавшего видеозвонок. Пример: `2345`
-    - `thread: object` — Объект с параметрами треда, если видеозвонок проходит в треде. `null`, если звонок не в треде.
+    - `thread: object` — Тред звонка. Для звонка в обычном чате или личной переписке это тред к системному сообщению о звонке: `message_id` — это сообщение, а `message_chat_id` совпадает с `chat_id`. Для звонка в треде это сам тред, и `thread.chat_id` совпадает с `chat_id`. `null` только в событии finished для звонка вне треда, который так и не начался.
       - `id: integer, int32` (required) — Идентификатор треда. Пример: `12345`
       - `chat_id: integer, int32` (required) — Идентификатор чата треда. Пример: `67890`
       - `message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому создан тред. `null` у треда без сообщения-родителя — такие создаёт [Новый самостоятельный тред](/api/threads/create). Пример: `268092`
@@ -717,7 +721,7 @@
   Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_2fa_disabled` — Двухфакторная аутентификация отключена у сотрудника, `login_grant_created` — Создан QR-код для входа в мобильное приложение, `login_grant_approved` — Сотрудник подтвердил вход по QR-коду, `login_grant_denied` — Вход по QR-коду отклонён, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `company_chats_accessed` — Получен список всех чатов пространства, `company_bots_accessed` — Получен список всех ботов пространства, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота, `bot_oauth_client_disabled` — У бота выключена авторизация от имени сотрудника, `bot_oauth_client_secret_rotated` — Обновлён секрет OAuth-клиента бота, `bot_oauth_client_secret_issued` — Выпущен секрет OAuth-клиента бота, `bot_token_created` — Выпущен токен бота, `bot_token_updated` — Изменены имя или скоупы токена бота, `bot_token_reissued` — Отдельный токен бота перевыпущен, `bot_token_deleted` — Токен бота удалён, `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным, `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван, `oauth_token_revoked` — OAuth-клиент отозвал выданный ему токен, `oauth_device_authorization_approved` — Сотрудник подтвердил вход приложения с устройства, `oauth_device_authorization_denied` — Сотрудник отклонил вход приложения с устройства, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова, `exchange_disabled` — Отключена интеграция с Exchange
 - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
 - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
-- `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
+- `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. У событий user_role_changed, user_chat_join, user_chat_leave, user_added_to_tag и user_removed_from_tag это сотрудник, которого коснулось изменение, а кто его выполнил, приходит в `details`: в `initiator_id` или `inviter_id`. Пример: `"98765"`
 - `actor_type: string` (required) — Тип актора. Пример: `"User"`
 - `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект.
   **Возможные варианты:**
@@ -729,13 +733,13 @@
   - **AuditDetailsRoleChanged**: При: user_role_changed
     - `new_company_role: string` (required) — Новая роль
     - `previous_company_role: string` (required) — Предыдущая роль
-    - `initiator_id: integer, int32` (required) — Идентификатор инициатора
+    - `initiator_id: integer, int32` (required) — Идентификатор пользователя, сменившего роль. Актор события — сотрудник, чью роль сменили.
   - **AuditDetailsTagName**: При: tag_created, tag_deleted
     - `name: string` (required) — Название тега
   - **AuditDetailsInitiator**: При: user_added_to_tag, user_removed_from_tag, user_chat_leave
-    - `initiator_id: integer, int32` (required) — Идентификатор инициатора действия
+    - `initiator_id: integer, int32` (required) — Идентификатор пользователя, выполнившего действие. Актор события — сотрудник, которого оно коснулось.
   - **AuditDetailsInviter**: При: user_chat_join
-    - `inviter_id: integer, int32` (required) — Идентификатор пригласившего
+    - `inviter_id: integer, int32` (required) — Идентификатор пользователя, добавившего участника в чат. Актор события — добавленный участник.
   - **AuditDetailsChatRenamed**: При: chat_renamed
     - `old_name: string` (required) — Прежнее название чата
     - `new_name: string` (required) — Новое название чата
@@ -758,23 +762,23 @@
     - `message_id: integer, int32` (required) — Идентификатор сообщения
     - `chat_id: integer, int32` (required) — Идентификатор чата
     - `user_id: integer, int32` (required) — Идентификатор пользователя
-    - `action_message: string` (required, nullable) — Описание действия. `null`, если у действия правила текст не задан.
+    - `action_message: string` — Описание действия. Нет, если у действия правила текст не задан.
     - `conditions_matched: boolean` (required) — Результат проверки условий правила (true — условия сработали)
   - **AuditDetailsSearch**: При: search_users_api, search_chats_api, search_messages_api
     - `search_type: string` (required) — Тип поиска
     - `query_present: boolean` (required) — Указан ли поисковый запрос
     - `cursor_present: boolean` (required) — Использован ли курсор
-    - `limit: integer, int32` (required, nullable) — Запрошенный размер страницы. `null`, если параметр `limit` не передан. В записях до 16 октября 2026 года вместо `null` приходит `0`.
-    - `filters: Record<string, object>` (required) — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active (chats и messages), chat_subtype, personal (chats), chat_ids, user_ids, include_root_chat_id (messages, всегда `true`).
+    - `limit: integer, int32` — Запрошенный размер страницы. Нет, если параметр `limit` не передан. В записях до 16 октября 2026 года в этом случае приходит `0`.
+    - `filters: Record<string, object>` — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active (chats и messages), chat_subtype, personal (chats), chat_ids, user_ids, include_root_chat_id (messages, всегда `true`). Нет, если фильтры не применялись.
       **Структура значений Record:**
       - Тип значения: `any`
   - **AuditDetailsBot**: При: bot_deleted, а также bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued в записях до 7 октября 2026 года
     - `bot_id: integer, int32` (required) — Идентификатор бота
-    - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+    - `actor_id: integer, int32` — Идентификатор пользователя, выполнившего действие
     - `webhook_id: integer, int32` — Идентификатор вебхука бота
-    - `application_id: integer, int32` (nullable) — Идентификатор приложения бота. `null`, если приложения у бота нет.
+    - `application_id: integer, int32` — Идентификатор приложения бота. Нет, если приложения у бота нет.
     - `access_token_id: integer, int32` — Идентификатор токена. Есть у bot_token_created, bot_token_reissued и bot_token_updated.
-    - `access_token_preview: string` (nullable) — Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, `null`, если значение недоступно.
+    - `access_token_preview: string` — Токен в маскированном виде: первые и последние символы. Есть у событий токенов бота, если значение доступно.
     - `scopes: anyOf` — Скоупы токена в записях до 7 октября 2026 года: массив у bot_token_created, объект с полями `previous` и `new` у bot_token_updated, если скоупы передали в запросе.
       **Возможные варианты:**
 
@@ -783,11 +787,11 @@
         - `previous: array of string` (required) — Скоупы токена до изменения
         - `new: array of string` (required) — Скоупы токена после изменения
     - `name: object` — Смена названия токена у bot_token_updated. Есть, если название передали в запросе.
-      - `previous: string` (required, nullable) — Прежнее название. `null`, если названия не было.
-      - `new: string` (required, nullable) — Новое название. `null`, если название убрали.
+      - `previous: string` — Прежнее название. Нет, если названия не было.
+      - `new: string` — Новое название. Нет, если название убрали.
   - **AuditDetailsBotScopes**: При: bot_scopes_updated
     - `bot_id: integer, int32` (required) — Идентификатор бота
-    - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+    - `actor_id: integer, int32` — Идентификатор пользователя, выполнившего действие
     - `added_scopes: array of string` (required) — Скоупы, добавленные токену бота
     - `removed_scopes: array of string` (required) — Скоупы, отозванные у токена бота
     - `bot_name: string` — Имя бота. Нет в записях до 7 октября 2026 года.
@@ -796,20 +800,20 @@
     - `new_scopes: array of string` (required) — Скоупы токена бота после изменения
   - **AuditDetailsBotWebhookSettings**: При: bot_webhook_settings_updated
     - `bot_id: integer, int32` (required) — Идентификатор бота
-    - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
-    - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), значение — объект с полями previous (прежнее значение) и new (новое значение).
+    - `actor_id: integer, int32` — Идентификатор пользователя, выполнившего действие
+    - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), значение — объект с полями previous (прежнее значение) и new (новое значение). Если значение не было задано, поля previous или new в объекте нет.
       **Структура значений Record:**
       - Тип значения: `any`
     - `bot_name: string` — Имя бота
     - `webhook_id: integer, int32` — Идентификатор вебхука бота
-    - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.
-    - `access_token_preview: string` (nullable) — Токен, которым изменили настройки, в маскированном виде. `null`, если их изменили в интерфейсе Пачки.
-    - `application_id: integer, int32` (nullable) — Идентификатор приложения токена, которым изменили настройки. `null`, если их изменили в интерфейсе Пачки.
+    - `access_token_id: integer, int32` — Идентификатор токена, которым изменили настройки. Нет, если их изменили в интерфейсе Пачки.
+    - `access_token_preview: string` — Токен, которым изменили настройки, в маскированном виде. Нет, если их изменили в интерфейсе Пачки.
+    - `application_id: integer, int32` — Идентификатор приложения токена, которым изменили настройки. Нет, если их изменили в интерфейсе Пачки.
   - **AuditDetailsBotOAuthClient**: При: bot_oauth_client_updated
     - `bot_id: integer, int32` (required) — Идентификатор бота
-    - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+    - `actor_id: integer, int32` — Идентификатор пользователя, выполнившего действие
     - `client_id: string` (required) — Идентификатор OAuth-клиента бота
-    - `changes: Record<string, object>` (required) — Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).
+    - `changes: Record<string, object>` — Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение). Нет, если авторизацию от имени сотрудника включили, не меняя параметров клиента.
       **Структура значений Record:**
       - Тип значения: `any`
     - `application_id: integer, int32` — Идентификатор приложения бота
@@ -817,10 +821,10 @@
     - `bot_name: string` — Имя бота
     - `webhook_id: integer, int32` — Идентификатор вебхука бота
     - `scopes: array of string` — Права, которые бот запрашивает у сотрудника на экране согласия
-    - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.
-    - `access_token_preview: string` (nullable) — Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.
+    - `access_token_id: integer, int32` — Идентификатор токена, которым выполнено действие. Нет, если действие выполнено в интерфейсе Пачки.
+    - `access_token_preview: string` — Токен, которым выполнено действие, в маскированном виде. Нет, если действие выполнено в интерфейсе Пачки.
   - **AuditDetailsOAuthAuthorizationGranted**: При: oauth_authorization_granted
-    - `client_id: string` (required, nullable) — Идентификатор OAuth-клиента, которому выдан доступ. `null` в записях до 7 октября 2026 года о доступе, выданном боту.
+    - `client_id: string` — Идентификатор OAuth-клиента, которому выдан доступ. Нет в записях до 7 октября 2026 года о доступе, выданном боту.
     - `scopes: array of string` (required) — Скоупы, на которые выдан доступ
     - `application_id: integer, int32` (required) — Идентификатор приложения, которому выдан доступ
     - `application_name: string` — Название приложения. Нет в записях до 7 октября 2026 года.
@@ -838,7 +842,7 @@
   - **AuditDetailsDeviceAuthorizationApproved**: При: oauth_device_authorization_approved
     - `client_id: string` (required) — Идентификатор OAuth-клиента, которому разрешён вход
     - `scopes: array of string` (required) — Скоупы, на которые согласился сотрудник
-    - `device_name: string` (nullable) — Имя устройства, с которого выполняется вход. `null`, если приложение его не передало.
+    - `device_name: string` — Имя устройства, с которого выполняется вход. Нет, если приложение его не передало.
     - `application_id: integer, int32` (required) — Идентификатор приложения, которому разрешён вход
     - `application_name: string` — Название приложения. Нет в записях до 7 октября 2026 года.
     - `device_grant_id: integer, int32` (required) — Идентификатор запроса на вход
@@ -846,39 +850,39 @@
   - **AuditDetailsDeviceAuthorizationDenied**: При: oauth_device_authorization_denied
     - `client_id: string` (required) — Идентификатор OAuth-клиента, которому отказано во входе
     - `scopes: array of string` (required) — Скоупы, которые клиент запрашивал
-    - `device_name: string` (nullable) — Имя устройства, с которого выполнялся вход. `null`, если приложение его не передало.
-    - `application_id: integer, int32` (nullable) — Идентификатор приложения. При отказе во входе в CLI приходит `null`: приложение назначается входу только после подтверждения.
+    - `device_name: string` — Имя устройства, с которого выполнялся вход. Нет, если приложение его не передало.
+    - `application_id: integer, int32` — Идентификатор приложения. Нет при отказе во входе в CLI: приложение назначается входу только после подтверждения.
     - `device_grant_id: integer, int32` (required) — Идентификатор запроса на вход
     - `token_kind: string` — Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.
   - **AuditDetailsVideoCallStarted**: При: video_call_started
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
-    - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+    - `started_message_id: integer, int32` — Идентификатор сообщения о начале звонка. Нет, если такого сообщения не было.
   - **AuditDetailsVideoCallFinished**: При: video_call_finished
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходил видеозвонок
-    - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
-    - `duration: integer, int32` (required, nullable) — Длительность звонка в секундах. `null`, если звонок завершился, так и не начавшись.
+    - `started_message_id: integer, int32` — Идентификатор сообщения о начале звонка. Нет, если такого сообщения не было.
+    - `duration: integer, int32` — Длительность звонка в секундах. Нет, если звонок завершился, так и не начавшись.
     - `max_members_count: integer, int32` (required) — Максимальное число одновременных участников за время звонка
   - **AuditDetailsVideoCallRecording**: При: video_call_recording_ready
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходил видеозвонок
-    - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+    - `started_message_id: integer, int32` — Идентификатор сообщения о начале звонка. Нет, если такого сообщения не было.
     - `recording_id: integer, int32` (required) — Идентификатор записи
     - `file_id: integer, int32` (required) — Идентификатор файла записи
     - `duration: integer, int32` (required) — Длительность записи в секундах
     - `size: integer, int64` (required) — Размер файла записи в байтах
   - **AuditDetailsBotOAuthClientSecretRotated**: При: bot_oauth_client_secret_rotated, bot_oauth_client_secret_issued
     - `bot_id: integer, int32` (required) — Идентификатор бота
-    - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+    - `actor_id: integer, int32` — Идентификатор пользователя, выполнившего действие
     - `client_id: string` (required) — Идентификатор OAuth-клиента бота
     - `application_id: integer, int32` — Идентификатор приложения бота
     - `application_name: string` — Название приложения бота
     - `bot_name: string` — Имя бота
     - `webhook_id: integer, int32` — Идентификатор вебхука бота
     - `scopes: array of string` — Права, которые бот запрашивает у сотрудника на экране согласия. Есть у bot_oauth_client_secret_issued.
-    - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.
-    - `access_token_preview: string` (nullable) — Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки. Есть у bot_oauth_client_secret_issued.
+    - `access_token_id: integer, int32` — Идентификатор токена, которым выполнено действие. Есть у bot_oauth_client_secret_issued, кроме действий в интерфейсе Пачки.
+    - `access_token_preview: string` — Токен, которым выполнено действие, в маскированном виде. Есть у bot_oauth_client_secret_issued, кроме действий в интерфейсе Пачки.
   - **AuditDetailsBotOAuthClientDisabled**: При: bot_oauth_client_disabled
     - `bot_id: integer, int32` (required) — Идентификатор бота
-    - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+    - `actor_id: integer, int32` — Идентификатор пользователя, выполнившего действие
     - `client_id: string` (required) — Идентификатор OAuth-клиента бота
     - `deleted_access_tokens_count: integer, int32` (required) — Сколько токенов сотрудников отозвано
     - `deleted_access_grants_count: integer, int32` (required) — Сколько неиспользованных кодов авторизации отозвано
@@ -887,43 +891,43 @@
     - `bot_name: string` — Имя бота
     - `webhook_id: integer, int32` — Идентификатор вебхука бота
     - `scopes: array of string` — Права, которые бот запрашивает у сотрудника на экране согласия
-    - `access_token_id: integer, int32` (nullable) — Идентификатор токена, которым выполнено действие. `null`, если действие выполнено в интерфейсе Пачки.
-    - `access_token_preview: string` (nullable) — Токен, которым выполнено действие, в маскированном виде. `null`, если действие выполнено в интерфейсе Пачки.
+    - `access_token_id: integer, int32` — Идентификатор токена, которым выполнено действие. Нет, если действие выполнено в интерфейсе Пачки.
+    - `access_token_preview: string` — Токен, которым выполнено действие, в маскированном виде. Нет, если действие выполнено в интерфейсе Пачки.
   - **AuditDetailsToken**: При: access_token_created, access_token_updated, access_token_destroy, bot_token_created, bot_token_reissued, bot_token_recreated, bot_token_deleted, oauth_token_revoked
     - `token_kind: string` (required) — Вид токена: `personal` — персональный токен, `cli` — вход в CLI, `bot` — токен бота, `oauth` — токен, который сотрудник выдал боту на экране согласия, `client` — токен внешнего приложения, которому сотрудник выдал доступ
-    - `token_name: string` (required, nullable) — Название токена, у входа в CLI — имя устройства. `null`, если названия нет.
+    - `token_name: string` — Название токена, у входа в CLI — имя устройства. Нет, если у токена нет названия.
     - `resource_owner_id: integer, int32` (required) — Идентификатор владельца токена: сотрудника, а у токена бота — самого бота
     - `scopes: array of string` (required) — Скоупы токена
     - `access_token_id: integer, int32` (required) — Идентификатор токена
-    - `access_token_preview: string` (required, nullable) — Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.
+    - `access_token_preview: string` — Токен в маскированном виде: первые и последние символы. Нет, если значение недоступно.
     - `application_id: integer, int32` — Идентификатор приложения, которому принадлежит токен
     - `application_name: string` — Название приложения, которому принадлежит токен
     - `client_id: string` — Идентификатор OAuth-клиента приложения
     - `bot_id: integer, int32` — Идентификатор бота. Есть у токенов бота и у токенов, которые сотрудник выдал боту.
     - `bot_name: string` — Имя бота. Есть вместе с `bot_id`.
-    - `device_name: string` (nullable) — Имя устройства. Есть у входа в CLI, `null`, если имени нет.
-    - `actor_id: integer, int32` (nullable) — Идентификатор пользователя, выполнившего действие. Есть у событий токенов бота, `null`, если действие выполнено без инициатора.
+    - `device_name: string` — Имя устройства. Есть у входа в CLI, если имя задано.
+    - `actor_id: integer, int32` — Идентификатор пользователя, выполнившего действие. Есть у событий токенов бота.
     - `webhook_id: integer, int32` — Идентификатор вебхука бота. Есть у событий токенов бота.
     - `user_id: integer, int32` — Идентификатор сотрудника, чей токен отозван. Есть, когда токен отозвал администратор или сотрудника перевели в гости.
     - `source: string` — Источник отзыва: `oauth_client` — приложение само отозвало токен. Есть только у oauth_token_revoked.
     - `reason: string` — Причина отзыва. `guest_downgrade` — токен отозван автоматически, когда сотрудника перевели в гости. Есть только в таких записях.
   - **AuditDetailsBotTokenUpdated**: При: bot_token_updated
     - `token_kind: string` (required) — Вид токена: `bot`
-    - `token_name: string` (required, nullable) — Название токена после изменения. `null`, если названия нет.
+    - `token_name: string` — Название токена после изменения. Нет, если у токена нет названия.
     - `resource_owner_id: integer, int32` (required) — Идентификатор владельца токена — бота
     - `current_scopes: array of string` (required) — Скоупы токена после изменения
     - `bot_id: integer, int32` — Идентификатор бота
-    - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+    - `actor_id: integer, int32` — Идентификатор пользователя, выполнившего действие
     - `access_token_id: integer, int32` (required) — Идентификатор токена
-    - `access_token_preview: string` (required, nullable) — Токен в маскированном виде: первые и последние символы. `null`, если значение недоступно.
+    - `access_token_preview: string` — Токен в маскированном виде: первые и последние символы. Нет, если значение недоступно.
     - `application_id: integer, int32` — Идентификатор приложения бота
     - `application_name: string` — Название приложения бота
     - `client_id: string` — Идентификатор OAuth-клиента бота
     - `bot_name: string` — Имя бота
     - `webhook_id: integer, int32` (required) — Идентификатор вебхука бота
     - `name: object` — Смена названия токена. Есть, если название передали в запросе.
-      - `previous: string` (required, nullable) — Прежнее название. `null`, если названия не было.
-      - `new: string` (required, nullable) — Новое название. `null`, если название убрали.
+      - `previous: string` — Прежнее название. Нет, если названия не было.
+      - `new: string` — Новое название. Нет, если название убрали.
     - `scopes: object` — Смена скоупов токена. Есть, если скоупы передали в запросе.
       - `previous: array of string` (required) — Скоупы токена до изменения
       - `new: array of string` (required) — Скоупы токена после изменения
@@ -950,6 +954,6 @@
       - `app_version: string` (max length: 255) — Версия приложения Пачки. Есть, если приложение её передало.
     - `reason: string` (required) — Причина отказа
       Значения: `denied` — Сотрудник отклонил вход, `verification_failed` — Сотрудник ввёл не те цифры, что показало устройство
-- `ip_address: string` (required, nullable) — IP-адрес, с которого было выполнено действие. `null` у событий, записанных без запроса пользователя. Пример: `"192.168.1.100"`
-- `user_agent: string` (required, nullable) — User agent клиента, обрезается до 255 символов. `null` у событий, записанных без запроса пользователя. Пример: `"Pachca/3.60.0 (build:15; iOS 18.5.0) Alamofire/5.0.0"`
+- `ip_address: string` (required, nullable) — IP-адрес запроса, в котором произошло действие. У событий видеозвонков это обычно адрес видеосервера, а не участника звонка. `null`, если событие записано вне HTTP-запроса. Пример: `"192.168.1.100"`
+- `user_agent: string` (required, nullable) — User agent клиента, обрезается до 255 символов. У событий видеозвонков это обычно user agent видеосервера. `null`, если событие записано вне HTTP-запроса. Пример: `"Pachca/3.60.0 (build:15; iOS 18.5.0) Alamofire/5.0.0"`
 

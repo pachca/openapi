@@ -1247,6 +1247,10 @@ export const COMPACT_OMIT: Record<string, Array<{ fields: string[]; why: string 
       why: 'What it takes to keep an attachment on an edit, and its dimensions, are read off the full record.',
     },
     { fields: ['voice_content.duration_ms', 'voice_content.waveform'], why: 'The length and the waveform of a voice message are for a player.' },
+    {
+      fields: ['voice_content.transcript_status'],
+      why: 'Whether a missing transcript is still coming is for a client that waits for it; the card carries the transcript itself.',
+    },
     { fields: ['buttons'], why: 'Rows of buttons repeat on every message a bot sends.' },
     {
       fields: [

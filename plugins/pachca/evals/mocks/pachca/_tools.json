@@ -3,7 +3,7 @@
     {
       "name": "pachca_create_thread",
       "title": "New thread",
-      "description": "New thread. Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. If a topic rather than a message needs discussing, start a thread with the `create_unattached_thread` method. A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either. An empty thread holds no talk yet: send the first message into it right away with the `send_message` method, `entity_type: \"thread\"` and the thread's `id` from the response. A thread has no name, and it cannot be deleted either through the API or in the app. If a thread has already been created for the message, the response will return information about the previously created thread. Only a member of the chat starts a new thread: to someone who sees an open conversation or channel without belonging to it, the method responds `403`, while an existing thread is returned. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.",
+      "description": "New thread. Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. If a topic rather than a message needs discussing, start a thread with the `create_unattached_thread` method. A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either. An empty thread holds no talk yet: send the first message into it right away with the `send_message` method, `entity_type: \"thread\"` and the thread's `id` from the response. A thread has no name, and it cannot be deleted either through the API or in the app. If a thread has already been created for the message, the response will return information about the previously created thread. For a deleted message the method responds `404` with the `message_deleted` code, even if a thread under it already exists: its ID arrives in the `thread` field of the `get_message` method. Only a member of the chat starts a new thread, and only while the chat is not archived: to someone who sees an open conversation or channel without belonging to it, and in an archived chat, the method responds `403`, while an existing thread is returned. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -155,7 +155,7 @@
         "properties": {
           "query": {
             "type": "string",
-            "description": "Search query text. A query longer than 500 characters is cut off. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
+            "description": "Search query text. A query longer than 256 characters is cut off. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
             "examples": [
               "Oleg"
             ]
@@ -310,7 +310,7 @@
                 },
                 "file_type": {
                   "type": "string",
-                  "description": "File type. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
+                  "description": "File type. `voice`, `video` and `file` are taken from the request: with `file` an image is sent as a regular file. Without a type, Pachca detects an image or an audio file by the extension. A file with `duration_ms` and no `file_type` is treated as a voice message. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
                   "enum": [
                     "file",
                     "image",
@@ -370,8 +370,7 @@
                 }
               },
               "required": [
-                "name",
-                "file_type"
+                "name"
               ],
               "additionalProperties": false
             },
@@ -446,7 +445,7 @@
           },
           "display_avatar_url": {
             "type": "string",
-            "description": "Custom sender avatar URL for this message. This field can only be used with a bot access_token.",
+            "description": "Custom sender avatar URL for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8.",
             "maxLength": 255,
             "examples": [
               "https://example.com/avatar.png"
@@ -454,7 +453,7 @@
           },
           "display_name": {
             "type": "string",
-            "description": "Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else's name and avatar, and only this message. The Bot badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Details are in the \"Bots\" (https://dev.pachca.com/guides/bots/overview) section.",
+            "description": "Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else's name and avatar, and only this message. The Bot badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Up to 255 bytes in UTF-8, which is about 127 Cyrillic characters. Details are in the \"Bots\" (https://dev.pachca.com/guides/bots/overview) section.",
             "maxLength": 255,
             "examples": [
               "Support Bot"
@@ -488,7 +487,7 @@
     {
       "name": "pachca_update_message",
       "title": "Edit message",
-      "description": "Edit message. Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the `list_message_readers` method. The text follows the same formatting rules as in the `send_message` method. You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. There are no restrictions on how long ago the message was sent. Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.",
+      "description": "Edit message. Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the `list_message_readers` method. The text follows the same formatting rules as in the `send_message` method. You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. For a deleted message and a message of an archived chat the method responds `403`. There are no restrictions on how long ago the message was sent. Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -532,7 +531,7 @@
                 },
                 "file_type": {
                   "type": "string",
-                  "description": "File type. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
+                  "description": "File type. A voice file cannot be attached by an edit: a file with `file_type: voice`, or with `duration_ms` and no `file_type`, is rejected. For a video, set `file_type: video`. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
                   "enum": [
                     "file",
                     "image",
@@ -570,7 +569,7 @@
                 },
                 "duration_ms": {
                   "type": "integer",
-                  "description": "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.",
+                  "description": "Duration of a video (`video`) in milliseconds, optional. Not saved for the other types. Without `file_type`, a file with a duration is treated as a voice message, and the edit is rejected.",
                   "minimum": 1,
                   "format": "int32",
                   "examples": [
@@ -579,7 +578,7 @@
                 },
                 "waveform": {
                   "type": "string",
-                  "description": "Waveform for visualizing the voice message. Without it a request with a voice file (`file_type` is `voice`) does not pass validation, but when editing, the value that was sent is not saved. Not used for other types.",
+                  "description": "Not used when editing: the value is not saved.",
                   "maxLength": 256,
                   "examples": [
                     "4,8,12,20,16,10,6,3"
@@ -655,14 +654,16 @@
           },
           "display_avatar_url": {
             "type": "string",
-            "description": "Custom sender avatar URL for this message. This field can only be used with a bot access_token.",
+            "description": "Custom sender avatar URL for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8.",
+            "maxLength": 255,
             "examples": [
               "https://example.com/avatar.png"
             ]
           },
           "display_name": {
             "type": "string",
-            "description": "Custom sender display name for this message. This field can only be used with a bot access_token.",
+            "description": "Custom sender display name for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8, which is about 127 Cyrillic characters.",
+            "maxLength": 255,
             "examples": [
               "Support Bot"
             ]

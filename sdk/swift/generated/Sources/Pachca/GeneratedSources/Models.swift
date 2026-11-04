@@ -1238,16 +1238,10 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case tasksDelete
     /// Скачивание файлов
     case filesRead
-    /// Загрузка файлов
-    case filesWrite
     /// Получение данных для загрузки файлов
     case uploadsWrite
     /// Открытие форм (представлений)
     case viewsWrite
-    /// Просмотр вебхуков
-    case webhooksRead
-    /// Создание и управление вебхуками
-    case webhooksWrite
     /// Просмотр лога вебхуков
     case webhooksEventsRead
     /// Удаление записи в логе вебхука
@@ -1270,7 +1264,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .filesWrite, .uploadsWrite, .viewsWrite, .webhooksRead, .webhooksWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
+    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .uploadsWrite, .viewsWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -1320,11 +1314,8 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case "tasks:update": self = .tasksUpdate
         case "tasks:delete": self = .tasksDelete
         case "files:read": self = .filesRead
-        case "files:write": self = .filesWrite
         case "uploads:write": self = .uploadsWrite
         case "views:write": self = .viewsWrite
-        case "webhooks:read": self = .webhooksRead
-        case "webhooks:write": self = .webhooksWrite
         case "webhooks:events:read": self = .webhooksEventsRead
         case "webhooks:events:delete": self = .webhooksEventsDelete
         case "search:users": self = .searchUsers
@@ -1390,11 +1381,8 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case .tasksUpdate: return "tasks:update"
         case .tasksDelete: return "tasks:delete"
         case .filesRead: return "files:read"
-        case .filesWrite: return "files:write"
         case .uploadsWrite: return "uploads:write"
         case .viewsWrite: return "views:write"
-        case .webhooksRead: return "webhooks:read"
-        case .webhooksWrite: return "webhooks:write"
         case .webhooksEventsRead: return "webhooks:events:read"
         case .webhooksEventsDelete: return "webhooks:events:delete"
         case .searchUsers: return "search:users"
@@ -2021,6 +2009,51 @@ public enum VideoCallEventType: Codable, Hashable, RawRepresentable, CaseIterabl
     }
 }
 
+public enum VoiceTranscriptStatus: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Расшифровка запрошена и ещё не готова
+    case pending
+    /// Расшифровка не удалась
+    case failed
+    /// Расшифровка готова
+    case success
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [VoiceTranscriptStatus] = [.pending, .failed, .success]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "pending": self = .pending
+        case "failed": self = .failed
+        case "success": self = .success
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .pending: return "pending"
+        case .failed: return "failed"
+        case .success: return "success"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
 public enum WebhookEventType: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Создание
     case new
@@ -2206,7 +2239,7 @@ public struct AuditDetailsBotOAuthClient: Codable {
     public let botId: Int
     public let actorId: Int?
     public let clientId: String
-    public let changes: [String: AnyCodable]
+    public let changes: [String: AnyCodable]?
     public let applicationId: Int?
     public let applicationName: String?
     public let botName: String?
@@ -2215,7 +2248,7 @@ public struct AuditDetailsBotOAuthClient: Codable {
     public let accessTokenId: Int?
     public let accessTokenPreview: String?
 
-    public init(botId: Int, actorId: Int? = nil, clientId: String, changes: [String: AnyCodable], applicationId: Int? = nil, applicationName: String? = nil, botName: String? = nil, webhookId: Int? = nil, scopes: [String]? = nil, accessTokenId: Int? = nil, accessTokenPreview: String? = nil) {
+    public init(botId: Int, actorId: Int? = nil, clientId: String, changes: [String: AnyCodable]? = nil, applicationId: Int? = nil, applicationName: String? = nil, botName: String? = nil, webhookId: Int? = nil, scopes: [String]? = nil, accessTokenId: Int? = nil, accessTokenPreview: String? = nil) {
         self.botId = botId
         self.actorId = actorId
         self.clientId = clientId
@@ -2747,9 +2780,9 @@ public struct AuditDetailsSearch: Codable {
     public let queryPresent: Bool
     public let cursorPresent: Bool
     public let limit: Int?
-    public let filters: [String: AnyCodable]
+    public let filters: [String: AnyCodable]?
 
-    public init(searchType: String, queryPresent: Bool, cursorPresent: Bool, limit: Int? = nil, filters: [String: AnyCodable]) {
+    public init(searchType: String, queryPresent: Bool, cursorPresent: Bool, limit: Int? = nil, filters: [String: AnyCodable]? = nil) {
         self.searchType = searchType
         self.queryPresent = queryPresent
         self.cursorPresent = cursorPresent
@@ -4787,14 +4820,14 @@ public struct Message: Codable {
 public struct MessageCreateRequestFile: Codable {
     public let key: String
     public let name: String
-    public let fileType: FileType
+    public let fileType: FileType?
     public let size: Int64?
     public let width: Int?
     public let height: Int?
     public let durationMs: Int?
     public let waveform: String?
 
-    public init(key: String, name: String, fileType: FileType, size: Int64? = nil, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
+    public init(key: String, name: String, fileType: FileType? = nil, size: Int64? = nil, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
         self.key = key
         self.name = name
         self.fileType = fileType
@@ -5253,13 +5286,39 @@ public struct StatusUpdateRequestStatus: Codable {
     public let expiresAt: String?
     public let isAway: Bool?
     public let awayMessage: String?
+    /// Fields to send as null: expiresAt, awayMessage. An unset field stays out of the body.
+    public var nullFields: Set<String> = []
 
-    public init(emoji: String? = nil, title: String? = nil, expiresAt: String? = nil, isAway: Bool? = nil, awayMessage: String? = nil) {
+    public init(emoji: String? = nil, title: String? = nil, expiresAt: String? = nil, isAway: Bool? = nil, awayMessage: String? = nil, nullFields: Set<String> = []) {
         self.emoji = emoji
         self.title = title
         self.expiresAt = expiresAt
         self.isAway = isAway
         self.awayMessage = awayMessage
+        self.nullFields = nullFields
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        if let unknown = nullFields.subtracting(["expiresAt", "awayMessage"]).sorted().first {
+            throw EncodingError.invalidValue(nullFields, EncodingError.Context(
+                codingPath: encoder.codingPath,
+                debugDescription: "StatusUpdateRequestStatus: field \"\(unknown)\" cannot be sent as null"
+            ))
+        }
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(emoji, forKey: .emoji)
+        try container.encodeIfPresent(title, forKey: .title)
+        if nullFields.contains("expiresAt") {
+            try container.encodeNil(forKey: .expiresAt)
+        } else {
+            try container.encodeIfPresent(expiresAt, forKey: .expiresAt)
+        }
+        try container.encodeIfPresent(isAway, forKey: .isAway)
+        if nullFields.contains("awayMessage") {
+            try container.encodeNil(forKey: .awayMessage)
+        } else {
+            try container.encodeIfPresent(awayMessage, forKey: .awayMessage)
+        }
     }
 
     enum CodingKeys: String, CodingKey {
@@ -5358,7 +5417,7 @@ public struct TaskCreateRequestCustomProperty: Codable {
 }
 
 public struct TaskCreateRequestTask: Codable {
-    public let kind: TaskKind
+    public let kind: TaskKind?
     public let content: String?
     public let dueAt: String?
     public let priority: Int?
@@ -5367,7 +5426,7 @@ public struct TaskCreateRequestTask: Codable {
     public let allDay: Bool?
     public let customProperties: [TaskCreateRequestCustomProperty]?
 
-    public init(kind: TaskKind, content: String? = nil, dueAt: String? = nil, priority: Int? = nil, performerIds: [Int]? = nil, chatId: Int? = nil, allDay: Bool? = nil, customProperties: [TaskCreateRequestCustomProperty]? = nil) {
+    public init(kind: TaskKind? = nil, content: String? = nil, dueAt: String? = nil, priority: Int? = nil, performerIds: [Int]? = nil, chatId: Int? = nil, allDay: Bool? = nil, customProperties: [TaskCreateRequestCustomProperty]? = nil) {
         self.kind = kind
         self.content = content
         self.dueAt = dueAt
@@ -6138,17 +6197,20 @@ public struct VoiceContent: Codable {
     public let durationMs: Int
     public let waveform: String
     public let transcript: String?
+    public let transcriptStatus: VoiceTranscriptStatus?
 
-    public init(durationMs: Int, waveform: String, transcript: String? = nil) {
+    public init(durationMs: Int, waveform: String, transcript: String? = nil, transcriptStatus: VoiceTranscriptStatus? = nil) {
         self.durationMs = durationMs
         self.waveform = waveform
         self.transcript = transcript
+        self.transcriptStatus = transcriptStatus
     }
 
     enum CodingKeys: String, CodingKey {
         case durationMs = "duration_ms"
         case waveform
         case transcript
+        case transcriptStatus = "transcript_status"
     }
 }
 

@@ -19,7 +19,7 @@ export default class ChatsUpdate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'name': Flags.string({
-      description: "Название (макс. 255 символов)",
+      description: "Название беседы или канала. Пустое название или название из одних пробелов отвечает `400` с кодом `blank`. (макс. 255 символов)",
     }),
     'public': Flags.boolean({
       description: "Открытый доступ",

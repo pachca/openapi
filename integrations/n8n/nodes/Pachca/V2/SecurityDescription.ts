@@ -64,7 +64,7 @@ export const securityFields: INodeProperties[] = [
 				name: 'actorId',
 				type: 'string',
 				default: "",
-				description: 'ID of the user who performed the action',
+				description: 'ID of the event\'s actor, as in the record\'s `actor_id` field. For a role change, adding to and removing from a chat, and assigning and removing tags, the filter finds the employee they affected.',
 				placeholder: '98765',
 			},
 			{

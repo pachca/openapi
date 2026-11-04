@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026.11.0  (4 ноября 2026)
+
+- **Изменено** (tasks create): Работает без `--kind` и не спрашивает тип в терминале: по умолчанию создаётся простое напоминание
+- **Изменено** (reactions remove): Снимает реакцию по `--name` без `--code`
+- **Добавлено** (profile update-status, users update-status): `--expires-at null` убирает срок статуса, а `--away-message null` убирает текст «Нет на месте»
+- **Добавлено** (bots create, bots update, bots update-webhook, messages update, reactions add, users create, users update): Длина значений проверяется до запроса: `--outgoing-url`, `--challenge-key`, `--display-avatar-url`, `--display-name` и `--title` до 255 символов, а `--code` у `reactions add` до 16
+- **Добавлено**: В выводе команд с сообщениями и черновиками есть поле `voice_content.transcript_status`: статус расшифровки голосового сообщения
+- **Изменено** (api): Справка `--docs` и схема `--spec` показывают необязательными поля деталей журнала аудита, которых нет в записи без значения, а список скоупов без `files:write`, `webhooks:read` и `webhooks:write`
+- **Изменено**: Справка команд следует уточнённым описаниям API: ник сотрудника и бота, пустой бот, события, команды и `--ignore-self-messages` бота, поиск сотрудников и ботов, длина поискового запроса, подпись сообщения бота, название чата, упоминания в черновике, текст «Нет на месте», смена почты, приостановка владельца, `--actor-id` у `pachca security list` и `--done-at` у `pachca tasks update`
+
 ## 2026.10.4  (31 октября 2026)
 
 - **Исправлено** (api): Справка `--docs` и схема `--spec` показывают `dlp_rule_id` в деталях события `dlp_violation_detected` строкой, как его отдаёт API

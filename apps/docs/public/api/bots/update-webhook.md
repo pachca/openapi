@@ -23,7 +23,7 @@
 ### Схема
 
 - `webhook: object` (required) — Объект параметров вебхука
-  - `outgoing_url: string` (required) — URL исходящего вебхука. Пустая строка отключает вебхук. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, max length: 255) — URL исходящего вебхука. Пустая строка отключает вебхук. Пример: `"https://example.com/tasks/new"`
 
 ### Пример
 
@@ -65,7 +65,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
   - `webhook: object` (required) — Объект параметров вебхука
     - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
     - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-    - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+    - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
     - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -76,7 +76,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
       Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
     - `challenge_key: string` (required, nullable) — Название поля проверки для верификации входящего вебхука. `null`, если не задано. Пример: `"challenge"`
     - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
-    - `ignore_self_messages: boolean` (required) — Не присылать боту события о его собственных сообщениях и реакциях. Пример: `false`
+    - `ignore_self_messages: boolean` (required) — Не присылать боту события о сообщениях, которые он отправил сам, и о реакциях на эти сообщения, кто бы их ни поставил или снял. Нажатия кнопок приходят всегда. Пример: `false`
     - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
     - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Пример: `false`
     - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`

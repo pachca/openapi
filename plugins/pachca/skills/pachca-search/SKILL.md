@@ -178,7 +178,7 @@ model gets wrong:
 - `performer_ids` defaults to the token owner. A reminder for someone else
   needs their id, or it lands on you.
 - Pass the description in `content`; without it the reminder text is just the
-  kind's name. `kind` is required: take `reminder` unless the item is a
+  kind's name. `kind` defaults to `reminder`: set it only when the item is a
   call, meeting, event or email.
 - A reminder binds by `chat_id` only to a chat you are in: a conversation or a
   direct chat, your chat with yourself included. Not to a channel, a thread

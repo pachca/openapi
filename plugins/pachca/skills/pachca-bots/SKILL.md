@@ -41,7 +41,7 @@ In the interface a bot is created with only a name and nickname; each capability
 Who may create bots: admins and employees, unless the owner or an admin restricted it to admins. UI creation works on web and desktop, not in mobile apps.
 
 1. **Create.** Nickname: Latin letters, digits, `_`, ends with `_bot`, unique in the workspace. Via API (`pachca_create_bot`, `pachca bots create`) only the name is required.
-2. **Save the token at once.** API creation returns `access_token` once; it is never shown again (UI or API) — a lost token is reissued. With `empty: true` the bot is created like in the UI: no token, no incoming webhook.
+2. **Save the token at once.** API creation returns `access_token` once; it is never shown again (UI or API) — a lost token is reissued. With `empty: true` the bot is created like in the UI: no token, no incoming webhook. Leave `scopes` out then: with it the main token is created, but its value does not come back.
 3. **Access.** On «Основное» decide who may add the bot to chats («Кто может добавлять бота в чаты»), who may edit it, and whether it is a «Публичный бот».
 4. **Outgoing webhook**, if the bot must react: URL, events, and the message mode. A new bot (UI, or API without `trigger_on` and `commands`) listens to commands with an empty command list, so it hears nothing: set `trigger_on: "all_messages"` or list the commands in `commands`.
 5. **Add to chats.** A new bot is in no chat: add it to conversations and channels, or to one thread by the thread's `chat_id` (`pachca_add_members`, `pachca members add`). A mention in a thread adds only a public bot, and a new bot is not public by default. DMs need no adding, but not every employee can open one (see Chat access).

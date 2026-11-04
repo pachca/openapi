@@ -6,7 +6,7 @@
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~488K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~494K токенов — обычно не помещается в контекст целиком).
 
 > English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~33K токенов).
 
@@ -102,7 +102,7 @@
 | TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |
 | Python | `pachca-sdk` | `pip install pachca-sdk` |
 | Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |
-| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.8.0")`, репозиторий `maven("https://jitpack.io")` |
+| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.9.0")`, репозиторий `maven("https://jitpack.io")` |
 | Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
 | C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
 
@@ -407,11 +407,11 @@ Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex и приложение 
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 
 ## Обновления
+- [04 ноября 2026 — Статус расшифровки голосовых сообщений и необязательные поля запросов](https://dev.pachca.com/updates/2026-11-04.md)
 - [03 ноября 2026 — Короткие сообщения коллегам](https://dev.pachca.com/updates/2026-11-03.md)
 - [02 ноября 2026 — Подключение к MCP в четыре шага, скиллы и плагин в разделе «AI-агенты»](https://dev.pachca.com/updates/2026-11-02.md)
 - [31 октября 2026 — Скиллы и команды плагина «Пачка», руководства по ботам и изменения API](https://dev.pachca.com/updates/2026-10-31.md)
 - [28 октября 2026 — MCP-сервер, плагин «Пачка», раздел «Важное» и перевод в гости](https://dev.pachca.com/updates/2026-10-28.md)
-- [21 октября 2026 — Вход по QR-коду в журнале аудита](https://dev.pachca.com/updates/2026-10-21.md)
 - Все записи по датам: [/updates/llms.txt](https://dev.pachca.com/updates/llms.txt)
 
 ## Дополнительно

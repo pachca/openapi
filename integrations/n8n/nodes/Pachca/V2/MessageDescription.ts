@@ -112,7 +112,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'displayAvatarUrl',
 				type: 'string',
 				default: "",
-				description: 'Custom sender avatar URL for this message. This field can only be used with a bot access_token.',
+				description: 'Custom sender avatar URL for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8.',
 				placeholder: 'https://example.com/avatar.png',
 			},
 			{
@@ -120,7 +120,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'displayName',
 				type: 'string',
 				default: "",
-				description: 'Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else\'s name and avatar, and only this message. The Bot badge stays, and the sender\'s profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Details are in the <a href="https://dev.pachca.com/guides/bots/overview">Bots</a> section.',
+				description: 'Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else\'s name and avatar, and only this message. The Bot badge stays, and the sender\'s profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Up to 255 bytes in UTF-8, which is about 127 Cyrillic characters. Details are in the <a href="https://dev.pachca.com/guides/bots/overview">Bots</a> section.',
 				placeholder: 'Support Bot',
 			},
 			{
@@ -149,7 +149,7 @@ export const messageFields: INodeProperties[] = [
 { name: 'Video', value: 'video', description: 'Video file' },
 { name: 'Voice', value: 'voice', description: 'Voice message' }],
 							default: "",
-							description: 'File type. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`.',
+							description: 'File type. `voice`, `video` and `file` are taken from the request: with `file` an image is sent as a regular file. Without a type, Pachca detects an image or an audio file by the extension. A file with `duration_ms` and no `file_type` is treated as a voice message. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`.',
 						},
 						{
 							displayName: 'Height',
@@ -421,7 +421,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'displayAvatarUrl',
 				type: 'string',
 				default: "",
-				description: 'Custom sender avatar URL for this message. This field can only be used with a bot access_token.',
+				description: 'Custom sender avatar URL for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8.',
 				placeholder: 'https://example.com/avatar.png',
 			},
 			{
@@ -429,7 +429,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'displayName',
 				type: 'string',
 				default: "",
-				description: 'Custom sender display name for this message. This field can only be used with a bot access_token.',
+				description: 'Custom sender display name for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8, which is about 127 Cyrillic characters.',
 				placeholder: 'Support Bot',
 			},
 			{
@@ -446,7 +446,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'duration_ms',
 							type: 'number',
 							default: 0,
-							description: 'Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.',
+							description: 'Duration of a video (`video`) in milliseconds, optional. Not saved for the other types. Without `file_type`, a file with a duration is treated as a voice message, and the edit is rejected.',
 						},
 						{
 							displayName: 'File Type',
@@ -458,6 +458,7 @@ export const messageFields: INodeProperties[] = [
 { name: 'Video', value: 'video', description: 'Video file' },
 { name: 'Voice', value: 'voice', description: 'Voice message' }],
 							default: "",
+							description: 'File type. A voice file cannot be attached by an edit: a file with `file_type: voice`, or with `duration_ms` and no `file_type`, is rejected. For a video, set `file_type: video`.',
 						},
 						{
 							displayName: 'Height',
@@ -492,7 +493,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'waveform',
 							type: 'string',
 							default: "",
-							description: 'Waveform for visualizing the voice message. Without it a request with a voice file (`file_type` is `voice`) does not pass validation, but when editing, the value that was sent is not saved. Not used for other types.',
+							description: 'Not used when editing: the value is not saved',
 						},
 						{
 							displayName: 'Width',

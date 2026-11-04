@@ -1983,7 +1983,7 @@ open class ReactionsService {
         throw pachcaNotImplemented("Reactions.addReaction")
     }
 
-    open func removeReaction(id: Int, code: String, name: String? = nil) async throws -> Void {
+    open func removeReaction(id: Int, code: String? = nil, name: String? = nil) async throws -> Void {
         throw pachcaNotImplemented("Reactions.removeReaction")
     }
 }
@@ -2048,10 +2048,10 @@ public final class ReactionsServiceImpl: ReactionsService {
         }
     }
 
-    public override func removeReaction(id: Int, code: String, name: String? = nil) async throws -> Void {
+    public override func removeReaction(id: Int, code: String? = nil, name: String? = nil) async throws -> Void {
         var components = URLComponents(string: "\(baseURL)/messages/\(id)/reactions")!
         var queryItems: [URLQueryItem] = []
-        queryItems.append(URLQueryItem(name: "code", value: String(code)))
+        if let code { queryItems.append(URLQueryItem(name: "code", value: String(code))) }
         if let name { queryItems.append(URLQueryItem(name: "name", value: String(name))) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)

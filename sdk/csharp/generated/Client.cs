@@ -2416,7 +2416,7 @@ public class ReactionsService
 
     public virtual async System.Threading.Tasks.Task RemoveReactionAsync(
         int id,
-        string code,
+        string? code = null,
         string? name = null,
         CancellationToken cancellationToken = default)
     {
@@ -2499,12 +2499,13 @@ public sealed class ReactionsServiceImpl : ReactionsService
 
     public override async System.Threading.Tasks.Task RemoveReactionAsync(
         int id,
-        string code,
+        string? code = null,
         string? name = null,
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
-        queryParts.Add($"code={Uri.EscapeDataString(code)}");
+        if (code != null)
+            queryParts.Add($"code={Uri.EscapeDataString(code)}");
         if (name != null)
             queryParts.Add($"name={Uri.EscapeDataString(name)}");
         var url = $"{_baseUrl}/messages/{id}/reactions" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");

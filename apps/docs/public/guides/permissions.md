@@ -48,7 +48,7 @@
 
 - **Только Владелец** — `chat_exports:read`, `chat_exports:write` для [экспорта сообщений](/guides/export), `audit_events:read` для [журнала аудита](/guides/audit-events), `company_chats:read` для метода [Список чатов пространства](/api/chats/list-company) и `company_bots:read` для метода [Список ботов пространства](/api/bots/list-company). Все они доступны на тарифе **Корпорация**.
 - **Владелец и Администратор** — `users:create`, `users:update`, `users:delete`, `user_status:write`, `user_avatar:write`, `group_tags:write` для [тегов](/guides/tags).
-- **Все, кроме мульти-гостя** — `chats:create`, `chats:leave`, `bots:read` и `bots:write` для [управления ботами](/guides/bots/overview), `files:write`, `link_previews:write` и скоупы вебхуков `webhooks:read`, `webhooks:write`, `webhooks:events:read` и `webhooks:events:delete`. Что из-за этого закрыто мульти-гостю — в разделе [Мульти-гость в API](#multi-gost-v-api).
+- **Все, кроме мульти-гостя** — `chats:create`, `chats:leave`, `bots:read` и `bots:write` для [управления ботами](/guides/bots/overview), `link_previews:write` и скоупы вебхуков `webhooks:events:read` и `webhooks:events:delete`. Что из-за этого закрыто мульти-гостю — в разделе [Мульти-гость в API](#multi-gost-v-api).
 
 Отдельно от ролей часть скоупов зависит от типа токена: права самоуправления бота есть только у токена бота, а права управления ботами, черновиков и раздела «Важное» — только у персонального токена. Подробнее — в разделе [Скоупы](/api/authorization#skoupy), полная таблица скоупов по ролям — в разделе [Доступные скоупы](/api/authorization#dostupnye-skoupy).
 

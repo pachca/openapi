@@ -1,5 +1,188 @@
 [
   {
+    "product": "mcp",
+    "version": "1.6.0",
+    "date": "2026-11-04",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`pachca_create_task` создаёт напоминание без `kind`: по умолчанию это простое напоминание"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_remove_reaction` снимает реакцию по `name` без `code`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_send_message` отправляет файл без `file_type`: изображение и обычный файл Пачка определяет по расширению, а с `file_type: file` изображение уходит обычным файлом"
+      },
+      {
+        "type": "+",
+        "description": "`pachca_update_my_status` и `pachca_update_user_status` принимают `null` в `expires_at` и `away_message`, чтобы убрать срок статуса и текст «Нет на месте»"
+      },
+      {
+        "type": "+",
+        "description": "В ответах с сообщениями и черновиками есть `voice_content.transcript_status`: статус расшифровки голосового сообщения"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_get_audit_events`: поля деталей без значения в записи не приходят, а у смены роли, добавления в чат и исключения из чата, назначения и снятия тега актор события — сотрудник, которого коснулось изменение"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_get_token_info` перечисляет права без `files:write`, `webhooks:read` и `webhooks:write`: таких прав в API нет"
+      },
+      {
+        "type": "~",
+        "description": "Схемы аргументов содержат ограничения API: формат ника бота, длину `code` реакции, адреса и ключа проверки вебхука бота, должности сотрудника и подписи сообщения бота и наименьшее значение `duration_ms` у файла черновика"
+      },
+      {
+        "type": "~",
+        "description": "Описания инструментов следуют уточнённому поведению API: архивный чат и удалённое сообщение, ник сотрудника и бота, настройки бота, названия тегов, поиск, аватары, дополнительные поля, упоминания в черновике, события вебхуков и ключ файла другого пространства"
+      }
+    ]
+  },
+  {
+    "product": "plugin",
+    "version": "1.0.9",
+    "date": "2026-11-04",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`pachca-messaging`: в черновике агент упоминает так же, как в сообщении, по `id` сотрудника или по нику. Сотрудник видит упоминания в поле ввода, а после отправки упомянутым приходит уведомление"
+      },
+      {
+        "type": "~",
+        "description": "`pachca`: при подключении DeepSeek Harness агент добавляет только блок сервера Пачки и не трогает настройки моделей, а если модели сломались, знает, как их вернуть"
+      },
+      {
+        "type": "~",
+        "description": "`pachca`, `pachca-messaging` и `pachca-ai-agent`: агент знает, что у сообщения с персональным токеном на аватаре значок «Отправлено через API»"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-search`: тип напоминания `kind` агент передаёт, только когда речь о звонке, встрече, событии или письме, а без него создаётся простое напоминание"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-ai-agent`: у файла в сообщении обязательны только `key` и `name`, а `file_type` важен для голосового сообщения, видео и изображения, которое отправляют обычным файлом"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-bots`: пустого бота агент создаёт без `scopes`, потому что с ними у бота появляется основной токен, значение которого не возвращается"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-admin`: в правиле DLP агент использует вложенные группы условий, списки в `channel_type` и `user_role` и `to_external: false` для чатов без гостей и знает, что правило не по схеме не сохранится"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-admin`: идентификаторы журнала аудита агент приводит к одному типу перед сравнением, а адрес и user agent событий видеозвонков относит к видеосерверу"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.2.4",
+    "date": "2026-11-04",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`Profile` и `User`: в операции `Update Status` переключатели `Clear Expires At` и `Clear Away Message` отправляют `null` и убирают срок статуса и текст «Нет на месте»"
+      },
+      {
+        "type": "+",
+        "description": "В ответах с сообщениями есть поле `voice_content.transcript_status`: статус расшифровки голосового сообщения"
+      },
+      {
+        "type": "~",
+        "description": "`Reaction`: в операции `Delete` поле `Code` необязательное, реакцию снимают по `Code` или по `Name`"
+      },
+      {
+        "type": "~",
+        "description": "`Reminder`: в операции `Create` поле `Kind` необязательное, по умолчанию в нём `Call`"
+      },
+      {
+        "type": "~",
+        "description": "Описания полей следуют API: `Nickname` сотрудника и бота, `Query` поиска и списков сотрудников и ботов, `Code` реакции, `File Type`, `Duration Ms` и `Waveform` у файлов сообщения, `Display Name` и `Display Avatar URL`, упоминания в тексте черновика и `Name` его файлов, `Name` у `Chat` > `Update`, `Email` и `Suspended` у `User` > `Update`, `Away Message` статуса, `Commands`, `Empty`, `Events` и `Ignore Self Messages` у `Bot`, значение дополнительного поля, `Done At` у напоминания и `Actor ID` у `Security`"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.11.0",
+    "date": "2026-11-04",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`pachca tasks create` работает без `--kind` и не спрашивает тип в терминале: по умолчанию создаётся простое напоминание"
+      },
+      {
+        "type": "~",
+        "description": "`pachca reactions remove` снимает реакцию по `--name` без `--code`"
+      },
+      {
+        "type": "+",
+        "description": "`pachca profile update-status` и `pachca users update-status`: `--expires-at null` убирает срок статуса, а `--away-message null` убирает текст «Нет на месте»"
+      },
+      {
+        "type": "+",
+        "description": "Команды проверяют длину значений до запроса: до 255 символов `--outgoing-url` и `--challenge-key` у `pachca bots create` и `pachca bots update`, `--outgoing-url` у `pachca bots update-webhook`, `--display-avatar-url` и `--display-name` у `pachca messages update`, `--title` у `pachca users create` и `pachca users update`, до 16 символов `--code` у `pachca reactions add`"
+      },
+      {
+        "type": "+",
+        "description": "В выводе команд с сообщениями и черновиками есть поле `voice_content.transcript_status`: статус расшифровки голосового сообщения"
+      },
+      {
+        "type": "~",
+        "description": "Справка `pachca api … --docs` и схема `--spec` показывают необязательными поля деталей журнала аудита, которых нет в записи без значения, а список скоупов без `files:write`, `webhooks:read` и `webhooks:write`"
+      },
+      {
+        "type": "~",
+        "description": "Справка команд следует уточнённым описаниям API: ник сотрудника и бота, пустой бот, события, команды и `--ignore-self-messages` бота, поиск сотрудников и ботов, длина поискового запроса, подпись сообщения бота, название чата, упоминания в черновике, текст «Нет на месте», смена почты, приостановка владельца, `--actor-id` у `pachca security list` и `--done-at` у `pachca tasks update`"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.9.0",
+    "date": "2026-11-04",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Из `OAuthScope` убраны значения `files:write`, `webhooks:read` и `webhooks:write`: таких прав в API нет"
+      },
+      {
+        "type": "~",
+        "description": "Поля деталей журнала аудита, которых нет в записи без значения, стали необязательными, и `null` в них не приходит: `actor_id`, `token_name`, `access_token_id`, `access_token_preview`, `application_id`, `device_name`, `client_id`, `action_message`, `limit`, `filters`, `changes`, `started_message_id`, `duration`, а также `previous` и `new` в `AuditDetailsTokenNameChange`"
+      },
+      {
+        "type": "~",
+        "description": "Поле `file_type` у файла в запросе `Новое сообщение` (`POST /messages`) необязательное: из запроса учитываются `voice`, `video` и `file` (с `file` изображение уходит обычным файлом), без типа изображение и аудиофайл Пачка определяет по расширению. В Go поле имеет тип `*FileType`."
+      },
+      {
+        "type": "~",
+        "description": "Параметр `code` метода `Удаление реакции` (`DELETE /messages/{id}/reactions`) необязательный: реакцию снимают по `code` или по `name`. В Go метод принимает `*RemoveReactionParams`, а `Code` в нём имеет тип `*string`."
+      },
+      {
+        "type": "~",
+        "description": "Поле `kind` в запросе `Новое напоминание` (`POST /tasks`) необязательное, по умолчанию `reminder`. В Go поле имеет тип `*TaskKind`."
+      },
+      {
+        "type": "~",
+        "description": "Поля `expires_at` и `away_message` в запросах `Новый свой статус` (`PUT /profile/status`) и `Новый статус сотрудника` (`PUT /users/{user_id}/status`) принимают `null`, который убирает срок статуса и текст «Нет на месте». В TypeScript поле принимает `null` напрямую, в остальных языках его называют в `nullFields` (в Python `null_fields`, в Go и C# `NullFields`), а в Go `ExpiresAt` имеет тип `*string`."
+      },
+      {
+        "type": "+",
+        "description": "Модель `VoiceTranscriptStatus` и поле `transcript_status` в `VoiceContent`: статус расшифровки голосового сообщения"
+      },
+      {
+        "type": "~",
+        "description": "Комментарии в коде следуют уточнённым описаниям API: ник сотрудника и бота, ограничения длины полей, поиск, аватары, упоминания в черновике, детали журнала аудита и события вебхуков"
+      }
+    ]
+  },
+  {
     "product": "plugin",
     "version": "1.0.8",
     "date": "2026-11-03",

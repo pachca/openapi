@@ -16,7 +16,7 @@ export default class SearchListUsers extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'query': Flags.string({
-      description: "Текст поискового запроса. Запрос длиннее 500 знаков обрезается.",
+      description: "Текст поискового запроса. Запрос длиннее 256 знаков обрезается.",
     }),
     'sort': Flags.string({
       description: "Сортировка результатов",

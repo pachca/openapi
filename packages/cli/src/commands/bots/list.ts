@@ -16,7 +16,7 @@ export default class BotsList extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'query': Flags.string({
-      description: "Поисковая фраза для фильтрации ботов по имени",
+      description: "Поисковая фраза для фильтрации ботов по имени или нику",
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',

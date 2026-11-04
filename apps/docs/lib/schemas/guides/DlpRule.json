@@ -10,22 +10,33 @@
         "properties": {
           "to_external": {
             "type": "boolean",
-            "description": "Ограничение по наличию внешних контактов в чате. При значении true правило работает только в чатах, где есть гости или мульти-гости. Со значением false правило сохраняется, но не срабатывает ни в одном чате. Если поле не указано, по этому признаку правило не ограничивается."
+            "description": "Ограничение по наличию внешних контактов в чате. При значении true правило работает только в чатах, где есть гости или мульти-гости, а при значении false только в чатах без них. Если поле не указано, по этому признаку правило не ограничивается."
           },
           "channel_type": {
-            "type": "string",
-            "description": "Тип чата, в котором работает правило. Указывается одним значением.",
+            "description": "Тип чата, в котором работает правило. Одно значение строкой или непустой массив без повторов: с массивом правило работает в чатах любого из перечисленных типов.",
             "enum": ["personal", "discussion", "channel", "thread"],
             "x-enum-descriptions": {
               "personal": "личные сообщения",
               "discussion": "беседы",
               "channel": "каналы",
               "thread": "треды"
-            }
+            },
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            ]
           },
           "user_role": {
-            "type": "string",
-            "description": "Роль автора сообщения в чате, при которой работает правило. Указывается одним значением.",
+            "description": "Роль автора сообщения в чате, при которой работает правило. Одно значение строкой или непустой массив без повторов: с массивом правило работает при любой из перечисленных ролей.",
             "enum": ["owner", "admin", "editor", "member", "subscriber", "not_member"],
             "x-enum-descriptions": {
               "owner": "создатель",
@@ -34,84 +45,209 @@
               "member": "участник (для бесед)",
               "subscriber": "подписчик (для каналов)",
               "not_member": "не состоит в чате"
-            }
+            },
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            ]
           }
         }
       },
       "conditions": {
         "type": "object",
-        "description": "Объект условия срабатывания правила. Можно указать all, any или оба, и тогда должны выполниться оба.",
+        "description": "Объект условия срабатывания правила. Нужно указать all, any или оба, и тогда должны выполниться оба.",
         "properties": {
           "all": {
             "type": "array",
             "description": "Массив условий (все должны совпасть)",
+            "minItems": 1,
             "items": {
               "type": "object",
-              "required": ["type"],
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "description": "Тип условия",
-                  "enum": ["regex", "keyword"],
-                  "x-enum-descriptions": {
-                    "regex": "регулярное выражение",
-                    "keyword": "ключевое слово"
+              "oneOf": [
+                {
+                  "title": "Регулярное выражение",
+                  "type": "object",
+                  "required": ["type", "pattern"],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Тип условия",
+                      "enum": ["regex"]
+                    },
+                    "pattern": {
+                      "type": "string",
+                      "description": "Регулярное выражение для поиска в тексте, в синтаксисе Ruby",
+                      "minLength": 1,
+                      "maxLength": 2000
+                    },
+                    "min_hits": {
+                      "type": "integer",
+                      "description": "Минимальное количество совпадений",
+                      "default": 1,
+                      "minimum": 1
+                    },
+                    "max_hits": {
+                      "type": "integer",
+                      "description": "Максимальное количество совпадений",
+                      "minimum": 1
+                    }
                   }
                 },
-                "max_hits": {
-                  "type": "integer",
-                  "description": "Максимальное количество совпадений"
+                {
+                  "title": "Ключевое слово",
+                  "type": "object",
+                  "required": ["type", "value"],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Тип условия",
+                      "enum": ["keyword"]
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Ключевое слово для поиска в тексте"
+                    },
+                    "min_hits": {
+                      "type": "integer",
+                      "description": "Минимальное количество совпадений",
+                      "default": 1,
+                      "minimum": 1
+                    },
+                    "max_hits": {
+                      "type": "integer",
+                      "description": "Максимальное количество совпадений",
+                      "minimum": 1
+                    }
+                  }
                 },
-                "min_hits": {
-                  "type": "integer",
-                  "description": "Минимальное количество совпадений",
-                  "default": 1
-                },
-                "pattern": {
-                  "type": "string",
-                  "description": "Регулярное выражение для поиска в тексте, в синтаксисе Ruby, до 2000 символов. Обязательно, если type указано как regex."
-                },
-                "value": {
-                  "type": "string",
-                  "description": "Ключевое слово для поиска в тексте. Обязательно, если type указано как keyword."
+                {
+                  "title": "Вложенная группа",
+                  "type": "object",
+                  "minProperties": 1,
+                  "maxProperties": 1,
+                  "additionalProperties": false,
+                  "description": "Объект ровно с одним ключом: all или any. Элементы его массива устроены так же, как элементы этого массива, и тоже могут быть вложенными группами.",
+                  "properties": {
+                    "all": {
+                      "type": "array",
+                      "description": "Массив условий (все должны совпасть)",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "any": {
+                      "type": "array",
+                      "description": "Массив условий (хотя бы одно должно совпасть)",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
                 }
-              }
+              ]
             }
           },
           "any": {
             "type": "array",
             "description": "Массив условий (хотя бы одно должно совпасть)",
+            "minItems": 1,
             "items": {
               "type": "object",
-              "required": ["type"],
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "description": "Тип условия",
-                  "enum": ["regex", "keyword"],
-                  "x-enum-descriptions": {
-                    "regex": "регулярное выражение",
-                    "keyword": "ключевое слово"
+              "oneOf": [
+                {
+                  "title": "Регулярное выражение",
+                  "type": "object",
+                  "required": ["type", "pattern"],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Тип условия",
+                      "enum": ["regex"]
+                    },
+                    "pattern": {
+                      "type": "string",
+                      "description": "Регулярное выражение для поиска в тексте, в синтаксисе Ruby",
+                      "minLength": 1,
+                      "maxLength": 2000
+                    },
+                    "min_hits": {
+                      "type": "integer",
+                      "description": "Минимальное количество совпадений",
+                      "default": 1,
+                      "minimum": 1
+                    },
+                    "max_hits": {
+                      "type": "integer",
+                      "description": "Максимальное количество совпадений",
+                      "minimum": 1
+                    }
                   }
                 },
-                "max_hits": {
-                  "type": "integer",
-                  "description": "Максимальное количество совпадений"
+                {
+                  "title": "Ключевое слово",
+                  "type": "object",
+                  "required": ["type", "value"],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Тип условия",
+                      "enum": ["keyword"]
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Ключевое слово для поиска в тексте"
+                    },
+                    "min_hits": {
+                      "type": "integer",
+                      "description": "Минимальное количество совпадений",
+                      "default": 1,
+                      "minimum": 1
+                    },
+                    "max_hits": {
+                      "type": "integer",
+                      "description": "Максимальное количество совпадений",
+                      "minimum": 1
+                    }
+                  }
                 },
-                "min_hits": {
-                  "type": "integer",
-                  "description": "Минимальное количество совпадений",
-                  "default": 1
-                },
-                "pattern": {
-                  "type": "string",
-                  "description": "Регулярное выражение для поиска в тексте, в синтаксисе Ruby, до 2000 символов. Обязательно, если type указано как regex."
-                },
-                "value": {
-                  "type": "string",
-                  "description": "Ключевое слово для поиска в тексте. Обязательно, если type указано как keyword."
+                {
+                  "title": "Вложенная группа",
+                  "type": "object",
+                  "minProperties": 1,
+                  "maxProperties": 1,
+                  "additionalProperties": false,
+                  "description": "Объект ровно с одним ключом: all или any. Элементы его массива устроены так же, как элементы этого массива, и тоже могут быть вложенными группами.",
+                  "properties": {
+                    "all": {
+                      "type": "array",
+                      "description": "Массив условий (все должны совпасть)",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "any": {
+                      "type": "array",
+                      "description": "Массив условий (хотя бы одно должно совпасть)",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
                 }
-              }
+              ]
             }
           }
         }

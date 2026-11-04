@@ -372,11 +372,8 @@ class OAuthScope(OpenStrEnum):
     TASKS_UPDATE = "tasks:update"  # Изменение задачи
     TASKS_DELETE = "tasks:delete"  # Удаление задачи
     FILES_READ = "files:read"  # Скачивание файлов
-    FILES_WRITE = "files:write"  # Загрузка файлов
     UPLOADS_WRITE = "uploads:write"  # Получение данных для загрузки файлов
     VIEWS_WRITE = "views:write"  # Открытие форм (представлений)
-    WEBHOOKS_READ = "webhooks:read"  # Просмотр вебхуков
-    WEBHOOKS_WRITE = "webhooks:write"  # Создание и управление вебхуками
     WEBHOOKS_EVENTS_READ = "webhooks:events:read"  # Просмотр лога вебхуков
     WEBHOOKS_EVENTS_DELETE = "webhooks:events:delete"  # Удаление записи в логе вебхука
     SEARCH_USERS = "search:users"  # Поиск сотрудников
@@ -550,6 +547,14 @@ class VideoCallEventType(OpenStrEnum):
     RECORDING_READY = "recording_ready"  # Запись видеозвонка готова
 
 
+class VoiceTranscriptStatus(OpenStrEnum):
+    """Статус расшифровки голосового сообщения"""
+
+    PENDING = "pending"  # Расшифровка запрошена и ещё не готова
+    FAILED = "failed"  # Расшифровка не удалась
+    SUCCESS = "success"  # Расшифровка готова
+
+
 class WebhookEventType(OpenStrEnum):
     """Тип события webhook"""
 
@@ -622,8 +627,8 @@ class AuditDetailsBot:
 class AuditDetailsBotOAuthClient:
     bot_id: int
     client_id: str
-    changes: dict[str, Any]
     actor_id: int | None = None
+    changes: dict[str, Any] | None = None
     application_id: int | None = None
     application_name: str | None = None
     bot_name: str | None = None
@@ -828,8 +833,8 @@ class AuditDetailsSearch:
     search_type: str
     query_present: bool
     cursor_present: bool
-    filters: dict[str, Any]
     limit: int | None = None
+    filters: dict[str, Any] | None = None
 
 
 @dataclass
@@ -1583,7 +1588,7 @@ class Message:
 class MessageCreateRequestFile:
     key: str
     name: str
-    file_type: FileType
+    file_type: FileType | None = None
     size: int | None = None
     width: int | None = None
     height: int | None = None
@@ -1771,6 +1776,8 @@ class StatusUpdateRequestStatus:
     expires_at: datetime | None = None
     is_away: bool | None = None
     away_message: str | None = None
+    # Fields to send as null: expires_at, away_message
+    null_fields: Sequence[str] = ()
 
 
 @dataclass
@@ -1813,7 +1820,7 @@ class TaskCreateRequestCustomProperty:
 
 @dataclass
 class TaskCreateRequestTask:
-    kind: TaskKind
+    kind: TaskKind | None = TaskKind.REMINDER
     content: str | None = None
     due_at: datetime | None = None
     priority: int | None = 1
@@ -2143,6 +2150,7 @@ class VoiceContent:
     duration_ms: int
     waveform: str
     transcript: str | None = None
+    transcript_status: VoiceTranscriptStatus | None = None
 
 
 @dataclass
@@ -2331,7 +2339,7 @@ class ListChatMessagesParams:
 
 @dataclass
 class RemoveReactionParams:
-    code: str
+    code: str | None = None
     name: str | None = None
 
 

@@ -21,19 +21,19 @@ export default class BotsCreate extends BaseCommand {
       description: "Имя бота (макс. 255 символов)",
     }),
     'nickname': Flags.string({
-      description: "Никнейм бота. Должен заканчиваться на `_bot`. (макс. 255 символов)",
+      description: "Никнейм бота: латинские буквы, цифры и `_`, в конце `_bot`, свободный в пространстве. Ник не по формату отвечает `400` на поле `bot.nickname` с кодом `invalid`, а занятый ник — с кодом `taken`. Без поля ник собирается из имени в латинской транслитерации с `_bot` в конце, а если такой ник занят, с `_2_bot`, `_3_bot` и далее. (макс. 255 символов)",
     }),
     'outgoing-url': Flags.string({
-      description: "URL исходящего вебхука",
+      description: "URL исходящего вебхука (макс. 255 символов)",
     }),
     'events': Flags.string({
-      description: "События, на которые подписан бот",
+      description: "События, на которые подписан бот. Без поля бот подписан на `message_new`.",
     }),
     'trigger-on': Flags.string({
       description: "Условие срабатывания исходящего вебхука",
     }),
     'commands': Flags.string({
-      description: "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Событие о сообщении приходит боту, когда первое слово текста совпадает с одной из команд целиком, с учётом регистра. Команду можно задать и без слэша в начале. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.",
+      description: "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Событие о сообщении приходит боту, когда первое слово текста совпадает с одной из команд целиком, с учётом регистра. Команду можно задать и без слэша в начале. Суммарная длина команд вместе с разделителями `, ` (запятая и пробел) не должна превышать 255 символов.",
     }),
     'scopes': Flags.string({
       description: "Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию. Боту доступны не все скоупы: часть из них разрешена только пользовательским ролям, и попытка назначить такой скоуп возвращает `400`. Служебные значения `bot` и `all` назначать нельзя.",
@@ -45,14 +45,14 @@ export default class BotsCreate extends BaseCommand {
       description: "Шаблонизатор для обработки шаблона входящего вебхука. Без этого поля бот получает `liquid`, а пустой бот (`empty: true`) — `mustache`.",
     }),
     'challenge-key': Flags.string({
-      description: "Название поля проверки для верификации входящего вебхука",
+      description: "Название поля проверки для верификации входящего вебхука (макс. 255 символов)",
     }),
     'link-preview-enabled': Flags.boolean({
       description: "Показывать превью ссылок в сообщениях входящего вебхука",
       allowNo: true,
     }),
     'ignore-self-messages': Flags.boolean({
-      description: "Не присылать боту события о его собственных сообщениях и реакциях",
+      description: "Не присылать боту события о сообщениях, которые он отправил сам, и о реакциях на эти сообщения, кто бы их ни поставил или снял. Нажатия кнопок приходят всегда.",
       allowNo: true,
     }),
     'events-history-enabled': Flags.boolean({
@@ -76,7 +76,7 @@ export default class BotsCreate extends BaseCommand {
       description: "Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`.",
     }),
     'empty': Flags.boolean({
-      description: "Создать пустого бота: без токена и без входящего вебхука. Без этого поля бот создаётся с входящим вебхуком в своём формате, а его токен приходит в `access_token`.",
+      description: "Создать пустого бота: без входящего вебхука и, если не переданы скоупы, без токена. Без этого поля бот создаётся с входящим вебхуком в своём формате, а его токен приходит в `access_token`.",
       allowNo: true,
     }),
     'oauth-client': Flags.string({
@@ -118,6 +118,12 @@ export default class BotsCreate extends BaseCommand {
     }
     if (flags['nickname'] && String(flags['nickname']).length > 255) {
       validationErrors.push({ message: `--nickname: максимум 255 символов (передано: ${String(flags['nickname']).length})`, flag: 'nickname' });
+    }
+    if (flags['outgoing-url'] && String(flags['outgoing-url']).length > 255) {
+      validationErrors.push({ message: `--outgoing-url: максимум 255 символов (передано: ${String(flags['outgoing-url']).length})`, flag: 'outgoing-url' });
+    }
+    if (flags['challenge-key'] && String(flags['challenge-key']).length > 255) {
+      validationErrors.push({ message: `--challenge-key: максимум 255 символов (передано: ${String(flags['challenge-key']).length})`, flag: 'challenge-key' });
     }
     if (validationErrors.length > 0) {
       this.validationError(validationErrors);

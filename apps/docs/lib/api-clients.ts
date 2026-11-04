@@ -65,7 +65,7 @@ export const API_CLIENTS: ApiClient[] = [
     label: 'Kotlin',
     lang: 'kotlin',
     install:
-      '// settings.gradle.kts: repositories { maven("https://jitpack.io") }\n// build.gradle.kts\ndependencies {\n    implementation("com.github.pachca:openapi:1.8.0")\n}',
+      '// settings.gradle.kts: repositories { maven("https://jitpack.io") }\n// build.gradle.kts\ndependencies {\n    implementation("com.github.pachca:openapi:1.9.0")\n}',
     blurb: 'Установка через Gradle, клиент на корутинах и сериализация моделей',
     href: '/guides/sdk/kotlin',
   },

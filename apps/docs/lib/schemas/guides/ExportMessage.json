@@ -40,7 +40,12 @@
               "type": "string",
               "description": "Дата и время добавления реакции (ISO-8601, UTC+0)"
             },
-            "code": { "type": "string", "description": "Emoji символ реакции", "example": "👍" }
+            "code": { "type": "string", "description": "Emoji символ реакции", "example": "👍" },
+            "name": {
+              "type": "string",
+              "description": "Название emoji реакции",
+              "example": ":+1::skin-tone-1:"
+            }
           }
         }
       },
@@ -57,7 +62,11 @@
           },
           "name": { "type": "string", "description": "Имя" },
           "last_name": { "type": "string", "description": "Фамилия" },
-          "email": { "type": "string", "description": "Электронная почта" },
+          "email": {
+            "type": "string",
+            "nullable": true,
+            "description": "Электронная почта. Возвращается как null, если почта не указана, например у бота."
+          },
           "tags": {
             "type": "array",
             "description": "Массив тегов, привязанных к пользователю",
@@ -90,7 +99,11 @@
               },
               "name": { "type": "string", "description": "Имя" },
               "last_name": { "type": "string", "description": "Фамилия" },
-              "email": { "type": "string", "description": "Электронная почта" },
+              "email": {
+                "type": "string",
+                "nullable": true,
+                "description": "Электронная почта. Возвращается как null, если почта не указана, например у бота."
+              },
               "tags": {
                 "type": "array",
                 "description": "Массив тегов",
@@ -116,8 +129,9 @@
             "description": "Идентификатор сообщения, под которым был начат тред"
           },
           "message_chat_id": {
-            "type": "string",
-            "description": "Идентификатор чата, в котором был начат тред"
+            "type": "integer",
+            "description": "Идентификатор чата, в котором был начат тред",
+            "example": 67890
           }
         }
       }

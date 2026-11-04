@@ -933,16 +933,10 @@ value class OAuthScope(val value: String) {
         val TASKS_DELETE = OAuthScope("tasks:delete")
         /** Скачивание файлов */
         val FILES_READ = OAuthScope("files:read")
-        /** Загрузка файлов */
-        val FILES_WRITE = OAuthScope("files:write")
         /** Получение данных для загрузки файлов */
         val UPLOADS_WRITE = OAuthScope("uploads:write")
         /** Открытие форм (представлений) */
         val VIEWS_WRITE = OAuthScope("views:write")
-        /** Просмотр вебхуков */
-        val WEBHOOKS_READ = OAuthScope("webhooks:read")
-        /** Создание и управление вебхуками */
-        val WEBHOOKS_WRITE = OAuthScope("webhooks:write")
         /** Просмотр лога вебхуков */
         val WEBHOOKS_EVENTS_READ = OAuthScope("webhooks:events:read")
         /** Удаление записи в логе вебхука */
@@ -963,12 +957,12 @@ value class OAuthScope(val value: String) {
         val IMPORTANT_MESSAGES_WRITE = OAuthScope("important_messages:write")
 
         /** Every value this SDK version lists */
-        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, FILES_WRITE, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_READ, WEBHOOKS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE, IMPORTANT_MESSAGES_READ, IMPORTANT_MESSAGES_WRITE)
+        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE, IMPORTANT_MESSAGES_READ, IMPORTANT_MESSAGES_WRITE)
 
         /** The same values as an array, like `values()` of an enum class */
         fun values(): Array<OAuthScope> = entries.toTypedArray()
 
-        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "files:write" to "FILES_WRITE", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:read" to "WEBHOOKS_READ", "webhooks:write" to "WEBHOOKS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE", "important_messages:read" to "IMPORTANT_MESSAGES_READ", "important_messages:write" to "IMPORTANT_MESSAGES_WRITE")
+        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE", "important_messages:read" to "IMPORTANT_MESSAGES_READ", "important_messages:write" to "IMPORTANT_MESSAGES_WRITE")
 
         fun valueOf(name: String): OAuthScope =
             entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No OAuthScope constant $name")
@@ -1374,6 +1368,37 @@ value class VideoCallEventType(val value: String) {
     }
 }
 
+/** Статус расшифровки голосового сообщения */
+@Serializable
+@JvmInline
+value class VoiceTranscriptStatus(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Расшифровка запрошена и ещё не готова */
+        val PENDING = VoiceTranscriptStatus("pending")
+        /** Расшифровка не удалась */
+        val FAILED = VoiceTranscriptStatus("failed")
+        /** Расшифровка готова */
+        val SUCCESS = VoiceTranscriptStatus("success")
+
+        /** Every value this SDK version lists */
+        val entries: List<VoiceTranscriptStatus> = listOf(PENDING, FAILED, SUCCESS)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<VoiceTranscriptStatus> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("pending" to "PENDING", "failed" to "FAILED", "success" to "SUCCESS")
+
+        fun valueOf(name: String): VoiceTranscriptStatus =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No VoiceTranscriptStatus constant $name")
+    }
+}
+
 /** Тип события webhook */
 @Serializable
 @JvmInline
@@ -1594,7 +1619,7 @@ data class AuditDetailsSearch(
     @SerialName("query_present") val queryPresent: Boolean,
     @SerialName("cursor_present") val cursorPresent: Boolean,
     val limit: Int? = null,
-    val filters: Map<String, JsonElement>,
+    val filters: Map<String, JsonElement>? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1638,7 +1663,7 @@ data class AuditDetailsBotOAuthClient(
     @SerialName("bot_id") val botId: Int,
     @SerialName("actor_id") val actorId: Int? = null,
     @SerialName("client_id") val clientId: String,
-    val changes: Map<String, JsonElement>,
+    val changes: Map<String, JsonElement>? = null,
     @SerialName("application_id") val applicationId: Int? = null,
     @SerialName("application_name") val applicationName: String? = null,
     @SerialName("bot_name") val botName: String? = null,
@@ -2829,7 +2854,7 @@ data class Message(
 data class MessageCreateRequestFile(
     val key: String,
     val name: String,
-    @SerialName("file_type") val fileType: FileType,
+    @SerialName("file_type") val fileType: FileType? = null,
     val size: Long? = null,
     val width: Int? = null,
     val height: Int? = null,
@@ -2979,13 +3004,20 @@ data class SearchPaginationMeta(
     val paginate: SearchPaginationMetaPaginate,
 )
 
-@Serializable
+@KeepGeneratedSerializer
+@Serializable(with = StatusUpdateRequestStatusSerializer::class)
 data class StatusUpdateRequestStatus(
     val emoji: String? = null,
     val title: String? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("expires_at") val expiresAt: OffsetDateTime? = null,
     @SerialName("is_away") val isAway: Boolean? = null,
     @SerialName("away_message") val awayMessage: String? = null,
+    /** Fields to send as null: expiresAt, awayMessage. An unset field stays out of the body. */
+    @Transient val nullFields: Set<String> = emptySet(),
+)
+
+internal object StatusUpdateRequestStatusSerializer : NullFieldsSerializer<StatusUpdateRequestStatus>(
+    StatusUpdateRequestStatus.generatedSerializer(), "StatusUpdateRequestStatus", mapOf("expiresAt" to "expires_at", "awayMessage" to "away_message"), { it.nullFields },
 )
 
 @Serializable
@@ -3028,7 +3060,7 @@ data class TaskCreateRequestCustomProperty(
 
 @Serializable
 data class TaskCreateRequestTask(
-    val kind: TaskKind,
+    val kind: TaskKind? = TaskKind.REMINDER,
     val content: String? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("due_at") val dueAt: OffsetDateTime? = null,
     val priority: Int? = 1,
@@ -3227,6 +3259,7 @@ data class VoiceContent(
     @SerialName("duration_ms") val durationMs: Int,
     val waveform: String,
     val transcript: String? = null,
+    @SerialName("transcript_status") val transcriptStatus: VoiceTranscriptStatus? = null,
 )
 
 @Serializable

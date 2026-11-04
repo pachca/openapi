@@ -24,6 +24,7 @@ from .models import (
     LinkSharedWebhookPayload,
     MessageWebhookPayload,
     ReactionWebhookPayload,
+    StatusUpdateRequestStatus,
     VideoCallWebhookPayload,
     ViewBlockCheckbox,
     ViewBlockDate,
@@ -263,6 +264,7 @@ _NULLABLE_FIELDS: dict[type, frozenset[str]] = {
     DraftRepetitionRequest: frozenset({"nth_day"}),
     DraftScheduleRequest: frozenset({"end_date"}),
     DraftUpdateRequestDraft: frozenset({"parent_message_id", "schedule"}),
+    StatusUpdateRequestStatus: frozenset({"expires_at", "away_message"}),
 }
 
 

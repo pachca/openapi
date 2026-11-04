@@ -20,6 +20,7 @@ related:
 
 - События записываются только для пространств на тарифе **Корпорация**. Пока тариф не подключён, журнал не наполняется, и после подключения прошлые действия в нём не появятся.
 - У каждого события есть актор — сотрудник или бот, выполнивший действие. Действия без актора в журнал не попадают. Исключение — событие `oauth_token_revoked`: его актор — приложение, которое отозвало свой токен.
+- У событий `user_role_changed`, `user_chat_join`, `user_chat_leave`, `user_added_to_tag` и `user_removed_from_tag` актор — сотрудник, которого коснулось изменение, а кто его выполнил, указано в деталях: в `initiator_id` или `inviter_id`.
 - Данные собираются с 12 мая 2025 года.
 - Чтение самого журнала тоже событие: каждый запрос к методу пишет `audit_events_accessed`.
 - Также в журнал пишется инвентаризация пространства: [Список чатов пространства](GET /company/chats) пишет `company_chats_accessed`, [Список ботов пространства](GET /company/bots) — `company_bots_accessed`. В обоих случаях актором и объектом события выступает владелец токена.
@@ -31,7 +32,7 @@ related:
 | `id` | string | Идентификатор записи (UUID) |
 | `created_at` | string | Дата и время события (ISO-8601, UTC+0) |
 | `event_key` | string | Тип события. Полный список — ниже. |
-| `actor_id` | string | Идентификатор сотрудника или бота, выполнившего действие |
+| `actor_id` | string | Идентификатор актора: сотрудника или бота, выполнившего действие. Исключения — в разделе [Что попадает в журнал](#chto-popadaet-v-zhurnal). |
 | `actor_type` | string | Тип актора: `User`, а у события `oauth_token_revoked` — `Doorkeeper::Application` |
 | `entity_id` | string | Идентификатор объекта, которого касается событие |
 | `entity_type` | string | Тип этого объекта, например `User`, `Chat`, `Message`, `Reaction`, `GroupTag`, `TopicThread`, `VideoRoom`, `AccessToken`, `OauthAccessToken` или `Doorkeeper::Application` |
@@ -54,9 +55,9 @@ related:
 }
 ```
 
-<Info>Идентификаторы верхнего уровня (`actor_id`, `entity_id`) приходят строками, а внутри `details` — числами. Это разные представления одного и того же идентификатора, приводите их к одному типу перед сравнением.</Info>
+<Info>Идентификаторы верхнего уровня (`actor_id`, `entity_id`) приходят строками. Сравнивая их с идентификаторами внутри `details`, приводите оба значения к одному типу.</Info>
 
-Поля `ip_address` и `user_agent` заполняются из HTTP-запроса, в котором произошло действие. У событий, которые пишет сервер сам, без запроса пользователя — например, завершение видеозвонка по таймауту — оба поля приходят как `null`.
+Поля `ip_address` и `user_agent` заполняются из HTTP-запроса, в котором произошло действие. У событий видеозвонков (`video_call_started`, `video_call_finished` и `video_call_recording_ready`) это обычно запрос видеосервера: в полях приходят его адрес и user agent, а не данные участника звонка.
 
 ## Типы событий
 
@@ -73,9 +74,9 @@ related:
 | `login_grant_approved` | `login_grant_id`, `device` — объект с полями `name`, `platform`, `os_version` и `app_version` |
 | `login_grant_denied` | `login_grant_id`, `device`, `reason` — `denied`, если сотрудник отклонил вход, или `verification_failed`, если он ввёл не те цифры |
 | `user_updated` | `changed_attrs` — список изменённых полей. `context` — присутствует со значением `sso_login`, если профиль обновился автоматически при входе через SSO. |
-| `user_role_changed` | `new_company_role`, `previous_company_role`, `initiator_id` |
-| `user_chat_join` | `inviter_id` |
-| `user_chat_leave`, `user_added_to_tag`, `user_removed_from_tag` | `initiator_id` |
+| `user_role_changed` | `new_company_role`, `previous_company_role`, `initiator_id` — кто сменил роль |
+| `user_chat_join` | `inviter_id` — кто добавил сотрудника в чат |
+| `user_chat_leave`, `user_added_to_tag`, `user_removed_from_tag` | `initiator_id` — кто выполнил действие |
 | `chat_renamed` | `old_name`, `new_name` |
 | `chat_permission_changed` | `public_access` |
 | `tag_created`, `tag_deleted` | `name` |
@@ -165,7 +166,7 @@ related:
 | --- | --- |
 | `start_time`, `end_time` | Период по времени события, границы включительно |
 | `event_key` | Один тип события за запрос. Чтобы собрать несколько типов, сделайте несколько запросов |
-| `actor_id`, `actor_type` | Кто выполнил действие |
+| `actor_id`, `actor_type` | Актор события. Смену роли сотрудника, его добавление в чат и исключение из чата, назначение и снятие тегов фильтр находит по самому сотруднику, а не по тому, кто их выполнил |
 | `entity_id`, `entity_type` | Над каким объектом |
 
 ## Пагинация и слежение за новыми событиями

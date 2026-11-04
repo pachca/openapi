@@ -24,7 +24,7 @@ actions:
       description: Filter by specific event type
   - target: $.paths['/audit_events'].get.parameters[?(@.name=='actor_id')]
     update:
-      description: ID of the user who performed the action
+      description: "ID of the event's actor, as in the record's `actor_id` field. For a role change, adding to and removing from a chat, and assigning and removing tags, the filter finds the employee they affected."
   - target: $.paths['/audit_events'].get.parameters[?(@.name=='actor_type')]
     update:
       description: Actor type
@@ -47,7 +47,7 @@ actions:
 
         Changes a bot's settings: only the fields you pass are overwritten.
 
-        The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation error. Commands, scopes, events, link unfurling domains, and edit roles are replaced by the passed list as a whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by [Edit bot token](PUT /bots/{id}/tokens/{token_id}).
+        Commands, scopes, events, link unfurling domains, and edit roles are replaced by the passed list as a whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by [Edit bot token](PUT /bots/{id}/tokens/{token_id}).
 
         When `oauth_client` makes the client server-side, its secret comes in `client_secret` once. The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow). The catalog page is set by `promo` while authorization is enabled.
 
@@ -68,12 +68,12 @@ actions:
 
         The bots the caller is entitled to configure: those they created themselves and those whose settings grant them edit access.
 
-        The `query` parameter selects bots by part of the name, without typos. Bot tokens do not come in the list: a token value is shown once, and the bot's tokens themselves are returned by [Bot token list](GET /bots/{id}/tokens).
+        The `query` parameter selects bots by part of the name or nickname, without typos. Bot tokens do not come in the list: a token value is shown once, and the bot's tokens themselves are returned by [Bot token list](GET /bots/{id}/tokens).
 
         The list of all bots in the workspace, including other people's, is available to the workspace owner on the "Corporation" plan — [List workspace bots](GET /company/bots). There other people's bots come with only a name and a nickname, and the rest of the settings are hidden.
   - target: $.paths['/bots'].get.parameters[?(@.name=='query')]
     update:
-      description: Search phrase to filter bots by name
+      description: Search phrase to filter bots by name or nickname
   - target: $.paths['/bots'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of entities returned per request. An integer outside the allowed range is replaced with the nearest bound.
@@ -250,8 +250,6 @@ actions:
         The chat's details together with the list of members and the linked tags. What is written in the chat is returned by the [List chat messages](GET /messages) method.
 
         A private conversation of your own workspace the caller does not belong to responds `403`. A chat of another workspace responds `404`, like one that does not exist. A public channel of your own workspace is returned even to someone who has not joined it. The method does not open other people's private chats to the workspace owner either — the full list of those is returned by [List workspace chats](GET /company/chats).
-
-        Only active members come in `member_ids`: suspended ones do not make it into the list, although their membership is kept.
   - target: $.paths['/chats/{id}'].get.parameters[?(@.name=='id')]
     update:
       description: "Chat ID: in a web app link it is the number from the path `/chats/{id}`"
@@ -424,7 +422,7 @@ actions:
 
         Properties of the "File" and "Multiple choice" types are not available through the API and do not make it into the results. The basic profile fields — name, phone, email, department, tags — do not either: these are not custom properties.
 
-        The set of properties is defined by the workspace administrator, who also renames and deletes them. That is why the list is worth re-reading before work: addressing a property that no longer exists returns an error.
+        The set of properties is defined by the workspace administrator, who also renames and deletes them. That is why the list is worth re-reading before work: a value for a property that no longer exists, or for a property of another entity, is silently skipped, and the response is successful.
   - target: $.paths['/custom_properties'].get.parameters[?(@.name=='entity_type')]
     update:
       description: Entity type
@@ -522,7 +520,7 @@ actions:
 
         Employees are added to a tag not here but in each employee's profile — [Edit employee](PUT /users/{id}) with the `list_tags` field. A fresh tag is created empty, with `users_count: 0`. It is linked to a chat by [Add tags](POST /chats/{id}/group_tags).
 
-        The name is unique within the workspace, case-insensitively, and cannot contain `@`. An empty name or a name of spaces only responds `400` with the `blank` code. A name already taken responds `400` with the `taken` code, and `409` comes only if the same tag was created at the same moment as the request. Tags can be created by the workspace owner and an administrator; the method is not available to a bot.
+        The name is unique within the workspace, case-insensitively. A name with `@` responds `400` with the `invalid` code, and the names `here` and `all` are reserved and respond `400` with the `use_of_system_words` code. An empty name or a name of spaces only responds `400` with the `blank` code. A name already taken responds `400` with the `taken` code, and `409` comes only if the same tag was created at the same moment as the request. Tags can be created by the workspace owner and an administrator; the method is not available to a bot.
   - target: $.paths['/group_tags'].get
     update:
       description: |-
@@ -530,7 +528,7 @@ actions:
 
         All tags of the workspace with the number of employees in each, regardless of which chats they are linked to. A multi-guest gets only the tags of active conversations and channels they are a member of.
 
-        The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the interface. It accepts no more than 100 names per request, and for more the method responds `400` with the `too_long` code.
+        The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the interface. It accepts no more than 100 names per request, and for more the method responds `400` with the `too_long` code. Without `limit` and `cursor` all tags found by `names` come in a single page.
 
         Who belongs to a particular tag is returned by [List tag employees](GET /group_tags/{id}/users).
   - target: $.paths['/group_tags'].get.parameters[?(@.name=='names')]
@@ -562,7 +560,7 @@ actions:
 
         Renames a tag. The set of employees and the links to chats do not change: everyone who was in the tag stays in it, only under the new name.
 
-        The name is unique within the workspace, case-insensitively, and cannot contain `@`. An empty name or a name of spaces only responds `400` with the `blank` code. A name already taken responds `400` with the `taken` code, and `409` comes only if the same name was set at the same moment as the request. Tags can be renamed by the workspace owner and an administrator; the method is not available to a bot.
+        The name is unique within the workspace, case-insensitively. A name with `@` responds `400` with the `invalid` code, and the names `here` and `all` are reserved and respond `400` with the `use_of_system_words` code. An empty name or a name of spaces only responds `400` with the `blank` code. A name already taken responds `400` with the `taken` code, and `409` comes only if the same name was set at the same moment as the request. Tags can be renamed by the workspace owner and an administrator; the method is not available to a bot.
   - target: $.paths['/group_tags/{id}'].put.parameters[?(@.name=='id')]
     update:
       description: Tag ID
@@ -665,7 +663,7 @@ actions:
 
         Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the [List users who read the message](GET /messages/{id}/read_member_ids) method. The text follows the same formatting rules as in the [New message](POST /messages) method.
 
-        You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. There are no restrictions on how long ago the message was sent.
+        You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. For a deleted message and a message of an archived chat the method responds `403`. There are no restrictions on how long ago the message was sent.
 
         Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.
   - target: $.paths['/messages/{id}'].put.parameters[?(@.name=='id')]
@@ -676,7 +674,7 @@ actions:
       description: |-
         Delete message
 
-        Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators who were added to the thread through the "Add members" window in the Pachca app, not by a mention. There are no time restrictions on message deletion.
+        Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators who were added to the thread through the "Add members" window in the Pachca app, not by a mention. There are no time restrictions on message deletion, and in an archived chat messages are not deleted: the method responds `403`.
 
         The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a "Message deleted" note stays in place of the message in the chat.
 
@@ -769,7 +767,7 @@ actions:
 
         If there is a thread under the message, the employee who reacted is subscribed to it as well and starts receiving the new messages of the thread.
 
-        A message the token cannot see responds `404` with the `not_found` code, as a nonexistent one does.
+        A message the token cannot see responds `404` with the `not_found` code, as a nonexistent one does, and a deleted one responds `404` with the `message_deleted` code.
 
         **Reaction limits:**
 
@@ -792,7 +790,7 @@ actions:
       description: Message ID
   - target: $.paths['/messages/{id}/reactions'].delete.parameters[?(@.name=='code')]
     update:
-      description: "Emoji character of the reaction. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji."
+      description: "Emoji character of the reaction. Required without `name`: the character itself is needed, text forms such as `+1` or `:+1:` are rejected as an unknown emoji. Not used with `name`."
   - target: $.paths['/messages/{id}/reactions'].delete.parameters[?(@.name=='name')]
     update:
       description: "Name of the reaction, as in its `name` field. With it, the reaction is looked up by name, which is also how a custom emoji of the workspace is removed."
@@ -845,7 +843,7 @@ actions:
 
         An empty thread holds no talk yet: send the first message into it right away with the [New message](POST /messages) method, `entity_type: "thread"` and the thread's `id` from the response. A thread has no name, and it cannot be deleted either through the API or in the app.
 
-        If a thread has already been created for the message, the response will return information about the previously created thread. Only a member of the chat starts a new thread: to someone who sees an open conversation or channel without belonging to it, the method responds `403`, while an existing thread is returned. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.
+        If a thread has already been created for the message, the response will return information about the previously created thread. For a deleted message the method responds `404` with the `message_deleted` code, even if a thread under it already exists: its ID arrives in the `thread` field of the [Message info](GET /messages/{id}) method. Only a member of the chat starts a new thread, and only while the chat is not archived: to someone who sees an open conversation or channel without belonging to it, and in an archived chat, the method responds `403`, while an existing thread is returned. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.
   - target: $.paths['/messages/{id}/thread'].post.parameters[?(@.name=='id')]
     update:
       description: Message ID
@@ -923,7 +921,7 @@ actions:
 
         Sets or replaces the avatar of the token owner. The file is sent in `multipart/form-data` format, and the response contains only a link to the new image.
 
-        `jpg`, `jpeg`, `png`, and `gif` are accepted, and an animated `gif` must be no larger than 2 MB. The image is scaled down to 1024 by 1024 pixels, and an opaque `png` is stored as `jpg`.
+        `jpg`, `jpeg`, `png`, and `gif` are accepted, and any `gif`, animated or not, must be no larger than 2 MB. The image is scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small `png` stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB.
 
         Another employee's avatar is set by [Upload employee avatar](PUT /users/{user_id}/avatar), and that is available only to the workspace owner and an administrator.
   - target: $.paths['/profile/avatar'].put.requestBody.content['multipart/form-data'].schema.properties.image
@@ -949,7 +947,7 @@ actions:
         A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and the query is worth narrowing.
   - target: $.paths['/search/chats'].get.parameters[?(@.name=='query')]
     update:
-      description: Search query text. A query longer than 500 characters is cut off.
+      description: Search query text. A query longer than 256 characters is cut off.
   - target: $.paths['/search/chats'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of results to return per request. An integer outside the allowed range is replaced with the nearest bound.
@@ -990,7 +988,7 @@ actions:
         A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and the query is worth narrowing.
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='query')]
     update:
-      description: Search query text. Without it, messages are picked by the filters alone. A query longer than 500 characters is cut off.
+      description: Search query text. Without it, messages are picked by the filters alone. A query longer than 256 characters is cut off.
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of results to return per request. An integer outside the allowed range is replaced with the nearest bound.
@@ -1032,7 +1030,7 @@ actions:
         A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and the query is worth narrowing.
   - target: $.paths['/search/users'].get.parameters[?(@.name=='query')]
     update:
-      description: Search query text. A query longer than 500 characters is cut off.
+      description: Search query text. A query longer than 256 characters is cut off.
   - target: $.paths['/search/users'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of results to return per request. An integer outside the allowed range is replaced with the nearest bound.
@@ -1061,7 +1059,7 @@ actions:
 
         Creates a reminder and assigns the employees responsible for it.
 
-        Specifying the reminder type is required when creating a reminder: call, meeting, simple reminder, event, or email. A description is not required — without it the reminder takes the name of its type as the text. If a description is passed, it is what becomes the reminder's text.
+        You can choose the reminder type: call, meeting, simple reminder, event, or email. Without a type, a simple reminder is created. A description is not required either — without it the reminder takes the name of its type as the text. If a description is passed, it is what becomes the reminder's text.
 
         A reminder must have assignees; if none are specified, you are assigned as the responsible one.
 
@@ -1195,7 +1193,7 @@ actions:
 
         Nothing is created in Pachca at this point yet: the uploaded file is visible to nobody and linked to nothing. It becomes an attachment when its `key` is passed in the `files` field — to [New message](POST /messages) or [New draft](POST /drafts), and when editing either of them.
 
-        The parameters are issued for one file: request them again for each next one. The signature is valid for 14 days. The `key` records the token owner: a draft accepts only their keys and answers someone else's with `422`, error key `draft.files` and code `invalid`.
+        The parameters are issued for one file: request them again for each next one. The signature is valid for 14 days. The `key` records the token owner: a draft accepts only their keys and answers someone else's with `422`, error key `draft.files` and code `invalid`. A key of a file uploaded in another workspace is accepted neither by a message nor by the [Unfurl (link previews)](POST /messages/{id}/link_previews) method: the response is `422` with code `wrong_params`.
   - target: $.paths['/users'].post
     update:
       description: |-
@@ -1211,7 +1209,7 @@ actions:
 
         The `list_tags` field puts the employee into tags right away, and together with the tags into the chats those tags are linked to. A name that does not exist in the workspace yet creates a new tag. For a guest no tags are assigned at all: the response is successful and `list_tags` in it is empty.
 
-        Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a guest, pass `role: "guest"` — for this role `chat_ids` is required and must contain exactly one active chat the token has permission to add members to. Violating the guest access rules returns `400` with an error on the `chat_ids` field.
+        Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a guest, pass `role: "guest"` — for this role `chat_ids` is required and must contain exactly one active chat the token has permission to add members to. Violating the guest access rules returns `400` with an error on the `chat_ids` field. With any role the same `400` comes when `chat_ids` contains a chat the token has no permission to add members to, an archived one included: the employee is then not created. IDs that do not exist are skipped.
 
         The employee's avatar is set after creation with the [Upload employee avatar](PUT /users/{user_id}/avatar) method.
   - target: $.paths['/users'].get
@@ -1233,8 +1231,10 @@ actions:
   - target: $.paths['/users'].get.parameters[?(@.name=='query')]
     update:
       description: >-
-        Search phrase to filter results. Search works on the following fields: `first_name`, `last_name`, `email`,
-        `phone_number`, and `nickname`.
+        Search phrase to filter results. Search works on the following fields: `first_name`, `last_name`,
+        `nickname`, `title` (job title), and `department`. If the caller can see personal data (the same rule as for
+        the `email` field), the search also covers `phone_number`, custom property values, and the full `email`
+        address.
   - target: $.paths['/users'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
@@ -1339,7 +1339,7 @@ actions:
 
         Sets or replaces the avatar of another employee. Available to the workspace owner and an administrator; not to a bot. The workspace owner's avatar can be changed only by themselves.
 
-        The file is sent in `multipart/form-data` format, and the response contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, an animated `gif` must be no larger than 2 MB, and the image is scaled down to 1024 by 1024 pixels.
+        The file is sent in `multipart/form-data` format, and the response contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, any `gif`, animated or not, must be no larger than 2 MB, the image is scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small `png` stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB.
 
         Your own avatar is set by the [Upload own avatar](PUT /profile/avatar) method — it is available to all roles and to bots.
   - target: $.paths['/users/{user_id}/avatar'].put.parameters[?(@.name=='user_id')]
@@ -1593,7 +1593,7 @@ actions:
       description: Scopes the employee agreed to
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.device_name
     update:
-      description: Name of the device the sign-in is made from. `null` if the app did not pass it.
+      description: "Name of the device the sign-in is made from. Absent if the app did not pass it."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.application_id
     update:
       description: "ID of the application that was allowed to log in"
@@ -1617,10 +1617,10 @@ actions:
       description: Scopes the client requested
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.device_name
     update:
-      description: Name of the device the sign-in was made from. `null` if the app did not pass it.
+      description: "Name of the device the sign-in was made from. Absent if the app did not pass it."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.application_id
     update:
-      description: "Application ID. When a CLI sign-in is refused, it is `null`: an application is assigned to the sign-in only after it is confirmed."
+      description: "Application ID. Absent when a CLI sign-in is refused: an application is assigned to the sign-in only after it is confirmed."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.device_grant_id
     update:
       description: "ID of the login request"
@@ -1647,7 +1647,7 @@ actions:
       description: User ID
   - target: $.components.schemas.AuditDetailsDlp.properties.action_message
     update:
-      description: Action description. `null` if the rule action has no text set.
+      description: "Action description. Absent if the rule action has no text set."
   - target: $.components.schemas.AuditDetailsDlp.properties.conditions_matched
     update:
       description: Rule conditions check result (true — conditions matched)
@@ -1659,13 +1659,13 @@ actions:
       description: 'For: user_added_to_tag, user_removed_from_tag, user_chat_leave'
   - target: $.components.schemas.AuditDetailsInitiator.properties.initiator_id
     update:
-      description: Action initiator ID
+      description: "ID of the user who performed the action. The event actor is the employee it affected."
   - target: $.components.schemas.AuditDetailsInviter
     update:
       description: 'For: user_chat_join'
   - target: $.components.schemas.AuditDetailsInviter.properties.inviter_id
     update:
-      description: Inviter ID
+      description: "ID of the user who added the member to the chat. The event actor is the added member."
   - target: $.components.schemas.AuditDetailsKms
     update:
       description: 'For: kms_encrypt, kms_decrypt'
@@ -1716,7 +1716,7 @@ actions:
       description: Previous role
   - target: $.components.schemas.AuditDetailsRoleChanged.properties.initiator_id
     update:
-      description: Initiator ID
+      description: "ID of the user who changed the role. The event actor is the employee whose role was changed."
   - target: $.components.schemas.AuditDetailsSearch
     update:
       description: 'For: search_users_api, search_chats_api, search_messages_api'
@@ -1731,10 +1731,10 @@ actions:
       description: Whether a cursor was used
   - target: $.components.schemas.AuditDetailsSearch.properties.limit
     update:
-      description: "Requested page size. `null` if the `limit` parameter was not passed. In records before 16 October 2026 it is `0` instead of `null`."
+      description: "Requested page size. Absent if the `limit` parameter was not passed. In records before 16 October 2026 it is `0` in this case."
   - target: $.components.schemas.AuditDetailsSearch.properties.filters
     update:
-      description: "Applied filters. Possible keys depend on the search type: order, sort, created_from, created_to, company_roles (users), active (chats and messages), chat_subtype, personal (chats), chat_ids, user_ids, include_root_chat_id (messages, always `true`)."
+      description: "Applied filters. Possible keys depend on the search type: order, sort, created_from, created_to, company_roles (users), active (chats and messages), chat_subtype, personal (chats), chat_ids, user_ids, include_root_chat_id (messages, always `true`). Absent if no filters were applied."
   - target: $.components.schemas.AuditDetailsBot
     update:
       description: 'For: bot_deleted, and also bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued in records made before October 7, 2026'
@@ -1743,19 +1743,19 @@ actions:
       description: Bot ID
   - target: $.components.schemas.AuditDetailsBot.properties.actor_id
     update:
-      description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+      description: "ID of the user who performed the action"
   - target: $.components.schemas.AuditDetailsBot.properties.webhook_id
     update:
       description: "ID of the bot's webhook"
   - target: $.components.schemas.AuditDetailsBot.properties.application_id
     update:
-      description: "ID of the bot's application. `null` if the bot has no application."
+      description: "ID of the bot's application. Absent if the bot has no application."
   - target: $.components.schemas.AuditDetailsBot.properties.access_token_id
     update:
       description: "Token ID. Present for bot_token_created, bot_token_reissued and bot_token_updated."
   - target: $.components.schemas.AuditDetailsBot.properties.access_token_preview
     update:
-      description: "Masked token: the first and last characters. Present for bot token events, `null` if the value is unavailable."
+      description: "Masked token: the first and last characters. Present for bot token events if the value is available."
   - target: $.components.schemas.AuditDetailsBot.properties.scopes
     update:
       description: "Token scopes in records made before October 7, 2026: an array for bot_token_created, an object with the `previous` and `new` fields for bot_token_updated if the scopes were passed in the request."
@@ -1788,7 +1788,7 @@ actions:
       description: 'For: bot_webhook_settings_updated'
   - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.changes
     update:
-      description: "Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), the value is an object with previous and new fields."
+      description: "Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), the value is an object with previous and new fields. If a value was not set, the object has no previous or new field for it."
   - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.bot_name
     update:
       description: "Bot name"
@@ -1797,13 +1797,13 @@ actions:
       description: "ID of the bot's webhook"
   - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.access_token_id
     update:
-      description: "ID of the token the settings were changed with. `null` if they were changed in the Pachca interface."
+      description: "ID of the token the settings were changed with. Absent if they were changed in the Pachca interface."
   - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.access_token_preview
     update:
-      description: "Masked token the settings were changed with. `null` if they were changed in the Pachca interface."
+      description: "Masked token the settings were changed with. Absent if they were changed in the Pachca interface."
   - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.application_id
     update:
-      description: "ID of the application of the token the settings were changed with. `null` if they were changed in the Pachca interface."
+      description: "ID of the application of the token the settings were changed with. Absent if they were changed in the Pachca interface."
   - target: $.components.schemas.AuditDetailsBotOAuthClient
     update:
       description: 'For: bot_oauth_client_updated'
@@ -1812,7 +1812,7 @@ actions:
       description: Bot OAuth client ID
   - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.changes
     update:
-      description: "Changed client settings. The key is the setting name (confidential, redirect_uris, scopes), the value is an object with previous and new fields."
+      description: "Changed client settings. The key is the setting name (confidential, redirect_uris, scopes), the value is an object with previous and new fields. Absent if authorization on behalf of an employee was turned on without changing the client settings."
   - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.application_id
     update:
       description: "ID of the bot's application"
@@ -1830,16 +1830,16 @@ actions:
       description: "Scopes the bot requests from an employee on the consent screen"
   - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.access_token_id
     update:
-      description: "ID of the token the action was performed with. `null` if the action was performed in the Pachca interface."
+      description: "ID of the token the action was performed with. Absent if the action was performed in the Pachca interface."
   - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.access_token_preview
     update:
-      description: "Masked token the action was performed with. `null` if the action was performed in the Pachca interface."
+      description: "Masked token the action was performed with. Absent if the action was performed in the Pachca interface."
   - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted
     update:
       description: 'For: oauth_authorization_granted'
   - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted.properties.client_id
     update:
-      description: "ID of the OAuth client that was granted access. `null` in records before October 7, 2026 about access granted to a bot."
+      description: "ID of the OAuth client that was granted access. Absent in records before October 7, 2026 about access granted to a bot."
   - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted.properties.scopes
     update:
       description: Scopes the access was granted for
@@ -1890,7 +1890,7 @@ actions:
       description: ID of the chat where the video call takes place
   - target: $.components.schemas.AuditDetailsVideoCallStarted.properties.started_message_id
     update:
-      description: ID of the call start message. `null` if there is no such message.
+      description: "ID of the call start message. Absent if there was no such message."
   - target: $.components.schemas.AuditDetailsVideoCallFinished
     update:
       description: 'For: video_call_finished'
@@ -1899,10 +1899,10 @@ actions:
       description: ID of the chat where the video call took place
   - target: $.components.schemas.AuditDetailsVideoCallFinished.properties.started_message_id
     update:
-      description: ID of the call start message. `null` if there is no such message.
+      description: "ID of the call start message. Absent if there was no such message."
   - target: $.components.schemas.AuditDetailsVideoCallFinished.properties.duration
     update:
-      description: "Call duration in seconds. `null` if the call ended without ever starting."
+      description: "Call duration in seconds. Absent if the call ended without ever starting."
   - target: $.components.schemas.AuditDetailsVideoCallFinished.properties.max_members_count
     update:
       description: Maximum number of simultaneous participants during the call
@@ -1914,7 +1914,7 @@ actions:
       description: ID of the chat where the video call took place
   - target: $.components.schemas.AuditDetailsVideoCallRecording.properties.started_message_id
     update:
-      description: ID of the call start message. `null` if there is no such message.
+      description: "ID of the call start message. Absent if there was no such message."
   - target: $.components.schemas.AuditDetailsVideoCallRecording.properties.recording_id
     update:
       description: Recording ID
@@ -1977,7 +1977,7 @@ actions:
       description: Affected entity type
   - target: $.components.schemas.AuditEvent.properties.actor_id
     update:
-      description: ID of the user who performed the action
+      description: "ID of the user who performed the action. For user_role_changed, user_chat_join, user_chat_leave, user_added_to_tag and user_removed_from_tag it is the employee the change affected, and who made it comes in `details`: in `initiator_id` or `inviter_id`."
   - target: $.components.schemas.AuditEvent.properties.actor_type
     update:
       description: Actor type
@@ -1986,10 +1986,10 @@ actions:
       description: "Additional event details. Structure depends on the event_key value — see event_key field value descriptions. For events without details, an empty object is returned."
   - target: $.components.schemas.AuditEvent.properties.ip_address
     update:
-      description: "IP address from which the action was performed. `null` for events recorded without a user request."
+      description: "IP address of the request in which the action happened. For video call events it is usually the address of the video server, not of a call participant. `null` if the event was recorded outside an HTTP request."
   - target: $.components.schemas.AuditEvent.properties.user_agent
     update:
-      description: "Client user agent, truncated to 255 characters. `null` for events recorded without a user request."
+      description: "Client user agent, truncated to 255 characters. For video call events it is usually the user agent of the video server. `null` if the event was recorded outside an HTTP request."
   - target: $.components.schemas.AuditEventDetailsUnion
     update:
       description: "Additional audit event details. Structure depends on the event_key value."
@@ -2132,7 +2132,7 @@ actions:
       description: Bot name
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.nickname
     update:
-      description: Bot nickname. Must end with `_bot`.
+      description: "Bot nickname: Latin letters, digits, and `_`, ending with `_bot`, free in the workspace. A nickname in another format gets `400` on the `bot.nickname` field with the `invalid` code, and a taken nickname gets the `taken` code."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.events
     update:
       description: Events the bot is subscribed to. The list is replaced as a whole.
@@ -2141,7 +2141,7 @@ actions:
       description: Outgoing webhook trigger condition
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.commands
     update:
-      description: Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.
+      description: Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the commands together with the `, ` separators (comma and space) must not exceed 255 characters.
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.scopes
     update:
       description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
@@ -2159,7 +2159,7 @@ actions:
       description: Show link previews in incoming webhook messages
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.ignore_self_messages
     update:
-      description: "Skip events about the bot's own messages and reactions"
+      description: "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.events_history_enabled
     update:
       description: Save the bot's event history for later retrieval via the event history method
@@ -2176,7 +2176,7 @@ actions:
 
         Creates a bot in the workspace. By default the bot gets an incoming webhook in its own format and immediately returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to reissue it with [Bot token rotation](POST /bots/{id}/recreate_token).
 
-        With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without a token and without an incoming webhook. Tokens are issued to it with [New bot token](POST /bots/{id}/tokens), and the incoming webhook is enabled with the `kind` field in the `webhook` object.
+        With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without an incoming webhook and, unless `scopes` is passed in the `webhook` object, without a token. Tokens are issued to it with [New bot token](POST /bots/{id}/tokens), and the incoming webhook is enabled with the `kind` field in the `webhook` object.
 
         A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member, and it is added like an employee — with the [Add chat members](POST /chats/{id}/members) method, passing the bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require membership.
 
@@ -2184,7 +2184,7 @@ actions:
 
         Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. Learn more in [Authorization setup](/guides/oauth/setup). The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow).
 
-        The nickname must end with `_bot` and be free in the workspace. Only a workspace administrator or owner creates a bot that unfurls links: others get `400` with the `forbidden` code.
+        Only a workspace administrator or owner creates a bot that unfurls links: others get `400` with the `forbidden` code.
 
         The bot's avatar is set after creation with the [Upload bot avatar](PUT /bots/{id}/avatar) method.
   - target: $.paths['/bots/{id}'].get
@@ -2262,19 +2262,19 @@ actions:
       description: Bot name
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.nickname
     update:
-      description: Bot nickname. Must end with `_bot`.
+      description: "Bot nickname: Latin letters, digits, and `_`, ending with `_bot`, free in the workspace. A nickname in another format gets `400` on the `bot.nickname` field with the `invalid` code, and a taken nickname gets the `taken` code. Without this field the nickname is built from the name transliterated into Latin letters, with `_bot` at the end, and if that nickname is taken, with `_2_bot`, `_3_bot`, and so on."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.outgoing_url
     update:
       description: Outgoing webhook URL
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.events
     update:
-      description: Events the bot is subscribed to
+      description: Events the bot is subscribed to. Without this field the bot is subscribed to `message_new`.
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.trigger_on
     update:
       description: Outgoing webhook trigger condition
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.commands
     update:
-      description: Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.
+      description: Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the commands together with the `, ` separators (comma and space) must not exceed 255 characters.
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.scopes
     update:
       description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
@@ -2292,7 +2292,7 @@ actions:
       description: Show link previews in incoming webhook messages
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.ignore_self_messages
     update:
-      description: "Skip events about the bot's own messages and reactions"
+      description: "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.events_history_enabled
     update:
       description: Save the bot's event history for later retrieval via the event history method
@@ -2316,7 +2316,7 @@ actions:
       description: Bot nickname
   - target: $.components.schemas.BotWebhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+      description: "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
   - target: $.components.schemas.BotWebhook.properties.events
     update:
       description: Events the bot is subscribed to
@@ -2343,7 +2343,7 @@ actions:
       description: Show link previews in incoming webhook messages
   - target: $.components.schemas.BotWebhook.properties.ignore_self_messages
     update:
-      description: "Skip events about the bot's own messages and reactions"
+      description: "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
   - target: $.components.schemas.BotWebhook.properties.events_history_enabled
     update:
       description: Save the bot's event history for later retrieval via the event history method
@@ -2376,7 +2376,7 @@ actions:
       description: Bot nickname
   - target: $.components.schemas.CompanyBotWebhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+      description: "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
   - target: $.components.schemas.CompanyBotWebhook.properties.events
     update:
       description: Events the bot is subscribed to
@@ -2403,7 +2403,7 @@ actions:
       description: Show link previews in incoming webhook messages
   - target: $.components.schemas.CompanyBotWebhook.properties.ignore_self_messages
     update:
-      description: "Skip events about the bot's own messages and reactions"
+      description: "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
   - target: $.components.schemas.CompanyBotWebhook.properties.events_history_enabled
     update:
       description: Save the bot's event history for later retrieval via the event history method
@@ -2486,6 +2486,9 @@ actions:
   - target: $.components.schemas.VoiceContent.properties.transcript
     update:
       description: Voice message transcription to text. `null` while the transcription is not ready or unavailable.
+  - target: $.components.schemas.VoiceContent.properties.transcript_status
+    update:
+      description: "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.duration_ms
     update:
       description: "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code."
@@ -2494,10 +2497,10 @@ actions:
       description: Waveform for visualizing the voice message. Required for voice messages (`file_type` is `voice`), not used for other types.
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.duration_ms
     update:
-      description: "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code."
+      description: "Duration of a video (`video`) in milliseconds, optional. Not saved for the other types. Without `file_type`, a file with a duration is treated as a voice message, and the edit is rejected."
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.waveform
     update:
-      description: "Waveform for visualizing the voice message. Without it a request with a voice file (`file_type` is `voice`) does not pass validation, but when editing, the value that was sent is not saved. Not used for other types."
+      description: "Not used when editing: the value is not saved."
   - target: $.components.schemas.ViewBlockSelectOption
     update:
       description: Dropdown (select) option. The initial choice is set with `selected`, not with `checked`, as in radio and checkbox.
@@ -2568,7 +2571,7 @@ actions:
       description: Created chat ID
   - target: $.components.schemas.Chat.properties.name
     update:
-      description: Name
+      description: "Name of the conversation or channel. A direct chat has an empty string here, while the [Search chats](GET /search/chats) method returns the other party's full name in it, and the token owner's name in the chat with yourself."
   - target: $.components.schemas.Chat.properties.created_at
     update:
       description: Chat creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
@@ -2680,7 +2683,7 @@ actions:
       description: "Thread ID. `null` if the members were added to a regular chat or channel rather than a thread."
   - target: $.components.schemas.ChatMemberWebhookPayload.properties.user_ids
     update:
-      description: Array of user IDs affected by the event
+      description: Array of user IDs affected by the event, at most 100. If more users are affected, several webhooks arrive.
   - target: $.components.schemas.ChatMemberWebhookPayload.properties.created_at
     update:
       description: "Event date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ssZ format. In this webhook the time comes without fractions of a second, unlike in the rest."
@@ -2711,7 +2714,7 @@ actions:
       description: Chat parameters object to update
   - target: $.components.schemas.ChatUpdateRequest.properties.chat.properties.name
     update:
-      description: Name
+      description: "Name of the conversation or channel. An empty name or a name of spaces only responds `400` with the `blank` code."
   - target: $.components.schemas.ChatUpdateRequest.properties.chat.properties.public
     update:
       description: Whether the chat is publicly accessible
@@ -2730,7 +2733,7 @@ actions:
       description: Event type
   - target: $.components.schemas.CompanyMemberWebhookPayload.properties.user_ids
     update:
-      description: Array of user IDs affected by the event
+      description: Array of user IDs affected by the event, at most 100. If more users are affected, several webhooks arrive.
   - target: $.components.schemas.CompanyMemberWebhookPayload.properties.created_at
     update:
       description: "Event date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ssZ format. In this webhook the time comes without fractions of a second, unlike in the rest."
@@ -2752,8 +2755,8 @@ actions:
   - target: $.components.schemas.CustomProperty.properties.value
     update:
       description: >-
-        Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601
-        format.
+        Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as
+        `"42"`, a date is in ISO 8601 format.
   - target: $.components.schemas.CustomPropertyDataType
     update:
       description: Custom property data type
@@ -2803,7 +2806,7 @@ actions:
       description: Attached files
   - target: $.components.schemas.Draft.properties.voice_content
     update:
-      description: "Voice message. `null` if there is no voice attachment. The transcription in `transcript` is always `null` for a draft — it starts after the sending."
+      description: "Voice message. `null` if there is no voice attachment. The transcription in `transcript` and its status in `transcript_status` are always `null` for a draft — it starts after the sending."
   - target: $.components.schemas.Draft.properties.schedule
     update:
       description: "Sending schedule. `null` for an ordinary draft."
@@ -2830,7 +2833,7 @@ actions:
       description: "ID of what is named in `entity_type`: the conversation or channel, the thread, or the employee"
   - target: $.components.schemas.DraftCreateRequest.properties.draft.properties.content
     update:
-      description: "Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Up to 40,000 bytes in UTF-8."
+      description: "Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Supports mentions, like the text in [New message](POST /messages). `<@user_id>` stays in the draft text as sent and becomes `@nickname` when the message is sent. Up to 40,000 bytes in UTF-8."
       example: "Weekly report: sales are up 10%"
   - target: $.components.schemas.DraftCreateRequest.properties.draft.properties.parent_message_id
     update:
@@ -2852,7 +2855,7 @@ actions:
       description: File path obtained from the [Upload file](POST /direct_url) method
   - target: $.components.schemas.DraftFileRequest.properties.name
     update:
-      description: File name to display to the user
+      description: "File name to display to the user. Applies to a new file: the extension must match the extension of the file in `key`, otherwise the response is 422 with the `wrong_params` code."
   - target: $.components.schemas.DraftFileRequest.properties.file_type
     update:
       description: File type
@@ -2951,7 +2954,7 @@ actions:
       description: Object of the draft parameters being changed
   - target: $.components.schemas.DraftUpdateRequest.properties.draft.properties.content
     update:
-      description: "Draft text. Up to 40,000 bytes in UTF-8."
+      description: "Draft text. Supports mentions, like the text in [New message](POST /messages). `<@user_id>` stays in the draft text as sent and becomes `@nickname` when the message is sent. Up to 40,000 bytes in UTF-8."
       example: "Weekly report: sales are up 10%"
   - target: $.components.schemas.DraftUpdateRequest.properties.draft.properties.parent_message_id
     update:
@@ -3049,6 +3052,15 @@ actions:
         audio: Audio file
         voice: Voice message
         video: Video file
+  - target: $.components.schemas.VoiceTranscriptStatus
+    update:
+      description: Voice message transcription status
+  - target: $.components.schemas.VoiceTranscriptStatus
+    update:
+      x-enum-descriptions:
+        pending: Transcription requested and not ready yet
+        failed: Transcription failed
+        success: Transcription is ready
   - target: $.components.schemas.FileTarget
     update:
       description: What to return instead of the original file
@@ -3208,7 +3220,7 @@ actions:
       description: Webhook send date and time (UTC+0) in UNIX format
   - target: $.components.schemas.WebhookVideoCallThread
     update:
-      description: Parameters of the thread the video call takes place in
+      description: Parameters of the video call's thread
   - target: $.components.schemas.WebhookVideoCallThread.properties.id
     update:
       description: Thread ID
@@ -3264,7 +3276,7 @@ actions:
       description: ID of the user who started the video call
   - target: $.components.schemas.VideoCallWebhookPayload.properties.thread
     update:
-      description: Thread parameters object if the video call takes place in a thread. `null` if the call is not in a thread.
+      description: "The call's thread. For a call in a regular chat or direct message it is the thread under the system call message: `message_id` is that message and `message_chat_id` equals `chat_id`. For a call in a thread it is that thread, and `thread.chat_id` equals `chat_id`. `null` only in the finished event of a call outside a thread that never started."
   - target: $.components.schemas.VideoCallWebhookPayload.properties.started_at
     update:
       description: >-
@@ -3343,7 +3355,7 @@ actions:
       description: Attached files
   - target: $.components.schemas.Message.properties.buttons
     update:
-      description: "Array of rows, each represented as an array of buttons. `null` if the message was sent without buttons."
+      description: "Array of rows, each represented as an array of buttons. `null` if the `buttons` field was not passed when sending, and for a deleted message. Empty `buttons` sent with a message or an edit come back as `[]`: a message without buttons is recognized by both `null` and an empty array."
   - target: $.components.schemas.Message.properties.thread
     update:
       description: "Thread created for this message. `null` if no thread was created, and for messages that are themselves inside a thread."
@@ -3369,7 +3381,7 @@ actions:
       description: "Message sender full name. The field is present only on messages from bots; it is absent from the response for messages from employees. `null` if the bot did not override the value when sending."
   - target: $.components.schemas.Message.properties.changed_at
     update:
-      description: "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced."
+      description: "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has zero fractional seconds. `null` for messages sent before this field was introduced."
   - target: $.components.schemas.Message.properties.deleted_at
     update:
       description: "Message deletion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` for messages that are not deleted. Deleted messages are not returned in the message list."
@@ -3402,7 +3414,7 @@ actions:
       description: "File name to display to the user. The extension must match the extension of the file in `key`, otherwise the response is 422 with the `wrong_params` code."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.file_type
     update:
-      description: File type. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`.
+      description: "File type. `voice`, `video` and `file` are taken from the request: with `file` an image is sent as a regular file. Without a type, Pachca detects an image or an audio file by the extension. A file with `duration_ms` and no `file_type` is treated as a voice message. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.size
     update:
       description: File size in bytes, displayed to the user. If it is not passed or is 0, Pachca takes the size from the storage shortly after saving.
@@ -3420,10 +3432,10 @@ actions:
       description: "ID of the message you are replying to with a quote. You can reply to a message in any chat, including a thread: send the reply to the same chat or thread where that message is, otherwise the request returns a `422` error. To write into the thread under a message, set `entity_type: \"thread\"` and the thread's `id` in `entity_id`."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.display_avatar_url
     update:
-      description: Custom sender avatar URL for this message. This field can only be used with a bot access_token.
+      description: Custom sender avatar URL for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8.
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.display_name
     update:
-      description: "Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else's name and avatar, and only this message. The Bot badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Details are in the [Bots](/guides/bots/overview) section."
+      description: "Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else's name and avatar, and only this message. The Bot badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Up to 255 bytes in UTF-8, which is about 127 Cyrillic characters. Details are in the [Bots](/guides/bots/overview) section."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.skip_invite_mentions
     update:
       description: "Skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. With the workspace setting \"Use cross-chat threads\" on (the default), a mention also adds an employee from outside the parent chat, and with `true` in this field a mention adds nobody, and a person who is not in the thread gets no notification either. A mention by a guest or a multi-guest then adds only those who share a chat with the author. With the setting off, a mention adds only members of the parent chat, and this field changes nothing. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there."
@@ -3459,7 +3471,7 @@ actions:
       description: "File name to display to the user. Applies to a new file: the extension must match the extension of the file in `key`, otherwise the response is 422 with the `wrong_params` code."
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.file_type
     update:
-      description: File type
+      description: "File type. A voice file cannot be attached by an edit: a file with `file_type: voice`, or with `duration_ms` and no `file_type`, is rejected. For a video, set `file_type: video`."
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.size
     update:
       description: File size in bytes, displayed to the user. If it is not passed or is 0, Pachca takes the size from the storage shortly after saving.
@@ -3476,10 +3488,10 @@ actions:
         row. To remove buttons, send an empty array.
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.display_avatar_url
     update:
-      description: Custom sender avatar URL for this message. This field can only be used with a bot access_token.
+      description: Custom sender avatar URL for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8.
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.display_name
     update:
-      description: Custom sender display name for this message. This field can only be used with a bot access_token.
+      description: Custom sender display name for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8, which is about 127 Cyrillic characters.
   - target: $.components.schemas.MessageWebhookPayload
     update:
       description: Outgoing webhook payload for messages
@@ -3513,7 +3525,7 @@ actions:
       description: Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
   - target: $.components.schemas.MessageWebhookPayload.properties.changed_at
     update:
-      description: "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced."
+      description: "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has zero fractional seconds. `null` for messages sent before this field was introduced."
   - target: $.components.schemas.MessageWebhookPayload.properties.url
     update:
       description: Direct link to the message
@@ -3603,10 +3615,7 @@ actions:
         tasks_update: Update task
         tasks_delete: Delete task
         files_read: Download files
-        files_write: Upload files
         uploads_write: Get file upload data
-        webhooks_read: View webhooks
-        webhooks_write: Create and manage webhooks
         webhooks_events_read: View webhook logs
         webhooks_events_delete: Delete webhook log entry
         search_users: Search employees
@@ -3700,7 +3709,7 @@ actions:
       description: Reaction creation request
   - target: $.components.schemas.ReactionRequest.properties.code
     update:
-      description: "Reaction emoji character. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value fits: it is stored as passed."
+      description: "Reaction emoji character. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value of up to 16 characters fits: it is stored as passed."
   - target: $.components.schemas.ReactionRequest.properties.name
     update:
       description: "Name of a custom emoji of the workspace. With it, the reaction is that emoji, and if the workspace has no such emoji, the response is `404`."
@@ -3795,13 +3804,13 @@ actions:
       description: Status text. Required if there is no status yet.
   - target: $.components.schemas.StatusUpdateRequest.properties.status.properties.expires_at
     update:
-      description: "Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC."
+      description: "Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC. `null` removes the expiry: the status will not be cleared on its own."
   - target: $.components.schemas.StatusUpdateRequest.properties.status.properties.is_away
     update:
       description: Whether to enable "Away" mode
   - target: $.components.schemas.StatusUpdateRequest.properties.status.properties.away_message
     update:
-      description: '"Away" mode message text. Displayed in the profile and in direct messages/mentions.'
+      description: '"Away" mode message text. Displayed in the profile and in direct messages/mentions. Supports Markdown and `@nickname` and `<@user_id>` mentions, but is stored and returned as plain text: formatting is removed, and an employee mention is replaced with `@` followed by their first and last name. The 1024-character limit applies both to the text sent and to the resulting text, and beyond it the response is `400` with the `too_long` code. `null` removes the text, and so does an empty string.'
   - target: $.components.schemas.TagNamesFilter
     update:
       description: Array of tag names
@@ -3879,7 +3888,7 @@ actions:
       description: Property ID
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.custom_properties.items.properties.value
     update:
-      description: Value to set
+      description: Value to set. An empty string clears the property.
   - target: $.components.schemas.TaskKind
     update:
       description: Reminder type
@@ -3928,7 +3937,7 @@ actions:
       description: "Whether this is an all-day reminder. An edit does not apply this field: a reminder becomes all-day by a `due_at` at exactly 23:59:59 of the day in the employee's local offset, such as `2026-10-29T23:59:59+03:00`."
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.done_at
     update:
-      description: "Reminder completion date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. A value that could not be parsed removes the completion mark: the response comes back successful, and `done_at` in it is `null`."
+      description: "Reminder completion date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. A value that could not be parsed removes the completion mark: the response comes back successful, and `status` in it is `undone`."
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.custom_properties
     update:
       description: Custom properties to set
@@ -3937,7 +3946,7 @@ actions:
       description: Property ID
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.custom_properties.items.properties.value
     update:
-      description: Value to set
+      description: Value to set. An empty string clears the property.
   - target: $.components.schemas.Thread
     update:
       description: Thread
@@ -4059,7 +4068,7 @@ actions:
       description: Creation date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
   - target: $.components.schemas.User.properties.last_activity_at
     update:
-      description: "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca — in that case `invite_status` returns `sent`."
+      description: "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca or has not signed in since their email was changed — in that case `invite_status` returns `sent`."
   - target: $.components.schemas.User.properties.time_zone
     update:
       description: "User time zone. `null` if the employee has not set a personal time zone — the company time zone applies then."
@@ -4083,7 +4092,7 @@ actions:
       description: Phone number
   - target: $.components.schemas.UserCreateRequest.properties.user.properties.nickname
     update:
-      description: Username
+      description: "Username: Latin and Cyrillic letters, digits, `_`, `-`, and `.`, otherwise the response is `400` with the `invalid` code. The nicknames `here` and `all` are reserved: they get `400` with the `use_of_system_words` code."
   - target: $.components.schemas.UserCreateRequest.properties.user.properties.department
     update:
       description: Department
@@ -4112,7 +4121,7 @@ actions:
       description: Property ID
   - target: $.components.schemas.UserCreateRequest.properties.user.properties.custom_properties.items.properties.value
     update:
-      description: Value to set
+      description: Value to set. An empty string clears the property.
   - target: $.components.schemas.UserCreateRequest.properties.skip_email_notify
     update:
       description: >-
@@ -4184,7 +4193,7 @@ actions:
       description: "\"Away\" mode message. Displayed in the user profile, as well as when sending a direct message or mentioning them in a chat. `null` if the text is not set."
   - target: $.components.schemas.UserStatus.properties.away_message.properties.text
     update:
-      description: Message text
+      description: "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
   - target: $.components.schemas.UserUpdateRequest
     update:
       description: Employee update request
@@ -4199,13 +4208,13 @@ actions:
       description: Last name
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.email
     update:
-      description: Email
+      description: "Email. After it is changed the employee counts as not yet signed in: `invite_status` comes as `sent` and `last_activity_at` as `null` until they sign in to Pachca again."
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.phone_number
     update:
       description: Phone number
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.nickname
     update:
-      description: "Username. A bot's nickname must end with `_bot` and be unique in the workspace, otherwise the method responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. A bot's existing nickname is checked only when it is changed."
+      description: "Username: Latin and Cyrillic letters, digits, `_`, `-`, and `.`, otherwise the response is `400` with the `invalid` code. The nicknames `here` and `all` are reserved: they get `400` with the `use_of_system_words` code. A nickname taken by another employee, case-insensitively, responds `400` with the `already_exists` code: random characters are not appended here, as they are in [New employee](POST /users). For an employee with `sso: true` a taken nickname is silently left unchanged. A bot's nickname consists of Latin letters, digits, and `_`, ends with `_bot`, and is unique in the workspace, otherwise the method responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. Other errors in a bot's nickname when it is changed, such as `blank` or `too_long`, also come with `422`. A bot's existing nickname is checked only when it is changed."
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.department
     update:
       description: Department
@@ -4220,7 +4229,7 @@ actions:
       description: "The chat the employee keeps when made a guest (`role: \"guest\"`): exactly one active conversation or channel where the token may add members. Without such a chat the response is `400` on this field, and nothing changes. With other roles, and for someone already a guest, the field is ignored."
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.suspended
     update:
-      description: Whether the user is deactivated
+      description: "Whether the user is deactivated. Nobody can suspend the workspace owner, the owner themselves included: the response is `403`."
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.list_tags
     update:
       description: "Array of tag names to assign to the employee. The list replaces the previous one as a whole, an empty one removes all tags. A value that is not an array of non-empty strings is ignored: the employee's tags do not change. Only a bot that any employee can add to a chat and that has the \"Restrict to a single chat\" setting turned off can be added to a tag. If the bot does not meet these conditions and the list contains a tag it does not have yet, the method responds `422` on the `group_tags` field and changes nothing: with the `single_chat_bot_tag_denied` code when the bot is restricted to a single chat, and `restricted_bot_tag_denied` when the \"Who can add the bot to chats\" setting is \"Creator\" or \"Creator and Administrators\". More in the [Bot in tags](/guides/bots/settings#bot-v-tegah) section."
@@ -4232,7 +4241,7 @@ actions:
       description: Property ID
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.custom_properties.items.properties.value
     update:
-      description: Value to set
+      description: Value to set. An empty string clears the property.
   - target: $.components.schemas.ValidationErrorCode
     update:
       description: Validation error codes
@@ -4664,7 +4673,7 @@ actions:
       description: Event ID
   - target: $.components.schemas.WebhookEvent.properties.event_type
     update:
-      description: Event type
+      description: "Event type: a value from the bot's `events`, such as `message_new`. A submitted form has `view_submit` and comes with the `button_click` subscription."
   - target: $.components.schemas.WebhookEvent.properties.payload
     update:
       description: Webhook object
@@ -4742,7 +4751,7 @@ actions:
       description: "What to return instead of the original file: `pdf_preview` — the document converted to PDF, `pdf_first_page` — the first page as an image, `thumb` — a scaled-down copy of the image, `image` — the image as it is. Without the parameter the original file comes. A variant this file does not have leads to `400`."
   - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.actor_id
     update:
-      description: "ID of the user who performed the action. `null` if the action was performed without an initiator."
+      description: "ID of the user who performed the action"
   - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.bot_id
     update:
       description: "Bot ID"
@@ -4751,7 +4760,7 @@ actions:
       description: "For: bot_oauth_client_disabled"
   - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.actor_id
     update:
-      description: "ID of the user who performed the action. `null` if the action was performed without an initiator."
+      description: "ID of the user who performed the action"
   - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.bot_id
     update:
       description: "Bot ID"
@@ -4778,10 +4787,10 @@ actions:
       description: "Scopes the bot requests from an employee on the consent screen"
   - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.access_token_id
     update:
-      description: "ID of the token the action was performed with. `null` if the action was performed in the Pachca interface."
+      description: "ID of the token the action was performed with. Absent if the action was performed in the Pachca interface."
   - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.access_token_preview
     update:
-      description: "Masked token the action was performed with. `null` if the action was performed in the Pachca interface."
+      description: "Masked token the action was performed with. Absent if the action was performed in the Pachca interface."
   - target: $.components.schemas.AuditDetailsBotOAuthClientDisabled.properties.deleted_access_tokens_count
     update:
       description: "Number of employee tokens revoked"
@@ -4790,7 +4799,7 @@ actions:
       description: "For: bot_oauth_client_secret_rotated, bot_oauth_client_secret_issued"
   - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.actor_id
     update:
-      description: "ID of the user who performed the action. `null` if the action was performed without an initiator."
+      description: "ID of the user who performed the action"
   - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.bot_id
     update:
       description: "Bot ID"
@@ -4814,19 +4823,19 @@ actions:
       description: "Scopes the bot requests from an employee on the consent screen. Present for bot_oauth_client_secret_issued."
   - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.access_token_id
     update:
-      description: "ID of the token the action was performed with. `null` if the action was performed in the Pachca interface. Present for bot_oauth_client_secret_issued."
+      description: "ID of the token the action was performed with. Present for bot_oauth_client_secret_issued, except for actions in the Pachca interface."
   - target: $.components.schemas.AuditDetailsBotOAuthClientSecretRotated.properties.access_token_preview
     update:
-      description: "Masked token the action was performed with. `null` if the action was performed in the Pachca interface. Present for bot_oauth_client_secret_issued."
+      description: "Masked token the action was performed with. Present for bot_oauth_client_secret_issued, except for actions in the Pachca interface."
   - target: $.components.schemas.AuditDetailsBotScopes.properties.actor_id
     update:
-      description: "ID of the user who performed the action. `null` if the action was performed without an initiator."
+      description: "ID of the user who performed the action"
   - target: $.components.schemas.AuditDetailsBotScopes.properties.bot_id
     update:
       description: "Bot ID"
   - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.actor_id
     update:
-      description: "ID of the user who performed the action. `null` if the action was performed without an initiator."
+      description: "ID of the user who performed the action"
   - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.bot_id
     update:
       description: "Bot ID"
@@ -4865,7 +4874,7 @@ actions:
       description: "ID of the bot the token belongs to"
   - target: $.components.schemas.BotCreateRequest.properties.empty
     update:
-      description: "Create an empty bot: without a token and without an incoming webhook. Without this field the bot is created with an incoming webhook in its own format, and its token comes in `access_token`."
+      description: "Create an empty bot: without an incoming webhook and, unless scopes are passed, without a token. Without this field the bot is created with an incoming webhook in its own format, and its token comes in `access_token`."
   - target: $.components.schemas.BotCreateRequest.properties.oauth_client
     update:
       description: "Enable authorization on behalf of an employee right at creation"
@@ -5120,7 +5129,7 @@ actions:
       description: "Save the bot's event history for later retrieval via the event history method"
   - target: $.components.schemas.BotSelfWebhook.properties.ignore_self_messages
     update:
-      description: "Skip events about the bot's own messages and reactions"
+      description: "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
   - target: $.components.schemas.BotSelfWebhook.properties.link_preview_enabled
     update:
       description: "Show link previews in incoming webhook messages"
@@ -5132,7 +5141,7 @@ actions:
       description: "Bot nickname"
   - target: $.components.schemas.BotSelfWebhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+      description: "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
   - target: $.components.schemas.BotSelfWebhook.properties.scopes
     update:
       description: "Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values that cannot be set explicitly may appear here."
@@ -5335,7 +5344,7 @@ actions:
 
         Without `message_id` the last message of the chat becomes unread, with `message_id` — this message and all messages after it. A repeated request with the same message changes nothing, and in a chat without messages the method responds with success and does nothing.
 
-        Works in conversations, channels, direct chats and threads the token owner belongs to: a thread is passed by its `chat_id`. A hidden direct chat appears in the list again. A public chat the token owner is not in, a message from another chat, and a chat of another workspace respond `404`. A private chat and an inaccessible thread respond `403`.
+        Works in conversations, channels, direct chats and threads the token owner belongs to: a thread is passed by its `chat_id`. A hidden direct chat appears in the list again. A public chat or an accessible thread the token owner is not in, a message from another chat, and a chat of another workspace respond `404`. A private chat and an inaccessible thread respond `403`.
   - target: "$.paths['/chats/{id}/unread'].put.parameters[?(@.name=='id')]"
     update:
       description: "Chat ID (conversation, channel, direct chat, or thread chat)"
@@ -5356,7 +5365,7 @@ actions:
       description: "Token kind: `personal` — a personal token, `cli` — a CLI sign-in, `bot` — a bot token, `oauth` — a token an employee granted to a bot on the consent screen, `client` — a token of an external app an employee granted access to"
   - target: $.components.schemas.AuditDetailsToken.properties.token_name
     update:
-      description: "Token name, for a CLI sign-in — the device name. `null` if there is no name."
+      description: "Token name, for a CLI sign-in — the device name. Absent if the token has no name."
   - target: $.components.schemas.AuditDetailsToken.properties.resource_owner_id
     update:
       description: "ID of the token owner: an employee, or the bot itself for a bot token"
@@ -5374,7 +5383,7 @@ actions:
       description: "Token ID"
   - target: $.components.schemas.AuditDetailsToken.properties.access_token_preview
     update:
-      description: "Masked token: the first and last characters. `null` if the value is unavailable."
+      description: "Masked token: the first and last characters. Absent if the value is unavailable."
   - target: $.components.schemas.AuditDetailsToken.properties.application_id
     update:
       description: "ID of the application the token belongs to"
@@ -5389,10 +5398,10 @@ actions:
       description: "Bot name. Present together with `bot_id`."
   - target: $.components.schemas.AuditDetailsToken.properties.device_name
     update:
-      description: "Device name. Present for a CLI login, `null` if there is no name."
+      description: "Device name. Present for a CLI login if the name is set."
   - target: $.components.schemas.AuditDetailsToken.properties.actor_id
     update:
-      description: "ID of the user who performed the action. Present for bot token events, `null` if the action was performed without an initiator."
+      description: "ID of the user who performed the action. Present for bot token events."
   - target: $.components.schemas.AuditDetailsToken.properties.webhook_id
     update:
       description: "ID of the bot's webhook. Present for bot token events."
@@ -5410,7 +5419,7 @@ actions:
       description: "Token kind: `bot`"
   - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.token_name
     update:
-      description: "Token name after the change. `null` if there is no name."
+      description: "Token name after the change. Absent if the token has no name."
   - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.resource_owner_id
     update:
       description: "ID of the token owner — the bot"
@@ -5422,13 +5431,13 @@ actions:
       description: "Bot ID"
   - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.actor_id
     update:
-      description: "ID of the user who performed the action. `null` if the action was performed without an initiator."
+      description: "ID of the user who performed the action"
   - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.access_token_id
     update:
       description: "Token ID"
   - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.access_token_preview
     update:
-      description: "Masked token: the first and last characters. `null` if the value is unavailable."
+      description: "Masked token: the first and last characters. Absent if the value is unavailable."
   - target: $.components.schemas.AuditDetailsBotTokenUpdated.properties.application_id
     update:
       description: "ID of the bot's application"
@@ -5455,10 +5464,10 @@ actions:
       description: "Token name change in the audit log"
   - target: $.components.schemas.AuditDetailsTokenNameChange.properties.previous
     update:
-      description: "Previous name. `null` if there was no name."
+      description: "Previous name. Absent if there was no name."
   - target: $.components.schemas.AuditDetailsTokenNameChange.properties.new
     update:
-      description: "New name. `null` if the name was removed."
+      description: "New name. Absent if the name was removed."
   - target: $.components.schemas.AuditDetailsTokenScopesChange
     update:
       description: "Token scopes change in the audit log"
@@ -5475,7 +5484,7 @@ actions:
 
         Sets or replaces the avatar of a conversation or a channel. It can be changed by anyone who has access to [Edit chat](PUT /chats/{id}). A direct chat and a thread have no avatar of their own, and for them the method responds `403`. The same response comes for an archived chat: first bring it back from the archive with the [Unarchive chat](PUT /chats/{id}/unarchive) method.
 
-        The file is sent in `multipart/form-data` format, and the response contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, an animated `gif` must be no larger than 2 MB, and the image is scaled down to 1024 by 1024 pixels.
+        The file is sent in `multipart/form-data` format, and the response contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, any `gif`, animated or not, must be no larger than 2 MB, the image is scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small `png` stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB.
 
         The same link comes in the chat's `avatar_url` field, for example in the [Chat info](GET /chats/{id}) method.
   - target: "$.paths['/chats/{id}/avatar'].put.parameters[?(@.name=='id')]"
@@ -5502,7 +5511,7 @@ actions:
 
         Sets or replaces the bot's avatar. It can be changed by anyone who has access to [Edit bot](PUT /bots/{id}).
 
-        The file is sent in `multipart/form-data` format, and the response contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, an animated `gif` must be no larger than 2 MB, and the image is scaled down to 1024 by 1024 pixels.
+        The file is sent in `multipart/form-data` format, and the response contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, any `gif`, animated or not, must be no larger than 2 MB, the image is scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small `png` stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB.
 
         A scaled-down copy comes in the bot's `avatar_url` field, for example in the [Bot info](GET /bots/{id}) method.
   - target: "$.paths['/bots/{id}/avatar'].put.parameters[?(@.name=='id')]"

@@ -2,6 +2,19 @@
 
 # Changelog
 
+## 2.2.4 (2026-11-04)
+
+### Features
+
+- Profile and User: in `Update Status`, the `Clear Expires At` and `Clear Away Message` toggles send `null`, which removes the status expiry and the away message
+- Message responses gain the `voice_content.transcript_status` field, the transcription status of a voice message
+
+### Improvements
+
+- Reaction: in `Delete`, `Code` is optional, so a reaction is removed by `Code` or by `Name`
+- Reminder: in `Create`, `Kind` is optional and defaults to `Call`
+- Field descriptions follow the API: `Nickname` of employees and bots, `Query` of search and of the employee and bot lists, the reaction `Code`, `File Type`, `Duration Ms` and `Waveform` of message files, `Display Name` and `Display Avatar URL`, mentions in draft text and the `Name` of draft files, `Name` of Chat > `Update`, `Email` and `Suspended` of User > `Update`, the status `Away Message`, `Commands`, `Empty`, `Events` and `Ignore Self Messages` of Bot, the custom property value, `Done At` of a reminder and `Actor ID` of Security
+
 ## 2.2.3 (2026-10-31)
 
 ### Features

@@ -47,8 +47,8 @@ What actually differs:
 - **Whose voice.** A bot agent writes as the bot and sees what the bot sees. An
   MCP agent writes as the employee whose token it uses. After browser sign-in
   the message is signed with the employee's name and carries a badge
-  «Отправлено через …» naming the program; with a personal token it looks
-  hand-written.
+  «Отправлено через …» naming the program; with a personal token the badge
+  reads «Отправлено через API».
 - **They combine.** The MCP server accepts a bot token in the `Authorization`
   header, so a bot agent whose runtime speaks MCP can make its calls through
   `https://mcp.pachca.com/mcp`. Messages still reach the agent through the

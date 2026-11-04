@@ -1,7 +1,6 @@
 // Auto-generated from openapi.yaml — DO NOT EDIT
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
-import * as clack from '@clack/prompts';
 
 export default class TasksCreate extends BaseCommand {
   static override description = "Новое напоминание";
@@ -9,7 +8,6 @@ export default class TasksCreate extends BaseCommand {
   static apiMethod = "POST";
   static apiPath = "/tasks";
   static defaultColumns = ["id","content","created_at","kind","due_at"];
-  static requiredFlags = ["kind"];
 
   static override args = {
 
@@ -56,27 +54,6 @@ export default class TasksCreate extends BaseCommand {
       }
       const piped = Buffer.concat(chunks).toString('utf-8').trimEnd();
       if (piped) flags['content'] = piped;
-    }
-
-    const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'kind', label: "Тип", type: 'string' },
-    ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
-
-    if (missingRequired.length > 0) {
-      if (this.isInteractive()) {
-        for (const field of missingRequired) {
-          const value = await clack.text({ message: field.label, validate: (v) => v.length === 0 ? 'Обязательное поле' : undefined });
-          if (clack.isCancel(value)) { process.stderr.write('Отменено.\n'); this.exit(0); }
-          if (field.type === 'integer') { (flags as Record<string, unknown>)[field.flag] = Number.parseInt(value, 10); }
-          else if (field.type === 'boolean') { (flags as Record<string, unknown>)[field.flag] = value === 'true'; }
-          else { (flags as Record<string, unknown>)[field.flag] = value; }
-        }
-      } else {
-        this.validationError(
-          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
-          { hint: "Обязательные: --kind <string>. pachca introspect tasks create" },
-        );
-      }
     }
 
     const body: Record<string, unknown> = { task: {

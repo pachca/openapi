@@ -1,5 +1,44 @@
 [
   {
+    "version": "2026.11.0",
+    "date": "4 ноября 2026",
+    "changes": [
+      {
+        "type": "~",
+        "command": "tasks create",
+        "description": "Работает без `--kind` и не спрашивает тип в терминале: по умолчанию создаётся простое напоминание"
+      },
+      {
+        "type": "~",
+        "command": "reactions remove",
+        "description": "Снимает реакцию по `--name` без `--code`"
+      },
+      {
+        "type": "+",
+        "command": "profile update-status, users update-status",
+        "description": "`--expires-at null` убирает срок статуса, а `--away-message null` убирает текст «Нет на месте»"
+      },
+      {
+        "type": "+",
+        "command": "bots create, bots update, bots update-webhook, messages update, reactions add, users create, users update",
+        "description": "Длина значений проверяется до запроса: `--outgoing-url`, `--challenge-key`, `--display-avatar-url`, `--display-name` и `--title` до 255 символов, а `--code` у `reactions add` до 16"
+      },
+      {
+        "type": "+",
+        "description": "В выводе команд с сообщениями и черновиками есть поле `voice_content.transcript_status`: статус расшифровки голосового сообщения"
+      },
+      {
+        "type": "~",
+        "command": "api",
+        "description": "Справка `--docs` и схема `--spec` показывают необязательными поля деталей журнала аудита, которых нет в записи без значения, а список скоупов без `files:write`, `webhooks:read` и `webhooks:write`"
+      },
+      {
+        "type": "~",
+        "description": "Справка команд следует уточнённым описаниям API: ник сотрудника и бота, пустой бот, события, команды и `--ignore-self-messages` бота, поиск сотрудников и ботов, длина поискового запроса, подпись сообщения бота, название чата, упоминания в черновике, текст «Нет на месте», смена почты, приостановка владельца, `--actor-id` у `pachca security list` и `--done-at` у `pachca tasks update`"
+      }
+    ]
+  },
+  {
     "version": "2026.10.4",
     "date": "31 октября 2026",
     "changes": [

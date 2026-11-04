@@ -18,7 +18,7 @@ export default class BotsUpdateWebhook extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'outgoing-url': Flags.string({
-      description: "URL исходящего вебхука. Пустая строка отключает вебхук.",
+      description: "URL исходящего вебхука. Пустая строка отключает вебхук. (макс. 255 символов)",
     }),
   };
 
@@ -45,6 +45,14 @@ export default class BotsUpdateWebhook extends BaseCommand {
           { hint: "Обязательные: --outgoing-url <string>. pachca introspect bots update-webhook" },
         );
       }
+    }
+
+    const validationErrors: { message: string; flag: string }[] = [];
+    if (flags['outgoing-url'] && String(flags['outgoing-url']).length > 255) {
+      validationErrors.push({ message: `--outgoing-url: максимум 255 символов (передано: ${String(flags['outgoing-url']).length})`, flag: 'outgoing-url' });
+    }
+    if (validationErrors.length > 0) {
+      this.validationError(validationErrors);
     }
 
     const body: Record<string, unknown> = { webhook: {

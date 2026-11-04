@@ -2202,7 +2202,7 @@ class ReactionsService:
     async def remove_reaction(
         self,
         id: int,
-        params: RemoveReactionParams,
+        params: RemoveReactionParams | None = None,
     ) -> None:
         raise NotImplementedError("Reactions.removeReaction is not implemented")
 
@@ -2270,12 +2270,13 @@ class ReactionsServiceImpl(ReactionsService):
     async def remove_reaction(
         self,
         id: int,
-        params: RemoveReactionParams,
+        params: RemoveReactionParams | None = None,
     ) -> None:
-        query: list[tuple[str, str]] = []
-        query.append(("code", params.code))
+        query: dict[str, str] = {}
+        if params is not None and params.code is not None:
+            query["code"] = params.code
         if params is not None and params.name is not None:
-            query.append(("name", params.name))
+            query["name"] = params.name
         response = await self._client.delete(
             f"/messages/{id}/reactions",
             params=query,

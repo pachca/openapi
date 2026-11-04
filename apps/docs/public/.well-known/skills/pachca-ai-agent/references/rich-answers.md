@@ -43,10 +43,11 @@ How to attach, by access path:
 - **CLI:** `pachca upload report.md -o json` gets the signature, uploads the
   file from disk and returns only its `key`. Then pass the file record as JSON:
   `pachca messages create --entity-type thread --entity-id <id> --files '[{"key":"<key>","name":"report.md","file_type":"file","size":<bytes>}]'`
-  ([CLI files](https://dev.pachca.com/guides/cli/files.md)). `key`, `name` and
-  `file_type` are required, and the extension of `name` must match the one in
-  `key`, otherwise `422`. Set `file_type` every time: `file` for a `.md` or
-  `.html` report, `image` for a picture. `size` is optional: pass it so the
+  ([CLI files](https://dev.pachca.com/guides/cli/files.md)). `key` and `name`
+  are required, and the extension of `name` must match the one in
+  `key`, otherwise `422`. `file_type` matters for `voice` and `video`, and `file`
+  sends an image as a regular file. Without it, Pachca tells an image by the
+  extension. `size` is optional: pass it so the
   card shows the size right away. From stdin, name the file:
   `pachca upload - --name report.md`. Without `--name` the key ends in
   `stdin`, and the file cannot be sent as `report.md`.

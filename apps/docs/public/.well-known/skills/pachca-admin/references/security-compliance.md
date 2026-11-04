@@ -23,10 +23,11 @@ What to know before answering from it:
   requests.
 - For regular export to a SIEM, keep `meta.paginate.prev_page` between runs: a
   request with it returns only events newer than the last run.
-- Top-level `actor_id` and `entity_id` are strings, ids inside `details` are
-  numbers. Normalize before comparing.
-- `ip_address` and `user_agent` are `null` for events the server records on its
-  own.
+- Top-level `actor_id` and `entity_id` are strings. Bring them and the ids
+  inside `details` to one type before comparing.
+- `ip_address` and `user_agent` come from the request the action happened in.
+  For video call events they usually belong to the video server, not to a
+  participant.
 
 Map the question to event keys before querying. A `*` stands for every key with
 that prefix, as listed in the tool's `event_key` values and in the full event
@@ -131,9 +132,14 @@ A rule has a name, a priority and a JSON body with `conditions` (required),
   value; on a tie the rule created earlier runs first. The first matching rule
   stops processing.
 - **Conditions**: `all` (every item matches), `any` (at least one), or both
-  (the two lists are ANDed). A nested group is rejected when the rule is saved.
-  Each item has `type`: `regex` with `pattern`, or `keyword` with `value`, plus
-  optional `min_hits` (default 1) and `max_hits`.
+  (the two lists are ANDed). An item can be a nested group: an object with
+  exactly one key, `all` or `any`, holding its own list, and groups nest.
+  Every other item has `type`: `regex` with `pattern`, or `keyword` with
+  `value`, plus optional `min_hits` (default 1) and `max_hits`, each at least 1.
+  A rule is saved only if it fits this structure exactly: an unknown key, a
+  field of the other condition type (`value` on `regex`), an empty list, or a
+  value of the wrong type or outside the lists is rejected on save, and so is
+  an empty rule (`null`, `{}` or `[]`) on edit.
 - **Regex**: write it in the syntax the DLP guide names (Ruby regular
   expressions). A pattern that engine cannot parse is rejected on save, such
   as `(?P<name>…)` (write `(?<name>…)`), the flags `(?s)` and `(?U)`, or
@@ -160,14 +166,11 @@ A rule has a name, a priority and a JSON body with `conditions` (required),
   replaces the text after the message is sent, so participants may already
   have seen the original.
 - **Scope** (AND-combined): `to_external` (`true` only chats with guests or
-  multi-guests; never set `false`: such a rule never fires in any chat, and no
-  setting limits a rule to chats without guests), `channel_type` (`personal`,
+  multi-guests, `false` only chats without them), `channel_type` (`personal`,
   `discussion`, `channel`, `thread`), `user_role` (author's chat role:
-  `owner`, `admin`, `editor`, `member`, `subscriber`, `not_member`). Write
-  `channel_type` and `user_role` as a single string: a list is dropped on save
-  without an error, and the rule then applies to every chat type or role. For
-  several values make one rule per value, and reopen the rule after saving to
-  check that `scope` is still there.
+  `owner`, `admin`, `editor`, `member`, `subscriber`, `not_member`).
+  `channel_type` and `user_role` take one string or a non-empty list without
+  repeats, and a list matches any of its values.
 
 Drafting procedure:
 

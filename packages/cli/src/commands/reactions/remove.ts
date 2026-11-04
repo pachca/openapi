@@ -8,7 +8,6 @@ export default class ReactionsRemove extends BaseCommand {
   static scope = "reactions:write";
   static apiMethod = "DELETE";
   static apiPath = "/messages/{id}/reactions";
-  static requiredFlags = ["code"];
 
   static override args = {
     id: Args.integer({
@@ -20,7 +19,7 @@ export default class ReactionsRemove extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'code': Flags.string({
-      description: "Emoji символ реакции. Без `name` нужен именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи.",
+      description: "Emoji символ реакции. Обязателен без `name`: нужен именно символ, текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи. С `name` не используется.",
     }),
     'name': Flags.string({
       description: "Имя реакции, как в её поле `name`. С ним реакция ищется по имени, так снимается и кастомный эмодзи пространства.",
@@ -34,27 +33,6 @@ export default class ReactionsRemove extends BaseCommand {
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ReactionsRemove);
     this.parsedFlags = flags;
-
-    const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'code', label: "Emoji символ реакции. Без `name` нужен именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи.", type: 'string' },
-    ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
-
-    if (missingRequired.length > 0) {
-      if (this.isInteractive()) {
-        for (const field of missingRequired) {
-          const value = await clack.text({ message: field.label, validate: (v) => v.length === 0 ? 'Обязательное поле' : undefined });
-          if (clack.isCancel(value)) { process.stderr.write('Отменено.\n'); this.exit(0); }
-          if (field.type === 'integer') { (flags as Record<string, unknown>)[field.flag] = Number.parseInt(value, 10); }
-          else if (field.type === 'boolean') { (flags as Record<string, unknown>)[field.flag] = value === 'true'; }
-          else { (flags as Record<string, unknown>)[field.flag] = value; }
-        }
-      } else {
-        this.validationError(
-          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
-          { hint: "Обязательные: --code <string>. pachca introspect reactions remove" },
-        );
-      }
-    }
 
     if (!flags.force) {
       if (!this.isInteractive()) {

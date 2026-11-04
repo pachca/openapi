@@ -1,6 +1,7 @@
 // Auto-generated from openapi.yaml — DO NOT EDIT
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
+import { nullableString } from '../../lib/flags.js';
 
 export default class ProfileUpdateStatus extends BaseCommand {
   static override description = "Новый свой статус";
@@ -21,15 +22,15 @@ export default class ProfileUpdateStatus extends BaseCommand {
     'title': Flags.string({
       description: "Текст статуса. Обязателен, если статуса ещё нет. (макс. 50 символов)",
     }),
-    'expires-at': Flags.string({
-      description: "Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC.",
+    'expires-at': nullableString({
+      description: "Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. `null` убирает срок: статус не снимется сам. Чтобы передать null, укажите `--expires-at null`.",
     }),
     'is-away': Flags.boolean({
       description: "Режим «Нет на месте»",
       allowNo: true,
     }),
-    'away-message': Flags.string({
-      description: "Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях. (макс. 1024 символов)",
+    'away-message': nullableString({
+      description: "Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях. Поддерживает Markdown и упоминания `@nickname` и `<@user_id>`, но сохраняется и возвращается обычным текстом: разметка убирается, а упоминание сотрудника заменяется на `@` с его именем и фамилией. Предел 1024 символа действует и на присланный текст, и на получившийся, сверх него ответ `400` с кодом `too_long`. `null` или пустая строка убирает текст. Чтобы передать null, укажите `--away-message null`. (макс. 1024 символов)",
     }),
   };
 

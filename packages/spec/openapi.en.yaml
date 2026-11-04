@@ -81,7 +81,9 @@ paths:
         - name: actor_id
           in: query
           required: false
-          description: ID of the user who performed the action
+          description: >-
+            ID of the event's actor, as in the record's `actor_id` field. For a role change, adding to and removing from
+            a chat, and assigning and removing tags, the filter finds the employee they affected.
           schema:
             type: string
             example: '98765'
@@ -405,8 +407,8 @@ paths:
         edit access.
 
 
-        The `query` parameter selects bots by part of the name, without typos. Bot tokens do not come in the list: a
-        token value is shown once, and the bot's tokens themselves are returned by [Bot token list](GET
+        The `query` parameter selects bots by part of the name or nickname, without typos. Bot tokens do not come in the
+        list: a token value is shown once, and the bot's tokens themselves are returned by [Bot token list](GET
         /bots/{id}/tokens).
 
 
@@ -417,7 +419,7 @@ paths:
         - name: query
           in: query
           required: false
-          description: Search phrase to filter bots by name
+          description: Search phrase to filter bots by name or nickname
           schema:
             type: string
             example: task
@@ -562,9 +564,10 @@ paths:
         reissue it with [Bot token rotation](POST /bots/{id}/recreate_token).
 
 
-        With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without a token and
-        without an incoming webhook. Tokens are issued to it with [New bot token](POST /bots/{id}/tokens), and the
-        incoming webhook is enabled with the `kind` field in the `webhook` object.
+        With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without an incoming
+        webhook and, unless `scopes` is passed in the `webhook` object, without a token. Tokens are issued to it with
+        [New bot token](POST /bots/{id}/tokens), and the incoming webhook is enabled with the `kind` field in the
+        `webhook` object.
 
 
         A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member,
@@ -584,8 +587,8 @@ paths:
         exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow).
 
 
-        The nickname must end with `_bot` and be free in the workspace. Only a workspace administrator or owner creates
-        a bot that unfurls links: others get `400` with the `forbidden` code.
+        Only a workspace administrator or owner creates a bot that unfurls links: others get `400` with the `forbidden`
+        code.
 
 
         The bot's avatar is set after creation with the [Upload bot avatar](PUT /bots/{id}/avatar) method.
@@ -856,11 +859,10 @@ paths:
         Changes a bot's settings: only the fields you pass are overwritten.
 
 
-        The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation
-        error. Commands, scopes, events, link unfurling domains, and edit roles are replaced by the passed list as a
-        whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and
-        take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by
-        [Edit bot token](PUT /bots/{id}/tokens/{token_id}).
+        Commands, scopes, events, link unfurling domains, and edit roles are replaced by the passed list as a whole.
+        Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take
+        effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by [Edit
+        bot token](PUT /bots/{id}/tokens/{token_id}).
 
 
         When `oauth_client` makes the client server-side, its secret comes in `client_secret` once. The authorization
@@ -1024,8 +1026,9 @@ paths:
 
 
         The file is sent in `multipart/form-data` format, and the response contains only a link to the new image. `jpg`,
-        `jpeg`, `png`, and `gif` are accepted, an animated `gif` must be no larger than 2 MB, and the image is scaled
-        down to 1024 by 1024 pixels.
+        `jpeg`, `png`, and `gif` are accepted, any `gif`, animated or not, must be no larger than 2 MB, the image is
+        scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small `png`
+        stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB.
 
 
         A scaled-down copy comes in the bot's `avatar_url` field, for example in the [Bot info](GET /bots/{id}) method.
@@ -2502,10 +2505,6 @@ paths:
         workspace responds `404`, like one that does not exist. A public channel of your own workspace is returned even
         to someone who has not joined it. The method does not open other people's private chats to the workspace owner
         either — the full list of those is returned by [List workspace chats](GET /company/chats).
-
-
-        Only active members come in `member_ids`: suspended ones do not make it into the list, although their membership
-        is kept.
       parameters:
         - name: id
           in: path
@@ -2730,8 +2729,9 @@ paths:
 
 
         The file is sent in `multipart/form-data` format, and the response contains only a link to the new image. `jpg`,
-        `jpeg`, `png`, and `gif` are accepted, an animated `gif` must be no larger than 2 MB, and the image is scaled
-        down to 1024 by 1024 pixels.
+        `jpeg`, `png`, and `gif` are accepted, any `gif`, animated or not, must be no larger than 2 MB, the image is
+        scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small `png`
+        stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB.
 
 
         The same link comes in the chat's `avatar_url` field, for example in the [Chat info](GET /chats/{id}) method.
@@ -3580,9 +3580,9 @@ paths:
 
 
         Works in conversations, channels, direct chats and threads the token owner belongs to: a thread is passed by its
-        `chat_id`. A hidden direct chat appears in the list again. A public chat the token owner is not in, a message
-        from another chat, and a chat of another workspace respond `404`. A private chat and an inaccessible thread
-        respond `403`.
+        `chat_id`. A hidden direct chat appears in the list again. A public chat or an accessible thread the token owner
+        is not in, a message from another chat, and a chat of another workspace respond `404`. A private chat and an
+        inaccessible thread respond `403`.
       parameters:
         - name: id
           in: path
@@ -3913,7 +3913,8 @@ paths:
 
 
         The set of properties is defined by the workspace administrator, who also renames and deletes them. That is why
-        the list is worth re-reading before work: addressing a property that no longer exists returns an error.
+        the list is worth re-reading before work: a value for a property that no longer exists, or for a property of
+        another entity, is silently skipped, and the response is successful.
       parameters:
         - name: entity_type
           in: query
@@ -4560,10 +4561,11 @@ paths:
         tags](POST /chats/{id}/group_tags).
 
 
-        The name is unique within the workspace, case-insensitively, and cannot contain `@`. An empty name or a name of
-        spaces only responds `400` with the `blank` code. A name already taken responds `400` with the `taken` code, and
-        `409` comes only if the same tag was created at the same moment as the request. Tags can be created by the
-        workspace owner and an administrator; the method is not available to a bot.
+        The name is unique within the workspace, case-insensitively. A name with `@` responds `400` with the `invalid`
+        code, and the names `here` and `all` are reserved and respond `400` with the `use_of_system_words` code. An
+        empty name or a name of spaces only responds `400` with the `blank` code. A name already taken responds `400`
+        with the `taken` code, and `409` comes only if the same tag was created at the same moment as the request. Tags
+        can be created by the workspace owner and an administrator; the method is not available to a bot.
       parameters: []
       responses:
         '201':
@@ -4638,7 +4640,7 @@ paths:
 
         The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the
         interface. It accepts no more than 100 names per request, and for more the method responds `400` with the
-        `too_long` code.
+        `too_long` code. Without `limit` and `cursor` all tags found by `names` come in a single page.
 
 
         Who belongs to a particular tag is returned by [List tag employees](GET /group_tags/{id}/users).
@@ -4816,10 +4818,11 @@ paths:
         it, only under the new name.
 
 
-        The name is unique within the workspace, case-insensitively, and cannot contain `@`. An empty name or a name of
-        spaces only responds `400` with the `blank` code. A name already taken responds `400` with the `taken` code, and
-        `409` comes only if the same name was set at the same moment as the request. Tags can be renamed by the
-        workspace owner and an administrator; the method is not available to a bot.
+        The name is unique within the workspace, case-insensitively. A name with `@` responds `400` with the `invalid`
+        code, and the names `here` and `all` are reserved and respond `400` with the `use_of_system_words` code. An
+        empty name or a name of spaces only responds `400` with the `blank` code. A name already taken responds `400`
+        with the `taken` code, and `409` comes only if the same name was set at the same moment as the request. Tags can
+        be renamed by the workspace owner and an administrator; the method is not available to a bot.
       parameters:
         - name: id
           in: path
@@ -5644,7 +5647,8 @@ paths:
 
 
         You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not
-        changed by the method. There are no restrictions on how long ago the message was sent.
+        changed by the method. For a deleted message and a message of an archived chat the method responds `403`. There
+        are no restrictions on how long ago the message was sent.
 
 
         Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in
@@ -5738,7 +5742,7 @@ paths:
         editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and
         in an unattached thread by its creator and by the workspace owner and administrators who were added to the
         thread through the "Add members" window in the Pachca app, not by a mention. There are no time restrictions on
-        message deletion.
+        message deletion, and in an archived chat messages are not deleted: the method responds `403`.
 
 
         The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a "Message
@@ -6011,7 +6015,8 @@ paths:
         receiving the new messages of the thread.
 
 
-        A message the token cannot see responds `404` with the `not_found` code, as a nonexistent one does.
+        A message the token cannot see responds `404` with the `not_found` code, as a nonexistent one does, and a
+        deleted one responds `404` with the `message_deleted` code.
 
 
         **Reaction limits:**
@@ -6110,10 +6115,10 @@ paths:
           example: 7231942
         - name: code
           in: query
-          required: true
+          required: false
           description: >-
-            Emoji character of the reaction. Without `name`, the character itself is required: text forms such as `+1`
-            or `:+1:` are rejected as an unknown emoji.
+            Emoji character of the reaction. Required without `name`: the character itself is needed, text forms such as
+            `+1` or `:+1:` are rejected as an unknown emoji. Not used with `name`.
           schema:
             type: string
             example: 👍
@@ -6422,11 +6427,14 @@ paths:
 
 
         If a thread has already been created for the message, the response will return information about the previously
-        created thread. Only a member of the chat starts a new thread: to someone who sees an open conversation or
-        channel without belonging to it, the method responds `403`, while an existing thread is returned. But to simply
-        read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the
-        message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested
-        threads in Pachca, and the method responds `400` with the `thread_message` code.
+        created thread. For a deleted message the method responds `404` with the `message_deleted` code, even if a
+        thread under it already exists: its ID arrives in the `thread` field of the [Message info](GET /messages/{id})
+        method. Only a member of the chat starts a new thread, and only while the chat is not archived: to someone who
+        sees an open conversation or channel without belonging to it, and in an archived chat, the method responds
+        `403`, while an existing thread is returned. But to simply read a thread, the method is not needed: the ID of an
+        existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message
+        that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the
+        `thread_message` code.
       parameters:
         - name: id
           in: path
@@ -6732,8 +6740,9 @@ paths:
         response contains only a link to the new image.
 
 
-        `jpg`, `jpeg`, `png`, and `gif` are accepted, and an animated `gif` must be no larger than 2 MB. The image is
-        scaled down to 1024 by 1024 pixels, and an opaque `png` is stored as `jpg`.
+        `jpg`, `jpeg`, `png`, and `gif` are accepted, and any `gif`, animated or not, must be no larger than 2 MB. The
+        image is scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small
+        `png` stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB.
 
 
         Another employee's avatar is set by [Upload employee avatar](PUT /users/{user_id}/avatar), and that is available
@@ -7037,7 +7046,7 @@ paths:
         - name: query
           in: query
           required: false
-          description: Search query text. A query longer than 500 characters is cut off.
+          description: Search query text. A query longer than 256 characters is cut off.
           schema:
             type: string
             example: Development
@@ -7211,7 +7220,7 @@ paths:
           in: query
           required: false
           description: >-
-            Search query text. Without it, messages are picked by the filters alone. A query longer than 500 characters
+            Search query text. Without it, messages are picked by the filters alone. A query longer than 256 characters
             is cut off.
           schema:
             type: string
@@ -7406,7 +7415,7 @@ paths:
         - name: query
           in: query
           required: false
-          description: Search query text. A query longer than 500 characters is cut off.
+          description: Search query text. A query longer than 256 characters is cut off.
           schema:
             type: string
             example: Oleg
@@ -7556,9 +7565,9 @@ paths:
         Creates a reminder and assigns the employees responsible for it.
 
 
-        Specifying the reminder type is required when creating a reminder: call, meeting, simple reminder, event, or
-        email. A description is not required — without it the reminder takes the name of its type as the text. If a
-        description is passed, it is what becomes the reminder's text.
+        You can choose the reminder type: call, meeting, simple reminder, event, or email. Without a type, a simple
+        reminder is created. A description is not required either — without it the reminder takes the name of its type
+        as the text. If a description is passed, it is what becomes the reminder's text.
 
 
         A reminder must have assignees; if none are specified, you are assigned as the responsible one.
@@ -8303,7 +8312,9 @@ paths:
 
         The parameters are issued for one file: request them again for each next one. The signature is valid for 14
         days. The `key` records the token owner: a draft accepts only their keys and answers someone else's with `422`,
-        error key `draft.files` and code `invalid`.
+        error key `draft.files` and code `invalid`. A key of a file uploaded in another workspace is accepted neither by
+        a message nor by the [Unfurl (link previews)](POST /messages/{id}/link_previews) method: the response is `422`
+        with code `wrong_params`.
       parameters: []
       responses:
         '201':
@@ -8382,7 +8393,9 @@ paths:
         Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a
         guest, pass `role: "guest"` — for this role `chat_ids` is required and must contain exactly one active chat the
         token has permission to add members to. Violating the guest access rules returns `400` with an error on the
-        `chat_ids` field.
+        `chat_ids` field. With any role the same `400` comes when `chat_ids` contains a chat the token has no permission
+        to add members to, an archived one included: the employee is then not created. IDs that do not exist are
+        skipped.
 
 
         The employee's avatar is set after creation with the [Upload employee avatar](PUT /users/{user_id}/avatar)
@@ -8483,8 +8496,10 @@ paths:
           in: query
           required: false
           description: >-
-            Search phrase to filter results. Search works on the following fields: `first_name`, `last_name`, `email`,
-            `phone_number`, and `nickname`.
+            Search phrase to filter results. Search works on the following fields: `first_name`, `last_name`,
+            `nickname`, `title` (job title), and `department`. If the caller can see personal data (the same rule as for
+            the `email` field), the search also covers `phone_number`, custom property values, and the full `email`
+            address.
           schema:
             type: string
             example: Oleg
@@ -8851,8 +8866,9 @@ paths:
 
 
         The file is sent in `multipart/form-data` format, and the response contains only a link to the new image. `jpg`,
-        `jpeg`, `png`, and `gif` are accepted, an animated `gif` must be no larger than 2 MB, and the image is scaled
-        down to 1024 by 1024 pixels.
+        `jpeg`, `png`, and `gif` are accepted, any `gif`, animated or not, must be no larger than 2 MB, the image is
+        scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small `png`
+        stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB.
 
 
         Your own avatar is set by the [Upload own avatar](PUT /profile/avatar) method — it is available to all roles and
@@ -9839,7 +9855,6 @@ components:
       type: object
       required:
         - bot_id
-        - actor_id
       properties:
         bot_id:
           type: integer
@@ -9848,8 +9863,7 @@ components:
         actor_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+          description: ID of the user who performed the action
         webhook_id:
           type: integer
           format: int32
@@ -9857,18 +9871,14 @@ components:
         application_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the bot's application. `null` if the bot has no application.
+          description: ID of the bot's application. Absent if the bot has no application.
         access_token_id:
           type: integer
           format: int32
           description: Token ID. Present for bot_token_created, bot_token_reissued and bot_token_updated.
         access_token_preview:
           type: string
-          nullable: true
-          description: >-
-            Masked token: the first and last characters. Present for bot token events, `null` if the value is
-            unavailable.
+          description: 'Masked token: the first and last characters. Present for bot token events if the value is available.'
         scopes:
           anyOf:
             - type: array
@@ -9889,9 +9899,7 @@ components:
       type: object
       required:
         - bot_id
-        - actor_id
         - client_id
-        - changes
       properties:
         bot_id:
           type: integer
@@ -9900,8 +9908,7 @@ components:
         actor_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+          description: ID of the user who performed the action
         client_id:
           type: string
           description: Bot OAuth client ID
@@ -9910,7 +9917,8 @@ components:
           additionalProperties: {}
           description: >-
             Changed client settings. The key is the setting name (confidential, redirect_uris, scopes), the value is an
-            object with previous and new fields.
+            object with previous and new fields. Absent if authorization on behalf of an employee was turned on without
+            changing the client settings.
         application_id:
           type: integer
           format: int32
@@ -9933,18 +9941,15 @@ components:
         access_token_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the token the action was performed with. `null` if the action was performed in the Pachca interface.
+          description: ID of the token the action was performed with. Absent if the action was performed in the Pachca interface.
         access_token_preview:
           type: string
-          nullable: true
-          description: Masked token the action was performed with. `null` if the action was performed in the Pachca interface.
+          description: Masked token the action was performed with. Absent if the action was performed in the Pachca interface.
       description: 'For: bot_oauth_client_updated'
     AuditDetailsBotOAuthClientDisabled:
       type: object
       required:
         - bot_id
-        - actor_id
         - client_id
         - deleted_access_tokens_count
         - deleted_access_grants_count
@@ -9956,8 +9961,7 @@ components:
         actor_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+          description: ID of the user who performed the action
         client_id:
           type: string
           description: Bot OAuth client ID
@@ -9991,18 +9995,15 @@ components:
         access_token_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the token the action was performed with. `null` if the action was performed in the Pachca interface.
+          description: ID of the token the action was performed with. Absent if the action was performed in the Pachca interface.
         access_token_preview:
           type: string
-          nullable: true
-          description: Masked token the action was performed with. `null` if the action was performed in the Pachca interface.
+          description: Masked token the action was performed with. Absent if the action was performed in the Pachca interface.
       description: 'For: bot_oauth_client_disabled'
     AuditDetailsBotOAuthClientSecretRotated:
       type: object
       required:
         - bot_id
-        - actor_id
         - client_id
       properties:
         bot_id:
@@ -10012,8 +10013,7 @@ components:
         actor_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+          description: ID of the user who performed the action
         client_id:
           type: string
           description: Bot OAuth client ID
@@ -10039,22 +10039,19 @@ components:
         access_token_id:
           type: integer
           format: int32
-          nullable: true
           description: >-
-            ID of the token the action was performed with. `null` if the action was performed in the Pachca interface.
-            Present for bot_oauth_client_secret_issued.
+            ID of the token the action was performed with. Present for bot_oauth_client_secret_issued, except for
+            actions in the Pachca interface.
         access_token_preview:
           type: string
-          nullable: true
           description: >-
-            Masked token the action was performed with. `null` if the action was performed in the Pachca interface.
-            Present for bot_oauth_client_secret_issued.
+            Masked token the action was performed with. Present for bot_oauth_client_secret_issued, except for actions
+            in the Pachca interface.
       description: 'For: bot_oauth_client_secret_rotated, bot_oauth_client_secret_issued'
     AuditDetailsBotScopes:
       type: object
       required:
         - bot_id
-        - actor_id
         - added_scopes
         - removed_scopes
         - webhook_id
@@ -10068,8 +10065,7 @@ components:
         actor_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+          description: ID of the user who performed the action
         added_scopes:
           type: array
           items:
@@ -10102,12 +10098,9 @@ components:
       type: object
       required:
         - token_kind
-        - token_name
         - resource_owner_id
         - current_scopes
-        - actor_id
         - access_token_id
-        - access_token_preview
         - webhook_id
       properties:
         token_kind:
@@ -10115,8 +10108,7 @@ components:
           description: 'Token kind: `bot`'
         token_name:
           type: string
-          nullable: true
-          description: Token name after the change. `null` if there is no name.
+          description: Token name after the change. Absent if the token has no name.
         resource_owner_id:
           type: integer
           format: int32
@@ -10133,16 +10125,14 @@ components:
         actor_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+          description: ID of the user who performed the action
         access_token_id:
           type: integer
           format: int32
           description: Token ID
         access_token_preview:
           type: string
-          nullable: true
-          description: 'Masked token: the first and last characters. `null` if the value is unavailable.'
+          description: 'Masked token: the first and last characters. Absent if the value is unavailable.'
         application_id:
           type: integer
           format: int32
@@ -10173,7 +10163,6 @@ components:
       type: object
       required:
         - bot_id
-        - actor_id
         - changes
       properties:
         bot_id:
@@ -10183,14 +10172,14 @@ components:
         actor_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+          description: ID of the user who performed the action
         changes:
           type: object
           additionalProperties: {}
           description: >-
             Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages,
-            events_history_enabled, can_edit, who_can_add), the value is an object with previous and new fields.
+            events_history_enabled, can_edit, who_can_add), the value is an object with previous and new fields. If a
+            value was not set, the object has no previous or new field for it.
         bot_name:
           type: string
           description: Bot name
@@ -10201,18 +10190,15 @@ components:
         access_token_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the token the settings were changed with. `null` if they were changed in the Pachca interface.
+          description: ID of the token the settings were changed with. Absent if they were changed in the Pachca interface.
         access_token_preview:
           type: string
-          nullable: true
-          description: Masked token the settings were changed with. `null` if they were changed in the Pachca interface.
+          description: Masked token the settings were changed with. Absent if they were changed in the Pachca interface.
         application_id:
           type: integer
           format: int32
-          nullable: true
           description: >-
-            ID of the application of the token the settings were changed with. `null` if they were changed in the Pachca
+            ID of the application of the token the settings were changed with. Absent if they were changed in the Pachca
             interface.
       description: 'For: bot_webhook_settings_updated'
     AuditDetailsChatId:
@@ -10265,8 +10251,7 @@ components:
           description: Scopes the employee agreed to
         device_name:
           type: string
-          nullable: true
-          description: Name of the device the sign-in is made from. `null` if the app did not pass it.
+          description: Name of the device the sign-in is made from. Absent if the app did not pass it.
         application_id:
           type: integer
           format: int32
@@ -10299,15 +10284,13 @@ components:
           description: Scopes the client requested
         device_name:
           type: string
-          nullable: true
-          description: Name of the device the sign-in was made from. `null` if the app did not pass it.
+          description: Name of the device the sign-in was made from. Absent if the app did not pass it.
         application_id:
           type: integer
           format: int32
-          nullable: true
           description: >-
-            Application ID. When a CLI sign-in is refused, it is `null`: an application is assigned to the sign-in only
-            after it is confirmed.
+            Application ID. Absent when a CLI sign-in is refused: an application is assigned to the sign-in only after
+            it is confirmed.
         device_grant_id:
           type: integer
           format: int32
@@ -10324,7 +10307,6 @@ components:
         - message_id
         - chat_id
         - user_id
-        - action_message
         - conditions_matched
       properties:
         dlp_rule_id:
@@ -10349,8 +10331,7 @@ components:
           description: User ID
         action_message:
           type: string
-          nullable: true
-          description: Action description. `null` if the rule action has no text set.
+          description: Action description. Absent if the rule action has no text set.
         conditions_matched:
           type: boolean
           description: Rule conditions check result (true — conditions matched)
@@ -10370,7 +10351,7 @@ components:
         initiator_id:
           type: integer
           format: int32
-          description: Action initiator ID
+          description: ID of the user who performed the action. The event actor is the employee it affected.
       description: 'For: user_added_to_tag, user_removed_from_tag, user_chat_leave'
     AuditDetailsInviter:
       type: object
@@ -10380,7 +10361,7 @@ components:
         inviter_id:
           type: integer
           format: int32
-          description: Inviter ID
+          description: ID of the user who added the member to the chat. The event actor is the added member.
       description: 'For: user_chat_join'
     AuditDetailsKms:
       type: object
@@ -10449,16 +10430,14 @@ components:
     AuditDetailsOAuthAuthorizationGranted:
       type: object
       required:
-        - client_id
         - scopes
         - application_id
         - authorization_grant_id
       properties:
         client_id:
           type: string
-          nullable: true
           description: >-
-            ID of the OAuth client that was granted access. `null` in records before October 7, 2026 about access
+            ID of the OAuth client that was granted access. Absent in records before October 7, 2026 about access
             granted to a bot.
         scopes:
           type: array
@@ -10533,7 +10512,7 @@ components:
         initiator_id:
           type: integer
           format: int32
-          description: Initiator ID
+          description: ID of the user who changed the role. The event actor is the employee whose role was changed.
       description: 'For: user_role_changed'
     AuditDetailsSearch:
       type: object
@@ -10541,8 +10520,6 @@ components:
         - search_type
         - query_present
         - cursor_present
-        - limit
-        - filters
       properties:
         search_type:
           type: string
@@ -10556,17 +10533,16 @@ components:
         limit:
           type: integer
           format: int32
-          nullable: true
           description: >-
-            Requested page size. `null` if the `limit` parameter was not passed. In records before 16 October 2026 it is
-            `0` instead of `null`.
+            Requested page size. Absent if the `limit` parameter was not passed. In records before 16 October 2026 it is
+            `0` in this case.
         filters:
           type: object
           additionalProperties: {}
           description: >-
             Applied filters. Possible keys depend on the search type: order, sort, created_from, created_to,
             company_roles (users), active (chats and messages), chat_subtype, personal (chats), chat_ids, user_ids,
-            include_root_chat_id (messages, always `true`).
+            include_root_chat_id (messages, always `true`). Absent if no filters were applied.
       description: 'For: search_users_api, search_chats_api, search_messages_api'
     AuditDetailsTagChat:
       type: object
@@ -10595,11 +10571,9 @@ components:
       type: object
       required:
         - token_kind
-        - token_name
         - resource_owner_id
         - scopes
         - access_token_id
-        - access_token_preview
       properties:
         token_kind:
           type: string
@@ -10609,8 +10583,7 @@ components:
             access to
         token_name:
           type: string
-          nullable: true
-          description: Token name, for a CLI sign-in — the device name. `null` if there is no name.
+          description: Token name, for a CLI sign-in — the device name. Absent if the token has no name.
         resource_owner_id:
           type: integer
           format: int32
@@ -10626,8 +10599,7 @@ components:
           description: Token ID
         access_token_preview:
           type: string
-          nullable: true
-          description: 'Masked token: the first and last characters. `null` if the value is unavailable.'
+          description: 'Masked token: the first and last characters. Absent if the value is unavailable.'
         application_id:
           type: integer
           format: int32
@@ -10647,15 +10619,11 @@ components:
           description: Bot name. Present together with `bot_id`.
         device_name:
           type: string
-          nullable: true
-          description: Device name. Present for a CLI login, `null` if there is no name.
+          description: Device name. Present for a CLI login if the name is set.
         actor_id:
           type: integer
           format: int32
-          nullable: true
-          description: >-
-            ID of the user who performed the action. Present for bot token events, `null` if the action was performed
-            without an initiator.
+          description: ID of the user who performed the action. Present for bot token events.
         webhook_id:
           type: integer
           format: int32
@@ -10681,18 +10649,13 @@ components:
         bot_token_recreated, bot_token_deleted, oauth_token_revoked
     AuditDetailsTokenNameChange:
       type: object
-      required:
-        - previous
-        - new
       properties:
         previous:
           type: string
-          nullable: true
-          description: Previous name. `null` if there was no name.
+          description: Previous name. Absent if there was no name.
         new:
           type: string
-          nullable: true
-          description: New name. `null` if the name was removed.
+          description: New name. Absent if the name was removed.
       description: Token name change in the audit log
     AuditDetailsTokenScopes:
       type: object
@@ -10755,8 +10718,6 @@ components:
       type: object
       required:
         - chat_id
-        - started_message_id
-        - duration
         - max_members_count
       properties:
         chat_id:
@@ -10766,13 +10727,11 @@ components:
         started_message_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the call start message. `null` if there is no such message.
+          description: ID of the call start message. Absent if there was no such message.
         duration:
           type: integer
           format: int32
-          nullable: true
-          description: Call duration in seconds. `null` if the call ended without ever starting.
+          description: Call duration in seconds. Absent if the call ended without ever starting.
         max_members_count:
           type: integer
           format: int32
@@ -10782,7 +10741,6 @@ components:
       type: object
       required:
         - chat_id
-        - started_message_id
         - recording_id
         - file_id
         - duration
@@ -10795,8 +10753,7 @@ components:
         started_message_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the call start message. `null` if there is no such message.
+          description: ID of the call start message. Absent if there was no such message.
         recording_id:
           type: integer
           format: int32
@@ -10818,7 +10775,6 @@ components:
       type: object
       required:
         - chat_id
-        - started_message_id
       properties:
         chat_id:
           type: integer
@@ -10827,8 +10783,7 @@ components:
         started_message_id:
           type: integer
           format: int32
-          nullable: true
-          description: ID of the call start message. `null` if there is no such message.
+          description: ID of the call start message. Absent if there was no such message.
       description: 'For: video_call_started'
     AuditEvent:
       type: object
@@ -10868,7 +10823,10 @@ components:
           example: User
         actor_id:
           type: string
-          description: ID of the user who performed the action
+          description: >-
+            ID of the user who performed the action. For user_role_changed, user_chat_join, user_chat_leave,
+            user_added_to_tag and user_removed_from_tag it is the employee the change affected, and who made it comes in
+            `details`: in `initiator_id` or `inviter_id`.
           example: '98765'
         actor_type:
           type: string
@@ -10883,12 +10841,16 @@ components:
         ip_address:
           type: string
           nullable: true
-          description: IP address from which the action was performed. `null` for events recorded without a user request.
+          description: >-
+            IP address of the request in which the action happened. For video call events it is usually the address of
+            the video server, not of a call participant. `null` if the event was recorded outside an HTTP request.
           example: 192.168.1.100
         user_agent:
           type: string
           nullable: true
-          description: Client user agent, truncated to 255 characters. `null` for events recorded without a user request.
+          description: >-
+            Client user agent, truncated to 255 characters. For video call events it is usually the user agent of the
+            video server. `null` if the event was recorded outside an HTTP request.
           example: Pachca/3.60.0 (build:15; iOS 18.5.0) Alamofire/5.0.0
       description: Audit event
     AuditEventDetailsUnion:
@@ -11203,8 +11165,9 @@ components:
         empty:
           type: boolean
           description: >-
-            Create an empty bot: without a token and without an incoming webhook. Without this field the bot is created
-            with an incoming webhook in its own format, and its token comes in `access_token`.
+            Create an empty bot: without an incoming webhook and, unless scopes are passed, without a token. Without
+            this field the bot is created with an incoming webhook in its own format, and its token comes in
+            `access_token`.
           example: false
           default: false
         webhook:
@@ -11218,17 +11181,23 @@ components:
             nickname:
               type: string
               maxLength: 255
-              description: Bot nickname. Must end with `_bot`.
+              pattern: ^[a-zA-Z0-9_]*_bot$
+              description: >-
+                Bot nickname: Latin letters, digits, and `_`, ending with `_bot`, free in the workspace. A nickname in
+                another format gets `400` on the `bot.nickname` field with the `invalid` code, and a taken nickname gets
+                the `taken` code. Without this field the nickname is built from the name transliterated into Latin
+                letters, with `_bot` at the end, and if that nickname is taken, with `_2_bot`, `_3_bot`, and so on.
               example: tasks_bot
             outgoing_url:
               type: string
+              maxLength: 255
               description: Outgoing webhook URL
               example: https://example.com/tasks/new
             events:
               type: array
               items:
                 $ref: '#/components/schemas/BotEventName'
-              description: Events the bot is subscribed to
+              description: Events the bot is subscribed to. Without this field the bot is subscribed to `message_new`.
               example:
                 - message_new
             trigger_on:
@@ -11244,8 +11213,8 @@ components:
               description: >-
                 Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot
                 when the first word of the text matches one of the commands exactly, case included. A command can also
-                be set without a leading slash. The combined length of the comma-joined commands must not exceed 255
-                characters.
+                be set without a leading slash. The combined length of the commands together with the `, ` separators
+                (comma and space) must not exceed 255 characters.
               example:
                 - /task
                 - /help
@@ -11272,6 +11241,7 @@ components:
               example: liquid
             challenge_key:
               type: string
+              maxLength: 255
               description: Verification field name for incoming webhook verification
               example: challenge
             link_preview_enabled:
@@ -11281,7 +11251,9 @@ components:
               default: true
             ignore_self_messages:
               type: boolean
-              description: Skip events about the bot's own messages and reactions
+              description: >-
+                Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or
+                removes them. Button clicks always arrive.
               example: false
               default: false
             events_history_enabled:
@@ -11905,7 +11877,7 @@ components:
         outgoing_url:
           type: string
           nullable: true
-          description: Outgoing webhook URL. `null` if the bot has no outgoing webhook configured.
+          description: Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured.
           example: https://example.com/tasks/new
         events:
           type: array
@@ -11956,7 +11928,9 @@ components:
           example: true
         ignore_self_messages:
           type: boolean
-          description: Skip events about the bot's own messages and reactions
+          description: >-
+            Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or
+            removes them. Button clicks always arrive.
           example: false
         events_history_enabled:
           type: boolean
@@ -12058,10 +12032,15 @@ components:
             nickname:
               type: string
               maxLength: 255
-              description: Bot nickname. Must end with `_bot`.
+              pattern: ^[a-zA-Z0-9_]*_bot$
+              description: >-
+                Bot nickname: Latin letters, digits, and `_`, ending with `_bot`, free in the workspace. A nickname in
+                another format gets `400` on the `bot.nickname` field with the `invalid` code, and a taken nickname gets
+                the `taken` code.
               example: tasks_bot
             outgoing_url:
               type: string
+              maxLength: 255
               description: Outgoing webhook URL
               example: https://example.com/tasks/new
             events:
@@ -12084,8 +12063,8 @@ components:
               description: >-
                 Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot
                 when the first word of the text matches one of the commands exactly, case included. A command can also
-                be set without a leading slash. The combined length of the comma-joined commands must not exceed 255
-                characters.
+                be set without a leading slash. The combined length of the commands together with the `, ` separators
+                (comma and space) must not exceed 255 characters.
               example:
                 - /task
                 - /help
@@ -12112,6 +12091,7 @@ components:
               example: liquid
             challenge_key:
               type: string
+              maxLength: 255
               description: Verification field name for incoming webhook verification
               example: challenge
             link_preview_enabled:
@@ -12120,7 +12100,9 @@ components:
               example: true
             ignore_self_messages:
               type: boolean
-              description: Skip events about the bot's own messages and reactions
+              description: >-
+                Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or
+                removes them. Button clicks always arrive.
               example: false
             events_history_enabled:
               type: boolean
@@ -12218,7 +12200,7 @@ components:
         outgoing_url:
           type: string
           nullable: true
-          description: Outgoing webhook URL. `null` if the bot has no outgoing webhook configured.
+          description: Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured.
           example: https://example.com/tasks/new
         events:
           type: array
@@ -12269,7 +12251,9 @@ components:
           example: true
         ignore_self_messages:
           type: boolean
-          description: Skip events about the bot's own messages and reactions
+          description: >-
+            Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or
+            removes them. Button clicks always arrive.
           example: false
         events_history_enabled:
           type: boolean
@@ -12360,6 +12344,7 @@ components:
           properties:
             outgoing_url:
               type: string
+              maxLength: 255
               description: Outgoing webhook URL. An empty string disables the webhook.
               example: https://example.com/tasks/new
           required:
@@ -12491,7 +12476,10 @@ components:
         name:
           type: string
           maxLength: 255
-          description: Name
+          description: >-
+            Name of the conversation or channel. A direct chat has an empty string here, while the [Search chats](GET
+            /search/chats) method returns the other party's full name in it, and the token owner's name in the chat with
+            yourself.
           example: 🤿 aqua
         created_at:
           type: string
@@ -12693,7 +12681,7 @@ components:
           items:
             type: integer
             format: int32
-          description: Array of user IDs affected by the event
+          description: Array of user IDs affected by the event, at most 100. If more users are affected, several webhooks arrive.
           example:
             - 2345
             - 6789
@@ -12739,7 +12727,9 @@ components:
             name:
               type: string
               maxLength: 255
-              description: Name
+              description: >-
+                Name of the conversation or channel. An empty name or a name of spaces only responds `400` with the
+                `blank` code.
               example: Pool
             public:
               type: boolean
@@ -12805,7 +12795,7 @@ components:
         outgoing_url:
           type: string
           nullable: true
-          description: Outgoing webhook URL. `null` if the bot has no outgoing webhook configured.
+          description: Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured.
           example: https://example.com/tasks/new
         events:
           type: array
@@ -12861,7 +12851,9 @@ components:
         ignore_self_messages:
           type: boolean
           nullable: true
-          description: Skip events about the bot's own messages and reactions
+          description: >-
+            Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or
+            removes them. Button clicks always arrive.
           example: false
         events_history_enabled:
           type: boolean
@@ -12921,7 +12913,7 @@ components:
           items:
             type: integer
             format: int32
-          description: Array of user IDs affected by the event
+          description: Array of user IDs affected by the event, at most 100. If more users are affected, several webhooks arrive.
           example:
             - 2345
             - 6789
@@ -12966,8 +12958,8 @@ components:
           nullable: true
           maxLength: 768
           description: >-
-            Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601
-            format.
+            Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as
+            `"42"`, a date is in ISO 8601 format.
           example: Saint Petersburg
       description: Custom property
     CustomPropertyDataType:
@@ -13068,8 +13060,8 @@ components:
             - $ref: '#/components/schemas/VoiceContent'
           nullable: true
           description: >-
-            Voice message. `null` if there is no voice attachment. The transcription in `transcript` is always `null`
-            for a draft — it starts after the sending.
+            Voice message. `null` if there is no voice attachment. The transcription in `transcript` and its status in
+            `transcript_status` are always `null` for a draft — it starts after the sending.
         schedule:
           type: object
           allOf:
@@ -13116,8 +13108,9 @@ components:
             content:
               type: string
               description: >-
-                Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Up to 40,000 bytes
-                in UTF-8.
+                Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Supports mentions,
+                like the text in [New message](POST /messages). `<@user_id>` stays in the draft text as sent and becomes
+                `@nickname` when the message is sent. Up to 40,000 bytes in UTF-8.
               example: 'Weekly report: sales are up 10%'
             parent_message_id:
               type: integer
@@ -13163,7 +13156,9 @@ components:
         name:
           type: string
           maxLength: 255
-          description: File name to display to the user
+          description: >-
+            File name to display to the user. Applies to a new file: the extension must match the extension of the file
+            in `key`, otherwise the response is 422 with the `wrong_params` code.
           example: logo.png
         file_type:
           allOf:
@@ -13190,6 +13185,7 @@ components:
         duration_ms:
           type: integer
           format: int32
+          minimum: 1
           description: >-
             Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved
             for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice
@@ -13360,7 +13356,9 @@ components:
           properties:
             content:
               type: string
-              description: Draft text. Up to 40,000 bytes in UTF-8.
+              description: >-
+                Draft text. Supports mentions, like the text in [New message](POST /messages). `<@user_id>` stays in the
+                draft text as sent and becomes `@nickname` when the message is sent. Up to 40,000 bytes in UTF-8.
               example: 'Weekly report: sales are up 10%'
             parent_message_id:
               type: integer
@@ -13963,7 +13961,10 @@ components:
             items:
               $ref: '#/components/schemas/Button'
           nullable: true
-          description: Array of rows, each represented as an array of buttons. `null` if the message was sent without buttons.
+          description: >-
+            Array of rows, each represented as an array of buttons. `null` if the `buttons` field was not passed when
+            sending, and for a deleted message. Empty `buttons` sent with a message or an edit come back as `[]`: a
+            message without buttons is recognized by both `null` and an empty array.
         thread:
           type: object
           properties:
@@ -14019,8 +14020,9 @@ components:
           format: date-time
           nullable: true
           description: >-
-            Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that
-            was never edited it equals the creation date. `null` for messages sent before this field was introduced.
+            Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message
+            is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has
+            zero fractional seconds. `null` for messages sent before this field was introduced.
           example: '2021-08-28T16:10:00.000Z'
         deleted_at:
           type: string
@@ -14092,8 +14094,10 @@ components:
                     allOf:
                       - $ref: '#/components/schemas/FileType'
                     description: >-
-                      File type. A voice message (`voice`) is sent with a personal token, and with a bot token the
-                      response is `403`.
+                      File type. `voice`, `video` and `file` are taken from the request: with `file` an image is sent as
+                      a regular file. Without a type, Pachca detects an image or an audio file by the extension. A file
+                      with `duration_ms` and no `file_type` is treated as a voice message. A voice message (`voice`) is
+                      sent with a personal token, and with a bot token the response is `403`.
                     example: image
                   size:
                     type: integer
@@ -14131,7 +14135,6 @@ components:
                 required:
                   - key
                   - name
-                  - file_type
               maxItems: 10
               description: Files to attach
             buttons:
@@ -14163,7 +14166,9 @@ components:
             display_avatar_url:
               type: string
               maxLength: 255
-              description: Custom sender avatar URL for this message. This field can only be used with a bot access_token.
+              description: >-
+                Custom sender avatar URL for this message. This field can only be used with a bot access_token. Up to
+                255 bytes in UTF-8.
               example: https://example.com/avatar.png
             display_name:
               type: string
@@ -14172,8 +14177,9 @@ components:
                 Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message
                 with someone else's name and avatar, and only this message. The Bot badge stays, and the sender's
                 profile still shows the real bot. This is how the original author is shown when messages are carried
-                over from another system. With a personal token the field is not available and the response is `403`.
-                Details are in the [Bots](/guides/bots/overview) section.
+                over from another system. With a personal token the field is not available and the response is `403`. Up
+                to 255 bytes in UTF-8, which is about 127 Cyrillic characters. Details are in the
+                [Bots](/guides/bots/overview) section.
               example: Support Bot
             skip_invite_mentions:
               type: boolean
@@ -14262,7 +14268,9 @@ components:
                   file_type:
                     allOf:
                       - $ref: '#/components/schemas/FileType'
-                    description: File type
+                    description: >-
+                      File type. A voice file cannot be attached by an edit: a file with `file_type: voice`, or with
+                      `duration_ms` and no `file_type`, is rejected. For a video, set `file_type: video`.
                     example: image
                   size:
                     type: integer
@@ -14286,18 +14294,13 @@ components:
                     format: int32
                     minimum: 1
                     description: >-
-                      Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`),
-                      not saved for the other types. A file with a duration and no `file_type` is treated as a voice
-                      message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the
-                      `wrong_params` code.
+                      Duration of a video (`video`) in milliseconds, optional. Not saved for the other types. Without
+                      `file_type`, a file with a duration is treated as a voice message, and the edit is rejected.
                     example: 5400
                   waveform:
                     type: string
                     maxLength: 256
-                    description: >-
-                      Waveform for visualizing the voice message. Without it a request with a voice file (`file_type` is
-                      `voice`) does not pass validation, but when editing, the value that was sent is not saved. Not
-                      used for other types.
+                    description: 'Not used when editing: the value is not saved.'
                     example: 4,8,12,20,16,10,6,3
                 required:
                   - key
@@ -14322,11 +14325,17 @@ components:
               x-replaces-set: true
             display_avatar_url:
               type: string
-              description: Custom sender avatar URL for this message. This field can only be used with a bot access_token.
+              maxLength: 255
+              description: >-
+                Custom sender avatar URL for this message. This field can only be used with a bot access_token. Up to
+                255 bytes in UTF-8.
               example: https://example.com/avatar.png
             display_name:
               type: string
-              description: Custom sender display name for this message. This field can only be used with a bot access_token.
+              maxLength: 255
+              description: >-
+                Custom sender display name for this message. This field can only be used with a bot access_token. Up to
+                255 bytes in UTF-8, which is about 127 Cyrillic characters.
               example: Support Bot
           description: Message parameters object to update
       description: Message update request
@@ -14392,8 +14401,9 @@ components:
           format: date-time
           nullable: true
           description: >-
-            Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that
-            was never edited it equals the creation date. `null` for messages sent before this field was introduced.
+            Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message
+            is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has
+            zero fractional seconds. `null` for messages sent before this field was introduced.
           example: '2025-05-15T14:35:00.000Z'
         url:
           type: string
@@ -14540,11 +14550,8 @@ components:
         - tasks:update
         - tasks:delete
         - files:read
-        - files:write
         - uploads:write
         - views:write
-        - webhooks:read
-        - webhooks:write
         - webhooks:events:read
         - webhooks:events:delete
         - search:users
@@ -14785,26 +14792,11 @@ components:
           - user
           - multi_guest
           - bot
-        files_write:
-          - owner
-          - admin
-          - user
-          - bot
         uploads_write:
           - owner
           - admin
           - user
           - multi_guest
-          - bot
-        webhooks_read:
-          - owner
-          - admin
-          - user
-          - bot
-        webhooks_write:
-          - owner
-          - admin
-          - user
           - bot
         webhooks_events_read:
           - owner
@@ -14902,10 +14894,7 @@ components:
         tasks_update: Update task
         tasks_delete: Delete task
         files_read: Download files
-        files_write: Upload files
         uploads_write: Get file upload data
-        webhooks_read: View webhooks
-        webhooks_write: Create and manage webhooks
         webhooks_events_read: View webhook logs
         webhooks_events_delete: Delete webhook log entry
         search_users: Search employees
@@ -15150,9 +15139,11 @@ components:
       properties:
         code:
           type: string
+          maxLength: 16
           description: >-
             Reaction emoji character. Without `name`, the character itself is required: text forms such as `+1` or
-            `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value fits: it is stored as passed.
+            `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value of up to 16 characters fits: it is
+            stored as passed.
           example: 👍
         name:
           type: string
@@ -15306,9 +15297,10 @@ components:
             expires_at:
               type: string
               format: date-time
+              nullable: true
               description: >-
                 Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time
-                without an offset is read as UTC.
+                without an offset is read as UTC. `null` removes the expiry: the status will not be cleared on its own.
               example: '2024-04-08T10:00:00.000Z'
             is_away:
               type: boolean
@@ -15316,8 +15308,14 @@ components:
               example: true
             away_message:
               type: string
+              nullable: true
               maxLength: 1024
-              description: '"Away" mode message text. Displayed in the profile and in direct messages/mentions.'
+              description: >-
+                "Away" mode message text. Displayed in the profile and in direct messages/mentions. Supports Markdown
+                and `@nickname` and `<@user_id>` mentions, but is stored and returned as plain text: formatting is
+                removed, and an employee mention is replaced with `@` followed by their first and last name. The
+                1024-character limit applies both to the text sent and to the resulting text, and beyond it the response
+                is `400` with the `too_long` code. `null` removes the text, and so does an empty string.
               example: Back after 3 PM
       description: Status update request
     SubmitViewResponseRequest:
@@ -15454,6 +15452,7 @@ components:
                 - $ref: '#/components/schemas/TaskKind'
               description: Kind
               example: reminder
+              default: reminder
             content:
               type: string
               description: Description, defaults to the kind name. Up to 40,000 bytes in UTF-8.
@@ -15508,14 +15507,12 @@ components:
                     example: 78
                   value:
                     type: string
-                    description: Value to set
+                    description: Value to set. An empty string clears the property.
                     example: Blue warehouse
                 required:
                   - id
                   - value
               description: Custom properties to set
-          required:
-            - kind
           description: Reminder parameters object to create
       description: Reminder creation request
     TaskKind:
@@ -15601,7 +15598,7 @@ components:
               description: >-
                 Reminder completion date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a
                 time without an offset is treated as UTC. A value that could not be parsed removes the completion mark:
-                the response comes back successful, and `done_at` in it is `null`.
+                the response comes back successful, and `status` in it is `undone`.
               example: '2020-06-05T12:00:00.000Z'
             custom_properties:
               type: array
@@ -15615,7 +15612,7 @@ components:
                     example: 78
                   value:
                     type: string
-                    description: Value to set
+                    description: Value to set. An empty string clears the property.
                     example: Blue warehouse
                 required:
                   - id
@@ -15807,6 +15804,7 @@ components:
         title:
           type: string
           nullable: true
+          maxLength: 255
           description: Job title. If not specified, `null` or an empty string is returned.
           example: CIO
         role:
@@ -15869,7 +15867,8 @@ components:
           nullable: true
           description: >-
             User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has
-            never signed in to Pachca — in that case `invite_status` returns `sent`.
+            never signed in to Pachca or has not signed in since their email was changed — in that case `invite_status`
+            returns `sent`.
           example: '2025-01-20T13:40:07.000Z'
         time_zone:
           type: string
@@ -15916,7 +15915,10 @@ components:
             nickname:
               type: string
               maxLength: 255
-              description: Username
+              description: >-
+                Username: Latin and Cyrillic letters, digits, `_`, `-`, and `.`, otherwise the response is `400` with
+                the `invalid` code. The nicknames `here` and `all` are reserved: they get `400` with the
+                `use_of_system_words` code.
               example: olegpetrov
             department:
               type: string
@@ -15925,6 +15927,7 @@ components:
               example: Product
             title:
               type: string
+              maxLength: 255
               description: Job title
               example: CIO
             role:
@@ -15970,7 +15973,7 @@ components:
                   value:
                     type: string
                     maxLength: 768
-                    description: Value to set
+                    description: Value to set. An empty string clears the property.
                     example: Saint Petersburg
                 required:
                   - id
@@ -16082,8 +16085,10 @@ components:
             text:
               type: string
               maxLength: 1024
-              description: Message text
-              example: I am on vacation until April 15. For urgent matters, contact @ivanov.
+              description: >-
+                Message text: plain text without formatting, an employee mention is shown as `@` followed by the first
+                and last name.
+              example: I am on vacation until April 15. For urgent matters, contact @Oleg Petrov.
           required:
             - text
           nullable: true
@@ -16112,7 +16117,9 @@ components:
             email:
               type: string
               maxLength: 255
-              description: Email
+              description: >-
+                Email. After it is changed the employee counts as not yet signed in: `invite_status` comes as `sent` and
+                `last_activity_at` as `null` until they sign in to Pachca again.
               example: olegpetrov@example.com
             phone_number:
               type: string
@@ -16123,9 +16130,15 @@ components:
               type: string
               maxLength: 255
               description: >-
-                Username. A bot's nickname must end with `_bot` and be unique in the workspace, otherwise the method
-                responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. A bot's existing
-                nickname is checked only when it is changed.
+                Username: Latin and Cyrillic letters, digits, `_`, `-`, and `.`, otherwise the response is `400` with
+                the `invalid` code. The nicknames `here` and `all` are reserved: they get `400` with the
+                `use_of_system_words` code. A nickname taken by another employee, case-insensitively, responds `400`
+                with the `already_exists` code: random characters are not appended here, as they are in [New
+                employee](POST /users). For an employee with `sso: true` a taken nickname is silently left unchanged. A
+                bot's nickname consists of Latin letters, digits, and `_`, ends with `_bot`, and is unique in the
+                workspace, otherwise the method responds `422` with an error on the `nickname` field: `invalid` or
+                `already_exists`. Other errors in a bot's nickname when it is changed, such as `blank` or `too_long`,
+                also come with `422`. A bot's existing nickname is checked only when it is changed.
               example: olegpetrov
             department:
               type: string
@@ -16134,6 +16147,7 @@ components:
               example: Engineering
             title:
               type: string
+              maxLength: 255
               description: Job title
               example: Senior Developer
             role:
@@ -16154,7 +16168,9 @@ components:
                 - 12345
             suspended:
               type: boolean
-              description: Whether the user is deactivated
+              description: >-
+                Whether the user is deactivated. Nobody can suspend the workspace owner, the owner themselves included:
+                the response is `403`.
               example: false
             list_tags:
               type: array
@@ -16186,7 +16202,7 @@ components:
                   value:
                     type: string
                     maxLength: 768
-                    description: Value to set
+                    description: Value to set. An empty string clears the property.
                     example: Saint Petersburg
                 required:
                   - id
@@ -16379,7 +16395,11 @@ components:
           allOf:
             - $ref: '#/components/schemas/WebhookVideoCallThread'
           nullable: true
-          description: Thread parameters object if the video call takes place in a thread. `null` if the call is not in a thread.
+          description: >-
+            The call's thread. For a call in a regular chat or direct message it is the thread under the system call
+            message: `message_id` is that message and `message_chat_id` equals `chat_id`. For a call in a thread it is
+            that thread, and `thread.chat_id` equals `chat_id`. `null` only in the finished event of a call outside a
+            thread that never started.
         started_at:
           type: string
           format: date-time
@@ -17067,6 +17087,7 @@ components:
         - duration_ms
         - waveform
         - transcript
+        - transcript_status
       properties:
         duration_ms:
           type: integer
@@ -17082,7 +17103,28 @@ components:
           nullable: true
           description: Voice message transcription to text. `null` while the transcription is not ready or unavailable.
           example: Hi, please take a look at the latest report
+        transcript_status:
+          allOf:
+            - $ref: '#/components/schemas/VoiceTranscriptStatus'
+          nullable: true
+          description: >-
+            Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file
+            is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription.
+            With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A
+            transcription that takes too long also comes as `failed`, so the status can still change to `success`.
+          example: success
       description: Voice message data
+    VoiceTranscriptStatus:
+      type: string
+      enum:
+        - pending
+        - failed
+        - success
+      description: Voice message transcription status
+      x-enum-descriptions:
+        pending: Transcription requested and not ready yet
+        failed: Transcription failed
+        success: Transcription is ready
     WebhookEvent:
       type: object
       required:
@@ -17097,7 +17139,9 @@ components:
           example: 01KAJZ2XDSS2S3DSW9EXJZ0TBV
         event_type:
           type: string
-          description: Event type
+          description: >-
+            Event type: a value from the bot's `events`, such as `message_new`. A submitted form has `view_submit` and
+            comes with the `button_click` subscription.
           example: message_new
         payload:
           allOf:
@@ -17249,7 +17293,7 @@ components:
           nullable: true
           description: Chat ID of the message the thread was created for. `null` for a thread without a parent message.
           example: 23438
-      description: Parameters of the thread the video call takes place in
+      description: Parameters of the video call's thread
     Weekday:
       type: integer
       format: int32

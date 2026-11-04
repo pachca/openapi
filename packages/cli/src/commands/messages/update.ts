@@ -28,10 +28,10 @@ export default class MessagesUpdate extends BaseCommand {
       description: "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.",
     }),
     'display-avatar-url': Flags.string({
-      description: "Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.",
+      description: "Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота. До 255 байт в UTF-8. (макс. 255 символов)",
     }),
     'display-name': Flags.string({
-      description: "Полное специальное имя отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.",
+      description: "Полное специальное имя отправителя для этого сообщения. Использование этого поля возможно только с access_token бота. До 255 байт в UTF-8, для кириллицы это около 127 символов. (макс. 255 символов)",
     }),
   };
 
@@ -47,6 +47,17 @@ export default class MessagesUpdate extends BaseCommand {
       }
       const piped = Buffer.concat(chunks).toString('utf-8').trimEnd();
       if (piped) flags['content'] = piped;
+    }
+
+    const validationErrors: { message: string; flag: string }[] = [];
+    if (flags['display-avatar-url'] && String(flags['display-avatar-url']).length > 255) {
+      validationErrors.push({ message: `--display-avatar-url: максимум 255 символов (передано: ${String(flags['display-avatar-url']).length})`, flag: 'display-avatar-url' });
+    }
+    if (flags['display-name'] && String(flags['display-name']).length > 255) {
+      validationErrors.push({ message: `--display-name: максимум 255 символов (передано: ${String(flags['display-name']).length})`, flag: 'display-name' });
+    }
+    if (validationErrors.length > 0) {
+      this.validationError(validationErrors);
     }
 
     const body: Record<string, unknown> = { message: {

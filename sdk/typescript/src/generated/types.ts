@@ -581,16 +581,10 @@ export enum OAuthScope {
   TasksDelete = "tasks:delete",
   /** Скачивание файлов */
   FilesRead = "files:read",
-  /** Загрузка файлов */
-  FilesWrite = "files:write",
   /** Получение данных для загрузки файлов */
   UploadsWrite = "uploads:write",
   /** Открытие форм (представлений) */
   ViewsWrite = "views:write",
-  /** Просмотр вебхуков */
-  WebhooksRead = "webhooks:read",
-  /** Создание и управление вебхуками */
-  WebhooksWrite = "webhooks:write",
   /** Просмотр лога вебхуков */
   WebhooksEventsRead = "webhooks:events:read",
   /** Удаление записи в логе вебхука */
@@ -886,6 +880,20 @@ export enum VideoCallEventType {
 }
 
 /**
+ * Статус расшифровки голосового сообщения
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum VoiceTranscriptStatus {
+  /** Расшифровка запрошена и ещё не готова */
+  Pending = "pending",
+  /** Расшифровка не удалась */
+  Failed = "failed",
+  /** Расшифровка готова */
+  Success = "success",
+}
+
+/**
  * Тип события webhook
  *
  * A response may carry a value this SDK does not list yet: it arrives as the raw string.
@@ -944,32 +952,32 @@ export interface ApiErrorItem {
 
 export interface AuditDetailsBot {
   botId: number;
-  actorId: number | null;
+  actorId?: number;
   webhookId?: number;
-  applicationId?: number | null;
+  applicationId?: number;
   accessTokenId?: number;
-  accessTokenPreview?: string | null;
+  accessTokenPreview?: string;
   scopes?: string[] | AuditDetailsTokenScopesChange;
   name?: AuditDetailsTokenNameChange;
 }
 
 export interface AuditDetailsBotOAuthClient {
   botId: number;
-  actorId: number | null;
+  actorId?: number;
   clientId: string;
-  changes: Record<string, unknown>;
+  changes?: Record<string, unknown>;
   applicationId?: number;
   applicationName?: string;
   botName?: string;
   webhookId?: number;
   scopes?: string[];
-  accessTokenId?: number | null;
-  accessTokenPreview?: string | null;
+  accessTokenId?: number;
+  accessTokenPreview?: string;
 }
 
 export interface AuditDetailsBotOAuthClientDisabled {
   botId: number;
-  actorId: number | null;
+  actorId?: number;
   clientId: string;
   deletedAccessTokensCount: number;
   deletedAccessGrantsCount: number;
@@ -978,26 +986,26 @@ export interface AuditDetailsBotOAuthClientDisabled {
   botName?: string;
   webhookId?: number;
   scopes?: string[];
-  accessTokenId?: number | null;
-  accessTokenPreview?: string | null;
+  accessTokenId?: number;
+  accessTokenPreview?: string;
 }
 
 export interface AuditDetailsBotOAuthClientSecretRotated {
   botId: number;
-  actorId: number | null;
+  actorId?: number;
   clientId: string;
   applicationId?: number;
   applicationName?: string;
   botName?: string;
   webhookId?: number;
   scopes?: string[];
-  accessTokenId?: number | null;
-  accessTokenPreview?: string | null;
+  accessTokenId?: number;
+  accessTokenPreview?: string;
 }
 
 export interface AuditDetailsBotScopes {
   botId: number;
-  actorId: number | null;
+  actorId?: number;
   addedScopes: string[];
   removedScopes: string[];
   botName?: string;
@@ -1008,13 +1016,13 @@ export interface AuditDetailsBotScopes {
 
 export interface AuditDetailsBotTokenUpdated {
   tokenKind: string;
-  tokenName: string | null;
+  tokenName?: string;
   resourceOwnerId: number;
   currentScopes: string[];
   botId?: number;
-  actorId: number | null;
+  actorId?: number;
   accessTokenId: number;
-  accessTokenPreview: string | null;
+  accessTokenPreview?: string;
   applicationId?: number;
   applicationName?: string;
   clientId?: string;
@@ -1026,13 +1034,13 @@ export interface AuditDetailsBotTokenUpdated {
 
 export interface AuditDetailsBotWebhookSettings {
   botId: number;
-  actorId: number | null;
+  actorId?: number;
   changes: Record<string, unknown>;
   botName?: string;
   webhookId?: number;
-  accessTokenId?: number | null;
-  accessTokenPreview?: string | null;
-  applicationId?: number | null;
+  accessTokenId?: number;
+  accessTokenPreview?: string;
+  applicationId?: number;
 }
 
 export interface AuditDetailsChatId {
@@ -1051,7 +1059,7 @@ export interface AuditDetailsChatRenamed {
 export interface AuditDetailsDeviceAuthorizationApproved {
   clientId: string;
   scopes: string[];
-  deviceName?: string | null;
+  deviceName?: string;
   applicationId: number;
   applicationName?: string;
   deviceGrantId: number;
@@ -1061,8 +1069,8 @@ export interface AuditDetailsDeviceAuthorizationApproved {
 export interface AuditDetailsDeviceAuthorizationDenied {
   clientId: string;
   scopes: string[];
-  deviceName?: string | null;
-  applicationId?: number | null;
+  deviceName?: string;
+  applicationId?: number;
   deviceGrantId: number;
   tokenKind?: string;
 }
@@ -1073,7 +1081,7 @@ export interface AuditDetailsDlp {
   messageId: number;
   chatId: number;
   userId: number;
-  actionMessage: string | null;
+  actionMessage?: string;
   conditionsMatched: boolean;
 }
 
@@ -1110,7 +1118,7 @@ export interface AuditDetailsLoginGrantDenied {
 }
 
 export interface AuditDetailsOAuthAuthorizationGranted {
-  clientId: string | null;
+  clientId?: string;
   scopes: string[];
   applicationId: number;
   applicationName?: string;
@@ -1139,8 +1147,8 @@ export interface AuditDetailsSearch {
   searchType: string;
   queryPresent: boolean;
   cursorPresent: boolean;
-  limit: number | null;
-  filters: Record<string, unknown>;
+  limit?: number;
+  filters?: Record<string, unknown>;
 }
 
 export interface AuditDetailsTagChat {
@@ -1154,18 +1162,18 @@ export interface AuditDetailsTagName {
 
 export interface AuditDetailsToken {
   tokenKind: string;
-  tokenName: string | null;
+  tokenName?: string;
   resourceOwnerId: number;
   scopes: string[];
   accessTokenId: number;
-  accessTokenPreview: string | null;
+  accessTokenPreview?: string;
   applicationId?: number;
   applicationName?: string;
   clientId?: string;
   botId?: number;
   botName?: string;
-  deviceName?: string | null;
-  actorId?: number | null;
+  deviceName?: string;
+  actorId?: number;
   webhookId?: number;
   userId?: number;
   source?: string;
@@ -1173,8 +1181,8 @@ export interface AuditDetailsToken {
 }
 
 export interface AuditDetailsTokenNameChange {
-  previous: string | null;
-  new: string | null;
+  previous?: string;
+  new?: string;
 }
 
 export interface AuditDetailsTokenScopes {
@@ -1198,14 +1206,14 @@ export interface AuditDetailsUserUpdated {
 
 export interface AuditDetailsVideoCallFinished {
   chatId: number;
-  startedMessageId: number | null;
-  duration: number | null;
+  startedMessageId?: number;
+  duration?: number;
   maxMembersCount: number;
 }
 
 export interface AuditDetailsVideoCallRecording {
   chatId: number;
-  startedMessageId: number | null;
+  startedMessageId?: number;
   recordingId: number;
   fileId: number;
   duration: number;
@@ -1214,7 +1222,7 @@ export interface AuditDetailsVideoCallRecording {
 
 export interface AuditDetailsVideoCallStarted {
   chatId: number;
-  startedMessageId: number | null;
+  startedMessageId?: number;
 }
 
 export interface AuditEvent {
@@ -1792,7 +1800,7 @@ export interface Message {
 export interface MessageCreateRequestFile {
   key: string;
   name: string;
-  fileType: FileType;
+  fileType?: FileType;
   size?: number;
   width?: number;
   height?: number;
@@ -1952,9 +1960,9 @@ export interface StatusUpdateRequest {
   status: {
     emoji?: string;
     title?: string;
-    expiresAt?: string;
+    expiresAt?: string | null;
     isAway?: boolean;
-    awayMessage?: string;
+    awayMessage?: string | null;
   };
 }
 
@@ -1989,7 +1997,8 @@ export interface TaskCreateRequestCustomProperty {
 
 export interface TaskCreateRequest {
   task: {
-    kind: TaskKind;
+    /** @default reminder */
+    kind?: TaskKind;
     content?: string;
     dueAt?: string;
     /** @default 1 */
@@ -2286,6 +2295,7 @@ export interface VoiceContent {
   durationMs: number;
   waveform: string;
   transcript: string | null;
+  transcriptStatus: VoiceTranscriptStatus | null;
 }
 
 export interface WebhookEvent {
@@ -2445,7 +2455,7 @@ export interface ListChatMessagesParams {
 }
 
 export interface RemoveReactionParams {
-  code: string;
+  code?: string;
   name?: string;
 }
 

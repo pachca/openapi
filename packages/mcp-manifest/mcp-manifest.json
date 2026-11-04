@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "84d8867c4a138587"
+    "digest": "bed613bfbb743c4c"
   },
   "server": {
     "name": "pachca",
@@ -339,7 +339,7 @@
           },
           "actor_id": {
             "type": "string",
-            "description": "ID of the user who performed the action",
+            "description": "ID of the event's actor, as in the record's `actor_id` field. For a role change, adding to and removing from a chat, and assigning and removing tags, the filter finds the employee they affected.",
             "examples": [
               "98765"
             ]
@@ -468,7 +468,7 @@
                 },
                 "actor_id": {
                   "type": "string",
-                  "description": "ID of the user who performed the action"
+                  "description": "ID of the user who performed the action. For user_role_changed, user_chat_join, user_chat_leave, user_added_to_tag and user_removed_from_tag it is the employee the change affected, and who made it comes in `details`: in `initiator_id` or `inviter_id`."
                 },
                 "actor_type": {
                   "type": "string",
@@ -499,7 +499,7 @@
                     },
                     "initiator_id": {
                       "type": "integer",
-                      "description": "AuditDetailsRoleChanged: Initiator ID. AuditDetailsInitiator: Action initiator ID."
+                      "description": "AuditDetailsRoleChanged: ID of the user who changed the role. The event actor is the employee whose role was changed. AuditDetailsInitiator: ID of the user who performed the action. The event actor is the employee it affected."
                     },
                     "name": {
                       "type": [
@@ -509,24 +509,18 @@
                       "description": "AuditDetailsTagName: Tag name. AuditDetailsBot: Token name change for bot_token_updated. Present if the name was passed in the request. AuditDetailsBotTokenUpdated: Token name change. Present if the name was passed in the request.",
                       "properties": {
                         "previous": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
-                          "description": "Previous name. `null` if there was no name."
+                          "type": "string",
+                          "description": "Previous name. Absent if there was no name."
                         },
                         "new": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
-                          "description": "New name. `null` if the name was removed."
+                          "type": "string",
+                          "description": "New name. Absent if the name was removed."
                         }
                       }
                     },
                     "inviter_id": {
                       "type": "integer",
-                      "description": "Inviter ID"
+                      "description": "ID of the user who added the member to the chat. The event actor is the added member."
                     },
                     "old_name": {
                       "type": "string",
@@ -595,11 +589,8 @@
                       "description": "AuditDetailsDlp: User ID. AuditDetailsOAuthAuthorizationRevoked: ID of the employee whose access was revoked. Present when the access was revoked by an administrator. AuditDetailsToken: ID of the employee whose token was revoked. Present when an administrator revoked the token or the employee was moved to guests."
                     },
                     "action_message": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "description": "Action description. `null` if the rule action has no text set."
+                      "type": "string",
+                      "description": "Action description. Absent if the rule action has no text set."
                     },
                     "conditions_matched": {
                       "type": "boolean",
@@ -618,15 +609,12 @@
                       "description": "Whether a cursor was used"
                     },
                     "limit": {
-                      "type": [
-                        "integer",
-                        "null"
-                      ],
-                      "description": "Requested page size. `null` if the `limit` parameter was not passed. In records before 16 October 2026 it is `0` instead of `null`."
+                      "type": "integer",
+                      "description": "Requested page size. Absent if the `limit` parameter was not passed. In records before 16 October 2026 it is `0` in this case."
                     },
                     "filters": {
                       "type": "object",
-                      "description": "Applied filters. Possible keys depend on the search type: order, sort, created_from, created_to, company_roles (users), active (chats and messages), chat_subtype, personal (chats), chat_ids, user_ids, include_root_chat_id (messages, always `true`).",
+                      "description": "Applied filters. Possible keys depend on the search type: order, sort, created_from, created_to, company_roles (users), active (chats and messages), chat_subtype, personal (chats), chat_ids, user_ids, include_root_chat_id (messages, always `true`). Absent if no filters were applied.",
                       "additionalProperties": {}
                     },
                     "bot_id": {
@@ -634,36 +622,24 @@
                       "description": "AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: Bot ID. AuditDetailsOAuthAuthorizationGranted: Bot ID. Present when access was granted to a bot. AuditDetailsOAuthAuthorizationRevoked: Bot ID. Present when access was revoked from a bot. AuditDetailsToken: Bot ID. Present for bot tokens and for tokens an employee granted to a bot."
                     },
                     "actor_id": {
-                      "type": [
-                        "integer",
-                        "null"
-                      ],
-                      "description": "AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: ID of the user who performed the action. `null` if the action was performed without an initiator. AuditDetailsToken: ID of the user who performed the action. Present for bot token events, `null` if the action was performed without an initiator."
+                      "type": "integer",
+                      "description": "AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: ID of the user who performed the action. AuditDetailsToken: ID of the user who performed the action. Present for bot token events."
                     },
                     "webhook_id": {
                       "type": "integer",
                       "description": "AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: ID of the bot's webhook. AuditDetailsToken: ID of the bot's webhook. Present for bot token events."
                     },
                     "application_id": {
-                      "type": [
-                        "integer",
-                        "null"
-                      ],
-                      "description": "AuditDetailsBot: ID of the bot's application. `null` if the bot has no application. AuditDetailsBotWebhookSettings: ID of the application of the token the settings were changed with. `null` if they were changed in the Pachca interface. AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: ID of the bot's application. AuditDetailsOAuthAuthorizationGranted: ID of the application that was granted access. AuditDetailsOAuthAuthorizationRevoked: ID of the application whose access was revoked. AuditDetailsDeviceAuthorizationApproved: ID of the application that was allowed to log in. AuditDetailsDeviceAuthorizationDenied: Application ID. When a CLI sign-in is refused, it is `null`: an application is assigned to the sign-in only after it is confirmed. AuditDetailsToken: ID of the application the token belongs to."
+                      "type": "integer",
+                      "description": "AuditDetailsBot: ID of the bot's application. Absent if the bot has no application. AuditDetailsBotWebhookSettings: ID of the application of the token the settings were changed with. Absent if they were changed in the Pachca interface. AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled and AuditDetailsBotTokenUpdated: ID of the bot's application. AuditDetailsOAuthAuthorizationGranted: ID of the application that was granted access. AuditDetailsOAuthAuthorizationRevoked: ID of the application whose access was revoked. AuditDetailsDeviceAuthorizationApproved: ID of the application that was allowed to log in. AuditDetailsDeviceAuthorizationDenied: Application ID. Absent when a CLI sign-in is refused: an application is assigned to the sign-in only after it is confirmed. AuditDetailsToken: ID of the application the token belongs to."
                     },
                     "access_token_id": {
-                      "type": [
-                        "integer",
-                        "null"
-                      ],
-                      "description": "AuditDetailsBot: Token ID. Present for bot_token_created, bot_token_reissued and bot_token_updated. AuditDetailsBotWebhookSettings: ID of the token the settings were changed with. `null` if they were changed in the Pachca interface. AuditDetailsBotOAuthClient and AuditDetailsBotOAuthClientDisabled: ID of the token the action was performed with. `null` if the action was performed in the Pachca interface. AuditDetailsBotOAuthClientSecretRotated: ID of the token the action was performed with. `null` if the action was performed in the Pachca interface. Present for bot_oauth_client_secret_issued. AuditDetailsToken and AuditDetailsBotTokenUpdated: Token ID."
+                      "type": "integer",
+                      "description": "AuditDetailsBot: Token ID. Present for bot_token_created, bot_token_reissued and bot_token_updated. AuditDetailsBotWebhookSettings: ID of the token the settings were changed with. Absent if they were changed in the Pachca interface. AuditDetailsBotOAuthClient and AuditDetailsBotOAuthClientDisabled: ID of the token the action was performed with. Absent if the action was performed in the Pachca interface. AuditDetailsBotOAuthClientSecretRotated: ID of the token the action was performed with. Present for bot_oauth_client_secret_issued, except for actions in the Pachca interface. AuditDetailsToken and AuditDetailsBotTokenUpdated: Token ID."
                     },
                     "access_token_preview": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "description": "AuditDetailsBot: Masked token: the first and last characters. Present for bot token events, `null` if the value is unavailable. AuditDetailsBotWebhookSettings: Masked token the settings were changed with. `null` if they were changed in the Pachca interface. AuditDetailsBotOAuthClient and AuditDetailsBotOAuthClientDisabled: Masked token the action was performed with. `null` if the action was performed in the Pachca interface. AuditDetailsBotOAuthClientSecretRotated: Masked token the action was performed with. `null` if the action was performed in the Pachca interface. Present for bot_oauth_client_secret_issued. AuditDetailsToken and AuditDetailsBotTokenUpdated: Masked token: the first and last characters. `null` if the value is unavailable."
+                      "type": "string",
+                      "description": "AuditDetailsBot: Masked token: the first and last characters. Present for bot token events if the value is available. AuditDetailsBotWebhookSettings: Masked token the settings were changed with. Absent if they were changed in the Pachca interface. AuditDetailsBotOAuthClient and AuditDetailsBotOAuthClientDisabled: Masked token the action was performed with. Absent if the action was performed in the Pachca interface. AuditDetailsBotOAuthClientSecretRotated: Masked token the action was performed with. Present for bot_oauth_client_secret_issued, except for actions in the Pachca interface. AuditDetailsToken and AuditDetailsBotTokenUpdated: Masked token: the first and last characters. Absent if the value is unavailable."
                     },
                     "added_scopes": {
                       "type": "array",
@@ -699,15 +675,12 @@
                     },
                     "changes": {
                       "type": "object",
-                      "description": "AuditDetailsBotWebhookSettings: Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), the value is an object with previous and new fields. AuditDetailsBotOAuthClient: Changed client settings. The key is the setting name (confidential, redirect_uris, scopes), the value is an object with previous and new fields.",
+                      "description": "AuditDetailsBotWebhookSettings: Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages, events_history_enabled, can_edit, who_can_add), the value is an object with previous and new fields. If a value was not set, the object has no previous or new field for it. AuditDetailsBotOAuthClient: Changed client settings. The key is the setting name (confidential, redirect_uris, scopes), the value is an object with previous and new fields. Absent if authorization on behalf of an employee was turned on without changing the client settings.",
                       "additionalProperties": {}
                     },
                     "client_id": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "description": "AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated and AuditDetailsBotOAuthClientDisabled: Bot OAuth client ID. AuditDetailsOAuthAuthorizationGranted: ID of the OAuth client that was granted access. `null` in records before October 7, 2026 about access granted to a bot. AuditDetailsOAuthAuthorizationRevoked: ID of the OAuth client whose access was revoked. AuditDetailsDeviceAuthorizationApproved: ID of the OAuth client that was allowed to sign in. AuditDetailsDeviceAuthorizationDenied: ID of the OAuth client that was denied the sign-in. AuditDetailsToken: ID of the application's OAuth client. AuditDetailsBotTokenUpdated: ID of the bot's OAuth client."
+                      "type": "string",
+                      "description": "AuditDetailsBotOAuthClient, AuditDetailsBotOAuthClientSecretRotated and AuditDetailsBotOAuthClientDisabled: Bot OAuth client ID. AuditDetailsOAuthAuthorizationGranted: ID of the OAuth client that was granted access. Absent in records before October 7, 2026 about access granted to a bot. AuditDetailsOAuthAuthorizationRevoked: ID of the OAuth client whose access was revoked. AuditDetailsDeviceAuthorizationApproved: ID of the OAuth client that was allowed to sign in. AuditDetailsDeviceAuthorizationDenied: ID of the OAuth client that was denied the sign-in. AuditDetailsToken: ID of the application's OAuth client. AuditDetailsBotTokenUpdated: ID of the bot's OAuth client."
                     },
                     "application_name": {
                       "type": "string",
@@ -722,11 +695,8 @@
                       "description": "Number of revoked tokens"
                     },
                     "device_name": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "description": "AuditDetailsDeviceAuthorizationApproved: Name of the device the sign-in is made from. `null` if the app did not pass it. AuditDetailsDeviceAuthorizationDenied: Name of the device the sign-in was made from. `null` if the app did not pass it. AuditDetailsToken: Device name. Present for a CLI login, `null` if there is no name."
+                      "type": "string",
+                      "description": "AuditDetailsDeviceAuthorizationApproved: Name of the device the sign-in is made from. Absent if the app did not pass it. AuditDetailsDeviceAuthorizationDenied: Name of the device the sign-in was made from. Absent if the app did not pass it. AuditDetailsToken: Device name. Present for a CLI login if the name is set."
                     },
                     "device_grant_id": {
                       "type": "integer",
@@ -737,18 +707,12 @@
                       "description": "AuditDetailsDeviceAuthorizationApproved and AuditDetailsDeviceAuthorizationDenied: Token kind: `cli` — CLI login. Absent in records before October 7, 2026. AuditDetailsToken: Token kind: `personal` — a personal token, `cli` — a CLI sign-in, `bot` — a bot token, `oauth` — a token an employee granted to a bot on the consent screen, `client` — a token of an external app an employee granted access to. AuditDetailsBotTokenUpdated: Token kind: `bot`."
                     },
                     "started_message_id": {
-                      "type": [
-                        "integer",
-                        "null"
-                      ],
-                      "description": "ID of the call start message. `null` if there is no such message."
+                      "type": "integer",
+                      "description": "ID of the call start message. Absent if there was no such message."
                     },
                     "duration": {
-                      "type": [
-                        "integer",
-                        "null"
-                      ],
-                      "description": "AuditDetailsVideoCallFinished: Call duration in seconds. `null` if the call ended without ever starting. AuditDetailsVideoCallRecording: Recording duration in seconds."
+                      "type": "integer",
+                      "description": "AuditDetailsVideoCallFinished: Call duration in seconds. Absent if the call ended without ever starting. AuditDetailsVideoCallRecording: Recording duration in seconds."
                     },
                     "max_members_count": {
                       "type": "integer",
@@ -775,11 +739,8 @@
                       "description": "Number of unused authorization codes revoked"
                     },
                     "token_name": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "description": "AuditDetailsToken: Token name, for a CLI sign-in — the device name. `null` if there is no name. AuditDetailsBotTokenUpdated: Token name after the change. `null` if there is no name."
+                      "type": "string",
+                      "description": "AuditDetailsToken: Token name, for a CLI sign-in — the device name. Absent if the token has no name. AuditDetailsBotTokenUpdated: Token name after the change. Absent if the token has no name."
                     },
                     "resource_owner_id": {
                       "type": "integer",
@@ -833,14 +794,14 @@
                     "string",
                     "null"
                   ],
-                  "description": "IP address from which the action was performed. `null` for events recorded without a user request."
+                  "description": "IP address of the request in which the action happened. For video call events it is usually the address of the video server, not of a call participant. `null` if the event was recorded outside an HTTP request."
                 },
                 "user_agent": {
                   "type": [
                     "string",
                     "null"
                   ],
-                  "description": "Client user agent, truncated to 255 characters. `null` for events recorded without a user request."
+                  "description": "Client user agent, truncated to 255 characters. For video call events it is usually the user agent of the video server. `null` if the event was recorded outside an HTTP request."
                 }
               }
             }
@@ -1000,7 +961,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+                    "description": "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
                   },
                   "events": {
                     "type": "array",
@@ -1052,7 +1013,7 @@
                   },
                   "ignore_self_messages": {
                     "type": "boolean",
-                    "description": "Skip events about the bot's own messages and reactions"
+                    "description": "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
                   },
                   "events_history_enabled": {
                     "type": "boolean",
@@ -1118,6 +1079,7 @@
           "outgoing_url": {
             "type": "string",
             "description": "Outgoing webhook URL. An empty string disables the webhook.",
+            "maxLength": 255,
             "examples": [
               "https://example.com/tasks/new"
             ]
@@ -1203,7 +1165,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+                    "description": "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
                   },
                   "events": {
                     "type": "array",
@@ -1255,7 +1217,7 @@
                   },
                   "ignore_self_messages": {
                     "type": "boolean",
-                    "description": "Skip events about the bot's own messages and reactions"
+                    "description": "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
                   },
                   "events_history_enabled": {
                     "type": "boolean",
@@ -1306,7 +1268,7 @@
         "user"
       ],
       "bot_token_only": false,
-      "description": "List bots. The bots the caller is entitled to configure: those they created themselves and those whose settings grant them edit access. The `query` parameter selects bots by part of the name, without typos. Bot tokens do not come in the list: a token value is shown once, and the bot's tokens themselves are returned by `list_bot_tokens`. The list of all bots in the workspace, including other people's, is available to the workspace owner on the \"Corporation\" plan — `list_company_bots`. There other people's bots come with only a name and a nickname, and the rest of the settings are hidden.",
+      "description": "List bots. The bots the caller is entitled to configure: those they created themselves and those whose settings grant them edit access. The `query` parameter selects bots by part of the name or nickname, without typos. Bot tokens do not come in the list: a token value is shown once, and the bot's tokens themselves are returned by `list_bot_tokens`. The list of all bots in the workspace, including other people's, is available to the workspace owner on the \"Corporation\" plan — `list_company_bots`. There other people's bots come with only a name and a nickname, and the rest of the settings are hidden.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -1318,7 +1280,7 @@
         "properties": {
           "query": {
             "type": "string",
-            "description": "Search phrase to filter bots by name. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
+            "description": "Search phrase to filter bots by name or nickname. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
             "examples": [
               "task"
             ]
@@ -1445,7 +1407,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+                      "description": "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
                     },
                     "events": {
                       "type": "array",
@@ -1497,7 +1459,7 @@
                     },
                     "ignore_self_messages": {
                       "type": "boolean",
-                      "description": "Skip events about the bot's own messages and reactions"
+                      "description": "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
                     },
                     "events_history_enabled": {
                       "type": "boolean",
@@ -1724,7 +1686,7 @@
         "user"
       ],
       "bot_token_only": false,
-      "description": "New bot. Creates a bot in the workspace. By default the bot gets an incoming webhook in its own format and immediately returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to reissue it with `recreate_bot_token`. With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without a token and without an incoming webhook. Tokens are issued to it with `create_bot_token`, and the incoming webhook is enabled with the `kind` field in the `webhook` object. A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member, and it is added like an employee — with the `add_members` method, passing the bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require membership. The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it is the set of its chats that decides where it lands. No token is needed for that, the webhook address is enough. To write into one particular chat, take the `send_message` method — that one does need a token. Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. Learn more in \"Authorization setup\" (https://dev.pachca.com/guides/oauth/setup). The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in \"Getting a token\" (https://dev.pachca.com/guides/oauth/flow). The nickname must end with `_bot` and be free in the workspace. Only a workspace administrator or owner creates a bot that unfurls links: others get `400` with the `forbidden` code. The bot's avatar is set after creation with the `update_bot_avatar` method. Its answer can carry a secret (a token, or a link that needs none): give it to the person in your reply and nowhere else.",
+      "description": "New bot. Creates a bot in the workspace. By default the bot gets an incoming webhook in its own format and immediately returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to reissue it with `recreate_bot_token`. With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without an incoming webhook and, unless `scopes` is passed in the `webhook` object, without a token. Tokens are issued to it with `create_bot_token`, and the incoming webhook is enabled with the `kind` field in the `webhook` object. A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member, and it is added like an employee — with the `add_members` method, passing the bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require membership. The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it is the set of its chats that decides where it lands. No token is needed for that, the webhook address is enough. To write into one particular chat, take the `send_message` method — that one does need a token. Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. Learn more in \"Authorization setup\" (https://dev.pachca.com/guides/oauth/setup). The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in \"Getting a token\" (https://dev.pachca.com/guides/oauth/flow). Only a workspace administrator or owner creates a bot that unfurls links: others get `400` with the `forbidden` code. The bot's avatar is set after creation with the `update_bot_avatar` method. Its answer can carry a secret (a token, or a link that needs none): give it to the person in your reply and nowhere else.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -1736,7 +1698,7 @@
         "properties": {
           "empty": {
             "type": "boolean",
-            "description": "Create an empty bot: without a token and without an incoming webhook. Without this field the bot is created with an incoming webhook in its own format, and its token comes in `access_token`.",
+            "description": "Create an empty bot: without an incoming webhook and, unless scopes are passed, without a token. Without this field the bot is created with an incoming webhook in its own format, and its token comes in `access_token`.",
             "default": false,
             "examples": [
               false
@@ -1752,8 +1714,9 @@
           },
           "nickname": {
             "type": "string",
-            "description": "Bot nickname. Must end with `_bot`.",
+            "description": "Bot nickname: Latin letters, digits, and `_`, ending with `_bot`, free in the workspace. A nickname in another format gets `400` on the `bot.nickname` field with the `invalid` code, and a taken nickname gets the `taken` code. Without this field the nickname is built from the name transliterated into Latin letters, with `_bot` at the end, and if that nickname is taken, with `_2_bot`, `_3_bot`, and so on.",
             "maxLength": 255,
+            "pattern": "^[a-zA-Z0-9_]*_bot$",
             "examples": [
               "tasks_bot"
             ]
@@ -1761,13 +1724,14 @@
           "outgoing_url": {
             "type": "string",
             "description": "Outgoing webhook URL",
+            "maxLength": 255,
             "examples": [
               "https://example.com/tasks/new"
             ]
           },
           "events": {
             "type": "array",
-            "description": "Events the bot is subscribed to",
+            "description": "Events the bot is subscribed to. Without this field the bot is subscribed to `message_new`.",
             "examples": [
               [
                 "message_new"
@@ -1813,7 +1777,7 @@
           },
           "commands": {
             "type": "array",
-            "description": "Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.",
+            "description": "Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the commands together with the `, ` separators (comma and space) must not exceed 255 characters.",
             "examples": [
               [
                 "/task",
@@ -1857,6 +1821,7 @@
           "challenge_key": {
             "type": "string",
             "description": "Verification field name for incoming webhook verification",
+            "maxLength": 255,
             "examples": [
               "challenge"
             ]
@@ -1871,7 +1836,7 @@
           },
           "ignore_self_messages": {
             "type": "boolean",
-            "description": "Skip events about the bot's own messages and reactions",
+            "description": "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive.",
             "default": false,
             "examples": [
               false
@@ -2211,7 +2176,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+                    "description": "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
                   },
                   "events": {
                     "type": "array",
@@ -2263,7 +2228,7 @@
                   },
                   "ignore_self_messages": {
                     "type": "boolean",
-                    "description": "Skip events about the bot's own messages and reactions"
+                    "description": "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
                   },
                   "events_history_enabled": {
                     "type": "boolean",
@@ -2582,7 +2547,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+                    "description": "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
                   },
                   "events": {
                     "type": "array",
@@ -2634,7 +2599,7 @@
                   },
                   "ignore_self_messages": {
                     "type": "boolean",
-                    "description": "Skip events about the bot's own messages and reactions"
+                    "description": "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
                   },
                   "events_history_enabled": {
                     "type": "boolean",
@@ -2832,7 +2797,7 @@
         "user"
       ],
       "bot_token_only": false,
-      "description": "Edit bot. Changes a bot's settings: only the fields you pass are overwritten. The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation error. Commands, scopes, events, link unfurling domains, and edit roles are replaced by the passed list as a whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by `update_bot_token`. When `oauth_client` makes the client server-side, its secret comes in `client_secret` once. The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in \"Getting a token\" (https://dev.pachca.com/guides/oauth/flow). The catalog page is set by `promo` while authorization is enabled. Only a workspace administrator or owner turns the `message_link_shared` event on or off, turns on the `trigger_on: unfurl` mode, and for a bot with either changes the domains and the webhook address or turns on the event history. If a change takes away the bot's right to be in tags (`single_chat: true` or `who_can_add` set to `creator` or `creator_admin`), it leaves all tags and the chats it got into through them, and stays in the chats it was added to directly. More in the \"Bot in tags\" (https://dev.pachca.com/guides/bots/settings#bot-v-tegah) section. The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be changed for a bot whose settings are not accessible to you (the \"Who can edit bot settings\" field on the \"General\" tab). The bot's avatar is set and removed by separate methods, `update_bot_avatar` and `delete_bot_avatar`. Its answer can carry a secret (a token, or a link that needs none): give it to the person in your reply and nowhere else.",
+      "description": "Edit bot. Changes a bot's settings: only the fields you pass are overwritten. Commands, scopes, events, link unfurling domains, and edit roles are replaced by the passed list as a whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by `update_bot_token`. When `oauth_client` makes the client server-side, its secret comes in `client_secret` once. The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in \"Getting a token\" (https://dev.pachca.com/guides/oauth/flow). The catalog page is set by `promo` while authorization is enabled. Only a workspace administrator or owner turns the `message_link_shared` event on or off, turns on the `trigger_on: unfurl` mode, and for a bot with either changes the domains and the webhook address or turns on the event history. If a change takes away the bot's right to be in tags (`single_chat: true` or `who_can_add` set to `creator` or `creator_admin`), it leaves all tags and the chats it got into through them, and stays in the chats it was added to directly. More in the \"Bot in tags\" (https://dev.pachca.com/guides/bots/settings#bot-v-tegah) section. The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be changed for a bot whose settings are not accessible to you (the \"Who can edit bot settings\" field on the \"General\" tab). The bot's avatar is set and removed by separate methods, `update_bot_avatar` and `delete_bot_avatar`. Its answer can carry a secret (a token, or a link that needs none): give it to the person in your reply and nowhere else.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -2860,8 +2825,9 @@
           },
           "nickname": {
             "type": "string",
-            "description": "Bot nickname. Must end with `_bot`.",
+            "description": "Bot nickname: Latin letters, digits, and `_`, ending with `_bot`, free in the workspace. A nickname in another format gets `400` on the `bot.nickname` field with the `invalid` code, and a taken nickname gets the `taken` code.",
             "maxLength": 255,
+            "pattern": "^[a-zA-Z0-9_]*_bot$",
             "examples": [
               "tasks_bot"
             ]
@@ -2869,6 +2835,7 @@
           "outgoing_url": {
             "type": "string",
             "description": "Outgoing webhook URL",
+            "maxLength": 255,
             "examples": [
               "https://example.com/tasks/new"
             ]
@@ -2920,7 +2887,7 @@
           },
           "commands": {
             "type": "array",
-            "description": "Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.",
+            "description": "Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the commands together with the `, ` separators (comma and space) must not exceed 255 characters.",
             "examples": [
               [
                 "/task",
@@ -2964,6 +2931,7 @@
           "challenge_key": {
             "type": "string",
             "description": "Verification field name for incoming webhook verification",
+            "maxLength": 255,
             "examples": [
               "challenge"
             ]
@@ -2977,7 +2945,7 @@
           },
           "ignore_self_messages": {
             "type": "boolean",
-            "description": "Skip events about the bot's own messages and reactions",
+            "description": "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive.",
             "examples": [
               false
             ]
@@ -3319,7 +3287,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+                    "description": "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
                   },
                   "events": {
                     "type": "array",
@@ -3371,7 +3339,7 @@
                   },
                   "ignore_self_messages": {
                     "type": "boolean",
-                    "description": "Skip events about the bot's own messages and reactions"
+                    "description": "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
                   },
                   "events_history_enabled": {
                     "type": "boolean",
@@ -3616,7 +3584,7 @@
         "user"
       ],
       "bot_token_only": false,
-      "description": "Upload bot avatar. Sets or replaces the bot's avatar. It can be changed by anyone who has access to `update_bot`. The answer contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, an animated `gif` must be no larger than 2 MB, and the image is scaled down to 1024 by 1024 pixels. A scaled-down copy comes in the bot's `avatar_url` field, for example in the `get_bot` method.",
+      "description": "Upload bot avatar. Sets or replaces the bot's avatar. It can be changed by anyone who has access to `update_bot`. The answer contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, any `gif`, animated or not, must be no larger than 2 MB, the image is scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small `png` stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB. A scaled-down copy comes in the bot's `avatar_url` field, for example in the `get_bot` method.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -3841,7 +3809,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+                    "description": "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
                   },
                   "events": {
                     "type": "array",
@@ -3893,7 +3861,7 @@
                   },
                   "ignore_self_messages": {
                     "type": "boolean",
-                    "description": "Skip events about the bot's own messages and reactions"
+                    "description": "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
                   },
                   "events_history_enabled": {
                     "type": "boolean",
@@ -4196,7 +4164,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+                    "description": "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
                   },
                   "events": {
                     "type": "array",
@@ -4248,7 +4216,7 @@
                   },
                   "ignore_self_messages": {
                     "type": "boolean",
-                    "description": "Skip events about the bot's own messages and reactions"
+                    "description": "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
                   },
                   "events_history_enabled": {
                     "type": "boolean",
@@ -5420,7 +5388,7 @@
                 },
                 "name": {
                   "type": "string",
-                  "description": "Name"
+                  "description": "Name of the conversation or channel. A direct chat has an empty string here, while the `search_chats` method returns the other party's full name in it, and the token owner's name in the chat with yourself."
                 },
                 "created_at": {
                   "type": "string",
@@ -5638,7 +5606,7 @@
               },
               "name": {
                 "type": "string",
-                "description": "Name"
+                "description": "Name of the conversation or channel. A direct chat has an empty string here, while the `search_chats` method returns the other party's full name in it, and the token owner's name in the chat with yourself."
               },
               "created_at": {
                 "type": "string",
@@ -5903,7 +5871,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Chat info. The chat's details together with the list of members and the linked tags. What is written in the chat is returned by the `list_chat_messages` method. A private conversation of your own workspace the caller does not belong to responds `403`. A chat of another workspace responds `404`, like one that does not exist. A public channel of your own workspace is returned even to someone who has not joined it. The method does not open other people's private chats to the workspace owner either — the full list of those is returned by `list_company_chats`. Only active members come in `member_ids`: suspended ones do not make it into the list, although their membership is kept.",
+      "description": "Chat info. The chat's details together with the list of members and the linked tags. What is written in the chat is returned by the `list_chat_messages` method. A private conversation of your own workspace the caller does not belong to responds `403`. A chat of another workspace responds `404`, like one that does not exist. A public channel of your own workspace is returned even to someone who has not joined it. The method does not open other people's private chats to the workspace owner either — the full list of those is returned by `list_company_chats`.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -5950,7 +5918,7 @@
               },
               "name": {
                 "type": "string",
-                "description": "Name"
+                "description": "Name of the conversation or channel. A direct chat has an empty string here, while the `search_chats` method returns the other party's full name in it, and the token owner's name in the chat with yourself."
               },
               "created_at": {
                 "type": "string",
@@ -6051,7 +6019,7 @@
           },
           "name": {
             "type": "string",
-            "description": "Name",
+            "description": "Name of the conversation or channel. An empty name or a name of spaces only responds `400` with the `blank` code.",
             "maxLength": 255,
             "examples": [
               "Pool"
@@ -6102,7 +6070,7 @@
               },
               "name": {
                 "type": "string",
-                "description": "Name"
+                "description": "Name of the conversation or channel. A direct chat has an empty string here, while the `search_chats` method returns the other party's full name in it, and the token owner's name in the chat with yourself."
               },
               "created_at": {
                 "type": "string",
@@ -6232,7 +6200,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Upload chat avatar. Sets or replaces the avatar of a conversation or a channel. It can be changed by anyone who has access to `update_chat`. A direct chat and a thread have no avatar of their own, and for them the method responds `403`. The same response comes for an archived chat: first bring it back from the archive with the `unarchive_chat` method. The answer contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, an animated `gif` must be no larger than 2 MB, and the image is scaled down to 1024 by 1024 pixels. The same link comes in the chat's `avatar_url` field, for example in the `get_chat` method.",
+      "description": "Upload chat avatar. Sets or replaces the avatar of a conversation or a channel. It can be changed by anyone who has access to `update_chat`. A direct chat and a thread have no avatar of their own, and for them the method responds `403`. The same response comes for an archived chat: first bring it back from the archive with the `unarchive_chat` method. The answer contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, any `gif`, animated or not, must be no larger than 2 MB, the image is scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small `png` stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB. The same link comes in the chat's `avatar_url` field, for example in the `get_chat` method.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -6736,7 +6704,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                        "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                       }
                     }
                   }
@@ -6777,7 +6745,7 @@
                       "properties": {
                         "text": {
                           "type": "string",
-                          "description": "Message text"
+                          "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                         }
                       }
                     }
@@ -6801,7 +6769,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca — in that case `invite_status` returns `sent`.",
+                  "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca or has not signed in since their email was changed — in that case `invite_status` returns `sent`.",
                   "format": "date-time"
                 },
                 "time_zone": {
@@ -7154,7 +7122,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Mark chat as unread. Marks a chat as unread for the token owner, like \"Mark as unread\" in the interface. Only their own counter changes, the other members notice nothing. Without `message_id` the last message of the chat becomes unread, with `message_id` — this message and all messages after it. A repeated request with the same message changes nothing, and in a chat without messages the method responds with success and does nothing. Works in conversations, channels, direct chats and threads the token owner belongs to: a thread is passed by its `chat_id`. A hidden direct chat appears in the list again. A public chat the token owner is not in, a message from another chat, and a chat of another workspace respond `404`. A private chat and an inaccessible thread respond `403`.",
+      "description": "Mark chat as unread. Marks a chat as unread for the token owner, like \"Mark as unread\" in the interface. Only their own counter changes, the other members notice nothing. Without `message_id` the last message of the chat becomes unread, with `message_id` — this message and all messages after it. A repeated request with the same message changes nothing, and in a chat without messages the method responds with success and does nothing. Works in conversations, channels, direct chats and threads the token owner belongs to: a thread is passed by its `chat_id`. A hidden direct chat appears in the list again. A public chat or an accessible thread the token owner is not in, a message from another chat, and a chat of another workspace respond `404`. A private chat and an inaccessible thread respond `403`.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -7348,7 +7316,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+                      "description": "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
                     },
                     "events": {
                       "type": [
@@ -7421,7 +7389,7 @@
                         "boolean",
                         "null"
                       ],
-                      "description": "Skip events about the bot's own messages and reactions"
+                      "description": "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
                     },
                     "events_history_enabled": {
                       "type": [
@@ -7597,7 +7565,7 @@
                 },
                 "name": {
                   "type": "string",
-                  "description": "Name"
+                  "description": "Name of the conversation or channel. A direct chat has an empty string here, while the `search_chats` method returns the other party's full name in it, and the token owner's name in the chat with yourself."
                 },
                 "created_at": {
                   "type": "string",
@@ -7707,7 +7675,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "List custom properties. The schema of the workspace's custom properties: the ID, the name, and the type of each. Only employees and reminders have such properties, their sets are independent, and the `entity_type` parameter picks the one you need. The values come with the entity itself — in the employee's profile or in the reminder. The IDs from here are needed in order to set those values. Properties of the \"File\" and \"Multiple choice\" types are not available through the API and do not make it into the results. The basic profile fields — name, phone, email, department, tags — do not either: these are not custom properties. The set of properties is defined by the workspace administrator, who also renames and deletes them. That is why the list is worth re-reading before work: addressing a property that no longer exists returns an error.",
+      "description": "List custom properties. The schema of the workspace's custom properties: the ID, the name, and the type of each. Only employees and reminders have such properties, their sets are independent, and the `entity_type` parameter picks the one you need. The values come with the entity itself — in the employee's profile or in the reminder. The IDs from here are needed in order to set those values. Properties of the \"File\" and \"Multiple choice\" types are not available through the API and do not make it into the results. The basic profile fields — name, phone, email, department, tags — do not either: these are not custom properties. The set of properties is defined by the workspace administrator, who also renames and deletes them. That is why the list is worth re-reading before work: a value for a property that no longer exists, or for a property of another entity, is silently skipped, and the response is successful.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -7966,7 +7934,7 @@
                     "object",
                     "null"
                   ],
-                  "description": "Voice message. `null` if there is no voice attachment. The transcription in `transcript` is always `null` for a draft — it starts after the sending.",
+                  "description": "Voice message. `null` if there is no voice attachment. The transcription in `transcript` and its status in `transcript_status` are always `null` for a draft — it starts after the sending.",
                   "properties": {
                     "duration_ms": {
                       "type": "integer",
@@ -7982,6 +7950,13 @@
                         "null"
                       ],
                       "description": "Voice message transcription to text. `null` while the transcription is not ready or unavailable."
+                    },
+                    "transcript_status": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                     }
                   }
                 },
@@ -8137,7 +8112,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Up to 40,000 bytes in UTF-8.",
+            "description": "Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Supports mentions, like the text in `send_message`. `<@user_id>` stays in the draft text as sent and becomes `@nickname` when the message is sent. Up to 40,000 bytes in UTF-8.",
             "examples": [
               "Weekly report: sales are up 10%"
             ]
@@ -8178,7 +8153,7 @@
                 },
                 "name": {
                   "type": "string",
-                  "description": "File name to display to the user",
+                  "description": "File name to display to the user. Applies to a new file: the extension must match the extension of the file you pass (content or key), otherwise the response is 422 with the `wrong_params` code.",
                   "maxLength": 255,
                   "examples": [
                     "logo.png"
@@ -8225,6 +8200,7 @@
                 "duration_ms": {
                   "type": "integer",
                   "description": "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.",
+                  "minimum": 1,
                   "format": "int32",
                   "examples": [
                     5400
@@ -8489,7 +8465,7 @@
                   "object",
                   "null"
                 ],
-                "description": "Voice message. `null` if there is no voice attachment. The transcription in `transcript` is always `null` for a draft — it starts after the sending.",
+                "description": "Voice message. `null` if there is no voice attachment. The transcription in `transcript` and its status in `transcript_status` are always `null` for a draft — it starts after the sending.",
                 "properties": {
                   "duration_ms": {
                     "type": "integer",
@@ -8505,6 +8481,13 @@
                       "null"
                     ],
                     "description": "Voice message transcription to text. `null` while the transcription is not ready or unavailable."
+                  },
+                  "transcript_status": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -8732,7 +8715,7 @@
                   "object",
                   "null"
                 ],
-                "description": "Voice message. `null` if there is no voice attachment. The transcription in `transcript` is always `null` for a draft — it starts after the sending.",
+                "description": "Voice message. `null` if there is no voice attachment. The transcription in `transcript` and its status in `transcript_status` are always `null` for a draft — it starts after the sending.",
                 "properties": {
                   "duration_ms": {
                     "type": "integer",
@@ -8748,6 +8731,13 @@
                       "null"
                     ],
                     "description": "Voice message transcription to text. `null` while the transcription is not ready or unavailable."
+                  },
+                  "transcript_status": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -8862,7 +8852,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Draft text. Up to 40,000 bytes in UTF-8.",
+            "description": "Draft text. Supports mentions, like the text in `send_message`. `<@user_id>` stays in the draft text as sent and becomes `@nickname` when the message is sent. Up to 40,000 bytes in UTF-8.",
             "examples": [
               "Weekly report: sales are up 10%"
             ]
@@ -8903,7 +8893,7 @@
                 },
                 "name": {
                   "type": "string",
-                  "description": "File name to display to the user",
+                  "description": "File name to display to the user. Applies to a new file: the extension must match the extension of the file you pass (content or key), otherwise the response is 422 with the `wrong_params` code.",
                   "maxLength": 255,
                   "examples": [
                     "logo.png"
@@ -8950,6 +8940,7 @@
                 "duration_ms": {
                   "type": "integer",
                   "description": "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.",
+                  "minimum": 1,
                   "format": "int32",
                   "examples": [
                     5400
@@ -9208,7 +9199,7 @@
                   "object",
                   "null"
                 ],
-                "description": "Voice message. `null` if there is no voice attachment. The transcription in `transcript` is always `null` for a draft — it starts after the sending.",
+                "description": "Voice message. `null` if there is no voice attachment. The transcription in `transcript` and its status in `transcript_status` are always `null` for a draft — it starts after the sending.",
                 "properties": {
                   "duration_ms": {
                     "type": "integer",
@@ -9224,6 +9215,13 @@
                       "null"
                     ],
                     "description": "Voice message transcription to text. `null` while the transcription is not ready or unavailable."
+                  },
+                  "transcript_status": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -9449,7 +9447,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "List tags. All tags of the workspace with the number of employees in each, regardless of which chats they are linked to. A multi-guest gets only the tags of active conversations and channels they are a member of. The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the interface. It accepts no more than 100 names per request, and for more the method responds `400` with the `too_long` code. Who belongs to a particular tag is returned by `get_tag_users`.",
+      "description": "List tags. All tags of the workspace with the number of employees in each, regardless of which chats they are linked to. A multi-guest gets only the tags of active conversations and channels they are a member of. The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the interface. It accepts no more than 100 names per request, and for more the method responds `400` with the `too_long` code. Without `limit` and `cursor` all tags found by `names` come in a single page. Who belongs to a particular tag is returned by `get_tag_users`.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -9581,7 +9579,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "New tag. Creates a tag. A tag is a way to keep chat membership up to date by itself: it is linked to a conversation or a channel, and everyone who has this tag ends up there automatically. Employees are added to a tag not here but in each employee's profile — `update_user` with the `list_tags` field. A fresh tag is created empty, with `users_count: 0`. It is linked to a chat by `add_tags_to_chat`. The name is unique within the workspace, case-insensitively, and cannot contain `@`. An empty name or a name of spaces only responds `400` with the `blank` code. A name already taken responds `400` with the `taken` code, and `409` comes only if the same tag was created at the same moment as the request. Tags can be created by the workspace owner and an administrator; the method is not available to a bot.",
+      "description": "New tag. Creates a tag. A tag is a way to keep chat membership up to date by itself: it is linked to a conversation or a channel, and everyone who has this tag ends up there automatically. Employees are added to a tag not here but in each employee's profile — `update_user` with the `list_tags` field. A fresh tag is created empty, with `users_count: 0`. It is linked to a chat by `add_tags_to_chat`. The name is unique within the workspace, case-insensitively. A name with `@` responds `400` with the `invalid` code, and the names `here` and `all` are reserved and respond `400` with the `use_of_system_words` code. An empty name or a name of spaces only responds `400` with the `blank` code. A name already taken responds `400` with the `taken` code, and `409` comes only if the same tag was created at the same moment as the request. Tags can be created by the workspace owner and an administrator; the method is not available to a bot.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -9732,7 +9730,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "Edit tag. Renames a tag. The set of employees and the links to chats do not change: everyone who was in the tag stays in it, only under the new name. The name is unique within the workspace, case-insensitively, and cannot contain `@`. An empty name or a name of spaces only responds `400` with the `blank` code. A name already taken responds `400` with the `taken` code, and `409` comes only if the same name was set at the same moment as the request. Tags can be renamed by the workspace owner and an administrator; the method is not available to a bot.",
+      "description": "Edit tag. Renames a tag. The set of employees and the links to chats do not change: everyone who was in the tag stays in it, only under the new name. The name is unique within the workspace, case-insensitively. A name with `@` responds `400` with the `invalid` code, and the names `here` and `all` are reserved and respond `400` with the `use_of_system_words` code. An empty name or a name of spaces only responds `400` with the `blank` code. A name already taken responds `400` with the `taken` code, and `409` comes only if the same name was set at the same moment as the request. Tags can be renamed by the workspace owner and an administrator; the method is not available to a bot.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -10050,7 +10048,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                        "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                       }
                     }
                   }
@@ -10091,7 +10089,7 @@
                       "properties": {
                         "text": {
                           "type": "string",
-                          "description": "Message text"
+                          "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                         }
                       }
                     }
@@ -10115,7 +10113,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca — in that case `invite_status` returns `sent`.",
+                  "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca or has not signed in since their email was changed — in that case `invite_status` returns `sent`.",
                   "format": "date-time"
                 },
                 "time_zone": {
@@ -10375,6 +10373,13 @@
                         "null"
                       ],
                       "description": "Voice message transcription to text. `null` while the transcription is not ready or unavailable."
+                    },
+                    "transcript_status": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                     }
                   }
                 },
@@ -10383,7 +10388,7 @@
                     "array",
                     "null"
                   ],
-                  "description": "Array of rows, each represented as an array of buttons. `null` if the message was sent without buttons.",
+                  "description": "Array of rows, each represented as an array of buttons. `null` if the `buttons` field was not passed when sending, and for a deleted message. Empty `buttons` sent with a message or an edit come back as `[]`: a message without buttons is recognized by both `null` and an empty array.",
                   "items": {
                     "type": "array",
                     "items": {
@@ -10496,7 +10501,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced.",
+                  "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has zero fractional seconds. `null` for messages sent before this field was introduced.",
                   "format": "date-time"
                 },
                 "deleted_at": {
@@ -10886,6 +10891,13 @@
                         "null"
                       ],
                       "description": "Voice message transcription to text. `null` while the transcription is not ready or unavailable."
+                    },
+                    "transcript_status": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                     }
                   }
                 },
@@ -10894,7 +10906,7 @@
                     "array",
                     "null"
                   ],
-                  "description": "Array of rows, each represented as an array of buttons. `null` if the message was sent without buttons.",
+                  "description": "Array of rows, each represented as an array of buttons. `null` if the `buttons` field was not passed when sending, and for a deleted message. Empty `buttons` sent with a message or an edit come back as `[]`: a message without buttons is recognized by both `null` and an empty array.",
                   "items": {
                     "type": "array",
                     "items": {
@@ -11007,7 +11019,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced.",
+                  "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has zero fractional seconds. `null` for messages sent before this field was introduced.",
                   "format": "date-time"
                 },
                 "deleted_at": {
@@ -11147,7 +11159,7 @@
                 },
                 "file_type": {
                   "type": "string",
-                  "description": "File type. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
+                  "description": "File type. `voice`, `video` and `file` are taken from the request: with `file` an image is sent as a regular file. Without a type, Pachca detects an image or an audio file by the extension. A file with `duration_ms` and no `file_type` is treated as a voice message. A voice message (`voice`) is sent with a personal token, and with a bot token the response is `403`. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
                   "enum": [
                     "file",
                     "image",
@@ -11207,8 +11219,7 @@
                 }
               },
               "required": [
-                "name",
-                "file_type"
+                "name"
               ],
               "additionalProperties": false
             },
@@ -11283,7 +11294,7 @@
           },
           "display_avatar_url": {
             "type": "string",
-            "description": "Custom sender avatar URL for this message. This field can only be used with a bot access_token.",
+            "description": "Custom sender avatar URL for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8.",
             "maxLength": 255,
             "examples": [
               "https://example.com/avatar.png"
@@ -11291,7 +11302,7 @@
           },
           "display_name": {
             "type": "string",
-            "description": "Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else's name and avatar, and only this message. The Bot badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Details are in the \"Bots\" (https://dev.pachca.com/guides/bots/overview) section.",
+            "description": "Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else's name and avatar, and only this message. The Bot badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Up to 255 bytes in UTF-8, which is about 127 Cyrillic characters. Details are in the \"Bots\" (https://dev.pachca.com/guides/bots/overview) section.",
             "maxLength": 255,
             "examples": [
               "Support Bot"
@@ -11315,7 +11326,7 @@
         ],
         "additionalProperties": false
       },
-      "signature": "entity_type (discussion | thread | user), entity_id* (integer), content (string), files [{key (string), name* (string), file_type* (file | image | audio | voice | video), size (integer), width (integer), height (integer), duration_ms (integer), waveform (string), content (string)}], buttons [[{text* (string), url (string), data (string)}]], parent_message_id (integer), display_avatar_url (string), display_name (string), skip_invite_mentions (boolean), draft_id (integer)",
+      "signature": "entity_type (discussion | thread | user), entity_id* (integer), content (string), files [{key (string), name* (string), file_type (file | image | audio | voice | video), size (integer), width (integer), height (integer), duration_ms (integer), waveform (string), content (string)}], buttons [[{text* (string), url (string), data (string)}]], parent_message_id (integer), display_avatar_url (string), display_name (string), skip_invite_mentions (boolean), draft_id (integer)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -11495,6 +11506,13 @@
                       "null"
                     ],
                     "description": "Voice message transcription to text. `null` while the transcription is not ready or unavailable."
+                  },
+                  "transcript_status": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -11503,7 +11521,7 @@
                   "array",
                   "null"
                 ],
-                "description": "Array of rows, each represented as an array of buttons. `null` if the message was sent without buttons.",
+                "description": "Array of rows, each represented as an array of buttons. `null` if the `buttons` field was not passed when sending, and for a deleted message. Empty `buttons` sent with a message or an edit come back as `[]`: a message without buttons is recognized by both `null` and an empty array.",
                 "items": {
                   "type": "array",
                   "items": {
@@ -11616,7 +11634,7 @@
                   "string",
                   "null"
                 ],
-                "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced.",
+                "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has zero fractional seconds. `null` for messages sent before this field was introduced.",
                 "format": "date-time"
               },
               "deleted_at": {
@@ -11814,6 +11832,13 @@
                       "null"
                     ],
                     "description": "Voice message transcription to text. `null` while the transcription is not ready or unavailable."
+                  },
+                  "transcript_status": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -11822,7 +11847,7 @@
                   "array",
                   "null"
                 ],
-                "description": "Array of rows, each represented as an array of buttons. `null` if the message was sent without buttons.",
+                "description": "Array of rows, each represented as an array of buttons. `null` if the `buttons` field was not passed when sending, and for a deleted message. Empty `buttons` sent with a message or an edit come back as `[]`: a message without buttons is recognized by both `null` and an empty array.",
                 "items": {
                   "type": "array",
                   "items": {
@@ -11935,7 +11960,7 @@
                   "string",
                   "null"
                 ],
-                "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced.",
+                "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has zero fractional seconds. `null` for messages sent before this field was introduced.",
                 "format": "date-time"
               },
               "deleted_at": {
@@ -11983,7 +12008,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Edit message. Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the `list_message_readers` method. The text follows the same formatting rules as in the `send_message` method. You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. There are no restrictions on how long ago the message was sent. Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.",
+      "description": "Edit message. Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the `list_message_readers` method. The text follows the same formatting rules as in the `send_message` method. You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. For a deleted message and a message of an archived chat the method responds `403`. There are no restrictions on how long ago the message was sent. Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -12033,7 +12058,7 @@
                 },
                 "file_type": {
                   "type": "string",
-                  "description": "File type. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
+                  "description": "File type. A voice file cannot be attached by an edit: a file with `file_type: voice`, or with `duration_ms` and no `file_type`, is rejected. For a video, set `file_type: video`. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file.",
                   "enum": [
                     "file",
                     "image",
@@ -12071,7 +12096,7 @@
                 },
                 "duration_ms": {
                   "type": "integer",
-                  "description": "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A file with a duration and no `file_type` is treated as a voice message. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code.",
+                  "description": "Duration of a video (`video`) in milliseconds, optional. Not saved for the other types. Without `file_type`, a file with a duration is treated as a voice message, and the edit is rejected.",
                   "minimum": 1,
                   "format": "int32",
                   "examples": [
@@ -12080,7 +12105,7 @@
                 },
                 "waveform": {
                   "type": "string",
-                  "description": "Waveform for visualizing the voice message. Without it a request with a voice file (`file_type` is `voice`) does not pass validation, but when editing, the value that was sent is not saved. Not used for other types.",
+                  "description": "Not used when editing: the value is not saved.",
                   "maxLength": 256,
                   "examples": [
                     "4,8,12,20,16,10,6,3"
@@ -12156,14 +12181,16 @@
           },
           "display_avatar_url": {
             "type": "string",
-            "description": "Custom sender avatar URL for this message. This field can only be used with a bot access_token.",
+            "description": "Custom sender avatar URL for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8.",
+            "maxLength": 255,
             "examples": [
               "https://example.com/avatar.png"
             ]
           },
           "display_name": {
             "type": "string",
-            "description": "Custom sender display name for this message. This field can only be used with a bot access_token.",
+            "description": "Custom sender display name for this message. This field can only be used with a bot access_token. Up to 255 bytes in UTF-8, which is about 127 Cyrillic characters.",
+            "maxLength": 255,
             "examples": [
               "Support Bot"
             ]
@@ -12329,6 +12356,13 @@
                       "null"
                     ],
                     "description": "Voice message transcription to text. `null` while the transcription is not ready or unavailable."
+                  },
+                  "transcript_status": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -12337,7 +12371,7 @@
                   "array",
                   "null"
                 ],
-                "description": "Array of rows, each represented as an array of buttons. `null` if the message was sent without buttons.",
+                "description": "Array of rows, each represented as an array of buttons. `null` if the `buttons` field was not passed when sending, and for a deleted message. Empty `buttons` sent with a message or an edit come back as `[]`: a message without buttons is recognized by both `null` and an empty array.",
                 "items": {
                   "type": "array",
                   "items": {
@@ -12450,7 +12484,7 @@
                   "string",
                   "null"
                 ],
-                "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced.",
+                "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has zero fractional seconds. `null` for messages sent before this field was introduced.",
                 "format": "date-time"
               },
               "deleted_at": {
@@ -12498,7 +12532,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Delete message. Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators who were added to the thread through the \"Add members\" window in the Pachca app, not by a mention. There are no time restrictions on message deletion. The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a \"Message deleted\" note stays in place of the message in the chat. The thread created under this message stays, together with all the messages inside it. For a message that is already deleted the method responds `403`, and whether it is deleted is shown by the `deleted_at` field in the response of `get_message`.",
+      "description": "Delete message. Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators who were added to the thread through the \"Add members\" window in the Pachca app, not by a mention. There are no time restrictions on message deletion, and in an archived chat messages are not deleted: the method responds `403`. The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a \"Message deleted\" note stays in place of the message in the chat. The thread created under this message stays, together with all the messages inside it. For a message that is already deleted the method responds `403`, and whether it is deleted is shown by the `deleted_at` field in the response of `get_message`.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -12902,7 +12936,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Add reaction. Adds an emoji reaction to a message on behalf of the token owner. The `code` field carries the emoji character itself: text notations such as `+1` or `:+1:` are not accepted by the method. A custom emoji of the workspace is added by its name in the `name` field. If the user has already added the same reaction, it will not be duplicated. To remove a reaction, use the `remove_reaction` method. If there is a thread under the message, the employee who reacted is subscribed to it as well and starts receiving the new messages of the thread. A message the token cannot see responds `404` with the `not_found` code, as a nonexistent one does. Reaction limits:\n- Each user can add no more than 20 unique reactions to a message\n- A message can have no more than 30 unique reactions\n- The total number of reactions on a message cannot exceed 1000",
+      "description": "Add reaction. Adds an emoji reaction to a message on behalf of the token owner. The `code` field carries the emoji character itself: text notations such as `+1` or `:+1:` are not accepted by the method. A custom emoji of the workspace is added by its name in the `name` field. If the user has already added the same reaction, it will not be duplicated. To remove a reaction, use the `remove_reaction` method. If there is a thread under the message, the employee who reacted is subscribed to it as well and starts receiving the new messages of the thread. A message the token cannot see responds `404` with the `not_found` code, as a nonexistent one does, and a deleted one responds `404` with the `message_deleted` code. Reaction limits:\n- Each user can add no more than 20 unique reactions to a message\n- A message can have no more than 30 unique reactions\n- The total number of reactions on a message cannot exceed 1000",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -12922,7 +12956,8 @@
           },
           "code": {
             "type": "string",
-            "description": "Reaction emoji character. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value fits: it is stored as passed.",
+            "description": "Reaction emoji character. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value of up to 16 characters fits: it is stored as passed.",
+            "maxLength": 16,
             "examples": [
               "👍"
             ]
@@ -13022,7 +13057,7 @@
           },
           "code": {
             "type": "string",
-            "description": "Emoji character of the reaction. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji.",
+            "description": "Emoji character of the reaction. Required without `name`: the character itself is needed, text forms such as `+1` or `:+1:` are rejected as an unknown emoji. Not used with `name`.",
             "examples": [
               "👍"
             ]
@@ -13036,12 +13071,11 @@
           }
         },
         "required": [
-          "id",
-          "code"
+          "id"
         ],
         "additionalProperties": false
       },
-      "signature": "id* (integer), code* (string), name (string)",
+      "signature": "id* (integer), code (string), name (string)",
       "request": {
         "arguments": {
           "id": {
@@ -13185,7 +13219,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New thread. Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. If a topic rather than a message needs discussing, start a thread with the `create_unattached_thread` method. A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either. An empty thread holds no talk yet: send the first message into it right away with the `send_message` method, `entity_type: \"thread\"` and the thread's `id` from the response. A thread has no name, and it cannot be deleted either through the API or in the app. If a thread has already been created for the message, the response will return information about the previously created thread. Only a member of the chat starts a new thread: to someone who sees an open conversation or channel without belonging to it, the method responds `403`, while an existing thread is returned. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.",
+      "description": "New thread. Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. If a topic rather than a message needs discussing, start a thread with the `create_unattached_thread` method. A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either. An empty thread holds no talk yet: send the first message into it right away with the `send_message` method, `entity_type: \"thread\"` and the thread's `id` from the response. A thread has no name, and it cannot be deleted either through the API or in the app. If a thread has already been created for the message, the response will return information about the previously created thread. For a deleted message the method responds `404` with the `message_deleted` code, even if a thread under it already exists: its ID arrives in the `thread` field of the `get_message` method. Only a member of the chat starts a new thread, and only while the chat is not archived: to someone who sees an open conversation or channel without belonging to it, and in an archived chat, the method responds `403`, while an existing thread is returned. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -13323,7 +13357,7 @@
                 "description": "List of token scopes",
                 "items": {
                   "type": "string",
-                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark chats as unread; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; tasks:read — View tasks; tasks:create — Create tasks; tasks:update — Update task; tasks:delete — Delete task; files:read — Download files; files:write — Upload files; uploads:write — Get file upload data; webhooks:read — View webhooks; webhooks:write — Create and manage webhooks; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it."
+                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark chats as unread; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; tasks:read — View tasks; tasks:create — Create tasks; tasks:update — Update task; tasks:delete — Delete task; files:read — Download files; uploads:write — Get file upload data; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it."
                 }
               },
               "created_at": {
@@ -13510,7 +13544,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                      "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                     }
                   }
                 }
@@ -13551,7 +13585,7 @@
                     "properties": {
                       "text": {
                         "type": "string",
-                        "description": "Message text"
+                        "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                       }
                     }
                   }
@@ -13575,7 +13609,7 @@
                   "string",
                   "null"
                 ],
-                "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca — in that case `invite_status` returns `sent`.",
+                "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca or has not signed in since their email was changed — in that case `invite_status` returns `sent`.",
                 "format": "date-time"
               },
               "time_zone": {
@@ -13629,7 +13663,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Upload own avatar. Sets or replaces the avatar of the token owner. The answer contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, and an animated `gif` must be no larger than 2 MB. The image is scaled down to 1024 by 1024 pixels, and an opaque `png` is stored as `jpg`. Another employee's avatar is set by `update_user_avatar`, and that is available only to the workspace owner and an administrator.",
+      "description": "Upload own avatar. Sets or replaces the avatar of the token owner. The answer contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, and any `gif`, animated or not, must be no larger than 2 MB. The image is scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small `png` stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB. Another employee's avatar is set by `update_user_avatar`, and that is available only to the workspace owner and an administrator.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -13786,7 +13820,7 @@
                 "properties": {
                   "text": {
                     "type": "string",
-                    "description": "Message text"
+                    "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                   }
                 }
               }
@@ -13841,8 +13875,11 @@
             ]
           },
           "expires_at": {
-            "type": "string",
-            "description": "Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC. A moment named in words is local time: write it with a UTC offset — the caller’s, which today carries in the instructions and Now in every footer, unless the tool names another zone — as 2024-01-15T15:00:00+03:00, and the end of a day as its end in that zone. A day named ahead is the date listed for it after today, there and in every footer: take it as written rather than counting. A day already past is counted back from today.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC. `null` removes the expiry: the status will not be cleared on its own. A moment named in words is local time: write it with a UTC offset — the caller’s, which today carries in the instructions and Now in every footer, unless the tool names another zone — as 2024-01-15T15:00:00+03:00, and the end of a day as its end in that zone. A day named ahead is the date listed for it after today, there and in every footer: take it as written rather than counting. A day already past is counted back from today.",
             "format": "date-time",
             "examples": [
               "2024-04-08T10:00:00.000Z"
@@ -13856,8 +13893,11 @@
             ]
           },
           "away_message": {
-            "type": "string",
-            "description": "\"Away\" mode message text. Displayed in the profile and in direct messages/mentions.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "\"Away\" mode message text. Displayed in the profile and in direct messages/mentions. Supports Markdown and `@nickname` and `<@user_id>` mentions, but is stored and returned as plain text: formatting is removed, and an employee mention is replaced with `@` followed by their first and last name. The 1024-character limit applies both to the text sent and to the resulting text, and beyond it the response is `400` with the `too_long` code. `null` removes the text, and so does an empty string.",
             "maxLength": 1024,
             "examples": [
               "Back after 3 PM"
@@ -13866,7 +13906,7 @@
         },
         "additionalProperties": false
       },
-      "signature": "emoji (string), title (string), expires_at (string), is_away (boolean), away_message (string)",
+      "signature": "emoji (string), title (string), expires_at (string or null), is_away (boolean), away_message (string or null)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -13930,7 +13970,7 @@
                 "properties": {
                   "text": {
                     "type": "string",
-                    "description": "Message text"
+                    "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                   }
                 }
               }
@@ -14004,7 +14044,7 @@
         "properties": {
           "query": {
             "type": "string",
-            "description": "Search query text. A query longer than 500 characters is cut off. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
+            "description": "Search query text. A query longer than 256 characters is cut off. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
             "examples": [
               "Development"
             ]
@@ -14141,7 +14181,7 @@
                 },
                 "name": {
                   "type": "string",
-                  "description": "Name"
+                  "description": "Name of the conversation or channel. A direct chat has an empty string here, while the `search_chats` method returns the other party's full name in it, and the token owner's name in the chat with yourself."
                 },
                 "created_at": {
                   "type": "string",
@@ -14259,7 +14299,7 @@
         "properties": {
           "query": {
             "type": "string",
-            "description": "Search query text. Without it, messages are picked by the filters alone. A query longer than 500 characters is cut off. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
+            "description": "Search query text. Without it, messages are picked by the filters alone. A query longer than 256 characters is cut off. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
             "examples": [
               "t-shirts"
             ]
@@ -14526,6 +14566,13 @@
                         "null"
                       ],
                       "description": "Voice message transcription to text. `null` while the transcription is not ready or unavailable."
+                    },
+                    "transcript_status": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                     }
                   }
                 },
@@ -14534,7 +14581,7 @@
                     "array",
                     "null"
                   ],
-                  "description": "Array of rows, each represented as an array of buttons. `null` if the message was sent without buttons.",
+                  "description": "Array of rows, each represented as an array of buttons. `null` if the `buttons` field was not passed when sending, and for a deleted message. Empty `buttons` sent with a message or an edit come back as `[]`: a message without buttons is recognized by both `null` and an empty array.",
                   "items": {
                     "type": "array",
                     "items": {
@@ -14647,7 +14694,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced.",
+                  "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has zero fractional seconds. `null` for messages sent before this field was introduced.",
                   "format": "date-time"
                 },
                 "deleted_at": {
@@ -14732,7 +14779,7 @@
         "properties": {
           "query": {
             "type": "string",
-            "description": "Search query text. A query longer than 500 characters is cut off. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
+            "description": "Search query text. A query longer than 256 characters is cut off. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
             "examples": [
               "Oleg"
             ]
@@ -14968,7 +15015,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                        "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                       }
                     }
                   }
@@ -15009,7 +15056,7 @@
                       "properties": {
                         "text": {
                           "type": "string",
-                          "description": "Message text"
+                          "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                         }
                       }
                     }
@@ -15033,7 +15080,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca — in that case `invite_status` returns `sent`.",
+                  "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca or has not signed in since their email was changed — in that case `invite_status` returns `sent`.",
                   "format": "date-time"
                 },
                 "time_zone": {
@@ -15320,7 +15367,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                        "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                       }
                     }
                   }
@@ -15379,7 +15426,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New reminder. Creates a reminder and assigns the employees responsible for it. Specifying the reminder type is required when creating a reminder: call, meeting, simple reminder, event, or email. A description is not required — without it the reminder takes the name of its type as the text. If a description is passed, it is what becomes the reminder's text. A reminder must have assignees; if none are specified, you are assigned as the responsible one. Any workspace employee can be assigned to a reminder that is not linked to any entity. You can get the current employee list using the `list_users` method. If no user exists with an ID from `performer_ids`, the method responds `404`. If the caller cannot see the employee, the response is `403`: this happens with an employee of another workspace, a suspended or a deleted one, and for a guest with anyone they share no chat with. In both cases the reminder is not created. A reminder can be linked with the `chat_id` field to a conversation or to a direct chat, the chat with yourself included. Then, besides the author and the assignees, the members of that chat see it. Whoever links it must belong to that chat. Reminders are not created in a channel, in a thread, or in an archived chat. Handing a reminder to somebody else means changing the assignee with `update_task`. A reminder with a due date also appears as an event in a calendar connected to the workspace or to the token owner's profile. The assignees are invited to that event as attendees. Their own connected calendars do not create the event.\n\nNot for:\n- «отдай её Вере», «пусть этим займётся Глеб» — the existing reminder changing hands.",
+      "description": "New reminder. Creates a reminder and assigns the employees responsible for it. You can choose the reminder type: call, meeting, simple reminder, event, or email. Without a type, a simple reminder is created. A description is not required either — without it the reminder takes the name of its type as the text. If a description is passed, it is what becomes the reminder's text. A reminder must have assignees; if none are specified, you are assigned as the responsible one. Any workspace employee can be assigned to a reminder that is not linked to any entity. You can get the current employee list using the `list_users` method. If no user exists with an ID from `performer_ids`, the method responds `404`. If the caller cannot see the employee, the response is `403`: this happens with an employee of another workspace, a suspended or a deleted one, and for a guest with anyone they share no chat with. In both cases the reminder is not created. A reminder can be linked with the `chat_id` field to a conversation or to a direct chat, the chat with yourself included. Then, besides the author and the assignees, the members of that chat see it. Whoever links it must belong to that chat. Reminders are not created in a channel, in a thread, or in an archived chat. Handing a reminder to somebody else means changing the assignee with `update_task`. A reminder with a due date also appears as an event in a calendar connected to the workspace or to the token owner's profile. The assignees are invited to that event as attendees. Their own connected calendars do not create the event.\n\nNot for:\n- «отдай её Вере», «пусть этим займётся Глеб» — the existing reminder changing hands.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -15399,6 +15446,7 @@
               "event",
               "email"
             ],
+            "default": "reminder",
             "examples": [
               "reminder"
             ]
@@ -15474,7 +15522,7 @@
                 },
                 "value": {
                   "type": "string",
-                  "description": "Value to set",
+                  "description": "Value to set. An empty string clears the property.",
                   "examples": [
                     "Blue warehouse"
                   ]
@@ -15488,12 +15536,9 @@
             }
           }
         },
-        "required": [
-          "kind"
-        ],
         "additionalProperties": false
       },
-      "signature": "kind* (call | meeting | reminder | event | email), content (string), due_at (string), priority (integer), performer_ids [integer], chat_id (integer), all_day (boolean), custom_properties [{id* (integer), value* (string)}]",
+      "signature": "kind (call | meeting | reminder | event | email), content (string), due_at (string), priority (integer), performer_ids [integer], chat_id (integer), all_day (boolean), custom_properties [{id* (integer), value* (string)}]",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -15619,7 +15664,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                      "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                     }
                   }
                 }
@@ -15769,7 +15814,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                      "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                     }
                   }
                 }
@@ -15889,7 +15934,7 @@
           },
           "done_at": {
             "type": "string",
-            "description": "Reminder completion date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. A value that could not be parsed removes the completion mark: the response comes back successful, and `done_at` in it is `null`. A moment named in words is local time: write it with a UTC offset — the caller’s, which today carries in the instructions and Now in every footer, unless the tool names another zone — as 2024-01-15T15:00:00+03:00, and the end of a day as its end in that zone. A day named ahead is the date listed for it after today, there and in every footer: take it as written rather than counting. A day already past is counted back from today.",
+            "description": "Reminder completion date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. A value that could not be parsed removes the completion mark: the response comes back successful, and `status` in it is `undone`. A moment named in words is local time: write it with a UTC offset — the caller’s, which today carries in the instructions and Now in every footer, unless the tool names another zone — as 2024-01-15T15:00:00+03:00, and the end of a day as its end in that zone. A day named ahead is the date listed for it after today, there and in every footer: take it as written rather than counting. A day already past is counted back from today.",
             "format": "date-time",
             "examples": [
               "2020-06-05T12:00:00.000Z"
@@ -15911,7 +15956,7 @@
                 },
                 "value": {
                   "type": "string",
-                  "description": "Value to set",
+                  "description": "Value to set. An empty string clears the property.",
                   "examples": [
                     "Blue warehouse"
                   ]
@@ -16063,7 +16108,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                      "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                     }
                   }
                 }
@@ -16456,7 +16501,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Get signature, key and other parameters. The first step of a file upload: the method issues the storage address and the signed form fields with which the file is uploaded by the next request. Nothing is created in Pachca at this point yet: the uploaded file is visible to nobody and linked to nothing. It becomes an attachment when its `key` is passed in the `files` field — to `send_message` or `create_draft`, and when editing either of them. The parameters are issued for one file: request them again for each next one. The signature is valid for 14 days. The `key` records the token owner: a draft accepts only their keys and answers someone else's with `422`, error key `draft.files` and code `invalid`. This server takes a file only as base64 contents in the call, so a document or picture from disk, anything you would not write out yourself, you upload from a shell and attach by its key. Put the file name in place of ${filename} in key, then post a multipart form to direct_url from this same answer, never a remembered one: every other field as it is, direct_url itself left out, the file last — `curl -sS -X POST \"<direct_url>\" -F \"key=<key>\" -F \"policy=<policy>\" … -F \"file=@photo.jpg\"` answers 204. direct_url is the cloud storage Pachca keeps files in, a host outside pachca.com that changes with the provider; this form is the one answer of a tool that goes to an outside address, and only there. Then pass that key, with the name, file_type and size of the file, in files, or in the image key that sent you here.",
+      "description": "Get signature, key and other parameters. The first step of a file upload: the method issues the storage address and the signed form fields with which the file is uploaded by the next request. Nothing is created in Pachca at this point yet: the uploaded file is visible to nobody and linked to nothing. It becomes an attachment when its `key` is passed in the `files` field — to `send_message` or `create_draft`, and when editing either of them. The parameters are issued for one file: request them again for each next one. The signature is valid for 14 days. The `key` records the token owner: a draft accepts only their keys and answers someone else's with `422`, error key `draft.files` and code `invalid`. A key of a file uploaded in another workspace is accepted neither by a message nor by the `add_link_preview` method: the response is `422` with code `wrong_params`. This server takes a file only as base64 contents in the call, so a document or picture from disk, anything you would not write out yourself, you upload from a shell and attach by its key. Put the file name in place of ${filename} in key, then post a multipart form to direct_url from this same answer, never a remembered one: every other field as it is, direct_url itself left out, the file last — `curl -sS -X POST \"<direct_url>\" -F \"key=<key>\" -F \"policy=<policy>\" … -F \"file=@photo.jpg\"` answers 204. direct_url is the cloud storage Pachca keeps files in, a host outside pachca.com that changes with the provider; this form is the one answer of a tool that goes to an outside address, and only there. Then pass that key, with the name, file_type and size of the file, in files, or in the image key that sent you here.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -16548,7 +16593,7 @@
         "properties": {
           "query": {
             "type": "string",
-            "description": "Search phrase to filter results. Search works on the following fields: `first_name`, `last_name`, `email`, `phone_number`, and `nickname`. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
+            "description": "Search phrase to filter results. Search works on the following fields: `first_name`, `last_name`, `nickname`, `title` (job title), and `department`. If the caller can see personal data (the same rule as for the `email` field), the search also covers `phone_number`, custom property values, and the full `email` address. Take the words from the request, in its language: a name put into another language finds nothing, and the example only shows the shape of a value.",
             "examples": [
               "Oleg"
             ]
@@ -16715,7 +16760,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                        "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                       }
                     }
                   }
@@ -16756,7 +16801,7 @@
                       "properties": {
                         "text": {
                           "type": "string",
-                          "description": "Message text"
+                          "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                         }
                       }
                     }
@@ -16780,7 +16825,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca — in that case `invite_status` returns `sent`.",
+                  "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca or has not signed in since their email was changed — in that case `invite_status` returns `sent`.",
                   "format": "date-time"
                 },
                 "time_zone": {
@@ -16860,7 +16905,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "New employee. Creates an employee in the workspace and sends them an invitation by email. Available to the workspace owner and an administrator; the method is not available to a bot. If an employee with this email address already exists in the workspace, the response is `409`. A nickname that is already taken is not treated as an error: random characters are silently appended to it, and the response comes back with the modified one. A free workspace, including one on a trial, can send a limited number of emails per day: invitations and email-change letters are counted together, and the limit is given on the \"Limits\" (https://dev.pachca.com/api/limits) page. Beyond it the method responds `422` with the `daily_invites_limit` code and does not create the employee, while the remainder and the reset time come in `payload`. With `skip_email_notify: true` no email is sent and nothing counts towards the limit. You can fill in custom properties for the employee that have been created in your workspace. You can get the current list of employee custom property IDs using the `list_custom_fields` method. The `list_tags` field puts the employee into tags right away, and together with the tags into the chats those tags are linked to. A name that does not exist in the workspace yet creates a new tag. For a guest no tags are assigned at all: the response is successful and `list_tags` in it is empty. Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a guest, pass `role: \"guest\"` — for this role `chat_ids` is required and must contain exactly one active chat the token has permission to add members to. Violating the guest access rules returns `400` with an error on the `chat_ids` field. The employee's avatar is set after creation with the `update_user_avatar` method.",
+      "description": "New employee. Creates an employee in the workspace and sends them an invitation by email. Available to the workspace owner and an administrator; the method is not available to a bot. If an employee with this email address already exists in the workspace, the response is `409`. A nickname that is already taken is not treated as an error: random characters are silently appended to it, and the response comes back with the modified one. A free workspace, including one on a trial, can send a limited number of emails per day: invitations and email-change letters are counted together, and the limit is given on the \"Limits\" (https://dev.pachca.com/api/limits) page. Beyond it the method responds `422` with the `daily_invites_limit` code and does not create the employee, while the remainder and the reset time come in `payload`. With `skip_email_notify: true` no email is sent and nothing counts towards the limit. You can fill in custom properties for the employee that have been created in your workspace. You can get the current list of employee custom property IDs using the `list_custom_fields` method. The `list_tags` field puts the employee into tags right away, and together with the tags into the chats those tags are linked to. A name that does not exist in the workspace yet creates a new tag. For a guest no tags are assigned at all: the response is successful and `list_tags` in it is empty. Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a guest, pass `role: \"guest\"` — for this role `chat_ids` is required and must contain exactly one active chat the token has permission to add members to. Violating the guest access rules returns `400` with an error on the `chat_ids` field. With any role the same `400` comes when `chat_ids` contains a chat the token has no permission to add members to, an archived one included: the employee is then not created. IDs that do not exist are skipped. The employee's avatar is set after creation with the `update_user_avatar` method.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -16904,7 +16949,7 @@
           },
           "nickname": {
             "type": "string",
-            "description": "Username",
+            "description": "Username: Latin and Cyrillic letters, digits, `_`, `-`, and `.`, otherwise the response is `400` with the `invalid` code. The nicknames `here` and `all` are reserved: they get `400` with the `use_of_system_words` code.",
             "maxLength": 255,
             "examples": [
               "olegpetrov"
@@ -16921,6 +16966,7 @@
           "title": {
             "type": "string",
             "description": "Job title",
+            "maxLength": 255,
             "examples": [
               "CIO"
             ]
@@ -16988,7 +17034,7 @@
                 },
                 "value": {
                   "type": "string",
-                  "description": "Value to set",
+                  "description": "Value to set. An empty string clears the property.",
                   "maxLength": 768,
                   "examples": [
                     "Saint Petersburg"
@@ -17183,7 +17229,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                      "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                     }
                   }
                 }
@@ -17224,7 +17270,7 @@
                     "properties": {
                       "text": {
                         "type": "string",
-                        "description": "Message text"
+                        "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                       }
                     }
                   }
@@ -17248,7 +17294,7 @@
                   "string",
                   "null"
                 ],
-                "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca — in that case `invite_status` returns `sent`.",
+                "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca or has not signed in since their email was changed — in that case `invite_status` returns `sent`.",
                 "format": "date-time"
               },
               "time_zone": {
@@ -17443,7 +17489,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                      "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                     }
                   }
                 }
@@ -17484,7 +17530,7 @@
                     "properties": {
                       "text": {
                         "type": "string",
-                        "description": "Message text"
+                        "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                       }
                     }
                   }
@@ -17508,7 +17554,7 @@
                   "string",
                   "null"
                 ],
-                "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca — in that case `invite_status` returns `sent`.",
+                "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca or has not signed in since their email was changed — in that case `invite_status` returns `sent`.",
                 "format": "date-time"
               },
               "time_zone": {
@@ -17595,7 +17641,7 @@
           },
           "email": {
             "type": "string",
-            "description": "Email",
+            "description": "Email. After it is changed the employee counts as not yet signed in: `invite_status` comes as `sent` and `last_activity_at` as `null` until they sign in to Pachca again.",
             "maxLength": 255,
             "examples": [
               "olegpetrov@example.com"
@@ -17611,7 +17657,7 @@
           },
           "nickname": {
             "type": "string",
-            "description": "Username. A bot's nickname must end with `_bot` and be unique in the workspace, otherwise the method responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. A bot's existing nickname is checked only when it is changed.",
+            "description": "Username: Latin and Cyrillic letters, digits, `_`, `-`, and `.`, otherwise the response is `400` with the `invalid` code. The nicknames `here` and `all` are reserved: they get `400` with the `use_of_system_words` code. A nickname taken by another employee, case-insensitively, responds `400` with the `already_exists` code: random characters are not appended here, as they are in `create_user`. For an employee with `sso: true` a taken nickname is silently left unchanged. A bot's nickname consists of Latin letters, digits, and `_`, ends with `_bot`, and is unique in the workspace, otherwise the method responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. Other errors in a bot's nickname when it is changed, such as `blank` or `too_long`, also come with `422`. A bot's existing nickname is checked only when it is changed.",
             "maxLength": 255,
             "examples": [
               "olegpetrov"
@@ -17628,6 +17674,7 @@
           "title": {
             "type": "string",
             "description": "Job title",
+            "maxLength": 255,
             "examples": [
               "Senior Developer"
             ]
@@ -17660,7 +17707,7 @@
           },
           "suspended": {
             "type": "boolean",
-            "description": "Whether the user is deactivated",
+            "description": "Whether the user is deactivated. Nobody can suspend the workspace owner, the owner themselves included: the response is `403`.",
             "examples": [
               false
             ]
@@ -17694,7 +17741,7 @@
                 },
                 "value": {
                   "type": "string",
-                  "description": "Value to set",
+                  "description": "Value to set. An empty string clears the property.",
                   "maxLength": 768,
                   "examples": [
                     "Saint Petersburg"
@@ -17880,7 +17927,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601 format."
+                      "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
                     }
                   }
                 }
@@ -17921,7 +17968,7 @@
                     "properties": {
                       "text": {
                         "type": "string",
-                        "description": "Message text"
+                        "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                       }
                     }
                   }
@@ -17945,7 +17992,7 @@
                   "string",
                   "null"
                 ],
-                "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca — in that case `invite_status` returns `sent`.",
+                "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca or has not signed in since their email was changed — in that case `invite_status` returns `sent`.",
                 "format": "date-time"
               },
               "time_zone": {
@@ -18042,7 +18089,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "Upload employee avatar. Sets or replaces the avatar of another employee. Available to the workspace owner and an administrator; not to a bot. The workspace owner's avatar can be changed only by themselves. The answer contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, an animated `gif` must be no larger than 2 MB, and the image is scaled down to 1024 by 1024 pixels. Your own avatar is set by the `update_my_avatar` method — it is available to all roles and to bots.",
+      "description": "Upload employee avatar. Sets or replaces the avatar of another employee. Available to the workspace owner and an administrator; not to a bot. The workspace owner's avatar can be changed only by themselves. The answer contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, any `gif`, animated or not, must be no larger than 2 MB, the image is scaled down to 1024 by 1024 pixels, and a `png` is stored as `jpg` on a white background. Only a small `png` stays transparent: up to 100 KB and no more than 256 pixels on each side, or lighter than 10 KB. Your own avatar is set by the `update_my_avatar` method — it is available to all roles and to bots.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -18240,7 +18287,7 @@
                 "properties": {
                   "text": {
                     "type": "string",
-                    "description": "Message text"
+                    "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                   }
                 }
               }
@@ -18300,8 +18347,11 @@
             ]
           },
           "expires_at": {
-            "type": "string",
-            "description": "Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC. A moment named in words is local time: write it with a UTC offset — the caller’s, which today carries in the instructions and Now in every footer, unless the tool names another zone — as 2024-01-15T15:00:00+03:00, and the end of a day as its end in that zone. A day named ahead is the date listed for it after today, there and in every footer: take it as written rather than counting. A day already past is counted back from today.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC. `null` removes the expiry: the status will not be cleared on its own. A moment named in words is local time: write it with a UTC offset — the caller’s, which today carries in the instructions and Now in every footer, unless the tool names another zone — as 2024-01-15T15:00:00+03:00, and the end of a day as its end in that zone. A day named ahead is the date listed for it after today, there and in every footer: take it as written rather than counting. A day already past is counted back from today.",
             "format": "date-time",
             "examples": [
               "2024-04-08T10:00:00.000Z"
@@ -18315,8 +18365,11 @@
             ]
           },
           "away_message": {
-            "type": "string",
-            "description": "\"Away\" mode message text. Displayed in the profile and in direct messages/mentions.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "\"Away\" mode message text. Displayed in the profile and in direct messages/mentions. Supports Markdown and `@nickname` and `<@user_id>` mentions, but is stored and returned as plain text: formatting is removed, and an employee mention is replaced with `@` followed by their first and last name. The 1024-character limit applies both to the text sent and to the resulting text, and beyond it the response is `400` with the `too_long` code. `null` removes the text, and so does an empty string.",
             "maxLength": 1024,
             "examples": [
               "Back after 3 PM"
@@ -18328,7 +18381,7 @@
         ],
         "additionalProperties": false
       },
-      "signature": "user_id* (integer), emoji (string), title (string), expires_at (string), is_away (boolean), away_message (string)",
+      "signature": "user_id* (integer), emoji (string), title (string), expires_at (string or null), is_away (boolean), away_message (string or null)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -18395,7 +18448,7 @@
                 "properties": {
                   "text": {
                     "type": "string",
-                    "description": "Message text"
+                    "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
                   }
                 }
               }
@@ -18968,7 +19021,7 @@
                 },
                 "event_type": {
                   "type": "string",
-                  "description": "Event type"
+                  "description": "Event type: a value from the bot's `events`, such as `message_new`. A submitted form has `view_submit` and comes with the `button_click` subscription."
                 },
                 "payload": {
                   "type": "object",
@@ -19015,7 +19068,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced.",
+                      "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has zero fractional seconds. `null` for messages sent before this field was introduced.",
                       "format": "date-time"
                     },
                     "url": {
@@ -19041,7 +19094,7 @@
                         "object",
                         "null"
                       ],
-                      "description": "message (event new, update, delete): The thread the message was sent in. `null` if the message was not sent in a thread. Unlike the `thread` field on the REST API message object, this describes the thread the message is inside of. message (event link_shared): Thread the message with the link was sent in. `null` if the message was not sent in a thread. video_call: Thread parameters object if the video call takes place in a thread. `null` if the call is not in a thread.",
+                      "description": "message (event new, update, delete): The thread the message was sent in. `null` if the message was not sent in a thread. Unlike the `thread` field on the REST API message object, this describes the thread the message is inside of. message (event link_shared): Thread the message with the link was sent in. `null` if the message was not sent in a thread. video_call: The call's thread. For a call in a regular chat or direct message it is the thread under the system call message: `message_id` is that message and `message_chat_id` equals `chat_id`. For a call in a thread it is that thread, and `thread.chat_id` equals `chat_id`. `null` only in the finished event of a call outside a thread that never started.",
                       "properties": {
                         "message_id": {
                           "type": [
@@ -19126,7 +19179,7 @@
                     },
                     "user_ids": {
                       "type": "array",
-                      "description": "Array of user IDs affected by the event",
+                      "description": "Array of user IDs affected by the event, at most 100. If more users are affected, several webhooks arrive.",
                       "items": {
                         "type": "integer"
                       }

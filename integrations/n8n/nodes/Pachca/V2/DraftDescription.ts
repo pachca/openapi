@@ -75,7 +75,7 @@ export const draftFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 4 },
 				default: "",
-				description: 'Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Up to 40,000 bytes in UTF-8.',
+				description: 'Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Supports mentions, like the text in [New message](POST /messages). `&lt;@user_id&gt;` stays in the draft text as sent and becomes `@nickname` when the message is sent. Up to 40,000 bytes in UTF-8.',
 				placeholder: 'Weekly report: sales are up 10%',
 			},
 			{
@@ -131,7 +131,7 @@ export const draftFields: INodeProperties[] = [
 							name: 'name',
 							type: 'string',
 							default: "",
-							description: 'File name to display to the user',
+							description: 'File name to display to the user. Applies to a new file: the extension must match the extension of the file in `key`, otherwise the response is 422 with the `wrong_params` code.',
 						},
 						{
 							displayName: 'Size',
@@ -279,7 +279,7 @@ export const draftFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 4 },
 				default: "",
-				description: 'Draft text. Up to 40,000 bytes in UTF-8.',
+				description: 'Draft text. Supports mentions, like the text in [New message](POST /messages). `&lt;@user_id&gt;` stays in the draft text as sent and becomes `@nickname` when the message is sent. Up to 40,000 bytes in UTF-8.',
 				placeholder: 'Weekly report: sales are up 10%',
 			},
 			{
@@ -335,7 +335,7 @@ export const draftFields: INodeProperties[] = [
 							name: 'name',
 							type: 'string',
 							default: "",
-							description: 'File name to display to the user',
+							description: 'File name to display to the user. Applies to a new file: the extension must match the extension of the file in `key`, otherwise the response is 422 with the `wrong_params` code.',
 						},
 						{
 							displayName: 'Size',

@@ -47,7 +47,11 @@ qwen mcp add --transport http pachca https://mcp.pachca.com/mcp --header "Author
   Appending after `[]` breaks the YAML and the app will not start. Keep the `- insert:` line: without it the
   entry reads as an edit of a block that does not exist and is skipped with only a log warning. The window never
   shows connection errors. File edits apply live, a new `PACHCA_TOKEN` needs a full quit (Cmd+Q on macOS, quit
-  from the tray menu on Windows) and reopening. Check in a new chat.
+  from the tray menu on Windows) and reopening. Check in a new chat. Change nothing else: Pachca is an MCP
+  server, not a model provider. Do not open Settings → Models, never put a Pachca or docs address into a Base
+  URL, and leave the file's other entries as they are. If the models broke anyway: in Settings → Models delete
+  the providers that were added, on the DeepSeek card press Edit, Restore defaults and Apply, then pick a
+  DeepSeek model again in each chat.
 
   ```yaml
   - insert:

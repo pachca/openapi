@@ -60,7 +60,7 @@ curl "https://api.pachca.com/api/shared/v1/tasks?status=undone&chat_ids[]=198&ch
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число — целое и передаётся строкой, например `"42"`, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`

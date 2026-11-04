@@ -310,6 +310,7 @@ const OPTIONAL_TOP_LEVEL_FIELDS: Record<string, Record<string, Set<string>>> = {
   message: { create: new Set(['content']), send: new Set(['content']) },
   profile: { updateStatus: new Set(['emoji', 'title']) },
   user: { updateStatus: new Set(['emoji', 'title']) },
+  task: { create: new Set(['kind']) },
 };
 
 // ============================================================================
@@ -907,7 +908,7 @@ function isNullableJson(field: BodyField): boolean {
   return !!field.nullable && toN8nType(field) === 'json';
 }
 
-const NULL_FLAG_TYPES = new Set(['number', 'string', 'boolean']);
+const NULL_FLAG_TYPES = new Set(['number', 'string', 'boolean', 'dateTime']);
 
 /** An update operation: there null clears a stored value, in a create it equals leaving the field out */
 function isUpdateOperation(op: OperationInfo): boolean {
@@ -1945,7 +1946,17 @@ const FIELD_OPTIONS_OVERRIDES: Record<string, { options: Array<{ name: string; v
   },
 };
 
+/**
+ * Defaults kept from before the spec gave the field its own default. n8n does not save
+ * a parameter equal to its default, so a new default would change what saved workflows send.
+ */
+const LEGACY_DEFAULTS: Record<string, Record<string, Record<string, unknown>>> = {
+  task: { create: { kind: 'call' } },
+};
+
 function getDefaultValue(field: BodyField, resource: string, op: string, paramName: string): unknown {
+  const legacy = LEGACY_DEFAULTS[resource]?.[op]?.[field.name];
+  if (legacy !== undefined) return legacy;
   // Field type overrides have priority
   const fieldOverride = FIELD_OPTIONS_OVERRIDES[field.name];
   if (fieldOverride) return fieldOverride.default;

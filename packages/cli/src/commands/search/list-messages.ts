@@ -16,7 +16,7 @@ export default class SearchListMessages extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'query': Flags.string({
-      description: "Текст поискового запроса. Без него сообщения отбираются только фильтрами. Запрос длиннее 500 знаков обрезается.",
+      description: "Текст поискового запроса. Без него сообщения отбираются только фильтрами. Запрос длиннее 256 знаков обрезается.",
     }),
     'order': Flags.string({
       description: "Направление сортировки",

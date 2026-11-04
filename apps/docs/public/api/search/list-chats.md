@@ -22,7 +22,7 @@
 
 ### Query параметры
 
-- `query: string` — Текст поискового запроса. Запрос длиннее 500 знаков обрезается.
+- `query: string` — Текст поискового запроса. Запрос длиннее 256 знаков обрезается.
 - `limit: integer, int32` (default: 100) — Количество возвращаемых результатов за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
 - `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page`)
 - `order: string` — Направление сортировки
@@ -51,7 +51,7 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
 
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор созданного чата. Пример: `334`
-  - `name: string` (required, max length: 255) — Название. Пример: `"🤿 aqua"`
+  - `name: string` (required, max length: 255) — Название беседы или канала. У личного чата пустая строка, а в методе [Поиск чатов](/api/search/list-chats) у него приходит полное имя собеседника, в чате с самим собой — имя владельца токена. Пример: `"🤿 aqua"`
   - `created_at: date-time` (required) — Дата и время создания чата (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
   - `owner_id: integer, int32` (required) — Идентификатор пользователя, создавшего чат. Пример: `185`
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`

@@ -1350,6 +1350,7 @@ function BlockSettingsContent({
                   setOptional('min_length', e.target.value ? Number(e.target.value) : undefined)
                 }
                 min={0}
+                max={3000}
                 className={sInputCls}
               />
             </SettingsField>
@@ -1360,7 +1361,8 @@ function BlockSettingsContent({
                 onChange={(e) =>
                   setOptional('max_length', e.target.value ? Number(e.target.value) : undefined)
                 }
-                min={0}
+                min={1}
+                max={3000}
                 className={sInputCls}
               />
             </SettingsField>
@@ -1449,7 +1451,7 @@ function BlockSettingsContent({
                   setOptional('max_files', e.target.value ? Number(e.target.value) : undefined)
                 }
                 min={1}
-                max={20}
+                max={10}
                 placeholder="10"
                 className={sInputCls}
               />

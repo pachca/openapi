@@ -141,7 +141,7 @@ _, err = client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{
         EntityID: chatID,
         Content:  pachca.Ptr("Отчёт за неделю"),
         Files: []pachca.MessageCreateRequestFile{
-            {Key: key, Name: filename, FileType: pachca.FileTypeFile, Size: pachca.Ptr(int64(len(data)))},
+            {Key: key, Name: filename, FileType: pachca.Ptr(pachca.FileTypeFile), Size: pachca.Ptr(int64(len(data)))},
         },
     },
 })

@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.6.0 (2026-11-04)
+
+Optional reminder kind, reaction code and message file type, clearing a status with `null`, the voice transcription status, audit details that leave out empty fields, and tool texts that follow the API. schema_version stays 1.2.0.
+
+- `pachca_create_task`: `kind` is optional, and a reminder without it is a plain `reminder`.
+- `pachca_remove_reaction`: `code` is optional, so a reaction is removed by `code` or by `name`.
+- `pachca_send_message`: `file_type` of a file is optional. `voice`, `video` and `file` are taken from it (with `file` an image is sent as a regular file), and without it Pachca tells an image or an audio file by its extension.
+- `pachca_update_my_status` and `pachca_update_user_status`: `expires_at` and `away_message` take `null`, which removes the status expiry and the away message.
+- Message and draft outputs carry `voice_content.transcript_status`: `pending`, `failed`, `success`, or `null` when no transcription was requested. It is left out of the compact card.
+- `pachca_get_audit_events`: a detail field with no value is absent instead of `null`: `actor_id`, `token_name`, `access_token_id`, `access_token_preview`, `application_id`, `device_name`, `client_id`, `action_message`, `limit`, `filters`, `changes`, `started_message_id`, `duration`, and `previous` and `new` of a token name change.
+- `pachca_get_audit_events`: for `user_role_changed`, `user_chat_join`, `user_chat_leave`, `user_added_to_tag` and `user_removed_from_tag` the actor is the affected employee, and who acted is in `initiator_id` or `inviter_id`. For video call events `ip_address` and `user_agent` usually belong to the video server.
+- `pachca_get_token_info` lists the scopes the API has, without `files:write`, `webhooks:read` and `webhooks:write`.
+- Arguments carry the API limits: `nickname` of `pachca_create_bot` and `pachca_update_bot` matches `^[a-zA-Z0-9_]*_bot$`, `outgoing_url` and `challenge_key` of the bot tools, `outgoing_url` of `pachca_self_update_bot_webhook`, `title` of `pachca_create_user` and `pachca_update_user`, `display_name` and `display_avatar_url` of `pachca_update_message` are up to 255 characters, `code` of `pachca_add_reaction` is up to 16, and `duration_ms` of draft files is at least 1.
+- Tool texts follow the API: a deleted message and an archived chat in `pachca_update_message`, `pachca_delete_message`, `pachca_create_thread` and `pachca_add_reaction`, nickname rules and errors in `pachca_create_user`, `pachca_update_user`, `pachca_create_bot` and `pachca_update_bot`, the default `events`, an empty bot with `scopes`, the `commands` length with separators and `ignore_self_messages` of the bot tools, `pachca_create_tag` and `pachca_update_tag` (`invalid`, `use_of_system_words`), `pachca_list_tags`, the search fields of `pachca_list_users` and `pachca_list_bots`, a query cut at 256 characters in the search tools, the avatar tools (any `gif` up to 2 MB, `png` saved as `jpg`), `pachca_mark_chat_unread`, `pachca_list_custom_fields`, `pachca_get_upload_params` (a key from another workspace), the email change and suspending the owner in `pachca_update_user`, `away_message` stored as plain text, mentions in `content` and the file `name` of `pachca_create_draft` and `pachca_update_draft`, a voice file refused on an edit in `pachca_update_message`, `name` of `pachca_update_chat` and of a personal chat in chat outputs, `changed_at` and `buttons` in message outputs, `done_at` of `pachca_update_task`, and `event_type`, `user_ids` (up to 100 per webhook) and the call `thread` in `pachca_get_webhook_events`.
+
 ## 1.5.0 (2026-10-31)
 
 Reminders named as in the Pachca app, deleting an incoming webhook, the output of opening a form, audit details as the API writes them, and rules for mentions and missing scopes; schema_version stays 1.2.0.

@@ -1822,7 +1822,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"task\": {\n    \"kind\": \"reminder\",\n    \"content\": \"Забрать со склада 21 заказ\",\n    \"due_at\": \"2020-06-05T12:00:00.000+03:00\",\n    \"priority\": 2,\n    \"performer_ids\": [\n      12,\n      13\n    ],\n    \"chat_id\": 456,\n    \"all_day\": false,\n    \"custom_properties\": [\n      {\n        \"id\": 78,\n        \"value\": \"Синий склад\"\n      }\n    ]\n  }\n}",
+              "raw": "{\n  \"task\": {\n    \"content\": \"Забрать со склада 21 заказ\",\n    \"due_at\": \"2020-06-05T12:00:00.000+03:00\",\n    \"priority\": 2,\n    \"performer_ids\": [\n      12,\n      13\n    ],\n    \"chat_id\": 456,\n    \"all_day\": false,\n    \"custom_properties\": [\n      {\n        \"id\": 78,\n        \"value\": \"Синий склад\"\n      }\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"

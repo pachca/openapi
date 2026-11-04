@@ -1451,16 +1451,10 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope TasksDelete { get; } = new("tasks:delete");
     /// <summary>Скачивание файлов</summary>
     public static OAuthScope FilesRead { get; } = new("files:read");
-    /// <summary>Загрузка файлов</summary>
-    public static OAuthScope FilesWrite { get; } = new("files:write");
     /// <summary>Получение данных для загрузки файлов</summary>
     public static OAuthScope UploadsWrite { get; } = new("uploads:write");
     /// <summary>Открытие форм (представлений)</summary>
     public static OAuthScope ViewsWrite { get; } = new("views:write");
-    /// <summary>Просмотр вебхуков</summary>
-    public static OAuthScope WebhooksRead { get; } = new("webhooks:read");
-    /// <summary>Создание и управление вебхуками</summary>
-    public static OAuthScope WebhooksWrite { get; } = new("webhooks:write");
     /// <summary>Просмотр лога вебхуков</summary>
     public static OAuthScope WebhooksEventsRead { get; } = new("webhooks:events:read");
     /// <summary>Удаление записи в логе вебхука</summary>
@@ -1481,7 +1475,7 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope ImportantMessagesWrite { get; } = new("important_messages:write");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, FilesWrite, UploadsWrite, ViewsWrite, WebhooksRead, WebhooksWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
+    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, UploadsWrite, ViewsWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -2213,6 +2207,56 @@ internal class VideoCallEventTypeConverter : JsonConverter<VideoCallEventType>
         writer.WriteStringValue(value.Value);
 }
 
+/// <summary>Статус расшифровки голосового сообщения</summary>
+[JsonConverter(typeof(VoiceTranscriptStatusConverter))]
+public readonly struct VoiceTranscriptStatus : IEquatable<VoiceTranscriptStatus>
+{
+    private readonly string? _value;
+
+    public VoiceTranscriptStatus(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Расшифровка запрошена и ещё не готова</summary>
+    public static VoiceTranscriptStatus Pending { get; } = new("pending");
+    /// <summary>Расшифровка не удалась</summary>
+    public static VoiceTranscriptStatus Failed { get; } = new("failed");
+    /// <summary>Расшифровка готова</summary>
+    public static VoiceTranscriptStatus Success { get; } = new("success");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<VoiceTranscriptStatus> Values { get; } = Array.AsReadOnly(new[] { Pending, Failed, Success });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(VoiceTranscriptStatus left, VoiceTranscriptStatus right) => left.Equals(right);
+    public static bool operator !=(VoiceTranscriptStatus left, VoiceTranscriptStatus right) => !left.Equals(right);
+    public static implicit operator VoiceTranscriptStatus(string value) => new(value);
+    public bool Equals(VoiceTranscriptStatus other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is VoiceTranscriptStatus other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class VoiceTranscriptStatusConverter : JsonConverter<VoiceTranscriptStatus>
+{
+    public override VoiceTranscriptStatus Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, VoiceTranscriptStatus value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
 /// <summary>Тип события webhook</summary>
 [JsonConverter(typeof(WebhookEventTypeConverter))]
 public readonly struct WebhookEventType : IEquatable<WebhookEventType>
@@ -2469,7 +2513,7 @@ public class AuditDetailsSearch : AuditEventDetailsUnion
     [JsonPropertyName("limit")]
     public int? Limit { get; set; }
     [JsonPropertyName("filters")]
-    public Dictionary<string, object> Filters { get; set; } = default!;
+    public Dictionary<string, object>? Filters { get; set; }
 }
 
 public class AuditDetailsBot : AuditEventDetailsUnion
@@ -2541,7 +2585,7 @@ public class AuditDetailsBotOAuthClient : AuditEventDetailsUnion
     [JsonPropertyName("client_id")]
     public string ClientId { get; set; } = default!;
     [JsonPropertyName("changes")]
-    public Dictionary<string, object> Changes { get; set; } = default!;
+    public Dictionary<string, object>? Changes { get; set; }
     [JsonPropertyName("application_id")]
     public int? ApplicationId { get; set; }
     [JsonPropertyName("application_name")]
@@ -3238,11 +3282,11 @@ internal static class UnionRequiredKeys
         ["AuditDetailsTokenScopes"] = (new[] { "scopes" }, Array.Empty<(string, string)>()),
         ["AuditDetailsKms"] = (new[] { "chat_id", "message_id", "reason" }, Array.Empty<(string, string)>()),
         ["AuditDetailsDlp"] = (new[] { "dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "conditions_matched" }, Array.Empty<(string, string)>()),
-        ["AuditDetailsSearch"] = (new[] { "search_type", "query_present", "cursor_present", "filters" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsSearch"] = (new[] { "search_type", "query_present", "cursor_present" }, Array.Empty<(string, string)>()),
         ["AuditDetailsBot"] = (new[] { "bot_id" }, new[] { ("scopes", "AuditDetailsTokenScopesChange") }),
         ["AuditDetailsBotScopes"] = (new[] { "bot_id", "added_scopes", "removed_scopes", "webhook_id", "previous_scopes", "new_scopes" }, Array.Empty<(string, string)>()),
         ["AuditDetailsBotWebhookSettings"] = (new[] { "bot_id", "changes" }, Array.Empty<(string, string)>()),
-        ["AuditDetailsBotOAuthClient"] = (new[] { "bot_id", "client_id", "changes" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsBotOAuthClient"] = (new[] { "bot_id", "client_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsOAuthAuthorizationGranted"] = (new[] { "scopes", "application_id", "authorization_grant_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsOAuthAuthorizationRevoked"] = (new[] { "client_id", "revoked_tokens_count", "application_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsDeviceAuthorizationApproved"] = (new[] { "client_id", "scopes", "application_id", "device_grant_id" }, Array.Empty<(string, string)>()),
@@ -4411,7 +4455,7 @@ public class MessageCreateRequestFile
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
     [JsonPropertyName("file_type")]
-    public FileType FileType { get; set; } = default!;
+    public FileType? FileType { get; set; }
     [JsonPropertyName("size")]
     public long? Size { get; set; }
     [JsonPropertyName("width")]
@@ -4632,7 +4676,7 @@ public class SearchPaginationMeta
     public SearchPaginationMetaPaginate Paginate { get; set; } = default!;
 }
 
-public class StatusUpdateRequestStatus
+public class StatusUpdateRequestStatus : INullFields
 {
     [JsonPropertyName("emoji")]
     public string? Emoji { get; set; }
@@ -4644,6 +4688,10 @@ public class StatusUpdateRequestStatus
     public bool? IsAway { get; set; }
     [JsonPropertyName("away_message")]
     public string? AwayMessage { get; set; }
+
+    /// <summary>Properties to send as null: ExpiresAt, AwayMessage. An unset property stays out of the body.</summary>
+    [JsonIgnore]
+    public List<string>? NullFields { get; set; }
 }
 
 public class StatusUpdateRequest
@@ -4705,7 +4753,7 @@ public class TaskCreateRequestCustomProperty
 public class TaskCreateRequestTask
 {
     [JsonPropertyName("kind")]
-    public TaskKind Kind { get; set; } = default!;
+    public TaskKind? Kind { get; set; }
     [JsonPropertyName("content")]
     public string? Content { get; set; }
     [JsonPropertyName("due_at")]
@@ -5018,6 +5066,8 @@ public class VoiceContent
     public string Waveform { get; set; } = default!;
     [JsonPropertyName("transcript")]
     public string? Transcript { get; set; }
+    [JsonPropertyName("transcript_status")]
+    public VoiceTranscriptStatus? TranscriptStatus { get; set; }
 }
 
 public class WebhookEvent

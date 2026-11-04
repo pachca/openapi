@@ -2915,7 +2915,7 @@ type ReactionsService interface {
 	ListReactions(ctx context.Context, id int32, params *ListReactionsParams) (*ListReactionsResponse, error)
 	ListReactionsAll(ctx context.Context, id int32, params *ListReactionsParams) ([]Reaction, error)
 	AddReaction(ctx context.Context, id int32, request ReactionRequest) (*Reaction, error)
-	RemoveReaction(ctx context.Context, id int32, params RemoveReactionParams) error
+	RemoveReaction(ctx context.Context, id int32, params *RemoveReactionParams) error
 }
 
 type ReactionsServiceStub struct{}
@@ -2932,7 +2932,7 @@ func (s *ReactionsServiceStub) AddReaction(ctx context.Context, id int32, reques
 	return nil, NotImplementedError{Method: "Reactions.addReaction"}
 }
 
-func (s *ReactionsServiceStub) RemoveReaction(ctx context.Context, id int32, params RemoveReactionParams) error {
+func (s *ReactionsServiceStub) RemoveReaction(ctx context.Context, id int32, params *RemoveReactionParams) error {
 	return NotImplementedError{Method: "Reactions.removeReaction"}
 }
 
@@ -3028,14 +3028,16 @@ func (s *ReactionsServiceImpl) AddReaction(ctx context.Context, id int32, reques
 	}
 }
 
-func (s *ReactionsServiceImpl) RemoveReaction(ctx context.Context, id int32, params RemoveReactionParams) error {
+func (s *ReactionsServiceImpl) RemoveReaction(ctx context.Context, id int32, params *RemoveReactionParams) error {
 	u, err := url.Parse(fmt.Sprintf("%s/messages/%v/reactions", s.baseURL, id))
 	if err != nil {
 		return err
 	}
 	q := u.Query()
-	q.Set("code", fmt.Sprintf("%v", params.Code))
-	if params.Name != nil {
+	if params != nil && params.Code != nil {
+		q.Set("code", fmt.Sprintf("%v", *params.Code))
+	}
+	if params != nil && params.Name != nil {
 		q.Set("name", fmt.Sprintf("%v", *params.Name))
 	}
 	u.RawQuery = q.Encode()

@@ -403,6 +403,7 @@ export const chatFields: INodeProperties[] = [
 				name: 'chatName',
 				type: 'string',
 				default: "",
+				description: 'Name of the conversation or channel. An empty name or a name of spaces only responds `400` with the `blank` code.',
 				placeholder: 'Pool',
 			},
 			{

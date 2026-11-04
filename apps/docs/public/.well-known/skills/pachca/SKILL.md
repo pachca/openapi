@@ -183,7 +183,7 @@ may have changed, use step 1.
    but it reads only the saved profile and the scopes saved at login: add `--remote` to ask the server.
 3. When it matters for the task, tell the user in one line whom you act as. Messages sent through MCP browser
    sign-in or a CLI login carry the employee's name and a badge «Отправлено через …» naming the program; with a
-   personal token they look hand-written.
+   personal token the badge reads «Отправлено через API».
 
 ## What decides what you can do
 

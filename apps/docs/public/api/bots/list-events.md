@@ -44,7 +44,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
 
 - `data: array of object` (required)
   - `id: string` (required) — Идентификатор события. Пример: `"01KAJZ2XDSS2S3DSW9EXJZ0TBV"`
-  - `event_type: string` (required) — Тип события. Пример: `"message_new"`
+  - `event_type: string` (required) — Тип события: значение из `events` бота, например `message_new`. У отправленной формы — `view_submit`, она приходит с подпиской на `button_click`. Пример: `"message_new"`
   - `payload: anyOf` (required) — Объект вебхука
     **Возможные варианты:**
 
@@ -60,7 +60,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
       - `content: string` (required) — Текст сообщения. Пример: `"Текст сообщения"`
       - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
       - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
-      - `changed_at: date-time` (nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2025-05-15T14:35:00.000Z"`
+      - `changed_at: date-time` (nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Заполняется уже при создании сообщения и обычно отличается от `created_at` на доли секунды или больше: у `created_at` доли секунды всегда нулевые. `null` у сообщений, отправленных до появления этого поля. Пример: `"2025-05-15T14:35:00.000Z"`
       - `url: string` (required) — Прямая ссылка на сообщение. Пример: `"https://app.pachca.com/chats/9012?message=1245817"`
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Пример: `9012`
       - `parent_message_id: integer, int32` (nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `3456`
@@ -113,7 +113,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
         Значения: `add` — Добавление, `remove` — Удаление
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором изменился состав участников. Пример: `9012`
       - `thread_id: integer, int32` (nullable) — Идентификатор треда. `null`, если участники добавлены в обычный чат или канал, а не в тред. Пример: `5678`
-      - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие. Пример: `[2345,6789]`
+      - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие, не больше 100. Если событие затронуло больше пользователей, приходит несколько вебхуков. Пример: `[2345,6789]`
       - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ssZ. В этом вебхуке время приходит без долей секунды, в отличие от остальных. Пример: `"2025-05-15T14:30:00Z"`
       - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
     - **CompanyMemberWebhookPayload**: Структура исходящего вебхука об участниках пространства
@@ -121,7 +121,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
         Значения: `company_member` — Для участника пространства всегда company_member
       - `event: string` (required) — Тип события
         Значения: `invite` — Приглашение, `confirm` — Подтверждение, `update` — Обновление, `suspend` — Приостановка, `activate` — Активация, `delete` — Удаление
-      - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие. Пример: `[2345,6789]`
+      - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие, не больше 100. Если событие затронуло больше пользователей, приходит несколько вебхуков. Пример: `[2345,6789]`
       - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ssZ. В этом вебхуке время приходит без долей секунды, в отличие от остальных. Пример: `"2025-05-15T14:30:00Z"`
       - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
     - **LinkSharedWebhookPayload**: Структура исходящего вебхука о разворачивании ссылок
@@ -152,7 +152,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
       - `video_room_id: integer, int32` (required) — Идентификатор видеозвонка. Пример: `9012`
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок. Пример: `23438`
       - `owner_id: integer, int32` (required) — Идентификатор пользователя, начавшего видеозвонок. Пример: `2345`
-      - `thread: object` — Объект с параметрами треда, если видеозвонок проходит в треде. `null`, если звонок не в треде.
+      - `thread: object` — Тред звонка. Для звонка в обычном чате или личной переписке это тред к системному сообщению о звонке: `message_id` — это сообщение, а `message_chat_id` совпадает с `chat_id`. Для звонка в треде это сам тред, и `thread.chat_id` совпадает с `chat_id`. `null` только в событии finished для звонка вне треда, который так и не начался.
         - `id: integer, int32` (required) — Идентификатор треда. Пример: `12345`
         - `chat_id: integer, int32` (required) — Идентификатор чата треда. Пример: `67890`
         - `message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому создан тред. `null` у треда без сообщения-родителя — такие создаёт [Новый самостоятельный тред](/api/threads/create). Пример: `268092`

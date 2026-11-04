@@ -364,11 +364,8 @@ const (
 	OAuthScopeTasksUpdate            OAuthScope = "tasks:update" // Изменение задачи
 	OAuthScopeTasksDelete            OAuthScope = "tasks:delete" // Удаление задачи
 	OAuthScopeFilesRead              OAuthScope = "files:read" // Скачивание файлов
-	OAuthScopeFilesWrite             OAuthScope = "files:write" // Загрузка файлов
 	OAuthScopeUploadsWrite           OAuthScope = "uploads:write" // Получение данных для загрузки файлов
 	OAuthScopeViewsWrite             OAuthScope = "views:write" // Открытие форм (представлений)
-	OAuthScopeWebhooksRead           OAuthScope = "webhooks:read" // Просмотр вебхуков
-	OAuthScopeWebhooksWrite          OAuthScope = "webhooks:write" // Создание и управление вебхуками
 	OAuthScopeWebhooksEventsRead     OAuthScope = "webhooks:events:read" // Просмотр лога вебхуков
 	OAuthScopeWebhooksEventsDelete   OAuthScope = "webhooks:events:delete" // Удаление записи в логе вебхука
 	OAuthScopeSearchUsers            OAuthScope = "search:users" // Поиск сотрудников
@@ -549,6 +546,15 @@ const (
 	VideoCallEventTypeRecordingReady VideoCallEventType = "recording_ready" // Запись видеозвонка готова
 )
 
+// VoiceTranscriptStatus may hold a value this SDK does not list yet: a response keeps it as is.
+type VoiceTranscriptStatus string
+
+const (
+	VoiceTranscriptStatusPending VoiceTranscriptStatus = "pending" // Расшифровка запрошена и ещё не готова
+	VoiceTranscriptStatusFailed  VoiceTranscriptStatus = "failed" // Расшифровка не удалась
+	VoiceTranscriptStatusSuccess VoiceTranscriptStatus = "success" // Расшифровка готова
+)
+
 // WebhookEventType may hold a value this SDK does not list yet: a response keeps it as is.
 type WebhookEventType string
 
@@ -612,7 +618,7 @@ type ApiErrorItem struct {
 
 type AuditDetailsBot struct {
 	BotID              int32                        `json:"bot_id"`
-	ActorID            *int32                       `json:"actor_id"`
+	ActorID            *int32                       `json:"actor_id,omitempty"`
 	WebhookID          *int32                       `json:"webhook_id,omitempty"`
 	ApplicationID      *int32                       `json:"application_id,omitempty"`
 	AccessTokenID      *int32                       `json:"access_token_id,omitempty"`
@@ -624,8 +630,8 @@ type AuditDetailsBot struct {
 type AuditDetailsBotOAuthClient struct {
 	BotID              int32          `json:"bot_id"`
 	ClientID           string         `json:"client_id"`
-	Changes            map[string]any `json:"changes"`
-	ActorID            *int32         `json:"actor_id"`
+	ActorID            *int32         `json:"actor_id,omitempty"`
+	Changes            map[string]any `json:"changes,omitempty"`
 	ApplicationID      *int32         `json:"application_id,omitempty"`
 	ApplicationName    *string        `json:"application_name,omitempty"`
 	BotName            *string        `json:"bot_name,omitempty"`
@@ -645,6 +651,11 @@ func (m AuditDetailsBotOAuthClient) MarshalJSON() ([]byte, error) {
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
+	if m.Changes != nil {
+		if raw["changes"], err = json.Marshal(m.Changes); err != nil {
+			return nil, err
+		}
+	}
 	if m.Scopes != nil {
 		if raw["scopes"], err = json.Marshal(m.Scopes); err != nil {
 			return nil, err
@@ -658,7 +669,7 @@ type AuditDetailsBotOAuthClientDisabled struct {
 	ClientID                 string   `json:"client_id"`
 	DeletedAccessTokensCount int32    `json:"deleted_access_tokens_count"`
 	DeletedAccessGrantsCount int32    `json:"deleted_access_grants_count"`
-	ActorID                  *int32   `json:"actor_id"`
+	ActorID                  *int32   `json:"actor_id,omitempty"`
 	ApplicationID            *int32   `json:"application_id,omitempty"`
 	ApplicationName          *string  `json:"application_name,omitempty"`
 	BotName                  *string  `json:"bot_name,omitempty"`
@@ -689,7 +700,7 @@ func (m AuditDetailsBotOAuthClientDisabled) MarshalJSON() ([]byte, error) {
 type AuditDetailsBotOAuthClientSecretRotated struct {
 	BotID              int32    `json:"bot_id"`
 	ClientID           string   `json:"client_id"`
-	ActorID            *int32   `json:"actor_id"`
+	ActorID            *int32   `json:"actor_id,omitempty"`
 	ApplicationID      *int32   `json:"application_id,omitempty"`
 	ApplicationName    *string  `json:"application_name,omitempty"`
 	BotName            *string  `json:"bot_name,omitempty"`
@@ -724,7 +735,7 @@ type AuditDetailsBotScopes struct {
 	WebhookID      int32    `json:"webhook_id"`
 	PreviousScopes []string `json:"previous_scopes"`
 	NewScopes      []string `json:"new_scopes"`
-	ActorID        *int32   `json:"actor_id"`
+	ActorID        *int32   `json:"actor_id,omitempty"`
 	BotName        *string  `json:"bot_name,omitempty"`
 }
 
@@ -734,10 +745,10 @@ type AuditDetailsBotTokenUpdated struct {
 	CurrentScopes      []string                       `json:"current_scopes"`
 	AccessTokenID      int32                          `json:"access_token_id"`
 	WebhookID          int32                          `json:"webhook_id"`
-	TokenName          *string                        `json:"token_name"`
+	TokenName          *string                        `json:"token_name,omitempty"`
 	BotID              *int32                         `json:"bot_id,omitempty"`
-	ActorID            *int32                         `json:"actor_id"`
-	AccessTokenPreview *string                        `json:"access_token_preview"`
+	ActorID            *int32                         `json:"actor_id,omitempty"`
+	AccessTokenPreview *string                        `json:"access_token_preview,omitempty"`
 	ApplicationID      *int32                         `json:"application_id,omitempty"`
 	ApplicationName    *string                        `json:"application_name,omitempty"`
 	ClientID           *string                        `json:"client_id,omitempty"`
@@ -749,7 +760,7 @@ type AuditDetailsBotTokenUpdated struct {
 type AuditDetailsBotWebhookSettings struct {
 	BotID              int32          `json:"bot_id"`
 	Changes            map[string]any `json:"changes"`
-	ActorID            *int32         `json:"actor_id"`
+	ActorID            *int32         `json:"actor_id,omitempty"`
 	BotName            *string        `json:"bot_name,omitempty"`
 	WebhookID          *int32         `json:"webhook_id,omitempty"`
 	AccessTokenID      *int32         `json:"access_token_id,omitempty"`
@@ -796,7 +807,7 @@ type AuditDetailsDlp struct {
 	ChatID            int32   `json:"chat_id"`
 	UserID            int32   `json:"user_id"`
 	ConditionsMatched bool    `json:"conditions_matched"`
-	ActionMessage     *string `json:"action_message"`
+	ActionMessage     *string `json:"action_message,omitempty"`
 }
 
 type AuditDetailsEmpty struct {
@@ -835,7 +846,7 @@ type AuditDetailsOAuthAuthorizationGranted struct {
 	Scopes               []string `json:"scopes"`
 	ApplicationID        int32    `json:"application_id"`
 	AuthorizationGrantID int32    `json:"authorization_grant_id"`
-	ClientID             *string  `json:"client_id"`
+	ClientID             *string  `json:"client_id,omitempty"`
 	ApplicationName      *string  `json:"application_name,omitempty"`
 	BotID                *int32   `json:"bot_id,omitempty"`
 	BotName              *string  `json:"bot_name,omitempty"`
@@ -861,8 +872,26 @@ type AuditDetailsSearch struct {
 	SearchType    string         `json:"search_type"`
 	QueryPresent  bool           `json:"query_present"`
 	CursorPresent bool           `json:"cursor_present"`
-	Filters       map[string]any `json:"filters"`
-	Limit         *int32         `json:"limit"`
+	Limit         *int32         `json:"limit,omitempty"`
+	Filters       map[string]any `json:"filters,omitempty"`
+}
+
+func (m AuditDetailsSearch) MarshalJSON() ([]byte, error) {
+	type Alias AuditDetailsSearch
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Filters != nil {
+		if raw["filters"], err = json.Marshal(m.Filters); err != nil {
+			return nil, err
+		}
+	}
+	return json.Marshal(raw)
 }
 
 type AuditDetailsTagChat struct {
@@ -879,8 +908,8 @@ type AuditDetailsToken struct {
 	ResourceOwnerID    int32    `json:"resource_owner_id"`
 	Scopes             []string `json:"scopes"`
 	AccessTokenID      int32    `json:"access_token_id"`
-	TokenName          *string  `json:"token_name"`
-	AccessTokenPreview *string  `json:"access_token_preview"`
+	TokenName          *string  `json:"token_name,omitempty"`
+	AccessTokenPreview *string  `json:"access_token_preview,omitempty"`
 	ApplicationID      *int32   `json:"application_id,omitempty"`
 	ApplicationName    *string  `json:"application_name,omitempty"`
 	ClientID           *string  `json:"client_id,omitempty"`
@@ -895,8 +924,8 @@ type AuditDetailsToken struct {
 }
 
 type AuditDetailsTokenNameChange struct {
-	Previous *string `json:"previous"`
-	New      *string `json:"new"`
+	Previous *string `json:"previous,omitempty"`
+	New      *string `json:"new,omitempty"`
 }
 
 type AuditDetailsTokenScopes struct {
@@ -921,8 +950,8 @@ type AuditDetailsUserUpdated struct {
 type AuditDetailsVideoCallFinished struct {
 	ChatID           int32  `json:"chat_id"`
 	MaxMembersCount  int32  `json:"max_members_count"`
-	StartedMessageID *int32 `json:"started_message_id"`
-	Duration         *int32 `json:"duration"`
+	StartedMessageID *int32 `json:"started_message_id,omitempty"`
+	Duration         *int32 `json:"duration,omitempty"`
 }
 
 type AuditDetailsVideoCallRecording struct {
@@ -931,12 +960,12 @@ type AuditDetailsVideoCallRecording struct {
 	FileID           int32  `json:"file_id"`
 	Duration         int32  `json:"duration"`
 	Size             int64  `json:"size"`
-	StartedMessageID *int32 `json:"started_message_id"`
+	StartedMessageID *int32 `json:"started_message_id,omitempty"`
 }
 
 type AuditDetailsVideoCallStarted struct {
 	ChatID           int32  `json:"chat_id"`
-	StartedMessageID *int32 `json:"started_message_id"`
+	StartedMessageID *int32 `json:"started_message_id,omitempty"`
 }
 
 type AuditEvent struct {
@@ -1884,14 +1913,14 @@ type Message struct {
 }
 
 type MessageCreateRequestFile struct {
-	Key        string   `json:"key"`
-	Name       string   `json:"name"`
-	FileType   FileType `json:"file_type"`
-	Size       *int64   `json:"size,omitempty"`
-	Width      *int32   `json:"width,omitempty"`
-	Height     *int32   `json:"height,omitempty"`
-	DurationMs *int32   `json:"duration_ms,omitempty"`
-	Waveform   *string  `json:"waveform,omitempty"`
+	Key        string    `json:"key"`
+	Name       string    `json:"name"`
+	FileType   *FileType `json:"file_type,omitempty"`
+	Size       *int64    `json:"size,omitempty"`
+	Width      *int32    `json:"width,omitempty"`
+	Height     *int32    `json:"height,omitempty"`
+	DurationMs *int32    `json:"duration_ms,omitempty"`
+	Waveform   *string   `json:"waveform,omitempty"`
 }
 
 type MessageCreateRequestMessage struct {
@@ -2098,11 +2127,37 @@ type SearchPaginationMeta struct {
 }
 
 type StatusUpdateRequestStatus struct {
-	Emoji       *string    `json:"emoji,omitempty"`
-	Title       *string    `json:"title,omitempty"`
-	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
-	IsAway      *bool      `json:"is_away,omitempty"`
-	AwayMessage *string    `json:"away_message,omitempty"`
+	Emoji       *string  `json:"emoji,omitempty"`
+	Title       *string  `json:"title,omitempty"`
+	ExpiresAt   *string  `json:"expires_at,omitempty"`
+	IsAway      *bool    `json:"is_away,omitempty"`
+	AwayMessage *string  `json:"away_message,omitempty"`
+	NullFields  []string `json:"-"` // fields to send as null: ExpiresAt, AwayMessage
+}
+
+// MarshalJSON leaves out every optional field that is not set. A field named
+// in NullFields goes out as null, whatever value it holds.
+func (m StatusUpdateRequestStatus) MarshalJSON() ([]byte, error) {
+	type Alias StatusUpdateRequestStatus
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	for _, name := range m.NullFields {
+		switch name {
+		case "ExpiresAt":
+			raw["expires_at"] = json.RawMessage("null")
+		case "AwayMessage":
+			raw["away_message"] = json.RawMessage("null")
+		default:
+			return nil, fmt.Errorf("StatusUpdateRequestStatus: field %q cannot be sent as null", name)
+		}
+	}
+	return json.Marshal(raw)
 }
 
 type StatusUpdateRequest struct {
@@ -2157,7 +2212,7 @@ type TaskCreateRequestCustomProperty struct {
 }
 
 type TaskCreateRequestTask struct {
-	Kind             TaskKind                          `json:"kind"`
+	Kind             *TaskKind                         `json:"kind,omitempty"`
 	Content          *string                           `json:"content,omitempty"`
 	DueAt            *time.Time                        `json:"due_at,omitempty"`
 	Priority         *int32                            `json:"priority,omitempty"`
@@ -2588,9 +2643,10 @@ type ViewSubmitWebhookPayload struct {
 }
 
 type VoiceContent struct {
-	DurationMs int32   `json:"duration_ms"`
-	Waveform   string  `json:"waveform"`
-	Transcript *string `json:"transcript"`
+	DurationMs       int32                  `json:"duration_ms"`
+	Waveform         string                 `json:"waveform"`
+	Transcript       *string                `json:"transcript"`
+	TranscriptStatus *VoiceTranscriptStatus `json:"transcript_status"`
 }
 
 type WebhookEvent struct {
@@ -2685,11 +2741,11 @@ var requiredShapes = map[string]requiredShape{
 	"AuditDetailsTokenScopes":                 {keys: []string{"scopes"}},
 	"AuditDetailsKms":                         {keys: []string{"chat_id", "message_id", "reason"}},
 	"AuditDetailsDlp":                         {keys: []string{"dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "conditions_matched"}},
-	"AuditDetailsSearch":                      {keys: []string{"search_type", "query_present", "cursor_present", "filters"}},
+	"AuditDetailsSearch":                      {keys: []string{"search_type", "query_present", "cursor_present"}},
 	"AuditDetailsBot":                         {keys: []string{"bot_id"}, nested: []nestedRequiredShape{{key: "scopes", model: "AuditDetailsTokenScopesChange"}}},
 	"AuditDetailsBotScopes":                   {keys: []string{"bot_id", "added_scopes", "removed_scopes", "webhook_id", "previous_scopes", "new_scopes"}},
 	"AuditDetailsBotWebhookSettings":          {keys: []string{"bot_id", "changes"}},
-	"AuditDetailsBotOAuthClient":              {keys: []string{"bot_id", "client_id", "changes"}},
+	"AuditDetailsBotOAuthClient":              {keys: []string{"bot_id", "client_id"}},
 	"AuditDetailsOAuthAuthorizationGranted":   {keys: []string{"scopes", "application_id", "authorization_grant_id"}},
 	"AuditDetailsOAuthAuthorizationRevoked":   {keys: []string{"client_id", "revoked_tokens_count", "application_id"}},
 	"AuditDetailsDeviceAuthorizationApproved": {keys: []string{"client_id", "scopes", "application_id", "device_grant_id"}},
@@ -3493,7 +3549,7 @@ type ListChatMessagesParams struct {
 }
 
 type RemoveReactionParams struct {
-	Code string
+	Code *string
 	Name *string
 }
 

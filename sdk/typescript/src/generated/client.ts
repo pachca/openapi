@@ -1922,7 +1922,7 @@ export class ReactionsService {
     throw new Error("Reactions.addReaction is not implemented");
   }
 
-  async removeReaction(id: number, params: RemoveReactionParams): Promise<void> {
+  async removeReaction(id: number, params?: RemoveReactionParams): Promise<void> {
     throw new Error("Reactions.removeReaction is not implemented");
   }
 }
@@ -1983,11 +1983,12 @@ export class ReactionsServiceImpl extends ReactionsService {
     }
   }
 
-  async removeReaction(id: number, params: RemoveReactionParams): Promise<void> {
+  async removeReaction(id: number, params?: RemoveReactionParams): Promise<void> {
     const query = new URLSearchParams();
-    query.set("code", params.code);
+    if (params?.code !== undefined) query.set("code", params.code);
     if (params?.name !== undefined) query.set("name", params.name);
-    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/reactions?${query}`, {
+    const url = `${this.baseUrl}/messages/${id}/reactions${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
       method: "DELETE",
       headers: this.headers,
     });

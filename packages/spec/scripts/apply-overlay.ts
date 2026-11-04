@@ -119,8 +119,8 @@ const RU_TO_EN: Record<string, string> = {
 	'Забрать со склада 21 заказ': 'Pick up 21 orders from the warehouse',
 
 	// Example values — user status
-	'Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov.':
-		'I am on vacation until April 15. For urgent matters, contact @ivanov.',
+	'Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @Олег Петров.':
+		'I am on vacation until April 15. For urgent matters, contact @Oleg Petrov.',
 
 	// Example values — forms / views
 	'Уведомление об отпуске': 'Vacation notification',

@@ -180,7 +180,7 @@ export const botFields: INodeProperties[] = [
 		name: 'query',
 		type: 'string',
 		default: "",
-		description: 'Search phrase to filter bots by name',
+		description: 'Search phrase to filter bots by name or nickname',
 		placeholder: 'task',
 		displayOptions: { show: { resource: ['bot'], operation: ['getAll'] } },
 	},
@@ -230,7 +230,7 @@ export const botFields: INodeProperties[] = [
 				name: 'commands',
 				type: 'string',
 				default: "",
-				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.',
+				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the commands together with the `, ` separators (comma and space) must not exceed 255 characters.',
 				placeholder: '/task,/help',
 			},
 			{
@@ -238,14 +238,14 @@ export const botFields: INodeProperties[] = [
 				name: 'empty',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to create an empty bot: without a token and without an incoming webhook. Without this field the bot is created with an incoming webhook in its own format, and its token comes in `access_token`.',
+				description: 'Whether to create an empty bot: without an incoming webhook and, unless scopes are passed, without a token. Without this field the bot is created with an incoming webhook in its own format, and its token comes in `access_token`.',
 			},
 			{
 				displayName: 'Events',
 				name: 'events',
 				type: 'string',
 				default: "",
-				description: 'Events the bot is subscribed to',
+				description: 'Events the bot is subscribed to. Without this field the bot is subscribed to `message_new`.',
 				placeholder: 'message_new',
 			},
 			{
@@ -260,7 +260,7 @@ export const botFields: INodeProperties[] = [
 				name: 'ignoreSelfMessages',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to skip events about the bot\'s own messages and reactions',
+				description: 'Whether to skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive.',
 			},
 			{
 				displayName: 'Kind',
@@ -284,7 +284,7 @@ export const botFields: INodeProperties[] = [
 				name: 'nickname',
 				type: 'string',
 				default: "",
-				description: 'Bot nickname. Must end with `_bot`.',
+				description: 'Bot nickname: Latin letters, digits, and `_`, ending with `_bot`, free in the workspace. A nickname in another format gets `400` on the `bot.nickname` field with the `invalid` code, and a taken nickname gets the `taken` code. Without this field the nickname is built from the name transliterated into Latin letters, with `_bot` at the end, and if that nickname is taken, with `_2_bot`, `_3_bot`, and so on.',
 				placeholder: 'tasks_bot',
 			},
 			{
@@ -450,7 +450,7 @@ export const botFields: INodeProperties[] = [
 				name: 'commands',
 				type: 'string',
 				default: "",
-				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the comma-joined commands must not exceed 255 characters.',
+				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the commands together with the `, ` separators (comma and space) must not exceed 255 characters.',
 				placeholder: '/task,/help',
 			},
 			{
@@ -473,7 +473,7 @@ export const botFields: INodeProperties[] = [
 				name: 'ignoreSelfMessages',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to skip events about the bot\'s own messages and reactions',
+				description: 'Whether to skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive.',
 			},
 			{
 				displayName: 'Kind',
@@ -506,7 +506,7 @@ export const botFields: INodeProperties[] = [
 				name: 'nickname',
 				type: 'string',
 				default: "",
-				description: 'Bot nickname. Must end with `_bot`.',
+				description: 'Bot nickname: Latin letters, digits, and `_`, ending with `_bot`, free in the workspace. A nickname in another format gets `400` on the `bot.nickname` field with the `invalid` code, and a taken nickname gets the `taken` code.',
 				placeholder: 'tasks_bot',
 			},
 			{

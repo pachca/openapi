@@ -20,7 +20,7 @@ export default class DraftsUpdate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'content': Flags.string({
-      description: "Текст черновика. До 40 000 байт в UTF-8.",
+      description: "Текст черновика. Поддерживает упоминания, как текст в методе [Новое сообщение](POST /messages). `<@user_id>` остаётся в тексте черновика как передан, а при отправке становится `@nickname`. До 40 000 байт в UTF-8.",
     }),
     'parent-message-id': nullableInteger({
       description: "Идентификатор сообщения, ответом на которое уйдёт черновик. `null` снимает ответ. Чтобы передать null, укажите `--parent-message-id null`.",

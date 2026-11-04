@@ -43,7 +43,7 @@ go get github.com/pachca/openapi/sdk/go/generated
 // settings.gradle.kts: repositories { maven("https://jitpack.io") }
 // build.gradle.kts
 dependencies {
-    implementation("com.github.pachca:openapi:1.8.0")
+    implementation("com.github.pachca:openapi:1.9.0")
 }
 ```
 

@@ -150,7 +150,7 @@ that feed. Starting points, ids and the full procedure:
   (pachca-api). Never retell page one as the whole thread.
 - Read in chronological order. In a chat feed (`pachca_list_chat_messages`)
   pass `sort=id` together with `order=asc` on every call, cursor pages
-  included (`order` alone is ignored there). In message search
+  included: the cursor does not keep the order. In message search
   (`pachca_search_messages`) pass `order=asc` and leave `sort` at its
   default `created_at`: the cursor keeps the order, and `relevance` ranks
   by match, not by time. Or read newest first and reverse. Later messages

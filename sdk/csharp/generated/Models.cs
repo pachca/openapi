@@ -1291,6 +1291,54 @@ internal class MessageSortFieldConverter : JsonConverter<MessageSortField>
     }
 }
 
+/// <summary>Через что отправлено сообщение токеном сотрудника</summary>
+[JsonConverter(typeof(MessageSourceConverter))]
+public readonly struct MessageSource : IEquatable<MessageSource>
+{
+    private readonly string? _value;
+
+    public MessageSource(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника</summary>
+    public static MessageSource Application { get; } = new("application");
+    /// <summary>Персональным токеном сотрудника</summary>
+    public static MessageSource PersonalToken { get; } = new("personal_token");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<MessageSource> Values { get; } = Array.AsReadOnly(new[] { Application, PersonalToken });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(MessageSource left, MessageSource right) => left.Equals(right);
+    public static bool operator !=(MessageSource left, MessageSource right) => !left.Equals(right);
+    public static implicit operator MessageSource(string value) => new(value);
+    public bool Equals(MessageSource other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is MessageSource other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class MessageSourceConverter : JsonConverter<MessageSource>
+{
+    public override MessageSource Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, MessageSource value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
 /// <summary>Код ошибки OAuth</summary>
 [JsonConverter(typeof(OAuthErrorCodeConverter))]
 public readonly struct OAuthErrorCode : IEquatable<OAuthErrorCode>
@@ -2089,6 +2137,12 @@ public readonly struct ValidationErrorCode : IEquatable<ValidationErrorCode>
     public static ValidationErrorCode Timeout { get; } = new("timeout");
     /// <summary>Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`</summary>
     public static ValidationErrorCode DailyInvitesLimit { get; } = new("daily_invites_limit");
+    /// <summary>Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста</summary>
+    public static ValidationErrorCode WebhookUrlInvalid { get; } = new("webhook_url_invalid");
+    /// <summary>Не удалось определить IP-адрес домена из адреса вебхука</summary>
+    public static ValidationErrorCode WebhookUrlUnresolved { get; } = new("webhook_url_unresolved");
+    /// <summary>Адрес вебхука ведёт во внутреннюю или зарезервированную сеть</summary>
+    public static ValidationErrorCode WebhookUrlForbidden { get; } = new("webhook_url_forbidden");
     /// <summary>Недостаточно прав для выполнения действия (пояснения вы получите в поле message)</summary>
     public static ValidationErrorCode Forbidden { get; } = new("forbidden");
     /// <summary>Доступ запрещён (недостаточно прав)</summary>
@@ -2123,7 +2177,7 @@ public readonly struct ValidationErrorCode : IEquatable<ValidationErrorCode>
     public static ValidationErrorCode ServiceUnavailable { get; } = new("service_unavailable");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<ValidationErrorCode> Values { get; } = Array.AsReadOnly(new[] { Blank, TooLong, Invalid, Inclusion, Exclusion, Taken, WrongEmoji, NotFound, AlreadyExists, PersonalChat, DisplayedError, NotAuthorized, InvalidDateRange, InvalidWebhookUrl, RateLimit, LicensesLimit, UserLimit, UniqueLimit, GeneralLimit, Unhandled, TriggerNotFound, TriggerExpired, Required, In, NotApplicable, SelfUpdate, OwnerProtected, AlreadyAssigned, NextSendAtInvalid, ScheduleInvalid, ScheduleEndDateInvalid, ScheduledMessagesLimit, DraftTypeChangeForbidden, ConfidentialDownloadDenied, DecryptionFailed, BotAddDenied, SingleChatBotOccupied, SingleChatBotTagDenied, RestrictedBotTagDenied, BotChangedConcurrently, Timeout, DailyInvitesLimit, Forbidden, PermissionDenied, AccessDenied, WrongParams, PaymentRequired, MinLength, MaxLength, UseOfSystemWords, ExportFileNotFound, CannotKickOwner, PinFailed, MessageDeleted, ThreadMessage, ViewNotFound, SubmitExpired, ServiceUnavailable });
+    public static IReadOnlyList<ValidationErrorCode> Values { get; } = Array.AsReadOnly(new[] { Blank, TooLong, Invalid, Inclusion, Exclusion, Taken, WrongEmoji, NotFound, AlreadyExists, PersonalChat, DisplayedError, NotAuthorized, InvalidDateRange, InvalidWebhookUrl, RateLimit, LicensesLimit, UserLimit, UniqueLimit, GeneralLimit, Unhandled, TriggerNotFound, TriggerExpired, Required, In, NotApplicable, SelfUpdate, OwnerProtected, AlreadyAssigned, NextSendAtInvalid, ScheduleInvalid, ScheduleEndDateInvalid, ScheduledMessagesLimit, DraftTypeChangeForbidden, ConfidentialDownloadDenied, DecryptionFailed, BotAddDenied, SingleChatBotOccupied, SingleChatBotTagDenied, RestrictedBotTagDenied, BotChangedConcurrently, Timeout, DailyInvitesLimit, WebhookUrlInvalid, WebhookUrlUnresolved, WebhookUrlForbidden, Forbidden, PermissionDenied, AccessDenied, WrongParams, PaymentRequired, MinLength, MaxLength, UseOfSystemWords, ExportFileNotFound, CannotKickOwner, PinFailed, MessageDeleted, ThreadMessage, ViewNotFound, SubmitExpired, ServiceUnavailable });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -2329,6 +2383,7 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         (typeof(AuditDetailsChatPermission), new HashSet<string> { "public_access" }),
         (typeof(AuditDetailsTagChat), new HashSet<string> { "chat_id", "tag_name" }),
         (typeof(AuditDetailsChatId), new HashSet<string> { "chat_id" }),
+        (typeof(AuditDetailsMessage), new HashSet<string> { "chat_id", "thread_chat_id", "source", "message_version_id" }),
         (typeof(AuditDetailsTokenScopes), new HashSet<string> { "scopes" }),
         (typeof(AuditDetailsKms), new HashSet<string> { "chat_id", "message_id", "reason" }),
         (typeof(AuditDetailsDlp), new HashSet<string> { "dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched" }),
@@ -2466,6 +2521,18 @@ public class AuditDetailsChatId : AuditEventDetailsUnion
 {
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
+}
+
+public class AuditDetailsMessage : AuditEventDetailsUnion
+{
+    [JsonPropertyName("chat_id")]
+    public int ChatId { get; set; } = default!;
+    [JsonPropertyName("thread_chat_id")]
+    public int? ThreadChatId { get; set; }
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = default!;
+    [JsonPropertyName("message_version_id")]
+    public int? MessageVersionId { get; set; }
 }
 
 public class AuditDetailsTokenScopes : AuditEventDetailsUnion
@@ -3098,6 +3165,10 @@ public class MessageWebhookPayload : WebhookPayloadUnion
     public int? ParentMessageId { get; set; }
     [JsonPropertyName("thread")]
     public WebhookMessageThread? Thread { get; set; }
+    [JsonPropertyName("source")]
+    public MessageSource? Source { get; set; }
+    [JsonPropertyName("application")]
+    public MessageApplication? Application { get; set; }
     [JsonPropertyName("webhook_timestamp")]
     public int WebhookTimestamp { get; set; } = default!;
 }
@@ -3220,6 +3291,10 @@ public class LinkSharedWebhookPayload : WebhookPayloadUnion
     public int? EntityId { get; set; }
     [JsonPropertyName("thread")]
     public WebhookMessageThread? Thread { get; set; }
+    [JsonPropertyName("source")]
+    public MessageSource? Source { get; set; }
+    [JsonPropertyName("application")]
+    public MessageApplication? Application { get; set; }
     [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; } = default!;
     [JsonPropertyName("webhook_timestamp")]
@@ -3279,6 +3354,7 @@ internal static class UnionRequiredKeys
         ["AuditDetailsChatPermission"] = (new[] { "public_access" }, Array.Empty<(string, string)>()),
         ["AuditDetailsTagChat"] = (new[] { "chat_id", "tag_name" }, Array.Empty<(string, string)>()),
         ["AuditDetailsChatId"] = (new[] { "chat_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsMessage"] = (new[] { "chat_id", "source" }, Array.Empty<(string, string)>()),
         ["AuditDetailsTokenScopes"] = (new[] { "scopes" }, Array.Empty<(string, string)>()),
         ["AuditDetailsKms"] = (new[] { "chat_id", "message_id", "reason" }, Array.Empty<(string, string)>()),
         ["AuditDetailsDlp"] = (new[] { "dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "conditions_matched" }, Array.Empty<(string, string)>()),
@@ -4446,6 +4522,18 @@ public class Message
     public DateTimeOffset? DeletedAt { get; set; }
     [JsonPropertyName("important")]
     public bool Important { get; set; } = default!;
+    [JsonPropertyName("source")]
+    public MessageSource? Source { get; set; }
+    [JsonPropertyName("application")]
+    public MessageApplication? Application { get; set; }
+}
+
+public class MessageApplication
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
 }
 
 public class MessageCreateRequestFile

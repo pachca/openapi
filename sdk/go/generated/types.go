@@ -300,6 +300,14 @@ const (
 	MessageSortFieldID MessageSortField = "id" // По идентификатору сообщения
 )
 
+// MessageSource may hold a value this SDK does not list yet: a response keeps it as is.
+type MessageSource string
+
+const (
+	MessageSourceApplication   MessageSource = "application" // Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника
+	MessageSourcePersonalToken MessageSource = "personal_token" // Персональным токеном сотрудника
+)
+
 // OAuthErrorCode may hold a value this SDK does not list yet: a response keeps it as is.
 type OAuthErrorCode string
 
@@ -519,6 +527,9 @@ const (
 	ValidationErrorCodeBotChangedConcurrently     ValidationErrorCode = "bot_changed_concurrently" // Настройки бота изменились во время запроса: повторите его
 	ValidationErrorCodeTimeout                    ValidationErrorCode = "timeout" // Поиск не уложился по времени: сузьте запрос и повторите
 	ValidationErrorCodeDailyInvitesLimit          ValidationErrorCode = "daily_invites_limit" // Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`
+	ValidationErrorCodeWebhookURLInvalid          ValidationErrorCode = "webhook_url_invalid" // Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста
+	ValidationErrorCodeWebhookURLUnresolved       ValidationErrorCode = "webhook_url_unresolved" // Не удалось определить IP-адрес домена из адреса вебхука
+	ValidationErrorCodeWebhookURLForbidden        ValidationErrorCode = "webhook_url_forbidden" // Адрес вебхука ведёт во внутреннюю или зарезервированную сеть
 	ValidationErrorCodeForbidden                  ValidationErrorCode = "forbidden" // Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
 	ValidationErrorCodePermissionDenied           ValidationErrorCode = "permission_denied" // Доступ запрещён (недостаточно прав)
 	ValidationErrorCodeAccessDenied               ValidationErrorCode = "access_denied" // Доступ запрещён
@@ -840,6 +851,13 @@ type AuditDetailsLoginGrantDenied struct {
 	LoginGrantID string                    `json:"login_grant_id"`
 	Device       AuditLoginGrantDevice     `json:"device"`
 	Reason       AuditLoginGrantDenyReason `json:"reason"`
+}
+
+type AuditDetailsMessage struct {
+	ChatID           int32  `json:"chat_id"`
+	Source           string `json:"source"`
+	ThreadChatID     *int32 `json:"thread_chat_id,omitempty"`
+	MessageVersionID *int32 `json:"message_version_id,omitempty"`
 }
 
 type AuditDetailsOAuthAuthorizationGranted struct {
@@ -1878,6 +1896,8 @@ type LinkSharedWebhookPayload struct {
 	WebhookTimestamp int32                 `json:"webhook_timestamp"`
 	EntityID         *int32                `json:"entity_id"`
 	Thread           *WebhookMessageThread `json:"thread"`
+	Source           *MessageSource        `json:"source,omitempty"`
+	Application      *MessageApplication   `json:"application,omitempty"`
 }
 
 type MarkChatUnreadRequest struct {
@@ -1890,26 +1910,33 @@ type MessageThread struct {
 }
 
 type Message struct {
-	ID               int32             `json:"id"`
-	EntityType       MessageEntityType `json:"entity_type"`
-	EntityID         int32             `json:"entity_id"`
-	ChatID           int32             `json:"chat_id"`
-	RootChatID       int32             `json:"root_chat_id"`
-	Content          string            `json:"content"`
-	UserID           int32             `json:"user_id"`
-	CreatedAt        time.Time         `json:"created_at"`
-	URL              string            `json:"url"`
-	Files            []File            `json:"files"`
-	Important        bool              `json:"important"`
-	VoiceContent     *VoiceContent     `json:"voice_content"`
-	Buttons          [][]Button        `json:"buttons"`
-	Thread           *MessageThread    `json:"thread"`
-	Forwarding       *Forwarding       `json:"forwarding"`
-	ParentMessageID  *int32            `json:"parent_message_id"`
-	DisplayAvatarURL *string           `json:"display_avatar_url,omitempty"`
-	DisplayName      *string           `json:"display_name,omitempty"`
-	ChangedAt        *string           `json:"changed_at"`
-	DeletedAt        *string           `json:"deleted_at"`
+	ID               int32               `json:"id"`
+	EntityType       MessageEntityType   `json:"entity_type"`
+	EntityID         int32               `json:"entity_id"`
+	ChatID           int32               `json:"chat_id"`
+	RootChatID       int32               `json:"root_chat_id"`
+	Content          string              `json:"content"`
+	UserID           int32               `json:"user_id"`
+	CreatedAt        time.Time           `json:"created_at"`
+	URL              string              `json:"url"`
+	Files            []File              `json:"files"`
+	Important        bool                `json:"important"`
+	VoiceContent     *VoiceContent       `json:"voice_content"`
+	Buttons          [][]Button          `json:"buttons"`
+	Thread           *MessageThread      `json:"thread"`
+	Forwarding       *Forwarding         `json:"forwarding"`
+	ParentMessageID  *int32              `json:"parent_message_id"`
+	DisplayAvatarURL *string             `json:"display_avatar_url,omitempty"`
+	DisplayName      *string             `json:"display_name,omitempty"`
+	ChangedAt        *string             `json:"changed_at"`
+	DeletedAt        *string             `json:"deleted_at"`
+	Source           *MessageSource      `json:"source"`
+	Application      *MessageApplication `json:"application"`
+}
+
+type MessageApplication struct {
+	ID   int32  `json:"id"`
+	Name string `json:"name"`
 }
 
 type MessageCreateRequestFile struct {
@@ -2024,6 +2051,8 @@ type MessageWebhookPayload struct {
 	ChangedAt        *string               `json:"changed_at,omitempty"`
 	ParentMessageID  *int32                `json:"parent_message_id,omitempty"`
 	Thread           *WebhookMessageThread `json:"thread,omitempty"`
+	Source           *MessageSource        `json:"source,omitempty"`
+	Application      *MessageApplication   `json:"application,omitempty"`
 }
 
 type OAuthError struct {
@@ -2738,6 +2767,7 @@ var requiredShapes = map[string]requiredShape{
 	"AuditDetailsChatPermission":              {keys: []string{"public_access"}},
 	"AuditDetailsTagChat":                     {keys: []string{"chat_id", "tag_name"}},
 	"AuditDetailsChatId":                      {keys: []string{"chat_id"}},
+	"AuditDetailsMessage":                     {keys: []string{"chat_id", "source"}},
 	"AuditDetailsTokenScopes":                 {keys: []string{"scopes"}},
 	"AuditDetailsKms":                         {keys: []string{"chat_id", "message_id", "reason"}},
 	"AuditDetailsDlp":                         {keys: []string{"dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "conditions_matched"}},
@@ -2850,6 +2880,7 @@ type AuditEventDetailsUnion struct {
 	AuditDetailsChatPermission              *AuditDetailsChatPermission
 	AuditDetailsTagChat                     *AuditDetailsTagChat
 	AuditDetailsChatId                      *AuditDetailsChatId
+	AuditDetailsMessage                     *AuditDetailsMessage
 	AuditDetailsTokenScopes                 *AuditDetailsTokenScopes
 	AuditDetailsKms                         *AuditDetailsKms
 	AuditDetailsDlp                         *AuditDetailsDlp
@@ -2887,6 +2918,7 @@ var auditEventDetailsUnionShapes = []unionMemberShape{
 	{name: "AuditDetailsChatPermission", keys: map[string]struct{}{"public_access": {}}},
 	{name: "AuditDetailsTagChat", keys: map[string]struct{}{"chat_id": {}, "tag_name": {}}},
 	{name: "AuditDetailsChatId", keys: map[string]struct{}{"chat_id": {}}},
+	{name: "AuditDetailsMessage", keys: map[string]struct{}{"chat_id": {}, "thread_chat_id": {}, "source": {}, "message_version_id": {}}},
 	{name: "AuditDetailsTokenScopes", keys: map[string]struct{}{"scopes": {}}},
 	{name: "AuditDetailsKms", keys: map[string]struct{}{"chat_id": {}, "message_id": {}, "reason": {}}},
 	{name: "AuditDetailsDlp", keys: map[string]struct{}{"dlp_rule_id": {}, "dlp_rule_name": {}, "message_id": {}, "chat_id": {}, "user_id": {}, "action_message": {}, "conditions_matched": {}}},
@@ -2987,138 +3019,144 @@ func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
 				return nil
 			}
 		case i == 10:
+			v := &AuditDetailsMessage{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsMessage = v
+				return nil
+			}
+		case i == 11:
 			v := &AuditDetailsTokenScopes{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsTokenScopes = v
 				return nil
 			}
-		case i == 11:
+		case i == 12:
 			v := &AuditDetailsKms{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsKms = v
 				return nil
 			}
-		case i == 12:
+		case i == 13:
 			v := &AuditDetailsDlp{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsDlp = v
 				return nil
 			}
-		case i == 13:
+		case i == 14:
 			v := &AuditDetailsSearch{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsSearch = v
 				return nil
 			}
-		case i == 14:
+		case i == 15:
 			v := &AuditDetailsBot{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBot = v
 				return nil
 			}
-		case i == 15:
+		case i == 16:
 			v := &AuditDetailsBotScopes{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotScopes = v
 				return nil
 			}
-		case i == 16:
+		case i == 17:
 			v := &AuditDetailsBotWebhookSettings{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotWebhookSettings = v
 				return nil
 			}
-		case i == 17:
+		case i == 18:
 			v := &AuditDetailsBotOAuthClient{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotOAuthClient = v
 				return nil
 			}
-		case i == 18:
+		case i == 19:
 			v := &AuditDetailsOAuthAuthorizationGranted{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsOAuthAuthorizationGranted = v
 				return nil
 			}
-		case i == 19:
+		case i == 20:
 			v := &AuditDetailsOAuthAuthorizationRevoked{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsOAuthAuthorizationRevoked = v
 				return nil
 			}
-		case i == 20:
+		case i == 21:
 			v := &AuditDetailsDeviceAuthorizationApproved{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsDeviceAuthorizationApproved = v
 				return nil
 			}
-		case i == 21:
+		case i == 22:
 			v := &AuditDetailsDeviceAuthorizationDenied{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsDeviceAuthorizationDenied = v
 				return nil
 			}
-		case i == 22:
+		case i == 23:
 			v := &AuditDetailsVideoCallStarted{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsVideoCallStarted = v
 				return nil
 			}
-		case i == 23:
+		case i == 24:
 			v := &AuditDetailsVideoCallFinished{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsVideoCallFinished = v
 				return nil
 			}
-		case i == 24:
+		case i == 25:
 			v := &AuditDetailsVideoCallRecording{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsVideoCallRecording = v
 				return nil
 			}
-		case i == 25:
+		case i == 26:
 			v := &AuditDetailsBotOAuthClientSecretRotated{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotOAuthClientSecretRotated = v
 				return nil
 			}
-		case i == 26:
+		case i == 27:
 			v := &AuditDetailsBotOAuthClientDisabled{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotOAuthClientDisabled = v
 				return nil
 			}
-		case i == 27:
+		case i == 28:
 			v := &AuditDetailsToken{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsToken = v
 				return nil
 			}
-		case i == 28:
+		case i == 29:
 			v := &AuditDetailsBotTokenUpdated{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotTokenUpdated = v
 				return nil
 			}
-		case i == 29:
+		case i == 30:
 			v := &AuditDetailsUserLoginQr{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsUserLoginQr = v
 				return nil
 			}
-		case i == 30:
+		case i == 31:
 			v := &AuditDetailsLoginGrantCreated{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsLoginGrantCreated = v
 				return nil
 			}
-		case i == 31:
+		case i == 32:
 			v := &AuditDetailsLoginGrantApproved{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsLoginGrantApproved = v
 				return nil
 			}
-		case i == 32:
+		case i == 33:
 			v := &AuditDetailsLoginGrantDenied{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsLoginGrantDenied = v
@@ -3162,6 +3200,9 @@ func (u AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {
 	}
 	if u.AuditDetailsChatId != nil {
 		return json.Marshal(u.AuditDetailsChatId)
+	}
+	if u.AuditDetailsMessage != nil {
+		return json.Marshal(u.AuditDetailsMessage)
 	}
 	if u.AuditDetailsTokenScopes != nil {
 		return json.Marshal(u.AuditDetailsTokenScopes)

@@ -23,7 +23,7 @@
 ### Схема
 
 - `webhook: object` (required) — Объект параметров вебхука
-  - `outgoing_url: string` (required, max length: 255) — URL исходящего вебхука. Пустая строка отключает вебхук. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, max length: 255) — URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`. Пустая строка отключает вебхук. Пример: `"https://example.com/tasks/new"`
 
 ### Пример
 

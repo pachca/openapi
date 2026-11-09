@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.7.0 (2026-11-09)
+
+The message source and program in outputs, message details in the audit log, outgoing webhook address error codes, the template check, and the list order without sort. schema_version stays 1.2.0.
+
+- Message outputs carry `source` (`application`, `personal_token` or `null`) and `application` (`id` and `name`, or `null`): what an employee sent the message through, and which program. Both are on the compact card. A program picks its own name, so programs are told apart by `application.id`.
+- `pachca_get_webhook_events`: message and link events carry `source` and `application`, except records saved before the fields appeared.
+- `pachca_get_audit_events`: `message_updated` and `message_deleted` details carry `chat_id`, `thread_chat_id`, `source` (`employee`, `bot`, `dlp`, `system`) and `message_version_id`. Records up to 7 November 2026 may come with empty details.
+- `pachca_create_bot`, `pachca_update_bot` and `pachca_self_update_bot_webhook`: a refused `outgoing_url` is `400` with `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden`.
+- `pachca_create_bot` and `pachca_update_bot`: an incoming webhook template with a syntax error is refused with `400` `invalid`, and nothing from the request is applied.
+- `pachca_list_chats` and `pachca_list_chat_messages`: `order` without `sort` sets the direction by `id`.
+- `pachca_update_user`: making an employee a guest emails them about the role change.
+
 ## 1.6.0 (2026-11-04)
 
 Optional reminder kind, reaction code and message file type, clearing a status with `null`, the voice transcription status, audit details that leave out empty fields, and tool texts that follow the API. schema_version stays 1.2.0.

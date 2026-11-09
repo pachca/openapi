@@ -2,6 +2,16 @@
 
 # Changelog
 
+## 2.2.5 (2026-11-09)
+
+### Features
+
+- Message responses gain the `source` and `application` fields: what an employee sent the message through, and which program
+
+### Improvements
+
+- Field descriptions follow the API: the bot's outgoing webhook address and incoming webhook template, the order of the chat and message lists, and the chat kept when an employee is made a guest
+
 ## 2.2.4 (2026-11-04)
 
 ### Features

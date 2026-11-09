@@ -14,16 +14,17 @@ deduplication → `pachca-bots`.
 
 ## The event fields the agent uses
 
-| Field               | Meaning for the agent                                                                                                                                                                                                                                       |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                | The message id: react to it, open a thread under it (not when `entity_type` is `thread`: there are no nested threads, `400`). Quote it with `parent_message_id` only in a reply to the chat where it lives: the new thread under it is another chat (`422`) |
-| `entity_type`       | Where the message came from: `user` (DM), `discussion` (conversation or channel), `thread`                                                                                                                                                                  |
-| `entity_id`         | The employee id for a DM, the chat id for a conversation, the thread id for a thread                                                                                                                                                                        |
-| `chat_id`           | The chat the message lives in; for a thread, the thread's own chat — read history by it                                                                                                                                                                     |
-| `user_id`           | The author; equal to the bot's `id` means an own message. The event does not say whether the author is a bot                                                                                                                                                |
-| `content`           | The text as Markdown that Pachca builds from the message (can contain quotes and lists). Empty for a message with only a file: the event carries no attachments, buttons or forwarding details                                                              |
-| `parent_message_id` | Set when the employee replied to a message («Ответить»): the id of that message, always in the same chat or thread. `null` otherwise                                                                                                                        |
-| `thread`            | For a thread: `message_id` (the parent message) and `message_chat_id` (the parent chat)                                                                                                                                                                     |
+| Field                   | Meaning for the agent                                                                                                                                                                                                                                                                                                                                      |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                    | The message id: react to it, open a thread under it (not when `entity_type` is `thread`: there are no nested threads, `400`). Quote it with `parent_message_id` only in a reply to the chat where it lives: the new thread under it is another chat (`422`)                                                                                                |
+| `entity_type`           | Where the message came from: `user` (DM), `discussion` (conversation or channel), `thread`                                                                                                                                                                                                                                                                 |
+| `entity_id`             | The employee id for a DM, the chat id for a conversation, the thread id for a thread                                                                                                                                                                                                                                                                       |
+| `chat_id`               | The chat the message lives in; for a thread, the thread's own chat — read history by it                                                                                                                                                                                                                                                                    |
+| `user_id`               | The author; equal to the bot's `id` means an own message. The event does not say whether the author is a bot                                                                                                                                                                                                                                               |
+| `source`, `application` | Set when a program wrote with the employee's token, under the employee's `user_id`: `application` (an MCP client, the Pachca CLI or a bot the employee authorized; the program in `application.id` and `application.name`) or `personal_token`. `null` when the employee wrote it in Pachca, a bot sent it with its own token or it went out on a schedule |
+| `content`               | The text as Markdown that Pachca builds from the message (can contain quotes and lists). Empty for a message with only a file: the event carries no attachments, buttons or forwarding details                                                                                                                                                             |
+| `parent_message_id`     | Set when the employee replied to a message («Ответить»): the id of that message, always in the same chat or thread. `null` otherwise                                                                                                                                                                                                                       |
+| `thread`                | For a thread: `message_id` (the parent message) and `message_chat_id` (the parent chat)                                                                                                                                                                                                                                                                    |
 
 Get the bot's own `id`, name and nickname once, at start-up, with the own
 profile method and the bot token (`pachca_get_my_card`, `pachca profile get`):
@@ -41,6 +42,10 @@ on the **API** tab of the bot card.
    with your command. Otherwise the agent answers every post of a notification
    bot, and two agents that take each other for the employee answer each other
    until the send limits stop them ([Limits](https://dev.pachca.com/api/limits.md)).
+   A message with `source` set counts as a bot's too: another agent writing
+   with an employee's token over MCP or the CLI comes under the employee's
+   `user_id`. To tell programs apart, compare `application.id`, never
+   `application.name`: a program picks its own name.
 3. Decide whether the agent is addressed:
    - `entity_type` is `user` → a DM, always addressed;
    - `content` mentions the bot as a whole word (not followed by a letter,
@@ -157,7 +162,7 @@ on webhook(request):                     # signature, freshness, dedup → pachc
 
 on message_new(event):                   # runs in the background worker
   if event.user_id == BOT_ID: return
-  if is_bot(event.user_id) and not (mentions_me(event) or is_command(event)): return   # users get → bot: true, cached per user_id
+  if (is_bot(event.user_id) or event.source) and not (mentions_me(event) or is_command(event)): return   # users get → bot: true, cached per user_id; source: a program
   if not addressed(event): return        # DM, mention, command, reply to own message, continuation
   react(event.id, code="⏳", name="agent-thinking")    # code: any non-empty value, name picks the reaction
   history = recent_messages(chat_id=event.chat_id)    # newest first, pages of 50: page back, then reverse

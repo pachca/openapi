@@ -40,7 +40,7 @@ prefix and send one request per key:
 | Suspicious logins                         | `user_login`, `user_2fa_fail`, `user_2fa_disabled`, `login_grant_denied` (`details.reason`)                                                                 |
 | Who changed someone's role                | `user_role_changed` (`details` has old role, new role, initiator)                                                                                           |
 | Chat access settings changed              | `chat_permission_changed` (`details.public_access`)                                                                                                         |
-| Who deleted messages                      | `message_deleted`                                                                                                                                           |
+| Who deleted or edited messages            | `message_deleted`, `message_updated` (`details.chat_id`, `details.source`, see below)                                                                       |
 | Chat membership changes                   | `user_chat_join` (`inviter_id`), `user_chat_leave` (`initiator_id`)                                                                                         |
 | Tag changes                               | `tag_*`, `user_added_to_tag`, `user_removed_from_tag`                                                                                                       |
 | Who issued, changed or revoked API access | `access_token_*`, `bot_token_*`, `bot_oauth_client_*`, `bot_scopes_updated`, `oauth_authorization_*`, `oauth_device_authorization_*`, `oauth_token_revoked` |
@@ -71,6 +71,13 @@ Traps when reading records:
   `details`, and the actor is whoever changed the role. Access they gave bots
   and apps comes this way too, not as `oauth_authorization_revoked`. Report
   such records as the demotion, not as a manual revocation.
+- `message_updated` and `message_deleted` carry `details`: `chat_id` (for a
+  message in a thread, the chat of the thread's parent message, or the thread
+  itself when it has none), `thread_chat_id` for a message in a thread, and
+  `source`: `employee`, `bot`, `dlp` (a DLP rule replaced the text, the actor
+  is the author) or `system` (Pachca itself, for example when it attaches an
+  image fetched by its link). A deletion has only `employee` or `bot`.
+  Records up to 7 November 2026 inclusive may have empty `details`.
 - Code exchange and token refresh leave no records; the consent does.
 - Changes to the IP allowlist and encryption settings are not logged.
 
@@ -156,9 +163,10 @@ A rule has a name, a priority and a JSON body with `conditions` (required),
   regex for other word forms.
 - **Action**: `AUDIT_LOG` (message passes, event logged), `BLOCK` (text
   replaced, no `dlp_violation_detected`: the audit log gets only a
-  `message_updated` by the author with the author's IP and user agent,
-  indistinguishable from their own edit, so prefer `BLOCK_AND_AUDIT_LOG` when
-  blocks must be visible), `BLOCK_AND_AUDIT_LOG` (both). The replacement is
+  `message_updated` by the author with the author's IP and user agent and
+  `details.source: "dlp"`, which records up to 7 November 2026 inclusive may
+  lack, but not the rule, so prefer `BLOCK_AND_AUDIT_LOG` when you need to see
+  which rule fired), `BLOCK_AND_AUDIT_LOG` (both). The replacement is
   `action.message`, or a default text if unset. Rules check only the message
   text, on send and on every edit: messages from employees and guests are
   checked, including those sent through the API with an employee's token.

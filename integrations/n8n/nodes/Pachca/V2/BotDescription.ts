@@ -139,7 +139,7 @@ export const botFields: INodeProperties[] = [
 		type: 'string',
 		required: true,
 		default: "",
-		description: 'Outgoing webhook URL. An empty string disables the webhook.',
+		description: 'Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code. An empty string disables the webhook.',
 		displayOptions: { show: { resource: ['bot'], operation: ['updateWebhook'] } },
 		placeholder: 'https://example.com/tasks/new',
 	},
@@ -299,7 +299,7 @@ export const botFields: INodeProperties[] = [
 				name: 'outgoingUrl',
 				type: 'string',
 				default: "",
-				description: 'Outgoing webhook URL',
+				description: 'Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code.',
 				placeholder: 'https://example.com/tasks/new',
 			},
 			{
@@ -329,7 +329,7 @@ export const botFields: INodeProperties[] = [
 				name: 'template',
 				type: 'string',
 				default: "",
-				description: 'Template for formatting the incoming webhook',
+				description: 'Template for formatting the incoming webhook. A template with a syntax error for the `simple` source, an empty bot with `kind: simple` included, gets `400` on this field with the `invalid` code, and the bot is not created. The reason comes in `message`.',
 				placeholder: 'Order from {{ client }} for {{ amount }} ₽',
 			},
 			{
@@ -521,7 +521,7 @@ export const botFields: INodeProperties[] = [
 				name: 'webhookUrl',
 				type: 'string',
 				default: "",
-				description: 'Outgoing webhook URL',
+				description: 'Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code.',
 				placeholder: 'https://example.com/tasks/new',
 			},
 			{
@@ -551,7 +551,7 @@ export const botFields: INodeProperties[] = [
 				name: 'template',
 				type: 'string',
 				default: "",
-				description: 'Template for formatting the incoming webhook',
+				description: 'Template for formatting the incoming webhook. The template is checked when the request changes `template`, `template_engine` or `kind`, so changing the template engine alone or turning on `kind: simple` checks the template already saved as well. A template with a syntax error for the `simple` source gets `400` on this field with the `invalid` code, and the request is not applied. The reason comes in `message`.',
 				placeholder: 'Order from {{ client }} for {{ amount }} ₽',
 			},
 			{

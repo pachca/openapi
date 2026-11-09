@@ -34,6 +34,8 @@ qwen mcp add --transport http pachca https://mcp.pachca.com/mcp --header "Author
   through a server in the repository's committed `.mcp.json`. Such a server takes the connector's place and
   needs its own sign-in. Never put an `Authorization` header in it: everyone who opens the project would get it
   instead of the browser sign-in.
+- Grok Bot: ask it in its chat to connect the MCP server `https://mcp.pachca.com/mcp`. It adds the server and
+  shows a card in the chat. Sign in to Pachca from that card in the browser; no token is needed.
 - Cursor, in `~/.cursor/mcp.json` under `mcpServers`:
   `"pachca": {"url": "https://mcp.pachca.com/mcp", "headers": {"Authorization": "Bearer ${env:PACHCA_TOKEN}"}}`.
 - OpenCode, in `~/.config/opencode/opencode.json`:

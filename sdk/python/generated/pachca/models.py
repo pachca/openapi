@@ -310,6 +310,13 @@ class MessageSortField(StrEnum):
     ID = "id"  # По идентификатору сообщения
 
 
+class MessageSource(OpenStrEnum):
+    """Через что отправлено сообщение токеном сотрудника"""
+
+    APPLICATION = "application"  # Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника
+    PERSONAL_TOKEN = "personal_token"  # Персональным токеном сотрудника
+
+
 class OAuthErrorCode(OpenStrEnum):
     """Код ошибки OAuth"""
 
@@ -521,6 +528,9 @@ class ValidationErrorCode(OpenStrEnum):
     BOT_CHANGED_CONCURRENTLY = "bot_changed_concurrently"  # Настройки бота изменились во время запроса: повторите его
     TIMEOUT = "timeout"  # Поиск не уложился по времени: сузьте запрос и повторите
     DAILY_INVITES_LIMIT = "daily_invites_limit"  # Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`
+    WEBHOOK_URL_INVALID = "webhook_url_invalid"  # Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста
+    WEBHOOK_URL_UNRESOLVED = "webhook_url_unresolved"  # Не удалось определить IP-адрес домена из адреса вебхука
+    WEBHOOK_URL_FORBIDDEN = "webhook_url_forbidden"  # Адрес вебхука ведёт во внутреннюю или зарезервированную сеть
     FORBIDDEN = "forbidden"  # Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     PERMISSION_DENIED = "permission_denied"  # Доступ запрещён (недостаточно прав)
     ACCESS_DENIED = "access_denied"  # Доступ запрещён
@@ -797,6 +807,14 @@ class AuditDetailsLoginGrantDenied:
     login_grant_id: str
     device: AuditLoginGrantDevice
     reason: AuditLoginGrantDenyReason
+
+
+@dataclass
+class AuditDetailsMessage:
+    chat_id: int
+    source: str
+    thread_chat_id: int | None = None
+    message_version_id: int | None = None
 
 
 @dataclass
@@ -1547,6 +1565,8 @@ class LinkSharedWebhookPayload:
     webhook_timestamp: int
     entity_id: int | None = None
     thread: WebhookMessageThread | None = None
+    source: MessageSource | None = None
+    application: MessageApplication | None = None
 
 
 @dataclass
@@ -1582,6 +1602,14 @@ class Message:
     display_name: str | None = None
     changed_at: datetime | None = None
     deleted_at: datetime | None = None
+    source: MessageSource | None = None
+    application: MessageApplication | None = None
+
+
+@dataclass
+class MessageApplication:
+    id: int
+    name: str
 
 
 @dataclass
@@ -1657,6 +1685,8 @@ class MessageWebhookPayload:
     changed_at: datetime | None = None
     parent_message_id: int | None = None
     thread: WebhookMessageThread | None = None
+    source: MessageSource | None = None
+    application: MessageApplication | None = None
 
 
 @dataclass
@@ -2221,7 +2251,7 @@ class UpdateUserAvatarRequest:
     image: bytes
 
 
-AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked, AuditDetailsDeviceAuthorizationApproved, AuditDetailsDeviceAuthorizationDenied, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled, AuditDetailsToken, AuditDetailsBotTokenUpdated, AuditDetailsUserLoginQr, AuditDetailsLoginGrantCreated, AuditDetailsLoginGrantApproved, AuditDetailsLoginGrantDenied]
+AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsMessage, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked, AuditDetailsDeviceAuthorizationApproved, AuditDetailsDeviceAuthorizationDenied, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled, AuditDetailsToken, AuditDetailsBotTokenUpdated, AuditDetailsUserLoginQr, AuditDetailsLoginGrantCreated, AuditDetailsLoginGrantApproved, AuditDetailsLoginGrantDenied]
 
 
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]

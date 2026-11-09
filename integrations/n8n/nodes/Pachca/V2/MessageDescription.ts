@@ -370,7 +370,7 @@ export const messageFields: INodeProperties[] = [
 		options: [{ name: 'Ascending', value: 'asc' },
 { name: 'Descending', value: 'desc' }],
 		default: "desc",
-		description: 'Sort direction. Applies together with `sort`: messages from oldest to newest come with `sort=ID` and `order=asc`. Without `sort` messages come newest first whatever `order` is.',
+		description: 'Sort direction by ID: `asc` returns messages oldest first, `desc` newest first',
 		displayOptions: { show: { resource: ['message'], operation: ['getAll'] } },
 	},
 	{

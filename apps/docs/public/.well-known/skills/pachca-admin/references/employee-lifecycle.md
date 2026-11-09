@@ -55,6 +55,10 @@ and emails an invitation at once.
   - every token they hold: personal tokens, CLI logins and the access they
     gave bots and apps answer `401`. If you act with that person's own token,
     it stops working too.
+- The demotion also emails them that their role is now Guest, with a link to
+  the chat they keep. It goes to any profile with an email, someone who never
+  signed in or is suspended included, and cannot be turned off: say so when
+  you ask.
 - The reverse works: `pachca_update_user` with `role` `user`, `multi_guest` or
   `admin` promotes a guest. It returns none of the chats, tags or tokens lost
   in a demotion. Deleting and re-inviting is never needed for either.

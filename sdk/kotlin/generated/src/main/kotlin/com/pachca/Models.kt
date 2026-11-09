@@ -789,6 +789,35 @@ enum class MessageSortField(val value: String) {
     @SerialName("id") ID("id"),
 }
 
+/** Через что отправлено сообщение токеном сотрудника */
+@Serializable
+@JvmInline
+value class MessageSource(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника */
+        val APPLICATION = MessageSource("application")
+        /** Персональным токеном сотрудника */
+        val PERSONAL_TOKEN = MessageSource("personal_token")
+
+        /** Every value this SDK version lists */
+        val entries: List<MessageSource> = listOf(APPLICATION, PERSONAL_TOKEN)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<MessageSource> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("application" to "APPLICATION", "personal_token" to "PERSONAL_TOKEN")
+
+        fun valueOf(name: String): MessageSource =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No MessageSource constant $name")
+    }
+}
+
 /** Код ошибки OAuth */
 @Serializable
 @JvmInline
@@ -1291,6 +1320,12 @@ value class ValidationErrorCode(val value: String) {
         val TIMEOUT = ValidationErrorCode("timeout")
         /** Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload` */
         val DAILY_INVITES_LIMIT = ValidationErrorCode("daily_invites_limit")
+        /** Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста */
+        val WEBHOOK_URL_INVALID = ValidationErrorCode("webhook_url_invalid")
+        /** Не удалось определить IP-адрес домена из адреса вебхука */
+        val WEBHOOK_URL_UNRESOLVED = ValidationErrorCode("webhook_url_unresolved")
+        /** Адрес вебхука ведёт во внутреннюю или зарезервированную сеть */
+        val WEBHOOK_URL_FORBIDDEN = ValidationErrorCode("webhook_url_forbidden")
         /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
         val FORBIDDEN = ValidationErrorCode("forbidden")
         /** Доступ запрещён (недостаточно прав) */
@@ -1325,12 +1360,12 @@ value class ValidationErrorCode(val value: String) {
         val SERVICE_UNAVAILABLE = ValidationErrorCode("service_unavailable")
 
         /** Every value this SDK version lists */
-        val entries: List<ValidationErrorCode> = listOf(BLANK, TOO_LONG, INVALID, INCLUSION, EXCLUSION, TAKEN, WRONG_EMOJI, NOT_FOUND, ALREADY_EXISTS, PERSONAL_CHAT, DISPLAYED_ERROR, NOT_AUTHORIZED, INVALID_DATE_RANGE, INVALID_WEBHOOK_URL, RATE_LIMIT, LICENSES_LIMIT, USER_LIMIT, UNIQUE_LIMIT, GENERAL_LIMIT, UNHANDLED, TRIGGER_NOT_FOUND, TRIGGER_EXPIRED, REQUIRED, IN, NOT_APPLICABLE, SELF_UPDATE, OWNER_PROTECTED, ALREADY_ASSIGNED, NEXT_SEND_AT_INVALID, SCHEDULE_INVALID, SCHEDULE_END_DATE_INVALID, SCHEDULED_MESSAGES_LIMIT, DRAFT_TYPE_CHANGE_FORBIDDEN, CONFIDENTIAL_DOWNLOAD_DENIED, DECRYPTION_FAILED, BOT_ADD_DENIED, SINGLE_CHAT_BOT_OCCUPIED, SINGLE_CHAT_BOT_TAG_DENIED, RESTRICTED_BOT_TAG_DENIED, BOT_CHANGED_CONCURRENTLY, TIMEOUT, DAILY_INVITES_LIMIT, FORBIDDEN, PERMISSION_DENIED, ACCESS_DENIED, WRONG_PARAMS, PAYMENT_REQUIRED, MIN_LENGTH, MAX_LENGTH, USE_OF_SYSTEM_WORDS, EXPORT_FILE_NOT_FOUND, CANNOT_KICK_OWNER, PIN_FAILED, MESSAGE_DELETED, THREAD_MESSAGE, VIEW_NOT_FOUND, SUBMIT_EXPIRED, SERVICE_UNAVAILABLE)
+        val entries: List<ValidationErrorCode> = listOf(BLANK, TOO_LONG, INVALID, INCLUSION, EXCLUSION, TAKEN, WRONG_EMOJI, NOT_FOUND, ALREADY_EXISTS, PERSONAL_CHAT, DISPLAYED_ERROR, NOT_AUTHORIZED, INVALID_DATE_RANGE, INVALID_WEBHOOK_URL, RATE_LIMIT, LICENSES_LIMIT, USER_LIMIT, UNIQUE_LIMIT, GENERAL_LIMIT, UNHANDLED, TRIGGER_NOT_FOUND, TRIGGER_EXPIRED, REQUIRED, IN, NOT_APPLICABLE, SELF_UPDATE, OWNER_PROTECTED, ALREADY_ASSIGNED, NEXT_SEND_AT_INVALID, SCHEDULE_INVALID, SCHEDULE_END_DATE_INVALID, SCHEDULED_MESSAGES_LIMIT, DRAFT_TYPE_CHANGE_FORBIDDEN, CONFIDENTIAL_DOWNLOAD_DENIED, DECRYPTION_FAILED, BOT_ADD_DENIED, SINGLE_CHAT_BOT_OCCUPIED, SINGLE_CHAT_BOT_TAG_DENIED, RESTRICTED_BOT_TAG_DENIED, BOT_CHANGED_CONCURRENTLY, TIMEOUT, DAILY_INVITES_LIMIT, WEBHOOK_URL_INVALID, WEBHOOK_URL_UNRESOLVED, WEBHOOK_URL_FORBIDDEN, FORBIDDEN, PERMISSION_DENIED, ACCESS_DENIED, WRONG_PARAMS, PAYMENT_REQUIRED, MIN_LENGTH, MAX_LENGTH, USE_OF_SYSTEM_WORDS, EXPORT_FILE_NOT_FOUND, CANNOT_KICK_OWNER, PIN_FAILED, MESSAGE_DELETED, THREAD_MESSAGE, VIEW_NOT_FOUND, SUBMIT_EXPIRED, SERVICE_UNAVAILABLE)
 
         /** The same values as an array, like `values()` of an enum class */
         fun values(): Array<ValidationErrorCode> = entries.toTypedArray()
 
-        private val knownNames: Map<String, String> = mapOf("blank" to "BLANK", "too_long" to "TOO_LONG", "invalid" to "INVALID", "inclusion" to "INCLUSION", "exclusion" to "EXCLUSION", "taken" to "TAKEN", "wrong_emoji" to "WRONG_EMOJI", "not_found" to "NOT_FOUND", "already_exists" to "ALREADY_EXISTS", "personal_chat" to "PERSONAL_CHAT", "displayed_error" to "DISPLAYED_ERROR", "not_authorized" to "NOT_AUTHORIZED", "invalid_date_range" to "INVALID_DATE_RANGE", "invalid_webhook_url" to "INVALID_WEBHOOK_URL", "rate_limit" to "RATE_LIMIT", "licenses_limit" to "LICENSES_LIMIT", "user_limit" to "USER_LIMIT", "unique_limit" to "UNIQUE_LIMIT", "general_limit" to "GENERAL_LIMIT", "unhandled" to "UNHANDLED", "trigger_not_found" to "TRIGGER_NOT_FOUND", "trigger_expired" to "TRIGGER_EXPIRED", "required" to "REQUIRED", "in" to "IN", "not_applicable" to "NOT_APPLICABLE", "self_update" to "SELF_UPDATE", "owner_protected" to "OWNER_PROTECTED", "already_assigned" to "ALREADY_ASSIGNED", "next_send_at_invalid" to "NEXT_SEND_AT_INVALID", "schedule_invalid" to "SCHEDULE_INVALID", "schedule_end_date_invalid" to "SCHEDULE_END_DATE_INVALID", "scheduled_messages_limit" to "SCHEDULED_MESSAGES_LIMIT", "draft_type_change_forbidden" to "DRAFT_TYPE_CHANGE_FORBIDDEN", "confidential_download_denied" to "CONFIDENTIAL_DOWNLOAD_DENIED", "decryption_failed" to "DECRYPTION_FAILED", "bot_add_denied" to "BOT_ADD_DENIED", "single_chat_bot_occupied" to "SINGLE_CHAT_BOT_OCCUPIED", "single_chat_bot_tag_denied" to "SINGLE_CHAT_BOT_TAG_DENIED", "restricted_bot_tag_denied" to "RESTRICTED_BOT_TAG_DENIED", "bot_changed_concurrently" to "BOT_CHANGED_CONCURRENTLY", "timeout" to "TIMEOUT", "daily_invites_limit" to "DAILY_INVITES_LIMIT", "forbidden" to "FORBIDDEN", "permission_denied" to "PERMISSION_DENIED", "access_denied" to "ACCESS_DENIED", "wrong_params" to "WRONG_PARAMS", "payment_required" to "PAYMENT_REQUIRED", "min_length" to "MIN_LENGTH", "max_length" to "MAX_LENGTH", "use_of_system_words" to "USE_OF_SYSTEM_WORDS", "export_file_not_found" to "EXPORT_FILE_NOT_FOUND", "cannot_kick_owner" to "CANNOT_KICK_OWNER", "pin_failed" to "PIN_FAILED", "message_deleted" to "MESSAGE_DELETED", "thread_message" to "THREAD_MESSAGE", "view_not_found" to "VIEW_NOT_FOUND", "submit_expired" to "SUBMIT_EXPIRED", "service_unavailable" to "SERVICE_UNAVAILABLE")
+        private val knownNames: Map<String, String> = mapOf("blank" to "BLANK", "too_long" to "TOO_LONG", "invalid" to "INVALID", "inclusion" to "INCLUSION", "exclusion" to "EXCLUSION", "taken" to "TAKEN", "wrong_emoji" to "WRONG_EMOJI", "not_found" to "NOT_FOUND", "already_exists" to "ALREADY_EXISTS", "personal_chat" to "PERSONAL_CHAT", "displayed_error" to "DISPLAYED_ERROR", "not_authorized" to "NOT_AUTHORIZED", "invalid_date_range" to "INVALID_DATE_RANGE", "invalid_webhook_url" to "INVALID_WEBHOOK_URL", "rate_limit" to "RATE_LIMIT", "licenses_limit" to "LICENSES_LIMIT", "user_limit" to "USER_LIMIT", "unique_limit" to "UNIQUE_LIMIT", "general_limit" to "GENERAL_LIMIT", "unhandled" to "UNHANDLED", "trigger_not_found" to "TRIGGER_NOT_FOUND", "trigger_expired" to "TRIGGER_EXPIRED", "required" to "REQUIRED", "in" to "IN", "not_applicable" to "NOT_APPLICABLE", "self_update" to "SELF_UPDATE", "owner_protected" to "OWNER_PROTECTED", "already_assigned" to "ALREADY_ASSIGNED", "next_send_at_invalid" to "NEXT_SEND_AT_INVALID", "schedule_invalid" to "SCHEDULE_INVALID", "schedule_end_date_invalid" to "SCHEDULE_END_DATE_INVALID", "scheduled_messages_limit" to "SCHEDULED_MESSAGES_LIMIT", "draft_type_change_forbidden" to "DRAFT_TYPE_CHANGE_FORBIDDEN", "confidential_download_denied" to "CONFIDENTIAL_DOWNLOAD_DENIED", "decryption_failed" to "DECRYPTION_FAILED", "bot_add_denied" to "BOT_ADD_DENIED", "single_chat_bot_occupied" to "SINGLE_CHAT_BOT_OCCUPIED", "single_chat_bot_tag_denied" to "SINGLE_CHAT_BOT_TAG_DENIED", "restricted_bot_tag_denied" to "RESTRICTED_BOT_TAG_DENIED", "bot_changed_concurrently" to "BOT_CHANGED_CONCURRENTLY", "timeout" to "TIMEOUT", "daily_invites_limit" to "DAILY_INVITES_LIMIT", "webhook_url_invalid" to "WEBHOOK_URL_INVALID", "webhook_url_unresolved" to "WEBHOOK_URL_UNRESOLVED", "webhook_url_forbidden" to "WEBHOOK_URL_FORBIDDEN", "forbidden" to "FORBIDDEN", "permission_denied" to "PERMISSION_DENIED", "access_denied" to "ACCESS_DENIED", "wrong_params" to "WRONG_PARAMS", "payment_required" to "PAYMENT_REQUIRED", "min_length" to "MIN_LENGTH", "max_length" to "MAX_LENGTH", "use_of_system_words" to "USE_OF_SYSTEM_WORDS", "export_file_not_found" to "EXPORT_FILE_NOT_FOUND", "cannot_kick_owner" to "CANNOT_KICK_OWNER", "pin_failed" to "PIN_FAILED", "message_deleted" to "MESSAGE_DELETED", "thread_message" to "THREAD_MESSAGE", "view_not_found" to "VIEW_NOT_FOUND", "submit_expired" to "SUBMIT_EXPIRED", "service_unavailable" to "SERVICE_UNAVAILABLE")
 
         fun valueOf(name: String): ValidationErrorCode =
             entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No ValidationErrorCode constant $name")
@@ -1450,6 +1485,7 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
         setOf("public_access") to { json, element -> json.decodeFromJsonElement(AuditDetailsChatPermission.serializer(), element) },
         setOf("chat_id", "tag_name") to { json, element -> json.decodeFromJsonElement(AuditDetailsTagChat.serializer(), element) },
         setOf("chat_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsChatId.serializer(), element) },
+        setOf("chat_id", "thread_chat_id", "source", "message_version_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsMessage.serializer(), element) },
         setOf("scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsTokenScopes.serializer(), element) },
         setOf("chat_id", "message_id", "reason") to { json, element -> json.decodeFromJsonElement(AuditDetailsKms.serializer(), element) },
         setOf("dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched") to { json, element -> json.decodeFromJsonElement(AuditDetailsDlp.serializer(), element) },
@@ -1488,6 +1524,7 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
             is AuditDetailsChatPermission -> jsonEncoder.encodeSerializableValue(AuditDetailsChatPermission.serializer(), value)
             is AuditDetailsTagChat -> jsonEncoder.encodeSerializableValue(AuditDetailsTagChat.serializer(), value)
             is AuditDetailsChatId -> jsonEncoder.encodeSerializableValue(AuditDetailsChatId.serializer(), value)
+            is AuditDetailsMessage -> jsonEncoder.encodeSerializableValue(AuditDetailsMessage.serializer(), value)
             is AuditDetailsTokenScopes -> jsonEncoder.encodeSerializableValue(AuditDetailsTokenScopes.serializer(), value)
             is AuditDetailsKms -> jsonEncoder.encodeSerializableValue(AuditDetailsKms.serializer(), value)
             is AuditDetailsDlp -> jsonEncoder.encodeSerializableValue(AuditDetailsDlp.serializer(), value)
@@ -1588,6 +1625,14 @@ data class AuditDetailsTagChat(
 @Serializable
 data class AuditDetailsChatId(
     @SerialName("chat_id") val chatId: Int,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsMessage(
+    @SerialName("chat_id") val chatId: Int,
+    @SerialName("thread_chat_id") val threadChatId: Int? = null,
+    val source: String,
+    @SerialName("message_version_id") val messageVersionId: Int? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -2005,6 +2050,8 @@ data class MessageWebhookPayload(
     @SerialName("chat_id") val chatId: Int,
     @SerialName("parent_message_id") val parentMessageId: Int? = null,
     val thread: WebhookMessageThread? = null,
+    val source: MessageSource? = null,
+    val application: MessageApplication? = null,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion
 
@@ -2085,6 +2132,8 @@ data class LinkSharedWebhookPayload(
     @SerialName("entity_type") val entityType: MessageEntityType,
     @SerialName("entity_id") val entityId: Int? = null,
     val thread: WebhookMessageThread? = null,
+    val source: MessageSource? = null,
+    val application: MessageApplication? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion {
@@ -2848,6 +2897,14 @@ data class Message(
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("changed_at") val changedAt: OffsetDateTime? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("deleted_at") val deletedAt: OffsetDateTime? = null,
     val important: Boolean,
+    val source: MessageSource? = null,
+    val application: MessageApplication? = null,
+)
+
+@Serializable
+data class MessageApplication(
+    val id: Int,
+    val name: String,
 )
 
 @Serializable

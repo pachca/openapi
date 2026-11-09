@@ -68,7 +68,7 @@ The same four steps: `POST /uploads` with the token (no body), `${filename}` in 
 | `file_type`       | `file`, `image`, `audio`, `voice`, `video`. A `voice` file must be the only file in the message or draft, otherwise `422`. A bot token cannot send one (`403`)                                                                     |
 | `size`            | bytes, shown to readers. Pass it when you know it, as after your own upload (`wc -c`). A file record read from Pachca has no `size`: without it the server takes the size from storage after sending, except for an encrypted file |
 | `width`, `height` | pixels, for `image`                                                                                                                                                                                                                |
-| `duration_ms`     | required for `voice`. A voice message longer than 30 minutes is rejected                                                                                                                                                           |
+| `duration_ms`     | required for `voice`, optional for `video`. A file with `duration_ms` and no `file_type` counts as `voice`, so a bot token gets `403` for it: give a video `file_type: video`. A voice message longer than 30 minutes is rejected  |
 | `waveform`        | required for `voice`                                                                                                                                                                                                               |
 
 ## Errors

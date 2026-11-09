@@ -1,6 +1,133 @@
 [
   {
     "product": "mcp",
+    "version": "1.7.0",
+    "date": "2026-11-09",
+    "changes": [
+      {
+        "type": "+",
+        "description": "В ответах с сообщениями есть `source` и `application`: через что сотрудник отправил сообщение и какая программа. Оба поля есть и в краткой карточке, а программы различают по `application.id`."
+      },
+      {
+        "type": "+",
+        "description": "`pachca_get_webhook_events`: события о сообщениях и ссылках содержат `source` и `application`"
+      },
+      {
+        "type": "+",
+        "description": "`pachca_get_audit_events`: у `message_updated` и `message_deleted` в деталях есть чат, тред, кто изменил сообщение, в том числе правило DLP, и версия сообщения"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_create_bot`, `pachca_update_bot` и `pachca_self_update_bot_webhook` называют коды отказа по адресу исходящего вебхука: `webhook_url_invalid`, `webhook_url_unresolved` и `webhook_url_forbidden`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_create_bot` и `pachca_update_bot`: шаблон входящего вебхука с ошибкой синтаксиса не сохраняется"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_list_chats` и `pachca_list_chat_messages`: `order` без `sort` задаёт направление по `id`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_update_user`: при переводе в гости сотруднику уходит письмо о смене роли"
+      }
+    ]
+  },
+  {
+    "product": "plugin",
+    "version": "1.0.10",
+    "date": "2026-11-09",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`pachca-bots`, `pachca-ai-agent` и `pachca-oauth`: сообщение, которое программа отправила токеном сотрудника, агент узнаёт по `source` и различает программы по `application.id`, чтобы боты и агенты не отвечали друг другу по кругу"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-bots`: повтор доставки вебхука приходит с тем же заголовком `Idempotency-Key`, в истории событий на событие одна запись, а шаблон входящего вебхука с ошибкой синтаксиса не сохраняется"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-admin`: агент знает детали `message_updated` и `message_deleted` в журнале аудита, отличает замену текста правилом DLP от правки автора и предупреждает о письме при переводе в гости"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-search` и `pachca-api`: `order` без `sort` задаёт направление сортировки, и его передают в каждом запросе, в том числе с курсором"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-watch-thread`: у сообщения, которое отправила программа, в строке автора стоит `via` с названием программы или `via API`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-messaging`: файл с `duration_ms` без `file_type` считается голосовым, и токен бота получает на него `403`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca`: Grok Bot подключает сервер Пачки по просьбе в чате и входит через браузер"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.2.5",
+    "date": "2026-11-09",
+    "changes": [
+      {
+        "type": "+",
+        "description": "В ответах с сообщениями есть поля `source` и `application`: через что сотрудник отправил сообщение и какая программа"
+      },
+      {
+        "type": "~",
+        "description": "Описания полей следуют API: адрес исходящего вебхука и шаблон входящего у бота, порядок в списках чатов и сообщений, чат при переводе сотрудника в гости"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.11.1",
+    "date": "2026-11-09",
+    "changes": [
+      {
+        "type": "+",
+        "description": "В ответах с сообщениями есть поля `source` и `application`: через что сотрудник отправил сообщение и какая программа"
+      },
+      {
+        "type": "~",
+        "description": "`pachca chats list` и `pachca messages list`: `--order` без `--sort` задаёт направление по `id`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca bots create`, `pachca bots update` и `pachca bots update-webhook`: в описании адреса вебхука коды отказа, а в описании шаблона проверка синтаксиса"
+      },
+      {
+        "type": "~",
+        "description": "`pachca users update`: в описании чата для перевода в гости письмо о смене роли"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.9.1",
+    "date": "2026-11-09",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Поля `source` (`MessageSource`) и `application` (`MessageApplication`) у `Message`, а также необязательные у `MessageWebhookPayload` и `LinkSharedWebhookPayload`"
+      },
+      {
+        "type": "+",
+        "description": "Модель `AuditDetailsMessage` для деталей `message_updated` и `message_deleted` в `AuditEventDetailsUnion`"
+      },
+      {
+        "type": "+",
+        "description": "Значения `webhook_url_invalid`, `webhook_url_unresolved` и `webhook_url_forbidden` в `ValidationErrorCode`"
+      }
+    ]
+  },
+  {
+    "product": "mcp",
     "version": "1.6.0",
     "date": "2026-11-04",
     "changes": [

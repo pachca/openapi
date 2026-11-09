@@ -49,8 +49,7 @@ a thread when there is none.
    `pachca threads get <id>`, `pachca messages get <id>`.
 2. Read the feed: `pachca_list_chat_messages` with `chat_id` = the thread
    chat. For chronological order pass `sort=id` together with `order=asc`
-   on every call, cursor pages included (`order` alone is ignored), or read
-   newest first and reverse. CLI:
+   on every call, cursor pages included, or read newest first and reverse. CLI:
    `pachca messages list --chat-id=<id> --order=asc --all` (the CLI always
    sends `sort`). Follow the cursor to the end.
 3. Fetch the parent message with `pachca_get_message` by `message_id`: the

@@ -18,7 +18,7 @@ export default class BotsUpdateWebhook extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'outgoing-url': Flags.string({
-      description: "URL исходящего вебхука. Пустая строка отключает вебхук. (макс. 255 символов)",
+      description: "URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`. Пустая строка отключает вебхук. (макс. 255 символов)",
     }),
   };
 
@@ -27,7 +27,7 @@ export default class BotsUpdateWebhook extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'outgoing-url', label: "URL исходящего вебхука. Пустая строка отключает вебхук.", type: 'string' },
+      { flag: 'outgoing-url', label: "URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`. Пустая строка отключает вебхук.", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {

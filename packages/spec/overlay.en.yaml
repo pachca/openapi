@@ -153,7 +153,7 @@ actions:
       description: Sort field
   - target: $.paths['/chats'].get.parameters[?(@.name=='order')]
     update:
-      description: "Sort direction. Applies together with `sort`, such as `sort=last_message_at&order=desc`. Without `sort` chats come in descending `id` order whatever `order` is."
+      description: "Sort direction for the `sort` field, such as `sort=last_message_at&order=desc`. Without `sort` the direction applies to `id`."
   - target: $.paths['/chats'].get.parameters[?(@.name=='availability')]
     update:
       description: Parameter that controls chat availability and filtering for the user
@@ -623,7 +623,7 @@ actions:
 
         The message feed of a conversation, a channel, a thread, or a direct message — by the `chat_id` of the chat in question.
 
-        Messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the `limit` and `cursor` parameters.
+        By default messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the `limit` and `cursor` parameters.
 
         Deleted messages do not make it into the list.
 
@@ -636,7 +636,7 @@ actions:
       description: Sort field
   - target: $.paths['/messages'].get.parameters[?(@.name=='order')]
     update:
-      description: "Sort direction. Applies together with `sort`: messages from oldest to newest come with `sort=id` and `order=asc`. Without `sort` messages come newest first whatever `order` is."
+      description: "Sort direction by `id`: `asc` returns messages oldest first, `desc` newest first."
   - target: $.paths['/messages'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
@@ -1411,7 +1411,7 @@ actions:
 
         The link works for one to two hours, until `expires_at`. At that moment the server sends `disconnect` over it and closes the connection, and after it `EventSource` does not reconnect by itself. A request within the same UTC hour returns the same link, and a request in the last hour before `expires_at` gives a new one. Change the link about five minutes before `expires_at`: connect with the new one while the old one still works, and close the old connection once the new one confirms the subscription. If `disconnect` does arrive, get a new link and connect again.
 
-        Not to miss anything, after every connection, including a reconnection and a change of link, wait for the subscription to be confirmed and only then read the [Event history](GET /webhooks/events). Delivery to the stream is not guaranteed: still delete processed events with the [Delete history event](DELETE /webhooks/events/{id}) method, and drop repeats by `id`. If the bot has a webhook address, a repeated delivery to it comes to the stream once more with a new `id`: such repeats are dropped by a key from `payload`, as in [Idempotent processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in [Real-time events](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
+        Not to miss anything, after every connection, including a reconnection and a change of link, wait for the subscription to be confirmed and only then read the [Event history](GET /webhooks/events). Delivery to the stream is not guaranteed: still delete processed events with the [Delete history event](DELETE /webhooks/events/{id}) method, and drop repeats by `id`. If the bot has a webhook address and the record was deleted before a repeated delivery to it, the repeat comes to the stream once more with a new `id`: such repeats are dropped by a key from `payload`, as in [Idempotent processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in [Real-time events](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
   - target: $.paths['/webhooks/events'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
@@ -1567,6 +1567,21 @@ actions:
   - target: $.components.schemas.AuditDetailsChatId.properties.chat_id
     update:
       description: Chat ID
+  - target: $.components.schemas.AuditDetailsMessage
+    update:
+      description: 'For: message_updated, message_deleted'
+  - target: $.components.schemas.AuditDetailsMessage.properties.chat_id
+    update:
+      description: "ID of the message's chat. For a message in a thread it is the chat of the thread's parent message, and for a standalone thread the chat of the thread itself."
+  - target: $.components.schemas.AuditDetailsMessage.properties.thread_chat_id
+    update:
+      description: Thread chat ID. Present only for messages in threads.
+  - target: $.components.schemas.AuditDetailsMessage.properties.source
+    update:
+      description: "Who changed the message: `employee` — an employee, `bot` — a bot, `dlp` — a DLP rule replaced the text (the actor is the message author), `system` — Pachca itself, for example when it attaches an image from a link to a message. For message_deleted it is `employee` or `bot`."
+  - target: $.components.schemas.AuditDetailsMessage.properties.message_version_id
+    update:
+      description: "ID of the message version: a snapshot of its text and files before the edit or at the moment of deletion. After DLP the text in the snapshot is hidden. Absent if the edit did not touch the text and files, or the deleted message was empty."
   - target: $.components.schemas.AuditDetailsChatPermission
     update:
       description: 'For: chat_permission_changed'
@@ -1653,7 +1668,7 @@ actions:
       description: Rule conditions check result (true — conditions matched)
   - target: $.components.schemas.AuditDetailsEmpty
     update:
-      description: "Empty details. For: user_login (except a QR code sign-in), user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled."
+      description: "Empty details. For: user_login (except a QR code sign-in), user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled. For message_updated and message_deleted, empty details can come in records up to and including 7 November 2026."
   - target: $.components.schemas.AuditDetailsInitiator
     update:
       description: 'For: user_added_to_tag, user_removed_from_tag, user_chat_leave'
@@ -2126,7 +2141,7 @@ actions:
       description: Webhook parameters object of the bot to update
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.outgoing_url
     update:
-      description: Outgoing webhook URL
+      description: "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.name
     update:
       description: Bot name
@@ -2147,7 +2162,7 @@ actions:
       description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.template
     update:
-      description: Template for formatting the incoming webhook
+      description: "Template for formatting the incoming webhook. The template is checked when the request changes `template`, `template_engine` or `kind`, so changing the template engine alone or turning on `kind: simple` checks the template already saved as well. A template with a syntax error for the `simple` source gets `400` on this field with the `invalid` code, and the request is not applied. The reason comes in `message`."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.template_engine
     update:
       description: Template engine used to process the incoming webhook template
@@ -2265,7 +2280,7 @@ actions:
       description: "Bot nickname: Latin letters, digits, and `_`, ending with `_bot`, free in the workspace. A nickname in another format gets `400` on the `bot.nickname` field with the `invalid` code, and a taken nickname gets the `taken` code. Without this field the nickname is built from the name transliterated into Latin letters, with `_bot` at the end, and if that nickname is taken, with `_2_bot`, `_3_bot`, and so on."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.outgoing_url
     update:
-      description: Outgoing webhook URL
+      description: "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.events
     update:
       description: Events the bot is subscribed to. Without this field the bot is subscribed to `message_new`.
@@ -2280,7 +2295,7 @@ actions:
       description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.template
     update:
-      description: Template for formatting the incoming webhook
+      description: "Template for formatting the incoming webhook. A template with a syntax error for the `simple` source, an empty bot with `kind: simple` included, gets `400` on this field with the `invalid` code, and the bot is not created. The reason comes in `message`."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.template_engine
     update:
       description: "Template engine used to process the incoming webhook template. Without this field a bot gets `liquid`, and an empty bot (`empty: true`) gets `mustache`."
@@ -2424,7 +2439,7 @@ actions:
       description: Webhook parameters object
   - target: $.components.schemas.BotWebhookSelfUpdateRequest.properties.webhook.properties.outgoing_url
     update:
-      description: Outgoing webhook URL. An empty string disables the webhook.
+      description: "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code. An empty string disables the webhook."
   - target: $.paths['/bot/webhook'].put
     update:
       description: |-
@@ -3388,6 +3403,29 @@ actions:
   - target: $.components.schemas.Message.properties.important
     update:
       description: "The message is in the token owner's «Important» section. Always `false` for a bot token."
+  - target: $.components.schemas.Message.properties.source
+    update:
+      description: "What the message was sent through with an employee's token, as in the «Sent via …» badge on the avatar. `null` for a message sent from the Pachca app, a draft included, for bots' messages, for a scheduled message that went out on schedule, and for messages sent before the badge appeared. Learn more in [How messages look](/api/authorization#kak-vyglyadyat-soobscheniya)."
+  - target: $.components.schemas.Message.properties.application
+    update:
+      description: "The program the message was sent through, with `source: \"application\"`. `null` in other cases."
+  - target: $.components.schemas.MessageSource
+    update:
+      description: What the message was sent through with an employee's token
+  - target: $.components.schemas.MessageSource
+    update:
+      x-enum-descriptions:
+        application: "Through a program the employee gave access to: Pachca CLI, an MCP client, or a bot with authorization on behalf of an employee"
+        personal_token: With the employee's personal token
+  - target: $.components.schemas.MessageApplication
+    update:
+      description: The program the message was sent through
+  - target: $.components.schemas.MessageApplication.properties.id
+    update:
+      description: Program ID
+  - target: $.components.schemas.MessageApplication.properties.name
+    update:
+      description: "Program name, as in the «Sent via …» tooltip on the avatar: «Pachca CLI», the name of an MCP client, or the bot's name. Older messages also come with the current name. An MCP client sets the name itself in the document it publishes on its own domain, so a program is recognized by `id`."
   - target: $.components.schemas.MessageCreateRequest
     update:
       description: Message creation request
@@ -3538,6 +3576,12 @@ actions:
   - target: $.components.schemas.MessageWebhookPayload.properties.thread
     update:
       description: "The thread the message was sent in. `null` if the message was not sent in a thread. Unlike the `thread` field on the REST API message object, this describes the thread the message is inside of."
+  - target: $.components.schemas.MessageWebhookPayload.properties.source
+    update:
+      description: "What the message was sent through with an employee's token, the same as the `source` field of the message object. History event records saved before the field appeared do not have it."
+  - target: $.components.schemas.MessageWebhookPayload.properties.application
+    update:
+      description: "The program the message was sent through, the same as the `application` field of the message object. History event records saved before the field appeared do not have it."
   - target: $.components.schemas.MessageWebhookPayload.properties.webhook_timestamp
     update:
       description: Webhook send date and time (UTC+0) in UNIX format
@@ -4226,7 +4270,7 @@ actions:
       description: Access level
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.chat_ids
     update:
-      description: "The chat the employee keeps when made a guest (`role: \"guest\"`): exactly one active conversation or channel where the token may add members. Without such a chat the response is `400` on this field, and nothing changes. With other roles, and for someone already a guest, the field is ignored."
+      description: "The chat the employee keeps when made a guest (`role: \"guest\"`): exactly one active conversation or channel where the token may add members. Without such a chat the response is `400` on this field, and nothing changes. With other roles, and for someone already a guest, the field is ignored. When made a guest, an employee with an email on file gets an email about the role change with a link to this chat, even if they have not signed in to Pachca yet or are suspended. It does not count towards the daily limit of invitation emails."
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.suspended
     update:
       description: "Whether the user is deactivated. Nobody can suspend the workspace owner, the owner themselves included: the response is `403`."
@@ -4306,6 +4350,9 @@ actions:
         bot_changed_concurrently: "The bot's settings changed during the request: retry it"
         timeout: "Search did not finish in time: narrow the query and retry"
         daily_invites_limit: "The free workspace has used up its daily limit of invitation emails: the remainder and the reset time come in `payload`"
+        webhook_url_invalid: The webhook address has to be a URL with the `http` or `https` protocol and a host name
+        webhook_url_unresolved: The IP address of the domain in the webhook address could not be determined
+        webhook_url_forbidden: The webhook address points to an internal or reserved network
   - target: $.components.schemas.ViewBlock
     update:
       description: View block for forms (base model, use specific block types)
@@ -5357,6 +5404,12 @@ actions:
   - target: $.components.schemas.LinkSharedWebhookPayload.properties.thread
     update:
       description: "Thread the message with the link was sent in. `null` if the message was not sent in a thread."
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.source
+    update:
+      description: "What the message with the link was sent through with an employee's token, the same as the `source` field of the message object. History event records saved before the field appeared do not have it."
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.application
+    update:
+      description: "The program the message with the link was sent through, the same as the `application` field of the message object. History event records saved before the field appeared do not have it."
   - target: $.components.schemas.AuditDetailsToken
     update:
       description: "For: access_token_created, access_token_updated, access_token_destroy, bot_token_created, bot_token_reissued, bot_token_recreated, bot_token_deleted, oauth_token_revoked"

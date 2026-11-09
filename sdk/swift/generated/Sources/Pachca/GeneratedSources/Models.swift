@@ -1080,6 +1080,47 @@ public enum MessageSortField: String, Codable, CaseIterable {
     case id
 }
 
+public enum MessageSource: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника
+    case application
+    /// Персональным токеном сотрудника
+    case personalToken
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [MessageSource] = [.application, .personalToken]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "application": self = .application
+        case "personal_token": self = .personalToken
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .application: return "application"
+        case .personalToken: return "personal_token"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
 public enum OAuthErrorCode: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Токен не передан, не найден, истёк или отозван
     case invalidToken
@@ -1784,6 +1825,12 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
     case timeout
     /// Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`
     case dailyInvitesLimit
+    /// Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста
+    case webhookUrlInvalid
+    /// Не удалось определить IP-адрес домена из адреса вебхука
+    case webhookUrlUnresolved
+    /// Адрес вебхука ведёт во внутреннюю или зарезервированную сеть
+    case webhookUrlForbidden
     /// Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     case forbidden
     /// Доступ запрещён (недостаточно прав)
@@ -1820,7 +1867,7 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [ValidationErrorCode] = [.blank, .tooLong, .invalid, .inclusion, .exclusion, .taken, .wrongEmoji, .notFound, .alreadyExists, .personalChat, .displayedError, .notAuthorized, .invalidDateRange, .invalidWebhookUrl, .rateLimit, .licensesLimit, .userLimit, .uniqueLimit, .generalLimit, .unhandled, .triggerNotFound, .triggerExpired, .required, .`in`, .notApplicable, .selfUpdate, .ownerProtected, .alreadyAssigned, .nextSendAtInvalid, .scheduleInvalid, .scheduleEndDateInvalid, .scheduledMessagesLimit, .draftTypeChangeForbidden, .confidentialDownloadDenied, .decryptionFailed, .botAddDenied, .singleChatBotOccupied, .singleChatBotTagDenied, .restrictedBotTagDenied, .botChangedConcurrently, .timeout, .dailyInvitesLimit, .forbidden, .permissionDenied, .accessDenied, .wrongParams, .paymentRequired, .minLength, .maxLength, .useOfSystemWords, .exportFileNotFound, .cannotKickOwner, .pinFailed, .messageDeleted, .threadMessage, .viewNotFound, .submitExpired, .serviceUnavailable]
+    public static let allCases: [ValidationErrorCode] = [.blank, .tooLong, .invalid, .inclusion, .exclusion, .taken, .wrongEmoji, .notFound, .alreadyExists, .personalChat, .displayedError, .notAuthorized, .invalidDateRange, .invalidWebhookUrl, .rateLimit, .licensesLimit, .userLimit, .uniqueLimit, .generalLimit, .unhandled, .triggerNotFound, .triggerExpired, .required, .`in`, .notApplicable, .selfUpdate, .ownerProtected, .alreadyAssigned, .nextSendAtInvalid, .scheduleInvalid, .scheduleEndDateInvalid, .scheduledMessagesLimit, .draftTypeChangeForbidden, .confidentialDownloadDenied, .decryptionFailed, .botAddDenied, .singleChatBotOccupied, .singleChatBotTagDenied, .restrictedBotTagDenied, .botChangedConcurrently, .timeout, .dailyInvitesLimit, .webhookUrlInvalid, .webhookUrlUnresolved, .webhookUrlForbidden, .forbidden, .permissionDenied, .accessDenied, .wrongParams, .paymentRequired, .minLength, .maxLength, .useOfSystemWords, .exportFileNotFound, .cannotKickOwner, .pinFailed, .messageDeleted, .threadMessage, .viewNotFound, .submitExpired, .serviceUnavailable]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -1866,6 +1913,9 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
         case "bot_changed_concurrently": self = .botChangedConcurrently
         case "timeout": self = .timeout
         case "daily_invites_limit": self = .dailyInvitesLimit
+        case "webhook_url_invalid": self = .webhookUrlInvalid
+        case "webhook_url_unresolved": self = .webhookUrlUnresolved
+        case "webhook_url_forbidden": self = .webhookUrlForbidden
         case "forbidden": self = .forbidden
         case "permission_denied": self = .permissionDenied
         case "access_denied": self = .accessDenied
@@ -1934,6 +1984,9 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
         case .botChangedConcurrently: return "bot_changed_concurrently"
         case .timeout: return "timeout"
         case .dailyInvitesLimit: return "daily_invites_limit"
+        case .webhookUrlInvalid: return "webhook_url_invalid"
+        case .webhookUrlUnresolved: return "webhook_url_unresolved"
+        case .webhookUrlForbidden: return "webhook_url_forbidden"
         case .forbidden: return "forbidden"
         case .permissionDenied: return "permission_denied"
         case .accessDenied: return "access_denied"
@@ -2694,6 +2747,27 @@ public struct AuditDetailsLoginGrantDenied: Codable {
         case loginGrantId = "login_grant_id"
         case device
         case reason
+    }
+}
+
+public struct AuditDetailsMessage: Codable {
+    public let chatId: Int
+    public let threadChatId: Int?
+    public let source: String
+    public let messageVersionId: Int?
+
+    public init(chatId: Int, threadChatId: Int? = nil, source: String, messageVersionId: Int? = nil) {
+        self.chatId = chatId
+        self.threadChatId = threadChatId
+        self.source = source
+        self.messageVersionId = messageVersionId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case chatId = "chat_id"
+        case threadChatId = "thread_chat_id"
+        case source
+        case messageVersionId = "message_version_id"
     }
 }
 
@@ -4689,10 +4763,12 @@ public struct LinkSharedWebhookPayload: Codable {
     public let entityType: MessageEntityType
     public let entityId: Int?
     public let thread: WebhookMessageThread?
+    public let source: MessageSource?
+    public let application: MessageApplication?
     public let createdAt: String
     public let webhookTimestamp: Int
 
-    public init(type: String, event: String, chatId: Int, messageId: Int, links: [WebhookLink], userId: Int, entityType: MessageEntityType, entityId: Int? = nil, thread: WebhookMessageThread? = nil, createdAt: String, webhookTimestamp: Int) {
+    public init(type: String, event: String, chatId: Int, messageId: Int, links: [WebhookLink], userId: Int, entityType: MessageEntityType, entityId: Int? = nil, thread: WebhookMessageThread? = nil, source: MessageSource? = nil, application: MessageApplication? = nil, createdAt: String, webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.chatId = chatId
@@ -4702,6 +4778,8 @@ public struct LinkSharedWebhookPayload: Codable {
         self.entityType = entityType
         self.entityId = entityId
         self.thread = thread
+        self.source = source
+        self.application = application
         self.createdAt = createdAt
         self.webhookTimestamp = webhookTimestamp
     }
@@ -4716,6 +4794,8 @@ public struct LinkSharedWebhookPayload: Codable {
         case entityType = "entity_type"
         case entityId = "entity_id"
         case thread
+        case source
+        case application
         case createdAt = "created_at"
         case webhookTimestamp = "webhook_timestamp"
     }
@@ -4769,8 +4849,10 @@ public struct Message: Codable {
     public let changedAt: String?
     public let deletedAt: String?
     public let important: Bool
+    public let source: MessageSource?
+    public let application: MessageApplication?
 
-    public init(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File], voiceContent: VoiceContent? = nil, buttons: [[Button]]? = nil, thread: MessageThread? = nil, forwarding: Forwarding? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, changedAt: String? = nil, deletedAt: String? = nil, important: Bool) {
+    public init(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File], voiceContent: VoiceContent? = nil, buttons: [[Button]]? = nil, thread: MessageThread? = nil, forwarding: Forwarding? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, changedAt: String? = nil, deletedAt: String? = nil, important: Bool, source: MessageSource? = nil, application: MessageApplication? = nil) {
         self.id = id
         self.entityType = entityType
         self.entityId = entityId
@@ -4791,6 +4873,8 @@ public struct Message: Codable {
         self.changedAt = changedAt
         self.deletedAt = deletedAt
         self.important = important
+        self.source = source
+        self.application = application
     }
 
     enum CodingKeys: String, CodingKey {
@@ -4814,6 +4898,18 @@ public struct Message: Codable {
         case changedAt = "changed_at"
         case deletedAt = "deleted_at"
         case important
+        case source
+        case application
+    }
+}
+
+public struct MessageApplication: Codable {
+    public let id: Int
+    public let name: String
+
+    public init(id: Int, name: String) {
+        self.id = id
+        self.name = name
     }
 }
 
@@ -4980,9 +5076,11 @@ public struct MessageWebhookPayload: Codable {
     public let chatId: Int
     public let parentMessageId: Int?
     public let thread: WebhookMessageThread?
+    public let source: MessageSource?
+    public let application: MessageApplication?
     public let webhookTimestamp: Int
 
-    public init(type: String, id: Int, event: WebhookEventType, entityType: MessageEntityType, entityId: Int, content: String, userId: Int, createdAt: String, changedAt: String? = nil, url: String, chatId: Int, parentMessageId: Int? = nil, thread: WebhookMessageThread? = nil, webhookTimestamp: Int) {
+    public init(type: String, id: Int, event: WebhookEventType, entityType: MessageEntityType, entityId: Int, content: String, userId: Int, createdAt: String, changedAt: String? = nil, url: String, chatId: Int, parentMessageId: Int? = nil, thread: WebhookMessageThread? = nil, source: MessageSource? = nil, application: MessageApplication? = nil, webhookTimestamp: Int) {
         self.type = type
         self.id = id
         self.event = event
@@ -4996,6 +5094,8 @@ public struct MessageWebhookPayload: Codable {
         self.chatId = chatId
         self.parentMessageId = parentMessageId
         self.thread = thread
+        self.source = source
+        self.application = application
         self.webhookTimestamp = webhookTimestamp
     }
 
@@ -5013,6 +5113,8 @@ public struct MessageWebhookPayload: Codable {
         case chatId = "chat_id"
         case parentMessageId = "parent_message_id"
         case thread
+        case source
+        case application
         case webhookTimestamp = "webhook_timestamp"
     }
 }
@@ -6374,6 +6476,7 @@ public enum AuditEventDetailsUnion: Codable {
     case auditDetailsChatPermission(AuditDetailsChatPermission)
     case auditDetailsTagChat(AuditDetailsTagChat)
     case auditDetailsChatId(AuditDetailsChatId)
+    case auditDetailsMessage(AuditDetailsMessage)
     case auditDetailsTokenScopes(AuditDetailsTokenScopes)
     case auditDetailsKms(AuditDetailsKms)
     case auditDetailsDlp(AuditDetailsDlp)
@@ -6419,6 +6522,7 @@ public enum AuditEventDetailsUnion: Codable {
             (["public_access"], { .auditDetailsChatPermission(try AuditDetailsChatPermission(from: $0)) }),
             (["chat_id", "tag_name"], { .auditDetailsTagChat(try AuditDetailsTagChat(from: $0)) }),
             (["chat_id"], { .auditDetailsChatId(try AuditDetailsChatId(from: $0)) }),
+            (["chat_id", "thread_chat_id", "source", "message_version_id"], { .auditDetailsMessage(try AuditDetailsMessage(from: $0)) }),
             (["scopes"], { .auditDetailsTokenScopes(try AuditDetailsTokenScopes(from: $0)) }),
             (["chat_id", "message_id", "reason"], { .auditDetailsKms(try AuditDetailsKms(from: $0)) }),
             (["dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched"], { .auditDetailsDlp(try AuditDetailsDlp(from: $0)) }),
@@ -6486,6 +6590,8 @@ public enum AuditEventDetailsUnion: Codable {
         case .auditDetailsTagChat(let value):
             try value.encode(to: encoder)
         case .auditDetailsChatId(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsMessage(let value):
             try value.encode(to: encoder)
         case .auditDetailsTokenScopes(let value):
             try value.encode(to: encoder)

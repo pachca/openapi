@@ -48,11 +48,11 @@ If MCP tools are already connected, use them. The CLI is the terminal alternativ
 
 Address `https://mcp.pachca.com/mcp`, transport Streamable HTTP. Choose how to sign in:
 
-| Way                                               | Fits                                                                                                                                       | Acts as                   | Lifetime                 |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | ------------------------ |
-| Browser, consent screen                           | Claude Code, the Claude app, VS Code, GitHub Copilot CLI, Codex, the ChatGPT desktop app (through Codex)                                   | the employee who approved | 1 hour, refreshes itself |
-| Personal token in `Authorization: Bearer <token>` | Cursor, SourceCraft Code Assistant, Qwen Code, GigaCode CLI, OpenCode, Devin Desktop, Cline, Kilo Code, Gemini CLI, nobody to sign in (CI) | the token owner           | until deleted            |
-| Bot token in `Authorization: Bearer <token>`      | an agent with no employee present: a server, Yandex AI Studio, GigaChat                                                                    | the bot                   | until deleted            |
+| Way                                               | Fits                                                                                                                                                         | Acts as                   | Lifetime                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | ------------------------ |
+| Browser, consent screen                           | Claude Code, the Claude app, VS Code, GitHub Copilot CLI, Codex, the ChatGPT desktop app (through Codex), Grok Bot (asked in its chat to connect the server) | the employee who approved | 1 hour, refreshes itself |
+| Personal token in `Authorization: Bearer <token>` | Cursor, SourceCraft Code Assistant, Qwen Code, GigaCode CLI, OpenCode, Devin Desktop, Cline, Kilo Code, Gemini CLI, nobody to sign in (CI)                   | the token owner           | until deleted            |
+| Bot token in `Authorization: Bearer <token>`      | an agent with no employee present: a server, Yandex AI Studio, GigaChat                                                                                      | the bot                   | until deleted            |
 
 **With the Pachca plugin** the server is already configured: do not add a second one by hand, do what the
 table says for your client. Check the list (`claude mcp list`, `codex mcp list`, `copilot mcp list`,

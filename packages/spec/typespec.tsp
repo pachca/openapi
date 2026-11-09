@@ -533,6 +533,9 @@ enum ChatSubtype {
   bot_changed_concurrently: "Настройки бота изменились во время запроса: повторите его",
   timeout: "Поиск не уложился по времени: сузьте запрос и повторите",
   daily_invites_limit: "Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`",
+  webhook_url_invalid: "Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста",
+  webhook_url_unresolved: "Не удалось определить IP-адрес домена из адреса вебхука",
+  webhook_url_forbidden: "Адрес вебхука ведёт во внутреннюю или зарезервированную сеть",
 })
 enum ValidationErrorCode {
   @doc("Обязательное поле (не может быть пустым)")
@@ -660,6 +663,15 @@ enum ValidationErrorCode {
 
   @doc("Бесплатное пространство исчерпало суточный лимит писем-приглашений")
   daily_invites_limit: "daily_invites_limit",
+
+  @doc("Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста")
+  webhook_url_invalid: "webhook_url_invalid",
+
+  @doc("Не удалось определить IP-адрес домена из адреса вебхука")
+  webhook_url_unresolved: "webhook_url_unresolved",
+
+  @doc("Адрес вебхука ведёт во внутреннюю или зарезервированную сеть")
+  webhook_url_forbidden: "webhook_url_forbidden",
 
   @doc("Недостаточно прав для выполнения действия (пояснения вы получите в поле message)")
   forbidden: "forbidden",
@@ -1352,6 +1364,30 @@ model VoiceContent {
   transcript_status: VoiceTranscriptStatus | null;
 }
 
+@doc("Через что отправлено сообщение токеном сотрудника")
+@extension("x-enum-descriptions", #{
+  application: "Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника",
+  personal_token: "Персональным токеном сотрудника",
+})
+enum MessageSource {
+  @doc("Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника")
+  application: "application",
+
+  @doc("Персональным токеном сотрудника")
+  personal_token: "personal_token",
+}
+
+@doc("Программа, через которую отправлено сообщение")
+model MessageApplication {
+  @doc("Идентификатор программы")
+  @example(4812)
+  id: int32;
+
+  @doc("Название программы, как в подсказке «Отправлено через …» на аватаре: «Pachca CLI», название клиента MCP или имя бота. У старых сообщений тоже приходит текущее название. Клиент MCP задаёт название сам в документе, который публикует на своём домене, поэтому программу узнают по `id`.")
+  @example("Pachca CLI")
+  name: string;
+}
+
 @doc("Сообщение")
 model Message {
   @doc("Идентификатор сообщения")
@@ -1436,6 +1472,13 @@ model Message {
   @doc("Сообщение в разделе «Важное» владельца токена. У токена бота всегда `false`.")
   @example(false)
   important: boolean;
+
+  @doc("Через что отправлено сообщение токеном сотрудника, как в значке «Отправлено через …» на аватаре. `null` у сообщения, которое отправили из приложения Пачки, в том числе из черновика, у сообщений ботов, у отложенного сообщения, которое ушло по расписанию, и у сообщений, отправленных до появления значка. Подробнее в разделе [Как выглядят сообщения](/api/authorization#kak-vyglyadyat-soobscheniya).")
+  @example(MessageSource.application)
+  source: MessageSource | null;
+
+  @doc("Программа, через которую отправлено сообщение, при `source: \"application\"`. В остальных случаях `null`.")
+  application: MessageApplication | null;
 }
 
 @doc("Тег")
@@ -2403,7 +2446,7 @@ model UserUpdateRequest {
     @example(UserRoleInput.user)
     role?: UserRoleInput;
 
-    @doc("Чат, в котором останется сотрудник при переводе в гости (`role: \"guest\"`): ровно одна активная беседа или канал, куда у токена есть право добавлять участников. Без такого чата ответ `400` по этому полю, и не меняется ничего. При других ролях и у того, кто уже гость, поле не учитывается.")
+    @doc("Чат, в котором останется сотрудник при переводе в гости (`role: \"guest\"`): ровно одна активная беседа или канал, куда у токена есть право добавлять участников. Без такого чата ответ `400` по этому полю, и не меняется ничего. При других ролях и у того, кто уже гость, поле не учитывается. При переводе в гости сотруднику с указанной почтой уходит письмо о смене роли со ссылкой на этот чат, даже если он ещё не входил в Пачку или приостановлен. В суточный лимит писем-приглашений оно не идёт.")
     @example(#[12345])
     chat_ids?: int32[];
 
@@ -3583,7 +3626,7 @@ model BotCreateRequest {
     @example("tasks_bot")
     nickname?: string;
 
-    @doc("URL исходящего вебхука")
+    @doc("URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`.")
     @maxLength(255)
     @example("https://example.com/tasks/new")
     outgoing_url?: string;
@@ -3604,7 +3647,7 @@ model BotCreateRequest {
     @example(#["messages:create"])
     scopes?: string[];
 
-    @doc("Шаблон форматирования входящего вебхука")
+    @doc("Шаблон форматирования входящего вебхука. Шаблон с синтаксической ошибкой у источника `simple`, в том числе у пустого бота с `kind: simple`, даёт ответ `400` на этом поле с кодом `invalid`, и бот не создаётся. Причина приходит в `message`.")
     @example("Заказ от {{ client }} на сумму {{ amount }} ₽")
     template?: string;
 
@@ -3673,7 +3716,7 @@ model BotUpdateRequest {
     @example("tasks_bot")
     nickname?: string;
 
-    @doc("URL исходящего вебхука")
+    @doc("URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`.")
     @maxLength(255)
     @example("https://example.com/tasks/new")
     outgoing_url?: string;
@@ -3697,7 +3740,7 @@ model BotUpdateRequest {
     @extension("x-replaces-set", true)
     scopes?: string[];
 
-    @doc("Шаблон форматирования входящего вебхука")
+    @doc("Шаблон форматирования входящего вебхука. Шаблон проверяется, когда в запросе меняются `template`, `template_engine` или `kind`, поэтому смена одного шаблонизатора или включение `kind: simple` проверяет и уже сохранённый шаблон. Шаблон с синтаксической ошибкой у источника `simple` даёт ответ `400` на этом поле с кодом `invalid`, и запрос не применяется. Причина приходит в `message`.")
     @example("Заказ от {{ client }} на сумму {{ amount }} ₽")
     template?: string;
 
@@ -3952,7 +3995,7 @@ model BotWebhook {
 model BotWebhookSelfUpdateRequest {
   @doc("Объект параметров вебхука")
   webhook: {
-    @doc("URL исходящего вебхука. Пустая строка отключает вебхук.")
+    @doc("URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`. Пустая строка отключает вебхук.")
     @maxLength(255)
     @example("https://example.com/tasks/new")
     outgoing_url: string;
@@ -4252,7 +4295,7 @@ model CompanyBotResponse {
   webhook: CompanyBotWebhook;
 }
 
-@doc("Пустые детали. При: user_login (кроме входа по QR-коду), user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled.")
+@doc("Пустые детали. При: user_login (кроме входа по QR-коду), user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled. У message_updated и message_deleted пустые детали могут прийти в записях до 7 ноября 2026 года включительно.")
 model AuditDetailsEmpty {}
 
 @doc("При: user_updated")
@@ -4317,6 +4360,18 @@ model AuditDetailsTagChat {
 model AuditDetailsChatId {
   @doc("Идентификатор чата")
   chat_id: int32;
+}
+
+@doc("При: message_updated, message_deleted")
+model AuditDetailsMessage {
+  @doc("Идентификатор чата сообщения. У сообщения в треде это чат сообщения-родителя треда, а у самостоятельного треда чат самого треда.")
+  chat_id: int32;
+  @doc("Идентификатор чата треда. Есть только у сообщений в тредах.")
+  thread_chat_id?: int32;
+  @doc("Кто изменил сообщение: `employee` — сотрудник, `bot` — бот, `dlp` — правило DLP заменило текст (актор — автор сообщения), `system` — сама Пачка, например когда прикрепляет к сообщению картинку по ссылке. У message_deleted приходит `employee` или `bot`.")
+  source: string;
+  @doc("Идентификатор версии сообщения: снимка его текста и файлов до правки или на момент удаления. После DLP текст в снимке скрыт. Нет, если правка не затронула текст и файлы или удалённое сообщение было пустым.")
+  message_version_id?: int32;
 }
 
 @doc("При: access_token_created, access_token_updated, access_token_destroy в записях до 7 октября 2026 года")
@@ -4758,6 +4813,7 @@ union AuditEventDetailsUnion {
   AuditDetailsChatPermission,
   AuditDetailsTagChat,
   AuditDetailsChatId,
+  AuditDetailsMessage,
   AuditDetailsTokenScopes,
   AuditDetailsKms,
   AuditDetailsDlp,
@@ -4895,7 +4951,15 @@ model MessageWebhookPayload {
   
   @doc("Тред, в котором отправлено сообщение. `null`, если сообщение отправлено не в треде. В отличие от поля `thread` в объекте сообщения REST API, здесь описывается тред, внутри которого находится сообщение.")
   thread?: WebhookMessageThread | null;
-  
+
+  @doc("Через что отправлено сообщение токеном сотрудника, так же, как поле `source` в объекте сообщения. В записях истории событий, сохранённых до появления поля, его нет.")
+  @example(null)
+  source?: MessageSource | null;
+
+  @doc("Программа, через которую отправлено сообщение, так же, как поле `application` в объекте сообщения. В записях истории событий, сохранённых до появления поля, его нет.")
+  @example(null)
+  application?: MessageApplication | null;
+
   @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
   @example(1747574400)
   webhook_timestamp: int32;
@@ -5148,6 +5212,14 @@ model LinkSharedWebhookPayload {
 
   @doc("Тред, в котором отправлено сообщение со ссылкой. `null`, если сообщение отправлено не в треде.")
   thread: WebhookMessageThread | null;
+
+  @doc("Через что отправлено сообщение со ссылкой токеном сотрудника, так же, как поле `source` в объекте сообщения. В записях истории событий, сохранённых до появления поля, его нет.")
+  @example(null)
+  source?: MessageSource | null;
+
+  @doc("Программа, через которую отправлено сообщение со ссылкой, так же, как поле `application` в объекте сообщения. В записях истории событий, сохранённых до появления поля, его нет.")
+  @example(null)
+  application?: MessageApplication | null;
 
   @doc("Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
   @example(utcDateTime.fromISO("2024-09-18T19:53:14.000Z"))
@@ -6668,7 +6740,7 @@ interface ChatOperations {
     @doc("Поле сортировки")
     @extension("example", "id")
     @query sort?: ChatSortField = ChatSortField.id,
-    @doc("Направление сортировки. Применяется вместе с `sort`, например `sort=last_message_at&order=desc`. Без `sort` чаты идут по убыванию `id` при любом `order`.")
+    @doc("Направление сортировки по полю `sort`, например `sort=last_message_at&order=desc`. Без `sort` направление применяется к `id`.")
     @extension("example", "desc")
     @query order?: SortOrder = SortOrder.desc,
     @doc("Параметр, который отвечает за доступность и выборку чатов для пользователя")
@@ -7763,7 +7835,7 @@ interface ChatMessageOperations {
 
 Лента сообщений беседы, канала, треда или личной переписки — по `chat_id` нужного чата.
 
-Сообщения приходят от новых к старым, то есть первыми идут последние сообщения чата. За более ранними обращайтесь с параметрами `limit` и `cursor`.
+По умолчанию сообщения приходят от новых к старым, то есть первыми идут последние сообщения чата. За более ранними обращайтесь с параметрами `limit` и `cursor`.
 
 Удалённые сообщения в список не попадают.
 
@@ -7778,7 +7850,7 @@ interface ChatMessageOperations {
     @doc("Поле сортировки")
     @extension("example", "id")
     @query sort?: MessageSortField = MessageSortField.id,
-    @doc("Направление сортировки. Применяется вместе с `sort`: сообщения от старых к новым дают `sort=id` и `order=asc`. Без `sort` сообщения идут от новых к старым при любом `order`.")
+    @doc("Направление сортировки по `id`: `asc` отдаёт сообщения от старых к новым, `desc` от новых к старым.")
     @extension("example", "desc")
     @query order?: SortOrder = SortOrder.desc,
     @doc("Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.")
@@ -10258,7 +10330,7 @@ interface BotOperations {
 
 Ссылка действует от одного до двух часов, до `expires_at`. В этот момент сервер присылает по ней `disconnect` и закрывает подключение, а `EventSource` после него сам не переподключается. Запрос в пределах того же часа по UTC возвращает ту же ссылку, а запрос в последний час перед `expires_at` даёт новую. Меняйте ссылку примерно за пять минут до `expires_at`: подключитесь по новой, пока работает старая, и закройте старое подключение, когда новое подтвердит подписку. Если `disconnect` всё же пришёл, получите новую ссылку и подключитесь заново.
 
-Чтобы ничего не пропустить, после каждого подключения, в том числе после переподключения и смены ссылки, дождитесь подтверждения подписки и только потом прочитайте [Историю событий](GET /webhooks/events). Доставка в поток не гарантирована: обработанные события всё равно удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), а повторы отсекайте по `id`. Если у бота есть адрес вебхука, повторная доставка на него приходит в поток ещё раз с новым `id`: такие повторы отсекают по ключу из `payload`, как в разделе [Идемпотентная обработка](/guides/webhook/handler#idempotentnaya-obrabotka). Подробнее — в разделе [События в реальном времени](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
+Чтобы ничего не пропустить, после каждого подключения, в том числе после переподключения и смены ссылки, дождитесь подтверждения подписки и только потом прочитайте [Историю событий](GET /webhooks/events). Доставка в поток не гарантирована: обработанные события всё равно удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), а повторы отсекайте по `id`. Если у бота есть адрес вебхука и запись удалена до повторной доставки на него, повтор приходит в поток ещё раз с новым `id`: такие повторы отсекают по ключу из `payload`, как в разделе [Идемпотентная обработка](/guides/webhook/handler#idempotentnaya-obrabotka). Подробнее — в разделе [События в реальном времени](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
 """)
   @route("/webhooks/events/stream")
   @get

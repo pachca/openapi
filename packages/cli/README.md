@@ -4,6 +4,8 @@
 
 ## Установка
 
+Требуется Node.js 20.3.0 или новее.
+
 ```
 npm install -g @pachca/cli
 

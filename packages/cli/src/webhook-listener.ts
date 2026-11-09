@@ -73,7 +73,12 @@ export async function listenWebhookEvents(options: ListenerOptions): Promise<voi
     await options.onEvent(event);
     if (stopped) return;
     if (options.acknowledge) {
-      await request({ method: 'DELETE', path: `/webhooks/events/${encodeURIComponent(event.id)}` });
+      try {
+        await request({ method: 'DELETE', path: `/webhooks/events/${encodeURIComponent(event.id)}` });
+      } catch (error) {
+        // 404: already deleted (a retried DELETE whose first attempt went through, or another consumer).
+        if (!(error instanceof ApiError && error.details.code === 404)) throw error;
+      }
     }
     processed.add(event.id);
     // Bound memory in an indefinitely running observer. Consumers still need payload idempotency.

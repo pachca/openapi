@@ -113,7 +113,7 @@ Do it right:
 
 ## Connect with the CLI
 
-Needs Node.js 20+.
+Needs Node.js 20.3.0 or later.
 
 ```bash
 npm install -g @pachca/cli

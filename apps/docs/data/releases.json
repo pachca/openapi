@@ -1,5 +1,16 @@
 [
   {
+    "product": "plugin",
+    "version": "1.0.11",
+    "date": "2026-11-09",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Инструкция подключения CLI указывает минимальную версию Node.js 20.3.0"
+      }
+    ]
+  },
+  {
     "product": "cli",
     "version": "2026.11.2",
     "date": "2026-11-09",
@@ -7,6 +18,14 @@
       {
         "type": "+",
         "description": "`pachca bots listen-events` получает события бота в реальном времени: выводит JSONL или пересылает payload на HTTP-обработчик и подтверждает после 2xx"
+      },
+      {
+        "type": "-",
+        "description": "`pachca bots listen-events` продолжает работу, если подтверждаемое событие уже удалено из истории"
+      },
+      {
+        "type": "~",
+        "description": "Для запуска CLI требуется Node.js 20.3.0 или новее"
       }
     ]
   },

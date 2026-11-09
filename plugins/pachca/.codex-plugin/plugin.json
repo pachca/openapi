@@ -1,6 +1,6 @@
 {
   "name": "pachca",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Connect your AI agent to Pachca team chat: the MCP server with a tool per API method, plus nine skills, from summarizing a thread to watching one and replying in it.",
   "author": {
     "name": "Pachca",

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ApiError } from '../src/client.js';
 import { listenWebhookEvents } from '../src/webhook-listener.js';
 
 const record = (id: string) => ({ id, event_type: 'message', payload: { text: id }, created_at: '2026-11-09T00:00:00Z' });
@@ -97,6 +98,35 @@ describe('webhook event listener', () => {
       { method: 'DELETE', path: '/webhooks/events/one' },
     ]));
     abort.abort(); await run;
+  });
+
+  it('treats 404 on acknowledgement as already deleted and keeps listening', async () => {
+    const run = start({
+      acknowledge: true,
+      request: async (opts) => {
+        if (opts.method === 'DELETE') throw new ApiError({ error: 'Not found', code: 404, type: 'PACHCA_API_ERROR' });
+        return request(opts);
+      },
+    });
+    await vi.waitFor(() => expect(streams).toHaveLength(1));
+    send(0, {}, 'confirm_subscription');
+    send(0, record('one')); send(0, record('two'));
+    await vi.waitFor(() => expect(delivered).toEqual(['one', 'two']));
+    abort.abort(); await run;
+  });
+
+  it.each([403, 500])('does not swallow a %i acknowledgement error', async (code) => {
+    const run = start({
+      acknowledge: true, retry: false,
+      request: async (opts) => {
+        if (opts.method === 'DELETE') throw new ApiError({ error: 'Failed', code, type: 'PACHCA_API_ERROR' });
+        return request(opts);
+      },
+    });
+    const outcome = expect(run).rejects.toMatchObject({ details: { code } });
+    await vi.waitFor(() => expect(streams).toHaveLength(1));
+    send(0, {}, 'confirm_subscription'); send(0, record('one'));
+    await outcome;
   });
 
   it('leaves history intact and closes streams when the handler fails', async () => {

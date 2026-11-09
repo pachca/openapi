@@ -90,6 +90,15 @@ Do not promise what does not exist:
   search each name in the person's `list_tags`, and `"@all"` / `"@here"`
   if broadcast calls count. Search ignores the `@`, so keep only hits
   whose `content` has `@First Last`, `@nickname` or the mention itself.
+- "Messages I reacted to", «на что я ставил ✅»: no search or feed filters
+  by reaction (`user_ids` filters authors), and a message carries no
+  reactions. Take the chats and the period from the request, or the obvious ones, and say which you took. List the messages with
+  `pachca_search_messages` without `query` (`chat_ids`, `created_from`,
+  `created_to`), skip hits with `deleted_at`, then read each one's
+  reactions with `pachca_list_reactions` (`pachca reactions list <id>`) and
+  keep those with your `user_id` and that `code`. That is one call per
+  message: say how many before the walk, and run a long one as a script
+  (pachca-api).
 - "Retell this thread", «что поправить по треду», «в чём проблема по
   треду», a pasted link: read the feed, do not search it. The retelling,
   the account of a problem and the list of remarks:
@@ -155,6 +164,9 @@ that feed. Starting points, ids and the full procedure:
   default `created_at`: the cursor keeps the order, and `relevance` ranks
   by match, not by time. Or read newest first and reverse. Later messages
   override earlier ones.
+- A chat feed holds a thread's parent message, not its comments. When you
+  read a chat for context or decisions, also read the thread of each
+  message in your window whose `thread` is set, by `thread.chat_id`.
 - Use what the message carries: `parent_message_id` (what it answers),
   `forwarding.author_id` (the real author of a forward), `changed_at`
   (when the message last changed: unedited messages carry it too, and it
@@ -162,7 +174,8 @@ that feed. Starting points, ids and the full procedure:
   `content` is always the current text), `voice_content.transcript` (a
   voice message; `null` until ready or when unavailable, so do not wait
   for it), `files[]` (each attachment's `id`, `name`, `file_type` and
-  `url`; its contents are not in the message).
+  `url`; the contents are not in the message: open the files your answer
+  depends on with `pachca_download_file`, and name any you could not open).
 - Messages give `user_id`. Resolve names with `pachca_get_user` when the
   response does not already name the author.
 

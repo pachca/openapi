@@ -97,7 +97,8 @@ Must-haves; procedure and payload notes in [references/events.md](references/eve
 ## Buttons
 
 - Send messages with buttons using the **bot** token: a Data-button click goes only to the bot that sent the message, and only while the bot is in that chat. Clicks need the «Нажатие кнопок» (`button_click`) event.
-- After a click: edit the message (an empty `buttons` array removes all buttons), reply, or open a form with `trigger_id` (lives 3 s).
+- After a click Pachca shows the employee only an error from a failed answer in the first 3 s, never the result: the bot shows it. Answer `2xx` at once, then edit the message by the event's `message_id` with the state («Выполняется…», then «Готово» or «Не удалось: …») and remove or swap the buttons (an empty `buttons` array removes them all). An edit notifies nobody, so send a failure or a late result as a new message too. To open a form instead, open it first with `trigger_id` (lives 3 s). Editing needs `messages:update`, a form `views:write`.
+- Every click, a repeat one included, is a new event with a new `trigger_id`, and a click made before your edit lands still arrives. When the action must run once, remove the buttons in the first edit and keep a durable done mark for the message (its `message_id`, plus `data` when each button is a separate once-only action): skip a click that finds it.
 - Layout: the hard limits are in the `pachca_send_message` `buttons` schema. A row never wraps, so keep 5–6 buttons per row for narrow screens. [Buttons](https://dev.pachca.com/guides/buttons.md).
 
 ## Forms

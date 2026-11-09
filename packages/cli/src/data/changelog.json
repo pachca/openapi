@@ -4,6 +4,20 @@
     "date": "9 ноября 2026",
     "changes": [
       {
+        "type": "~",
+        "command": "auth status",
+        "description": "Показывает токен, с которым работают команды, в том числе из `--token` и `PACHCA_TOKEN`. Владельца, права и срок жизни такого токена команда спрашивает у сервера и называет сохранённый профиль, который не используется, пока задан `PACHCA_TOKEN`."
+      },
+      {
+        "type": "~",
+        "description": "Подсказки к отказу `insufficient_scope` ведут к `pachca auth status` с тем же `--token` или `--profile`, что у команды, а для сохранённого профиля в `-o json` ещё и с `--remote`"
+      },
+      {
+        "type": "~",
+        "command": "auth login",
+        "description": "Подсказка `pachca auth status` после входа называет профиль, если без него команда покажет другой токен, а при заданном `PACHCA_TOKEN` вход предупреждает, что команды используют переменную"
+      },
+      {
         "type": "+",
         "command": "messages get, messages list, messages create, messages update, search list-messages",
         "description": "В ответах с сообщениями есть поля `source` и `application`: через что сотрудник отправил сообщение и какая программа"

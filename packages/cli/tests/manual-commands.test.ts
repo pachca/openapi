@@ -110,6 +110,24 @@ describe('manual commands — functional tests', () => {
       expect(content).toContain('Ivan Petrov');
     });
 
+    it('вход в неактивный профиль → подсказка auth status с этим профилем', async () => {
+      setupProfile('work');
+      const tokenInfo = mockEntity('/oauth/token/info', 'GET', { user_id: 1, scopes: ['users:read'] });
+      const profileData = mockEntity('/profile', 'GET', { first_name: 'Ivan', last_name: 'Petrov', bot: false });
+      globalThis.fetch = vi.fn().mockImplementation((url: string) => Promise.resolve({
+        ok: true, status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({ data: String(url).includes('token/info') ? tokenInfo : profileData }),
+        text: () => Promise.resolve('{}'),
+      }));
+
+      const second = await runCommand(['auth', 'login', '--profile', 'second', '--token', 'my-token', '-o', 'table'], { root: CLI_ROOT });
+      expect(second.stderr).toContain('Состояние входа: pachca auth status --profile second');
+
+      const active = await runCommand(['auth', 'login', '--profile', 'work', '--token', 'my-token', '-o', 'table'], { root: CLI_ROOT });
+      expect(active.stderr).toContain('Состояние входа: pachca auth status\n');
+    });
+
     describe('--token - (чтение из потока ввода)', () => {
       const originalStdin = Object.getOwnPropertyDescriptor(process, 'stdin')!;
 
@@ -447,6 +465,7 @@ describe('manual commands — functional tests', () => {
       const { stderr, error } = await runCommand(['auth', 'status'], { root: CLI_ROOT });
       expect(error).toBeTruthy();
       expect(stderr).toContain('No active profile');
+      expect(stderr).toContain('PACHCA_TOKEN');
     });
 
     it('pasted token → auth: token, no expiry', async () => {
@@ -482,6 +501,148 @@ describe('manual commands — functional tests', () => {
       expect(parsed.auth).toBe('oauth');
       expect(parsed.expires_at).toBe(expiresAt);
       expect(parsed.scopes).toEqual(['chats:read', 'messages:create']);
+    });
+
+    describe('токен не из профиля', () => {
+      // Answers by path, and records which token each call carried.
+      function serveToken(opts: { status?: number; bot?: boolean; noProfileScope?: boolean; expiresIn?: number | null; createdAt?: string } = {}) {
+        const tokenInfo = mockEntity('/oauth/token/info', 'GET', {
+          user_id: 7, scopes: ['users:read', 'messages:create'], expires_in: opts.expiresIn ?? null,
+          ...(opts.createdAt ? { created_at: opts.createdAt } : {}),
+        });
+        const profileData = mockEntity('/profile', 'GET', {
+          first_name: 'Ivan', last_name: 'Petrov', email: 'ivan@test.com', bot: opts.bot ?? false,
+        });
+        const status = opts.status ?? 200;
+        const fn = vi.fn().mockImplementation((url: string) => {
+          const isProfile = !String(url).includes('token/info');
+          const code = isProfile && opts.noProfileScope ? 403 : status;
+          const body = code === 403
+            ? { error: 'insufficient_scope', error_description: 'Insufficient scope. Required: profile:read' }
+            : code !== 200
+              ? { error: 'invalid_token', error_description: 'The access token is invalid' }
+              : { data: isProfile ? profileData : tokenInfo };
+          return Promise.resolve({
+            ok: code === 200, status: code,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve(body),
+            text: () => Promise.resolve(JSON.stringify(body)),
+          });
+        });
+        globalThis.fetch = fn;
+        return () => fn.mock.calls.map(([, init]) => (init as { headers: Record<string, string> }).headers.Authorization);
+      }
+
+      it('PACHCA_TOKEN без профиля → данные токена с сервера', async () => {
+        setEnv('PACHCA_TOKEN', 'env-token');
+        const auths = serveToken();
+        const { stdout, error } = await runCommand(['auth', 'status', '--json'], { root: CLI_ROOT });
+        expect(error).toBeUndefined();
+        const parsed = JSON.parse(stdout);
+        expect(parsed.profile).toBeNull();
+        expect(parsed.source).toBe('PACHCA_TOKEN');
+        expect(parsed.user).toBe('Ivan Petrov');
+        expect(parsed.user_id).toBe(7);
+        expect(parsed.type).toBe('user');
+        expect(parsed.auth).toBe('token');
+        expect(parsed.scopes).toEqual(['users:read', 'messages:create']);
+        expect(parsed.scopes_source).toBe('server');
+        expect(parsed.unused_profile).toBeNull();
+        expect(parsed.expires_in).toBeNull();
+        expect(auths().every((a) => a === 'Bearer env-token')).toBe(true);
+      });
+
+      it('без права profile:read → тип токена не угадывается', async () => {
+        setEnv('PACHCA_TOKEN', 'bot-token');
+        serveToken({ noProfileScope: true });
+        const { stdout, error } = await runCommand(['auth', 'status', '--json'], { root: CLI_ROOT });
+        expect(error).toBeUndefined();
+        const parsed = JSON.parse(stdout);
+        expect(parsed.type).toBeNull();
+        expect(parsed.user).toBe('User #7');
+        expect(parsed.scopes).toEqual(['users:read', 'messages:create']);
+      });
+
+      it('токен на час → срок жизни и момент истечения', async () => {
+        setEnv('PACHCA_TOKEN', 'app-token');
+        const createdAt = new Date(Date.now() - 600_000).toISOString();
+        serveToken({ expiresIn: 3600, createdAt });
+        const { stdout } = await runCommand(['auth', 'status', '--json'], { root: CLI_ROOT });
+        const parsed = JSON.parse(stdout);
+        expect(parsed.expires_in).toBe(3600);
+        expect(parsed.expires_at).toBe(new Date(Date.parse(createdAt) + 3_600_000).toISOString());
+        expect(parsed.auth).toBe('token');
+      });
+
+      it('PACHCA_TOKEN в терминале → источник, срок и неиспользуемый профиль', async () => {
+        setupProfile('work');
+        setEnv('PACHCA_TOKEN', 'env-token');
+        Object.defineProperty(process.stderr, 'isTTY', { value: true, writable: true, configurable: true });
+        serveToken({ expiresIn: 3600, createdAt: new Date(Date.now() - 600_000).toISOString() });
+        const { stderr } = await runCommand(['auth', 'status', '-o', 'table'], { root: CLI_ROOT });
+        expect(stderr).toContain('Подключён как: Ivan Petrov (ivan@test.com)  [user]');
+        expect(stderr).toContain('Вход: токеном из PACHCA_TOKEN, осталось 50 мин, CLI его не продлевает');
+        expect(stderr).toContain('Права по данным сервера (2): users:read, messages:create');
+        expect(stderr).toContain('Профиль work не используется, пока задан PACHCA_TOKEN');
+        expect(stderr).not.toContain('env-token');
+      });
+
+      it('--token → данные этого токена, сохранённый профиль не трогается', async () => {
+        setupProfile();
+        const auths = serveToken({ bot: true });
+        const { stdout } = await runCommand(['auth', 'status', '--token', 'flag-token', '--json'], { root: CLI_ROOT });
+        const parsed = JSON.parse(stdout);
+        expect(parsed.source).toBe('--token');
+        expect(parsed.type).toBe('bot');
+        expect(parsed.user).toBe('Ivan Petrov (бот)');
+        expect(parsed.unused_profile).toBeNull();
+        expect(auths().every((a) => a === 'Bearer flag-token')).toBe(true);
+      });
+
+      it('PACHCA_TOKEN при активном профиле → показан токен, профиль назван неиспользуемым', async () => {
+        setupProfile('work');
+        setEnv('PACHCA_TOKEN', 'env-token');
+        serveToken();
+        const { stdout } = await runCommand(['auth', 'status', '--json'], { root: CLI_ROOT });
+        const parsed = JSON.parse(stdout);
+        expect(parsed.source).toBe('PACHCA_TOKEN');
+        expect(parsed.user).toBe('Ivan Petrov');
+        expect(parsed.unused_profile).toBe('work');
+      });
+
+      it('--profile важнее PACHCA_TOKEN, как у остальных команд', async () => {
+        setupProfile('work');
+        setEnv('PACHCA_TOKEN', 'env-token');
+        globalThis.fetch = vi.fn();
+        const { stdout } = await runCommand(['auth', 'status', '--profile', 'work', '--json'], { root: CLI_ROOT });
+        const parsed = JSON.parse(stdout);
+        expect(parsed.profile).toBe('work');
+        expect(parsed.source).toBe('--profile');
+        expect(parsed.user).toBe('Test User');
+        expect(globalThis.fetch).not.toHaveBeenCalled();
+      });
+
+      it('отозванный PACHCA_TOKEN → ошибка 401 с подсказкой про переменную', async () => {
+        setEnv('PACHCA_TOKEN', 'dead-token');
+        serveToken({ status: 401 });
+        const { stderr, error } = await runCommand(['auth', 'status', '--json'], { root: CLI_ROOT });
+        expect(error).toBeTruthy();
+        const parsed = JSON.parse(stderr);
+        expect(parsed.code).toBe(401);
+        expect(parsed.hint).toContain('PACHCA_TOKEN');
+      });
+
+      it('отозванный PACHCA_TOKEN при сохранённом профиле → назван профиль', async () => {
+        setupProfile('work');
+        setEnv('PACHCA_TOKEN', 'dead-token');
+        serveToken({ status: 401 });
+        const { stderr, error } = await runCommand(['auth', 'status', '--json'], { root: CLI_ROOT });
+        expect(error).toBeTruthy();
+        const parsed = JSON.parse(stderr);
+        expect(parsed.code).toBe(401);
+        expect(parsed.unused_profile).toBe('work');
+        expect(parsed.hint).toBe('unset PACHCA_TOKEN, or add --profile work');
+      });
     });
   });
 

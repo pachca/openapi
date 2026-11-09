@@ -6,6 +6,7 @@ import {
   getAuthMethod,
   getDefaults,
   profileFlag,
+  tokenSource,
 } from './profiles.js';
 import { ApiError, getExitCode, formatDryRun, request, type RequestOptions, type ClientFlags, type ErrorType } from './client.js';
 import { outputData, outputError, outputSuccess, type OutputFormat, type OutputOptions } from './output.js';
@@ -268,8 +269,23 @@ export abstract class BaseCommand extends Command {
     const format = this.getOutputFormat();
     const scope = typeof err.details.scope === 'string' ? err.details.scope : undefined;
 
-    if (format === 'json' || !process.stderr.isTTY) {
-      outputError(err.details, format);
+    // `auth status` checks the token every command uses. A bare run finds PACHCA_TOKEN
+    // and the active profile by itself; a token or profile named on this command has
+    // to be named again. The token value is never echoed back.
+    const source = tokenSource({ token: this.parsedFlags.token, profile: this.parsedFlags.profile });
+    const human = format !== 'json' && process.stderr.isTTY;
+    const again =
+      source.kind === 'flag'
+        ? human ? ' --token <токен>' : ' --token <token>'
+        : source.kind === 'profile' && source.via === '--profile'
+          ? ` --profile ${source.profileName}`
+          : '';
+
+    if (!human) {
+      // A saved profile keeps the scope list from login, which may still name the
+      // scope just refused: only the server's answer settles it.
+      const remote = source.kind === 'profile' ? ' --remote' : '';
+      outputError({ ...err.details, hint: `pachca auth status${remote}${again}` }, format);
       this.exit(3);
     }
 
@@ -280,7 +296,7 @@ export abstract class BaseCommand extends Command {
 
     if (!profile) {
       process.stderr.write(`  У токена ${scope ? 'этого' : 'нужного'} права нет.\n`);
-      process.stderr.write(`  Проверить права токена: pachca oauth token-info -o json\n`);
+      process.stderr.write(`  Проверить токен и его права: pachca auth status${again}\n`);
       this.exit(3);
     }
 
@@ -291,7 +307,7 @@ export abstract class BaseCommand extends Command {
     const listedLocally = !!scope && !!profile.scopes?.includes(scope);
     if (listedLocally) {
       process.stderr.write(`  В сохранённом списке право есть, но у токена его уже нет: список устарел.\n`);
-      process.stderr.write(`  Обновить список: pachca auth status --remote${flag}\n`);
+      process.stderr.write(`  Обновить список: pachca auth status --remote${again}\n`);
     } else {
       process.stderr.write(`  У токена ${scope ? 'этого' : 'нужного'} права нет.\n`);
     }

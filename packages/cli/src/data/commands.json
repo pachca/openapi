@@ -120,7 +120,7 @@
       },
       {
         "command": "pachca auth status",
-        "summary": "Статус текущего профиля",
+        "summary": "Чей токен используют команды и какие у него права",
         "method": null,
         "path": null,
         "scope": null,

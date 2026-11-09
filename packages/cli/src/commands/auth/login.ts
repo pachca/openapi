@@ -7,11 +7,13 @@ import {
   getProfile,
   getSecretStorage,
   expiresAtFromNow,
+  tokenSource,
   type Profile,
 } from '../../profiles.js';
 import { isSecretStoreAvailable } from '../../secret-store.js';
 import { ApiError, request } from '../../client.js';
 import { outputError } from '../../output.js';
+import { fetchIdentity, type TokenInfo } from '../../identity.js';
 import {
   OAuthError,
   copyToClipboard,
@@ -22,12 +24,6 @@ import {
   type DeviceCodeGrant,
   type TokenGrant,
 } from '../../oauth.js';
-
-interface TokenInfo {
-  user_id: number;
-  scopes?: string[];
-  expires_in?: number | null;
-}
 
 export default class AuthLogin extends BaseCommand {
   static override description = 'Вход в аккаунт и сохранение профиля';
@@ -112,7 +108,7 @@ export default class AuthLogin extends BaseCommand {
       : await this.deviceLogin(profileName, !flags['no-browser'], flags.quiet);
 
     const tokenInfo = await this.verifyToken(grant.access_token);
-    const identity = await this.fetchIdentity(grant.access_token, tokenInfo.user_id);
+    const identity = await fetchIdentity(grant.access_token, tokenInfo.user_id);
 
     const scopes = grant.scope ? grant.scope.split(' ').filter(Boolean) : tokenInfo.scopes;
 
@@ -261,25 +257,6 @@ export default class AuthLogin extends BaseCommand {
     }
   }
 
-  private async fetchIdentity(
-    token: string,
-    userId: number,
-  ): Promise<{ name: string; email: string | null; isBot: boolean }> {
-    try {
-      const response = await request({ method: 'GET', path: '/profile', token }, { quiet: true });
-      const data = (response.data as { data: Record<string, unknown> }).data;
-      const name = `${data.first_name || ''} ${data.last_name || ''}`.trim();
-      return {
-        name: name || `User #${userId}`,
-        email: (data.email as string) || null,
-        isBot: (data.bot as boolean) || false,
-      };
-    } catch {
-      // profile:read scope not available — user_id from token info is enough
-      return { name: `User #${userId}`, email: null, isBot: false };
-    }
-  }
-
   private report(profileName: string, profile: Profile, scopes?: string[]): void {
     const format = this.getOutputFormat();
 
@@ -312,7 +289,14 @@ export default class AuthLogin extends BaseCommand {
       process.stderr.write(`  Токен в файле конфигурации (хранилище ключей недоступно)\n`);
     }
 
-    process.stderr.write(`  Состояние входа: pachca auth status\n`);
+    // A bare `auth status` shows the token other commands would use: PACHCA_TOKEN
+    // when it is set, or the active profile, which need not be the one just saved.
+    const src = tokenSource({});
+    const statusFlag = src.kind === 'profile' && src.profileName === profileName ? '' : ` --profile ${profileName}`;
+    process.stderr.write(`  Состояние входа: pachca auth status${statusFlag}\n`);
+    if (src.kind === 'env') {
+      process.stderr.write(`  Пока задан PACHCA_TOKEN, команды используют его, а не профиль ${profileName}\n`);
+    }
   }
 }
 

@@ -75,7 +75,7 @@ Scope rules that surprise:
 
 If the user cannot get a token at all: by default only admins create personal tokens, and then employees and multi-guests also cannot log in to the CLI or authorize bots and MCP apps. Once an admin allows it, a multi-guest works with tokens like an employee but cannot create bots or their tokens. Guests cannot create any token under any setting. Changing that is an admin task → pachca-admin.
 
-Before a long job, check what the current token can do: `pachca_get_token_info` / `pachca oauth token-info -o json` returns its scopes (the CLI's terminal table leaves them out). In the CLI, `pachca auth status` shows login method, time left and scopes of a saved profile (it does not read `PACHCA_TOKEN`); `--remote` re-reads them from the server.
+Before a long job, check what the current token can do: `pachca_get_token_info` / `pachca oauth token-info -o json` returns its scopes (the CLI's terminal table leaves them out). In the CLI, `pachca auth status` shows whose token the commands use and its scopes, `PACHCA_TOKEN` included. For a saved profile they are the scopes saved at login, and `--remote` re-reads them from the server.
 
 ## Request and response conventions
 

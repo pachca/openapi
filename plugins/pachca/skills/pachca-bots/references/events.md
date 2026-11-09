@@ -88,7 +88,7 @@ Every attempt of one webhook delivery carries the same `Idempotency-Key` request
 
 ## 6. Read the payload correctly
 
-- Payloads are minimal. Fetch the full message with `pachca_get_message` (`pachca messages get`) by `id` / `message_id` for attachments, reactions, buttons, forwards.
+- Payloads are minimal. Fetch the full message with `pachca_get_message` (`pachca messages get`) by `id` / `message_id` for attachments, buttons, forwards. Reactions are not in the message: read them with `pachca_list_reactions` (`pachca reactions list`).
 - A file-only message has an empty `content`; the payload cannot tell you it has an attachment.
 - `content` is Markdown that Pachca assembles from the message (quotes, lists may appear). See [Markdown](https://dev.pachca.com/guides/markdown.md).
 - For `message`/`delete`, the message method still answers `200` but returns a cleared record (empty `content`, `deleted_at` set).

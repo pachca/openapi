@@ -613,8 +613,16 @@ describe('generated commands — functional tests', () => {
       mockFetch(insufficientScope);
       const { stderr } = await runCommand(['users', 'create', '--email', 'olga@example.com', '-o', 'table'], { root: CLI_ROOT });
       expect(stderr).toContain('список устарел');
-      expect(stderr).toContain('pachca auth status --remote --profile test');
+      // The active profile: a bare `auth status` reads the same one.
+      expect(stderr).toContain('Обновить список: pachca auth status --remote\n');
       expect(stderr).not.toContain('не даёт роль');
+
+      mockFetch(insufficientScope);
+      const named = await runCommand(
+        ['users', 'create', '--email', 'olga@example.com', '--profile', 'test', '-o', 'table'],
+        { root: CLI_ROOT },
+      );
+      expect(named.stderr).toContain('Обновить список: pachca auth status --remote --profile test');
     });
 
     it('insufficient_scope после входа через браузер → войти заново тем же профилем', async () => {
@@ -625,14 +633,38 @@ describe('generated commands — functional tests', () => {
       expect(stderr).toContain('войдите заново: pachca auth login --profile test');
     });
 
-    it('insufficient_scope с токеном из --token → проверить права через oauth token-info', async () => {
+    it('insufficient_scope с токеном из --token → проверить токен через auth status', async () => {
       humanTerminal();
       mockFetch(insufficientScope);
       const { stderr } = await runCommand(
         ['users', 'create', '--email', 'olga@example.com', '--token', 'pasted', '-o', 'table'],
         { root: CLI_ROOT },
       );
-      expect(stderr).toContain('pachca oauth token-info -o json');
+      expect(stderr).toContain('pachca auth status --token <токен>');
+      expect(stderr).not.toContain('pasted');
+    });
+
+    it('insufficient_scope в JSON → подсказка auth status для того же токена', async () => {
+      mockFetch(insufficientScope);
+      const bare = await runCommand(['users', 'create', '--email', 'olga@example.com'], { root: CLI_ROOT });
+      expect(JSON.parse(bare.stderr.trim()).hint).toBe('pachca auth status --remote');
+
+      mockFetch(insufficientScope);
+      const withToken = await runCommand(
+        ['users', 'create', '--email', 'olga@example.com', '--token', 'pasted'],
+        { root: CLI_ROOT },
+      );
+      const parsed = JSON.parse(withToken.stderr.trim());
+      expect(parsed.hint).toBe('pachca auth status --token <token>');
+      expect(parsed.type).toBe('PACHCA_SCOPE_ERROR');
+      expect(withToken.stderr).not.toContain('pasted');
+
+      mockFetch(insufficientScope);
+      const withProfile = await runCommand(
+        ['users', 'create', '--email', 'olga@example.com', '--profile', 'test'],
+        { root: CLI_ROOT },
+      );
+      expect(JSON.parse(withProfile.stderr.trim()).hint).toBe('pachca auth status --remote --profile test');
     });
   });
 

@@ -27,7 +27,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca auth list` | Список сохранённых профилей |
 | `pachca auth login` | Вход в аккаунт и сохранение профиля |
 | `pachca auth logout` | Удаление сохранённого профиля |
-| `pachca auth status` | Статус текущего профиля |
+| `pachca auth status` | Чей токен используют команды и какие у него права |
 | `pachca auth switch` | Переключение активного профиля |
 | `pachca bots create` | `POST` Новый бот |
 | `pachca bots create-token` | `POST` Новый токен бота |

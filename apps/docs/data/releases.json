@@ -1,5 +1,16 @@
 [
   {
+    "product": "cli",
+    "version": "2026.11.2",
+    "date": "2026-11-09",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca bots listen-events` получает события бота в реальном времени: выводит JSONL или пересылает payload на HTTP-обработчик и подтверждает после 2xx"
+      }
+    ]
+  },
+  {
     "product": "mcp",
     "version": "1.7.0",
     "date": "2026-11-09",

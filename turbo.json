@@ -120,6 +120,7 @@
         "src/commands/*/*.ts",
         "!src/commands/auth/*.ts",
         "!src/commands/config/*.ts",
+        "!src/commands/bots/listen-events.ts",
         "src/data/*.json",
         "!src/data/changelog.json",
         "!src/data/commands.json",

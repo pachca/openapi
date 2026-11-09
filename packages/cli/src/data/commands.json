@@ -544,6 +544,22 @@
         ]
       },
       {
+        "command": "pachca bots listen-events",
+        "summary": "Слушать события бота в реальном времени",
+        "method": null,
+        "path": null,
+        "scope": "webhooks:events:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "forward-to",
+            "type": "option",
+            "required": false,
+            "description": "HTTP(S)-адрес обработчика: POST payload, подтверждение после 2xx"
+          }
+        ]
+      },
+      {
         "command": "pachca bots recreate-token",
         "summary": "Ротация токена бота",
         "method": "POST",

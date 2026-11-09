@@ -2164,8 +2164,8 @@ paths:
           in: query
           required: false
           description: >-
-            Sort direction. Applies together with `sort`, such as `sort=last_message_at&order=desc`. Without `sort`
-            chats come in descending `id` order whatever `order` is.
+            Sort direction for the `sort` field, such as `sort=last_message_at&order=desc`. Without `sort` the direction
+            applies to `id`.
           schema:
             allOf:
               - $ref: '#/components/schemas/SortOrder'
@@ -5435,8 +5435,8 @@ paths:
         question.
 
 
-        Messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the
-        `limit` and `cursor` parameters.
+        By default messages come newest first, that is, the most recent messages of the chat come first. For earlier
+        ones, use the `limit` and `cursor` parameters.
 
 
         Deleted messages do not make it into the list.
@@ -5468,9 +5468,7 @@ paths:
         - name: order
           in: query
           required: false
-          description: >-
-            Sort direction. Applies together with `sort`: messages from oldest to newest come with `sort=id` and
-            `order=asc`. Without `sort` messages come newest first whatever `order` is.
+          description: 'Sort direction by `id`: `asc` returns messages oldest first, `desc` newest first.'
           schema:
             allOf:
               - $ref: '#/components/schemas/SortOrder'
@@ -9560,9 +9558,10 @@ paths:
         Not to miss anything, after every connection, including a reconnection and a change of link, wait for the
         subscription to be confirmed and only then read the [Event history](GET /webhooks/events). Delivery to the
         stream is not guaranteed: still delete processed events with the [Delete history event](DELETE
-        /webhooks/events/{id}) method, and drop repeats by `id`. If the bot has a webhook address, a repeated delivery
-        to it comes to the stream once more with a new `id`: such repeats are dropped by a key from `payload`, as in
-        [Idempotent processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in [Real-time
+        /webhooks/events/{id}) method, and drop repeats by `id`. If the bot has a webhook address and the record was
+        deleted before a repeated delivery to it, the repeat comes to the stream once more with a new `id`: such repeats
+        are dropped by a key from `payload`, as in [Idempotent
+        processing](/guides/webhook/handler#idempotentnaya-obrabotka). Learn more in [Real-time
         events](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
       parameters: []
       responses:
@@ -10340,9 +10339,10 @@ components:
       type: object
       description: >-
         Empty details. For: user_login (except a QR code sign-in), user_logout, user_2fa_fail, user_2fa_success,
-        user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted,
-        reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed,
-        company_bots_accessed, exchange_disabled.
+        user_2fa_disabled, user_created, user_deleted, chat_created, message_created, reaction_created,
+        reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed,
+        exchange_disabled. For message_updated and message_deleted, empty details can come in records up to and
+        including 7 November 2026.
     AuditDetailsInitiator:
       type: object
       required:
@@ -10427,6 +10427,36 @@ components:
             - $ref: '#/components/schemas/AuditLoginGrantDenyReason'
           description: Rejection reason
       description: 'For: login_grant_denied'
+    AuditDetailsMessage:
+      type: object
+      required:
+        - chat_id
+        - source
+      properties:
+        chat_id:
+          type: integer
+          format: int32
+          description: >-
+            ID of the message's chat. For a message in a thread it is the chat of the thread's parent message, and for a
+            standalone thread the chat of the thread itself.
+        thread_chat_id:
+          type: integer
+          format: int32
+          description: Thread chat ID. Present only for messages in threads.
+        source:
+          type: string
+          description: >-
+            Who changed the message: `employee` — an employee, `bot` — a bot, `dlp` — a DLP rule replaced the text (the
+            actor is the message author), `system` — Pachca itself, for example when it attaches an image from a link to
+            a message. For message_deleted it is `employee` or `bot`.
+        message_version_id:
+          type: integer
+          format: int32
+          description: >-
+            ID of the message version: a snapshot of its text and files before the edit or at the moment of deletion.
+            After DLP the text in the snapshot is hidden. Absent if the edit did not touch the text and files, or the
+            deleted message was empty.
+      description: 'For: message_updated, message_deleted'
     AuditDetailsOAuthAuthorizationGranted:
       type: object
       required:
@@ -10865,6 +10895,7 @@ components:
         - $ref: '#/components/schemas/AuditDetailsChatPermission'
         - $ref: '#/components/schemas/AuditDetailsTagChat'
         - $ref: '#/components/schemas/AuditDetailsChatId'
+        - $ref: '#/components/schemas/AuditDetailsMessage'
         - $ref: '#/components/schemas/AuditDetailsTokenScopes'
         - $ref: '#/components/schemas/AuditDetailsKms'
         - $ref: '#/components/schemas/AuditDetailsDlp'
@@ -11191,7 +11222,10 @@ components:
             outgoing_url:
               type: string
               maxLength: 255
-              description: Outgoing webhook URL
+              description: >-
+                Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is
+                `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or
+                `webhook_url_forbidden` code.
               example: https://example.com/tasks/new
             events:
               type: array
@@ -11230,7 +11264,10 @@ components:
                 - messages:create
             template:
               type: string
-              description: Template for formatting the incoming webhook
+              description: >-
+                Template for formatting the incoming webhook. A template with a syntax error for the `simple` source, an
+                empty bot with `kind: simple` included, gets `400` on this field with the `invalid` code, and the bot is
+                not created. The reason comes in `message`.
               example: Order from {{ client }} for {{ amount }} ₽
             template_engine:
               allOf:
@@ -12041,7 +12078,10 @@ components:
             outgoing_url:
               type: string
               maxLength: 255
-              description: Outgoing webhook URL
+              description: >-
+                Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is
+                `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or
+                `webhook_url_forbidden` code.
               example: https://example.com/tasks/new
             events:
               type: array
@@ -12082,7 +12122,12 @@ components:
               x-replaces-set: true
             template:
               type: string
-              description: Template for formatting the incoming webhook
+              description: >-
+                Template for formatting the incoming webhook. The template is checked when the request changes
+                `template`, `template_engine` or `kind`, so changing the template engine alone or turning on `kind:
+                simple` checks the template already saved as well. A template with a syntax error for the `simple`
+                source gets `400` on this field with the `invalid` code, and the request is not applied. The reason
+                comes in `message`.
               example: Order from {{ client }} for {{ amount }} ₽
             template_engine:
               allOf:
@@ -12345,7 +12390,10 @@ components:
             outgoing_url:
               type: string
               maxLength: 255
-              description: Outgoing webhook URL. An empty string disables the webhook.
+              description: >-
+                Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is
+                `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or
+                `webhook_url_forbidden` code. An empty string disables the webhook.
               example: https://example.com/tasks/new
           required:
             - outgoing_url
@@ -13843,6 +13891,23 @@ components:
             - $ref: '#/components/schemas/WebhookMessageThread'
           nullable: true
           description: Thread the message with the link was sent in. `null` if the message was not sent in a thread.
+        source:
+          allOf:
+            - $ref: '#/components/schemas/MessageSource'
+          nullable: true
+          description: >-
+            What the message with the link was sent through with an employee's token, the same as the `source` field of
+            the message object. History event records saved before the field appeared do not have it.
+          example: null
+        application:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/MessageApplication'
+          nullable: true
+          description: >-
+            The program the message with the link was sent through, the same as the `application` field of the message
+            object. History event records saved before the field appeared do not have it.
+          example: null
         created_at:
           type: string
           format: date-time
@@ -13896,6 +13961,8 @@ components:
         - changed_at
         - deleted_at
         - important
+        - source
+        - application
       properties:
         id:
           type: integer
@@ -14036,7 +14103,42 @@ components:
           type: boolean
           description: The message is in the token owner's «Important» section. Always `false` for a bot token.
           example: false
+        source:
+          allOf:
+            - $ref: '#/components/schemas/MessageSource'
+          nullable: true
+          description: >-
+            What the message was sent through with an employee's token, as in the «Sent via …» badge on the avatar.
+            `null` for a message sent from the Pachca app, a draft included, for bots' messages, for a scheduled message
+            that went out on schedule, and for messages sent before the badge appeared. Learn more in [How messages
+            look](/api/authorization#kak-vyglyadyat-soobscheniya).
+          example: application
+        application:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/MessageApplication'
+          nullable: true
+          description: 'The program the message was sent through, with `source: "application"`. `null` in other cases.'
       description: Message
+    MessageApplication:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Program ID
+          example: 4812
+        name:
+          type: string
+          description: >-
+            Program name, as in the «Sent via …» tooltip on the avatar: «Pachca CLI», the name of an MCP client, or the
+            bot's name. Older messages also come with the current name. An MCP client sets the name itself in the
+            document it publishes on its own domain, so a program is recognized by `id`.
+          example: Pachca CLI
+      description: The program the message was sent through
     MessageCreateRequest:
       type: object
       required:
@@ -14230,6 +14332,17 @@ components:
       description: Message sort field
       x-enum-descriptions:
         id: By message ID
+    MessageSource:
+      type: string
+      enum:
+        - application
+        - personal_token
+      description: What the message was sent through with an employee's token
+      x-enum-descriptions:
+        application: >-
+          Through a program the employee gave access to: Pachca CLI, an MCP client, or a bot with authorization on
+          behalf of an employee
+        personal_token: With the employee's personal token
     MessageUpdateRequest:
       type: object
       required:
@@ -14428,6 +14541,23 @@ components:
           description: >-
             The thread the message was sent in. `null` if the message was not sent in a thread. Unlike the `thread`
             field on the REST API message object, this describes the thread the message is inside of.
+        source:
+          allOf:
+            - $ref: '#/components/schemas/MessageSource'
+          nullable: true
+          description: >-
+            What the message was sent through with an employee's token, the same as the `source` field of the message
+            object. History event records saved before the field appeared do not have it.
+          example: null
+        application:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/MessageApplication'
+          nullable: true
+          description: >-
+            The program the message was sent through, the same as the `application` field of the message object. History
+            event records saved before the field appeared do not have it.
+          example: null
         webhook_timestamp:
           type: integer
           format: int32
@@ -16163,7 +16293,10 @@ components:
               description: >-
                 The chat the employee keeps when made a guest (`role: "guest"`): exactly one active conversation or
                 channel where the token may add members. Without such a chat the response is `400` on this field, and
-                nothing changes. With other roles, and for someone already a guest, the field is ignored.
+                nothing changes. With other roles, and for someone already a guest, the field is ignored. When made a
+                guest, an employee with an email on file gets an email about the role change with a link to this chat,
+                even if they have not signed in to Pachca yet or are suspended. It does not count towards the daily
+                limit of invitation emails.
               example:
                 - 12345
             suspended:
@@ -16255,6 +16388,9 @@ components:
         - bot_changed_concurrently
         - timeout
         - daily_invites_limit
+        - webhook_url_invalid
+        - webhook_url_unresolved
+        - webhook_url_forbidden
         - forbidden
         - permission_denied
         - access_denied
@@ -16341,6 +16477,9 @@ components:
         daily_invites_limit: >-
           The free workspace has used up its daily limit of invitation emails: the remainder and the reset time come in
           `payload`
+        webhook_url_invalid: The webhook address has to be a URL with the `http` or `https` protocol and a host name
+        webhook_url_unresolved: The IP address of the domain in the webhook address could not be determined
+        webhook_url_forbidden: The webhook address points to an internal or reserved network
     VideoCallEventType:
       type: string
       enum:

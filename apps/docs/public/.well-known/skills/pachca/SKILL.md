@@ -48,11 +48,11 @@ If MCP tools are already connected, use them. The CLI is the terminal alternativ
 
 Address `https://mcp.pachca.com/mcp`, transport Streamable HTTP. Choose how to sign in:
 
-| Way                                               | Fits                                                                                                                                       | Acts as                   | Lifetime                 |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | ------------------------ |
-| Browser, consent screen                           | Claude Code, the Claude app, VS Code, GitHub Copilot CLI, Codex, the ChatGPT desktop app (through Codex)                                   | the employee who approved | 1 hour, refreshes itself |
-| Personal token in `Authorization: Bearer <token>` | Cursor, SourceCraft Code Assistant, Qwen Code, GigaCode CLI, OpenCode, Devin Desktop, Cline, Kilo Code, Gemini CLI, nobody to sign in (CI) | the token owner           | until deleted            |
-| Bot token in `Authorization: Bearer <token>`      | an agent with no employee present: a server, Yandex AI Studio, GigaChat                                                                    | the bot                   | until deleted            |
+| Way                                               | Fits                                                                                                                                                         | Acts as                   | Lifetime                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | ------------------------ |
+| Browser, consent screen                           | Claude Code, the Claude app, VS Code, GitHub Copilot CLI, Codex, the ChatGPT desktop app (through Codex), Grok Bot (asked in its chat to connect the server) | the employee who approved | 1 hour, refreshes itself |
+| Personal token in `Authorization: Bearer <token>` | Cursor, SourceCraft Code Assistant, Qwen Code, GigaCode CLI, OpenCode, Devin Desktop, Cline, Kilo Code, Gemini CLI, nobody to sign in (CI)                   | the token owner           | until deleted            |
+| Bot token in `Authorization: Bearer <token>`      | an agent with no employee present: a server, Yandex AI Studio, GigaChat                                                                                      | the bot                   | until deleted            |
 
 **With the Pachca plugin** the server is already configured: do not add a second one by hand, do what the
 table says for your client. Check the list (`claude mcp list`, `codex mcp list`, `copilot mcp list`,
@@ -95,8 +95,9 @@ Do it right:
   connection lists the same tools and refuses the rest with `insufficient_scope`. A missing scope takes a new
   sign-in without the narrowing; retrying the call does not help. To limit an agent, give it a read-only
   personal token instead (below).
-- The consent screen has no workspace picker: access goes to the workspace open in the browser. Wrong
-  workspace: revoke the connection, switch workspaces in Pachca, connect again.
+- The consent screen has no workspace picker, and neither has a CLI browser login: access goes to the workspace
+  open in that browser. Wrong workspace: revoke the connection (CLI: `pachca auth logout`), switch workspaces in
+  Pachca in that browser, sign in again.
 - Several workspaces: add the server several times under different names (`pachca-main`, `pachca-partner`),
   each with a personal token created in its own workspace.
 - A server-side agent that answers many people connects with a **bot token**. With a personal token everyone
@@ -166,7 +167,8 @@ way around it.
 
 ## Check the connection
 
-Do this before real work and after any `401` or `403`.
+Do this before real work, after a `401`, and after a `403` with `insufficient_scope`, `role_forbidden` or
+`access_denied`. Any other `403` is about that chat, object or plan feature: see [Diagnose a refusal](#diagnose-a-refusal).
 
 Over MCP the server's instructions already say whom you act as, in a line like
 `You act as <name> (<id>), personal token, owner`: the account, its id, the token kind and, for a personal
@@ -178,9 +180,11 @@ may have changed, use step 1.
 
 1. Read your own profile: MCP `pachca_get_my_card`, CLI `pachca profile get`. You get the name, id and
    workspace role (the owner shows as `admin` here). With a bot token it is the bot's own profile.
-2. When the question is about scopes, read the token: MCP `pachca_get_token_info`, CLI
-   `pachca oauth token-info` for any token. `pachca auth status` also shows the sign-in method and time left,
-   but it reads only the saved profile and the scopes saved at login: add `--remote` to ask the server.
+2. When the question is about scopes, read the token: MCP `pachca_get_token_info`, CLI `pachca auth status`.
+   It checks the token the commands use, from `--token`, `PACHCA_TOKEN` or a profile, and shows the sign-in
+   method. For a saved profile it lists the scopes saved at login: add `--remote` to ask the server. A CLI
+   before 2026.11.1 reads only a saved profile: with `PACHCA_TOKEN` set it says `No active profile` or shows
+   that profile, and its `-o json` has no `source`. Then update it or run `pachca oauth token-info -o json`.
 3. When it matters for the task, tell the user in one line whom you act as. Messages sent through MCP browser
    sign-in or a CLI login carry the employee's name and a badge «Отправлено через …» naming the program; with a
    personal token the badge reads «Отправлено через API».
@@ -209,21 +213,26 @@ folds a server's tools into a group once the chat has 64 tools or more: call the
 open it. Before you call a tool missing, search
 for it by its exact name alone, such as `pachca_send_message`. A tool that this search does not find is the answer,
 not a glitch: tell the user which role, plan or token kind the action needs, and do not reach for the same
-result through other tools. Owner privileges, multi-guest limits and role changes:
-[references/access-model.md](references/access-model.md).
+result through other tools. No `pachca_*` tool at all is not a missing right: the server did not connect or is
+not signed in, so connect as [Connect over MCP](#connect-over-mcp) says. Owner privileges, multi-guest limits
+and role changes: [references/access-model.md](references/access-model.md).
 
 ## Diagnose a refusal
 
-| Response                           | Meaning                                                                                           | What to do                                                                                                                                                                                           |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `401`                              | no token, expired or revoked (also when its owner was made a guest)                               | reconnect (`/mcp` in Claude Code, `pachca auth login`); a header token may have been deleted                                                                                                         |
-| `403` `insufficient_scope`         | the token lacks the scope the response names                                                      | personal token from the UI: add it in the token menu on **Интеграции > API**; bot token: in the bot settings; MCP browser sign-in or CLI login: sign in anew, a plain reconnect keeps the old scopes |
-| `403` `role_forbidden`             | scope present, the role forbids the action                                                        | only an admin changing the role helps; reconnecting does not                                                                                                                                         |
-| `403` `access_denied`              | the token belongs to a guest, a suspended or a deleted employee                                   | use another account                                                                                                                                                                                  |
-| other `403`                        | not a member of the chat, chat role too low, or a plan feature                                    | check membership and chat role first                                                                                                                                                                 |
-| `402`                              | the workspace is suspended: the plan's message limit is used up                                   | tell the user; most methods refuse until it is paid                                                                                                                                                  |
-| `404`                              | no such object, or one of another workspace; a chat of your workspace closed to you answers `403` | find the id with search or a list                                                                                                                                                                    |
-| `429`, "Wait N s before repeating" | rate limit                                                                                        | wait the given time, then retry                                                                                                                                                                      |
+| Response                           | Meaning                                                                                           | What to do                                                                                                                                                                                                                    |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `401`                              | no token, expired or revoked (also when its owner was made a guest)                               | reconnect (`/mcp` in Claude Code, `pachca auth login`); a header token may have been deleted                                                                                                                                  |
+| `403` `insufficient_scope`         | the token lacks the scope the response names                                                      | personal token from the UI: add it in the token menu on **Интеграции > API**; bot token: in the bot settings; MCP browser sign-in or CLI login: sign in anew, a plain reconnect keeps the old scopes                          |
+| `403` `role_forbidden`             | scope present, the role forbids the action                                                        | only an admin changing the role helps; reconnecting does not                                                                                                                                                                  |
+| `403` `access_denied`              | the token belongs to a guest, a suspended or a deleted employee                                   | use another account                                                                                                                                                                                                           |
+| other `403`                        | not a member of the chat, chat role too low, or a plan feature                                    | check membership and chat role first                                                                                                                                                                                          |
+| `402`                              | the workspace is suspended: the plan's message limit is used up                                   | tell the user; most methods refuse until it is paid                                                                                                                                                                           |
+| `404`                              | no such object, or one of another workspace; a chat of your workspace closed to you answers `403` | find the id with search or a list. If every id the user gave answers `404` and search finds none of what they name, you are probably in another workspace (no response names it): say so rather than calling the objects gone |
+| `429`, "Wait N s before repeating" | rate limit                                                                                        | wait the given time, then retry                                                                                                                                                                                               |
+
+A `401`, a `402` or a `403` `access_denied` refuses nearly every call: report it and stop. Any other refusal
+except `429` stops only that call: report the step with its code and what it needs, and finish the steps that do
+not depend on it.
 
 ## Do it right
 

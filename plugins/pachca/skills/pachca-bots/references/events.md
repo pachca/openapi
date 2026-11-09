@@ -53,7 +53,7 @@ Order matters:
 2. **Verify the signature.** HMAC-SHA256 of the raw body with the Signing secret, hex digest, compared with the `Pachca-Signature` header. Mismatch → `401`.
 3. **Check freshness.** Reject when `webhook_timestamp` (UNIX seconds) is more than 60 s away from now — replay protection.
 4. **Optionally check the source IP** against the addresses on the [handler page](https://dev.pachca.com/guides/webhook/handler.md); allow all of them.
-5. **Deduplicate** (section 5), then **answer `200` at once** and push the work to a background queue.
+5. **Deduplicate** (section 5: a retried delivery repeats the `Idempotency-Key` header), then **answer `200` at once** and push the work to a background queue.
 6. **Route** by `type` + `event`: `message` (`new`/`update`/`delete`, and `link_shared` for unfurl), `reaction`, `button` (`click`), `view` (`submit`), `chat_member`, `company_member`, `video_call`.
 
 Exceptions to "answer at once": a form submission is answered **in the response** within 3 s (see [forms.md](forms.md)); after a button click that should open a form, open it first — `trigger_id` lives 3 s.
@@ -65,7 +65,8 @@ Exceptions to "answer at once": a form submission is answered **in the response*
 - An error code or a timeout is **not** retried, whatever the code. Button clicks and form submissions are not re-sent at all: a missed click is gone from the webhook path, and the employee submits a form again themselves.
 - Redirects are not followed for events and button clicks: a `3xx` is a final answer, like an error code. A form submission follows one redirect. Point `outgoing_url` at the address that answers `2xx` itself.
 - Every event is written to the history before it is sent (if history is on), so what your server missed is there: read it with the bot's own token, `pachca_get_webhook_events` (`pachca bots list-events`), see section 7.
-- A delivery retried after a failed connection is written to the history again, with a new history `id` and a new `webhook_timestamp`: while your server is unreachable, one event can appear there once per attempt. Button clicks and form submissions are stored once.
+- A delivery retried after a failed connection adds no history record while the first attempt's record is still there: the event stays one record with one `id`, and the retry carries the message as it was at the first attempt, even if it was edited or deleted since. If you deleted the record before the retry, the retry is built anew and stored as a new record with a new `id`, and rarely that happens without a deletion too. Button clicks and form submissions are stored once.
+- With history on, a `link_shared` retry is dropped when any of its links lost unfurl permission since the first attempt (an admin narrowed the domains).
 
 ## 5. Idempotency
 
@@ -81,11 +82,13 @@ The handler page's example key `type:event:id-or-message_id` is unsafe with a du
 - `company_member`: `user_ids`, `created_at`.
 - `video_call`: `video_room_id`, plus `recording_id` for `recording_ready`.
 
-Use the same key for webhook and history events. History IDs do not deduplicate: a retried delivery gets one history record per attempt, and the webhook body carries no history `id`. Leave `webhook_timestamp` out of the key, it changes on every attempt.
+Use the same key for webhook and history events: the webhook body carries no history `id`, and a retry after you deleted the record gets a new one. Leave `webhook_timestamp` out of the key, it changes on every attempt.
+
+Every attempt of one webhook delivery carries the same `Idempotency-Key` request header (a ULID), also when the retry was built anew, and every other delivery gets its own. It is not the history `id`. The header alone catches a retried webhook request, but keep the payload key for the rest: an `update` without an edit and a repeated `link_shared` are new deliveries with a new key, history and stream records carry no header, and button clicks and form submissions come without it.
 
 ## 6. Read the payload correctly
 
-- Payloads are minimal. Fetch the full message with `pachca_get_message` (`pachca messages get`) by `id` / `message_id` for attachments, reactions, buttons, forwards.
+- Payloads are minimal. Fetch the full message with `pachca_get_message` (`pachca messages get`) by `id` / `message_id` for attachments, buttons, forwards. Reactions are not in the message: read them with `pachca_list_reactions` (`pachca reactions list`).
 - A file-only message has an empty `content`; the payload cannot tell you it has an attachment.
 - `content` is Markdown that Pachca assembles from the message (quotes, lists may appear). See [Markdown](https://dev.pachca.com/guides/markdown.md).
 - For `message`/`delete`, the message method still answers `200` but returns a cleared record (empty `content`, `deleted_at` set).
@@ -93,6 +96,7 @@ Use the same key for webhook and history events. History IDs do not deduplicate:
 - `entity_type` / `entity_id` tell where to answer (`user` = DM, `discussion` = conversation or channel, `thread`). `thread.message_id` and `thread.message_chat_id` point to the thread's parent; both are `null` for a standalone thread.
 - `parent_message_id` is set when the message is a reply.
 - The payload has no flag for a bot author: messages of other bots and incoming-webhook posts arrive like any other.
+- `source` and `application` (in every `message` event, `link_shared` included) show that a program sent the message with an employee's token, under the employee's `user_id`. `source: "application"` is an MCP client, the Pachca CLI or a bot the employee authorized, with `application.id` and `application.name`. `source: "personal_token"` is the employee's personal token, and `application` is then `null`. Both are `null` when the employee wrote the message in Pachca, a bot sent it with its own token or it went out on a schedule. Recognize a program by `application.id`, never by `application.name`: a program picks its own name. History records saved before these fields appeared lack them.
 - `company_member` carries only `user_ids`. `chat_member` carries `chat_id`, `user_ids` and `thread_id` (`null` outside a thread; inside a thread `chat_id` is the thread's own chat). Their `created_at` has no fractions of a second, unlike other events.
 - Deleting a message removes its reactions without `reaction`/`delete` events: only `message`/`delete` arrives, so a bot that counts reactions drops that message on it.
 - Opening a DM with the bot produces neither a chat nor a member event. The first message is the first signal.
@@ -112,6 +116,6 @@ SDK helpers (`pollWebhookEvents`, `pollWebhookPayloads` and their equivalents) w
 
 - Open the link, wait for the subscription to be confirmed, then read the history (step 2). Do the same after every reconnect and every new link: events written before the subscription are only in the history.
 - The link lives one to two hours. At `expires_at` the server sends `disconnect` (`{"type":"disconnect","reason":"remote","reconnect":false}`) and closes the stream, and `EventSource` does not reconnect by itself: request a new link and start over. A request within the same UTC hour returns the same link, and a request in the last hour before `expires_at` returns a new one valid an hour longer. Switch about five minutes before `expires_at`: open the new link, wait for the confirmation, read the history, then close the old stream.
-- Delivery to the stream is not guaranteed: keep deleting processed records (step 4). The record `id` removes repeats between the stream and the history, and between the old and the new link. If the bot also has a webhook URL, a delivery retried after a failed connection reaches the stream again with a new `id`, sometimes before the webhook request itself: dedupe it by the payload key from section 5.
+- Delivery to the stream is not guaranteed: keep deleting processed records (step 4). The record `id` removes repeats between the stream and the history, and between the old and the new link. If the bot also has a webhook URL and you delete records as you process them, a delivery retried after a failed connection is stored again and reaches the stream with a new `id`, sometimes before the webhook request itself: dedupe it by the payload key from section 5.
 
 A bot with no webhook URL also reads button clicks and form submissions from the history; its form rules differ — see [forms.md](forms.md).

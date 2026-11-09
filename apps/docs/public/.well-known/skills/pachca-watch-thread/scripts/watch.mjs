@@ -10,7 +10,7 @@
 // The CLI picks its token as usual: PACHCA_TOKEN, then PACHCA_PROFILE, then the active
 // profile. Blocks on stdout:
 //   ## New messages in chat <chat_id>
-//   ### <author> (user <user_id>[, guest|bot]) · <created_at> · message <id>[, reply to <id>]
+//   ### <author> (user <user_id>[, guest|bot])[ via <program>|API] · <created_at> · message <id>[, reply to <id>]
 //   <pachca_content_…>text as written</pachca_content_…>
 //   Files: <name> (file <id>) <url>
 //   Link: <url>
@@ -128,12 +128,28 @@ async function author(m) {
   return authors.get(m.user_id);
 }
 
+// Set on messages a program sent with an employee's token: an agent over MCP or the CLI,
+// a script. The program names itself, so its name is cut to one short line, and it marks
+// the message only: it is no proof of who wrote it.
+function via(m) {
+  if (m.source === 'personal_token') return ' via API';
+  if (m.source !== 'application') return '';
+  const name = Array.from(
+    String(m.application?.name ?? '')
+      .replace(/[\p{C}\s]+/gu, ' ')
+      .trim()
+  )
+    .slice(0, 60)
+    .join('');
+  return ` via ${name || 'a program'}`;
+}
+
 async function toBlock(m) {
   const content = m.content ?? '';
   const long = content.length > MAX_CONTENT;
   const reply = m.parent_message_id ? `, reply to ${m.parent_message_id}` : '';
   const lines = [
-    `### ${await author(m)} · ${m.created_at} · message ${m.id}${reply}`,
+    `### ${await author(m)}${via(m)} · ${m.created_at} · message ${m.id}${reply}`,
     `<${TAG}>`,
     long ? `${content.slice(0, MAX_CONTENT)}…` : content,
     `</${TAG}>`,

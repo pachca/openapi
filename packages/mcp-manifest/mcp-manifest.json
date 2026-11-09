@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "bed613bfbb743c4c"
+    "digest": "d396df1e8dae9179"
   },
   "server": {
     "name": "pachca",
@@ -104,7 +104,10 @@
       "forwarding.author_id",
       "forwarding.original_created_at",
       "display_name",
-      "voice_content.transcript"
+      "voice_content.transcript",
+      "source",
+      "application.id",
+      "application.name"
     ],
     "Chat": [
       "id",
@@ -476,7 +479,7 @@
                 },
                 "details": {
                   "type": "object",
-                  "description": "Additional event details. Structure depends on the event_key value — see event_key field value descriptions. For events without details, an empty object is returned. One of — AuditDetailsEmpty; AuditDetailsUserUpdated: changed_attrs, context; AuditDetailsRoleChanged: new_company_role, previous_company_role, initiator_id; AuditDetailsTagName: name; AuditDetailsInitiator: initiator_id; AuditDetailsInviter: inviter_id; AuditDetailsChatRenamed: old_name, new_name; AuditDetailsChatPermission: public_access; AuditDetailsTagChat: chat_id, tag_name; AuditDetailsChatId: chat_id; AuditDetailsTokenScopes: scopes; AuditDetailsKms: chat_id, message_id, reason; AuditDetailsDlp: dlp_rule_id, dlp_rule_name, message_id, chat_id, user_id, action_message, conditions_matched; AuditDetailsSearch: search_type, query_present, cursor_present, limit, filters; AuditDetailsBot: bot_id, actor_id, webhook_id, application_id, access_token_id, access_token_preview, scopes, name; AuditDetailsBotScopes: bot_id, actor_id, added_scopes, removed_scopes, bot_name, webhook_id, previous_scopes, new_scopes; AuditDetailsBotWebhookSettings: bot_id, actor_id, changes, bot_name, webhook_id, access_token_id, access_token_preview, application_id; AuditDetailsBotOAuthClient: bot_id, actor_id, client_id, changes, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsOAuthAuthorizationGranted: client_id, scopes, application_id, application_name, bot_id, bot_name, authorization_grant_id; AuditDetailsOAuthAuthorizationRevoked: client_id, revoked_tokens_count, user_id, application_id, application_name, bot_id, bot_name; AuditDetailsDeviceAuthorizationApproved: client_id, scopes, device_name, application_id, application_name, device_grant_id, token_kind; AuditDetailsDeviceAuthorizationDenied: client_id, scopes, device_name, application_id, device_grant_id, token_kind; AuditDetailsVideoCallStarted: chat_id, started_message_id; AuditDetailsVideoCallFinished: chat_id, started_message_id, duration, max_members_count; AuditDetailsVideoCallRecording: chat_id, started_message_id, recording_id, file_id, duration, size; AuditDetailsBotOAuthClientSecretRotated: bot_id, actor_id, client_id, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsBotOAuthClientDisabled: bot_id, actor_id, client_id, deleted_access_tokens_count, deleted_access_grants_count, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsToken: token_kind, token_name, resource_owner_id, scopes, access_token_id, access_token_preview, application_id, application_name, client_id, bot_id, bot_name, device_name, actor_id, webhook_id, user_id, source, reason; AuditDetailsBotTokenUpdated: token_kind, token_name, resource_owner_id, current_scopes, bot_id, actor_id, access_token_id, access_token_preview, application_id, application_name, client_id, bot_name, webhook_id, name, scopes; AuditDetailsUserLoginQr: method, login_grant_id; AuditDetailsLoginGrantCreated: login_grant_id; AuditDetailsLoginGrantApproved: login_grant_id, device; AuditDetailsLoginGrantDenied: login_grant_id, device, reason.",
+                  "description": "Additional event details. Structure depends on the event_key value — see event_key field value descriptions. For events without details, an empty object is returned. One of — AuditDetailsEmpty; AuditDetailsUserUpdated: changed_attrs, context; AuditDetailsRoleChanged: new_company_role, previous_company_role, initiator_id; AuditDetailsTagName: name; AuditDetailsInitiator: initiator_id; AuditDetailsInviter: inviter_id; AuditDetailsChatRenamed: old_name, new_name; AuditDetailsChatPermission: public_access; AuditDetailsTagChat: chat_id, tag_name; AuditDetailsChatId: chat_id; AuditDetailsMessage: chat_id, thread_chat_id, source, message_version_id; AuditDetailsTokenScopes: scopes; AuditDetailsKms: chat_id, message_id, reason; AuditDetailsDlp: dlp_rule_id, dlp_rule_name, message_id, chat_id, user_id, action_message, conditions_matched; AuditDetailsSearch: search_type, query_present, cursor_present, limit, filters; AuditDetailsBot: bot_id, actor_id, webhook_id, application_id, access_token_id, access_token_preview, scopes, name; AuditDetailsBotScopes: bot_id, actor_id, added_scopes, removed_scopes, bot_name, webhook_id, previous_scopes, new_scopes; AuditDetailsBotWebhookSettings: bot_id, actor_id, changes, bot_name, webhook_id, access_token_id, access_token_preview, application_id; AuditDetailsBotOAuthClient: bot_id, actor_id, client_id, changes, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsOAuthAuthorizationGranted: client_id, scopes, application_id, application_name, bot_id, bot_name, authorization_grant_id; AuditDetailsOAuthAuthorizationRevoked: client_id, revoked_tokens_count, user_id, application_id, application_name, bot_id, bot_name; AuditDetailsDeviceAuthorizationApproved: client_id, scopes, device_name, application_id, application_name, device_grant_id, token_kind; AuditDetailsDeviceAuthorizationDenied: client_id, scopes, device_name, application_id, device_grant_id, token_kind; AuditDetailsVideoCallStarted: chat_id, started_message_id; AuditDetailsVideoCallFinished: chat_id, started_message_id, duration, max_members_count; AuditDetailsVideoCallRecording: chat_id, started_message_id, recording_id, file_id, duration, size; AuditDetailsBotOAuthClientSecretRotated: bot_id, actor_id, client_id, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsBotOAuthClientDisabled: bot_id, actor_id, client_id, deleted_access_tokens_count, deleted_access_grants_count, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsToken: token_kind, token_name, resource_owner_id, scopes, access_token_id, access_token_preview, application_id, application_name, client_id, bot_id, bot_name, device_name, actor_id, webhook_id, user_id, source, reason; AuditDetailsBotTokenUpdated: token_kind, token_name, resource_owner_id, current_scopes, bot_id, actor_id, access_token_id, access_token_preview, application_id, application_name, client_id, bot_name, webhook_id, name, scopes; AuditDetailsUserLoginQr: method, login_grant_id; AuditDetailsLoginGrantCreated: login_grant_id; AuditDetailsLoginGrantApproved: login_grant_id, device; AuditDetailsLoginGrantDenied: login_grant_id, device, reason.",
                   "properties": {
                     "changed_attrs": {
                       "type": "array",
@@ -536,11 +539,23 @@
                     },
                     "chat_id": {
                       "type": "integer",
-                      "description": "AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsKms and AuditDetailsDlp: Chat ID. AuditDetailsVideoCallStarted: ID of the chat where the video call takes place. AuditDetailsVideoCallFinished and AuditDetailsVideoCallRecording: ID of the chat where the video call took place."
+                      "description": "AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsKms and AuditDetailsDlp: Chat ID. AuditDetailsMessage: ID of the message's chat. For a message in a thread it is the chat of the thread's parent message, and for a standalone thread the chat of the thread itself. AuditDetailsVideoCallStarted: ID of the chat where the video call takes place. AuditDetailsVideoCallFinished and AuditDetailsVideoCallRecording: ID of the chat where the video call took place."
                     },
                     "tag_name": {
                       "type": "string",
                       "description": "Tag name"
+                    },
+                    "thread_chat_id": {
+                      "type": "integer",
+                      "description": "Thread chat ID. Present only for messages in threads."
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "AuditDetailsMessage: Who changed the message: `employee` — an employee, `bot` — a bot, `dlp` — a DLP rule replaced the text (the actor is the message author), `system` — Pachca itself, for example when it attaches an image from a link to a message. For message_deleted it is `employee` or `bot`. AuditDetailsToken: Revocation source: `oauth_client` — the application revoked the token itself. Present only for oauth_token_revoked."
+                    },
+                    "message_version_id": {
+                      "type": "integer",
+                      "description": "ID of the message version: a snapshot of its text and files before the edit or at the moment of deletion. After DLP the text in the snapshot is hidden. Absent if the edit did not touch the text and files, or the deleted message was empty."
                     },
                     "scopes": {
                       "type": [
@@ -746,10 +761,6 @@
                       "type": "integer",
                       "description": "AuditDetailsToken: ID of the token owner: an employee, or the bot itself for a bot token. AuditDetailsBotTokenUpdated: ID of the token owner — the bot."
                     },
-                    "source": {
-                      "type": "string",
-                      "description": "Revocation source: `oauth_client` — the application revoked the token itself. Present only for oauth_token_revoked."
-                    },
                     "current_scopes": {
                       "type": "array",
                       "description": "Token scopes after the change",
@@ -841,6 +852,7 @@
         "data[].details.old_name",
         "data[].details.new_name",
         "data[].details.tag_name",
+        "data[].details.source",
         "data[].details.reason",
         "data[].details.dlp_rule_id",
         "data[].details.dlp_rule_name",
@@ -861,7 +873,6 @@
         "data[].details.token_kind",
         "data[].details.token_name",
         "data[].details.client_id",
-        "data[].details.source",
         "data[].details.device.name",
         "data[].details.device.os_version",
         "data[].details.device.app_version",
@@ -1078,7 +1089,7 @@
         "properties": {
           "outgoing_url": {
             "type": "string",
-            "description": "Outgoing webhook URL. An empty string disables the webhook.",
+            "description": "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code. An empty string disables the webhook.",
             "maxLength": 255,
             "examples": [
               "https://example.com/tasks/new"
@@ -1723,7 +1734,7 @@
           },
           "outgoing_url": {
             "type": "string",
-            "description": "Outgoing webhook URL",
+            "description": "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code.",
             "maxLength": 255,
             "examples": [
               "https://example.com/tasks/new"
@@ -1802,7 +1813,7 @@
           },
           "template": {
             "type": "string",
-            "description": "Template for formatting the incoming webhook",
+            "description": "Template for formatting the incoming webhook. A template with a syntax error for the `simple` source, an empty bot with `kind: simple` included, gets `400` on this field with the `invalid` code, and the bot is not created. The reason comes in `message`.",
             "examples": [
               "Order from {{ client }} for {{ amount }} ₽"
             ]
@@ -2834,7 +2845,7 @@
           },
           "outgoing_url": {
             "type": "string",
-            "description": "Outgoing webhook URL",
+            "description": "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code.",
             "maxLength": 255,
             "examples": [
               "https://example.com/tasks/new"
@@ -2912,7 +2923,7 @@
           },
           "template": {
             "type": "string",
-            "description": "Template for formatting the incoming webhook",
+            "description": "Template for formatting the incoming webhook. The template is checked when the request changes `template`, `template_engine` or `kind`, so changing the template engine alone or turning on `kind: simple` checks the template already saved as well. A template with a syntax error for the `simple` source gets `400` on this field with the `invalid` code, and the request is not applied. The reason comes in `message`.",
             "examples": [
               "Order from {{ client }} for {{ amount }} ₽"
             ]
@@ -5255,7 +5266,7 @@
           },
           "order": {
             "type": "string",
-            "description": "Sort direction. Applies together with `sort`, such as `sort=last_message_at&order=desc`. Without `sort` chats come in descending `id` order whatever `order` is. Values: asc — Ascending; desc — Descending.",
+            "description": "Sort direction for the `sort` field, such as `sort=last_message_at&order=desc`. Without `sort` the direction applies to `id`. Values: asc — Ascending; desc — Descending.",
             "enum": [
               "asc",
               "desc"
@@ -10230,7 +10241,7 @@
               "full"
             ],
             "default": "compact",
-            "description": "Detail per record. compact carries only id, chat_id, entity_type, entity_id, content, user_id, created_at, changed_at, parent_message_id, url, thread.id, thread.chat_id, root_chat_id, deleted_at, files.id, files.name, files.file_type, files.url, forwarding.author_id, forwarding.original_created_at, display_name and voice_content.transcript; full returns every field of the record. Ask for full when you need a field compact does not carry."
+            "description": "Detail per record. compact carries only id, chat_id, entity_type, entity_id, content, user_id, created_at, changed_at, parent_message_id, url, thread.id, thread.chat_id, root_chat_id, deleted_at, files.id, files.name, files.file_type, files.url, forwarding.author_id, forwarding.original_created_at, display_name, voice_content.transcript, source, application.id and application.name; full returns every field of the record. Ask for full when you need a field compact does not carry."
           }
         },
         "additionalProperties": false
@@ -10515,6 +10526,30 @@
                 "important": {
                   "type": "boolean",
                   "description": "The message is in the token owner's «Important» section. Always `false` for a bot token."
+                },
+                "source": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "What the message was sent through with an employee's token, as in the «Sent via …» badge on the avatar. `null` for a message sent from the Pachca app, a draft included, for bots' messages, for a scheduled message that went out on schedule, and for messages sent before the badge appeared. Learn more in \"How messages look\" (https://dev.pachca.com/api/authorization#kak-vyglyadyat-soobscheniya). Values: application — Through a program the employee gave access to: Pachca CLI, an MCP client, or a bot with authorization on behalf of an employee; personal_token — With the employee's personal token."
+                },
+                "application": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "description": "The program the message was sent through, with `source: \"application\"`. `null` in other cases.",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "Program ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Program name, as in the «Sent via …» tooltip on the avatar: «Pachca CLI», the name of an MCP client, or the bot's name. Older messages also come with the current name. An MCP client sets the name itself in the document it publishes on its own domain, so a program is recognized by `id`."
+                    }
+                  }
                 }
               }
             }
@@ -10560,7 +10595,8 @@
         "data[].buttons[][].url",
         "data[].buttons[][].data",
         "data[].display_avatar_url",
-        "data[].display_name"
+        "data[].display_name",
+        "data[].application.name"
       ]
     },
     {
@@ -10676,7 +10712,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "List chat messages. The message feed of a conversation, a channel, a thread, or a direct message — by the `chat_id` of the chat in question. Messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the `limit` and `cursor` parameters. Deleted messages do not make it into the list. The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent message hangs. This `chat_id` arrives in the `thread.chat_id` field of the parent message.",
+      "description": "List chat messages. The message feed of a conversation, a channel, a thread, or a direct message — by the `chat_id` of the chat in question. By default messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the `limit` and `cursor` parameters. Deleted messages do not make it into the list. The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent message hangs. This `chat_id` arrives in the `thread.chat_id` field of the parent message.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -10704,7 +10740,7 @@
           },
           "order": {
             "type": "string",
-            "description": "Sort direction. Applies together with `sort`: messages from oldest to newest come with `sort=id` and `order=asc`. Without `sort` messages come newest first whatever `order` is. Values: asc — Ascending; desc — Descending.",
+            "description": "Sort direction by `id`: `asc` returns messages oldest first, `desc` newest first. Values: asc — Ascending; desc — Descending.",
             "enum": [
               "asc",
               "desc"
@@ -10736,7 +10772,7 @@
               "full"
             ],
             "default": "compact",
-            "description": "Detail per record. compact carries only id, chat_id, entity_type, entity_id, content, user_id, created_at, changed_at, parent_message_id, url, thread.id, thread.chat_id, root_chat_id, deleted_at, files.id, files.name, files.file_type, files.url, forwarding.author_id, forwarding.original_created_at, display_name and voice_content.transcript; full returns every field of the record. Ask for full when you need a field compact does not carry."
+            "description": "Detail per record. compact carries only id, chat_id, entity_type, entity_id, content, user_id, created_at, changed_at, parent_message_id, url, thread.id, thread.chat_id, root_chat_id, deleted_at, files.id, files.name, files.file_type, files.url, forwarding.author_id, forwarding.original_created_at, display_name, voice_content.transcript, source, application.id and application.name; full returns every field of the record. Ask for full when you need a field compact does not carry."
           }
         },
         "required": [
@@ -11033,6 +11069,30 @@
                 "important": {
                   "type": "boolean",
                   "description": "The message is in the token owner's «Important» section. Always `false` for a bot token."
+                },
+                "source": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "What the message was sent through with an employee's token, as in the «Sent via …» badge on the avatar. `null` for a message sent from the Pachca app, a draft included, for bots' messages, for a scheduled message that went out on schedule, and for messages sent before the badge appeared. Learn more in \"How messages look\" (https://dev.pachca.com/api/authorization#kak-vyglyadyat-soobscheniya). Values: application — Through a program the employee gave access to: Pachca CLI, an MCP client, or a bot with authorization on behalf of an employee; personal_token — With the employee's personal token."
+                },
+                "application": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "description": "The program the message was sent through, with `source: \"application\"`. `null` in other cases.",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "Program ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Program name, as in the «Sent via …» tooltip on the avatar: «Pachca CLI», the name of an MCP client, or the bot's name. Older messages also come with the current name. An MCP client sets the name itself in the document it publishes on its own domain, so a program is recognized by `id`."
+                    }
+                  }
                 }
               }
             }
@@ -11078,7 +11138,8 @@
         "data[].buttons[][].url",
         "data[].buttons[][].data",
         "data[].display_avatar_url",
-        "data[].display_name"
+        "data[].display_name",
+        "data[].application.name"
       ]
     },
     {
@@ -11648,6 +11709,30 @@
               "important": {
                 "type": "boolean",
                 "description": "The message is in the token owner's «Important» section. Always `false` for a bot token."
+              },
+              "source": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "What the message was sent through with an employee's token, as in the «Sent via …» badge on the avatar. `null` for a message sent from the Pachca app, a draft included, for bots' messages, for a scheduled message that went out on schedule, and for messages sent before the badge appeared. Learn more in \"How messages look\" (https://dev.pachca.com/api/authorization#kak-vyglyadyat-soobscheniya). Values: application — Through a program the employee gave access to: Pachca CLI, an MCP client, or a bot with authorization on behalf of an employee; personal_token — With the employee's personal token."
+              },
+              "application": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "The program the message was sent through, with `source: \"application\"`. `null` in other cases.",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "description": "Program ID"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Program name, as in the «Sent via …» tooltip on the avatar: «Pachca CLI», the name of an MCP client, or the bot's name. Older messages also come with the current name. An MCP client sets the name itself in the document it publishes on its own domain, so a program is recognized by `id`."
+                  }
+                }
               }
             }
           }
@@ -11664,7 +11749,8 @@
         "data.buttons[][].url",
         "data.buttons[][].data",
         "data.display_avatar_url",
-        "data.display_name"
+        "data.display_name",
+        "data.application.name"
       ]
     },
     {
@@ -11974,6 +12060,30 @@
               "important": {
                 "type": "boolean",
                 "description": "The message is in the token owner's «Important» section. Always `false` for a bot token."
+              },
+              "source": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "What the message was sent through with an employee's token, as in the «Sent via …» badge on the avatar. `null` for a message sent from the Pachca app, a draft included, for bots' messages, for a scheduled message that went out on schedule, and for messages sent before the badge appeared. Learn more in \"How messages look\" (https://dev.pachca.com/api/authorization#kak-vyglyadyat-soobscheniya). Values: application — Through a program the employee gave access to: Pachca CLI, an MCP client, or a bot with authorization on behalf of an employee; personal_token — With the employee's personal token."
+              },
+              "application": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "The program the message was sent through, with `source: \"application\"`. `null` in other cases.",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "description": "Program ID"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Program name, as in the «Sent via …» tooltip on the avatar: «Pachca CLI», the name of an MCP client, or the bot's name. Older messages also come with the current name. An MCP client sets the name itself in the document it publishes on its own domain, so a program is recognized by `id`."
+                  }
+                }
               }
             }
           }
@@ -11990,7 +12100,8 @@
         "data.buttons[][].url",
         "data.buttons[][].data",
         "data.display_avatar_url",
-        "data.display_name"
+        "data.display_name",
+        "data.application.name"
       ]
     },
     {
@@ -12498,6 +12609,30 @@
               "important": {
                 "type": "boolean",
                 "description": "The message is in the token owner's «Important» section. Always `false` for a bot token."
+              },
+              "source": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "What the message was sent through with an employee's token, as in the «Sent via …» badge on the avatar. `null` for a message sent from the Pachca app, a draft included, for bots' messages, for a scheduled message that went out on schedule, and for messages sent before the badge appeared. Learn more in \"How messages look\" (https://dev.pachca.com/api/authorization#kak-vyglyadyat-soobscheniya). Values: application — Through a program the employee gave access to: Pachca CLI, an MCP client, or a bot with authorization on behalf of an employee; personal_token — With the employee's personal token."
+              },
+              "application": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "The program the message was sent through, with `source: \"application\"`. `null` in other cases.",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "description": "Program ID"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Program name, as in the «Sent via …» tooltip on the avatar: «Pachca CLI», the name of an MCP client, or the bot's name. Older messages also come with the current name. An MCP client sets the name itself in the document it publishes on its own domain, so a program is recognized by `id`."
+                  }
+                }
               }
             }
           }
@@ -12514,7 +12649,8 @@
         "data.buttons[][].url",
         "data.buttons[][].data",
         "data.display_avatar_url",
-        "data.display_name"
+        "data.display_name",
+        "data.application.name"
       ]
     },
     {
@@ -14397,7 +14533,7 @@
               "full"
             ],
             "default": "compact",
-            "description": "Detail per record. compact carries only id, chat_id, entity_type, entity_id, content, user_id, created_at, changed_at, parent_message_id, url, thread.id, thread.chat_id, root_chat_id, deleted_at, files.id, files.name, files.file_type, files.url, forwarding.author_id, forwarding.original_created_at, display_name and voice_content.transcript; full returns every field of the record. Ask for full when you need a field compact does not carry."
+            "description": "Detail per record. compact carries only id, chat_id, entity_type, entity_id, content, user_id, created_at, changed_at, parent_message_id, url, thread.id, thread.chat_id, root_chat_id, deleted_at, files.id, files.name, files.file_type, files.url, forwarding.author_id, forwarding.original_created_at, display_name, voice_content.transcript, source, application.id and application.name; full returns every field of the record. Ask for full when you need a field compact does not carry."
           }
         },
         "additionalProperties": false
@@ -14708,6 +14844,30 @@
                 "important": {
                   "type": "boolean",
                   "description": "The message is in the token owner's «Important» section. Always `false` for a bot token."
+                },
+                "source": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "What the message was sent through with an employee's token, as in the «Sent via …» badge on the avatar. `null` for a message sent from the Pachca app, a draft included, for bots' messages, for a scheduled message that went out on schedule, and for messages sent before the badge appeared. Learn more in \"How messages look\" (https://dev.pachca.com/api/authorization#kak-vyglyadyat-soobscheniya). Values: application — Through a program the employee gave access to: Pachca CLI, an MCP client, or a bot with authorization on behalf of an employee; personal_token — With the employee's personal token."
+                },
+                "application": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "description": "The program the message was sent through, with `source: \"application\"`. `null` in other cases.",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "Program ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Program name, as in the «Sent via …» tooltip on the avatar: «Pachca CLI», the name of an MCP client, or the bot's name. Older messages also come with the current name. An MCP client sets the name itself in the document it publishes on its own domain, so a program is recognized by `id`."
+                    }
+                  }
                 }
               }
             }
@@ -14749,7 +14909,8 @@
         "data[].buttons[][].url",
         "data[].buttons[][].data",
         "data[].display_avatar_url",
-        "data[].display_name"
+        "data[].display_name",
+        "data[].application.name"
       ]
     },
     {
@@ -17694,7 +17855,7 @@
           },
           "chat_ids": {
             "type": "array",
-            "description": "The chat the employee keeps when made a guest (`role: \"guest\"`): exactly one active conversation or channel where the token may add members. Without such a chat the response is `400` on this field, and nothing changes. With other roles, and for someone already a guest, the field is ignored.",
+            "description": "The chat the employee keeps when made a guest (`role: \"guest\"`): exactly one active conversation or channel where the token may add members. Without such a chat the response is `400` on this field, and nothing changes. With other roles, and for someone already a guest, the field is ignored. When made a guest, an employee with an email on file gets an email about the role change with a link to this chat, even if they have not signed in to Pachca yet or are suspended. It does not count towards the daily limit of invitation emails.",
             "examples": [
               [
                 12345
@@ -19025,7 +19186,7 @@
                 },
                 "payload": {
                   "type": "object",
-                  "description": "Webhook object. One of — message (event new, update, delete): id, event, entity_type, entity_id, content, user_id, created_at, changed_at, url, chat_id, parent_message_id, thread, webhook_timestamp; reaction: event, chat_id, message_id, code, name, user_id, created_at, webhook_timestamp; button: event, message_id, trigger_id, data, user_id, chat_id, webhook_timestamp; view: event, callback_id, private_metadata, chat_id, user_id, view_id, submit_id, data, webhook_timestamp; chat_member: event, chat_id, thread_id, user_ids, created_at, webhook_timestamp; company_member: event, user_ids, created_at, webhook_timestamp; message (event link_shared): event, chat_id, message_id, links, user_id, entity_type, entity_id, thread, created_at, webhook_timestamp; video_call: event, video_room_id, chat_id, owner_id, thread, started_at, finished_at, duration, members, recording_id, file_id, url, size, webhook_timestamp.",
+                  "description": "Webhook object. One of — message (event new, update, delete): id, event, entity_type, entity_id, content, user_id, created_at, changed_at, url, chat_id, parent_message_id, thread, source, application, webhook_timestamp; reaction: event, chat_id, message_id, code, name, user_id, created_at, webhook_timestamp; button: event, message_id, trigger_id, data, user_id, chat_id, webhook_timestamp; view: event, callback_id, private_metadata, chat_id, user_id, view_id, submit_id, data, webhook_timestamp; chat_member: event, chat_id, thread_id, user_ids, created_at, webhook_timestamp; company_member: event, user_ids, created_at, webhook_timestamp; message (event link_shared): event, chat_id, message_id, links, user_id, entity_type, entity_id, thread, source, application, created_at, webhook_timestamp; video_call: event, video_room_id, chat_id, owner_id, thread, started_at, finished_at, duration, members, recording_id, file_id, url, size, webhook_timestamp.",
                   "properties": {
                     "type": {
                       "type": "string",
@@ -19117,6 +19278,30 @@
                         "chat_id": {
                           "type": "integer",
                           "description": "Thread chat ID"
+                        }
+                      }
+                    },
+                    "source": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "message (event new, update, delete): What the message was sent through with an employee's token, the same as the `source` field of the message object. History event records saved before the field appeared do not have it. message (event link_shared): What the message with the link was sent through with an employee's token, the same as the `source` field of the message object. History event records saved before the field appeared do not have it. Values: application — Through a program the employee gave access to: Pachca CLI, an MCP client, or a bot with authorization on behalf of an employee; personal_token — With the employee's personal token."
+                    },
+                    "application": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "description": "message (event new, update, delete): The program the message was sent through, the same as the `application` field of the message object. History event records saved before the field appeared do not have it. message (event link_shared): The program the message with the link was sent through, the same as the `application` field of the message object. History event records saved before the field appeared do not have it.",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "Program ID"
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Program name, as in the «Sent via …» tooltip on the avatar: «Pachca CLI», the name of an MCP client, or the bot's name. Older messages also come with the current name. An MCP client sets the name itself in the document it publishes on its own domain, so a program is recognized by `id`."
                         }
                       }
                     },
@@ -19315,6 +19500,7 @@
       },
       "untrusted": [
         "data[].payload.content",
+        "data[].payload.application.name",
         "data[].payload.code",
         "data[].payload.name",
         "data[].payload.data",

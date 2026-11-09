@@ -95,9 +95,9 @@ delete their personal tokens but can no longer edit them. To cut old access, rev
   helps when the catalog or, for the CLI, your role has grown since. A plain reconnect keeps the old scopes.
 - `role_forbidden` comes back as type `PACHCA_AUTH_ERROR` with `message` `role_forbidden`: the token carries
   the scope but the current role forbids the action, so only an admin helps.
-- `pachca auth status` shows the scopes saved at login for the profile and ignores `PACHCA_TOKEN` and
-  `--token`. To see what the token really carries, run `pachca auth status --remote` for a profile, or
-  `pachca oauth token-info -o json` for any token.
+- `pachca auth status` checks the token the commands use. For a token from `PACHCA_TOKEN` or `--token` it
+  asks the server for the scopes. For a saved profile it shows the scopes saved at login: run
+  `pachca auth status --remote` to see what the token really carries.
 - `access_denied` comes back in the regular error format (in the CLI, type `PACHCA_API_ERROR` with
   `validation_code` `access_denied`). The token belongs to a guest, or to a suspended or deleted employee.
   Neither scopes nor a new sign-in help: use another account, or an admin restores the suspended employee's

@@ -1196,6 +1196,13 @@ export const COMPACT_PROJECTIONS: Record<string, string[]> = {
     'display_name',
     // A voice message is its transcript; without it the message says nothing.
     'voice_content.transcript',
+    // A message a program sent with an employee's token is signed with their name:
+    // the source and the program's name say an agent wrote it, so an agent tells
+    // other agents' lines from people's and does not answer itself. A program picks
+    // its own name, so the id is what tells one program from another.
+    'source',
+    'application.id',
+    'application.name',
   ],
   // The tags of a chat bring their members in, and a call is its link.
   Chat: ['id', 'name', 'channel', 'personal', 'public', 'archived', 'last_message_at', 'owner_id', 'group_tag_ids', 'meet_room_url'],

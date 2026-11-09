@@ -60,7 +60,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
   - `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект.
     **Возможные варианты:**
 
-    - **AuditDetailsEmpty**: Пустые детали. При: user_login (кроме входа по QR-коду), user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled.
+    - **AuditDetailsEmpty**: Пустые детали. При: user_login (кроме входа по QR-коду), user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled. У message_updated и message_deleted пустые детали могут прийти в записях до 7 ноября 2026 года включительно.
     - **AuditDetailsUserUpdated**: При: user_updated
       - `changed_attrs: array of string` (required) — Список изменённых полей
       - `context: string` — Как было выполнено изменение. Значение `sso_login` — профиль обновился автоматически при входе через SSO. Поле отсутствует, если профиль изменили обычным способом.
@@ -84,6 +84,11 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `tag_name: string` (required) — Название тега
     - **AuditDetailsChatId**: При: tag_removed_from_chat
       - `chat_id: integer, int32` (required) — Идентификатор чата
+    - **AuditDetailsMessage**: При: message_updated, message_deleted
+      - `chat_id: integer, int32` (required) — Идентификатор чата сообщения. У сообщения в треде это чат сообщения-родителя треда, а у самостоятельного треда чат самого треда.
+      - `thread_chat_id: integer, int32` — Идентификатор чата треда. Есть только у сообщений в тредах.
+      - `source: string` (required) — Кто изменил сообщение: `employee` — сотрудник, `bot` — бот, `dlp` — правило DLP заменило текст (актор — автор сообщения), `system` — сама Пачка, например когда прикрепляет к сообщению картинку по ссылке. У message_deleted приходит `employee` или `bot`.
+      - `message_version_id: integer, int32` — Идентификатор версии сообщения: снимка его текста и файлов до правки или на момент удаления. После DLP текст в снимке скрыт. Нет, если правка не затронула текст и файлы или удалённое сообщение было пустым.
     - **AuditDetailsTokenScopes**: При: access_token_created, access_token_updated, access_token_destroy в записях до 7 октября 2026 года
       - `scopes: array of string` (required) — Скоупы токена
     - **AuditDetailsKms**: При: kms_encrypt, kms_decrypt

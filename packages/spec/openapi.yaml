@@ -1969,7 +1969,7 @@ paths:
         - name: order
           in: query
           required: false
-          description: Направление сортировки. Применяется вместе с `sort`, например `sort=last_message_at&order=desc`. Без `sort` чаты идут по убыванию `id` при любом `order`.
+          description: Направление сортировки по полю `sort`, например `sort=last_message_at&order=desc`. Без `sort` направление применяется к `id`.
           schema:
             allOf:
               - $ref: '#/components/schemas/SortOrder'
@@ -4892,7 +4892,7 @@ paths:
 
         Лента сообщений беседы, канала, треда или личной переписки — по `chat_id` нужного чата.
 
-        Сообщения приходят от новых к старым, то есть первыми идут последние сообщения чата. За более ранними обращайтесь с параметрами `limit` и `cursor`.
+        По умолчанию сообщения приходят от новых к старым, то есть первыми идут последние сообщения чата. За более ранними обращайтесь с параметрами `limit` и `cursor`.
 
         Удалённые сообщения в список не попадают.
 
@@ -4921,7 +4921,7 @@ paths:
         - name: order
           in: query
           required: false
-          description: 'Направление сортировки. Применяется вместе с `sort`: сообщения от старых к новым дают `sort=id` и `order=asc`. Без `sort` сообщения идут от новых к старым при любом `order`.'
+          description: 'Направление сортировки по `id`: `asc` отдаёт сообщения от старых к новым, `desc` от новых к старым.'
           schema:
             allOf:
               - $ref: '#/components/schemas/SortOrder'
@@ -8534,7 +8534,7 @@ paths:
 
         Ссылка действует от одного до двух часов, до `expires_at`. В этот момент сервер присылает по ней `disconnect` и закрывает подключение, а `EventSource` после него сам не переподключается. Запрос в пределах того же часа по UTC возвращает ту же ссылку, а запрос в последний час перед `expires_at` даёт новую. Меняйте ссылку примерно за пять минут до `expires_at`: подключитесь по новой, пока работает старая, и закройте старое подключение, когда новое подтвердит подписку. Если `disconnect` всё же пришёл, получите новую ссылку и подключитесь заново.
 
-        Чтобы ничего не пропустить, после каждого подключения, в том числе после переподключения и смены ссылки, дождитесь подтверждения подписки и только потом прочитайте [Историю событий](GET /webhooks/events). Доставка в поток не гарантирована: обработанные события всё равно удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), а повторы отсекайте по `id`. Если у бота есть адрес вебхука, повторная доставка на него приходит в поток ещё раз с новым `id`: такие повторы отсекают по ключу из `payload`, как в разделе [Идемпотентная обработка](/guides/webhook/handler#idempotentnaya-obrabotka). Подробнее — в разделе [События в реальном времени](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
+        Чтобы ничего не пропустить, после каждого подключения, в том числе после переподключения и смены ссылки, дождитесь подтверждения подписки и только потом прочитайте [Историю событий](GET /webhooks/events). Доставка в поток не гарантирована: обработанные события всё равно удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), а повторы отсекайте по `id`. Если у бота есть адрес вебхука и запись удалена до повторной доставки на него, повтор приходит в поток ещё раз с новым `id`: такие повторы отсекают по ключу из `payload`, как в разделе [Идемпотентная обработка](/guides/webhook/handler#idempotentnaya-obrabotka). Подробнее — в разделе [События в реальном времени](/guides/webhook/polling#sobytiya-v-realnom-vremeni).
       parameters: []
       responses:
         '200':
@@ -9266,7 +9266,7 @@ components:
       description: 'При: dlp_violation_detected'
     AuditDetailsEmpty:
       type: object
-      description: 'Пустые детали. При: user_login (кроме входа по QR-коду), user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled.'
+      description: 'Пустые детали. При: user_login (кроме входа по QR-коду), user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled. У message_updated и message_deleted пустые детали могут прийти в записях до 7 ноября 2026 года включительно.'
     AuditDetailsInitiator:
       type: object
       required:
@@ -9348,6 +9348,28 @@ components:
             - $ref: '#/components/schemas/AuditLoginGrantDenyReason'
           description: Причина отказа
       description: 'При: login_grant_denied'
+    AuditDetailsMessage:
+      type: object
+      required:
+        - chat_id
+        - source
+      properties:
+        chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор чата сообщения. У сообщения в треде это чат сообщения-родителя треда, а у самостоятельного треда чат самого треда.
+        thread_chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор чата треда. Есть только у сообщений в тредах.
+        source:
+          type: string
+          description: 'Кто изменил сообщение: `employee` — сотрудник, `bot` — бот, `dlp` — правило DLP заменило текст (актор — автор сообщения), `system` — сама Пачка, например когда прикрепляет к сообщению картинку по ссылке. У message_deleted приходит `employee` или `bot`.'
+        message_version_id:
+          type: integer
+          format: int32
+          description: 'Идентификатор версии сообщения: снимка его текста и файлов до правки или на момент удаления. После DLP текст в снимке скрыт. Нет, если правка не затронула текст и файлы или удалённое сообщение было пустым.'
+      description: 'При: message_updated, message_deleted'
     AuditDetailsOAuthAuthorizationGranted:
       type: object
       required:
@@ -9757,6 +9779,7 @@ components:
         - $ref: '#/components/schemas/AuditDetailsChatPermission'
         - $ref: '#/components/schemas/AuditDetailsTagChat'
         - $ref: '#/components/schemas/AuditDetailsChatId'
+        - $ref: '#/components/schemas/AuditDetailsMessage'
         - $ref: '#/components/schemas/AuditDetailsTokenScopes'
         - $ref: '#/components/schemas/AuditDetailsKms'
         - $ref: '#/components/schemas/AuditDetailsDlp'
@@ -10072,7 +10095,7 @@ components:
             outgoing_url:
               type: string
               maxLength: 255
-              description: URL исходящего вебхука
+              description: 'URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`.'
               example: https://example.com/tasks/new
             events:
               type: array
@@ -10104,7 +10127,7 @@ components:
                 - messages:create
             template:
               type: string
-              description: Шаблон форматирования входящего вебхука
+              description: 'Шаблон форматирования входящего вебхука. Шаблон с синтаксической ошибкой у источника `simple`, в том числе у пустого бота с `kind: simple`, даёт ответ `400` на этом поле с кодом `invalid`, и бот не создаётся. Причина приходит в `message`.'
               example: Заказ от {{ client }} на сумму {{ amount }} ₽
             template_engine:
               allOf:
@@ -10850,7 +10873,7 @@ components:
             outgoing_url:
               type: string
               maxLength: 255
-              description: URL исходящего вебхука
+              description: 'URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`.'
               example: https://example.com/tasks/new
             events:
               type: array
@@ -10884,7 +10907,7 @@ components:
               x-replaces-set: true
             template:
               type: string
-              description: Шаблон форматирования входящего вебхука
+              description: 'Шаблон форматирования входящего вебхука. Шаблон проверяется, когда в запросе меняются `template`, `template_engine` или `kind`, поэтому смена одного шаблонизатора или включение `kind: simple` проверяет и уже сохранённый шаблон. Шаблон с синтаксической ошибкой у источника `simple` даёт ответ `400` на этом поле с кодом `invalid`, и запрос не применяется. Причина приходит в `message`.'
               example: Заказ от {{ client }} на сумму {{ amount }} ₽
             template_engine:
               allOf:
@@ -11115,7 +11138,7 @@ components:
             outgoing_url:
               type: string
               maxLength: 255
-              description: URL исходящего вебхука. Пустая строка отключает вебхук.
+              description: 'URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`. Пустая строка отключает вебхук.'
               example: https://example.com/tasks/new
           required:
             - outgoing_url
@@ -12509,6 +12532,19 @@ components:
             - $ref: '#/components/schemas/WebhookMessageThread'
           nullable: true
           description: Тред, в котором отправлено сообщение со ссылкой. `null`, если сообщение отправлено не в треде.
+        source:
+          allOf:
+            - $ref: '#/components/schemas/MessageSource'
+          nullable: true
+          description: Через что отправлено сообщение со ссылкой токеном сотрудника, так же, как поле `source` в объекте сообщения. В записях истории событий, сохранённых до появления поля, его нет.
+          example: null
+        application:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/MessageApplication'
+          nullable: true
+          description: Программа, через которую отправлено сообщение со ссылкой, так же, как поле `application` в объекте сообщения. В записях истории событий, сохранённых до появления поля, его нет.
+          example: null
         created_at:
           type: string
           format: date-time
@@ -12560,6 +12596,8 @@ components:
         - changed_at
         - deleted_at
         - important
+        - source
+        - application
       properties:
         id:
           type: integer
@@ -12679,7 +12717,35 @@ components:
           type: boolean
           description: Сообщение в разделе «Важное» владельца токена. У токена бота всегда `false`.
           example: false
+        source:
+          allOf:
+            - $ref: '#/components/schemas/MessageSource'
+          nullable: true
+          description: Через что отправлено сообщение токеном сотрудника, как в значке «Отправлено через …» на аватаре. `null` у сообщения, которое отправили из приложения Пачки, в том числе из черновика, у сообщений ботов, у отложенного сообщения, которое ушло по расписанию, и у сообщений, отправленных до появления значка. Подробнее в разделе [Как выглядят сообщения](/api/authorization#kak-vyglyadyat-soobscheniya).
+          example: application
+        application:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/MessageApplication'
+          nullable: true
+          description: 'Программа, через которую отправлено сообщение, при `source: "application"`. В остальных случаях `null`.'
       description: Сообщение
+    MessageApplication:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор программы
+          example: 4812
+        name:
+          type: string
+          description: 'Название программы, как в подсказке «Отправлено через …» на аватаре: «Pachca CLI», название клиента MCP или имя бота. У старых сообщений тоже приходит текущее название. Клиент MCP задаёт название сам в документе, который публикует на своём домене, поэтому программу узнают по `id`.'
+          example: Pachca CLI
+      description: Программа, через которую отправлено сообщение
     MessageCreateRequest:
       type: object
       required:
@@ -12821,6 +12887,15 @@ components:
       description: Поле сортировки сообщений
       x-enum-descriptions:
         id: По идентификатору сообщения
+    MessageSource:
+      type: string
+      enum:
+        - application
+        - personal_token
+      description: Через что отправлено сообщение токеном сотрудника
+      x-enum-descriptions:
+        application: 'Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника'
+        personal_token: Персональным токеном сотрудника
     MessageUpdateRequest:
       type: object
       required:
@@ -12991,6 +13066,19 @@ components:
             - $ref: '#/components/schemas/WebhookMessageThread'
           nullable: true
           description: Тред, в котором отправлено сообщение. `null`, если сообщение отправлено не в треде. В отличие от поля `thread` в объекте сообщения REST API, здесь описывается тред, внутри которого находится сообщение.
+        source:
+          allOf:
+            - $ref: '#/components/schemas/MessageSource'
+          nullable: true
+          description: Через что отправлено сообщение токеном сотрудника, так же, как поле `source` в объекте сообщения. В записях истории событий, сохранённых до появления поля, его нет.
+          example: null
+        application:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/MessageApplication'
+          nullable: true
+          description: Программа, через которую отправлено сообщение, так же, как поле `application` в объекте сообщения. В записях истории событий, сохранённых до появления поля, его нет.
+          example: null
         webhook_timestamp:
           type: integer
           format: int32
@@ -14610,7 +14698,7 @@ components:
               items:
                 type: integer
                 format: int32
-              description: 'Чат, в котором останется сотрудник при переводе в гости (`role: "guest"`): ровно одна активная беседа или канал, куда у токена есть право добавлять участников. Без такого чата ответ `400` по этому полю, и не меняется ничего. При других ролях и у того, кто уже гость, поле не учитывается.'
+              description: 'Чат, в котором останется сотрудник при переводе в гости (`role: "guest"`): ровно одна активная беседа или канал, куда у токена есть право добавлять участников. Без такого чата ответ `400` по этому полю, и не меняется ничего. При других ролях и у того, кто уже гость, поле не учитывается. При переводе в гости сотруднику с указанной почтой уходит письмо о смене роли со ссылкой на этот чат, даже если он ещё не входил в Пачку или приостановлен. В суточный лимит писем-приглашений оно не идёт.'
               example:
                 - 12345
             suspended:
@@ -14692,6 +14780,9 @@ components:
         - bot_changed_concurrently
         - timeout
         - daily_invites_limit
+        - webhook_url_invalid
+        - webhook_url_unresolved
+        - webhook_url_forbidden
         - forbidden
         - permission_denied
         - access_denied
@@ -14768,6 +14859,9 @@ components:
         bot_changed_concurrently: 'Настройки бота изменились во время запроса: повторите его'
         timeout: 'Поиск не уложился по времени: сузьте запрос и повторите'
         daily_invites_limit: 'Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`'
+        webhook_url_invalid: Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста
+        webhook_url_unresolved: Не удалось определить IP-адрес домена из адреса вебхука
+        webhook_url_forbidden: Адрес вебхука ведёт во внутреннюю или зарезервированную сеть
     VideoCallEventType:
       type: string
       enum:

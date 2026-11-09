@@ -328,7 +328,7 @@ export const userFields: INodeProperties[] = [
 				name: 'chatIds',
 				type: 'string',
 				default: "",
-				description: 'The chat the employee keeps when made a guest (`role: "guest"`): exactly one active conversation or channel where the token may add members. Without such a chat the response is `400` on this field, and nothing changes. With other roles, and for someone already a guest, the field is ignored.',
+				description: 'The chat the employee keeps when made a guest (`role: "guest"`): exactly one active conversation or channel where the token may add members. Without such a chat the response is `400` on this field, and nothing changes. With other roles, and for someone already a guest, the field is ignored. When made a guest, an employee with an email on file gets an email about the role change with a link to this chat, even if they have not signed in to Pachca yet or are suspended. It does not count towards the daily limit of invitation emails.',
 				placeholder: '12345',
 			},
 			{

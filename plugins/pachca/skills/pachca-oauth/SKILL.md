@@ -77,8 +77,11 @@ Decide with these questions:
   hint «Отправлено через» and the bot's name. Do not promise employees it will look
   hand-written. If the bot listens to all messages in that chat, its outgoing webhook gets the
   post with the employee's `user_id`: **Игнорировать свои сообщения** (`ignore_self_messages`)
-  and comparing with the bot's `id` both let it through. Store the message ids the send returns
-  and skip those events, or the bot handles its own post as the employee's message.
+  and comparing with the bot's `id` both let it through. The event carries `source: "application"`
+  and the `application.id` of the bot's own application, the same id the send response shows: skip
+  events with that id (or store the message ids the send returns), or the bot handles its own post
+  as the employee's message. Compare `application.id`, never `application.name`: any program can
+  call itself by the bot's name.
 
 ## Who can authorize a bot
 

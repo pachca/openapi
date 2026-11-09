@@ -250,7 +250,9 @@ employee sees how long the agent has been working. The timer runs up to 5 minute
   `message_update`, not `message_new`.
 - Counting another bot as the employee of a continuation, or relying on
   «Игнорировать свои сообщения» to stop loops: it drops only the bot's own
-  messages. Check the author for `bot: true` with the user info method.
+  messages. Check the author for `bot: true` with the user info method, and
+  treat a message with `source` set as a program's: another agent can write
+  under an employee's name.
 - Letting the timer run out silently: it stops at 5 minutes; if the work takes
   longer, say so in the thread.
 - Calling the drafts methods with the bot token — `403`; the employee's

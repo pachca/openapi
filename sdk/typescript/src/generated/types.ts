@@ -460,6 +460,18 @@ export enum MessageSortField {
 }
 
 /**
+ * Через что отправлено сообщение токеном сотрудника
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum MessageSource {
+  /** Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника */
+  Application = "application",
+  /** Персональным токеном сотрудника */
+  PersonalToken = "personal_token",
+}
+
+/**
  * Код ошибки OAuth
  *
  * A response may carry a value this SDK does not list yet: it arrives as the raw string.
@@ -831,6 +843,12 @@ export enum ValidationErrorCode {
   Timeout = "timeout",
   /** Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload` */
   DailyInvitesLimit = "daily_invites_limit",
+  /** Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста */
+  WebhookUrlInvalid = "webhook_url_invalid",
+  /** Не удалось определить IP-адрес домена из адреса вебхука */
+  WebhookUrlUnresolved = "webhook_url_unresolved",
+  /** Адрес вебхука ведёт во внутреннюю или зарезервированную сеть */
+  WebhookUrlForbidden = "webhook_url_forbidden",
   /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
   Forbidden = "forbidden",
   /** Доступ запрещён (недостаточно прав) */
@@ -1115,6 +1133,13 @@ export interface AuditDetailsLoginGrantDenied {
   loginGrantId: string;
   device: AuditLoginGrantDevice;
   reason: AuditLoginGrantDenyReason;
+}
+
+export interface AuditDetailsMessage {
+  chatId: number;
+  threadChatId?: number;
+  source: string;
+  messageVersionId?: number;
 }
 
 export interface AuditDetailsOAuthAuthorizationGranted {
@@ -1763,6 +1788,8 @@ export interface LinkSharedWebhookPayload {
   entityType: MessageEntityType;
   entityId: number | null;
   thread: WebhookMessageThread | null;
+  source?: MessageSource | null;
+  application?: MessageApplication | null;
   createdAt: string;
   webhookTimestamp: number;
 }
@@ -1795,6 +1822,13 @@ export interface Message {
   changedAt: string | null;
   deletedAt: string | null;
   important: boolean;
+  source: MessageSource | null;
+  application: MessageApplication | null;
+}
+
+export interface MessageApplication {
+  id: number;
+  name: string;
 }
 
 export interface MessageCreateRequestFile {
@@ -1861,6 +1895,8 @@ export interface MessageWebhookPayload {
   chatId: number;
   parentMessageId?: number | null;
   thread?: WebhookMessageThread | null;
+  source?: MessageSource | null;
+  application?: MessageApplication | null;
   webhookTimestamp: number;
 }
 
@@ -2355,7 +2391,7 @@ export interface UpdateUserAvatarRequest {
   image: Blob;
 }
 
-export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsBotOAuthClient | AuditDetailsOAuthAuthorizationGranted | AuditDetailsOAuthAuthorizationRevoked | AuditDetailsDeviceAuthorizationApproved | AuditDetailsDeviceAuthorizationDenied | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording | AuditDetailsBotOAuthClientSecretRotated | AuditDetailsBotOAuthClientDisabled | AuditDetailsToken | AuditDetailsBotTokenUpdated | AuditDetailsUserLoginQr | AuditDetailsLoginGrantCreated | AuditDetailsLoginGrantApproved | AuditDetailsLoginGrantDenied;
+export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsMessage | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsBotOAuthClient | AuditDetailsOAuthAuthorizationGranted | AuditDetailsOAuthAuthorizationRevoked | AuditDetailsDeviceAuthorizationApproved | AuditDetailsDeviceAuthorizationDenied | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording | AuditDetailsBotOAuthClientSecretRotated | AuditDetailsBotOAuthClientDisabled | AuditDetailsToken | AuditDetailsBotTokenUpdated | AuditDetailsUserLoginQr | AuditDetailsLoginGrantCreated | AuditDetailsLoginGrantApproved | AuditDetailsLoginGrantDenied;
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 

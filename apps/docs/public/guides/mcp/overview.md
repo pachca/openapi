@@ -11,7 +11,7 @@ MCP (Model Context Protocol) — открытый протокол, по кот�
 https://mcp.pachca.com/mcp
 ```
 
-Сервер работает по транспорту Streamable HTTP. Его подключают Claude Code, Claude, Cursor, VS Code, Codex (в том числе в приложении ChatGPT на компьютере) и другие программы с поддержкой MCP, а также агенты в Yandex AI Studio и на GigaChat.
+Сервер работает по транспорту Streamable HTTP. Его подключают Claude Code, Claude, Cursor, VS Code, Codex (в том числе в приложении ChatGPT на компьютере), Grok Bot и другие программы с поддержкой MCP, а также агенты в Yandex AI Studio и на GigaChat.
 
 ## Что можно попросить агента
 

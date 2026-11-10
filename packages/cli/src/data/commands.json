@@ -552,10 +552,16 @@
         "plan": null,
         "flags": [
           {
+            "name": "no-retry",
+            "type": "boolean",
+            "required": false,
+            "description": "Не переподключаться к потоку после обрыва. Запросы к API по-прежнему повторяются при 429 и 5xx"
+          },
+          {
             "name": "forward-to",
             "type": "option",
             "required": false,
-            "description": "HTTP(S)-адрес обработчика: POST payload, подтверждение после 2xx"
+            "description": "HTTP(S)-адрес обработчика: событие уходит POST, запись удаляется из истории после 2xx"
           }
         ]
       },

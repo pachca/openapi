@@ -87,7 +87,7 @@ Settings that bite («Основное» tab, [settings](https://dev.pachca.com/
 
 Must-haves; procedure and payload notes in [references/events.md](references/events.md):
 
-- The URL must be public `http`/`https`; local and internal addresses are refused. Develop through a tunnel, or read the event history: polled, or as a live stream with no public URL (events.md, section 7).
+- The URL must be public `http`/`https`; local and internal addresses are refused. Develop through a tunnel, or read the event history: polled, or as a live stream with no public URL (events.md, section 7). `pachca bots listen-events --forward-to` feeds a local handler from the stream with no code, on a bot with no webhook URL only: on a bot with one it deletes the history that backs up failed deliveries (events.md, section 7).
 - Give the final address. Events and button clicks do not follow redirects: a `3xx` (an `http` URL that redirects to `https`, a route that adds a trailing slash, a login page) counts as a failed answer and is not retried. A form submission follows one redirect at most. Check that a `POST` to the URL gets a `2xx` directly.
 - Verify `Pachca-Signature` (HMAC-SHA256 of the **raw** body with the Signing secret) and reject a `webhook_timestamp` more than a minute away from now.
 - Answer `200` immediately, queue the work. Pachca waits 5 s for a regular event and re-sends it only when it could not connect; an error code or a timeout is never retried. A button click waits up to 30 s, but the employee sees an error only for a failed answer within the first 3 s. A form submission waits 3 s. Neither is re-sent. Turn on event history to recover missed events; it is read with the bot's own token.

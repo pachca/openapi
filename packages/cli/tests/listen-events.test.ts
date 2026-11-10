@@ -201,6 +201,150 @@ describe('webhook event listener', () => {
     expect(requests.some((r) => r.method === 'DELETE')).toBe(false);
   });
 
+  it('delivers a live event that arrives while buffered events are being handled', async () => {
+    let finish!: () => void;
+    const run = start({ onEvent: async (event) => {
+      delivered.push(event.id);
+      if (event.id === 'a') await new Promise<void>((resolve) => { finish = resolve; });
+    } });
+    await vi.waitFor(() => expect(streams).toHaveLength(1));
+    send(0, record('a'));
+    send(0, {}, 'confirm_subscription');
+    await vi.waitFor(() => expect(delivered).toEqual(['a']));
+    send(0, record('b'));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    finish();
+    await vi.waitFor(() => expect(delivered).toEqual(['a', 'b']));
+    abort.abort(); await run;
+  });
+
+  it('reconnects after a transient history failure instead of stopping', async () => {
+    vi.useFakeTimers();
+    let failures = 1;
+    const run = start({ request: async (opts) => {
+      if (opts.path === '/webhooks/events' && failures-- > 0) {
+        requests.push(opts);
+        throw new ApiError({ error: 'Unavailable', code: 503, type: 'PACHCA_API_ERROR' });
+      }
+      return request(opts);
+    } });
+    await vi.waitFor(() => expect(streams).toHaveLength(1));
+    send(0, {}, 'confirm_subscription');
+    await vi.waitFor(() => expect(requests.filter((r) => r.path === '/webhooks/events')).toHaveLength(1));
+    await vi.advanceTimersByTimeAsync(5_000);
+    await vi.waitFor(() => expect(streams).toHaveLength(2));
+    history = [record('kept')];
+    send(1, {}, 'confirm_subscription');
+    await vi.waitFor(() => expect(delivered).toEqual(['kept']));
+    abort.abort(); await run;
+  });
+
+  it('rereads only recent history pages when nothing is acknowledged', async () => {
+    vi.useFakeTimers();
+    const at = (id: string, time: string) => ({ ...record(id), created_at: time });
+    const pages: Record<string, unknown> = {
+      first: { data: [at('r3', '2026-11-09T12:00:00Z'), at('r2', '2026-11-09T11:00:00Z')], meta: { paginate: { has_next: true, next_page: 'p2' } } },
+      p2: { data: [at('r1', '2026-11-09T10:00:00Z')], meta: { paginate: { has_next: true, next_page: 'p3' } } },
+      p3: { data: [at('r0', '2026-11-09T09:00:00Z')], meta: { paginate: { has_next: false } } },
+    };
+    const run = start({ request: async (opts) => {
+      if (opts.path.endsWith('/stream')) return request(opts);
+      requests.push(opts);
+      return pages[String(opts.query?.cursor ?? 'first')];
+    } });
+    await vi.waitFor(() => expect(streams).toHaveLength(1));
+    send(0, {}, 'confirm_subscription');
+    await vi.waitFor(() => expect(delivered).toEqual(['r0', 'r1', 'r2', 'r3']));
+    expect(requests.filter((r) => r.path === '/webhooks/events')).toHaveLength(3);
+    send(0, {}, 'disconnect');
+    await vi.advanceTimersByTimeAsync(5_000);
+    await vi.waitFor(() => expect(streams).toHaveLength(2));
+    send(1, {}, 'confirm_subscription');
+    await vi.waitFor(() => expect(requests.filter((r) => r.path === '/webhooks/events')).toHaveLength(4));
+    await vi.advanceTimersByTimeAsync(100);
+    expect(requests.filter((r) => r.path === '/webhooks/events')).toHaveLength(4);
+    expect(delivered).toEqual(['r0', 'r1', 'r2', 'r3']);
+    abort.abort(); await run;
+  });
+
+  it('gets a new link when the stream keeps failing before confirmation', async () => {
+    vi.useFakeTimers();
+    globalThis.fetch = vi.fn(async () => { throw new TypeError('fetch failed'); }) as typeof fetch;
+    let reconnects = 0;
+    const run = start({ timeoutMs: 10_000, onReconnect: () => { reconnects++; } });
+    await vi.waitFor(() => expect(requests.filter((r) => r.path.endsWith('/stream'))).toHaveLength(1));
+    await vi.advanceTimersByTimeAsync(16_000);
+    expect(reconnects).toBe(1);
+    await vi.waitFor(() => expect(requests.filter((r) => r.path.endsWith('/stream'))).toHaveLength(2));
+    abort.abort(); await run;
+  });
+
+  it('closes the stream being replaced when its successor fails to read history', async () => {
+    vi.useFakeTimers();
+    let failures = 1;
+    const run = start({ request: async (opts) => {
+      if (opts.path === '/webhooks/events' && urls.length === 2 && failures-- > 0) {
+        requests.push(opts);
+        throw new ApiError({ error: 'Unavailable', code: 503, type: 'PACHCA_API_ERROR' });
+      }
+      return request(opts);
+    } });
+    await vi.waitFor(() => expect(streams).toHaveLength(1));
+    send(0, {}, 'confirm_subscription');
+    await vi.waitFor(() => expect(requests).toHaveLength(2));
+    await vi.advanceTimersByTimeAsync(55 * 60_000);
+    await vi.waitFor(() => expect(streams).toHaveLength(2));
+    send(1, {}, 'confirm_subscription');
+    await vi.waitFor(() => expect(cancelled).toEqual(expect.arrayContaining([0, 1])));
+    await vi.advanceTimersByTimeAsync(5_000);
+    await vi.waitFor(() => expect(streams).toHaveLength(3));
+    history = [record('kept')];
+    send(2, {}, 'confirm_subscription');
+    await vi.waitFor(() => expect(delivered).toEqual(['kept']));
+    abort.abort(); await run;
+  });
+
+  it('drops a link requested before a failure restarted the connection', async () => {
+    vi.useFakeTimers();
+    let release!: () => void;
+    let failDelete = false;
+    const run = start({ acknowledge: true, request: async (opts) => {
+      if (opts.path.endsWith('/stream') && urls.length === 1 && !release) {
+        await new Promise<void>((resolve) => { release = resolve; });
+        return request(opts);
+      }
+      if (opts.method === 'DELETE' && failDelete) {
+        requests.push(opts);
+        throw new ApiError({ error: 'Unavailable', code: 503, type: 'PACHCA_API_ERROR' });
+      }
+      return request(opts);
+    } });
+    await vi.waitFor(() => expect(streams).toHaveLength(1));
+    send(0, {}, 'confirm_subscription');
+    await vi.waitFor(() => expect(requests).toHaveLength(2));
+    await vi.advanceTimersByTimeAsync(55 * 60_000);
+    await vi.waitFor(() => expect(release).toBeTypeOf('function'));
+    failDelete = true;
+    send(0, record('one'));
+    await vi.waitFor(() => expect(requests.some((r) => r.method === 'DELETE')).toBe(true));
+    release();
+    await vi.advanceTimersByTimeAsync(5_000);
+    await vi.waitFor(() => expect(streams).toHaveLength(2));
+    await vi.advanceTimersByTimeAsync(100);
+    expect(streams).toHaveLength(2);
+    abort.abort(); await run;
+  });
+
+  it('stops on 404 with a hint about the event history', async () => {
+    const run = start({ request: async (opts) => {
+      if (opts.path.endsWith('/stream')) throw new ApiError({ error: 'Not found', code: 404, type: 'PACHCA_API_ERROR' });
+      return request(opts);
+    } });
+    await expect(run).rejects.toMatchObject({
+      details: { code: 404, hint: expect.stringContaining('Сохранять историю событий') },
+    });
+  });
+
   it('fails on cyclic pagination instead of dropping pending history', async () => {
     const run = start({ request: async (opts) => {
       if (opts.path.endsWith('/stream')) return request(opts);

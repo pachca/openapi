@@ -90,7 +90,7 @@ example `~/.config/opencode/skills/` for OpenCode.
   the archives into `~/.agents/skills/` by hand.
 - By hand: each skill is an archive such as
   `https://dev.pachca.com/.well-known/agent-skills/pachca.tar.gz`, with no top folder. Unpack each into a
-  folder named after the skill, for example `~/.agents/skills/pachca/`. GigaCode CLI installs only this way,
+  folder named after the skill, for example `~/.agents/skills/pachca/`, or `~/.claude/skills/pachca/` for Claude Code. GigaCode CLI installs only this way,
   into `~/.gigacode/skills/<skill>/`.
 - The Claude app without the plugin: upload each skill's ZIP, such as
   `https://dev.pachca.com/skills/pachca.zip`, in **Customize > Skills > + > Create skill > Upload a skill**.

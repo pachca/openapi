@@ -6,7 +6,7 @@
       "type": "archive",
       "description": "Вход в Пачку (Pachca) для агента: подключить агента или MCP-клиента (MCP через браузер или токеном, плагин, CLI), проверить подключение, выбрать токен, разобрать отказ 401/403 инструмента или CLI и отсутствие инструмента (роль, тариф, тип токена, участие в чате). Когда: «подключи Пачку», «настрой MCP Пачки», «войди в Пачку через CLI», «каким токеном подключить агента», «экран входа MCP», «агент получил 403 insufficient_scope», «нет инструмента Пачки (экспорт, журнал аудита)», «что умеет Пачка», \"connect Pachca\", \"set up Pachca MCP\", \"Pachca CLI login\", \"which token for my agent or MCP client\", \"MCP sign-in screen\", \"MCP tool or CLI returned 401/403\", \"a Pachca tool is missing\". Not for: writing messages → pachca-messaging; search and summaries → pachca-search; administration, who may create tokens → pachca-admin; building a bot → pachca-bots; an agent living in Pachca → pachca-ai-agent; OAuth for employees → pachca-oauth; a token for a script or service, 401/403 in your own code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca.tar.gz",
-      "digest": "sha256:3f870d511ce2002bcbcbb63fab766841e7ba748a9d4efbd5f0f25dc34901c557"
+      "digest": "sha256:b98fdad5f3b944ca3445ecb2b1a683d0753b5c4d6e2f2be6af5783d9a8867491"
     },
     {
       "name": "pachca-admin",
@@ -32,9 +32,9 @@
     {
       "name": "pachca-bots",
       "type": "archive",
-      "description": "Бот или интеграция в Пачке: что выбрать (входящий вебхук, бот с событиями, приложение с авторизацией), создание и настройки бота, токены и права, доступ к чатам, приём событий (подпись, повторы, защита от дублей, история событий), кнопки, формы, разворачивание ссылок, витрина. Когда: «сделать бота», «уведомления из CRM или CI в чат», «входящий вебхук», «исходящий вебхук», «бот команд или уведомлений не получает сообщения», «проверить подпись вебхука», «кнопки в сообщении бота», «форма, модальное окно», «превью ссылок, unfurl», «права токена бота», «токен бота утёк», «опубликовать бота в витрине», \"build a Pachca bot\", \"incoming webhook\", \"outgoing webhook\", \"bot gets no events\", \"verify webhook signature\", \"message buttons\", \"modal form\", \"link unfurling\", \"reissue a leaked bot token\". Not for: an AI agent that answers in threads or does not hear a mention → pachca-ai-agent; an app acting for an employee → pachca-oauth; scripts, pagination, 429 → pachca-api; writing messages yourself → pachca-messaging.",
+      "description": "Бот или интеграция в Пачке: что выбрать (входящий вебхук, бот с событиями, приложение с авторизацией), создание и настройки бота, токены и права, доступ к чатам, приём событий (подпись, повторы, дубли, история и поток), кнопки, формы, разворачивание ссылок, витрина. Когда: «сделать бота», «уведомления из CRM и CI», «входящий вебхук», «исходящий вебхук», «события бота без публичного адреса», «бот не получает сообщения», «проверить подпись вебхука», «кнопки в сообщении бота», «форма, модальное окно», «превью ссылок, unfurl», «права токена бота», «токен бота утёк», «бот в витрине», \"build a Pachca bot\", \"incoming webhook\", \"outgoing webhook\", \"bot events, no public URL\", \"bot gets no events\", \"verify webhook signature\", \"message buttons\", \"modal form\", \"link unfurling\", \"leaked bot token\". Not for: an AI agent that answers in threads or does not hear a mention → pachca-ai-agent; an app acting for an employee → pachca-oauth; scripts, pagination, 429 → pachca-api; writing messages yourself → pachca-messaging.",
       "url": "/.well-known/agent-skills/pachca-bots.tar.gz",
-      "digest": "sha256:bef47c790932025e19d69b2d4e38df617b553ce8306dde253f6cdd57472817be"
+      "digest": "sha256:d74c44edb67ecbdecf78a6df53925eff2c651d4258e22456e1f9461f5d724073"
     },
     {
       "name": "pachca-messaging",

@@ -666,6 +666,41 @@ describe('generated commands — functional tests', () => {
       );
       expect(JSON.parse(withProfile.stderr.trim()).hint).toBe('pachca auth status --remote --profile test');
     });
+
+    it('insufficient_scope с токеном из PACHCA_TOKEN → проверить тот же токен', async () => {
+      setEnv('PACHCA_TOKEN', 'pasted');
+      mockFetch(insufficientScope);
+      const json = await runCommand(['users', 'create', '--email', 'olga@example.com'], { root: CLI_ROOT });
+      expect(JSON.parse(json.stderr.trim()).hint).toBe('PACHCA_TOKEN=<token> pachca auth status');
+
+      humanTerminal();
+      mockFetch(insufficientScope);
+      const { stderr } = await runCommand(['users', 'create', '--email', 'olga@example.com', '-o', 'table'], { root: CLI_ROOT });
+      expect(stderr).toContain('Проверить токен и его права: PACHCA_TOKEN=<токен> pachca auth status\n');
+      expect(stderr).not.toContain('pasted');
+    });
+
+    it('insufficient_scope с профилем из PACHCA_PROFILE → проверить тот же профиль', async () => {
+      setEnv('PACHCA_PROFILE', 'test');
+      mockFetch(insufficientScope);
+      const json = await runCommand(['users', 'create', '--email', 'olga@example.com'], { root: CLI_ROOT });
+      expect(JSON.parse(json.stderr.trim()).hint).toBe('pachca auth status --remote --profile test');
+    });
+
+    it('право проверено до запроса → причина видна и в тексте для человека', async () => {
+      humanTerminal();
+      // listen-events writes JSONL and takes no -o table: a terminal on stdout gives the human format.
+      Object.defineProperty(process.stdout, 'isTTY', { value: true, writable: true, configurable: true });
+      mockFetch({ data: { data: { user_id: 1, scopes: ['webhooks:events:read'] } } });
+      const { stderr, error } = await runCommand(
+        ['bots', 'listen-events', '--forward-to', 'http://localhost:3000/webhook', '--token', 'pasted'],
+        { root: CLI_ROOT },
+      );
+      expect(stderr).toContain('✗ Не хватает права webhooks:events:delete.');
+      expect(stderr).toContain('Для --forward-to токену нужно право webhooks:events:delete');
+      expect(stderr).toContain('pachca auth status --token <токен>');
+      expect(error?.oclif?.exit).toBe(3);
+    });
   });
 
   // ----- Redirect (common uploads) -----

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { request, ApiError, formatDryRun, getExitCode, downloadFile } from '../src/client.js';
+import { request, ApiError, formatDryRun, getExitCode, downloadFile, resolveTimeoutSeconds } from '../src/client.js';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -1223,5 +1223,30 @@ describe('client', () => {
         downloadFile('https://example.com/file.zip', '/nonexistent-dir-xyz/'),
       ).rejects.toThrow();
     });
+  });
+});
+
+describe('resolveTimeoutSeconds', () => {
+  const saved = process.env.PACHCA_TIMEOUT;
+  afterEach(() => {
+    if (saved === undefined) delete process.env.PACHCA_TIMEOUT; else process.env.PACHCA_TIMEOUT = saved;
+  });
+
+  it('takes the value asked for, then PACHCA_TIMEOUT, then 30', () => {
+    delete process.env.PACHCA_TIMEOUT;
+    expect(resolveTimeoutSeconds(45)).toBe(45);
+    expect(resolveTimeoutSeconds('60')).toBe(60);
+    expect(resolveTimeoutSeconds()).toBe(30);
+    process.env.PACHCA_TIMEOUT = '90';
+    expect(resolveTimeoutSeconds()).toBe(90);
+    expect(resolveTimeoutSeconds(45)).toBe(45);
+  });
+
+  it('turns a value that is not a positive number into 30 and keeps timers in range', () => {
+    delete process.env.PACHCA_TIMEOUT;
+    for (const value of [0, -5, '30s', Number.NaN]) expect(resolveTimeoutSeconds(value)).toBe(30);
+    process.env.PACHCA_TIMEOUT = '0';
+    expect(resolveTimeoutSeconds()).toBe(30);
+    expect(resolveTimeoutSeconds(10 ** 12)).toBe(2_147_483);
   });
 });

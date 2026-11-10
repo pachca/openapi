@@ -544,6 +544,28 @@
         ]
       },
       {
+        "command": "pachca bots listen-events",
+        "summary": "Слушать события бота в реальном времени",
+        "method": null,
+        "path": null,
+        "scope": "webhooks:events:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "no-retry",
+            "type": "boolean",
+            "required": false,
+            "description": "Не переподключаться к потоку после обрыва. Запросы к API по-прежнему повторяются при 429 и 5xx"
+          },
+          {
+            "name": "forward-to",
+            "type": "option",
+            "required": false,
+            "description": "HTTP(S)-адрес обработчика: событие уходит POST, запись удаляется из истории после 2xx"
+          }
+        ]
+      },
+      {
         "command": "pachca bots recreate-token",
         "summary": "Ротация токена бота",
         "method": "POST",

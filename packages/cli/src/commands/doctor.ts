@@ -46,13 +46,13 @@ export default class Doctor extends BaseCommand {
 
     // 1. Node.js version
     const nodeVersion = process.version.replace('v', '');
-    const nodeMajor = Number.parseInt(nodeVersion.split('.')[0], 10);
-    if (nodeMajor >= 20) {
-      checks.push({ name: 'node', status: 'ok', version: nodeVersion, required: '>=20' });
-      this.printCheck('ok', `Node.js        v${nodeVersion} (требуется >=20)`, format);
+    // AbortSignal.any (bots listen-events --forward-to) arrived in Node 20.3.0.
+    if (semver.satisfies(nodeVersion, '>=20.3.0')) {
+      checks.push({ name: 'node', status: 'ok', version: nodeVersion, required: '>=20.3.0' });
+      this.printCheck('ok', `Node.js        v${nodeVersion} (требуется >=20.3.0)`, format);
     } else {
-      checks.push({ name: 'node', status: 'error', version: nodeVersion, required: '>=20' });
-      this.printCheck('error', `Node.js        v${nodeVersion} — требуется >=20`, format);
+      checks.push({ name: 'node', status: 'error', version: nodeVersion, required: '>=20.3.0' });
+      this.printCheck('error', `Node.js        v${nodeVersion} — требуется >=20.3.0`, format);
     }
 
     // 2. Network. Check the host the CLI actually talks to: on-premise installs

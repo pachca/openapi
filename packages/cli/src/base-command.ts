@@ -269,23 +269,30 @@ export abstract class BaseCommand extends Command {
     const format = this.getOutputFormat();
     const scope = typeof err.details.scope === 'string' ? err.details.scope : undefined;
 
-    // `auth status` checks the token every command uses. A bare run finds PACHCA_TOKEN
-    // and the active profile by itself; a token or profile named on this command has
-    // to be named again. The token value is never echoed back.
+    // `auth status` checks the token every command uses. A bare run reads the active
+    // profile; a token or profile named on this command, by a flag or by a variable that
+    // may have been set for this one command, has to be named again. The token value is
+    // never echoed back.
     const source = tokenSource({ token: this.parsedFlags.token, profile: this.parsedFlags.profile });
     const human = format !== 'json' && process.stderr.isTTY;
     const again =
       source.kind === 'flag'
         ? human ? ' --token <токен>' : ' --token <token>'
-        : source.kind === 'profile' && source.via === '--profile'
+        : source.kind === 'profile' && source.via !== 'active_profile'
           ? ` --profile ${source.profileName}`
           : '';
+
+    // A token from the environment may have been set for this one command
+    // (`PACHCA_TOKEN=… pachca …`): a bare `auth status` would then read another one.
+    const check = source.kind === 'env'
+      ? `PACHCA_TOKEN=${human ? '<токен>' : '<token>'} pachca auth status`
+      : 'pachca auth status';
 
     if (!human) {
       // A saved profile keeps the scope list from login, which may still name the
       // scope just refused: only the server's answer settles it.
       const remote = source.kind === 'profile' ? ' --remote' : '';
-      outputError({ ...err.details, hint: `pachca auth status${remote}${again}` }, format);
+      outputError({ ...err.details, hint: `${check}${remote}${again}` }, format);
       this.exit(3);
     }
 
@@ -293,10 +300,12 @@ export abstract class BaseCommand extends Command {
     const profile = resolved?.profile;
 
     process.stderr.write(`✗ Не хватает права${scope ? ` ${scope}` : ''}.\n`);
+    // A command's own check before any request (no HTTP status) says why it needs the right.
+    if (err.details.code === null) process.stderr.write(`  ${err.details.error}.\n`);
 
     if (!profile) {
       process.stderr.write(`  У токена ${scope ? 'этого' : 'нужного'} права нет.\n`);
-      process.stderr.write(`  Проверить токен и его права: pachca auth status${again}\n`);
+      process.stderr.write(`  Проверить токен и его права: ${check}${again}\n`);
       this.exit(3);
     }
 

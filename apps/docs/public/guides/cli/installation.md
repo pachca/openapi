@@ -5,6 +5,8 @@
 
 # Установка
 
+Требуется Node.js 20.3.0 или новее.
+
 ```bash
 # Глобальная установка
 npm install -g @pachca/cli
@@ -68,7 +70,7 @@ pachca config list
 ```bash
 pachca doctor
 
-# ✔ Node.js        v20.11.0 (требуется >=20)
+# ✔ Node.js        v20.11.0 (требуется >=20.3.0)
 # ✔ Сеть           api.pachca.com доступен (142ms)
 # ✔ Конфиг         /Users/ivan/.config/pachca/config.toml (права: 600)
 # ✔ Хранилище      хранилище ключей ОС, секрет читается

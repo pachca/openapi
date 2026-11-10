@@ -153,17 +153,24 @@ function parseRetryAfter(header: string | null): number | null {
   return Math.max(ms, 0);
 }
 
+/**
+ * Seconds to wait: the value asked for (a flag or `defaults.timeout`), else PACHCA_TIMEOUT, else 30.
+ * A value that is not a positive number means 30: a timeout of 0 would abort on the next tick,
+ * which is never what anyone means by `--timeout 0`. Timers take at most 2^31 - 1 ms.
+ */
+export function resolveTimeoutSeconds(requested?: unknown): number {
+  const rawEnvTimeout = process.env.PACHCA_TIMEOUT ? Number(process.env.PACHCA_TIMEOUT) : undefined;
+  const envTimeout = rawEnvTimeout && !Number.isNaN(rawEnvTimeout) ? rawEnvTimeout : undefined;
+  const value = Number(requested ?? envTimeout ?? DEFAULT_TIMEOUT);
+  return Number.isFinite(value) && value > 0 ? Math.min(value, 2_147_483) : DEFAULT_TIMEOUT;
+}
+
 export async function request(
   opts: RequestOptions,
   clientFlags?: ClientFlags,
 ): Promise<{ data: unknown; status: number; headers: Headers }> {
   const url = buildUrl(opts.path, opts.query);
-  const rawEnvTimeout = process.env.PACHCA_TIMEOUT ? Number(process.env.PACHCA_TIMEOUT) : undefined;
-  const envTimeout = rawEnvTimeout && !Number.isNaN(rawEnvTimeout) ? rawEnvTimeout : undefined;
-  const requestedTimeout = opts.timeout ?? clientFlags?.timeout ?? envTimeout ?? DEFAULT_TIMEOUT;
-  // A non-positive timeout aborts on the next tick, which is never what anyone
-  // means by `--timeout 0`. The env var already ignored 0; make the flag agree.
-  const timeoutSeconds = requestedTimeout > 0 ? requestedTimeout : DEFAULT_TIMEOUT;
+  const timeoutSeconds = resolveTimeoutSeconds(opts.timeout ?? clientFlags?.timeout);
   const noRetry = opts.noRetry ?? clientFlags?.['no-retry'] ?? false;
   const method = opts.method.toUpperCase();
   // The same set is retried after a 5xx and after a network error. A repeated

@@ -40,6 +40,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca bots list-events` | `GET` История событий |
 | `pachca bots list-scopes` | `GET` Каталог прав бота |
 | `pachca bots list-tokens` | `GET` Список токенов бота |
+| `pachca bots listen-events` | Слушать события бота в реальном времени |
 | `pachca bots recreate-token` | `POST` Ротация токена бота |
 | `pachca bots recreate-token-self` | `POST` Ротация собственного токена бота |
 | `pachca bots reissue-token` | `POST` Перевыпуск токена бота |

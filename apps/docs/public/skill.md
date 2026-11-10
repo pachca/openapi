@@ -55,9 +55,8 @@ Address `https://mcp.pachca.com/mcp`, transport Streamable HTTP. Choose how to s
 | Bot token in `Authorization: Bearer <token>`      | an agent with no employee present: a server, Yandex AI Studio, GigaChat                                                                                      | the bot                   | until deleted            |
 
 **With the Pachca plugin** the server is already configured: do not add a second one by hand, do what the
-table says for your client. Check the list (`claude mcp list`, `codex mcp list`, `copilot mcp list`,
-`agent mcp list` in Cursor). In Claude Code a server added by hand at the same address hides the plugin's
-server.
+table says for your client. Check the list (`claude mcp list`, `codex mcp list`, `copilot mcp list`, `agent mcp list`
+in Cursor). In Claude Code a server added by hand at the same address hides the plugin's server.
 
 | Client                      | Plugin's server                    | Sign in                                                                                                                                 |
 | --------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
@@ -70,19 +69,22 @@ server.
 **Without the plugin**, Claude Code and Codex:
 
 ```bash
-# Claude Code
-claude mcp add --transport http pachca https://mcp.pachca.com/mcp   # then /mcp; --scope user: all projects
-claude mcp login pachca                                              # from the terminal; with no browser, prints the link
+# Claude Code, all projects (without --scope user: this project only)
+claude mcp add --scope user --transport http pachca https://mcp.pachca.com/mcp   # then /mcp
+claude mcp login pachca                                              # the person, in their terminal; no browser: prints the link
 # Codex: CLI, IDE extension and ChatGPT desktop app share it. Adding starts the browser sign-in
 codex mcp add pachca --url https://mcp.pachca.com/mcp
-codex mcp login pachca                                               # retry; --no-browser prints the link
+codex mcp login pachca                                               # the person, in their terminal; --no-browser prints the link
 # Codex where nobody can sign in (CI): a personal token. Replaces a server of the same name, the plugin's too
 codex mcp add pachca --url https://mcp.pachca.com/mcp --bearer-token-env-var PACHCA_TOKEN
 ```
 
-GitHub Copilot CLI and VS Code, Gemini CLI, Devin, Qwen Code, GigaCode CLI, Cursor, OpenCode, the Claude app,
-the other clients, and installing the skills without the plugin:
-[references/mcp-clients.md](https://dev.pachca.com/.well-known/skills/pachca/references/mcp-clients.md).
+Look for `pachca_*` tools first: if you have them, add nothing. A sign-in started from your shell may never finish:
+ask the person to sign in (`/mcp` in Claude Code, `codex mcp login pachca` in their terminal), restart the program
+if no tools appear and send the request again. Report success only after `pachca_get_my_card` answers.
+
+GitHub Copilot CLI and VS Code, Gemini CLI, Devin, Qwen Code, GigaCode CLI, Cursor, OpenCode, the Claude app, the
+other clients, and the skills without the plugin: [references/mcp-clients.md](https://dev.pachca.com/.well-known/skills/pachca/references/mcp-clients.md).
 
 Do it right:
 

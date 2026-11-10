@@ -113,6 +113,12 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     `[С чего начать](${SITE_URL}/guides/bots/overview.md#s-chego-nachat), для подключения агента — ` +
     `[Как подключить Пачку к агенту](${SITE_URL}/guides/ai-agents/overview.md).\n`;
   content +=
+    '- **Как пользоваться Пачкой:** справка для сотрудников и администраторов — ' +
+    '[pachca.com/help-center](https://pachca.com/help-center), у каждой её страницы есть версия с `.md` ' +
+    'в конце адреса. Идеи рабочих процессов и ботов — раздел «Сценарии» в ' +
+    '[pachca.com/llms.txt](https://pachca.com/llms.txt). Только в веб-интерфейсе делаются переименование ' +
+    'пространства и его настройки, создание дополнительных полей и ссылка-приглашение.\n';
+  content +=
     '- **Пишешь код под API:** сначала прочитай скилл ' +
     `[pachca-api](${SITE_URL}/.well-known/skills/pachca-api/SKILL.md). Он на одной странице ` +
     'собирает выбор токена, корневой ключ тела, ответы другой формы, какие id строковые, время в UTC, ' +
@@ -311,7 +317,8 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     'Агенты в Yandex AI Studio и на GigaChat (GigaChain, `langchain-mcp-adapters`) подключаются токеном ' +
     'бота в том же заголовке. Claude Code с плагином «Пачка»: сервер уже есть и называется ' +
     '`plugin:pachca:pachca`, вход через `/mcp` или `claude mcp login plugin:pachca:pachca`. ' +
-    'Без плагина: `claude mcp add --transport http pachca https://mcp.pachca.com/mcp`, затем `/mcp` для входа.\n\n';
+    'Без плагина: `claude mcp add --scope user --transport http pachca https://mcp.pachca.com/mcp` ' +
+    '(флаг `--scope user` добавляет сервер во все проекты), затем `/mcp` для входа.\n\n';
   // What an admin asks first. One phrase per setting: the full rule with both
   // defaults lives on /api/authorization#kto-mozhet-sozdavat-tokeny.
   content +=

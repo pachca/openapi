@@ -30,7 +30,7 @@
 `https://mcp.pachca.com/mcp` — инструмент на каждый метод API. Какие инструменты видит агент, зависит от роли сотрудника, тарифа и типа токена. Claude Code, Claude, VS Code и GitHub Copilot, Codex и приложение ChatGPT на компьютере входят через браузер, остальные программы передают токен в заголовке. Сервер опубликован в официальном реестре MCP под именем `com.pachca/mcp`, описание для реестра — [`server.json`](server.json). Правила каждого метода сервер отдаёт в описаниях инструментов, а общие правила поведения — в своих инструкциях. Довести до конца задачу из нескольких шагов агенту помогают [скиллы](#скиллы-и-плагин): их ставят отдельно, одной командой.
 
 ```bash
-claude mcp add --transport http pachca https://mcp.pachca.com/mcp
+claude mcp add --scope user --transport http pachca https://mcp.pachca.com/mcp
 ```
 
 **Документация**: [dev.pachca.com/guides/mcp](https://dev.pachca.com/guides/mcp/overview) · **Подключение программ**: [dev.pachca.com/guides/mcp/connect](https://dev.pachca.com/guides/mcp/connect) · **Манифест инструментов**: [`@pachca/mcp-manifest`](packages/mcp-manifest)

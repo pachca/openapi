@@ -97,7 +97,28 @@ Claude Code подхватывает новые скиллы в той же се
 | `.agents/skills/` в проекте | Codex, Cursor и VS Code в этом проекте |
 | `.claude/skills/` в проекте | Claude Code, Cursor и VS Code в этом проекте |
 
-Если плагин «Пачка» стоит в одной из этих программ, для другого агента распакуйте скиллы в папку, которую читает только он, как в разделе [Установка вручную](#ustanovka-vruchnuyu), например в `~/.config/opencode/skills/` для OpenCode.
+С флагом `-g` команда кладёт скиллы для `codex`, `cursor`, `github-copilot`, `opencode`, `cline`, `kilo`, `gemini-cli` и `universal` в общую папку `~/.agents/skills/`, а для `claude-code` в `~/.claude/skills/`. Если в `-a` указан один агент, для `qwen-code` команда кладёт скиллы только в `~/.qwen/skills/`, а для `devin` только в `~/.config/devin/skills/`. Поэтому Qwen Code, а в macOS и Linux и Devin Desktop, команда подходит и тогда, когда плагин стоит в другой программе. В Windows Devin Desktop читает скиллы из `%APPDATA%\devin\skills\`, а команда кладёт их в `%USERPROFILE%\.config\devin\skills\`, поэтому там распакуйте скиллы вручную.
+
+Если плагин «Пачка» стоит в Claude Code, Codex, Cursor или VS Code, для другого агента распакуйте скиллы в папку, которую читает только он, как в разделе [Установка вручную](#ustanovka-vruchnuyu):
+
+| Программа | Своя папка скиллов |
+|---|---|
+| Cursor | `~/.cursor/skills/` |
+| VS Code и GitHub Copilot | `~/.copilot/skills/` |
+| OpenCode | `~/.config/opencode/skills/` |
+| Gemini CLI | `~/.gemini/skills/` |
+| Kilo Code | `~/.kilo/skills/` |
+| Cline | `~/.cline/skills/` |
+| Devin Desktop | `~/.config/devin/skills/`, в Windows `%APPDATA%\devin\skills\` |
+| Qwen Code | `~/.qwen/skills/` |
+| GigaCode CLI | `~/.gigacode/skills/` |
+| DeepSeek Harness | `~/.dsh/skills/`, в Windows `%USERPROFILE%\.dsh\skills\` |
+
+У Codex и Claude Code своей папки нет: `~/.agents/skills/` и `~/.claude/skills/` читают и Cursor, и VS Code. Если плагин стоит в другой программе, поставьте плагин «Пачка» и в Codex или Claude Code вместо команды. Расширение Codex для редактора плагины не ставит, поэтому, если плагин стоит в Cursor или VS Code, скиллы в расширение не ставьте.
+
+Если плагин стоит в Claude Code, Cursor подключает его сам, пока включено подключение плагинов Claude Code, как сказано в разделе [Cursor](/guides/ai-agents/plugin#cursor). Тогда в Cursor скиллы не ставьте. Если плагин стоит в Cursor, а нужен ещё и в Claude Code, поставьте его в Claude Code, а из Cursor удалите: при этой настройке Cursor подключит плагин из Claude Code.
+
+У SourceCraft Code Assistant своей папки тоже нет, он читает только `.agents/skills/` и `~/.agents/skills/`. Если плагин стоит в Codex, Cursor или VS Code, скиллы для SourceCraft не ставьте: в той программе каждый скилл окажется дважды.
 
 Поставленные скиллы обновляет команда:
 
@@ -113,17 +134,17 @@ npx skills update
 npx skills remove pachca-chats pachca-forms pachca-messages pachca-profile pachca-security pachca-tasks pachca-users -g -y
 ```
 
-У SourceCraft Code Assistant своего имени в команде нет. Он читает папки `.agents/skills/` проекта и `~/.agents/skills/`. В проект скиллы ставит команда:
+У SourceCraft Code Assistant своего имени в команде нет, поэтому скиллы для всех проектов ему ставит команда с агентом `universal`, она кладёт их в `~/.agents/skills/`:
 
 ```bash
-npx skills add https://dev.pachca.com -a universal -y
+npx skills add https://dev.pachca.com -g -a universal -y
 ```
 
-Для всех проектов распакуйте скиллы в `~/.agents/skills/`, как в разделе [Установка вручную](#ustanovka-vruchnuyu). Флаг `-g` с агентом `universal` не подходит: так скиллы попадут в папку, которую SourceCraft не читает. В GigaCode CLI скиллы ставятся [вручную](#ustanovka-vruchnuyu).
+Без `-g` команда поставит скиллы только в текущий проект. В GigaCode CLI скиллы ставятся [вручную](#ustanovka-vruchnuyu).
 
 ### Установка вручную
 
-Скиллы лежат на сайте архивами `https://dev.pachca.com/.well-known/agent-skills/<скилл>.tar.gz`. В архиве нет общей папки, поэтому каждый скилл распакуйте в папку с его именем: программа сверяет имя папки с именем скилла. Пример для папки `~/.agents/skills/`, которую читают Cursor, Codex, GitHub Copilot, OpenCode, Cline, Kilo Code, Gemini CLI, Devin Desktop и SourceCraft Code Assistant:
+Скиллы лежат на сайте архивами `https://dev.pachca.com/.well-known/agent-skills/<скилл>.tar.gz`. В архиве нет общей папки, поэтому каждый скилл распакуйте в папку с его именем: программа сверяет имя папки с именем скилла. Пример для папки `~/.agents/skills/`, которую читают Cursor, Codex, GitHub Copilot, OpenCode, Cline, Kilo Code, Gemini CLI, Devin Desktop, SourceCraft Code Assistant и DeepSeek Harness:
 
 ```bash
 for s in pachca pachca-messaging pachca-search pachca-watch-thread pachca-admin pachca-bots pachca-ai-agent pachca-oauth pachca-api; do
@@ -132,7 +153,7 @@ for s in pachca pachca-messaging pachca-search pachca-watch-thread pachca-admin 
 done
 ```
 
-Команда написана для macOS и Linux. В Windows распакуйте архивы так же, в папку `%USERPROFILE%\.agents\skills\<скилл>\`. Для Claude Code замените папку на `~/.claude/skills/`, для GigaCode CLI на `~/.gigacode/skills/`, для Qwen Code на `~/.qwen/skills/`. Чтобы обновить скиллы, выполните команду ещё раз.
+Команда написана для macOS и Linux. В Windows распакуйте архивы так же, в папку `%USERPROFILE%\.agents\skills\<скилл>\`. Для Claude Code замените папку на `~/.claude/skills/`, для GigaCode CLI на `~/.gigacode/skills/`, для Qwen Code на `~/.qwen/skills/`, для DeepSeek Harness на `~/.dsh/skills/`, для остальных программ на их папку из таблицы выше. Чтобы обновить скиллы, выполните команду ещё раз.
 
 Для приложения Claude те же скиллы лежат архивами ZIP с папкой скилла внутри: `https://dev.pachca.com/skills/<скилл>.zip`. Это путь без плагина: включите выполнение кода, как на первом шаге в разделе [Приложение Claude](/guides/ai-agents/plugin#prilozhenie-claude), и загрузите архив в **Customize** > **Skills** > **+** > **Create skill** > **Upload a skill**.
 

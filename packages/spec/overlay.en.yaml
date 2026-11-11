@@ -202,6 +202,46 @@ actions:
   - target: $.paths['/company/chats'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/company'].get
+    update:
+      description: |-
+        Workspace info
+
+        The workspace name, its owner, its plan and the main settings: showing personal data, cross-chat threads, and who may create personal tokens and integrations. The method works even when the workspace is blocked and other methods respond `402`.
+
+        The name, showing personal data and cross-chat threads are changed by [Edit workspace](PUT /company).
+  - target: $.paths['/company'].put
+    update:
+      description: |-
+        Edit workspace
+
+        Changes the workspace name, showing personal data and cross-chat threads. The fields are passed without a wrapper, and only the passed ones are overwritten. The response holds the whole workspace, as in the [Workspace info](GET /company) method.
+
+        The method is available to the workspace owner and administrators. A name that is too long is rejected with `422` and the `too_long` code, and a name that looks like spam with `422` and the `invalid` code. In both cases the error key is `company.name`.
+
+        Who may create personal tokens and integrations is not changed by the method.
+  - target: $.paths['/company/invite_link'].get
+    update:
+      description: |-
+        Invite link
+
+        The link by which an employee joins the workspace on their own. It is the same link an administrator gets in the interface: each administrator has their own, and the method returns the one of the token owner.
+
+        The link is valid for 14 days, and its expiry comes in `expires_at`. If there is no valid link or it has less than an hour left, the method issues a new one, and the previous one stops working. The link is reissued before its expiry by the [Reissue invite link](POST /company/invite_link) method.
+
+        Whoever joins by the link becomes an employee with the `user` role and no tags, and their `inviter_id` holds the owner of the link. Tags are given to them by [Edit employee](PUT /users/{id}).
+
+        The method is available to the workspace owner and administrators. While the workspace name looks like spam, no link is issued and the method responds `403`. Reading the link counts toward a [limit](/api/limits) shared with the lists of workspace chats and bots.
+  - target: $.paths['/company/invite_link'].post
+    update:
+      description: |-
+        Reissue invite link
+
+        Issues a new invite link of the token owner. The previous link of this administrator stops working at once, including one already sent out from the interface. The links of other administrators stay.
+
+        The method is needed when the link has reached outsiders or is replaced on schedule. The current link without reissuing is returned by [Invite link](GET /company/invite_link).
+
+        The method is available to the workspace owner and administrators. While the workspace name looks like spam, the method responds `403`.
   - target: $.paths['/chats/exports'].post
     update:
       description: |-
@@ -260,7 +300,7 @@ actions:
 
         Changes the name of a conversation or a channel and its availability. Both changes are visible to the members as a system message in the chat feed.
 
-        A direct chat cannot be renamed, and neither can an archived one: [Unarchive chat](PUT /chats/{id}/unarchive) it first. In a private chat the method is available to the chat owner and a chat administrator, in a public one to any employee of the workspace, even a non-member.
+        A direct chat cannot be renamed, and neither can an archived one: [Unarchive chat](PUT /chats/{id}/unarchive) it first. A thread has no name or availability, and for its `chat_id` the method responds `403`. The method is available only to the chat owner and a chat administrator, in a public chat and in a private one alike. Other members and those who are not in the chat receive `403`.
 
         The membership is not changed by this method; for that there are [Add chat members](POST /chats/{id}/members) and [Remove chat member](DELETE /chats/{id}/members/{user_id}).
 
@@ -663,7 +703,7 @@ actions:
 
         Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the [List users who read the message](GET /messages/{id}/read_member_ids) method. The text follows the same formatting rules as in the [New message](POST /messages) method.
 
-        You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. For a deleted message and a message of an archived chat the method responds `403`. There are no restrictions on how long ago the message was sent.
+        You can edit only your own messages, and only ordinary ones: for a system, a forwarded, a voice message and a sticker the method responds `403`. The same response comes for a deleted message and a message of an archived chat. There are no restrictions on how long ago the message was sent.
 
         Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.
   - target: $.paths['/messages/{id}'].put.parameters[?(@.name=='id')]
@@ -1157,7 +1197,7 @@ actions:
 
         Creates a thread that is not linked to anything: a place to talk, a dialogue with an agent, or a call that needs no chat of its own. Any employees can be gathered in it.
 
-        The thread creator becomes its only member and its owner: they can remove members and delete other people's messages in the thread, and they cannot be removed themselves. In older unattached threads the creator is an ordinary member: whether a thread has an owner is shown by [List chat members](GET /chats/{id}/members) with `role=owner`. The `message_id` and `message_chat_id` fields in the response are returned as `null`. Members are added by the [Add chat members](POST /chats/{id}/members) method by the `chat_id` of the thread. It sends no notification, so mention the people you added in the first message. A `@nickname` or `@tag` mention in a thread message adds members too, but only while the workspace setting "Use cross-chat threads" is on (the default), and its value cannot be read through the API.
+        The thread creator becomes its only member and its owner: they can remove members and delete other people's messages in the thread, and they cannot be removed themselves. In older unattached threads the creator is an ordinary member: whether a thread has an owner is shown by [List chat members](GET /chats/{id}/members) with `role=owner`. The `message_id` and `message_chat_id` fields in the response are returned as `null`. Members are added by the [Add chat members](POST /chats/{id}/members) method by the `chat_id` of the thread. It sends no notification, so mention the people you added in the first message. A `@nickname` or `@tag` mention in a thread message adds members too, but only while the workspace setting "Use cross-chat threads" is on (the default). Its value is shown by the `use_global_threads` field of the [Workspace info](GET /company) method.
 
         A thread has no name, so send the first message into it right away — that is how employees will understand what it is about. It is addressed by the thread's `id` with `entity_type: "thread"`. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a thread under it with the [New thread](POST /messages/{id}/thread) method, and if a permanent place with a name is needed, use the [New chat](POST /chats) method.
   - target: $.paths['/threads'].get
@@ -2124,6 +2164,66 @@ actions:
   - target: $.components.schemas.AvatarData.properties.image_url
     update:
       description: Avatar URL
+  - target: $.components.schemas.CompanyManagementAccess
+    update:
+      description: Who may use a feature in the workspace
+  - target: $.components.schemas.CompanyManagementAccess
+    update:
+      x-enum-descriptions:
+        all: All employees
+        admins: Administrators only
+  - target: $.components.schemas.Company
+    update:
+      description: Workspace
+  - target: $.components.schemas.Company.properties.id
+    update:
+      description: Workspace ID
+  - target: $.components.schemas.Company.properties.name
+    update:
+      description: Workspace name
+  - target: $.components.schemas.Company.properties.owner_id
+    update:
+      description: ID of the workspace owner
+  - target: $.components.schemas.Company.properties.show_personal_data
+    update:
+      description: Whether employees and bots see the `email` and `phone_number` of their colleagues. The owner and administrators always see them, guests and multi-guests do not.
+  - target: $.components.schemas.Company.properties.use_global_threads
+    update:
+      description: 'The "Use cross-chat threads" setting: with `true` a mention in a thread also adds to it an employee who is not in the parent chat.'
+  - target: $.components.schemas.Company.properties.integrations_management
+    update:
+      description: Who may use the integrations section, including creating bots and their tokens. Changed only in the interface.
+  - target: $.components.schemas.Company.properties.api_management
+    update:
+      description: Who may create personal tokens. With `admins`, other employees neither create tokens nor sign in through the browser and the CLI. Changed only in the interface.
+  - target: $.components.schemas.Company.properties.plan
+    update:
+      description: 'Plan name as shown in the interface. It always comes in Russian: the example here is translated.'
+      example: Corporation
+  - target: $.components.schemas.Company.properties.export_personal_chats
+    update:
+      description: Whether direct messages go into the [message export](/guides/export) with their text and threads. Comes only to the workspace owner.
+  - target: $.components.schemas.CompanyUpdateRequest
+    update:
+      description: New workspace values. The fields are passed without a wrapper, and only the passed ones are overwritten. The `api_management` and `integrations_management` fields in the body are ignored, and the response is successful.
+  - target: $.components.schemas.CompanyUpdateRequest.properties.name
+    update:
+      description: New workspace name
+  - target: $.components.schemas.CompanyUpdateRequest.properties.show_personal_data
+    update:
+      description: Whether employees and bots see the `email` and `phone_number` of their colleagues
+  - target: $.components.schemas.CompanyUpdateRequest.properties.use_global_threads
+    update:
+      description: Whether the "Use cross-chat threads" setting is on
+  - target: $.components.schemas.InviteLink
+    update:
+      description: Workspace invite link
+  - target: $.components.schemas.InviteLink.properties.url
+    update:
+      description: Link by which an employee joins the workspace
+  - target: $.components.schemas.InviteLink.properties.expires_at
+    update:
+      description: Date and time the link stops working (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
   - target: $.components.schemas.BotResponse
     update:
       description: Bot parameters
@@ -2595,7 +2695,7 @@ actions:
       description: ID of the user who created the chat
   - target: $.components.schemas.Chat.properties.member_ids
     update:
-      description: Array of member user IDs
+      description: Array of member IDs. Suspended and deleted employees are not included.
   - target: $.components.schemas.Chat.properties.group_tag_ids
     update:
       description: Array of member tag IDs
@@ -3355,7 +3455,7 @@ actions:
         thread message is recognised by `entity_type: "thread"`.
   - target: $.components.schemas.Message.properties.content
     update:
-      description: Message text
+      description: 'Message text. An empty string if there is no text: for example, in a message of attachments only or in a sticker. The sticker itself is not returned by the API, such a message comes with an empty `files`, and a sticker cannot be sent through the API.'
   - target: $.components.schemas.Message.properties.user_id
     update:
       description: ID of the user who created the message
@@ -3554,7 +3654,7 @@ actions:
       description: ID of the entity the message belongs to
   - target: $.components.schemas.MessageWebhookPayload.properties.content
     update:
-      description: Message text
+      description: 'Message text. An empty string if there is no text: for example, in a message of attachments only or in a sticker. The sticker itself does not make it into the event.'
   - target: $.components.schemas.MessageWebhookPayload.properties.user_id
     update:
       description: Message sender ID
@@ -3615,7 +3715,7 @@ actions:
         chats_read: View chats and chat list
         chats_create: Create new chats
         chats_update: Update chat settings
-        chats_mark_unread: Mark chats as unread
+        chats_mark_unread: Mark own chats as unread
         chats_archive: Archive and unarchive chats
         chats_leave: Leave chats
         chat_members_read: View chat members
@@ -3651,13 +3751,16 @@ actions:
         user_status_write: Update and delete employee status
         user_avatar_write: Update and delete employee avatar
         custom_properties_read: View custom properties
+        company_read: View workspace information and its settings
+        company_write: Change the workspace name and main settings
+        invite_links_write: Get and reissue the workspace invite link
         audit_events_read: View audit log
         company_chats_read: View the list of all workspace chats
         company_bots_read: View the list of all workspace bots
-        tasks_read: View tasks
-        tasks_create: Create tasks
-        tasks_update: Update task
-        tasks_delete: Delete task
+        tasks_read: View reminders
+        tasks_create: Create reminders
+        tasks_update: Update reminder
+        tasks_delete: Delete reminder
         files_read: Download files
         uploads_write: Get file upload data
         webhooks_events_read: View webhook logs
@@ -3685,13 +3788,15 @@ actions:
   - target: $.components.schemas.OpenViewRequest.properties.private_metadata
     update:
       description: >-
-        Optional string that will be sent to your application when the user submits the form. Use this field, for
-        example, to pass additional information in `JSON` format along with the form data.
+        Optional string that will come to your application when the employee submits the filled-in form. It can carry,
+        for example, additional data for the form in `JSON` format. A value that is too long is rejected with `422` and
+        the `invalid` code under the `private_metadata` key.
   - target: $.components.schemas.OpenViewRequest.properties.callback_id
     update:
       description: >-
-        Optional identifier for recognizing this view, which will be sent to your application when the user submits the
-        form. Use this field, for example, to determine which form the user was supposed to fill out.
+        Optional view identifier that will come to your application when the employee submits the filled-in form. It
+        tells, for example, which form the employee was filling in. A value that is too long is rejected with `422` and
+        the `invalid` code under the `callback_id` key.
   - target: $.components.schemas.OpenViewRequest.properties.view
     update:
       description: View object
@@ -3753,7 +3858,7 @@ actions:
       description: Reaction creation request
   - target: $.components.schemas.ReactionRequest.properties.code
     update:
-      description: "Reaction emoji character. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value of up to 16 characters fits: it is stored as passed."
+      description: "Reaction emoji character. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value of up to 16 characters fits: it is stored as passed. A longer one gets `400` with the `too_long` code."
   - target: $.components.schemas.ReactionRequest.properties.name
     update:
       description: "Name of a custom emoji of the workspace. With it, the reaction is that emoji, and if the workspace has no such emoji, the response is `404`."

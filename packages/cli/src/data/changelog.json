@@ -1,5 +1,21 @@
 [
   {
+    "version": "2026.11.3",
+    "date": "11 ноября 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "company get, company update",
+        "description": "Название, владелец, тариф и настройки пространства, смена названия, показа личных данных и сквозных тредов"
+      },
+      {
+        "type": "+",
+        "command": "company get-invite-link, company reissue-invite-link",
+        "description": "Ссылка-приглашение администратора и её перевыпуск: прежняя ссылка сразу перестаёт работать"
+      }
+    ]
+  },
+  {
     "version": "2026.11.2",
     "date": "10 ноября 2026",
     "changes": [

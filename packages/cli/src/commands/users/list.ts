@@ -16,7 +16,7 @@ export default class UsersList extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'query': Flags.string({
-      description: "Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `nickname` (никнейм), `title` (должность) и `department` (департамент). Если вызывающему видны персональные данные (правило то же, что у поля `email`), поиск идёт ещё по `phone_number` (телефон), значениям дополнительных полей и по полному адресу `email`.",
+      description: "Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `nickname` (никнейм), `title` (должность) и `department` (департамент). Если вызывающему видны личные данные (правило то же, что у поля `email`), поиск идёт ещё по `phone_number` (телефон), значениям дополнительных полей и по полному адресу `email`.",
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',

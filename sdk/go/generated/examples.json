@@ -240,6 +240,25 @@
   "ChatMemberOperations_removeMember": {
     "usage": "client.Members.RemoveMember(ctx, int32(334), int32(186))"
   },
+  "CompanyOperations_getCompany": {
+    "usage": "response, err := client.Company.GetCompany(ctx)",
+    "output": "Company{ID: int32, Name: string, OwnerID: int32, ShowPersonalData: bool, UseGlobalThreads: bool, IntegrationsManagement: CompanyManagementAccess, ApiManagement: CompanyManagementAccess, Plan: string, ExportPersonalChats: *bool}"
+  },
+  "CompanyOperations_getInviteLink": {
+    "usage": "response, err := client.Company.GetInviteLink(ctx)",
+    "output": "InviteLink{URL: string, ExpiresAt: time.Time}"
+  },
+  "CompanyOperations_reissueInviteLink": {
+    "usage": "response, err := client.Company.ReissueInviteLink(ctx)",
+    "output": "InviteLink{URL: string, ExpiresAt: time.Time}"
+  },
+  "CompanyOperations_updateCompany": {
+    "usage": "request := pachca.CompanyUpdateRequest{\n\tName: pachca.Ptr(\"Синий склад\"),\n\tShowPersonalData: pachca.Ptr(false),\n\tUseGlobalThreads: pachca.Ptr(true),\n}\nresponse, err := client.Company.UpdateCompany(ctx, request)",
+    "output": "Company{ID: int32, Name: string, OwnerID: int32, ShowPersonalData: bool, UseGlobalThreads: bool, IntegrationsManagement: CompanyManagementAccess, ApiManagement: CompanyManagementAccess, Plan: string, ExportPersonalChats: *bool}",
+    "imports": [
+      "CompanyUpdateRequest"
+    ]
+  },
   "CommonOperations_listProperties": {
     "usage": "params := pachca.ListPropertiesParams{\n\tEntityType: pachca.SearchEntityTypeUser,\n}\nresponse, err := client.CustomProperties.ListProperties(ctx, params)",
     "output": "ListPropertiesResponse{Data: []CustomPropertyDefinition}",

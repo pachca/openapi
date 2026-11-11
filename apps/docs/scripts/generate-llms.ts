@@ -116,8 +116,9 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     '- **Как пользоваться Пачкой:** справка для сотрудников и администраторов — ' +
     '[pachca.com/help-center](https://pachca.com/help-center), у каждой её страницы есть версия с `.md` ' +
     'в конце адреса. Идеи рабочих процессов и ботов — раздел «Сценарии» в ' +
-    '[pachca.com/llms.txt](https://pachca.com/llms.txt). Только в веб-интерфейсе делаются переименование ' +
-    'пространства и его настройки, создание дополнительных полей и ссылка-приглашение.\n';
+    '[pachca.com/llms.txt](https://pachca.com/llms.txt). Через API меняются только название пространства, ' +
+    'показ личных данных и сквозные треды (`PUT /company`). Остальные настройки пространства и создание ' +
+    'дополнительных полей есть только в веб-интерфейсе.\n';
   content +=
     '- **Пишешь код под API:** сначала прочитай скилл ' +
     `[pachca-api](${SITE_URL}/.well-known/skills/pachca-api/SKILL.md). Он на одной странице ` +
@@ -262,7 +263,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content +=
     '| Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
   content +=
-    '| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.9.1")`, репозиторий `maven("https://jitpack.io")` |\n';
+    '| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.9.2")`, репозиторий `maven("https://jitpack.io")` |\n';
   content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n';
   content += '| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |\n\n';
   content += 'Конвенции:\n';
@@ -658,7 +659,7 @@ function generateLibraryRules(): string {
 | TypeScript | \`@pachca/sdk\` | \`npm install @pachca/sdk\` |
 | Python | \`pachca-sdk\` | \`pip install pachca-sdk\` |
 | Go | \`github.com/pachca/openapi/sdk/go/generated\` | \`go get github.com/pachca/openapi/sdk/go/generated\` |
-| Kotlin | \`com.github.pachca:openapi\` | \`implementation("com.github.pachca:openapi:1.9.1")\`, repository \`maven("https://jitpack.io")\` |
+| Kotlin | \`com.github.pachca:openapi\` | \`implementation("com.github.pachca:openapi:1.9.2")\`, repository \`maven("https://jitpack.io")\` |
 | Swift | \`PachcaSDK\` | SPM: \`https://github.com/pachca/openapi\` |
 | C# | \`Pachca.Sdk\` | \`dotnet add package Pachca.Sdk\` |
 

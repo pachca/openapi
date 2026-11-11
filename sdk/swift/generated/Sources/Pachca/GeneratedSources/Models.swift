@@ -750,6 +750,47 @@ public enum ChatSubtype: String, Codable, CaseIterable {
     case thread
 }
 
+public enum CompanyManagementAccess: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Все сотрудники
+    case all
+    /// Только администраторы
+    case admins
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [CompanyManagementAccess] = [.all, .admins]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "all": self = .all
+        case "admins": self = .admins
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .all: return "all"
+        case .admins: return "admins"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
 public enum CustomPropertyDataType: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Строковое значение
     case string
@@ -1193,7 +1234,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case chatsCreate
     /// Изменение настроек чата
     case chatsUpdate
-    /// Отметка чатов непрочитанными
+    /// Отметка собственных чатов непрочитанными
     case chatsMarkUnread
     /// Архивация и разархивация чатов
     case chatsArchive
@@ -1263,19 +1304,25 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case userAvatarWrite
     /// Просмотр дополнительных полей
     case customPropertiesRead
+    /// Просмотр информации о пространстве и его настроек
+    case companyRead
+    /// Изменение названия пространства и основных настроек
+    case companyWrite
+    /// Получение и перевыпуск ссылки-приглашения в пространство
+    case inviteLinksWrite
     /// Просмотр журнала аудита
     case auditEventsRead
     /// Просмотр списка всех чатов пространства
     case companyChatsRead
     /// Просмотр списка всех ботов пространства
     case companyBotsRead
-    /// Просмотр задач
+    /// Просмотр напоминаний
     case tasksRead
-    /// Создание задач
+    /// Создание напоминаний
     case tasksCreate
-    /// Изменение задачи
+    /// Изменение напоминания
     case tasksUpdate
-    /// Удаление задачи
+    /// Удаление напоминания
     case tasksDelete
     /// Скачивание файлов
     case filesRead
@@ -1287,11 +1334,11 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case webhooksEventsRead
     /// Удаление записи в логе вебхука
     case webhooksEventsDelete
-    /// Поиск сотрудников
+    /// Поиск по сотрудникам
     case searchUsers
-    /// Поиск чатов
+    /// Поиск по чатам
     case searchChats
-    /// Поиск сообщений
+    /// Поиск по сообщениям
     case searchMessages
     /// Просмотр черновиков и отложенных сообщений
     case draftsRead
@@ -1305,7 +1352,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .uploadsWrite, .viewsWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
+    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .companyRead, .companyWrite, .inviteLinksWrite, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .uploadsWrite, .viewsWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -1347,6 +1394,9 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case "user_status:write": self = .userStatusWrite
         case "user_avatar:write": self = .userAvatarWrite
         case "custom_properties:read": self = .customPropertiesRead
+        case "company:read": self = .companyRead
+        case "company:write": self = .companyWrite
+        case "invite_links:write": self = .inviteLinksWrite
         case "audit_events:read": self = .auditEventsRead
         case "company_chats:read": self = .companyChatsRead
         case "company_bots:read": self = .companyBotsRead
@@ -1414,6 +1464,9 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case .userStatusWrite: return "user_status:write"
         case .userAvatarWrite: return "user_avatar:write"
         case .customPropertiesRead: return "custom_properties:read"
+        case .companyRead: return "company:read"
+        case .companyWrite: return "company:write"
+        case .inviteLinksWrite: return "invite_links:write"
         case .auditEventsRead: return "audit_events:read"
         case .companyChatsRead: return "company_chats:read"
         case .companyBotsRead: return "company_bots:read"
@@ -4064,6 +4117,42 @@ public struct ChatUpdateRequest: Codable {
     }
 }
 
+public struct Company: Codable {
+    public let id: Int
+    public let name: String
+    public let ownerId: Int
+    public let showPersonalData: Bool
+    public let useGlobalThreads: Bool
+    public let integrationsManagement: CompanyManagementAccess
+    public let apiManagement: CompanyManagementAccess
+    public let plan: String
+    public let exportPersonalChats: Bool?
+
+    public init(id: Int, name: String, ownerId: Int, showPersonalData: Bool, useGlobalThreads: Bool, integrationsManagement: CompanyManagementAccess, apiManagement: CompanyManagementAccess, plan: String, exportPersonalChats: Bool? = nil) {
+        self.id = id
+        self.name = name
+        self.ownerId = ownerId
+        self.showPersonalData = showPersonalData
+        self.useGlobalThreads = useGlobalThreads
+        self.integrationsManagement = integrationsManagement
+        self.apiManagement = apiManagement
+        self.plan = plan
+        self.exportPersonalChats = exportPersonalChats
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case ownerId = "owner_id"
+        case showPersonalData = "show_personal_data"
+        case useGlobalThreads = "use_global_threads"
+        case integrationsManagement = "integrations_management"
+        case apiManagement = "api_management"
+        case plan
+        case exportPersonalChats = "export_personal_chats"
+    }
+}
+
 public struct CompanyBotResponse: Codable {
     public let id: Int
     public let oauthClient: BotOAuthClient?
@@ -4160,6 +4249,24 @@ public struct CompanyMemberWebhookPayload: Codable {
         case userIds = "user_ids"
         case createdAt = "created_at"
         case webhookTimestamp = "webhook_timestamp"
+    }
+}
+
+public struct CompanyUpdateRequest: Codable {
+    public let name: String?
+    public let showPersonalData: Bool?
+    public let useGlobalThreads: Bool?
+
+    public init(name: String? = nil, showPersonalData: Bool? = nil, useGlobalThreads: Bool? = nil) {
+        self.name = name
+        self.showPersonalData = showPersonalData
+        self.useGlobalThreads = useGlobalThreads
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case showPersonalData = "show_personal_data"
+        case useGlobalThreads = "use_global_threads"
     }
 }
 
@@ -4705,6 +4812,21 @@ public struct ImportantMessageRequest: Codable {
 
     enum CodingKeys: String, CodingKey {
         case messageId = "message_id"
+    }
+}
+
+public struct InviteLink: Codable {
+    public let url: String
+    public let expiresAt: String
+
+    public init(url: String, expiresAt: String) {
+        self.url = url
+        self.expiresAt = expiresAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case url
+        case expiresAt = "expires_at"
     }
 }
 
@@ -7075,6 +7197,14 @@ struct ChatDataWrapper: Codable {
 
 struct ChatExportDataWrapper: Codable {
     let data: ChatExport
+}
+
+struct CompanyDataWrapper: Codable {
+    let data: Company
+}
+
+struct InviteLinkDataWrapper: Codable {
+    let data: InviteLink
 }
 
 struct DraftDataWrapper: Codable {

@@ -21,7 +21,7 @@ export default class ReactionsAdd extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'code': Flags.string({
-      description: "Emoji символ реакции. Без `name` нужен именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи. С `name` подходит любое непустое значение до 16 символов: оно сохраняется как передано. (макс. 16 символов)",
+      description: "Emoji символ реакции. Без `name` нужен именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи. С `name` подходит любое непустое значение до 16 символов: оно сохраняется как передано. Длиннее — `400` с кодом `too_long`. (макс. 16 символов)",
     }),
     'name': Flags.string({
       description: "Имя кастомного эмодзи пространства. С ним реакцией ставится этот эмодзи, а если его в пространстве нет, ответ `404`.",
@@ -33,7 +33,7 @@ export default class ReactionsAdd extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'code', label: "Emoji символ реакции. Без `name` нужен именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи. С `name` подходит любое непустое значение до 16 символов: оно сохраняется как передано.", type: 'string' },
+      { flag: 'code', label: "Emoji символ реакции. Без `name` нужен именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи. С `name` подходит любое непустое значение до 16 символов: оно сохраняется как передано. Длиннее — `400` с кодом `too_long`.", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {

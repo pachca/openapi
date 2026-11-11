@@ -322,7 +322,7 @@ export const botFields: INodeProperties[] = [
 				name: 'singleChat',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don\'t count toward this limit.',
+				description: 'Whether to restrict the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don\'t count toward this limit.',
 			},
 			{
 				displayName: 'Template',
@@ -544,7 +544,7 @@ export const botFields: INodeProperties[] = [
 				name: 'singleChat',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don\'t count toward this limit.',
+				description: 'Whether to restrict the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don\'t count toward this limit.',
 			},
 			{
 				displayName: 'Template',

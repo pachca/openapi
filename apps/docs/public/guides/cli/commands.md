@@ -65,6 +65,10 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca chats update` | `PUT` Редактирование чата |
 | `pachca chats update-avatar` | `PUT` Загрузка аватара чата |
 | `pachca commands` | Список всех команд |
+| `pachca company get` | `GET` Информация о пространстве |
+| `pachca company get-invite-link` | `GET` Ссылка-приглашение |
+| `pachca company reissue-invite-link` | `POST` Перевыпуск ссылки-приглашения |
+| `pachca company update` | `PUT` Редактирование пространства |
 | `pachca config get` | Получение значения конфигурации |
 | `pachca config list` | Список всех настроек |
 | `pachca config set` | Установка значения конфигурации |

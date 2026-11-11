@@ -161,10 +161,10 @@ employee sees how long the agent has been working. The timer runs up to 5 minute
 
 - **Add** with `name` set to `agent-thinking`, without colons: custom reaction
   names never have them. `code` is required too: once `name` is set, `name`
-  picks the reaction and any non-empty `code` goes, for example `⏳`. The
-  [Add reaction](https://dev.pachca.com/api/reactions/add.md) page describes
-  standard emoji, so its `code` rule and its `:+1:` example for `name` do not
-  apply here.
+  picks the reaction and any non-empty `code` of up to 16 characters goes, for
+  example `⏳`. A longer `code` gets `400` with `too_long`. The `:+1:` example
+  for `name` on the [Add reaction](https://dev.pachca.com/api/reactions/add.md)
+  page is a standard emoji's name and does not apply here.
 - **No such reaction** in the workspace: the call returns `404`, the same
   status as for a message the bot cannot see. Treat it as "no indicator" and
   keep working: do not retry and do not abort the task.

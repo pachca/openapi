@@ -495,6 +495,7 @@ function tagToResource(tag: string): string {
     'Files': 'file',
     'Drafts': 'draft',
     'Important messages': 'importantMessage',
+    'Company': 'company',
   };
   if (MAP[tag]) return MAP[tag];
   // Fallback for an unmapped tag. Must produce a valid camelCase identifier:
@@ -519,6 +520,9 @@ function resourceDisplayName(resource: string): string {
     bot: 'Bot', file: 'File', form: 'Form', readMember: 'Read Member',
     oauth: 'OAuth', search: 'Search', security: 'Security', draft: 'Draft',
     importantMessage: 'Important Message',
+    // Пространство в API зовётся company, а в продукте и английской доке — workspace:
+    // значение ресурса идёт по пути, название — по продукту, как task → Reminder.
+    company: 'Workspace',
   };
   return MAP[resource] || snakeToPascal(resource);
 }
@@ -567,6 +571,9 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
   if (ep.path === '/bots/{id}/tokens/{token_id}/reissue' && method === 'POST') return 'reissueToken';
   if (ep.path === '/bots/{id}/rotate_client_secret' && method === 'POST') return 'rotateClientSecret';
   if (ep.path === '/chats/{id}/unread' && method === 'PUT') return 'markUnread';
+  // Перевыпуск ссылки-приглашения: без пина POST даёт "addInviteLink" и читается как вторая ссылка,
+  // хотя прежняя перестаёт работать.
+  if (ep.path === '/company/invite_link' && method === 'POST') return 'reissueInviteLink';
 
   // Sub-resource action paths (e.g., /users/{id}/status → getStatus, updateStatus)
   // When last static segment differs from the resource root and is NOT a CRUD collection
@@ -639,6 +646,7 @@ function operationDisplayName(op: string): string {
     getAllCompanyChats: 'Get Many Workspace Chats', getAllCompanyBots: 'Get Many Workspace Bots',
     createToken: 'Create Token', updateToken: 'Update Token', deleteToken: 'Delete Token',
     reissueToken: 'Reissue Token', rotateClientSecret: 'Rotate Client Secret', markUnread: 'Mark Unread',
+    getInviteLink: 'Get Invite Link', reissueInviteLink: 'Reissue Invite Link',
   };
   if (MAP[op]) return MAP[op];
   // Sub-resource operations: "getAllStatus" → "Get Many Status", "updateMembers" → "Update Members"
@@ -714,6 +722,8 @@ function actionLabel(op: string, resourceName: string, resource?: string): strin
     getScopes: 'Get bot scope catalog',
     rotateClientSecret: 'Rotate bot client secret',
     markUnread: 'Mark a chat as unread',
+    getInviteLink: 'Get the workspace invite link',
+    reissueInviteLink: 'Reissue the workspace invite link',
   };
   if (ALIAS_LABELS[op]) return ALIAS_LABELS[op];
 
@@ -836,7 +846,19 @@ function getQueryArrayItemType(param: Parameter): 'int' | 'string' {
 function booleanDescription(desc?: string): string {
   if (!desc) return 'Whether to enable this option';
   if (desc.startsWith('Whether')) return desc;
-  return `Whether to ${desc.charAt(0).toLowerCase()}${desc.slice(1)}`;
+  // «With `true`, X» says what holds when the box is ticked, which is what «Whether X» says.
+  const withTrue = /^With `true`,?\s+/.exec(desc);
+  if (withTrue) return `Whether ${desc.slice(withTrue[0].length)}`;
+  // A description that opens with a verb in the third person («Turns the setting on», «Restricts the bot»)
+  // takes its base form after «Whether to»: otherwise it reads «Whether to turns».
+  const [first, ...rest] = desc.split(' ');
+  const word = `${first.charAt(0).toLowerCase()}${first.slice(1)}`;
+  const base = /^[a-z]{2,}(sh|ch|ss|x|z)es$/.test(word)
+    ? word.slice(0, -2)
+    : /^[a-z]{3,}[^su]s$/.test(word)
+      ? word.slice(0, -1)
+      : word;
+  return `Whether to ${[base, ...rest].join(' ')}`;
 }
 
 // ============================================================================

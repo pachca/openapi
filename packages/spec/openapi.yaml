@@ -6,6 +6,7 @@ tags:
   - name: OAuth
   - name: Chats
   - name: Profile
+  - name: Company
   - name: Users
   - name: Group tags
   - name: Members
@@ -2324,7 +2325,7 @@ paths:
 
         Меняет название беседы или канала и его доступность. Оба изменения видны участникам системным сообщением в ленте чата.
 
-        Личный чат переименовать нельзя, архивный — тоже: сначала верните его из архива методом [Разархивация чата](PUT /chats/{id}/unarchive). В закрытом чате метод доступен владельцу и администратору чата, в открытом — любому сотруднику пространства, даже не участнику.
+        Личный чат переименовать нельзя, архивный — тоже: сначала верните его из архива методом [Разархивация чата](PUT /chats/{id}/unarchive). У треда названия и доступности нет, и на его `chat_id` метод отвечает `403`. Метод доступен только владельцу и администратору чата, и в открытом чате, и в закрытом. Остальным участникам и тем, кто в чате не состоит, он отвечает `403`.
 
         Состав участников этим методом не меняется, для него есть [Добавление участников](POST /chats/{id}/members) и [Исключение участника](DELETE /chats/{id}/members/{user_id}).
 
@@ -3277,6 +3278,113 @@ paths:
               message_id: 1194275
       x-requirements:
         scope: chats:mark_unread
+  /company:
+    get:
+      operationId: CompanyOperations_getCompany
+      description: |-
+        Информация о пространстве
+
+        Название пространства, его владелец, тариф и основные настройки: показ личных данных, сквозные треды, кто может создавать персональные токены и интеграции. Метод работает, даже когда пространство заблокировано и другие методы отвечают `402`.
+
+        Название, показ личных данных и сквозные треды меняет [Редактирование пространства](PUT /company).
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Company'
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Company
+      x-requirements:
+        scope: company:read
+    put:
+      operationId: CompanyOperations_updateCompany
+      description: |-
+        Редактирование пространства
+
+        Меняет название пространства, показ личных данных и сквозные треды. Поля передаются без обёртки, перезаписываются только переданные. В ответе приходит пространство целиком, как в методе [Информация о пространстве](GET /company).
+
+        Метод доступен владельцу и администраторам пространства. Слишком длинное название отклоняется с `422` и кодом `too_long`, а название, похожее на спам, с `422` и кодом `invalid`. Ключ ошибки в обоих случаях `company.name`.
+
+        Кто может создавать персональные токены и интеграции, метод не меняет.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Company'
+                description: Обертка ответа с данными
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Company
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyUpdateRequest'
+      x-requirements:
+        scope: company:write
   /company/bots:
     get:
       operationId: CompanyBotOperations_listCompanyBots
@@ -3516,6 +3624,105 @@ paths:
       x-requirements:
         scope: company_chats:read
         plan: corporation
+  /company/invite_link:
+    get:
+      operationId: CompanyOperations_getInviteLink
+      description: |-
+        Ссылка-приглашение
+
+        Ссылка, по которой сотрудник сам входит в пространство. Это та же ссылка, что администратор получает в интерфейсе: у каждого администратора она своя, и метод отдаёт ссылку владельца токена.
+
+        Ссылка действует 14 дней, срок приходит в `expires_at`. Если действующей ссылки нет или ей осталось меньше часа, метод выпускает новую, а прежняя перестаёт работать. Перевыпустить ссылку раньше срока можно методом [Перевыпуск ссылки-приглашения](POST /company/invite_link).
+
+        Вошедший по ссылке становится сотрудником с ролью `user` и без тегов, а в его `inviter_id` записан владелец ссылки. Теги ему назначает [Редактирование сотрудника](PUT /users/{id}).
+
+        Метод доступен владельцу и администраторам пространства. Пока название пространства похоже на спам, ссылка не выдаётся и метод отвечает `403`. Чтение ссылки входит в общий [лимит](/api/limits) со списками чатов и ботов пространства.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InviteLink'
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Company
+      x-requirements:
+        scope: invite_links:write
+    post:
+      operationId: CompanyOperations_reissueInviteLink
+      description: |-
+        Перевыпуск ссылки-приглашения
+
+        Выпускает новую ссылку-приглашение владельца токена. Прежняя ссылка этого администратора сразу перестаёт работать, в том числе уже разосланная из интерфейса. Ссылки других администраторов остаются.
+
+        Метод нужен, когда ссылка попала к посторонним или её меняют по плану. Текущую ссылку без перевыпуска отдаёт [Ссылка-приглашение](GET /company/invite_link).
+
+        Метод доступен владельцу и администраторам пространства. Пока название пространства похоже на спам, метод отвечает `403`.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InviteLink'
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Company
+      x-requirements:
+        scope: invite_links:write
   /custom_properties:
     get:
       operationId: CommonOperations_listProperties
@@ -5082,7 +5289,7 @@ paths:
 
         Меняет текст, файлы и кнопки уже отправленного сообщения. В интерфейсе у него появляется пометка о правке, а уведомлений правка не присылает и непрочитанным сообщение не делает: кто его уже прочитал, изменений не заметит. Кто прочитал, показывает метод [Список прочитавших сообщение](GET /messages/{id}/read_member_ids). Текст оформляется по тем же правилам, что и в методе [Новое сообщение](POST /messages).
 
-        Править можно только свои сообщения, и только обычные: системное, пересланное и голосовое метод не меняет. На удалённое сообщение и сообщение архивного чата метод отвечает `403`. Ограничений по давности отправки нет.
+        Править можно только свои сообщения, и только обычные: на системное, пересланное, голосовое сообщение и стикер метод отвечает `403`. Тот же ответ придёт на удалённое сообщение и сообщение архивного чата. Ограничений по давности отправки нет.
 
         Файлы и кнопки заменяются целиком: пустой массив снимает их все, а отсутствие поля в теле оставляет как было. Любая правка убирает превью ссылок, и заново оно не строится.
       parameters:
@@ -6658,7 +6865,7 @@ paths:
 
         Ищет сотрудников по имени и фамилии, нику, должности и отделу. Опечатки прощаются только в имени и фамилии, остальным полям нужно точное слово.
 
-        По почте метод ищет лишь тем, кому в пространстве видны персональные данные. По телефону он не ищет вовсе — для этого есть [Список сотрудников](GET /users) с параметром `query`.
+        По почте метод ищет лишь тем, кому в пространстве видны личные данные. По телефону он не ищет вовсе — для этого есть [Список сотрудников](GET /users) с параметром `query`.
 
         Удалённые сотрудники не находятся никогда, приостановленные — только когда задан текстовый запрос, и стоят в выдаче ниже остальных. Из ботов находятся лишь публичные.
 
@@ -7229,7 +7436,7 @@ paths:
 
         Заводит тред, который ни к чему не привязан: место для разговора, диалога с агентом или звонка, которому не нужен отдельный чат. Собрать в нём можно любых сотрудников.
 
-        Создатель треда становится его единственным участником и владельцем: он может исключать участников и удалять чужие сообщения в треде, а его самого исключить нельзя. В более старых самостоятельных тредах создатель — обычный участник: есть ли у треда владелец, показывает [Список участников чата](GET /chats/{id}/members) с `role=owner`. Поля `message_id` и `message_chat_id` в ответе возвращаются как `null`. Участников добавляет метод [Добавление участников](POST /chats/{id}/members) по `chat_id` треда. Уведомления он не присылает, поэтому в первом сообщении упомяните добавленных. Упоминание `@ник` или `@тег` в сообщении треда тоже добавляет участников, но только пока в пространстве включена настройка «Использовать сквозные треды» (так по умолчанию), а через API её значение не узнать.
+        Создатель треда становится его единственным участником и владельцем: он может исключать участников и удалять чужие сообщения в треде, а его самого исключить нельзя. В более старых самостоятельных тредах создатель — обычный участник: есть ли у треда владелец, показывает [Список участников чата](GET /chats/{id}/members) с `role=owner`. Поля `message_id` и `message_chat_id` в ответе возвращаются как `null`. Участников добавляет метод [Добавление участников](POST /chats/{id}/members) по `chat_id` треда. Уведомления он не присылает, поэтому в первом сообщении упомяните добавленных. Упоминание `@ник` или `@тег` в сообщении треда тоже добавляет участников, но только пока в пространстве включена настройка «Использовать сквозные треды» (так по умолчанию). Её значение показывает поле `use_global_threads` метода [Информация о пространстве](GET /company).
 
         Названия у треда нет, поэтому сразу отправьте в него первое сообщение — по нему сотрудники и поймут, о чём речь. Его адресуют `id` треда с `entity_type: "thread"`. Удалить тред нельзя. Если обсуждать нужно конкретное сообщение в чате, заводите тред под ним методом [Новый тред](POST /messages/{id}/thread), а если нужно постоянное место с названием — создайте его методом [Новый чат](POST /chats).
       parameters: []
@@ -7598,7 +7805,7 @@ paths:
 
         Мульти-гостю метод отдаёт не всё пространство, а тех, кого он видит в интерфейсе: его самого, участников общих с ним чатов вместе с ботами и публичных ботов. Треды и архивные чаты общими не считаются.
 
-        Почта и телефон приходят `null`, если в пространстве выключен показ персональных данных, а вызывающий не администратор. Мульти-гостю они всегда приходят `null`.
+        Почта и телефон приходят `null`, если в пространстве выключен показ личных данных, а вызывающий не администратор. Мульти-гостю они всегда приходят `null`.
 
         Поиск по `query` может не уложиться по времени: тогда метод отвечает `504` с кодом `timeout`, и запрос стоит сузить.
 
@@ -7607,7 +7814,7 @@ paths:
         - name: query
           in: query
           required: false
-          description: 'Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `nickname` (никнейм), `title` (должность) и `department` (департамент). Если вызывающему видны персональные данные (правило то же, что у поля `email`), поиск идёт ещё по `phone_number` (телефон), значениям дополнительных полей и по полному адресу `email`.'
+          description: 'Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `nickname` (никнейм), `title` (должность) и `department` (департамент). Если вызывающему видны личные данные (правило то же, что у поля `email`), поиск идёт ещё по `phone_number` (телефон), значениям дополнительных полей и по полному адресу `email`.'
           schema:
             type: string
             example: Олег
@@ -7708,7 +7915,7 @@ paths:
 
         Мульти-гостю метод отдаёт только тех, кто приходит ему в [Список сотрудников](GET /users), а на остальных отвечает `404`.
 
-        Почта и телефон приходят `null`, если в пространстве выключен показ персональных данных, а вызывающий не администратор. Мульти-гостю они всегда приходят `null`. Свою карточку сотрудник видит целиком — она же отдаётся методом [Свой профиль](GET /profile) и без скоупа `users:read`.
+        Почта и телефон приходят `null`, если в пространстве выключен показ личных данных, а вызывающий не администратор. Мульти-гостю они всегда приходят `null`. Свою карточку сотрудник видит целиком — она же отдаётся методом [Свой профиль](GET /profile) и без скоупа `users:read`.
       parameters:
         - name: id
           in: path
@@ -11284,7 +11491,7 @@ components:
           items:
             type: integer
             format: int32
-          description: Массив идентификаторов пользователей, участников
+          description: Массив идентификаторов участников. Приостановленные и удалённые сотрудники в него не входят.
           example:
             - 185
             - 186
@@ -11519,6 +11726,59 @@ components:
               example: true
           description: Собранный объект параметров обновляемого чата
       description: Запрос на обновление чата
+    Company:
+      type: object
+      required:
+        - id
+        - name
+        - owner_id
+        - show_personal_data
+        - use_global_threads
+        - integrations_management
+        - api_management
+        - plan
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор пространства
+          example: 4372
+        name:
+          type: string
+          description: Название пространства
+          example: Синий склад
+        owner_id:
+          type: integer
+          format: int32
+          description: Идентификатор владельца пространства
+          example: 185
+        show_personal_data:
+          type: boolean
+          description: Видят ли сотрудники и боты `email` и `phone_number` коллег. Владелец и администраторы видят их всегда, гости и мульти-гости не видят.
+          example: true
+        use_global_threads:
+          type: boolean
+          description: 'Настройка «Использовать сквозные треды»: с `true` упоминание в треде добавляет в него и сотрудника, которого нет в родительском чате.'
+          example: true
+        integrations_management:
+          allOf:
+            - $ref: '#/components/schemas/CompanyManagementAccess'
+          description: Кому доступен раздел интеграций, в том числе создание ботов и их токенов. Меняется только в интерфейсе.
+          example: all
+        api_management:
+          allOf:
+            - $ref: '#/components/schemas/CompanyManagementAccess'
+          description: Кто может создавать персональные токены. С `admins` остальные сотрудники не создают токены и не входят через браузер и CLI. Меняется только в интерфейсе.
+          example: admins
+        plan:
+          type: string
+          description: Название тарифа текстом, как в интерфейсе
+          example: Корпорация
+        export_personal_chats:
+          type: boolean
+          description: Выгружаются ли личные переписки с текстом и тредами в [экспорт сообщений](/guides/export). Приходит только владельцу пространства.
+          example: false
+      description: Пространство
     CompanyBotResponse:
       type: object
       required:
@@ -11658,6 +11918,15 @@ components:
           description: Кто может добавлять бота в чаты
           example: creator
       description: Параметры вебхука бота пространства. Настройки бота, недоступного вам для редактирования, приходят как `null` — остаются только имя и никнейм.
+    CompanyManagementAccess:
+      type: string
+      enum:
+        - all
+        - admins
+      description: Кто может пользоваться возможностью в пространстве
+      x-enum-descriptions:
+        all: Все сотрудники
+        admins: Только администраторы
     CompanyMemberWebhookPayload:
       type: object
       required:
@@ -11700,6 +11969,23 @@ components:
           description: Дата и время отправки вебхука (UTC+0) в формате UNIX
           example: 1747574400
       description: Структура исходящего вебхука об участниках пространства
+    CompanyUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Новое название пространства
+          example: Синий склад
+        show_personal_data:
+          type: boolean
+          description: Видят ли сотрудники и боты `email` и `phone_number` коллег
+          example: false
+        use_global_threads:
+          type: boolean
+          description: Включена ли настройка «Использовать сквозные треды»
+          example: true
+      description: Новые значения пространства. Поля передаются без обёртки, перезаписываются только переданные. Поля `api_management` и `integrations_management` в теле не учитываются, ответ при этом успешный.
     CustomProperty:
       type: object
       required:
@@ -12404,6 +12690,22 @@ components:
           description: Идентификатор сообщения
           example: 194275
       description: Запрос на добавление сообщения в важные
+    InviteLink:
+      type: object
+      required:
+        - url
+        - expires_at
+      properties:
+        url:
+          type: string
+          description: Ссылка, по которой сотрудник входит в пространство
+          example: https://app.pachca.com/join?company_id=4372&company_name=%D0%A1%D0%B8%D0%BD%D0%B8%D0%B9+%D1%81%D0%BA%D0%BB%D0%B0%D0%B4&invite_token=Xk3pQ9vLm2TbR7wZ
+        expires_at:
+          type: string
+          format: date-time
+          description: Дата и время, когда ссылка перестанет работать (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+          example: '2026-11-25T10:00:00.000Z'
+      description: Ссылка-приглашение в пространство
     InviteStatus:
       type: string
       enum:
@@ -12626,7 +12928,7 @@ components:
           example: 334
         content:
           type: string
-          description: Текст сообщения
+          description: 'Текст сообщения. Пустая строка, если текста нет: например, у сообщения из одних вложений или у стикера. Сам стикер API не отдаёт, такое сообщение приходит с пустым `files`, а отправить стикер через API нельзя.'
           example: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)
         user_id:
           type: integer
@@ -13027,7 +13329,7 @@ components:
           example: 5678
         content:
           type: string
-          description: Текст сообщения
+          description: 'Текст сообщения. Пустая строка, если текста нет: например, у сообщения из одних вложений или у стикера. Сам стикер в событие не попадает.'
           example: Текст сообщения
         user_id:
           type: integer
@@ -13187,6 +13489,9 @@ components:
         - user_status:write
         - user_avatar:write
         - custom_properties:read
+        - company:read
+        - company:write
+        - invite_links:write
         - audit_events:read
         - company_chats:read
         - company_bots:read
@@ -13401,6 +13706,18 @@ components:
           - user
           - multi_guest
           - bot
+        company_read:
+          - owner
+          - admin
+          - user
+          - multi_guest
+          - bot
+        company_write:
+          - owner
+          - admin
+        invite_links_write:
+          - owner
+          - admin
         audit_events_read:
           - owner
         company_chats_read:
@@ -13495,7 +13812,7 @@ components:
         chats_read: Просмотр чатов и списка чатов
         chats_create: Создание новых чатов
         chats_update: Изменение настроек чата
-        chats_mark_unread: Отметка чатов непрочитанными
+        chats_mark_unread: Отметка собственных чатов непрочитанными
         chats_archive: Архивация и разархивация чатов
         chats_leave: Выход из чатов
         chat_members_read: Просмотр участников чата
@@ -13531,20 +13848,23 @@ components:
         user_status_write: Изменение и удаление статуса сотрудника
         user_avatar_write: Изменение и удаление аватара сотрудника
         custom_properties_read: Просмотр дополнительных полей
+        company_read: Просмотр информации о пространстве и его настроек
+        company_write: Изменение названия пространства и основных настроек
+        invite_links_write: Получение и перевыпуск ссылки-приглашения в пространство
         audit_events_read: Просмотр журнала аудита
         company_chats_read: Просмотр списка всех чатов пространства
         company_bots_read: Просмотр списка всех ботов пространства
-        tasks_read: Просмотр задач
-        tasks_create: Создание задач
-        tasks_update: Изменение задачи
-        tasks_delete: Удаление задачи
+        tasks_read: Просмотр напоминаний
+        tasks_create: Создание напоминаний
+        tasks_update: Изменение напоминания
+        tasks_delete: Удаление напоминания
         files_read: Скачивание файлов
         uploads_write: Получение данных для загрузки файлов
         webhooks_events_read: Просмотр лога вебхуков
         webhooks_events_delete: Удаление записи в логе вебхука
-        search_users: Поиск сотрудников
-        search_chats: Поиск чатов
-        search_messages: Поиск сообщений
+        search_users: Поиск по сотрудникам
+        search_chats: Поиск по чатам
+        search_messages: Поиск по сообщениям
         drafts_read: Просмотр черновиков и отложенных сообщений
         drafts_write: Создание, изменение и удаление черновиков и отложенных сообщений
         important_messages_read: Просмотр важных сообщений
@@ -13647,12 +13967,12 @@ components:
         private_metadata:
           type: string
           maxLength: 3000
-          description: Необязательная строка, которая будет отправлена в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для передачи в формате `JSON` какой то дополнительной информации вместе с заполненной пользователем формой.
+          description: Необязательная строка, которая придёт в ваше приложение, когда сотрудник отправит заполненную форму. В ней можно, например, передать в формате `JSON` дополнительные данные к форме. Слишком длинное значение отклоняется с `422` и кодом `invalid` по ключу `private_metadata`.
           example: '{"timeoff_id":4378}'
         callback_id:
           type: string
           maxLength: 255
-          description: Необязательный идентификатор для распознавания этого представления, который будет отправлен в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для понимания, какую форму должен был заполнить пользователь.
+          description: Необязательный идентификатор представления, который придёт в ваше приложение, когда сотрудник отправит заполненную форму. По нему, например, понятно, какую форму заполнял сотрудник. Слишком длинное значение отклоняется с `422` и кодом `invalid` по ключу `callback_id`.
           example: timeoff_request_form
         view:
           type: object
@@ -13771,7 +14091,7 @@ components:
         code:
           type: string
           maxLength: 16
-          description: 'Emoji символ реакции. Без `name` нужен именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи. С `name` подходит любое непустое значение до 16 символов: оно сохраняется как передано.'
+          description: 'Emoji символ реакции. Без `name` нужен именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи. С `name` подходит любое непустое значение до 16 символов: оно сохраняется как передано. Длиннее — `400` с кодом `too_long`.'
           example: 👍
         name:
           type: string
@@ -14362,13 +14682,13 @@ components:
           type: string
           nullable: true
           maxLength: 255
-          description: 'Электронная почта. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя и мульти-гостя — никогда. В своей карточке поле приходит всегда.'
+          description: 'Электронная почта. В чужой карточке приходит `null`, если у вызывающего нет права видеть личные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ личных данных, у гостя и мульти-гостя — никогда. В своей карточке поле приходит всегда.'
           example: olegp@example.com
         phone_number:
           type: string
           nullable: true
           maxLength: 255
-          description: 'Телефон. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя и мульти-гостя — никогда. В своей карточке поле приходит всегда.'
+          description: 'Телефон. В чужой карточке приходит `null`, если у вызывающего нет права видеть личные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ личных данных, у гостя и мульти-гостя — никогда. В своей карточке поле приходит всегда.'
           example: '+79001234567'
         department:
           type: string

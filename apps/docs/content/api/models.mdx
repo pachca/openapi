@@ -8,7 +8,7 @@ hideTableOfContents: true
 
 Модели данных из ответов API. У каждой модели — таблица свойств и методы, которые с ней работают. Возвращают модель не все из них: удаление и действия вроде закрепления или архивации отвечают `204` без тела, а у отдельных методов своя форма ответа, описанная на их странице.
 
-<Info>Методы [Получение подписи, ключа и других параметров](POST /uploads), [Загрузка файла](POST /direct_url), [Скачивание файла](GET /files/{id}), [Отзыв токена](POST /oauth/revoke) и [Открытие представления](POST /views/open) не связаны ни с одной моделью, поэтому своего раздела у них нет. Первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом, отзыв — пустым объектом, а открытие представления — ответом `201` без тела.</Info>
+<Info>Методы [Получение подписи, ключа и других параметров](POST /uploads), [Загрузка файла](POST /direct_url), [Скачивание файла](GET /files/{id}), [Отзыв токена](POST /oauth/revoke) и [Открытие представления](POST /views/open) не связаны ни с одной моделью, поэтому своего раздела у них нет. Первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом, отзыв — пустым объектом, а открытие представления — ответом `201` с телом `{"success": true}`.</Info>
 
 <CardGroup>
   <Card title="Дополнительное поле" href="#dopolnitelnoe-pole" methods="GET" />
@@ -16,6 +16,8 @@ hideTableOfContents: true
   <Card title="Токен сотрудника" href="#token-sotrudnika" methods="POST" />
   <Card title="Статус пользователя" href="#status-polzovatelya" methods="GET PUT DELETE" />
   <Card title="Аватар" href="#avatar" methods="PUT DELETE" />
+  <Card title="Пространство" href="#prostranstvo" methods="GET PUT" />
+  <Card title="Ссылка-приглашение" href="#ssylka-priglashenie" methods="GET POST" />
   <Card title="Сотрудник" href="#sotrudnik" methods="GET POST PUT DELETE" />
   <Card title="Тег" href="#teg" methods="GET POST PUT DELETE" />
   <Card title="Чат" href="#chat" methods="GET POST PUT DELETE" />
@@ -77,6 +79,20 @@ hideTableOfContents: true
 - [Удаление аватара бота](DELETE /bots/{id}/avatar)
 
 <ModelSchema name="AvatarData" />
+
+## Пространство
+
+- [Информация о пространстве](GET /company)
+- [Редактирование пространства](PUT /company)
+
+<ModelSchema name="Company" />
+
+## Ссылка-приглашение
+
+- [Ссылка-приглашение](GET /company/invite_link)
+- [Перевыпуск ссылки-приглашения](POST /company/invite_link)
+
+<ModelSchema name="InviteLink" />
 
 ## Сотрудник
 

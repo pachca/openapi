@@ -90,6 +90,7 @@ Every attempt of one webhook delivery carries the same `Idempotency-Key` request
 
 - Payloads are minimal. Fetch the full message with `pachca_get_message` (`pachca messages get`) by `id` / `message_id` for attachments, buttons, forwards. Reactions are not in the message: read them with `pachca_list_reactions` (`pachca reactions list`).
 - A file-only message has an empty `content`; the payload cannot tell you it has an attachment.
+- A sticker also comes with an empty `content`, and the message method shows it with empty `files` too: the API does not return the sticker itself. Do not answer it.
 - `content` is Markdown that Pachca assembles from the message (quotes, lists may appear). See [Markdown](https://dev.pachca.com/guides/markdown.md).
 - For `message`/`delete`, the message method still answers `200` but returns a cleared record (empty `content`, `deleted_at` set).
 - `message`/`update` is not always an edit. It also comes, with the same `content`, when someone adds the message to their «Важное» or removes it (in the app or through the API), when the preview of an attached document or the transcription of a voice message is ready, and when a link preview is added or removed. Keep the last `changed_at` you handled per message, the one from `message`/`new` included: an `update` with that same `changed_at` is not an edit. When `changed_at` moved, still compare `content` with what you have before treating it as an edit.

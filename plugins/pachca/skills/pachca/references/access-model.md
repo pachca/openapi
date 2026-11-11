@@ -108,8 +108,8 @@ delete their personal tokens but can no longer edit them. To cut old access, rev
 ## Personal data
 
 `email` and `phone_number` of other employees: the owner and admins always see them; an employee sees them
-only if the workspace allows showing personal data; a bot token follows that setting only. Everyone sees
-their own.
+only if the workspace allows showing personal data (`show_personal_data` in `pachca_get_company`); a bot
+token follows that setting only. Everyone sees their own.
 
 ## MCP server limits
 

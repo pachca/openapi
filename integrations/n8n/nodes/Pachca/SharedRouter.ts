@@ -460,6 +460,29 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			],
 		},
 	},
+	company: {
+		get: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/company',
+		},
+		update: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/company',
+			optionalBodyMap: [
+				{ api: 'name', n8n: 'name' },
+				{ api: 'show_personal_data', n8n: 'showPersonalData' },
+				{ api: 'use_global_threads', n8n: 'useGlobalThreads' },
+			],
+		},
+		getInviteLink: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/company/invite_link',
+		},
+		reissueInviteLink: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/company/invite_link',
+		},
+	},
 	customProperty: {
 		get: {
 			method: 'GET' as IHttpRequestMethods,

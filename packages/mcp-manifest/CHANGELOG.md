@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.8.0 (2026-11-11)
+
+Tools for the workspace and its invite link, three new scopes, empty stickers, a thread refused by the chat edit, and tool texts that follow the API. schema_version stays 1.2.0.
+
+- Tools `pachca_get_company` and `pachca_update_company`: the workspace name, owner, plan and settings, read in every audience. Renaming the workspace and turning showing personal data and cross-chat threads on or off is for the owner and administrators, and `api_management` and `integrations_management` change only in the web interface. `export_personal_chats` comes to the owner only.
+- Tools `pachca_get_invite_link` and `pachca_reissue_invite_link`, for the owner and administrators: each administrator has their own link, valid for 14 days. Reading it issues a new one when none is valid or under an hour is left, and reissuing stops the old one at once. Reading the link shares the rate limit of the workspace chat and bot lists.
+- `pachca_get_invite_link` is not read-only, since reading may issue a new link and stop the old one: its annotations read `readOnlyHint: false` and `destructiveHint: true`, and it stays idempotent. Its `kind` stays `read`, as the method gives it.
+- The invite link `url` is a secret, like the link to an export: it comes without the untrusted wrapper, and both invite link tools carry the note that a secret goes to the person in the reply and nowhere else.
+- `pachca_get_token_info` names the scopes `company:read`, `company:write` and `invite_links:write`. A connection made through the browser before they existed lacks them and gets `403` `insufficient_scope` from the new tools until the person signs in again; a personal or bot token that lacks them gets them once they are added in its settings. The `tasks:*` scopes are named after reminders, and `chats:mark_unread` follows the Pachca catalog.
+- Message outputs: a sticker comes with an empty `content` and empty `files`, and `pachca_update_message` answers `403` on it.
+- `pachca_update_chat`: a thread's `chat_id` gets `403`, and the description says that only the chat owner or a chat admin changes a chat, open or closed.
+- Chat outputs: `member_ids` leaves out suspended and deleted employees.
+- `pachca_add_reaction`: a `code` over 16 characters gets `400` `too_long`. `pachca_open_form`: a `private_metadata` or `callback_id` that is too long gets `422` `invalid` under its key.
+- `pachca_create_unattached_thread`: `use_global_threads` of `pachca_get_company` shows whether a thread mention adds people.
+- The `402` refusal says the block for the message limit lasts until the workspace is paid for, or at the latest until the next month begins in UTC.
+- The instructions name the workspace and the invite link among what the server covers, and call Pachca a team chat app.
+
 ## 1.7.0 (2026-11-09)
 
 The message source and program in outputs, message details in the audit log, outgoing webhook address error codes, the template check, and the list order without sort. schema_version stays 1.2.0.

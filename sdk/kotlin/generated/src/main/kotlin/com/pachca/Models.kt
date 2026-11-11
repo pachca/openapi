@@ -550,6 +550,35 @@ enum class ChatSubtype(val value: String) {
     @SerialName("thread") THREAD("thread"),
 }
 
+/** Кто может пользоваться возможностью в пространстве */
+@Serializable
+@JvmInline
+value class CompanyManagementAccess(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Все сотрудники */
+        val ALL = CompanyManagementAccess("all")
+        /** Только администраторы */
+        val ADMINS = CompanyManagementAccess("admins")
+
+        /** Every value this SDK version lists */
+        val entries: List<CompanyManagementAccess> = listOf(ALL, ADMINS)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<CompanyManagementAccess> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("all" to "ALL", "admins" to "ADMINS")
+
+        fun valueOf(name: String): CompanyManagementAccess =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No CompanyManagementAccess constant $name")
+    }
+}
+
 /** Тип данных дополнительного поля */
 @Serializable
 @JvmInline
@@ -876,7 +905,7 @@ value class OAuthScope(val value: String) {
         val CHATS_CREATE = OAuthScope("chats:create")
         /** Изменение настроек чата */
         val CHATS_UPDATE = OAuthScope("chats:update")
-        /** Отметка чатов непрочитанными */
+        /** Отметка собственных чатов непрочитанными */
         val CHATS_MARK_UNREAD = OAuthScope("chats:mark_unread")
         /** Архивация и разархивация чатов */
         val CHATS_ARCHIVE = OAuthScope("chats:archive")
@@ -946,19 +975,25 @@ value class OAuthScope(val value: String) {
         val USER_AVATAR_WRITE = OAuthScope("user_avatar:write")
         /** Просмотр дополнительных полей */
         val CUSTOM_PROPERTIES_READ = OAuthScope("custom_properties:read")
+        /** Просмотр информации о пространстве и его настроек */
+        val COMPANY_READ = OAuthScope("company:read")
+        /** Изменение названия пространства и основных настроек */
+        val COMPANY_WRITE = OAuthScope("company:write")
+        /** Получение и перевыпуск ссылки-приглашения в пространство */
+        val INVITE_LINKS_WRITE = OAuthScope("invite_links:write")
         /** Просмотр журнала аудита */
         val AUDIT_EVENTS_READ = OAuthScope("audit_events:read")
         /** Просмотр списка всех чатов пространства */
         val COMPANY_CHATS_READ = OAuthScope("company_chats:read")
         /** Просмотр списка всех ботов пространства */
         val COMPANY_BOTS_READ = OAuthScope("company_bots:read")
-        /** Просмотр задач */
+        /** Просмотр напоминаний */
         val TASKS_READ = OAuthScope("tasks:read")
-        /** Создание задач */
+        /** Создание напоминаний */
         val TASKS_CREATE = OAuthScope("tasks:create")
-        /** Изменение задачи */
+        /** Изменение напоминания */
         val TASKS_UPDATE = OAuthScope("tasks:update")
-        /** Удаление задачи */
+        /** Удаление напоминания */
         val TASKS_DELETE = OAuthScope("tasks:delete")
         /** Скачивание файлов */
         val FILES_READ = OAuthScope("files:read")
@@ -970,11 +1005,11 @@ value class OAuthScope(val value: String) {
         val WEBHOOKS_EVENTS_READ = OAuthScope("webhooks:events:read")
         /** Удаление записи в логе вебхука */
         val WEBHOOKS_EVENTS_DELETE = OAuthScope("webhooks:events:delete")
-        /** Поиск сотрудников */
+        /** Поиск по сотрудникам */
         val SEARCH_USERS = OAuthScope("search:users")
-        /** Поиск чатов */
+        /** Поиск по чатам */
         val SEARCH_CHATS = OAuthScope("search:chats")
-        /** Поиск сообщений */
+        /** Поиск по сообщениям */
         val SEARCH_MESSAGES = OAuthScope("search:messages")
         /** Просмотр черновиков и отложенных сообщений */
         val DRAFTS_READ = OAuthScope("drafts:read")
@@ -986,12 +1021,12 @@ value class OAuthScope(val value: String) {
         val IMPORTANT_MESSAGES_WRITE = OAuthScope("important_messages:write")
 
         /** Every value this SDK version lists */
-        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE, IMPORTANT_MESSAGES_READ, IMPORTANT_MESSAGES_WRITE)
+        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, COMPANY_READ, COMPANY_WRITE, INVITE_LINKS_WRITE, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE, IMPORTANT_MESSAGES_READ, IMPORTANT_MESSAGES_WRITE)
 
         /** The same values as an array, like `values()` of an enum class */
         fun values(): Array<OAuthScope> = entries.toTypedArray()
 
-        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE", "important_messages:read" to "IMPORTANT_MESSAGES_READ", "important_messages:write" to "IMPORTANT_MESSAGES_WRITE")
+        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "company:read" to "COMPANY_READ", "company:write" to "COMPANY_WRITE", "invite_links:write" to "INVITE_LINKS_WRITE", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE", "important_messages:read" to "IMPORTANT_MESSAGES_READ", "important_messages:write" to "IMPORTANT_MESSAGES_WRITE")
 
         fun valueOf(name: String): OAuthScope =
             entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No OAuthScope constant $name")
@@ -2614,6 +2649,19 @@ data class ChatUpdateRequest(
 )
 
 @Serializable
+data class Company(
+    val id: Int,
+    val name: String,
+    @SerialName("owner_id") val ownerId: Int,
+    @SerialName("show_personal_data") val showPersonalData: Boolean,
+    @SerialName("use_global_threads") val useGlobalThreads: Boolean,
+    @SerialName("integrations_management") val integrationsManagement: CompanyManagementAccess,
+    @SerialName("api_management") val apiManagement: CompanyManagementAccess,
+    val plan: String,
+    @SerialName("export_personal_chats") val exportPersonalChats: Boolean? = null,
+)
+
+@Serializable
 data class CompanyBotResponse(
     val id: Int,
     @SerialName("oauth_client") val oauthClient: BotOAuthClient? = null,
@@ -2638,6 +2686,13 @@ data class CompanyBotWebhook(
     @SerialName("single_chat") val singleChat: Boolean? = null,
     @SerialName("can_edit") val canEdit: List<BotCanEdit>? = null,
     @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd? = null,
+)
+
+@Serializable
+data class CompanyUpdateRequest(
+    val name: String? = null,
+    @SerialName("show_personal_data") val showPersonalData: Boolean? = null,
+    @SerialName("use_global_threads") val useGlobalThreads: Boolean? = null,
 )
 
 @Serializable
@@ -2842,6 +2897,12 @@ data class GroupTagRequest(
 @Serializable
 data class ImportantMessageRequest(
     @SerialName("message_id") val messageId: Int,
+)
+
+@Serializable
+data class InviteLink(
+    val url: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("expires_at") val expiresAt: OffsetDateTime,
 )
 
 @Serializable
@@ -3544,6 +3605,12 @@ data class ChatDataWrapper(val data: Chat)
 
 @Serializable
 data class ChatExportDataWrapper(val data: ChatExport)
+
+@Serializable
+data class CompanyDataWrapper(val data: Company)
+
+@Serializable
+data class InviteLinkDataWrapper(val data: InviteLink)
 
 @Serializable
 data class DraftDataWrapper(val data: Draft)

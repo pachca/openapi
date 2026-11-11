@@ -63,13 +63,21 @@ changed text, needs its own question.
 
 Report what was created and what the invited people will get by email.
 
-## Only in the web interface
+## Workspace settings and the invite link
 
-Tell the person where to do these, do not look for a tool:
+- `pachca_get_company` shows the workspace name, plan, owner and settings.
+  `pachca_update_company` (Owner or Administrator) renames the workspace and
+  turns «Использовать сквозные треды» and showing personal data on or off.
+- `pachca_get_invite_link` gives your own invite link, the one in «Участники» >
+  «Добавить участника»: each Administrator has their own, valid for 14 days.
+  With under an hour left, the call issues a new one and the old one stops
+  working. Someone who joins by the link gets the role «Сотрудник» with no tags
+  and no group chats: give them their tag afterwards with `pachca_update_user`.
+- `pachca_reissue_invite_link` issues a new link and stops your old one at
+  once, even one already sent: tell the person.
 
-- renaming the workspace, its avatar and its settings, such as cross-chat
-  threads or who may create tokens;
-- creating a new custom field (the API fills only existing ones);
-- the invite link, in «Участники» > «Добавить участника». Someone who joins by
-  the link gets the role «Сотрудник» with no tags or chats: give them their tag
-  afterwards with `pachca_update_user`.
+Of the workspace settings, the tools change only the name, showing personal
+data and cross-chat threads. Only in the web interface, so tell the person
+where and do not look for a tool: every other workspace setting, such as the
+avatar and who may create tokens and integrations, and a new custom field (the
+API fills only existing ones).

@@ -60,6 +60,7 @@ const GENERATED_PATHS = [
   // and the record of the plugin content it was given for
   'plugins/pachca/plugin.json',
   'plugins/pachca/.claude-plugin/plugin.json',
+  'plugins/pachca/.codex-plugin/plugin.json',
   'plugins/pachca/.cursor-plugin/plugin.json',
   'apps/docs/scripts/skills/plugin-version.json',
   'apps/docs/public/index.md',

@@ -44,6 +44,9 @@ import {
   User,
   AddMembersRequest,
   ChatMemberRole,
+  Company,
+  InviteLink,
+  CompanyUpdateRequest,
   ListPropertiesParams,
   ListPropertiesResponse,
   DownloadFileParams,
@@ -1231,6 +1234,92 @@ export class MembersServiceImpl extends MembersService {
     switch (response.status) {
       case 204:
         return;
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+}
+
+export class CompanyService {
+  async getCompany(): Promise<Company> {
+    throw new Error("Company.getCompany is not implemented");
+  }
+
+  async getInviteLink(): Promise<InviteLink> {
+    throw new Error("Company.getInviteLink is not implemented");
+  }
+
+  async reissueInviteLink(): Promise<InviteLink> {
+    throw new Error("Company.reissueInviteLink is not implemented");
+  }
+
+  async updateCompany(request: CompanyUpdateRequest): Promise<Company> {
+    throw new Error("Company.updateCompany is not implemented");
+  }
+}
+
+export class CompanyServiceImpl extends CompanyService {
+  constructor(
+    private baseUrl: string,
+    private headers: Record<string, string>,
+  ) {
+    super();
+  }
+
+  async getCompany(): Promise<Company> {
+    const response = await fetchWithRetry(`${this.baseUrl}/company`, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("Company", body.data) as Company;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async getInviteLink(): Promise<InviteLink> {
+    const response = await fetchWithRetry(`${this.baseUrl}/company/invite_link`, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("InviteLink", body.data) as InviteLink;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async reissueInviteLink(): Promise<InviteLink> {
+    const response = await fetchWithRetry(`${this.baseUrl}/company/invite_link`, {
+      method: "POST",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("InviteLink", body.data) as InviteLink;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async updateCompany(request: CompanyUpdateRequest): Promise<Company> {
+    const response = await fetchWithRetry(`${this.baseUrl}/company`, {
+      method: "PUT",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("CompanyUpdateRequest", request)),
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("Company", body.data) as Company;
+      }
       default:
         throw await errorFromResponse(response);
     }
@@ -3071,6 +3160,7 @@ export class PachcaClient {
   readonly chats: ChatsService;
   /** @deprecated Renamed for clarity — use the new service(s). Kept working for backward compatibility. */
   readonly common: CommonService;
+  readonly company: CompanyService;
   readonly customProperties: CustomPropertiesService;
   readonly drafts: DraftsService;
   readonly files: FilesService;
@@ -3092,8 +3182,8 @@ export class PachcaClient {
   readonly views: ViewsService;
 
   constructor(token: string, baseUrl?: string);
-  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
-  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; company?: CompanyService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; company?: CompanyService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
     let resolvedHeaders: Record<string, string>;
     let resolvedBaseUrl: string;
     if (typeof tokenOrConfig === 'string') {
@@ -3102,6 +3192,7 @@ export class PachcaClient {
       this.bots = new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.chats = new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.common = new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.company = new CompanyServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.customProperties = new CustomPropertiesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.drafts = new DraftsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.files = new FilesServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -3126,6 +3217,7 @@ export class PachcaClient {
       this.bots = tokenOrConfig.bots ?? new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.chats = tokenOrConfig.chats ?? new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.common = tokenOrConfig.common ?? new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.company = tokenOrConfig.company ?? new CompanyServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.customProperties = tokenOrConfig.customProperties ?? new CustomPropertiesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.drafts = tokenOrConfig.drafts ?? new DraftsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.files = tokenOrConfig.files ?? new FilesServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -3147,11 +3239,12 @@ export class PachcaClient {
     }
   }
 
-  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
+  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; company?: CompanyService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
     client.bots = overrides.bots ?? new BotsService();
     client.chats = overrides.chats ?? new ChatsService();
     client.common = overrides.common ?? new CommonService();
+    client.company = overrides.company ?? new CompanyService();
     client.customProperties = overrides.customProperties ?? new CustomPropertiesService();
     client.drafts = overrides.drafts ?? new DraftsService();
     client.files = overrides.files ?? new FilesService();

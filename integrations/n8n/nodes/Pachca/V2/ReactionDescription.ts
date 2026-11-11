@@ -44,7 +44,7 @@ export const reactionFields: INodeProperties[] = [
 		type: 'string',
 		required: true,
 		default: "",
-		description: 'Reaction emoji character. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value of up to 16 characters fits: it is stored as passed.',
+		description: 'Reaction emoji character. Without `name`, the character itself is required: text forms such as `+1` or `:+1:` are rejected as an unknown emoji. With `name`, any non-empty value of up to 16 characters fits: it is stored as passed. A longer one gets `400` with the `too_long` code.',
 		displayOptions: { show: { resource: ['reaction'], operation: ['create'] } },
 		placeholder: '👍',
 	},

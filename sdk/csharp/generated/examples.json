@@ -227,6 +227,25 @@
   "ChatMemberOperations_removeMember": {
     "usage": "await client.Members.RemoveMemberAsync(334, 186);"
   },
+  "CompanyOperations_getCompany": {
+    "usage": "var response = await client.Company.GetCompanyAsync();",
+    "output": "Company(Id: int, Name: string, OwnerId: int, ShowPersonalData: bool, UseGlobalThreads: bool, IntegrationsManagement: CompanyManagementAccess, ApiManagement: CompanyManagementAccess, Plan: string, ExportPersonalChats: bool?)"
+  },
+  "CompanyOperations_getInviteLink": {
+    "usage": "var response = await client.Company.GetInviteLinkAsync();",
+    "output": "InviteLink(Url: string, ExpiresAt: DateTimeOffset)"
+  },
+  "CompanyOperations_reissueInviteLink": {
+    "usage": "var response = await client.Company.ReissueInviteLinkAsync();",
+    "output": "InviteLink(Url: string, ExpiresAt: DateTimeOffset)"
+  },
+  "CompanyOperations_updateCompany": {
+    "usage": "var request = new CompanyUpdateRequest\n{\n    Name = \"Синий склад\",\n    ShowPersonalData = false,\n    UseGlobalThreads = true\n};\nvar response = await client.Company.UpdateCompanyAsync(request);",
+    "output": "Company(Id: int, Name: string, OwnerId: int, ShowPersonalData: bool, UseGlobalThreads: bool, IntegrationsManagement: CompanyManagementAccess, ApiManagement: CompanyManagementAccess, Plan: string, ExportPersonalChats: bool?)",
+    "imports": [
+      "CompanyUpdateRequest"
+    ]
+  },
   "CommonOperations_listProperties": {
     "usage": "var response = await client.CustomProperties.ListPropertiesAsync(SearchEntityType.User);",
     "output": "ListPropertiesResponse(Data: List<CustomPropertyDefinition>)",

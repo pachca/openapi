@@ -240,6 +240,25 @@
   "ChatMemberOperations_removeMember": {
     "usage": "await client.members.remove_member(id=334, user_id=186)"
   },
+  "CompanyOperations_getCompany": {
+    "usage": "response = await client.company.get_company()",
+    "output": "Company(id: int, name: str, owner_id: int, show_personal_data: bool, use_global_threads: bool, integrations_management: CompanyManagementAccess, api_management: CompanyManagementAccess, plan: str, export_personal_chats: bool | None)"
+  },
+  "CompanyOperations_getInviteLink": {
+    "usage": "response = await client.company.get_invite_link()",
+    "output": "InviteLink(url: str, expires_at: datetime)"
+  },
+  "CompanyOperations_reissueInviteLink": {
+    "usage": "response = await client.company.reissue_invite_link()",
+    "output": "InviteLink(url: str, expires_at: datetime)"
+  },
+  "CompanyOperations_updateCompany": {
+    "usage": "request = CompanyUpdateRequest(\n    name=\"Синий склад\",\n    show_personal_data=False,\n    use_global_threads=True\n)\nresponse = await client.company.update_company(request=request)",
+    "output": "Company(id: int, name: str, owner_id: int, show_personal_data: bool, use_global_threads: bool, integrations_management: CompanyManagementAccess, api_management: CompanyManagementAccess, plan: str, export_personal_chats: bool | None)",
+    "imports": [
+      "CompanyUpdateRequest"
+    ]
+  },
   "CommonOperations_listProperties": {
     "usage": "params = ListPropertiesParams(entity_type=SearchEntityType.USER)\nresponse = await client.custom_properties.list_properties(params=params)",
     "output": "ListPropertiesResponse(data: list[CustomPropertyDefinition])",

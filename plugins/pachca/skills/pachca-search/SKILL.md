@@ -117,6 +117,8 @@ first and last name do forgive typos.
   corrected. If nothing comes back, try another form, a stem or a synonym.
 - A query wholly in quotes (`"…"` or `«…»`) is an exact phrase; part-of-word
   matching does not apply inside it.
+- With advanced encryption on, an encrypted message matches only whole words:
+  no word forms, no parts of words, and quoted words match in any order.
 - Keep the words in the language of the request. A name put into another
   language finds nothing: do not turn «Иван» into "Ivan".
 - Default order is newest first. `sort=relevance` ranks by match, still

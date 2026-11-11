@@ -24,7 +24,7 @@ Or install from archive (Docker, custom n8n images):
 # Download from GitHub Releases
 # Find the latest n8n-nodes-pachca.tgz at:
 # https://github.com/pachca/openapi/releases?q=n8n
-wget https://github.com/pachca/openapi/releases/download/n8n-v2.2.4/n8n-nodes-pachca.tgz
+wget https://github.com/pachca/openapi/releases/download/n8n-v2.2.6/n8n-nodes-pachca.tgz
 
 # Via npm (recommended)
 cd ~/.n8n/nodes && npm install ./n8n-nodes-pachca.tgz
@@ -39,7 +39,7 @@ tar -xzf n8n-nodes-pachca.tgz -C ~/.n8n/nodes/
 
 ### Pachca
 
-Main node for interacting with the Pachca API. Supports 19 resources with the operations below:
+Main node for interacting with the Pachca API. Supports 20 resources with the operations below:
 
 | Resource          | Operations                                                                                                                                                                                                                                                           |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -62,6 +62,7 @@ Main node for interacting with the Pachca API. Supports 19 resources with the op
 | Security          | Get Many                                                                                                                                                                                                                                                             |
 | Thread            | Create, Create Standalone, Get, Get Many                                                                                                                                                                                                                             |
 | User              | Create, Get, Get Many, Update, Delete, Update/Delete Avatar, Get/Update/Delete Status                                                                                                                                                                                |
+| Workspace         | Get, Update, Get Invite Link, Reissue Invite Link                                                                                                                                                                                                                    |
 
 ### Pachca Trigger
 
@@ -192,7 +193,7 @@ The node uses the **VersionedNodeType** pattern with `defaultVersion: 2`:
 
 **Renamed operations:** `send` → `create`, `getById` → `get`, `addReaction` → `create`, etc.
 
-**New v2 resources:** Chat Member, Draft, Important Message, OAuth, Read Member, Search, Security
+**New v2 resources:** Chat Member, Draft, Important Message, OAuth, Read Member, Search, Security, Workspace
 
 To upgrade a v1 node: delete it, add a new Pachca node (defaults to v2), reconfigure with v2 names. The API methods are the same, but in v2 **Simplify** is on by default for Get and Get Many, pagination uses **Return All** / **Limit**, and some parameters are renamed (for example, buttons use **Button Layout**). Check the expressions in the nodes that follow.
 

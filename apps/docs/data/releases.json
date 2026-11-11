@@ -1,5 +1,128 @@
 [
   {
+    "product": "mcp",
+    "version": "1.8.0",
+    "date": "2026-11-11",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca_get_company` показывает название пространства, владельца, тариф и настройки, а `pachca_update_company` меняет название, показ личных данных и сквозные треды"
+      },
+      {
+        "type": "+",
+        "description": "`pachca_get_invite_link` отдаёт ссылку-приглашение администратора, а `pachca_reissue_invite_link` выпускает новую, и прежняя сразу перестаёт работать. Оба помечены как опасное изменение: чтение выпускает новую ссылку, когда прежней осталось меньше часа, и прежняя перестаёт работать. Ссылку агент отдаёт только вам в ответе."
+      },
+      {
+        "type": "+",
+        "description": "`pachca_get_token_info` называет права `company:read`, `company:write` и `invite_links:write`. Подключению через браузер, сделанному раньше, для новых инструментов нужен новый вход, а если у персонального токена или токена бота этих прав нет, их добавляют в настройках токена."
+      },
+      {
+        "type": "~",
+        "description": "`pachca_get_token_info` называет права `tasks:*` напоминаниями, например «Просмотр напоминаний»"
+      },
+      {
+        "type": "~",
+        "description": "Стикер в ответах с сообщениями приходит с пустыми `content` и `files`, а `pachca_update_message` отвечает на него `403`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_update_chat` отвечает `403` на `chat_id` треда, а в описании уточнено, что чат меняет только его владелец или администратор"
+      },
+      {
+        "type": "~",
+        "description": "В ответах с чатами в `member_ids` нет приостановленных и удалённых сотрудников"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_add_reaction` называет ответ на `code` длиннее 16 символов, а `pachca_open_form` ответ на слишком длинные `private_metadata` и `callback_id`"
+      },
+      {
+        "type": "~",
+        "description": "Ответ `402` говорит, что блокировка за лимит сообщений действует до оплаты, но не дольше чем до начала следующего месяца по UTC"
+      }
+    ]
+  },
+  {
+    "product": "plugin",
+    "version": "1.0.13",
+    "date": "2026-11-11",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`pachca-admin`: агент читает и меняет название и настройки пространства, получает и перевыпускает ссылку-приглашение и предупреждает, что прежняя ссылка сразу перестаёт работать"
+      },
+      {
+        "type": "~",
+        "description": "`pachca`, `pachca-admin` и `pachca-api`: тариф, владельца пространства и показ личных данных агент берёт из `pachca_get_company`, а не спрашивает"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-oauth`: OAuth-бот не получает права `company:write` и `invite_links:write`, поэтому настройки пространства и ссылку-приглашение меняет сотрудник своим токеном"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-bots`, `pachca-ai-agent` и `pachca-search`: сообщение с пустыми `content` и `files` агент считает стикером, не отвечает на него и не включает в сводки"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-messaging`: стикер нельзя править, а отложенное сообщение, которое автор больше не может отправить в чат, становится черновиком без чата"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-search`: включены ли сквозные треды, агент смотрит в `pachca_get_company`, а зашифрованное сообщение находит только по целым словам"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-ai-agent`: `code` реакции до 16 символов, а тёмную тему в HTML-ответе задаёт селектор `html[data-pachca-theme=\"dark\"]`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca`: после ответа `402` агент говорит, что методы заработают после оплаты или не позже начала следующего месяца по UTC"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.2.6",
+    "date": "2026-11-11",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Ресурс Workspace: операции Get, Update, Get Invite Link и Reissue Invite Link для названия и настроек пространства и ссылки-приглашения"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.11.3",
+    "date": "2026-11-11",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca company get` и `pachca company update` показывают и меняют название и настройки пространства, а `pachca company get-invite-link` и `pachca company reissue-invite-link` получают и перевыпускают ссылку-приглашение"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.9.2",
+    "date": "2026-11-11",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Методы `Информация о пространстве` (`GET /company`), `Редактирование пространства` (`PUT /company`), `Ссылка-приглашение` (`GET /company/invite_link`) и `Перевыпуск ссылки-приглашения` (`POST /company/invite_link`) в сервисе `company`"
+      },
+      {
+        "type": "+",
+        "description": "Модели `Company`, `CompanyUpdateRequest` и `InviteLink`, перечисление `CompanyManagementAccess`"
+      },
+      {
+        "type": "+",
+        "description": "Значения `company:read`, `company:write` и `invite_links:write` в `OAuthScope`"
+      }
+    ]
+  },
+  {
     "product": "plugin",
     "version": "1.0.12",
     "date": "2026-11-10",

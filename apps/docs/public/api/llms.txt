@@ -41,6 +41,12 @@
 - [Новый свой статус](https://dev.pachca.com/api/profile/update-status.md): PUT /profile/status
 - [Удаление своего статуса](https://dev.pachca.com/api/profile/delete-status.md): DELETE /profile/status
 
+## Пространство
+- [Информация о пространстве](https://dev.pachca.com/api/company/get.md): GET /company
+- [Редактирование пространства](https://dev.pachca.com/api/company/update.md): PUT /company
+- [Ссылка-приглашение](https://dev.pachca.com/api/company/get-invite-link.md): GET /company/invite_link
+- [Перевыпуск ссылки-приглашения](https://dev.pachca.com/api/company/reissue-invite-link.md): POST /company/invite_link
+
 ## Сотрудники
 - [Новый сотрудник](https://dev.pachca.com/api/users/create.md): POST /users
 - [Список сотрудников](https://dev.pachca.com/api/users/list.md): GET /users

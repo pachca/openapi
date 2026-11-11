@@ -91,6 +91,10 @@ await client.close()
 | `client.profile.update_status()` | [Новый свой статус](/api/profile/update-status) |
 | `client.profile.delete_profile_avatar()` | [Удаление своего аватара](/api/profile/delete-avatar) |
 | `client.profile.delete_status()` | [Удаление своего статуса](/api/profile/delete-status) |
+| `client.company.reissue_invite_link()` | [Перевыпуск ссылки-приглашения](/api/company/reissue-invite-link) |
+| `client.company.get_company()` | [Информация о пространстве](/api/company/get) |
+| `client.company.get_invite_link()` | [Ссылка-приглашение](/api/company/get-invite-link) |
+| `client.company.update_company()` | [Редактирование пространства](/api/company/update) |
 | `client.users.create_user()` | [Новый сотрудник](/api/users/create) |
 | `client.users.list_users()` | [Список сотрудников](/api/users/list) |
 | `client.users.get_user()` | [Информация о сотруднике](/api/users/get) |

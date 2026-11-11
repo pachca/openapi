@@ -231,6 +231,25 @@
   "ChatMemberOperations_removeMember": {
     "usage": "client.members.removeMember(id = 334, userId = 186)"
   },
+  "CompanyOperations_getCompany": {
+    "usage": "val response = client.company.getCompany()",
+    "output": "Company(id: Int, name: String, ownerId: Int, showPersonalData: Boolean, useGlobalThreads: Boolean, integrationsManagement: CompanyManagementAccess, apiManagement: CompanyManagementAccess, plan: String, exportPersonalChats: Boolean?)"
+  },
+  "CompanyOperations_getInviteLink": {
+    "usage": "val response = client.company.getInviteLink()",
+    "output": "InviteLink(url: String, expiresAt: OffsetDateTime)"
+  },
+  "CompanyOperations_reissueInviteLink": {
+    "usage": "val response = client.company.reissueInviteLink()",
+    "output": "InviteLink(url: String, expiresAt: OffsetDateTime)"
+  },
+  "CompanyOperations_updateCompany": {
+    "usage": "val request = CompanyUpdateRequest(\n    name = \"Синий склад\",\n    showPersonalData = false,\n    useGlobalThreads = true\n)\nval response = client.company.updateCompany(request = request)",
+    "output": "Company(id: Int, name: String, ownerId: Int, showPersonalData: Boolean, useGlobalThreads: Boolean, integrationsManagement: CompanyManagementAccess, apiManagement: CompanyManagementAccess, plan: String, exportPersonalChats: Boolean?)",
+    "imports": [
+      "CompanyUpdateRequest"
+    ]
+  },
   "CommonOperations_listProperties": {
     "usage": "val response = client.customProperties.listProperties(entityType = SearchEntityType.USER)",
     "output": "ListPropertiesResponse(data: List<CustomPropertyDefinition>)",

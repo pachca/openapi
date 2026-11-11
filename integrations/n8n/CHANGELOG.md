@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 2.2.6 (2026-11-11)
+
+### Features
+
+- Workspace resource: `Get`, `Update`, `Get Invite Link` and `Reissue Invite Link` read and change the workspace name and settings, and get or reissue the invite link
+
 ## 2.2.5 (2026-11-09)
 
 ### Features

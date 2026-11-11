@@ -209,6 +209,14 @@ const (
 	ChatSubtypeThread     ChatSubtype = "thread" // Тред
 )
 
+// CompanyManagementAccess may hold a value this SDK does not list yet: a response keeps it as is.
+type CompanyManagementAccess string
+
+const (
+	CompanyManagementAccessAll    CompanyManagementAccess = "all" // Все сотрудники
+	CompanyManagementAccessAdmins CompanyManagementAccess = "admins" // Только администраторы
+)
+
 // CustomPropertyDataType may hold a value this SDK does not list yet: a response keeps it as is.
 type CustomPropertyDataType string
 
@@ -329,7 +337,7 @@ const (
 	OAuthScopeChatsRead              OAuthScope = "chats:read" // Просмотр чатов и списка чатов
 	OAuthScopeChatsCreate            OAuthScope = "chats:create" // Создание новых чатов
 	OAuthScopeChatsUpdate            OAuthScope = "chats:update" // Изменение настроек чата
-	OAuthScopeChatsMarkUnread        OAuthScope = "chats:mark_unread" // Отметка чатов непрочитанными
+	OAuthScopeChatsMarkUnread        OAuthScope = "chats:mark_unread" // Отметка собственных чатов непрочитанными
 	OAuthScopeChatsArchive           OAuthScope = "chats:archive" // Архивация и разархивация чатов
 	OAuthScopeChatsLeave             OAuthScope = "chats:leave" // Выход из чатов
 	OAuthScopeChatMembersRead        OAuthScope = "chat_members:read" // Просмотр участников чата
@@ -364,21 +372,24 @@ const (
 	OAuthScopeUserStatusWrite        OAuthScope = "user_status:write" // Изменение и удаление статуса сотрудника
 	OAuthScopeUserAvatarWrite        OAuthScope = "user_avatar:write" // Изменение и удаление аватара сотрудника
 	OAuthScopeCustomPropertiesRead   OAuthScope = "custom_properties:read" // Просмотр дополнительных полей
+	OAuthScopeCompanyRead            OAuthScope = "company:read" // Просмотр информации о пространстве и его настроек
+	OAuthScopeCompanyWrite           OAuthScope = "company:write" // Изменение названия пространства и основных настроек
+	OAuthScopeInviteLinksWrite       OAuthScope = "invite_links:write" // Получение и перевыпуск ссылки-приглашения в пространство
 	OAuthScopeAuditEventsRead        OAuthScope = "audit_events:read" // Просмотр журнала аудита
 	OAuthScopeCompanyChatsRead       OAuthScope = "company_chats:read" // Просмотр списка всех чатов пространства
 	OAuthScopeCompanyBotsRead        OAuthScope = "company_bots:read" // Просмотр списка всех ботов пространства
-	OAuthScopeTasksRead              OAuthScope = "tasks:read" // Просмотр задач
-	OAuthScopeTasksCreate            OAuthScope = "tasks:create" // Создание задач
-	OAuthScopeTasksUpdate            OAuthScope = "tasks:update" // Изменение задачи
-	OAuthScopeTasksDelete            OAuthScope = "tasks:delete" // Удаление задачи
+	OAuthScopeTasksRead              OAuthScope = "tasks:read" // Просмотр напоминаний
+	OAuthScopeTasksCreate            OAuthScope = "tasks:create" // Создание напоминаний
+	OAuthScopeTasksUpdate            OAuthScope = "tasks:update" // Изменение напоминания
+	OAuthScopeTasksDelete            OAuthScope = "tasks:delete" // Удаление напоминания
 	OAuthScopeFilesRead              OAuthScope = "files:read" // Скачивание файлов
 	OAuthScopeUploadsWrite           OAuthScope = "uploads:write" // Получение данных для загрузки файлов
 	OAuthScopeViewsWrite             OAuthScope = "views:write" // Открытие форм (представлений)
 	OAuthScopeWebhooksEventsRead     OAuthScope = "webhooks:events:read" // Просмотр лога вебхуков
 	OAuthScopeWebhooksEventsDelete   OAuthScope = "webhooks:events:delete" // Удаление записи в логе вебхука
-	OAuthScopeSearchUsers            OAuthScope = "search:users" // Поиск сотрудников
-	OAuthScopeSearchChats            OAuthScope = "search:chats" // Поиск чатов
-	OAuthScopeSearchMessages         OAuthScope = "search:messages" // Поиск сообщений
+	OAuthScopeSearchUsers            OAuthScope = "search:users" // Поиск по сотрудникам
+	OAuthScopeSearchChats            OAuthScope = "search:chats" // Поиск по чатам
+	OAuthScopeSearchMessages         OAuthScope = "search:messages" // Поиск по сообщениям
 	OAuthScopeDraftsRead             OAuthScope = "drafts:read" // Просмотр черновиков и отложенных сообщений
 	OAuthScopeDraftsWrite            OAuthScope = "drafts:write" // Создание, изменение и удаление черновиков и отложенных сообщений
 	OAuthScopeImportantMessagesRead  OAuthScope = "important_messages:read" // Просмотр важных сообщений
@@ -1528,6 +1539,18 @@ type ChatUpdateRequest struct {
 	Chat ChatUpdateRequestChat `json:"chat"`
 }
 
+type Company struct {
+	ID                     int32                   `json:"id"`
+	Name                   string                  `json:"name"`
+	OwnerID                int32                   `json:"owner_id"`
+	ShowPersonalData       bool                    `json:"show_personal_data"`
+	UseGlobalThreads       bool                    `json:"use_global_threads"`
+	IntegrationsManagement CompanyManagementAccess `json:"integrations_management"`
+	ApiManagement          CompanyManagementAccess `json:"api_management"`
+	Plan                   string                  `json:"plan"`
+	ExportPersonalChats    *bool                   `json:"export_personal_chats,omitempty"`
+}
+
 type CompanyBotResponse struct {
 	ID          int32             `json:"id"`
 	Webhook     CompanyBotWebhook `json:"webhook"`
@@ -1559,6 +1582,12 @@ type CompanyMemberWebhookPayload struct {
 	UserIDs          []int32       `json:"user_ids"`
 	CreatedAt        time.Time     `json:"created_at"`
 	WebhookTimestamp int32         `json:"webhook_timestamp"`
+}
+
+type CompanyUpdateRequest struct {
+	Name             *string `json:"name,omitempty"`
+	ShowPersonalData *bool   `json:"show_personal_data,omitempty"`
+	UseGlobalThreads *bool   `json:"use_global_threads,omitempty"`
 }
 
 type CustomProperty struct {
@@ -1865,6 +1894,11 @@ type GroupTagRequest struct {
 
 type ImportantMessageRequest struct {
 	MessageID int32 `json:"message_id"`
+}
+
+type InviteLink struct {
+	URL       string    `json:"url"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
 
 type LinkPreviewImage struct {

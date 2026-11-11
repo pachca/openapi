@@ -1846,6 +1846,137 @@ func (s *MembersServiceImpl) RemoveMember(ctx context.Context, id int32, userId 
 	}
 }
 
+type CompanyService interface {
+	GetCompany(ctx context.Context) (*Company, error)
+	GetInviteLink(ctx context.Context) (*InviteLink, error)
+	ReissueInviteLink(ctx context.Context) (*InviteLink, error)
+	UpdateCompany(ctx context.Context, request CompanyUpdateRequest) (*Company, error)
+}
+
+type CompanyServiceStub struct{}
+
+func (s *CompanyServiceStub) GetCompany(ctx context.Context) (*Company, error) {
+	return nil, NotImplementedError{Method: "Company.getCompany"}
+}
+
+func (s *CompanyServiceStub) GetInviteLink(ctx context.Context) (*InviteLink, error) {
+	return nil, NotImplementedError{Method: "Company.getInviteLink"}
+}
+
+func (s *CompanyServiceStub) ReissueInviteLink(ctx context.Context) (*InviteLink, error) {
+	return nil, NotImplementedError{Method: "Company.reissueInviteLink"}
+}
+
+func (s *CompanyServiceStub) UpdateCompany(ctx context.Context, request CompanyUpdateRequest) (*Company, error) {
+	return nil, NotImplementedError{Method: "Company.updateCompany"}
+}
+
+type CompanyServiceImpl struct {
+	baseURL string
+	client  *http.Client
+}
+
+func (s *CompanyServiceImpl) GetCompany(ctx context.Context) (*Company, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/company", s.baseURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data Company `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *CompanyServiceImpl) GetInviteLink(ctx context.Context) (*InviteLink, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/company/invite_link", s.baseURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data InviteLink `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *CompanyServiceImpl) ReissueInviteLink(ctx context.Context) (*InviteLink, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/company/invite_link", s.baseURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data InviteLink `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *CompanyServiceImpl) UpdateCompany(ctx context.Context, request CompanyUpdateRequest) (*Company, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/company", s.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data Company `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
 type CustomPropertiesService interface {
 	ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error)
 }
@@ -4760,6 +4891,7 @@ type PachcaClient struct {
 	Bots              BotsService
 	Chats             ChatsService
 	Common            CommonService
+	Company           CompanyService
 	CustomProperties  CustomPropertiesService
 	Drafts            DraftsService
 	Files             FilesService
@@ -4785,6 +4917,7 @@ type clientConfig struct {
 	bots BotsService
 	chats ChatsService
 	common CommonService
+	company CompanyService
 	customProperties CustomPropertiesService
 	drafts DraftsService
 	files FilesService
@@ -4811,6 +4944,7 @@ type stubClientConfig struct {
 	bots BotsService
 	chats ChatsService
 	common CommonService
+	company CompanyService
 	customProperties CustomPropertiesService
 	drafts DraftsService
 	files FilesService
@@ -4849,6 +4983,10 @@ func WithChats(service ChatsService) ClientOption {
 
 func WithCommon(service CommonService) ClientOption {
 	return func(cfg *clientConfig) { cfg.common = service }
+}
+
+func WithCompany(service CompanyService) ClientOption {
+	return func(cfg *clientConfig) { cfg.company = service }
 }
 
 func WithCustomProperties(service CustomPropertiesService) ClientOption {
@@ -4933,6 +5071,10 @@ func WithStubChats(service ChatsService) StubClientOption {
 
 func WithStubCommon(service CommonService) StubClientOption {
 	return func(cfg *stubClientConfig) { cfg.common = service }
+}
+
+func WithStubCompany(service CompanyService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.company = service }
 }
 
 func WithStubCustomProperties(service CustomPropertiesService) StubClientOption {
@@ -5030,6 +5172,10 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	if cfg.common != nil {
 		common = cfg.common
 	}
+	var company CompanyService = &CompanyServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.company != nil {
+		company = cfg.company
+	}
 	var customProperties CustomPropertiesService = &CustomPropertiesServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.customProperties != nil {
 		customProperties = cfg.customProperties
@@ -5106,6 +5252,7 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 		Bots             : bots,
 		Chats            : chats,
 		Common           : common,
+		Company          : company,
 		CustomProperties : customProperties,
 		Drafts           : drafts,
 		Files            : files,
@@ -5144,6 +5291,10 @@ func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...Client
 	if cfg.common != nil {
 		common = cfg.common
 	}
+	var company CompanyService = &CompanyServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.company != nil {
+		company = cfg.company
+	}
 	var customProperties CustomPropertiesService = &CustomPropertiesServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.customProperties != nil {
 		customProperties = cfg.customProperties
@@ -5220,6 +5371,7 @@ func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...Client
 		Bots             : bots,
 		Chats            : chats,
 		Common           : common,
+		Company          : company,
 		CustomProperties : customProperties,
 		Drafts           : drafts,
 		Files            : files,
@@ -5257,6 +5409,10 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	var common CommonService = &CommonServiceStub{}
 	if cfg.common != nil {
 		common = cfg.common
+	}
+	var company CompanyService = &CompanyServiceStub{}
+	if cfg.company != nil {
+		company = cfg.company
 	}
 	var customProperties CustomPropertiesService = &CustomPropertiesServiceStub{}
 	if cfg.customProperties != nil {
@@ -5334,6 +5490,7 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 		Bots             : bots,
 		Chats            : chats,
 		Common           : common,
+		Company          : company,
 		CustomProperties : customProperties,
 		Drafts           : drafts,
 		Files            : files,

@@ -5,6 +5,7 @@
 export const TAG_TRANSLATIONS: Record<string, string> = {
   OAuth: 'OAuth и токены',
   Profile: 'Профиль и статус',
+  Company: 'Пространство',
   Users: 'Сотрудники',
   'Group tags': 'Теги',
   Chats: 'Чаты',

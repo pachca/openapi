@@ -224,6 +224,25 @@
   "ChatMemberOperations_removeMember": {
     "usage": "try await client.members.removeMember(id: 334, userId: 186)"
   },
+  "CompanyOperations_getCompany": {
+    "usage": "let response = try await client.company.getCompany()",
+    "output": "Company(id: Int, name: String, ownerId: Int, showPersonalData: Bool, useGlobalThreads: Bool, integrationsManagement: CompanyManagementAccess, apiManagement: CompanyManagementAccess, plan: String, exportPersonalChats: Bool?)"
+  },
+  "CompanyOperations_getInviteLink": {
+    "usage": "let response = try await client.company.getInviteLink()",
+    "output": "InviteLink(url: String, expiresAt: String)"
+  },
+  "CompanyOperations_reissueInviteLink": {
+    "usage": "let response = try await client.company.reissueInviteLink()",
+    "output": "InviteLink(url: String, expiresAt: String)"
+  },
+  "CompanyOperations_updateCompany": {
+    "usage": "let request = CompanyUpdateRequest(\n    name: \"Синий склад\",\n    showPersonalData: false,\n    useGlobalThreads: true\n)\nlet response = try await client.company.updateCompany(request: request)",
+    "output": "Company(id: Int, name: String, ownerId: Int, showPersonalData: Bool, useGlobalThreads: Bool, integrationsManagement: CompanyManagementAccess, apiManagement: CompanyManagementAccess, plan: String, exportPersonalChats: Bool?)",
+    "imports": [
+      "CompanyUpdateRequest"
+    ]
+  },
   "CommonOperations_listProperties": {
     "usage": "let response = try await client.customProperties.listProperties(entityType: .User)",
     "output": "ListPropertiesResponse(data: [CustomPropertyDefinition])",

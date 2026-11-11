@@ -166,7 +166,7 @@ The API has no forward method: «Переслать» exists only in the app. Fo
 
 ## Editing and deleting
 
-- You can edit only your own regular messages: not system, forwarded or voice messages. An edit gets an "edited" mark.
+- You can edit only your own regular messages: not system, forwarded, voice or sticker messages. An edit gets an "edited" mark.
 - An edit is silent: no employee gets a notification and nothing becomes unread. A mention added by editing renders as a mention, but the person is not notified and, in a thread, not added to it. To bring someone in, or to make a correction people must notice, send a new message, for example a quoted reply with `parent_message_id`.
 - To fix or add to a message you already sent, prepare the new text first, then check who has read the original right before acting (`pachca_list_message_readers`): people may read it while you work. If the people it was for have not read it, edit it, and they will read the fixed text. If they have, an edit goes unnoticed: send a small addition as a reply to the original, and when the original must stay right (a long message people will come back to), edit it and also reply briefly with what you changed.
 - `files` and `buttons` are replaced as a whole: an empty array removes all of them, an omitted field keeps them. To keep an attached file, pass it again with the same `key`: it stays the same attachment with its `id` and name, and the `name` you send for it is ignored. To show a file under another name, upload it again. A removed attachment is deleted from storage.

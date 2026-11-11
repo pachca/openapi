@@ -25,8 +25,9 @@
  *     a file both ways (`FILE_SOURCES`);
  *   - the fields of the API kept out of the tools for safety (`WITHHELD`);
  *   - which writes only add, so a client may treat them as harmless
- *     (`ADDITIVE`), and the argument that deletes inside a tool not marked so
- *     (`DESTRUCTIVE_EFFECTS`);
+ *     (`ADDITIVE`), the reads that change something all the same
+ *     (`READS_THAT_CHANGE`), and the argument that deletes inside a tool not
+ *     marked so (`DESTRUCTIVE_EFFECTS`);
  *   - the arguments the API has no field for — the draft a send replaces
  *     (`DRAFT_ARGUMENT`, `DRAFT_CLEANUP`) and the detail level of a list or of a
  *     read that keeps fields out (`VIEW_ARGUMENT`) — and the roles an argument
@@ -382,6 +383,20 @@ export const ADDITIVE: Record<OperationKey, string> = {
 };
 
 /**
+ * Reads that change something, each with what they change. Such a tool keeps
+ * the kind of its method, but it is not marked read-only, and it is destructive
+ * by the rule of `ADDITIVE`: what it changes is not only added. Repeating it
+ * changes nothing more, so it stays idempotent like any read.
+ *
+ * Without the line a client would run it unasked as a harmless read, and the
+ * person would not see the call that cut short a link they had already sent.
+ */
+export const READS_THAT_CHANGE: Record<OperationKey, string> = {
+  'GET /company/invite_link':
+    'Issues a new link when the caller has none valid for another hour, and every older link of the caller stops working.',
+};
+
+/**
  * An argument that runs a destructive operation inside a tool not marked so.
  * The flag of a tool speaks for its own operation, so a step that deletes has to
  * be argued for here, or the build fails.
@@ -642,9 +657,9 @@ export const WEB_LINKS = {
  * the manifest asks.
  */
 export const SERVER_INSTRUCTIONS = [
-  'Pachca is a corporate messenger; its whole API is here: messages, files, reactions, pins and readers in ' +
-    'chats and threads; drafts and scheduled messages with a personal token; chats, members, archive, unread marks; ' +
-    'reminders, handed over by editing; employees, statuses, avatars, extra fields, group tags; bots, tokens, webhooks; ' +
+  'Pachca is a team chat app; its whole API is here: messages, threads, files, reactions, pins, readers; with a ' +
+    'personal token, drafts, scheduled messages; chats, members, archive, unread marks; reminders, handed over by ' +
+    'editing; employees, statuses, avatars, extra fields, group tags; workspace, invite link; bots, tokens, webhooks; ' +
     'with a bot token, event history, forms, link previews; for the owner on the Corporation plan, every chat and ' +
     'bot, exports, security log. Tools follow the token: if one is missing, name your role, or the plan or kind of ' +
     'token it takes, in a partial answer too, and change nothing instead.',
@@ -782,9 +797,9 @@ export const REFUSALS: Record<string, string> = {
     'The token no longer works. Tell the person to reconnect Pachca, or to give the bot a new token; ' +
     'retrying will not help.',
   '402':
-    'The workspace is blocked for payment: it has gone over the message limit of its plan. Most ' +
-    'methods answer this way until the workspace is paid for, and nothing an agent does changes that ' +
-    '— tell the person.',
+    'The workspace is blocked for payment: with no paid plan in force, it has gone over the monthly message ' +
+    'limit. Most methods answer this way until the workspace is paid for, or at the latest until the next ' +
+    'month begins in UTC, and nothing an agent does changes that — tell the person.',
   '403':
     'Not allowed, and the code says why. `insufficient_scope`: the token lacks the permission it names — ' +
     'say which, and do not retry: whoever manages the token adds it. A person connected through the browser ' +
@@ -1499,11 +1514,14 @@ export const TRUSTED_TEXT: Array<{ fields: string[]; why: string; secret?: boole
       'BotSelfTokenResponse.access_token',
       'BotWebhook.url',
       'redirect.url',
+      'InviteLink.url',
     ],
     why:
       'Secrets Pachca generates, whole: whoever holds one can act as the bot, sign as Pachca to its server, or ' +
       'download an export. The address of an incoming webhook takes messages as the bot with no token, and the link ' +
-      'to an export opens the archive with no token while it lives.',
+      'to an export opens the archive with no token while it lives. An invite link lets anyone in as an employee ' +
+      'while it lives; the workspace name in it comes escaped, and only the owner and administrators set it, the ' +
+      'same people the link is given to.',
     secret: true,
   },
   {

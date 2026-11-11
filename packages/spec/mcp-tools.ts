@@ -13,7 +13,7 @@
  * states what an operation does — who may call it, what comes back, what it
  * refuses — and those facts have one home, the operation description, which
  * documentation, CLI and SDK read too. Prose says only what that home has no
- * place for, and the entries below fall into four groups:
+ * place for, and the entries below fall into five groups:
  *
  * 1. **The words a request comes in**, where they land on the wrong neighbour.
  *    The spec points at the neighbour, and a model gets that link as a tool
@@ -27,6 +27,10 @@
  *    conversation cannot meet.
  * 4. **A call the instructions have already answered**, so the model does not
  *    spend one on what it holds.
+ * 5. **The work an answer starts.** A list holding only the chat with yourself
+ *    is a new workspace, and setting one up for a team is a plan of chats,
+ *    tags and invitations rather than one call; the spec says what a list
+ *    returns and has no place for what that list means to a person.
  *
  * A fact about behaviour does not belong here at all. The spec's description is
  * read by everything — documentation, CLI, SDK, llms.txt — so a fact written
@@ -65,7 +69,9 @@
  * here, or in a note the generator puts on the arguments or the tools it
  * concerns — how a moment named in words is written, on every date-time argument
  * (`MOMENT_ARGUMENT`), that a search phrase takes the words of the request, on
- * every `query` (`QUERY_ARGUMENT`), and where a secret in an answer may go
+ * every `query` (`QUERY_ARGUMENT`), that a name the model chooses for employees
+ * takes the language of the request and no #, on the names of chats, tags,
+ * departments and bots (`NAME_ARGUMENT`), and where a secret in an answer may go
  * (`SECRET_NOTE`). A line repeating any of those reaches the model twice, and the
  * build fails on six words in a row shared with the instructions or with the
  * note on the same argument.
@@ -104,6 +110,18 @@ export interface ToolProse {
 const NO_HOUR_NOTE =
   'Make the reminder all-day this way whenever the request names no hour — «к среде», «в любое время в понедельник», ' +
   '«в течение дня» — instead of inventing one that then shows in the reminder.';
+
+/**
+ * How the tags of an employee are named, on an invitation and on an edit alike.
+ * The list finds a tag by its exact name and makes one of any name it does not
+ * know, and on an edit it replaces the employee's tags, so a tag Design written
+ * as «Дизайн» makes an empty new tag and takes the employee out of Design and its
+ * chats. `NAME_ARGUMENT`, which asks for names in the language of the request,
+ * is kept off this list for that reason, and this says what holds for it.
+ */
+const TAG_NAMES_NOTE =
+  'Pass a tag that exists under its name exactly as Pachca returns it, whatever its language. Only the name of ' +
+  'a new tag follows the language of the request, with no # in front.';
 
 /**
  * Whose words a message is, and the shape it takes: read where the text is
@@ -181,6 +199,24 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   update_task: {
     arguments: { all_day: NO_HOUR_NOTE },
   },
+  // Setting up a new workspace, a small model gave the admin role nobody asked
+  // for. A role given after the invitation leaves the chats the employee has
+  // already joined as they were, and chats filled by hand miss whoever joins the
+  // team later: the tag of the team fills them. A team the request does not name
+  // gets no tag: an unknown name makes a new tag at once.
+  create_user: {
+    arguments: {
+      role:
+        'Leave it out for an ordinary employee, and pass admin only when the request asks for an administrator. ' +
+        'Set it in this call, together with chat_ids and list_tags, rather than in a later edit.',
+      list_tags:
+        `${TAG_NAMES_NOTE} When the request names the employee’s team, give the tag of that team, and keep ` +
+        'chat_ids for chats no tag is bound to: a tag also brings in whoever gets it later.',
+    },
+  },
+  update_user: {
+    arguments: { list_tags: TAG_NAMES_NOTE },
+  },
 
   // ── Where the consequence is the thing worth knowing ────────────────────
   open_form: {
@@ -188,6 +224,21 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   },
   answer_form: {
     description: FORM_WINDOW('the employee’s submission'),
+  },
+
+  // ── The work an answer starts ───────────────────────────────────────────
+  // Getting a workspace ready for a team is many changes and words the model
+  // chooses, and the list with nothing but the chat with yourself is the first
+  // thing it sees of a new one: that is where the plan starts, with its texts in
+  // it, so the person agrees to all of it at once. Pinning the first message is
+  // part of that plan and of nothing else: a chat made for another request gets
+  // no message nobody asked for.
+  list_chats: {
+    description:
+      'An answer holding only the chat with yourself means a new workspace. Asked to set it up for a team, offer ' +
+      'one plan: an open channel for the whole company, an informal chat and a chat with a tag for each team, ' +
+      'with the first message of each written out to post and pin once the plan is agreed, and ask only for the ' +
+      'colleagues’ emails and teams.',
   },
 
   // ── A call the instructions have already answered ───────────────────────

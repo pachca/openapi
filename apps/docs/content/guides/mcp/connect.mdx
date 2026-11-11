@@ -13,7 +13,7 @@ related:
 
 <Steps>
   <Step title="Добавьте сервер">
-    В настройках MCP программы с агентом добавьте сервер с адресом `https://mcp.pachca.com/mcp`. Как это сделать в вашей программе, сказано в разделе [Программы](#programmy). Если сервер Пачки в программе уже есть, второй не добавляйте: войдите снова, перезапустите программу или удалите сервер и добавьте заново, как сказано в её разделе.
+    В настройках MCP программы с агентом добавьте сервер с адресом `https://mcp.pachca.com/mcp`. Как это сделать в вашей программе, сказано в разделе [Программы](#programmy). Если сервер Пачки в программе уже есть, второй не добавляйте: войдите снова, перезапустите программу или удалите сервер и добавьте заново, как сказано в её разделе. Другие MCP-серверы не трогайте.
   </Step>
   <Step title="Войдите в Пачку">
     Программа откроет Пачку в браузере. На экране согласия проверьте имя программы и пространство и нажмите **Разрешить**, подробнее — в разделе [Вход через браузер](#vhod-cherez-brauzer). Cursor и программы, которые не входят через браузер, подключаются [персональным токеном](#token-v-zagolovke). Если Пачка пишет «Доступ к API ограничен администраторами пространства», попросите Администратора открыть доступ, как в разделе [Кто может подключить](#kto-mozhet-podklyuchit).
@@ -32,7 +32,7 @@ related:
     Скиллы Пачки уже стоят, если в программе есть скилл `pachca-watch-thread`. Прежние скиллы, например `pachca-chats` и `pachca-messages`, удалите в любом случае, а если `pachca-watch-thread` нет, поставьте новые, как в разделе [Установка скиллов](/guides/ai-agents/skills#ustanovka-skillov).
   </Step>
   <Step title="Проверьте подключение">
-    Попросите агента «Покажи мой профиль в Пачке»: он ответит вашим именем и ролью. Что ещё можно поручить — в разделе [Что можно поручить агенту](/guides/ai-agents/overview#chto-mozhno-poruchit-agentu).
+    Попросите агента «Покажи мой профиль в Пачке»: он ответит вашим именем и ролью. Если агент не находит инструмент, попросите «Найди инструмент `pachca_get_my_card` и покажи мой профиль в Пачке»: по точному имени он найдёт инструмент и там, где программа прячет инструменты MCP за поиском. Что ещё можно поручить — в разделе [Что можно поручить агенту](/guides/ai-agents/overview#chto-mozhno-poruchit-agentu).
   </Step>
 </Steps>
 
@@ -56,7 +56,7 @@ related:
 
 Если стоит плагин «Пачка», сервер уже добавлен: пропустите команду `claude mcp add` и войдите, как в разделе [Вход в Пачку](/guides/ai-agents/plugin#vhod-v-pachku). Если плагин стоит в Cursor или VS Code, сначала поставьте его и в Claude Code, как сказано в разделе [Установка скиллов](/guides/ai-agents/skills#ustanovka-skillov), и команду `claude mcp add` тоже пропустите.
 
-Добавьте сервер:
+Сначала проверьте командой `claude mcp list`, нет ли уже сервера с адресом `https://mcp.pachca.com/mcp`: если есть, второй не добавляйте. Иначе добавьте сервер:
 
 ```bash
 claude mcp add --scope user --transport http pachca https://mcp.pachca.com/mcp
@@ -97,6 +97,8 @@ claude mcp add --scope user --transport http pachca https://mcp.pachca.com/mcp
 Проверьте подключение: в новом чате попросите «Покажи мой профиль в Пачке». Если инструментов Пачки в чате нет, откройте **Customize** > **Connectors** и проверьте коннектор Пачки: если он не подключён, нажмите **Connect** и войдите снова. Если подключён, проверьте в меню инструментов чата, что коннектор Пачки включён. Второй коннектор с тем же адресом не добавляйте.
 
 ### VS Code и GitHub Copilot
+
+Сначала проверьте в VS Code командой **MCP: List Servers**, а для GitHub Copilot CLI командой `copilot mcp list`, нет ли уже сервера `pachca`: если есть, второй не добавляйте.
 
 Сервер быстрее всего добавляется по ссылке [Установить в VS Code](vscode:mcp/install?%7B%22name%22%3A%22pachca%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fmcp.pachca.com%2Fmcp%22%7D).
 
@@ -169,7 +171,7 @@ Grok Bot подключается к Пачке через вход в брау�
 
 Если в списке серверов MCP в Cursor есть `plugin-pachca-pachca`, [плагин «Пачка»](/guides/ai-agents/plugin#cursor) уже подключён: он стоит в Cursor, или Cursor подключил его из Claude Code. Тогда в `mcp.json` сервер не добавляйте, а сервер `pachca`, если он там есть, уберите. Скиллы не ставьте, их ставит плагин. Только создайте токен, задайте `PACHCA_TOKEN` и перезапустите Cursor, как сказано ниже. Если плагин стоит только в Claude Code, а сервера `plugin-pachca-pachca` в списке нет, включите в Cursor подключение плагинов Claude Code, как в разделе [Cursor](/guides/ai-agents/plugin#cursor) страницы плагина, и перезапустите Cursor.
 
-Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Затем добавьте сервер по ссылке [Установить в Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=pachca&config=eyJ1cmwiOiJodHRwczovL21jcC5wYWNoY2EuY29tL21jcCIsImhlYWRlcnMiOnsiQXV0aG9yaXphdGlvbiI6IkJlYXJlciAke2VudjpQQUNIQ0FfVE9LRU59In19) или вручную: в `~/.cursor/mcp.json`, чтобы он был во всех проектах, или в `.cursor/mcp.json` проекта.
+Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Затем добавьте сервер по ссылке [Установить в Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=pachca&config=eyJ1cmwiOiJodHRwczovL21jcC5wYWNoY2EuY29tL21jcCIsImhlYWRlcnMiOnsiQXV0aG9yaXphdGlvbiI6IkJlYXJlciAke2VudjpQQUNIQ0FfVE9LRU59In19) или вручную: в `~/.cursor/mcp.json`, чтобы он был во всех проектах, или в `.cursor/mcp.json` проекта. Если сервер `pachca` в списке серверов MCP уже есть, второй не добавляйте.
 
 ```json title="~/.cursor/mcp.json"
 {
@@ -196,7 +198,7 @@ agent mcp list
 
 ### SourceCraft Code Assistant
 
-Создайте персональный токен, как в шаге 1 раздела [Токен в заголовке](#token-v-zagolovke). Затем в чате Code Assistant в VS Code нажмите значок с тремя точками на верхней панели и выберите **MCP-серверы** > **Edit Global MCP**. Добавьте сервер в открывшийся файл `mcp_settings.json` и вставьте токен вместо `<токен>` сами, агенту в чат его не отправляйте:
+Создайте персональный токен, как в шаге 1 раздела [Токен в заголовке](#token-v-zagolovke). Затем в чате Code Assistant в VS Code нажмите значок с тремя точками на верхней панели и выберите **MCP-серверы**. Если сервер `pachca` в списке уже есть, второй не добавляйте. Иначе выберите **Edit Global MCP**, добавьте сервер в открывшийся файл `mcp_settings.json` и вставьте токен вместо `<токен>` сами, агенту в чат его не отправляйте:
 
 ```json title="mcp_settings.json"
 {
@@ -216,7 +218,7 @@ agent mcp list
 
 ### Qwen Code и GigaCode CLI
 
-Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke), затем откройте новое окно терминала: программа видит только переменные, заданные до её запуска. В Qwen Code добавьте сервер командой:
+Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke), затем откройте новое окно терминала: программа видит только переменные, заданные до её запуска. Если сервер `pachca` уже есть в выводе команды `qwen mcp list` или команды `/mcp` в GigaCode CLI, второй не добавляйте. Иначе в Qwen Code добавьте сервер командой:
 
 ```bash
 qwen mcp add --scope user --transport http pachca https://mcp.pachca.com/mcp --header 'Authorization: Bearer ${PACHCA_TOKEN}'
@@ -251,7 +253,7 @@ gigacode mcp add --scope user --transport http pachca https://mcp.pachca.com/mcp
 
 ### OpenCode
 
-Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Затем добавьте сервер в `~/.config/opencode/opencode.json`, чтобы он был во всех проектах, или в `opencode.json` проекта:
+Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Если команда `opencode mcp list` уже показывает сервер `pachca`, второй не добавляйте. Иначе добавьте сервер в `~/.config/opencode/opencode.json`, чтобы он был во всех проектах, или в `opencode.json` проекта:
 
 ```json title="~/.config/opencode/opencode.json"
 {
@@ -277,7 +279,7 @@ opencode mcp list
 
 ### Devin Desktop
 
-Devin Desktop, бывший Windsurf, подключается к Пачке персональным токеном. Агент Devin Local, с которого начинаются новые вкладки, и прежний агент Cascade берут серверы из одного файла: `~/.config/devin/mcp_config.json`, в Windows `%APPDATA%\devin\mcp_config.json`. Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Затем в новом окне терминала добавьте сервер командой Devin CLI:
+Devin Desktop, бывший Windsurf, подключается к Пачке персональным токеном. Агент Devin Local, с которого начинаются новые вкладки, и прежний агент Cascade берут серверы из одного файла: `~/.config/devin/mcp_config.json`, в Windows `%APPDATA%\devin\mcp_config.json`. Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Если команда `devin mcp list` уже показывает сервер `pachca`, второй не добавляйте. Иначе в новом окне терминала добавьте сервер командой Devin CLI:
 
 ```bash
 devin mcp add -s user -H "Authorization: Bearer $PACHCA_TOKEN" pachca https://mcp.pachca.com/mcp
@@ -308,7 +310,7 @@ Devin Local подключает также серверы из `.mcp.json` пр
 
 ### Cline
 
-Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Затем в новом окне терминала добавьте сервер командой Cline CLI:
+Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Если сервер `pachca` уже есть в выводе команды `cline config mcp` или в расширении в **MCP Servers**, второй не добавляйте. Иначе в новом окне терминала добавьте сервер командой Cline CLI:
 
 ```bash
 cline mcp add pachca https://mcp.pachca.com/mcp --transport http --header "Authorization: Bearer $PACHCA_TOKEN" --yes
@@ -336,7 +338,7 @@ cline mcp add pachca https://mcp.pachca.com/mcp --transport http --header "Autho
 
 ### Kilo Code
 
-Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Затем добавьте сервер в `~/.config/kilo/kilo.jsonc`, чтобы он был во всех проектах, или в `kilo.jsonc` проекта:
+Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Если сервер `pachca` уже есть в выводе `kilo mcp list` или в расширении в **Settings** > **MCP**, второй не добавляйте. Иначе добавьте сервер в `~/.config/kilo/kilo.jsonc`, чтобы он был во всех проектах, или в `kilo.jsonc` проекта:
 
 ```json title="~/.config/kilo/kilo.jsonc"
 {
@@ -357,7 +359,7 @@ cline mcp add pachca https://mcp.pachca.com/mcp --transport http --header "Autho
 
 ### Gemini CLI
 
-Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Затем добавьте сервер:
+Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Если команда `gemini mcp list` уже показывает сервер `pachca`, второй не добавляйте. Иначе добавьте сервер:
 
 ```bash
 gemini mcp add --scope user --transport http --header 'Authorization: Bearer ${PACHCA_TOKEN}' pachca https://mcp.pachca.com/mcp
@@ -369,7 +371,7 @@ gemini mcp add --scope user --transport http --header 'Authorization: Bearer ${P
 
 ### DeepSeek Harness
 
-Приложение DeepSeek Harness на компьютере подключается к Пачке персональным токеном, а сервер добавляется в файле настроек: раздела MCP в интерфейсе приложения нет. Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Затем откройте файл `~/.dsh/profiles/desktop/cordis.patch.yml`, в Windows `%USERPROFILE%\.dsh\profiles\desktop\cordis.patch.yml`. Файл появляется после первого запуска приложения и заканчивается строкой `[]`: замените её блоком ниже. Если строки `[]` нет и в файле уже есть записи, которые начинаются со знака `-`, добавьте блок после них.
+Приложение DeepSeek Harness на компьютере подключается к Пачке персональным токеном, а сервер добавляется в файле настроек: раздела MCP в интерфейсе приложения нет. Создайте токен и задайте переменную `PACHCA_TOKEN`, как в разделе [Токен в заголовке](#token-v-zagolovke). Затем откройте файл `~/.dsh/profiles/desktop/cordis.patch.yml`, в Windows `%USERPROFILE%\.dsh\profiles\desktop\cordis.patch.yml`. Файл появляется после первого запуска приложения и заканчивается строкой `[]`: замените её блоком ниже. Если строки `[]` нет и в файле уже есть записи, которые начинаются со знака `-`, добавьте блок после них. Если в файле уже есть блок со строкой `serverName: pachca`, второй не добавляйте.
 
 ```yaml title="~/.dsh/profiles/desktop/cordis.patch.yml"
 - insert:

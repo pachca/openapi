@@ -24,7 +24,7 @@ export default class UsersCreate extends BaseCommand {
       description: "Фамилия (макс. 255 символов)",
     }),
     'email': Flags.string({
-      description: "Электронная почта (макс. 255 символов)",
+      description: "Электронная почта. На неё уходит приглашение, а без письма (`skip_email_notify`) сотрудник входит в Пачку по этому адресу сам. (макс. 255 символов)",
     }),
     'phone-number': Flags.string({
       description: "Телефон (макс. 255 символов)",
@@ -39,7 +39,7 @@ export default class UsersCreate extends BaseCommand {
       description: "Должность (макс. 255 символов)",
     }),
     'role': Flags.string({
-      description: "Уровень доступа",
+      description: "Уровень доступа, по умолчанию `user`",
     }),
     'suspended': Flags.boolean({
       description: "Деактивация пользователя",
@@ -65,7 +65,7 @@ export default class UsersCreate extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'email', label: "Электронная почта", type: 'string' },
+      { flag: 'email', label: "Электронная почта. На неё уходит приглашение, а без письма (`skip_email_notify`) сотрудник входит в Пачку по этому адресу сам.", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {

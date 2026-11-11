@@ -128,13 +128,16 @@
  *     in words is written (`MOMENT_ARGUMENT`) or carries it twice; a top-level
  *     text argument named `query` lacks the note that a search takes the words
  *     of the request (`QUERY_ARGUMENT`) or carries it twice, or any other
- *     argument or tool carries it; a tool whose answer reaches a field
- *     `TRUSTED_TEXT` marks secret lacks `SECRET_NOTE`, a tool whose answer
- *     reaches none carries it, a field so marked is in no answer of a tool, or a
- *     field of free text named as a token or a secret is marked neither secret
- *     nor masked; an operation that reaches a field `SECRET_ONLY_IN` sorts is
- *     listed neither under whole nor under masked, or under both, a list names
- *     an operation that does not reach the field, or is empty;
+ *     argument or tool carries it; an argument `NAME_ARGUMENT` lists lacks the
+ *     note on a name written for employees, carries it twice or is not taken by
+ *     its tool, or any other argument or tool carries it; a tool whose answer
+ *     reaches a field `TRUSTED_TEXT` marks secret lacks `SECRET_NOTE`, a tool
+ *     whose answer reaches none carries it, a field so marked is in no answer of
+ *     a tool, or a field of free text named as a token or a secret is marked
+ *     neither secret nor masked; an operation that reaches a field
+ *     `SECRET_ONLY_IN` sorts is listed neither under whole nor under masked, or
+ *     under both, a list names an operation that does not reach the field, or
+ *     is empty;
  *   - a description still carries a sentence written for an HTTP client, or a
  *     pattern written to cut one cuts nothing any more;
  *   - prose is written for a tool or an argument that does not exist, says
@@ -203,6 +206,7 @@ import {
   INSTRUCTION_PLACEHOLDERS,
   MOMENT_ARGUMENT,
   QUERY_ARGUMENT,
+  NAME_ARGUMENT,
   QUOTED_TERMS,
   SECRET_NOTE,
   STANDALONE_STEPS,
@@ -1537,6 +1541,18 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
   const query = properties.query;
   if (query && [query.type ?? []].flat().includes('string')) {
     properties.query = { ...query, description: `${sentence(String(query.description ?? ''))} ${QUERY_ARGUMENT.description}`.trim() };
+  }
+
+  // A name written for employees to read takes the language of the request and no
+  // prefix (`NAME_ARGUMENT`): the note goes after the spec's words of each
+  // argument listed for this operation, before prose, the same way.
+  for (const at of NAME_ARGUMENT.at[op.key] ?? []) {
+    const field = properties[at];
+    if (!field) {
+      problems.push(`${op.name}: NAME_ARGUMENT lists ${at}, which the tool does not take`);
+      continue;
+    }
+    properties[at] = { ...field, description: `${sentence(String(field.description ?? ''))} ${NAME_ARGUMENT.description}`.trim() };
   }
 
   // Written argument text follows the spec's rather than replacing it: the spec
@@ -3324,6 +3340,26 @@ function build(): void {
   for (const service of SERVICE_TOOLS) {
     if (occurrences(JSON.stringify(service), QUERY_ARGUMENT.description)) problems.push(`service tool ${service.name} carries QUERY_ARGUMENT, which only the search phrase of an API tool takes`);
   }
+  for (const key of Object.keys(NAME_ARGUMENT.at)) {
+    if (!tools.some((tool) => tool.operation === key)) problems.push(`NAME_ARGUMENT lists ${key}, which no tool runs`);
+  }
+  for (const tool of tools) {
+    if (occurrences(tool.description, NAME_ARGUMENT.description)) problems.push(`${tool.name} carries NAME_ARGUMENT in its description rather than on an argument`);
+    const listed = new Set(NAME_ARGUMENT.at[tool.operation] ?? []);
+    const walk = (node: JsonSchema | undefined, at: string): void => {
+      if (!node || typeof node !== 'object') return;
+      const notes = occurrences(node.description, NAME_ARGUMENT.description);
+      if (listed.has(at) && notes !== 1) problems.push(`${tool.name}: ${at} carries NAME_ARGUMENT ${notes} times rather than once`);
+      if (!listed.has(at) && notes) problems.push(`${tool.name}: ${at} carries NAME_ARGUMENT and NAME_ARGUMENT does not list it`);
+      for (const [name, child] of Object.entries(node.properties ?? {})) walk(child, at ? `${at}.${name}` : name);
+      if (node.items) walk(node.items, `${at}[]`);
+      if (node.additionalProperties && typeof node.additionalProperties === 'object') walk(node.additionalProperties, `${at}{}`);
+    };
+    for (const [name, child] of Object.entries(tool.inputSchema.properties ?? {})) walk(child, name);
+  }
+  for (const service of SERVICE_TOOLS) {
+    if (occurrences(JSON.stringify(service), NAME_ARGUMENT.description)) problems.push(`service tool ${service.name} carries NAME_ARGUMENT, which only the names it lists take`);
+  }
 
   // ── Pages ────────────────────────────────────────────────────────────────
   // A cursor comes from the answer before, and the model keeps an answer small
@@ -3903,6 +3939,7 @@ function build(): void {
     { who: 'the server instructions quote', lines: [SERVER_INSTRUCTIONS] },
     { who: 'MOMENT_ARGUMENT quotes', lines: [MOMENT_ARGUMENT.description] },
     { who: 'QUERY_ARGUMENT quotes', lines: [QUERY_ARGUMENT.description] },
+    { who: 'NAME_ARGUMENT quotes', lines: [NAME_ARGUMENT.description] },
     { who: 'SECRET_NOTE quotes', lines: [SECRET_NOTE] },
     { who: 'DRAFT_ARGUMENT quotes', lines: [DRAFT_ARGUMENT.description] },
     { who: 'VIEW_ARGUMENT quotes', lines: Object.values(VIEW_ARGUMENT.description) },

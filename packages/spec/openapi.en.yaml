@@ -3041,8 +3041,10 @@ paths:
 
         You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is
         taken off the employee or off the chat. For a guest and a multi-guest the method also responds `403`, whatever
-        their role in the chat. You cannot leave a thread or a direct message: for a thread the method responds `403`,
-        for a direct message `400` with the `personal_chat` code. You can leave an archived chat, though.
+        their role in the chat. You cannot leave a direct message: the method responds `400` with the `personal_chat`
+        code. For a thread the method responds `403`: you leave a thread with the [Remove chat member](DELETE
+        /chats/{id}/members/{user_id}) method and your own ID, under the same rules as removing and with the
+        `chat_members:write` scope. You can leave an archived chat, though.
 
 
         You can come back to a public chat on your own, and to a private one only if one of the members adds you back.
@@ -3270,9 +3272,11 @@ paths:
           in: path
           required: true
           description: >-
-            Chat ID (conversation, channel, or thread chat). Into a thread the method adds everyone as an ordinary
-            member and without a notification, so mention the people you added in a thread message. Employees from
-            outside the parent chat are added there whatever the "Use cross-chat threads" setting is.
+            Chat ID (conversation, channel, or thread chat). Into a thread the method adds people without a
+            notification, so mention the people you added in a thread message. Employees from outside the parent chat
+            are added to the thread whatever the "Use cross-chat threads" setting is. In a thread under a message
+            everyone becomes an ordinary member, and in an unattached thread the workspace owner and administrators
+            become its Admins.
           schema:
             type: integer
             format: int32
@@ -3348,10 +3352,11 @@ paths:
 
 
         Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its
-        `chat_id`: this can be done by the Creator or an Admin of the chat that holds the parent message, and in an
-        unattached thread by its creator and by the workspace owner and administrators who were added to the thread
-        through the "Add members" window in the Pachca app, not by a mention. In a private conversation the removed
-        member loses access to the chat but stays in the threads they belonged to.
+        `chat_id`: this can be done by any member of the thread or of the chat that holds the parent message, a bot
+        included, and by a multi-guest only as the Creator or an Admin of that chat or as the owner of an unattached
+        thread. The role of the removed member in the thread does not matter, except `owner`. By the same rules, with
+        your own ID the method takes the token owner out of the thread. In a private conversation the removed member
+        loses access to the chat but stays in the threads they belonged to.
 
 
         An employee held in the chat by a linked tag cannot be removed with this method: the response will be
@@ -3359,9 +3364,11 @@ paths:
         or unlink the tag from the chat with the [Remove tag from chat](DELETE /chats/{id}/group_tags/{tag_id}) method.
 
 
-        The chat owner cannot be removed: the method responds `400` with the `cannot_kick_owner` code. The owner can
-        leave a conversation or a channel only on their own, with the [Leave chat](DELETE /chats/{id}/leave) method, and
-        the creator of an unattached thread stays in it.
+        The chat owner cannot be removed: the method responds `400` with the `cannot_kick_owner` code. In a thread the
+        `owner` role in the thread member list is protected the same way: the creator of an unattached thread has it,
+        and a member of a thread under a message may have it too. The owner can leave a conversation or a channel only
+        on their own, with the [Leave chat](DELETE /chats/{id}/leave) method, and the owner of an unattached thread
+        stays in it.
       parameters:
         - name: id
           in: path
@@ -3703,7 +3710,9 @@ paths:
         the error key is `company.name`.
 
 
-        Who may create personal tokens and integrations is not changed by the method.
+        The workspace avatar and the other settings in the web interface, including who may create personal tokens and
+        integrations, are changed only there. Exporting personal chats is turned on by Pachca support at the owner's
+        request.
       parameters: []
       responses:
         '200':
@@ -4031,7 +4040,8 @@ paths:
 
 
         Whoever joins by the link becomes an employee with the `user` role and no tags, and their `inviter_id` holds the
-        owner of the link. Tags are given to them by [Edit employee](PUT /users/{id}).
+        owner of the link. Tags are given to them by [Edit employee](PUT /users/{id}), and with them they get into the
+        conversations and channels of those tags.
 
 
         The method is available to the workspace owner and administrators. While the workspace name looks like spam, no
@@ -5973,9 +5983,9 @@ paths:
 
         Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are
         editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and
-        in an unattached thread by its creator and by the workspace owner and administrators who were added to the
-        thread through the "Add members" window in the Pachca app, not by a mention. There are no time restrictions on
-        message deletion, and in an archived chat messages are not deleted: the method responds `403`.
+        in an unattached thread by its owner and the Admins of the thread. The creator becomes the owner, and the
+        workspace owner and administrators become Admins when they are added to the thread. There are no time
+        restrictions on message deletion, and in an archived chat messages are not deleted: the method responds `403`.
 
 
         The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a "Message
@@ -6121,7 +6131,8 @@ paths:
         number of pinned messages.
 
 
-        In threads the method does not work. A message that is already pinned responds `409`, and a deleted one `422`.
+        In threads the method does not work and responds `403`. A message that is already pinned responds `409`, and a
+        deleted one `422`.
       parameters:
         - name: id
           in: path
@@ -8263,9 +8274,10 @@ paths:
         no chat of its own. Any employees can be gathered in it.
 
 
-        The thread creator becomes its only member and its owner: they can remove members and delete other people's
-        messages in the thread, and they cannot be removed themselves. In older unattached threads the creator is an
-        ordinary member: whether a thread has an owner is shown by [List chat members](GET /chats/{id}/members) with
+        The thread creator becomes its only member and its owner: they delete other people's messages in the thread, and
+        they cannot be removed themselves. The workspace owner and administrators added to the thread become its Admins
+        and delete other people's messages too. In unattached threads created before threads had owners, the creator is
+        an ordinary member: whether a thread has an owner is shown by [List chat members](GET /chats/{id}/members) with
         `role=owner`. The `message_id` and `message_chat_id` fields in the response are returned as `null`. Members are
         added by the [Add chat members](POST /chats/{id}/members) method by the `chat_id` of the thread. It sends no
         notification, so mention the people you added in the first message. A `@nickname` or `@tag` mention in a thread
@@ -12876,12 +12888,16 @@ components:
                 - 18
             channel:
               type: boolean
-              description: Whether this is a channel
+              description: >-
+                Whether the chat is a channel: its creator, admins and editors post in it, and subscribers read, react
+                and write in threads. Without this flag a conversation is created, where every member posts.
               example: true
               default: false
             public:
               type: boolean
-              description: Whether the chat is publicly accessible
+              description: >-
+                Whether the chat is open: every employee of the workspace except guests and multi-guests sees it and can
+                join it on their own. Without this flag the chat is closed, and only the members added to it are in it.
               example: false
               default: false
           required:
@@ -13016,7 +13032,9 @@ components:
               example: Pool
             public:
               type: boolean
-              description: Whether the chat is publicly accessible
+              description: >-
+                Whether the chat is open: every employee of the workspace except guests and multi-guests sees it and can
+                join it on their own. With `false` the chat becomes closed, and only its members see it.
               example: true
           description: Chat parameters object to update
       description: Chat update request
@@ -16005,7 +16023,10 @@ components:
                     example: 78
                   value:
                     type: string
-                    description: Value to set. An empty string clears the property.
+                    description: >-
+                      Value to set. A number is passed as a whole number in digits, such as `"3"`, and a date in the
+                      YYYY-MM-DD format: another form can be saved distorted and without an error, `"2,5"` becoming 25
+                      for example. An empty string clears the property.
                     example: Blue warehouse
                 required:
                   - id
@@ -16110,7 +16131,10 @@ components:
                     example: 78
                   value:
                     type: string
-                    description: Value to set. An empty string clears the property.
+                    description: >-
+                      Value to set. A number is passed as a whole number in digits, such as `"3"`, and a date in the
+                      YYYY-MM-DD format: another form can be saved distorted and without an error, `"2,5"` becoming 25
+                      for example. An empty string clears the property.
                     example: Blue warehouse
                 required:
                   - id
@@ -16403,7 +16427,9 @@ components:
             email:
               type: string
               maxLength: 255
-              description: Email
+              description: >-
+                Email. The invitation goes to it, and without the invitation email (`skip_email_notify`) the employee
+                signs in to Pachca with this address on their own.
               example: olegp@example.com
             phone_number:
               type: string
@@ -16431,7 +16457,7 @@ components:
             role:
               allOf:
                 - $ref: '#/components/schemas/UserCreateRole'
-              description: Access level
+              description: Access level, `user` by default
               example: user
             suspended:
               type: boolean
@@ -16471,7 +16497,10 @@ components:
                   value:
                     type: string
                     maxLength: 768
-                    description: Value to set. An empty string clears the property.
+                    description: >-
+                      Value to set. A number is passed as a whole number in digits, such as `"3"`, and a date in the
+                      YYYY-MM-DD format: another form can be saved distorted and without an error, `"2,5"` becoming 25
+                      for example. An empty string clears the property.
                     example: Saint Petersburg
                 required:
                   - id
@@ -16651,7 +16680,9 @@ components:
             role:
               allOf:
                 - $ref: '#/components/schemas/UserRoleInput'
-              description: Access level
+              description: >-
+                Access level. A change between `user` and `admin` keeps the roles in the chats the employee already
+                belongs to: those are changed by the [Change member role](PUT /chats/{id}/members/{user_id}) method.
               example: user
             chat_ids:
               type: array
@@ -16703,7 +16734,10 @@ components:
                   value:
                     type: string
                     maxLength: 768
-                    description: Value to set. An empty string clears the property.
+                    description: >-
+                      Value to set. A number is passed as a whole number in digits, such as `"3"`, and a date in the
+                      YYYY-MM-DD format: another form can be saved distorted and without an error, `"2,5"` becoming 25
+                      for example. An empty string clears the property.
                     example: Saint Petersburg
                 required:
                   - id

@@ -6,14 +6,14 @@
       "type": "archive",
       "description": "Вход в Пачку (Pachca) для агента: подключить агента или MCP-клиента (MCP через браузер или токеном, плагин, CLI), проверить подключение, выбрать токен, разобрать отказ 401/403 инструмента или CLI и отсутствие инструмента (роль, тариф, тип токена, участие в чате). Когда: «подключи Пачку», «настрой MCP Пачки», «войди в Пачку через CLI», «каким токеном подключить агента», «экран входа MCP», «агент получил 403 insufficient_scope», «нет инструмента Пачки (экспорт, журнал аудита)», «что умеет Пачка», \"connect Pachca\", \"set up Pachca MCP\", \"Pachca CLI login\", \"which token for my agent or MCP client\", \"MCP sign-in screen\", \"MCP tool or CLI returned 401/403\", \"a Pachca tool is missing\". Not for: writing messages → pachca-messaging; search and summaries → pachca-search; administration, who may create tokens → pachca-admin; building a bot → pachca-bots; an agent living in Pachca → pachca-ai-agent; OAuth for employees → pachca-oauth; a token for a script or service, 401/403 in your own code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca.tar.gz",
-      "digest": "sha256:a9b53917247e2a3b11d7f4a289a875e4cb5e5818055148c591fd8f53bae4d232"
+      "digest": "sha256:06f3bfa37ab25f8f818f175a486681cfc77c3916ee99935554ed4e62ef90c62c"
     },
     {
       "name": "pachca-admin",
       "type": "archive",
       "description": "Администрирование пространства Пачки: новое пространство, сотрудники, теги и участники чатов, доступ к API и «Все токены», журнал аудита, экспорт, DLP, безопасный контур и шифрование, и что требует владельца, администратора или «Корпорации». Load before a tool call that changes an employee: delete only after a yes to your question. Когда: «подготовь Пачку к работе команды», «настрой новое пространство», «пригласи сотрудника», «уволь / удали сотрудника», «сделай администратором», «добавь в тег», «добавь участника чата», «кто в закрытом канале, где я не состою», «доступ к API ограничен», «отзови доступ сотрудника к API», «журнал аудита», «выгрузи переписку», «правило DLP», \"set up a new workspace\", \"invite an employee\", \"add or remove chat members\", \"let employees create tokens\". Not for: a missing tool or a general 401/403 → pachca; who is in a tag or chat → pachca-search; writing messages → pachca-messaging; a bot's own token → pachca-bots; an app acting for employees → pachca-oauth; scripts → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-admin.tar.gz",
-      "digest": "sha256:85f4ad560ca7310c41e516b3ffedf462b4fa013d1cb0d3240ffb2e4b9fa060a2"
+      "digest": "sha256:230ec3996e84148f5ef389f469100715d7f71568bd0f7f39564e204afb2c1cc5"
     },
     {
       "name": "pachca-ai-agent",
@@ -41,7 +41,7 @@
       "type": "archive",
       "description": "Писать в Пачку: разметка, упоминания, куда писать (тред, ответ с цитатой, личный чат), черновик, который отправит сотрудник, пост об изменениях, отложенные и регулярные сообщения в чат, файлы, пересылка, реакции, закрепление, «Важное», правка, удаление, поиск нужного сообщения, когда сначала спросить, лимиты. Когда: «напиши в чат», «отправь сообщение», «ответь в треде», «напиши в личку», «упомяни», «подготовь черновик, я отправлю сам», «напиши пост об изменениях», «запланируй сообщение», «напоминай в канал каждый понедельник», «отправь отчёт файлом .md», «перешли сообщение», «поставь реакцию», «закрепи сообщение», «отметь как важное», «исправь сообщение», \"send a message\", \"reply in the thread\", \"DM someone\", \"draft for me to send\", \"schedule a message\", \"pin\". Not for: search or summaries as the goal, a reminder for an employee → pachca-search; watch a thread, wait for replies → pachca-watch-thread; buttons, forms, clicks → pachca-bots; an AI agent as a bot → pachca-ai-agent; uploads from code → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-messaging.tar.gz",
-      "digest": "sha256:7ef90f4c74a73282b64d742477f567a5de546da616d19f52ebf21234127ffa88"
+      "digest": "sha256:95a18802bd5473ad6231c074dfdfd3032a3c1849ce7159f6b170876ab28e59b7"
     },
     {
       "name": "pachca-oauth",

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "e06a37f2b24935a4"
+    "digest": "c8d0e292feab3cec"
   },
   "server": {
     "name": "pachca",
@@ -1717,7 +1717,7 @@
           },
           "name": {
             "type": "string",
-            "description": "Bot name",
+            "description": "Bot name. A name the request gives goes in as given. Write a name you choose in the language of the request, as the employees of the workspace will read it, with no # in front, the mark of a channel in other chat apps: the example only shows the shape of a value.",
             "maxLength": 255,
             "examples": [
               "Tasks bot"
@@ -2828,7 +2828,7 @@
           },
           "name": {
             "type": "string",
-            "description": "Bot name",
+            "description": "Bot name. A name the request gives goes in as given. Write a name you choose in the language of the request, as the employees of the workspace will read it, with no # in front, the mark of a channel in other chat apps: the example only shows the shape of a value.",
             "maxLength": 255,
             "examples": [
               "Tasks bot"
@@ -5245,7 +5245,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "List chats. By default — the conversations, channels, and direct messages the token owner belongs to. With `availability=public` the method returns instead all public chats of the workspace, including the ones the caller has not joined. For a multi-guest — only the public chats they are a member of. Private (closed) chats are returned only to their members, whatever `availability` and `archived` are. The list of all chats in the workspace, including private ones, is available to the workspace owner on the \"Corporation\" plan — `list_company_chats`. Threads never come in this list; for them there is `list_threads`. `archived=true` does not switch the results to the archive, it adds archived chats to the active ones.",
+      "description": "List chats. By default — the conversations, channels, and direct messages the token owner belongs to. With `availability=public` the method returns instead all public chats of the workspace, including the ones the caller has not joined. For a multi-guest — only the public chats they are a member of. Private (closed) chats are returned only to their members, whatever `availability` and `archived` are. The list of all chats in the workspace, including private ones, is available to the workspace owner on the \"Corporation\" plan — `list_company_chats`. Threads never come in this list; for them there is `list_threads`. `archived=true` does not switch the results to the archive, it adds archived chats to the active ones. An answer holding only the chat with yourself means a new workspace. Asked to set it up for a team, offer one plan: an open channel for the whole company, an informal chat and a chat with a tag for each team, with the first message of each written out to post and pin once the plan is agreed, and ask only for the colleagues’ emails and teams.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -5520,7 +5520,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Name of the conversation or channel. An empty name or a name of spaces only responds `422` with the `blank` code.",
+            "description": "Name of the conversation or channel. An empty name or a name of spaces only responds `422` with the `blank` code. A name the request gives goes in as given. Write a name you choose in the language of the request, as the employees of the workspace will read it, with no # in front, the mark of a channel in other chat apps: the example only shows the shape of a value.",
             "maxLength": 255,
             "examples": [
               "🤿 aqua"
@@ -5556,7 +5556,7 @@
           },
           "channel": {
             "type": "boolean",
-            "description": "Whether this is a channel",
+            "description": "Whether the chat is a channel: its creator, admins and editors post in it, and subscribers read, react and write in threads. Without this flag a conversation is created, where every member posts.",
             "default": false,
             "examples": [
               true
@@ -5564,7 +5564,7 @@
           },
           "public": {
             "type": "boolean",
-            "description": "Whether the chat is publicly accessible",
+            "description": "Whether the chat is open: every employee of the workspace except guests and multi-guests sees it and can join it on their own. Without this flag the chat is closed, and only the members added to it are in it.",
             "default": false,
             "examples": [
               false
@@ -6030,7 +6030,7 @@
           },
           "name": {
             "type": "string",
-            "description": "Name of the conversation or channel. An empty name or a name of spaces only responds `400` with the `blank` code.",
+            "description": "Name of the conversation or channel. An empty name or a name of spaces only responds `400` with the `blank` code. A name the request gives goes in as given. Write a name you choose in the language of the request, as the employees of the workspace will read it, with no # in front, the mark of a channel in other chat apps: the example only shows the shape of a value.",
             "maxLength": 255,
             "examples": [
               "Pool"
@@ -6038,7 +6038,7 @@
           },
           "public": {
             "type": "boolean",
-            "description": "Whether the chat is publicly accessible",
+            "description": "Whether the chat is open: every employee of the workspace except guests and multi-guests sees it and can join it on their own. With `false` the chat becomes closed, and only its members see it.",
             "examples": [
               true
             ]
@@ -6468,7 +6468,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Leave chat. The token owner leaves a conversation or a channel on their own. In a private conversation the others see a system message about the departure; in a public chat and in a channel they do not. You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is taken off the employee or off the chat. For a guest and a multi-guest the method also responds `403`, whatever their role in the chat. You cannot leave a thread or a direct message: for a thread the method responds `403`, for a direct message `400` with the `personal_chat` code. You can leave an archived chat, though. You can come back to a public chat on your own, and to a private one only if one of the members adds you back. Another employee is taken out by `remove_member`.",
+      "description": "Leave chat. The token owner leaves a conversation or a channel on their own. In a private conversation the others see a system message about the departure; in a public chat and in a channel they do not. You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is taken off the employee or off the chat. For a guest and a multi-guest the method also responds `403`, whatever their role in the chat. You cannot leave a direct message: the method responds `400` with the `personal_chat` code. For a thread the method responds `403`: you leave a thread with the `remove_member` method and your own ID, under the same rules as removing and with the `chat_members:write` scope. You can leave an archived chat, though. You can come back to a public chat on your own, and to a private one only if one of the members adds you back. Another employee is taken out by `remove_member`.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -6874,7 +6874,7 @@
         "properties": {
           "id": {
             "type": "integer",
-            "description": "Chat ID (conversation, channel, or thread chat). Into a thread the method adds everyone as an ordinary member and without a notification, so mention the people you added in a thread message. Employees from outside the parent chat are added there whatever the \"Use cross-chat threads\" setting is.",
+            "description": "Chat ID (conversation, channel, or thread chat). Into a thread the method adds people without a notification, so mention the people you added in a thread message. Employees from outside the parent chat are added to the thread whatever the \"Use cross-chat threads\" setting is. In a thread under a message everyone becomes an ordinary member, and in an unattached thread the workspace owner and administrators become its Admins.",
             "format": "int32",
             "examples": [
               334
@@ -7023,7 +7023,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Remove chat member. Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its `chat_id`: this can be done by the Creator or an Admin of the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators who were added to the thread through the \"Add members\" window in the Pachca app, not by a mention. In a private conversation the removed member loses access to the chat but stays in the threads they belonged to. An employee held in the chat by a linked tag cannot be removed with this method: the response will be successful, but the employee will stay in the chat. Take the tag off them with `update_user` or unlink the tag from the chat with the `remove_tag_from_chat` method. The chat owner cannot be removed: the method responds `400` with the `cannot_kick_owner` code. The owner can leave a conversation or a channel only on their own, with the `leave_chat` method, and the creator of an unattached thread stays in it.",
+      "description": "Remove chat member. Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its `chat_id`: this can be done by any member of the thread or of the chat that holds the parent message, a bot included, and by a multi-guest only as the Creator or an Admin of that chat or as the owner of an unattached thread. The role of the removed member in the thread does not matter, except `owner`. By the same rules, with your own ID the method takes the token owner out of the thread. In a private conversation the removed member loses access to the chat but stays in the threads they belonged to. An employee held in the chat by a linked tag cannot be removed with this method: the response will be successful, but the employee will stay in the chat. Take the tag off them with `update_user` or unlink the tag from the chat with the `remove_tag_from_chat` method. The chat owner cannot be removed: the method responds `400` with the `cannot_kick_owner` code. In a thread the `owner` role in the thread member list is protected the same way: the creator of an unattached thread has it, and a member of a thread under a message may have it too. The owner can leave a conversation or a channel only on their own, with the `leave_chat` method, and the owner of an unattached thread stays in it.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -7278,7 +7278,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "Edit workspace. Changes the workspace name, showing personal data and cross-chat threads. The fields are passed without a wrapper, and only the passed ones are overwritten. The response holds the whole workspace, as in the `get_company` method. The method is available to the workspace owner and administrators. A name that is too long is rejected with `422` and the `too_long` code, and a name that looks like spam with `422` and the `invalid` code. In both cases the error key is `company.name`. Who may create personal tokens and integrations is not changed by the method.",
+      "description": "Edit workspace. Changes the workspace name, showing personal data and cross-chat threads. The fields are passed without a wrapper, and only the passed ones are overwritten. The response holds the whole workspace, as in the `get_company` method. The method is available to the workspace owner and administrators. A name that is too long is rejected with `422` and the `too_long` code, and a name that looks like spam with `422` and the `invalid` code. In both cases the error key is `company.name`. The workspace avatar and the other settings in the web interface, including who may create personal tokens and integrations, are changed only there. Exporting personal chats is turned on by Pachca support at the owner's request.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -7887,7 +7887,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "Invite link. The link by which an employee joins the workspace on their own. It is the same link an administrator gets in the interface: each administrator has their own, and the method returns the one of the token owner. The link is valid for 14 days, and its expiry comes in `expires_at`. If there is no valid link or it has less than an hour left, the method issues a new one, and the previous one stops working. The link is reissued before its expiry by the `reissue_invite_link` method. Whoever joins by the link becomes an employee with the `user` role and no tags, and their `inviter_id` holds the owner of the link. Tags are given to them by `update_user`. The method is available to the workspace owner and administrators. While the workspace name looks like spam, no link is issued and the method responds `403`. Reading the link counts toward a \"limit\" (https://dev.pachca.com/api/limits) shared with the lists of workspace chats and bots. Its answer can carry a secret (a token, or a link that needs none): give it to the person in your reply and nowhere else.",
+      "description": "Invite link. The link by which an employee joins the workspace on their own. It is the same link an administrator gets in the interface: each administrator has their own, and the method returns the one of the token owner. The link is valid for 14 days, and its expiry comes in `expires_at`. If there is no valid link or it has less than an hour left, the method issues a new one, and the previous one stops working. The link is reissued before its expiry by the `reissue_invite_link` method. Whoever joins by the link becomes an employee with the `user` role and no tags, and their `inviter_id` holds the owner of the link. Tags are given to them by `update_user`, and with them they get into the conversations and channels of those tags. The method is available to the workspace owner and administrators. While the workspace name looks like spam, no link is issued and the method responds `403`. Reading the link counts toward a \"limit\" (https://dev.pachca.com/api/limits) shared with the lists of workspace chats and bots. Its answer can carry a secret (a token, or a link that needs none): give it to the person in your reply and nowhere else.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -9910,7 +9910,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Tag name",
+            "description": "Tag name. A name the request gives goes in as given. Write a name you choose in the language of the request, as the employees of the workspace will read it, with no # in front, the mark of a channel in other chat apps: the example only shows the shape of a value.",
             "maxLength": 255,
             "examples": [
               "New tag name"
@@ -10069,7 +10069,7 @@
           },
           "name": {
             "type": "string",
-            "description": "Tag name",
+            "description": "Tag name. A name the request gives goes in as given. Write a name you choose in the language of the request, as the employees of the workspace will read it, with no # in front, the mark of a channel in other chat apps: the example only shows the shape of a value.",
             "maxLength": 255,
             "examples": [
               "New tag name"
@@ -12976,7 +12976,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Delete message. Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its creator and by the workspace owner and administrators who were added to the thread through the \"Add members\" window in the Pachca app, not by a mention. There are no time restrictions on message deletion, and in an archived chat messages are not deleted: the method responds `403`. The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a \"Message deleted\" note stays in place of the message in the chat. The thread created under this message stays, together with all the messages inside it. For a message that is already deleted the method responds `403`, and whether it is deleted is shown by the `deleted_at` field in the response of `get_message`.",
+      "description": "Delete message. Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its owner and the Admins of the thread. The creator becomes the owner, and the workspace owner and administrators become Admins when they are added to the thread. There are no time restrictions on message deletion, and in an archived chat messages are not deleted: the method responds `403`. The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a \"Message deleted\" note stays in place of the message in the chat. The thread created under this message stays, together with all the messages inside it. For a message that is already deleted the method responds `403`, and whether it is deleted is shown by the `deleted_at` field in the response of `get_message`.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -13145,7 +13145,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Pin message. Pins a message in the header of a conversation or a channel, where all members see it. There is no limit on the number of pinned messages. In threads the method does not work. A message that is already pinned responds `409`, and a deleted one `422`.\n\nNot for:\n- Reading what was written — «подними, что писали с утра» — is list_chat_messages, not pinning.",
+      "description": "Pin message. Pins a message in the header of a conversation or a channel, where all members see it. There is no limit on the number of pinned messages. In threads the method does not work and responds `403`. A message that is already pinned responds `409`, and a deleted one `422`.\n\nNot for:\n- Reading what was written — «подними, что писали с утра» — is list_chat_messages, not pinning.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -15991,7 +15991,7 @@
                 },
                 "value": {
                   "type": "string",
-                  "description": "Value to set. An empty string clears the property.",
+                  "description": "Value to set. A number is passed as a whole number in digits, such as `\"3\"`, and a date in the YYYY-MM-DD format: another form can be saved distorted and without an error, `\"2,5\"` becoming 25 for example. An empty string clears the property.",
                   "examples": [
                     "Blue warehouse"
                   ]
@@ -16425,7 +16425,7 @@
                 },
                 "value": {
                   "type": "string",
-                  "description": "Value to set. An empty string clears the property.",
+                  "description": "Value to set. A number is passed as a whole number in digits, such as `\"3\"`, and a date in the YYYY-MM-DD format: another form can be saved distorted and without an error, `\"2,5\"` becoming 25 for example. An empty string clears the property.",
                   "examples": [
                     "Blue warehouse"
                   ]
@@ -16808,7 +16808,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New unattached thread. Creates a thread that is not linked to anything: a place to talk, a dialogue with an agent, or a call that needs no chat of its own. Any employees can be gathered in it. The thread creator becomes its only member and its owner: they can remove members and delete other people's messages in the thread, and they cannot be removed themselves. In older unattached threads the creator is an ordinary member: whether a thread has an owner is shown by `list_members` with `role=owner`. The `message_id` and `message_chat_id` fields in the response are returned as `null`. Members are added by the `add_members` method by the `chat_id` of the thread. It sends no notification, so mention the people you added in the first message. A `@nickname` or `@tag` mention in a thread message adds members too, but only while the workspace setting \"Use cross-chat threads\" is on (the default). Its value is shown by the `use_global_threads` field of the `get_company` method. A thread has no name, so send the first message into it right away — that is how employees will understand what it is about. It is addressed by the thread's `id` with `entity_type: \"thread\"`. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a thread under it with the `create_thread` method, and if a permanent place with a name is needed, use the `create_chat` method.",
+      "description": "New unattached thread. Creates a thread that is not linked to anything: a place to talk, a dialogue with an agent, or a call that needs no chat of its own. Any employees can be gathered in it. The thread creator becomes its only member and its owner: they delete other people's messages in the thread, and they cannot be removed themselves. The workspace owner and administrators added to the thread become its Admins and delete other people's messages too. In unattached threads created before threads had owners, the creator is an ordinary member: whether a thread has an owner is shown by `list_members` with `role=owner`. The `message_id` and `message_chat_id` fields in the response are returned as `null`. Members are added by the `add_members` method by the `chat_id` of the thread. It sends no notification, so mention the people you added in the first message. A `@nickname` or `@tag` mention in a thread message adds members too, but only while the workspace setting \"Use cross-chat threads\" is on (the default). Its value is shown by the `use_global_threads` field of the `get_company` method. A thread has no name, so send the first message into it right away — that is how employees will understand what it is about. It is addressed by the thread's `id` with `entity_type: \"thread\"`. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a thread under it with the `create_thread` method, and if a permanent place with a name is needed, use the `create_chat` method.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -17402,7 +17402,7 @@
           },
           "email": {
             "type": "string",
-            "description": "Email",
+            "description": "Email. The invitation goes to it, and without the invitation email (`skip_email_notify`) the employee signs in to Pachca with this address on their own.",
             "maxLength": 255,
             "examples": [
               "olegp@example.com"
@@ -17426,7 +17426,7 @@
           },
           "department": {
             "type": "string",
-            "description": "Department",
+            "description": "Department. A name the request gives goes in as given. Write a name you choose in the language of the request, as the employees of the workspace will read it, with no # in front, the mark of a channel in other chat apps: the example only shows the shape of a value.",
             "maxLength": 255,
             "examples": [
               "Product"
@@ -17442,7 +17442,7 @@
           },
           "role": {
             "type": "string",
-            "description": "Access level. Values: admin — Administrator; user — Employee; multi_guest — Multi-guest; guest — Guest.",
+            "description": "Access level, `user` by default. Values: admin — Administrator; user — Employee; multi_guest — Multi-guest; guest — Guest. Leave it out for an ordinary employee, and pass admin only when the request asks for an administrator. Set it in this call, together with chat_ids and list_tags, rather than in a later edit.",
             "enum": [
               "admin",
               "user",
@@ -17463,7 +17463,7 @@
           },
           "list_tags": {
             "type": "array",
-            "description": "Array of tag names to assign to the employee. A value that is not an array of non-empty strings is ignored.",
+            "description": "Array of tag names to assign to the employee. A value that is not an array of non-empty strings is ignored. Pass a tag that exists under its name exactly as Pachca returns it, whatever its language. Only the name of a new tag follows the language of the request, with no # in front. When the request names the employee’s team, give the tag of that team, and keep chat_ids for chats no tag is bound to: a tag also brings in whoever gets it later.",
             "examples": [
               [
                 "Product",
@@ -17503,7 +17503,7 @@
                 },
                 "value": {
                   "type": "string",
-                  "description": "Value to set. An empty string clears the property.",
+                  "description": "Value to set. A number is passed as a whole number in digits, such as `\"3\"`, and a date in the YYYY-MM-DD format: another form can be saved distorted and without an error, `\"2,5\"` becoming 25 for example. An empty string clears the property.",
                   "maxLength": 768,
                   "examples": [
                     "Saint Petersburg"
@@ -18134,7 +18134,7 @@
           },
           "department": {
             "type": "string",
-            "description": "Department",
+            "description": "Department. A name the request gives goes in as given. Write a name you choose in the language of the request, as the employees of the workspace will read it, with no # in front, the mark of a channel in other chat apps: the example only shows the shape of a value.",
             "maxLength": 255,
             "examples": [
               "Engineering"
@@ -18150,7 +18150,7 @@
           },
           "role": {
             "type": "string",
-            "description": "Access level. Values: admin — Administrator; user — Employee; multi_guest — Multi-guest; guest — Guest.",
+            "description": "Access level. A change between `user` and `admin` keeps the roles in the chats the employee already belongs to: those are changed by the `update_member_role` method. Values: admin — Administrator; user — Employee; multi_guest — Multi-guest; guest — Guest.",
             "enum": [
               "admin",
               "user",
@@ -18183,7 +18183,7 @@
           },
           "list_tags": {
             "type": "array",
-            "description": "Array of tag names to assign to the employee. The list replaces the previous one as a whole, an empty one removes all tags. A value that is not an array of non-empty strings is ignored: the employee's tags do not change. Only a bot that any employee can add to a chat and that has the \"Restrict to a single chat\" setting turned off can be added to a tag. If the bot does not meet these conditions and the list contains a tag it does not have yet, the method responds `422` on the `group_tags` field and changes nothing: with the `single_chat_bot_tag_denied` code when the bot is restricted to a single chat, and `restricted_bot_tag_denied` when the \"Who can add the bot to chats\" setting is \"Creator\" or \"Creator and Administrators\". More in the \"Bot in tags\" (https://dev.pachca.com/guides/bots/settings#bot-v-tegah) section.",
+            "description": "Array of tag names to assign to the employee. The list replaces the previous one as a whole, an empty one removes all tags. A value that is not an array of non-empty strings is ignored: the employee's tags do not change. Only a bot that any employee can add to a chat and that has the \"Restrict to a single chat\" setting turned off can be added to a tag. If the bot does not meet these conditions and the list contains a tag it does not have yet, the method responds `422` on the `group_tags` field and changes nothing: with the `single_chat_bot_tag_denied` code when the bot is restricted to a single chat, and `restricted_bot_tag_denied` when the \"Who can add the bot to chats\" setting is \"Creator\" or \"Creator and Administrators\". More in the \"Bot in tags\" (https://dev.pachca.com/guides/bots/settings#bot-v-tegah) section. Pass a tag that exists under its name exactly as Pachca returns it, whatever its language. Only the name of a new tag follows the language of the request, with no # in front.",
             "examples": [
               [
                 "Product",
@@ -18210,7 +18210,7 @@
                 },
                 "value": {
                   "type": "string",
-                  "description": "Value to set. An empty string clears the property.",
+                  "description": "Value to set. A number is passed as a whole number in digits, such as `\"3\"`, and a date in the YYYY-MM-DD format: another form can be saved distorted and without an error, `\"2,5\"` becoming 25 for example. An empty string clears the property.",
                   "maxLength": 768,
                   "examples": [
                     "Saint Petersburg"

@@ -6,7 +6,7 @@ import {
 } from '../openapi/mapper';
 import type { Schema, Endpoint } from '../openapi/types';
 import { loadUpdates } from '../updates-parser';
-import { GUIDE_SCHEMAS } from '../schemas/guide-schemas';
+import { getGuideSchema } from '../schemas/guide-schemas';
 import { getContextualTitle } from '../tabs-config';
 import {
   expandQueryWithSynonyms,
@@ -737,7 +737,7 @@ function extractGuideSchemaFields(
 
   for (const schemaName of schemaNames) {
     // First try OpenAPI schemas, then fall back to guide-specific schemas
-    const guideSchemaEntry = GUIDE_SCHEMAS[schemaName];
+    const guideSchemaEntry = getGuideSchema(schemaName);
     const rawSchema = schemas[schemaName] || guideSchemaEntry?.schema;
     if (rawSchema) {
       // Resolve $ref references before extracting fields

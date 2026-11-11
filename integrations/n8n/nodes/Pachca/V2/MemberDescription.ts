@@ -235,7 +235,7 @@ export const memberFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
-		description: 'Chat ID (conversation, channel, or thread chat). Into a thread the method adds everyone as an ordinary member and without a notification, so mention the people you added in a thread message. Employees from outside the parent chat are added there whatever the "Use cross-chat threads" setting is.',
+		description: 'Chat ID (conversation, channel, or thread chat). Into a thread the method adds people without a notification, so mention the people you added in a thread message. Employees from outside the parent chat are added to the thread whatever the "Use cross-chat threads" setting is. In a thread under a message everyone becomes an ordinary member, and in an unattached thread the workspace owner and administrators become its Admins.',
 		modes: [
 			{
 				displayName: 'From List',

@@ -36,7 +36,9 @@
  *   - the notes the generator puts on what they are about, one text each: how
  *     a moment named in words is written, on every date-time argument
  *     (`MOMENT_ARGUMENT`), that a search takes the words of the request as they
- *     are, on every search phrase (`QUERY_ARGUMENT`), and where a secret an
+ *     are, on every search phrase (`QUERY_ARGUMENT`), that a name the model
+ *     chooses for employees takes the language of the request and no #, on the
+ *     names of chats, tags, departments and bots (`NAME_ARGUMENT`), and where a secret an
  *     answer carries may go, on every tool whose answer reaches one
  *     (`SECRET_NOTE`, by the fields `TRUSTED_TEXT` marks secret);
  *   - what a model is told before any call: who the server is (`SERVER_INFO`),
@@ -647,7 +649,7 @@ export const WEB_LINKS = {
  * Every rule of one area lives with the tools of that area, where a model reads
  * it when it loads them: in the spec when every reader of the API needs it, in
  * prose (`mcp-tools.ts`) or a generated note (`MOMENT_ARGUMENT`,
- * `QUERY_ARGUMENT`, `SECRET_NOTE`) when only a model does. The build fails when
+ * `QUERY_ARGUMENT`, `NAME_ARGUMENT`, `SECRET_NOTE`) when only a model does. The build fails when
  * six words in a row here repeat the text of any tool — a fact with two homes
  * drifts.
  *
@@ -726,6 +728,48 @@ export const QUERY_ARGUMENT = {
   description:
     'Take the words from the request, in its language: a name put into another language finds nothing, and ' +
     'the example only shows the shape of a value.',
+};
+
+/**
+ * A name the model writes into Pachca for employees to read — a chat, a tag, a
+ * department, a bot — put by the generator after the spec's own words on the
+ * arguments `at` lists, by operation; the build fails on a listed argument
+ * without it, or with it twice, on an argument not listed that carries it, and on
+ * a listed one the tool does not take.
+ *
+ * The examples these arguments carry reach the model in English — Product,
+ * Design, Pool, a tag called New tag name, Tasks bot — because the manifest is
+ * read from the English spec, which translates example values
+ * (`apply-overlay.ts`), and some of them are English in the spec already. On a
+ * run that set up a new workspace from a Russian request, a small model named a
+ * chat #general: the mark of a channel in another chat app, and a name in a
+ * language nobody in that workspace asked for. The note is read where the name is
+ * written, and costs nothing until its tool is loaded. It leaves a name the
+ * request gives as it is, and an emoji in front, which the instructions ask the
+ * model to pick, stays allowed.
+ *
+ * Not listed: `list_tags` of an employee, which names tags that may exist already
+ * and finds them by their exact name, so a translated name makes a new empty tag
+ * and, on an edit, takes the employee out of the old one and its chats (the prose
+ * of `create_user` and `update_user` says how those names are written); and a job
+ * title, which is what the request says about a person, not a name the model
+ * chooses.
+ */
+export const NAME_ARGUMENT = {
+  description:
+    'A name the request gives goes in as given. Write a name you choose in the language of the request, as the ' +
+    'employees of the workspace will read it, with no # in front, the mark of a channel in other chat apps: the ' +
+    'example only shows the shape of a value.',
+  at: {
+    'POST /chats': ['name'],
+    'PUT /chats/{id}': ['name'],
+    'POST /group_tags': ['name'],
+    'PUT /group_tags/{id}': ['name'],
+    'POST /users': ['department'],
+    'PUT /users/{id}': ['department'],
+    'POST /bots': ['name'],
+    'PUT /bots/{id}': ['name'],
+  } as Partial<Record<OperationKey, string[]>>,
 };
 
 /**

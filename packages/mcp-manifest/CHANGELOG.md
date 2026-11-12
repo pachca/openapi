@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.8.0 (2026-11-11)
+## 1.8.0 (2026-11-12)
 
 Tools for the workspace and its invite link, three new scopes, empty stickers, a thread refused by the chat edit, notes for setting up a new workspace, thread rights, and tool texts that follow the API. schema_version stays 1.2.0.
 

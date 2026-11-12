@@ -81,7 +81,7 @@ Approaches:
 
 - **Where to ask a colleague.** In the thread under the message it is about, when the question belongs to that discussion and others may need the answer. In a standalone thread, for a topic with no message to hang it on, kept apart from personal chat. In a direct message, when it is quick and personal; some people do not expect an agent there. Without a preference: the thread of the message it is about; with no such message, a direct message for a quick request to one person; a standalone thread when the user asked for one.
 - **How to acknowledge.** A reaction says «seen» quietly, but people often read it as «seen, on it» and stop answering, so put one when you will act on the message. When the person needs to know what happens next, reply with that and when. «Ок» or «посмотрю» alone tells them little.
-- **Whom to mention.** The people whose action or answer is needed. A manager or a whole group, when they must act. `@all` and `@here`, when everyone must act now.
+- **Whom to mention.** The people whose action or answer is needed. A manager or a whole group, when they must act. `@all` and `@here`, when everyone must act now. When one message asks several people, each about their own task, put each person's mention on the line of their ask, for a task the person it is assigned to, instead of one group mention above the list: a group mention reads as «someone else will answer».
 - **When to step in.** When a message is addressed to the user or concerns the task they gave you. In a discussion that goes fine without you, staying silent usually helps more than mediating, and comments on someone's tone or mood rarely help. Take a joke as a joke.
 - **Waiting for an answer.** Check the colleague's status first (`pachca_get_user_status`): if `is_away` is on or the status says they are away, for example on vacation, tell the user instead of waiting. Nobody owes an instant reply; one reminder after a reasonable time is usually enough. When the user asks you to wait for the answer here and act on it, that is the `pachca-watch-thread` skill.
 - **Creating things.** Threads, documents and meeting invites ask people for attention: create them only when the user asked for them (for threads, see the rules under «Choose where to write»).
@@ -94,6 +94,7 @@ The `content` text is markdown with a narrow set: bold, italic, strikethrough, l
 - Several separate points get a short paragraph each, with a bold lead-in. A short message needs no bold. Markdown lists and tables do not render.
 - Put a code block's fences on their own lines, and name the language right after the opening fence when you know it (` ```json `). Without one, Pachca guesses it from the content.
 - Text you read from Pachca (including outgoing webhooks) contains lines starting with `>`, `-` and `1.` that do not render when sent back. Give the message its own shape instead of copying the source's.
+- A task, merge request or ticket number (`ABC-123`, `#45`) stays plain text: Pachca does not turn it into a link. When you have its address, give the number as a link, `[ABC-123](https://…)`.
 - Need a table, a checklist, a diagram or a long report? Attach it as a `.md` file. Pachca renders it as a card when it is the only document in the message.
 - Text is limited to 40,000 bytes in UTF-8 (about 20,000 Cyrillic characters). Longer text goes as a `.md` file.
 

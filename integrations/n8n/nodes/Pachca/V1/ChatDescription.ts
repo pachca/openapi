@@ -1,6 +1,7 @@
 // ============================================================================
 // ChatDescription.ts — FROZEN V1 description (from n8n-nodes-pachca@1.0.27)
-// DO NOT EDIT — this file is frozen for backward compatibility
+// Saved workflows depend on it: keep every name, option value, default, nesting
+// and displayOptions. Labels, descriptions, order and UI hints follow the n8n linter.
 // ============================================================================
 
 import type { INodeProperties } from 'n8n-workflow';
@@ -13,70 +14,68 @@ export const chatOperations: INodeProperties[] = [
 		noDataExpression: true,
 		options: [
 			{
-				name: 'Get all chats',
-				value: 'getAll',
-				action: 'Get all chats',
-				description: 'Get list of all chats',
+				name: 'Add Users to Chat',
+				value: 'addUsers',
+				action: 'Add users to chat',
 			},
 			{
-				name: 'Get a chat',
-				value: 'getById',
-				action: 'Get a chat',
-				description: 'Get chat by ID',
-			},
-			{
-				name: 'Create a chat',
-				value: 'create',
-				action: 'Create a chat',
-				description: 'Create new chat',
-			},
-			{
-				name: 'Update a chat',
-				value: 'update',
-				action: 'Update a chat',
-				description: 'Update chat',
-			},
-			{
-				name: 'Archive a chat',
+				name: 'Archive a Chat',
 				value: 'archive',
 				action: 'Archive a chat',
 				description: 'Archive chat',
 			},
 			{
-				name: 'Unarchive a chat',
-				value: 'unarchive',
-				action: 'Unarchive a chat',
-				description: 'Unarchive chat',
+				name: 'Create a Chat',
+				value: 'create',
+				action: 'Create a chat',
+				description: 'Create new chat',
 			},
 			{
-				name: 'Get chat members',
+				name: 'Get a Chat',
+				value: 'getById',
+				action: 'Get a chat',
+				description: 'Get chat by ID',
+			},
+			{
+				name: 'Get Chat Members',
 				value: 'getMembers',
 				action: 'Get chat members',
 				description: 'Get chat members list',
 			},
 			{
-				name: 'Add users to chat',
-				value: 'addUsers',
-				action: 'Add users to chat',
-				description: 'Add users to chat',
+				name: 'Get Many',
+				value: 'getAll',
+				action: 'Get many chats',
+				description: 'Get many chats',
 			},
 			{
-				name: 'Remove user from chat',
-				value: 'removeUser',
-				action: 'Remove user from chat',
-				description: 'Remove user from chat',
-			},
-			{
-				name: 'Update user role in chat',
-				value: 'updateRole',
-				action: 'Update user role in chat',
-				description: 'Change user role in chat',
-			},
-			{
-				name: 'Leave a chat',
+				name: 'Leave a Chat',
 				value: 'leaveChat',
 				action: 'Leave a chat',
 				description: 'Leave chat',
+			},
+			{
+				name: 'Remove User From Chat',
+				value: 'removeUser',
+				action: 'Remove user from chat',
+			},
+			{
+				name: 'Unarchive a Chat',
+				value: 'unarchive',
+				action: 'Unarchive a chat',
+				description: 'Unarchive chat',
+			},
+			{
+				name: 'Update a Chat',
+				value: 'update',
+				action: 'Update a chat',
+				description: 'Update chat',
+			},
+			{
+				name: 'Update User Role in Chat',
+				value: 'updateRole',
+				action: 'Update user role in chat',
+				description: 'Change user role in chat',
 			},
 		],
 		default: 'getAll',
@@ -123,7 +122,6 @@ export const chatFields: INodeProperties[] = [
 		name: 'chatId',
 		type: 'number',
 		default: 1,
-		description: 'Chat ID',
 		displayOptions: {
 			show: {
 				resource: ['chat'],
@@ -136,7 +134,6 @@ export const chatFields: INodeProperties[] = [
 		name: 'chatName',
 		type: 'string',
 		default: '',
-		description: 'Chat name',
 		displayOptions: {
 			show: {
 				resource: ['chat'],
@@ -149,7 +146,7 @@ export const chatFields: INodeProperties[] = [
 		name: 'channel',
 		type: 'boolean',
 		default: false,
-		description: 'Create channel (true) or chat (false)',
+		description: 'Whether to create a channel instead of a chat',
 		displayOptions: {
 			show: {
 				resource: ['chat'],
@@ -162,7 +159,7 @@ export const chatFields: INodeProperties[] = [
 		name: 'public',
 		type: 'boolean',
 		default: false,
-		description: 'Open (true) or closed (false) access',
+		description: 'Whether the chat is open: every employee of the workspace except guests and multi-guests sees it and can join it on their own. Without this flag the chat is closed, and only the members added to it are in it.',
 		displayOptions: {
 			show: {
 				resource: ['chat'],
@@ -181,29 +178,28 @@ export const chatFields: INodeProperties[] = [
 				type: 'options',
 				options: [
 					{
-						name: 'All',
-						value: 'all',
-						description: 'Any role',
-					},
-					{
-						name: 'Owner',
-						value: 'owner',
-						description: 'Creator',
-					},
-					{
 						name: 'Admin',
 						value: 'admin',
 						description: 'Administrator',
 					},
 					{
+						name: 'All',
+						value: 'all',
+						description: 'Any role',
+					},
+					{
 						name: 'Editor',
 						value: 'editor',
-						description: 'Editor',
 					},
 					{
 						name: 'Member',
 						value: 'member',
 						description: 'Member/Subscriber',
+					},
+					{
+						name: 'Owner',
+						value: 'owner',
+						description: 'Creator',
 					},
 				],
 				default: 'all',
@@ -213,8 +209,12 @@ export const chatFields: INodeProperties[] = [
 				displayName: 'Limit',
 				name: 'limit',
 				type: 'number',
+				typeOptions: {
+					minValue: 1,
+					maxValue: 50,
+				},
 				default: 50,
-				description: 'Number of members to return (max 50)',
+				description: 'Max number of results to return',
 			},
 			{
 				displayName: 'Cursor',
@@ -251,7 +251,7 @@ export const chatFields: INodeProperties[] = [
 		name: 'silent',
 		type: 'boolean',
 		default: false,
-		description: 'Do not create system message about adding member',
+		description: 'Whether to skip the system message about the added members',
 		displayOptions: {
 			show: {
 				resource: ['chat'],
@@ -264,7 +264,6 @@ export const chatFields: INodeProperties[] = [
 		name: 'userId',
 		type: 'number',
 		default: 1,
-		description: 'User ID',
 		displayOptions: {
 			show: {
 				resource: ['chat'],

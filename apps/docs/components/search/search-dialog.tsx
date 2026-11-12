@@ -2,11 +2,18 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, SquareTerminal, Loader2, BookText, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import type { SearchResult } from '@/lib/search/indexer';
+import { Search, SquareTerminal, Loader2, BookText, X, Hash, ChevronRight } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import type { SearchHit } from '@/lib/search/indexer';
 import { SUGGESTED_QUERIES } from '@/lib/search/synonyms';
 import { useBodyScrollLock } from '@/lib/hooks/use-body-scroll-lock';
+import {
+  decodeHash,
+  focusWithoutScroll,
+  pushHash,
+  rememberScrollPosition,
+  scrollToAnchor,
+} from '@/lib/utils/scroll-offset';
 
 function generateParamId(path: string): string {
   return `param-${path
@@ -21,11 +28,15 @@ interface SearchDialogProps {
 
 export function SearchDialog({ onClose }: SearchDialogProps) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [results, setResults] = useState<SearchHit[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const router = useRouter();
+  // Страница, на которой открыт поиск: сервер поднимает её разделы наверх,
+  // диалог помечает их и прокручивает к ним без перехода.
+  const pathname = usePathname();
+  const isOnThisPage = (result: SearchHit) => result.url.split('#')[0] === pathname;
 
   // Delays the actual unmount so the close transition can play.
   const requestClose = useCallback(() => {
@@ -33,10 +44,13 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
     setTimeout(onClose, 200);
   }, [onClose]);
 
-  const handleResultClick = (result: SearchResult) => {
+  const handleResultClick = (result: SearchHit) => {
+    const target = new URL(result.url, window.location.origin);
     if (result.matchedByField && result.matchedValue?.path) {
       const paramId = generateParamId(result.matchedValue.path);
       const url = `${result.url}#${paramId}`;
+      // Поле на открытой странице: «Назад» вернёт к месту, откуда прыгнули.
+      if (target.pathname === window.location.pathname) rememberScrollPosition();
       router.push(url);
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('param-navigation'));
@@ -44,6 +58,26 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('param-navigation'));
       }, 400);
+    } else if (target.pathname === window.location.pathname) {
+      // Результат на открытой странице: без навигации, только адрес и
+      // прокрутка под шапку, как у ссылок-якорей в тексте; сама страница —
+      // наверх. Позицию до прыжка запоминаем: «Назад» вернёт читателя туда,
+      // где он был (TransitionProvider). Фокус — на заголовок раздела или на
+      // <main>, без второй прокрутки: с клавиатуры и в скринридере чтение
+      // продолжается оттуда, а не с начала страницы. Переход на другую
+      // страницу с якорем прокручивает TransitionProvider.
+      if (window.location.hash !== target.hash) pushHash(target.hash.slice(1));
+      const id = decodeHash(target.hash);
+      requestAnimationFrame(() => {
+        if (id) {
+          const heading = scrollToAnchor(id);
+          if (heading) focusWithoutScroll(heading);
+        } else {
+          window.scrollTo(0, 0);
+          const main = document.querySelector('main');
+          if (main) focusWithoutScroll(main);
+        }
+      });
     } else {
       router.push(result.url);
     }
@@ -93,24 +127,28 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
   // только когда открыт, поэтому без флага).
   useBodyScrollLock();
 
-  const performSearch = useCallback(async (q: string) => {
-    if (!q.trim()) {
-      setResults([]);
-      return;
-    }
+  const performSearch = useCallback(
+    async (q: string) => {
+      if (!q.trim()) {
+        setResults([]);
+        return;
+      }
 
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/internal/search?q=${encodeURIComponent(q)}`);
-      const data = await response.json();
-      setResults(data.results || []);
-    } catch (error) {
-      console.error('Search error:', error);
-      setResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      setIsLoading(true);
+      try {
+        const params = new URLSearchParams({ q, page: pathname });
+        const response = await fetch(`/internal/search?${params}`);
+        const data = await response.json();
+        setResults(data.results || []);
+      } catch (error) {
+        console.error('Search error:', error);
+        setResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [pathname]
+  );
 
   useEffect(() => {
     if (!query.trim()) {
@@ -131,7 +169,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
     return null;
   }
 
-  const renderResult = (result: SearchResult) => (
+  const renderResult = (result: SearchHit) => (
     <button
       key={result.id}
       onClick={() => handleResultClick(result)}
@@ -139,16 +177,47 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
     >
       <div className="flex items-start gap-3">
         <div className="mt-1">
-          {result.type === 'guide' ? (
+          {result.pageTitle ? (
+            <Hash className="w-4 h-4 text-text-secondary" />
+          ) : result.type === 'guide' ? (
             <BookText className="w-4 h-4 text-text-secondary" />
           ) : (
             <SquareTerminal className="w-4 h-4 text-text-secondary" />
           )}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold text-text-primary mb-1 text-[15px]">{result.title}</div>
+        {/* Отступ только между строками: у раздела без текста под названием пусто. */}
+        <div className="flex-1 min-w-0 space-y-1">
+          {result.pageTitle && !isOnThisPage(result) ? (
+            // Раздел другой страницы: страница приглушённо, заголовок раздела тёмным, оба
+            // жирным, как название страницы в других строках. На текущей странице её
+            // название не нужно: это говорит бейдж.
+            <div className="text-[15px] font-semibold">
+              <span className="text-text-secondary">{result.pageTitle}</span>
+              <ChevronRight
+                className="inline-block w-3.5 h-3.5 mx-1 align-[-2px] text-text-tertiary"
+                strokeWidth={2}
+                aria-hidden
+              />
+              <span className="text-text-primary">{result.title}</span>
+            </div>
+          ) : (
+            <div className="font-semibold text-text-primary text-[15px]">
+              {result.title}
+              {isOnThisPage(result) && (
+                // 12px, полужирный, как названия в строках. Бейдж идёт в
+                // строке сразу за последним словом названия и переносится целиком. Зазор —
+                // пробел, а не margin: при переносе пробел пропадает и бейдж встаёт по краю.
+                <>
+                  <span className="[word-spacing:0.25rem]"> </span>
+                  <span className="inline-block align-middle -mt-0.5 px-2 py-0.5 leading-[18px] rounded-full text-[12px] font-semibold whitespace-nowrap bg-primary/10 text-primary">
+                    на этой странице
+                  </span>
+                </>
+              )}
+            </div>
+          )}
           {result.matchedByField && result.matchedValue?.path && (
-            <div className=" text-xs mb-1">
+            <div className="text-xs">
               <span className="text-text-secondary flex items-center overflow-hidden gap-1 min-w-0">
                 <code className="text-[13px] font-bold font-mono text-text-secondary shrink-0">
                   {result.matchedValue.value}

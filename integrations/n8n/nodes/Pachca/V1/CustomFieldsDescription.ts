@@ -1,6 +1,7 @@
 // ============================================================================
 // CustomFieldsDescription.ts — FROZEN V1 description (from n8n-nodes-pachca@1.0.27)
-// DO NOT EDIT — this file is frozen for backward compatibility
+// Saved workflows depend on it: keep every name, option value, default, nesting
+// and displayOptions. Labels, descriptions, order and UI hints follow the n8n linter.
 // ============================================================================
 
 import type { INodeProperties } from 'n8n-workflow';
@@ -13,7 +14,7 @@ export const customFieldsOperations: INodeProperties[] = [
 		noDataExpression: true,
 		options: [
 			{
-				name: 'Get custom properties',
+				name: 'Get Custom Properties',
 				value: 'getCustomProperties',
 				action: 'Get custom properties',
 				description: 'Get list of custom fields for entity',

@@ -1,6 +1,7 @@
 // ============================================================================
 // TaskDescription.ts — FROZEN V1 description (from n8n-nodes-pachca@1.0.27)
-// DO NOT EDIT — this file is frozen for backward compatibility
+// Saved workflows depend on it: keep every name, option value, default, nesting
+// and displayOptions. Labels, descriptions, order and UI hints follow the n8n linter.
 // ============================================================================
 
 import type { INodeProperties } from 'n8n-workflow';
@@ -13,7 +14,7 @@ export const taskOperations: INodeProperties[] = [
 		noDataExpression: true,
 		options: [
 			{
-				name: 'Create a task',
+				name: 'Create a Task',
 				value: 'create',
 				action: 'Create a task',
 				description: 'Create new reminder',
@@ -40,24 +41,22 @@ export const taskFields: INodeProperties[] = [
 				description: 'Call contact',
 			},
 			{
+				name: 'Email',
+				value: 'email',
+				description: 'Send email',
+			},
+			{
+				name: 'Event',
+				value: 'event',
+			},
+			{
 				name: 'Meeting',
 				value: 'meeting',
-				description: 'Meeting',
 			},
 			{
 				name: 'Reminder',
 				value: 'reminder',
 				description: 'Simple reminder',
-			},
-			{
-				name: 'Event',
-				value: 'event',
-				description: 'Event',
-			},
-			{
-				name: 'Email',
-				value: 'email',
-				description: 'Send email',
 			},
 		],
 		default: 'reminder',
@@ -111,12 +110,10 @@ export const taskFields: INodeProperties[] = [
 			{
 				name: 'Important',
 				value: 2,
-				description: 'Important',
 			},
 			{
 				name: 'Very Important',
 				value: 3,
-				description: 'Very important',
 			},
 		],
 		default: 1,

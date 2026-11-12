@@ -978,30 +978,79 @@ function assertNullHandled(resource: string, op: OperationInfo, field: BodyField
   );
 }
 
+/**
+ * An options field that is not required and has no default in the spec holds '' until
+ * the user picks a value, and the router sends nothing for '' (isQueryValueSet, and
+ * cleanFileAttachments for a file). The node shows that state as an option of its own
+ * with the value '', so the default stays one of the options: saved workflows keep
+ * their meaning, since '' is still the default n8n leaves out of the saved parameters.
+ * The option is called "Not Set" unless EMPTY_OPTIONS names it after what the API
+ * returns without the parameter; its description says the parameter is not sent and,
+ * when the spec description tells it ("If the parameter is omitted, ..."), what follows.
+ * EMPTY_OPTIONS also gives the description where the spec says it in other words.
+ */
+const EMPTY_OPTION_NAME = 'Not Set';
+/** The spec on a file without `file_type` (FileType in messages and drafts) */
+const NO_FILE_TYPE = 'No type is set, so Pachca detects an image or an audio file by the extension';
+const EMPTY_OPTIONS: Record<string, { name?: string; description?: string }> = {
+  'chat.activity': { name: 'All' },
+  'task.status': { name: 'All' },
+  'file.target': { name: 'Original File', description: 'The parameter is not sent, so the original file is returned' },
+  'message.file_type': { description: NO_FILE_TYPE },
+  'draft.file_type': { description: NO_FILE_TYPE },
+};
+
+/**
+ * The n8n linter wants an option list of this many options or more in alphabetical
+ * order (node-param-options-type-unsorted-items): there the option with the value ''
+ * takes its alphabetical place, in a shorter list it goes first.
+ */
+const MIN_OPTIONS_TO_ALPHABETIZE = 5;
+
+interface EnumOption { name: string; value: string; description?: string }
+
+function emptyOption(resource: string, apiName: string, specDesc: string | undefined, what: 'parameter' | 'field'): EnumOption {
+  const override = EMPTY_OPTIONS[`${resource}.${apiName}`];
+  const omitted = specDesc?.match(/If the parameter is omitted, ([^.]+)\./)?.[1];
+  const description = override?.description
+    ?? (omitted ? `The ${what} is not sent, so ${omitted}` : `The ${what} is not sent`);
+  return { name: override?.name ?? EMPTY_OPTION_NAME, value: '', description };
+}
+
+/** The options of an enum field in the order the node shows them */
+function enumOptions(
+  values: unknown[],
+  enumDescriptions?: Record<string, string>,
+  extra?: EnumOption,
+  empty?: EnumOption,
+): EnumOption[] {
+  const options: EnumOption[] = values.map(v => {
+    const value = String(v);
+    const name = ENUM_DISPLAY_OVERRIDES[value] ?? formatDisplayName(value);
+    const desc = enumDescriptions?.[value];
+    return desc && desc.toLowerCase() !== name.toLowerCase() ? { name, value, description: desc } : { name, value };
+  });
+  if (extra) options.push(extra);
+  const byName = (a: EnumOption, b: EnumOption) => a.name.localeCompare(b.name);
+  if (!empty) return options.sort(byName);
+  if (options.length + 1 >= MIN_OPTIONS_TO_ALPHABETIZE) return [...options, empty].sort(byName);
+  return [empty, ...options.sort(byName)];
+}
+
 function generateEnumOptions(
   values: unknown[],
   enumDescriptions?: Record<string, string>,
-  extra?: { name: string; value: string; description: string },
+  extra?: EnumOption,
+  empty?: EnumOption,
 ): string {
-  const options = values.map(v => {
-    const val = String(v);
-    const name = ENUM_DISPLAY_OVERRIDES[val] ?? formatDisplayName(val);
-    const desc = enumDescriptions?.[val];
-    if (desc && desc.toLowerCase() !== name.toLowerCase()) {
-      return { name, val, str: `{ name: ${quote(name)}, value: ${quote(val)}, description: ${quote(desc)} }` };
-    }
-    return { name, val, str: `{ name: ${quote(name)}, value: ${quote(val)} }` };
-  });
-  if (extra) {
-    options.push({
-      name: extra.name,
-      val: extra.value,
-      str: `{ name: ${quote(extra.name)}, value: ${quote(extra.value)}, description: ${quote(extra.description)} }`,
-    });
-  }
+  return renderEnumOptions(enumOptions(values, enumDescriptions, extra, empty));
+}
+
+function renderEnumOptions(options: EnumOption[]): string {
   return options
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map(o => o.str)
+    .map(o => o.description !== undefined
+      ? `{ name: ${quote(o.name)}, value: ${quote(o.value)}, description: ${quote(o.description)} }`
+      : `{ name: ${quote(o.name)}, value: ${quote(o.value)} }`)
     .join(',\n');
 }
 
@@ -1358,7 +1407,7 @@ function generateResourceDescription(
         continue;
       }
 
-      lines.push(generateQueryParamField(param, paramName, queryDesc, op.endpoint.id, allResourceValues, allOpValues, '\t'));
+      lines.push(generateQueryParamField(param, resource, paramName, queryDesc, op.endpoint.id, allResourceValues, allOpValues, '\t'));
     }
 
     // Optional query params wrapped in Additional Fields (for search/security resources)
@@ -1375,7 +1424,7 @@ function generateResourceDescription(
       for (const param of sortedFilterParams) {
         const paramName = getParamName(resource, op.v1Op, param.name);
         const queryDesc = getFieldDescription(param.name, param.description, op.endpoint.id);
-        lines.push(generateQueryParamField(param, paramName, queryDesc, op.endpoint.id, allResourceValues, allOpValues, '\t\t\t', true));
+        lines.push(generateQueryParamField(param, resource, paramName, queryDesc, op.endpoint.id, allResourceValues, allOpValues, '\t\t\t', true));
       }
       lines.push(`\t\t],`);
       lines.push(`\t},`);
@@ -1490,9 +1539,11 @@ function generateResourceDescription(
       lines.push(`\t\t\tname: 'block',`);
       lines.push(`\t\t\tdisplayName: 'Block',`);
       lines.push(`\t\t\tvalues: [`);
-      // Block type selector — MUST be first because other fields reference it via displayOptions.show.type
+      // Fields in alphabetical order by displayName (n8n lint: node-param-fixed-collection-type-unsorted-items).
+      // The block type selector comes first, since the other fields show by its value
+      // (displayOptions.show.type): its displayName is 'Block Type' for that, the name stays 'type'.
       lines.push(`\t\t\t\t{`);
-      lines.push(`\t\t\t\t\tdisplayName: 'Type',`);
+      lines.push(`\t\t\t\t\tdisplayName: 'Block Type',`);
       lines.push(`\t\t\t\t\tname: 'type',`);
       lines.push(`\t\t\t\t\ttype: 'options',`);
       lines.push(`\t\t\t\t\toptions: [`);
@@ -1510,17 +1561,6 @@ function generateResourceDescription(
       lines.push(`\t\t\t\t\t],`);
       lines.push(`\t\t\t\t\tdefault: 'input',`);
       lines.push(`\t\t\t\t},`);
-      // Remaining fields in alphabetical order by displayName
-      // Allowed File Types (file_input only)
-      lines.push(`\t\t\t\t{`);
-      lines.push(`\t\t\t\t\tdisplayName: 'Allowed File Types',`);
-      lines.push(`\t\t\t\t\tname: 'filetypes',`);
-      lines.push(`\t\t\t\t\ttype: 'string',`);
-      lines.push(`\t\t\t\t\tdefault: '',`);
-      lines.push(`\t\t\t\t\tplaceholder: 'png,jpg,pdf',`);
-      lines.push(`\t\t\t\t\tdescription: 'Comma-separated list of allowed file extensions',`);
-      lines.push(`\t\t\t\t\tdisplayOptions: { show: { type: ['file_input'] } },`);
-      lines.push(`\t\t\t\t},`);
       // Field Name (for input fields)
       lines.push(`\t\t\t\t{`);
       lines.push(`\t\t\t\t\tdisplayName: 'Field Name',`);
@@ -1529,6 +1569,16 @@ function generateResourceDescription(
       lines.push(`\t\t\t\t\tdefault: '',`);
       lines.push(`\t\t\t\t\tdescription: 'Unique field identifier (used in form submission data)',`);
       lines.push(`\t\t\t\t\tdisplayOptions: { show: { type: ['input', 'select', 'radio', 'checkbox', 'date', 'time', 'file_input'] } },`);
+      lines.push(`\t\t\t\t},`);
+      // File Types (file_input only)
+      lines.push(`\t\t\t\t{`);
+      lines.push(`\t\t\t\t\tdisplayName: 'File Types',`);
+      lines.push(`\t\t\t\t\tname: 'filetypes',`);
+      lines.push(`\t\t\t\t\ttype: 'string',`);
+      lines.push(`\t\t\t\t\tdefault: '',`);
+      lines.push(`\t\t\t\t\tplaceholder: 'png,jpg,pdf',`);
+      lines.push(`\t\t\t\t\tdescription: 'Comma-separated list of allowed file extensions',`);
+      lines.push(`\t\t\t\t\tdisplayOptions: { show: { type: ['file_input'] } },`);
       lines.push(`\t\t\t\t},`);
       // Hint
       lines.push(`\t\t\t\t{`);
@@ -1823,12 +1873,18 @@ function generateFieldProperty(
         lines.push(`${tab}\t\t\t\tdisplayName: ${quote(formatDisplayName(subName2))},`);
         lines.push(`${tab}\t\t\t\tname: ${quote(subName2)},`);
         lines.push(`${tab}\t\t\t\ttype: ${quote(subType)},`);
+        const subDefaultFallback = subType === 'number' ? 0 : (subType === 'boolean' ? false : '');
+        let subDefault = (typeof subProp.default === 'string' && /[а-яА-ЯёЁ]/.test(subProp.default)) ? subDefaultFallback : (subProp.default ?? subDefaultFallback);
         if (subType === 'options' && subProp.enum) {
           const subEnumDescs = subProp['x-enum-descriptions'] as Record<string, string> | undefined;
-          lines.push(`${tab}\t\t\t\toptions: [${generateEnumOptions(subProp.enum, subEnumDescs)}],`);
+          // As for a query parameter: a required sub-field without a spec default starts at
+          // the first value of the spec enum, an optional one gets the option with the value ''
+          const subRequired = (subSchema.required ?? []).includes(subName2);
+          const empty = subDefault === '' && !subRequired ? emptyOption(resource, subName2, subProp.description, 'field') : undefined;
+          const subOptions = enumOptions(subProp.enum, subEnumDescs, undefined, empty);
+          if (subDefault === '' && subRequired) subDefault = String(subProp.enum[0]);
+          lines.push(`${tab}\t\t\t\toptions: [${renderEnumOptions(subOptions)}],`);
         }
-        const subDefaultFallback = subType === 'number' ? 0 : (subType === 'boolean' ? false : '');
-        const subDefault = (typeof subProp.default === 'string' && /[а-яА-ЯёЁ]/.test(subProp.default)) ? subDefaultFallback : (subProp.default ?? subDefaultFallback);
         lines.push(`${tab}\t\t\t\tdefault: ${JSON.stringify(subDefault)},`);
         if (subProp.description) {
           const subDisplayName = formatDisplayName(subName2);
@@ -1907,6 +1963,7 @@ function generateFieldProperty(
 /** Generate a single query parameter field (reused for top-level and inside collection) */
 function generateQueryParamField(
   param: Parameter,
+  resource: string,
   paramName: string,
   queryDesc: string | undefined,
   endpointId: string,
@@ -1925,13 +1982,19 @@ function generateQueryParamField(
   if (param.required && !isInsideCollection) {
     lines.push(`${tab}\trequired: true,`);
   }
-  if (n8nType === 'options' && resolvedSchema.enum) {
-    const qEnumDescs = getEnumDescriptions(param.name, endpointId);
-    lines.push(`${tab}\toptions: [${generateEnumOptions(resolvedSchema.enum, qEnumDescs)}],`);
-  }
   // Use resolved default, falling back to original schema default (resolveAllOf may drop sibling defaults)
   const rawDefault = resolvedSchema.default ?? param.schema.default;
-  const qDefault = (typeof rawDefault === 'string' && /[а-яА-ЯёЁ]/.test(rawDefault)) ? '' : (rawDefault ?? (n8nType === 'boolean' ? false : (n8nType === 'number' ? 0 : '')));
+  let qDefault = (typeof rawDefault === 'string' && /[а-яА-ЯёЁ]/.test(rawDefault)) ? '' : (rawDefault ?? (n8nType === 'boolean' ? false : (n8nType === 'number' ? 0 : '')));
+  if (n8nType === 'options' && resolvedSchema.enum) {
+    const qEnumDescs = getEnumDescriptions(param.name, endpointId);
+    // The default of an options field is one of its options: a required parameter
+    // without a spec default starts at the first value of the spec enum, an optional
+    // one gets the option with the value '' (see EMPTY_OPTIONS)
+    const empty = qDefault === '' && !param.required ? emptyOption(resource, param.name, queryDesc, 'parameter') : undefined;
+    const options = enumOptions(resolvedSchema.enum, qEnumDescs, undefined, empty);
+    if (qDefault === '' && param.required) qDefault = String(resolvedSchema.enum[0]);
+    lines.push(`${tab}\toptions: [${renderEnumOptions(options)}],`);
+  }
   lines.push(`${tab}\tdefault: ${JSON.stringify(qDefault)},`);
   if (queryDesc && queryDesc.toLowerCase() !== formatDisplayName(param.name).toLowerCase()) {
     const desc = sanitizeDescription(n8nType === 'boolean' ? booleanDescription(queryDesc) : queryDesc);
@@ -2042,6 +2105,7 @@ function formatDisplayName(name: string): string {
     .replace(/\b\w/g, c => c.toUpperCase())
     .replace(/\bIds?\b/g, m => m === 'Id' ? 'ID' : 'IDs')
     .replace(/\bUrl\b/g, 'URL')
+    .replace(/\bPdf\b/g, 'PDF')
     .replace(/\bOauth\b/g, 'OAuth');
 }
 
@@ -2092,6 +2156,36 @@ function sanitizeDescription(desc: string): string {
 // GENERATE MAIN NODE FILE
 // ============================================================================
 
+/**
+ * The node-wide description fields of the Pachca node: the base description of the
+ * versioned wrapper, repeated in the class description of PachcaV2 (see there). The
+ * icon of a version resolves against the wrapper file at runtime, so both name the
+ * same files; the copies next to PachcaV2.node.ts serve the scanner (copyV2Icons).
+ */
+const NODE_BASE_FIELDS: Array<[string, string]> = [
+  ['displayName', "'Pachca'"],
+  ['name', "'pachca'"],
+  ['icon', "{ light: 'file:pachca.svg', dark: 'file:pachca.dark.svg' }"],
+  ['group', "['transform']"],
+  ['subtitle', `'={{$parameter["operation"] + ": " + $parameter["resource"]}}'`],
+  ['description', "'Interact with Pachca API'"],
+];
+
+function renderNodeBaseFields(indent: string): string {
+  return NODE_BASE_FIELDS.map(([key, value]) => `${indent}${key}: ${value},`).join('\n');
+}
+
+/**
+ * The n8n package scanner (icon-validation) looks for the icon of a node class in the
+ * folder of its file, n8n itself resolves the icon of a version against the file of the
+ * wrapper (nodes/Pachca). PachcaV2 names the wrapper's files, so V2 gets copies of them.
+ */
+function copyV2Icons(rootNodeDir: string): void {
+  for (const icon of ['pachca.svg', 'pachca.dark.svg']) {
+    fs.copyFileSync(path.join(rootNodeDir, icon), path.join(OUTPUT_DIR, icon));
+  }
+}
+
 function generateV2Node(resources: string[]): string {
   const imports = resources.map(r => {
     const camel = snakeToCamel(r);
@@ -2104,7 +2198,7 @@ function generateV2Node(resources: string[]): string {
     return `\t\t\t\t\t{ name: ${quote(display)}, value: ${quote(r)} },`;
   });
 
-  const properties = resources.map(r => `\t\t\t\t...${snakeToCamel(r)}Operations,\n\t\t\t\t...${snakeToCamel(r)}Fields,`);
+  const properties = resources.map(r => `\t\t\t...${snakeToCamel(r)}Operations,\n\t\t\t...${snakeToCamel(r)}Fields,`);
 
   return `import type {
 \tINodeType,
@@ -2120,31 +2214,34 @@ import { searchChats, searchUsers, searchEntities, getCustomProperties } from '.
 ${imports.join('\n')}
 
 export class PachcaV2 implements INodeType {
-\tdescription: INodeTypeDescription;
+\t// The description is a class property holding the icon, as the n8n package scanner
+\t// reads a node class (icon-validation). The node-wide fields repeat the base
+\t// description of the Pachca wrapper, which the constructor puts underneath.
+\tdescription: INodeTypeDescription = {
+${renderNodeBaseFields('\t\t')}
+\t\tversion: 2,
+\t\tdefaults: { name: 'Pachca' },
+\t\tusableAsTool: true,
+\t\tinputs: [NodeConnectionTypes.Main],
+\t\toutputs: [NodeConnectionTypes.Main],
+\t\tcredentials: [{ name: 'pachcaApi', required: true }],
+\t\tproperties: [
+\t\t\t{
+\t\t\t\tdisplayName: 'Resource',
+\t\t\t\tname: 'resource',
+\t\t\t\ttype: 'options',
+\t\t\t\tnoDataExpression: true,
+\t\t\t\toptions: [
+${resourceOptions.join('\n')}
+\t\t\t\t],
+\t\t\t\tdefault: 'message',
+\t\t\t},
+${properties.join('\n')}
+\t\t],
+\t};
 
 \tconstructor(baseDescription: INodeTypeBaseDescription) {
-\t\tthis.description = {
-\t\t\t...baseDescription,
-\t\t\tversion: 2,
-\t\t\tdefaults: { name: 'Pachca' },
-\t\t\tusableAsTool: true,
-\t\t\tinputs: [NodeConnectionTypes.Main],
-\t\t\toutputs: [NodeConnectionTypes.Main],
-\t\t\tcredentials: [{ name: 'pachcaApi', required: true }],
-\t\t\tproperties: [
-\t\t\t\t{
-\t\t\t\t\tdisplayName: 'Resource',
-\t\t\t\t\tname: 'resource',
-\t\t\t\t\ttype: 'options',
-\t\t\t\t\tnoDataExpression: true,
-\t\t\t\t\toptions: [
-${resourceOptions.join('\n')}
-\t\t\t\t\t],
-\t\t\t\t\tdefault: 'message',
-\t\t\t\t},
-${properties.join('\n')}
-\t\t\t],
-\t\t};
+\t\tthis.description = { ...baseDescription, ...this.description };
 \t}
 
 \tasync execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
@@ -2168,12 +2265,7 @@ import { PachcaV2 } from './V2/PachcaV2.node';
 export class Pachca extends VersionedNodeType {
 \tconstructor() {
 \t\tconst baseDescription: INodeTypeBaseDescription = {
-\t\t\tdisplayName: 'Pachca',
-\t\t\tname: 'pachca',
-\t\t\ticon: { light: 'file:pachca.svg', dark: 'file:pachca.dark.svg' },
-\t\t\tgroup: ['transform'],
-\t\t\tsubtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-\t\t\tdescription: 'Interact with Pachca API',
+${renderNodeBaseFields('\t\t\t')}
 \t\t\tdefaultVersion: 2,
 \t\t};
 
@@ -2490,18 +2582,32 @@ function generateTriggerNode(events: WebhookEventOption[]): string {
   return `import type {
 \tIDataObject,
 \tIHookFunctions,
+\tINode,
 \tINodeType,
 \tINodeTypeDescription,
 \tIWebhookFunctions,
 \tIWebhookResponseData,
+\tJsonObject,
 } from 'n8n-workflow';
-import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 import { verifyWebhookSignature, getTokenProfile, isInsufficientScopeError, sanitizeBaseUrl } from './GenericFunctions';
 
 /** Maps n8n event value to webhook payload { type, event } for filtering */
 const EVENT_FILTER: Record<string, { type: string; event: string }> = {
 ${filterEntries}
 };
+
+/**
+ * The error of a failed request to Pachca. httpRequestWithAuthentication passes an error
+ * of n8n itself through as it is, such as the NodeOperationError of missing credentials,
+ * and that one stays an operation error. Any other error is an error of the request: a
+ * NodeApiError comes back unchanged, a raw error keeps its message and status.
+ */
+function requestError(node: INode, error: unknown): NodeApiError | NodeOperationError {
+\treturn error instanceof NodeOperationError
+\t\t? new NodeOperationError(node, error)
+\t\t: new NodeApiError(node, error as JsonObject, { message: (error as Error).message });
+}
 
 export class PachcaTrigger implements INodeType {
 \tdescription: INodeTypeDescription = {
@@ -2595,7 +2701,6 @@ ${optionEntries}
 \t\t\t\t},
 \t\t\t},
 \t\t],
-\t\tusableAsTool: true,
 \t};
 
 \twebhookMethods = {
@@ -2677,7 +2782,7 @@ ${optionEntries}
 \t\t\t\t\t\t\t\t},
 \t\t\t\t\t\t\t);
 \t\t\t\t\t\t}
-\t\t\t\t\t\tthrow error;
+\t\t\t\t\t\tthrow requestError(this.getNode(), error);
 \t\t\t\t\t}
 \t\t\t\t\tconst message = error instanceof Error ? error.message : String(error);
 \t\t\t\t\tthis.logger.warn(
@@ -2705,7 +2810,7 @@ ${optionEntries}
 \t\t\t\t\t\t\t\t},
 \t\t\t\t\t\t\t);
 \t\t\t\t\t\t}
-\t\t\t\t\t\tthrow error;
+\t\t\t\t\t\tthrow requestError(this.getNode(), error);
 \t\t\t\t\t}
 \t\t\t\t\twebhookData.webhookUrl = webhookUrl;
 \t\t\t\t\twebhookData.mode = 'bot';
@@ -2746,7 +2851,7 @@ ${optionEntries}
 \t\t\t\t\t\t\t},
 \t\t\t\t\t\t);
 \t\t\t\t\t}
-\t\t\t\t\tthrow error;
+\t\t\t\t\tthrow requestError(this.getNode(), error);
 \t\t\t\t}
 \t\t\t\twebhookData.webhookUrl = webhookUrl;
 \t\t\t\twebhookData.botId = botId;
@@ -2782,8 +2887,13 @@ ${optionEntries}
 \t\t\t\t\t\t\t});
 \t\t\t\t\t\t}
 \t\t\t\t\t}
-\t\t\t\t} catch {
-\t\t\t\t\t// Ignore cleanup errors — webhook may already be gone, or scope revoked.
+\t\t\t\t} catch (error) {
+\t\t\t\t\t// Deactivation goes on: the webhook may already be gone, or the scope revoked.
+\t\t\t\t\t// The error is logged so that a webhook left registered can be traced.
+\t\t\t\t\tconst message = error instanceof Error ? error.message : String(error);
+\t\t\t\t\tthis.logger.warn(
+\t\t\t\t\t\t\`Pachca Trigger: could not clear the webhook URL in Pachca (\${message}). If the bot still sends events to this URL, clear it in bot settings in Pachca (Outgoing webhook tab).\`,
+\t\t\t\t\t);
 \t\t\t\t}
 \t\t\t\tdelete webhookData.webhookUrl;
 \t\t\t\tdelete webhookData.botId;
@@ -2879,6 +2989,7 @@ ${optionEntries}
 function getSpecialHandler(resource: string, v2Op: string): string | null {
   if (resource === 'file' && v2Op === 'create') return 'fileUpload';
   if (resource === 'message' && (v2Op === 'create' || v2Op === 'update')) return 'messageButtons';
+  if (resource === 'draft' && (v2Op === 'create' || v2Op === 'update')) return 'draftFiles';
   if (resource === 'form' && v2Op === 'create') return 'formBlocks';
   if (resource === 'bot' && v2Op === 'update') return 'botWebhook';
   if (resource === 'user' && v2Op === 'getAll') return 'userGetAllFilters';
@@ -3223,7 +3334,8 @@ function generateRouter(resourceOperations: Map<string, OperationInfo[]>): strin
 // DO NOT EDIT — this file is auto-generated by generate-n8n.ts
 // ============================================================================
 
-import type { IExecuteFunctions, INodeExecutionData, IDataObject, IHttpRequestMethods } from 'n8n-workflow';
+import type { IExecuteFunctions, INodeExecutionData, IDataObject, IHttpRequestMethods, JsonObject } from 'n8n-workflow';
+import { ExecutionBaseError, NodeApiError, NodeOperationError } from 'n8n-workflow';
 import {
 \tmakeApiRequest,
 \tmakeApiRequestAllPages,
@@ -3336,6 +3448,38 @@ function isQueryValueSet(val: unknown): boolean {
 \treturn val !== undefined && val !== null && val !== '' && val !== 0;
 }
 
+/**
+ * Whether an error comes from an HTTP answer: a NodeApiError, or a raw error of an
+ * HTTP client that carries the status. The router reports it as a NodeApiError and
+ * any other error as a NodeOperationError.
+ */
+function isHttpError(error: unknown): boolean {
+\tif (error instanceof NodeApiError) return true;
+\tif (error instanceof NodeOperationError || !error || typeof error !== 'object') return false;
+\tconst err = error as { httpCode?: unknown; statusCode?: unknown; response?: { status?: unknown } };
+\treturn err.httpCode !== undefined || err.statusCode !== undefined || err.response?.status !== undefined;
+}
+
+type NodeOperationErrorOptions = NonNullable<ConstructorParameters<typeof NodeOperationError>[2]>;
+
+/**
+ * The options of the NodeOperationError that wraps an error of an item. An error of n8n
+ * itself, such as the ExpressionError of a parameter, keeps what the editor reads from
+ * it: the constructor shares the context of such a cause but sets runIndex, itemIndex
+ * and metadata in it anew, and takes functionality ('pairedItem' for a broken link to an
+ * earlier item) only from the options, so these come from the cause.
+ */
+function operationErrorOptions(error: unknown, itemIndex: number): NodeOperationErrorOptions {
+\tif (!(error instanceof ExecutionBaseError)) return { itemIndex };
+\tconst context = error.context as Pick<NodeOperationErrorOptions, 'runIndex' | 'itemIndex' | 'metadata'>;
+\treturn {
+\t\titemIndex: context.itemIndex ?? itemIndex,
+\t\trunIndex: context.runIndex,
+\t\tmetadata: context.metadata,
+\t\tfunctionality: error.functionality,
+\t};
+}
+
 // ============================================================================
 // Router Entry Point
 // ============================================================================
@@ -3371,10 +3515,15 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 \t\t\tconst result = await executeRoute.call(this, route, resource, i, nodeVersion);
 \t\t\treturnData.push(...result.map(item => ({ ...item, pairedItem: { item: i } })));
 \t\t} catch (error) {
+\t\t\t// A NodeApiError or NodeOperationError comes through as it is: the constructor of
+\t\t\t// each returns an error of its own class unchanged. A raw error gets the node and
+\t\t\t// keeps its message, an error of n8n itself also its context (operationErrorOptions).
 \t\t\tif (this.continueOnFail()) {
 \t\t\t\treturnData.push({ json: { error: (error as Error).message }, pairedItem: { item: i } });
+\t\t\t} else if (isHttpError(error)) {
+\t\t\t\tthrow new NodeApiError(this.getNode(), error as JsonObject, { message: (error as Error).message, itemIndex: i });
 \t\t\t} else {
-\t\t\t\tthrow error;
+\t\t\t\tthrow new NodeOperationError(this.getNode(), error as Error, operationErrorOptions(error, i));
 \t\t\t}
 \t\t}
 \t}
@@ -3455,7 +3604,7 @@ async function executeRoute(
 \t\t\t\tif (pp.v1Fallback) {
 \t\t\t\t\tvalue = this.getNodeParameter(pp.v1Fallback, i) as number;
 \t\t\t\t} else {
-\t\t\t\t\tthrow e;
+\t\t\t\t\tthrow new NodeOperationError(this.getNode(), e as Error, operationErrorOptions(e, i));
 \t\t\t\t}
 \t\t\t}
 \t\t}
@@ -3547,7 +3696,7 @@ async function executeRoute(
 \t\t\t\t}
 \t\t\t}
 \t\t} catch (e) {
-\t\t\tif (qm.required) throw e;
+\t\t\tif (qm.required) throw new NodeOperationError(this.getNode(), e as Error, operationErrorOptions(e, i));
 \t\t}
 \t}
 
@@ -3571,6 +3720,16 @@ async function executeRoute(
 \t\tconst buttons = buildButtonRows(this, i);
 \t\tif (buttons !== null) body.buttons = buttons;
 \t\tconst files = cleanFileAttachments(this, i);
+\t\tif (files.length) body.files = files;
+\t}
+\tif (route.special === 'draftFiles') {
+\t\t// n8n fills every sub-field of a file with its default: a file of a draft is cleaned
+\t\t// the way a file of a message is. Its ID left at 0 goes too, since the API looks a file
+\t\t// with an ID up among the files of the draft, and a new file has none.
+\t\tconst files = cleanFileAttachments(this, i);
+\t\tfor (const file of files) {
+\t\t\tif (file.id === 0) delete file.id;
+\t\t}
 \t\tif (files.length) body.files = files;
 \t}
 \tif (route.special === 'formBlocks') {
@@ -3856,6 +4015,7 @@ async function main() {
   // Generate main node file
   const mainNode = generateV2Node(generatedResources);
   fs.writeFileSync(path.join(OUTPUT_DIR, 'PachcaV2.node.ts'), mainNode);
+  copyV2Icons(ROOT_NODE_DIR);
   console.log(`  Generated PachcaV2.node.ts (${generatedResources.length} resources)`);
 
   // Generate VersionedNodeType wrapper (root level)

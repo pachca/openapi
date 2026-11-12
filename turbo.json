@@ -173,6 +173,7 @@
       ],
       "outputs": [
         "nodes/**/*.ts",
+        "nodes/Pachca/V2/*.svg",
         "credentials/**/*.ts",
         "!nodes/Pachca/GenericFunctions.ts",
         "!nodes/Pachca/V1/**"
@@ -335,7 +336,14 @@
     "@pachca/docs#test": {
       "inputs": [
         "scripts/test-accept-markdown.ts",
-        "lib/accept-markdown.ts"
+        "lib/accept-markdown.ts",
+        "scripts/test-search.ts",
+        "lib/search/**",
+        "lib/utils/transliterate.ts",
+        "lib/utils/scroll-offset.ts",
+        "content/**",
+        "data/**",
+        "$TURBO_ROOT$/packages/spec/openapi.yaml"
       ],
       "cache": true
     },

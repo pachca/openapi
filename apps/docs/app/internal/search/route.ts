@@ -1,7 +1,8 @@
-import { search } from '@/lib/search/indexer';
+import { limitResults, parseCurrentPath, search, toSearchHit } from '@/lib/search/indexer';
 import { NextResponse } from 'next/server';
 
 const MAX_QUERY_LENGTH = 200;
+const MAX_RESULTS = 20;
 
 // Simple in-memory rate limiter: IP → timestamps
 const rateLimit = new Map<string, number[]>();
@@ -39,9 +40,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ results: [] });
   }
 
-  const { results } = await search(query);
+  // The page the dialog is open on: its sections go first.
+  const currentPath = parseCurrentPath(searchParams.get('page'));
+  const { results } = await search(query, { currentPath });
 
+  // Only what the dialog renders: with keywords and field lists a response
+  // was 200–500 KB.
   return NextResponse.json({
-    results: results.slice(0, 20),
+    results: limitResults(results, MAX_RESULTS).map(toSearchHit),
   });
 }

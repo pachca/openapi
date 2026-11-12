@@ -1,6 +1,7 @@
 // ============================================================================
 // StatusDescription.ts — FROZEN V1 description (from n8n-nodes-pachca@1.0.27)
-// DO NOT EDIT — this file is frozen for backward compatibility
+// Saved workflows depend on it: keep every name, option value, default, nesting
+// and displayOptions. Labels, descriptions, order and UI hints follow the n8n linter.
 // ============================================================================
 
 import type { INodeProperties } from 'n8n-workflow';
@@ -13,25 +14,25 @@ export const statusOperations: INodeProperties[] = [
 		noDataExpression: true,
 		options: [
 			{
-				name: 'Get my profile',
+				name: 'Get My Profile',
 				value: 'getProfile',
 				action: 'Get my profile',
 				description: 'Get own profile info',
 			},
 			{
-				name: 'Get my status',
+				name: 'Get My Status',
 				value: 'getStatus',
 				action: 'Get my status',
 				description: 'Get own status info',
 			},
 			{
-				name: 'Set my status',
+				name: 'Set My Status',
 				value: 'updateStatus',
 				action: 'Set my status',
 				description: 'Set new status',
 			},
 			{
-				name: 'Clear my status',
+				name: 'Clear My Status',
 				value: 'deleteStatus',
 				action: 'Clear my status',
 				description: 'Delete own status',
@@ -52,7 +53,6 @@ export const statusFields: INodeProperties[] = [
 		name: 'statusEmoji',
 		type: 'string',
 		default: '🎮',
-		description: 'Status emoji',
 		displayOptions: {
 			show: {
 				resource: ['status'],

@@ -1,6 +1,7 @@
 // ============================================================================
 // UserDescription.ts — FROZEN V1 description (from n8n-nodes-pachca@1.0.27)
-// DO NOT EDIT — this file is frozen for backward compatibility
+// Saved workflows depend on it: keep every name, option value, default, nesting
+// and displayOptions. Labels, descriptions, order and UI hints follow the n8n linter.
 // ============================================================================
 
 import type { INodeProperties } from 'n8n-workflow';
@@ -13,34 +14,34 @@ export const userOperations: INodeProperties[] = [
 		noDataExpression: true,
 		options: [
 			{
-				name: 'Get all users',
-				value: 'getAll',
-				action: 'Get all users',
-				description: 'Get list of all users',
-			},
-			{
-				name: 'Get a user',
-				value: 'getById',
-				action: 'Get a user',
-				description: 'Get user by ID',
-			},
-			{
-				name: 'Create a user',
+				name: 'Create a User',
 				value: 'create',
 				action: 'Create a user',
 				description: 'Create new user (Admin/Owner tokens only)',
 			},
 			{
-				name: 'Update a user',
-				value: 'update',
-				action: 'Update a user',
-				description: 'Update user (Admin/Owner tokens only)',
-			},
-			{
-				name: 'Delete a user',
+				name: 'Delete a User',
 				value: 'delete',
 				action: 'Delete a user',
 				description: 'Delete user (Admin/Owner tokens only)',
+			},
+			{
+				name: 'Get a User',
+				value: 'getById',
+				action: 'Get a user',
+				description: 'Get user by ID',
+			},
+			{
+				name: 'Get Many',
+				value: 'getAll',
+				action: 'Get many users',
+				description: 'Get many users',
+			},
+			{
+				name: 'Update a User',
+				value: 'update',
+				action: 'Update a user',
+				description: 'Update user (Admin/Owner tokens only)',
 			},
 		],
 		default: 'getAll',
@@ -58,7 +59,7 @@ export const userFields: INodeProperties[] = [
 		name: 'getAllUsersNoLimit',
 		type: 'boolean',
 		default: false,
-		description: 'Get all users with full pagination (ignores per/page)',
+		description: 'Whether to get all users with full pagination (ignores Per Page and Page)',
 		displayOptions: {
 			show: {
 				resource: ['user'],
@@ -108,7 +109,6 @@ export const userFields: INodeProperties[] = [
 		name: 'userId',
 		type: 'number',
 		default: 1,
-		description: 'User ID',
 		displayOptions: {
 			show: {
 				resource: ['user'],
@@ -120,6 +120,7 @@ export const userFields: INodeProperties[] = [
 		displayName: 'Email',
 		name: 'email',
 		type: 'string',
+		placeholder: 'name@email.com',
 		default: '',
 		description: 'User email',
 		displayOptions: {
@@ -212,11 +213,11 @@ export const userFields: INodeProperties[] = [
 						value: 'all',
 					},
 					{
-						name: 'Active Only (suspended=false)',
+						name: 'Active Only',
 						value: 'active',
 					},
 					{
-						name: 'Suspended Only (suspended=true)',
+						name: 'Suspended Only',
 						value: 'suspended',
 					},
 				],
@@ -257,72 +258,6 @@ export const userFields: INodeProperties[] = [
 		type: 'collection',
 		options: [
 			{
-				displayName: 'Nickname',
-				name: 'nickname',
-				type: 'string',
-				default: '',
-				description: 'User nickname',
-			},
-			{
-				displayName: 'Phone Number',
-				name: 'phoneNumber',
-				type: 'string',
-				default: '',
-				description: 'Phone number',
-			},
-			{
-				displayName: 'Department',
-				name: 'department',
-				type: 'string',
-				default: '',
-				description: 'Department',
-			},
-			{
-				displayName: 'Title',
-				name: 'title',
-				type: 'string',
-				default: '',
-				description: 'Job title',
-			},
-			{
-				displayName: 'Role',
-				name: 'role',
-				type: 'options',
-				options: [
-					{
-						name: 'Admin',
-						value: 'admin',
-						description: 'Administrator',
-					},
-					{
-						name: 'User',
-						value: 'user',
-						description: 'Employee',
-					},
-					{
-						name: 'Multi Guest',
-						value: 'multi_guest',
-						description: 'Multi-guest',
-					},
-				],
-				default: 'user',
-				description: 'Access level',
-			},
-			{
-				displayName: 'Suspended',
-				name: 'suspended',
-				type: 'boolean',
-				default: false,
-				description: 'User deactivation',
-			},
-			{
-				displayName: 'List Tags',
-				name: 'listTags',
-				type: 'string',
-				default: '',
-				description: 'User tags (comma-separated)',
-			},
-			{
 				displayName: 'Custom Properties',
 				name: 'customProperties',
 				type: 'fixedCollection',
@@ -353,6 +288,70 @@ export const userFields: INodeProperties[] = [
 					},
 				],
 				description: 'User custom fields',
+			},
+			{
+				displayName: 'Department',
+				name: 'department',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'List Tags',
+				name: 'listTags',
+				type: 'string',
+				default: '',
+				description: 'User tags (comma-separated)',
+			},
+			{
+				displayName: 'Nickname',
+				name: 'nickname',
+				type: 'string',
+				default: '',
+				description: 'User nickname',
+			},
+			{
+				displayName: 'Phone Number',
+				name: 'phoneNumber',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Role',
+				name: 'role',
+				type: 'options',
+				options: [
+					{
+						name: 'Admin',
+						value: 'admin',
+						description: 'Administrator',
+					},
+					{
+						name: 'User',
+						value: 'user',
+						description: 'Employee',
+					},
+					{
+						name: 'Multi Guest',
+						value: 'multi_guest',
+						description: 'Multi-guest',
+					},
+				],
+				default: 'user',
+				description: 'Access level',
+			},
+			{
+				displayName: 'Suspended',
+				name: 'suspended',
+				type: 'boolean',
+				default: false,
+				description: 'Whether the user is deactivated',
+			},
+			{
+				displayName: 'Title',
+				name: 'title',
+				type: 'string',
+				default: '',
+				description: 'Job title',
 			},
 		],
 		default: {},

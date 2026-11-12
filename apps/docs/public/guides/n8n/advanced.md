@@ -177,7 +177,7 @@
 *Pachca Tool в панели инструментов AI Agent*
 
 
-Оба узла (Pachca и Pachca Trigger) поддерживают `usableAsTool: true` — их можно использовать как инструменты для **AI Agent** в n8n.
+Узел Pachca поддерживает `usableAsTool: true`, поэтому **AI Agent** в n8n может вызывать его как инструмент. Pachca Trigger запускает сценарий и инструментом быть не может.
 
 **Что это значит:**
 

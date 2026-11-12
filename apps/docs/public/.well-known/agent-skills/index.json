@@ -13,14 +13,14 @@
       "type": "archive",
       "description": "Администрирование пространства Пачки: новое пространство, сотрудники, теги и участники чатов, доступ к API и «Все токены», журнал аудита, экспорт, DLP, безопасный контур и шифрование, и что требует владельца, администратора или «Корпорации». Load before a tool call that changes an employee: delete only after a yes to your question. Когда: «подготовь Пачку к работе команды», «настрой новое пространство», «пригласи сотрудника», «уволь / удали сотрудника», «сделай администратором», «добавь в тег», «добавь участника чата», «кто в закрытом канале, где я не состою», «доступ к API ограничен», «отзови доступ сотрудника к API», «журнал аудита», «выгрузи переписку», «правило DLP», \"set up a new workspace\", \"invite an employee\", \"add or remove chat members\", \"let employees create tokens\". Not for: a missing tool or a general 401/403 → pachca; who is in a tag or chat → pachca-search; writing messages → pachca-messaging; a bot's own token → pachca-bots; an app acting for employees → pachca-oauth; scripts → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-admin.tar.gz",
-      "digest": "sha256:230ec3996e84148f5ef389f469100715d7f71568bd0f7f39564e204afb2c1cc5"
+      "digest": "sha256:73f8b122676858c3437d88b27e606612434f2ab96e8d70bf7b86fb0c54d56c2a"
     },
     {
       "name": "pachca-ai-agent",
       "type": "archive",
       "description": "Решить, бот или MCP, и сделать AI-агента в Пачке в виде бота: его зовут упоминанием в чате или треде либо пишут ему в личный чат, он собирает контекст треда, показывает таймер agent-thinking, отвечает в треде и оформляет длинный ответ карточкой .md. Когда: «AI-агент в Пачке», «агент отвечает по упоминанию в треде», «агент не слышит упоминание», «бот-агент в личных сообщениях», «как агенту собрать контекст треда», «реакция agent-thinking», «длинный ответ агента карточкой .md», «бот или MCP», \"AI agent bot in Pachca\", \"agent replies when mentioned\", \"agent does not hear a mention\", \"read thread context\", \"thinking indicator\", \"agent reply as an .md card\", \"bot vs MCP\". Not for: working in Pachca from Claude or Cursor through MCP → pachca, pachca-messaging, pachca-search; drafts and scheduled messages (a bot cannot make them), sending a file or report from Claude, Cursor or the CLI → pachca-messaging; webhooks, tokens and settings of any bot → pachca-bots; acting on behalf of an employee → pachca-oauth.",
       "url": "/.well-known/agent-skills/pachca-ai-agent.tar.gz",
-      "digest": "sha256:0fa32bcbca75922433a258c47bede9fc9a1e8965eee54a329fdca1aa6460f2cd"
+      "digest": "sha256:5c0c9e4de4bcc72fa8aa2f96b24e464c36481a15c9beb04fa33a5233939751ea"
     },
     {
       "name": "pachca-api",

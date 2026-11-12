@@ -1,12 +1,14 @@
 import type {
 	IDataObject,
 	IHookFunctions,
+	INode,
 	INodeType,
 	INodeTypeDescription,
 	IWebhookFunctions,
 	IWebhookResponseData,
+	JsonObject,
 } from 'n8n-workflow';
-import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 import { verifyWebhookSignature, getTokenProfile, isInsufficientScopeError, sanitizeBaseUrl } from './GenericFunctions';
 
 /** Maps n8n event value to webhook payload { type, event } for filtering */
@@ -31,6 +33,18 @@ const EVENT_FILTER: Record<string, { type: string; event: string }> = {
 	'video_call_recording_ready': { type: 'video_call', event: 'recording_ready' },
 	'video_call_started': { type: 'video_call', event: 'started' },
 };
+
+/**
+ * The error of a failed request to Pachca. httpRequestWithAuthentication passes an error
+ * of n8n itself through as it is, such as the NodeOperationError of missing credentials,
+ * and that one stays an operation error. Any other error is an error of the request: a
+ * NodeApiError comes back unchanged, a raw error keeps its message and status.
+ */
+function requestError(node: INode, error: unknown): NodeApiError | NodeOperationError {
+	return error instanceof NodeOperationError
+		? new NodeOperationError(node, error)
+		: new NodeApiError(node, error as JsonObject, { message: (error as Error).message });
+}
 
 export class PachcaTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -142,7 +156,6 @@ export class PachcaTrigger implements INodeType {
 				},
 			},
 		],
-		usableAsTool: true,
 	};
 
 	webhookMethods = {
@@ -224,7 +237,7 @@ export class PachcaTrigger implements INodeType {
 								},
 							);
 						}
-						throw error;
+						throw requestError(this.getNode(), error);
 					}
 					const message = error instanceof Error ? error.message : String(error);
 					this.logger.warn(
@@ -252,7 +265,7 @@ export class PachcaTrigger implements INodeType {
 								},
 							);
 						}
-						throw error;
+						throw requestError(this.getNode(), error);
 					}
 					webhookData.webhookUrl = webhookUrl;
 					webhookData.mode = 'bot';
@@ -293,7 +306,7 @@ export class PachcaTrigger implements INodeType {
 							},
 						);
 					}
-					throw error;
+					throw requestError(this.getNode(), error);
 				}
 				webhookData.webhookUrl = webhookUrl;
 				webhookData.botId = botId;
@@ -329,8 +342,13 @@ export class PachcaTrigger implements INodeType {
 							});
 						}
 					}
-				} catch {
-					// Ignore cleanup errors — webhook may already be gone, or scope revoked.
+				} catch (error) {
+					// Deactivation goes on: the webhook may already be gone, or the scope revoked.
+					// The error is logged so that a webhook left registered can be traced.
+					const message = error instanceof Error ? error.message : String(error);
+					this.logger.warn(
+						`Pachca Trigger: could not clear the webhook URL in Pachca (${message}). If the bot still sends events to this URL, clear it in bot settings in Pachca (Outgoing webhook tab).`,
+					);
 				}
 				delete webhookData.webhookUrl;
 				delete webhookData.botId;

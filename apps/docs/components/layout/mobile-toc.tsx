@@ -5,7 +5,7 @@ import { List } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import gsap from 'gsap';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
-import { getScrollOffset } from '@/lib/utils/scroll-offset';
+import { getScrollOffset, pushHash } from '@/lib/utils/scroll-offset';
 import { usePathname } from 'next/navigation';
 import { useToc } from './use-toc';
 
@@ -54,6 +54,9 @@ export function MobileTableOfContents() {
     e.preventDefault();
     const element = document.getElementById(id);
     if (element) {
+      // Пункт меню, а не ссылка: позицию до прыжка запоминаем сами, чтобы
+      // «Назад» вернул к ней (TransitionProvider видит только клики по <a>).
+      pushHash(id);
       const targetScrollTop =
         element.getBoundingClientRect().top + window.scrollY - getScrollOffset();
       gsap.to(window, {
@@ -61,7 +64,6 @@ export function MobileTableOfContents() {
         scrollTo: { y: targetScrollTop },
         ease: 'power2.out',
       });
-      window.history.pushState(null, '', `#${id}`);
     }
     setOpen(false);
   }, []);

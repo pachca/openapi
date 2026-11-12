@@ -34,7 +34,7 @@ export const customPropertyFields: INodeProperties[] = [
 		required: true,
 		options: [{ name: 'Reminder', value: 'Task' },
 { name: 'User', value: 'User' }],
-		default: "",
+		default: "User",
 		displayOptions: { show: { resource: ['customProperty'], operation: ['get'] } },
 	},
 ];

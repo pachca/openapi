@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { IDataObject, IHookFunctions } from 'n8n-workflow';
+import type { IDataObject, IHookFunctions, INode } from 'n8n-workflow';
 import { NodeApiError, NodeOperationError } from 'n8n-workflow';
 import { PachcaTrigger } from '../nodes/Pachca/PachcaTrigger.node';
 
@@ -265,7 +265,7 @@ describe('PachcaTrigger.webhookMethods.create', () => {
 		);
 	});
 
-	it('should rethrow non-403 errors unchanged', async () => {
+	it('should report a non-403 error of PUT /bots/{id} as a NodeApiError with its message and status', async () => {
 		const error = Object.assign(new Error('Server error'), { httpCode: 500 });
 		const ctx = createHookCtx({
 			nodeBotId: 42,
@@ -275,7 +275,26 @@ describe('PachcaTrigger.webhookMethods.create', () => {
 			],
 		});
 
-		await expect(trigger.webhookMethods.default.create.call(ctx)).rejects.toThrow('Server error');
+		const thrown = await trigger.webhookMethods.default.create.call(ctx).catch((e: unknown) => e);
+		expect(thrown).toBeInstanceOf(NodeApiError);
+		expect((thrown as NodeApiError).message).toBe('Server error');
+		expect(String((thrown as NodeApiError).httpCode)).toBe('500');
+	});
+
+	// httpRequestWithAuthentication passes an error of n8n itself through as it is, such as
+	// the NodeOperationError of missing credentials: it must not turn into a NodeApiError.
+	it.each([
+		['GET /profile without a Bot ID', 0, []],
+		['PUT /bot/webhook of a bot token', 0, [{ data: { id: 55, bot: true } }]],
+		['PUT /bots/{id} of a personal token', 42, [{ data: { id: 99, bot: false } }]],
+	])('should pass a NodeOperationError of %s through as it is', async (_request, nodeBotId, before) => {
+		const node: INode = { id: 'trigger', name: 'Pachca Trigger', type: 'n8n-nodes-pachca.pachcaTrigger', typeVersion: 1, position: [0, 0], parameters: {} };
+		const credentialsError = new NodeOperationError(node, 'Node does not have any credentials set');
+		const ctx = createHookCtx({ nodeBotId, httpResponses: [...before, credentialsError] });
+
+		const thrown = await trigger.webhookMethods.default.create.call(ctx).catch((e: unknown) => e);
+		expect(thrown).toBe(credentialsError);
+		expect(thrown).not.toBeInstanceOf(NodeApiError);
 	});
 
 	it('should fall back to personal-token path when GET /profile fails and still register the webhook', async () => {
@@ -567,5 +586,35 @@ describe('PachcaTrigger.webhookMethods.delete', () => {
 		expect(result).toBe(true);
 		expect(staticData.webhookUrl).toBeUndefined();
 		expect(staticData.botId).toBeUndefined();
+	});
+
+	it('should log the reason with logger.warn when the cleanup PUT fails and still return true', async () => {
+		const staticData: IDataObject = { webhookUrl: PROD_WEBHOOK_URL, mode: 'bot' };
+		const ctx = createHookCtx({
+			staticData,
+			httpResponses: [new Error('Server error')], // PUT /bot/webhook → fails
+		});
+
+		const result = await trigger.webhookMethods.default.delete.call(ctx);
+		expect(result).toBe(true);
+
+		const warn = (ctx.logger as unknown as { warn: ReturnType<typeof vi.fn> }).warn;
+		expect(warn).toHaveBeenCalledTimes(1);
+		expect(warn).toHaveBeenCalledWith(
+			expect.stringContaining('could not clear the webhook URL in Pachca (Server error)'),
+		);
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('Outgoing webhook tab'));
+		expect(staticData.webhookUrl).toBeUndefined();
+		expect(staticData.mode).toBeUndefined();
+	});
+
+	it('should not log a warning when the cleanup PUT succeeds', async () => {
+		const ctx = createHookCtx({
+			staticData: { webhookUrl: PROD_WEBHOOK_URL, botId: 42, mode: 'personal' },
+			httpResponses: [{ data: {} }],
+		});
+
+		await trigger.webhookMethods.default.delete.call(ctx);
+		expect((ctx.logger as unknown as { warn: ReturnType<typeof vi.fn> }).warn).not.toHaveBeenCalled();
 	});
 });

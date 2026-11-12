@@ -171,7 +171,7 @@ An update clears a value by sending `null`, and each kind of field has its own w
 
 ### AI Tool Use
 
-Both nodes have `usableAsTool: true` — they can be used as tools for AI Agent nodes in n8n.
+The Pachca node has `usableAsTool: true`, so AI Agent nodes in n8n can use it as a tool. Pachca Trigger starts a workflow and cannot be a tool.
 
 ### Error Handling
 

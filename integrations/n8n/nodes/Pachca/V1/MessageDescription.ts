@@ -1,6 +1,7 @@
 // ============================================================================
 // MessageDescription.ts — FROZEN V1 description (from n8n-nodes-pachca@1.0.27)
-// DO NOT EDIT — this file is frozen for backward compatibility
+// Saved workflows depend on it: keep every name, option value, default, nesting
+// and displayOptions. Labels, descriptions, order and UI hints follow the n8n linter.
 // ============================================================================
 
 import type { INodeProperties } from 'n8n-workflow';
@@ -13,58 +14,58 @@ export const messageOperations: INodeProperties[] = [
 		noDataExpression: true,
 		options: [
 			{
-				name: 'Send a message',
-				value: 'send',
-				action: 'Send a message',
-				description: 'Send message',
-			},
-			{
-				name: 'Get a message',
-				value: 'getById',
-				action: 'Get a message',
-				description: 'Get message by ID',
-			},
-			{
-				name: 'Get messages from a chat',
-				value: 'getAll',
-				action: 'Get messages from a chat',
-				description: 'Get chat messages',
-			},
-			{
-				name: 'Update a message',
-				value: 'update',
-				action: 'Update a message',
-				description: 'Edit message',
-			},
-			{
-				name: 'Delete a message',
+				name: 'Delete a Message',
 				value: 'delete',
 				action: 'Delete a message',
 				description: 'Delete message (Admin/Owner tokens only)',
 			},
 			{
-				name: 'Pin a message',
-				value: 'pin',
-				action: 'Pin a message',
-				description: 'Pin message',
+				name: 'Get a Message',
+				value: 'getById',
+				action: 'Get a message',
+				description: 'Get message by ID',
 			},
 			{
-				name: 'Unpin a message',
-				value: 'unpin',
-				action: 'Unpin a message',
-				description: 'Unpin message',
+				name: 'Get Many',
+				value: 'getAll',
+				action: 'Get messages from a chat',
+				description: 'Get chat messages',
 			},
 			{
-				name: 'Get message readers',
+				name: 'Get Message Readers',
 				value: 'getReadMembers',
 				action: 'Get message readers',
 				description: 'Get list of message readers',
 			},
 			{
-				name: 'Unfurl message links',
+				name: 'Pin a Message',
+				value: 'pin',
+				action: 'Pin a message',
+				description: 'Pin message',
+			},
+			{
+				name: 'Send a Message',
+				value: 'send',
+				action: 'Send a message',
+				description: 'Send message',
+			},
+			{
+				name: 'Unfurl Message Links',
 				value: 'unfurl',
 				action: 'Unfurl message links',
 				description: 'Create link previews in message (unfurl)',
+			},
+			{
+				name: 'Unpin a Message',
+				value: 'unpin',
+				action: 'Unpin a message',
+				description: 'Unpin message',
+			},
+			{
+				name: 'Update a Message',
+				value: 'update',
+				action: 'Update a message',
+				description: 'Edit message',
 			},
 		],
 		default: 'send',
@@ -165,6 +166,13 @@ export const messageFields: INodeProperties[] = [
 						required: true,
 					},
 					{
+						displayName: 'File Size in Bytes',
+						name: 'size',
+						type: 'number',
+						default: 0,
+						required: true,
+					},
+					{
 						displayName: 'File Type',
 						name: 'fileType',
 						type: 'options',
@@ -179,31 +187,10 @@ export const messageFields: INodeProperties[] = [
 							},
 						],
 						default: 'file',
-						description: 'File type',
 						required: true,
 					},
 					{
-						displayName: 'File Size (bytes)',
-						name: 'size',
-						type: 'number',
-						default: 0,
-						description: 'File size in bytes',
-						required: true,
-					},
-					{
-						displayName: 'Width (px)',
-						name: 'width',
-						type: 'number',
-						default: '',
-						displayOptions: {
-							show: {
-								fileType: ['image'],
-							},
-						},
-						description: 'Image width in pixels (images only)',
-					},
-					{
-						displayName: 'Height (px)',
+						displayName: 'Height in Pixels',
 						name: 'height',
 						type: 'number',
 						default: '',
@@ -213,6 +200,18 @@ export const messageFields: INodeProperties[] = [
 							},
 						},
 						description: 'Image height in pixels (images only)',
+					},
+					{
+						displayName: 'Width in Pixels',
+						name: 'width',
+						type: 'number',
+						default: '',
+						displayOptions: {
+							show: {
+								fileType: ['image'],
+							},
+						},
+						description: 'Image width in pixels (images only)',
 					},
 				],
 			},
@@ -232,12 +231,14 @@ export const messageFields: INodeProperties[] = [
 		type: 'options',
 		options: [
 			{
-				name: 'Single Row (all buttons in one row)',
+				name: 'Single Row',
 				value: 'single_row',
+				description: 'All buttons in one row',
 			},
 			{
-				name: 'Multiple Rows (each button on its own row)',
+				name: 'Multiple Rows',
 				value: 'multiple_rows',
+				description: 'Each button on its own row',
 			},
 			{
 				name: 'Raw JSON',
@@ -271,7 +272,6 @@ export const messageFields: INodeProperties[] = [
 						name: 'text',
 						type: 'string',
 						default: '',
-						description: 'Button text',
 					},
 					{
 						displayName: 'Button Type',
@@ -279,7 +279,7 @@ export const messageFields: INodeProperties[] = [
 						type: 'options',
 						options: [
 							{
-								name: 'Data Button (for forms)',
+								name: 'Data Button (for Forms)',
 								value: 'data',
 							},
 							{
@@ -345,7 +345,6 @@ export const messageFields: INodeProperties[] = [
 		name: 'messageId',
 		type: 'number',
 		default: '',
-		description: 'Message ID',
 		displayOptions: {
 			show: {
 				resource: ['message'],
@@ -450,20 +449,11 @@ export const messageFields: INodeProperties[] = [
 				displayName: 'Preview',
 				values: [
 					{
-						displayName: 'URL',
-						name: 'url',
+						displayName: 'Binary Property',
+						name: 'image',
 						type: 'string',
 						default: '',
-						description: 'Link URL for preview (unfurl)',
-						required: true,
-					},
-					{
-						displayName: 'Title',
-						name: 'title',
-						type: 'string',
-						default: '',
-						description: 'Link preview title',
-						required: true,
+						description: 'Binary property with image (overrides Image URL)',
 					},
 					{
 						displayName: 'Description',
@@ -481,11 +471,20 @@ export const messageFields: INodeProperties[] = [
 						description: 'Public image URL (used when no file is provided)',
 					},
 					{
-						displayName: 'Binary Property',
-						name: 'image',
+						displayName: 'Title',
+						name: 'title',
 						type: 'string',
 						default: '',
-						description: 'Binary property with image (overrides Image URL)',
+						description: 'Link preview title',
+						required: true,
+					},
+					{
+						displayName: 'URL',
+						name: 'url',
+						type: 'string',
+						default: '',
+						description: 'Link URL for preview (unfurl)',
+						required: true,
 					},
 				],
 			},

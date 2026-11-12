@@ -129,7 +129,7 @@ export const formFields: INodeProperties[] = [
 			displayName: 'Block',
 			values: [
 				{
-					displayName: 'Type',
+					displayName: 'Block Type',
 					name: 'type',
 					type: 'options',
 					options: [
@@ -148,21 +148,21 @@ export const formFields: INodeProperties[] = [
 					default: 'input',
 				},
 				{
-					displayName: 'Allowed File Types',
-					name: 'filetypes',
-					type: 'string',
-					default: '',
-					placeholder: 'png,jpg,pdf',
-					description: 'Comma-separated list of allowed file extensions',
-					displayOptions: { show: { type: ['file_input'] } },
-				},
-				{
 					displayName: 'Field Name',
 					name: 'name',
 					type: 'string',
 					default: '',
 					description: 'Unique field identifier (used in form submission data)',
 					displayOptions: { show: { type: ['input', 'select', 'radio', 'checkbox', 'date', 'time', 'file_input'] } },
+				},
+				{
+					displayName: 'File Types',
+					name: 'filetypes',
+					type: 'string',
+					default: '',
+					placeholder: 'png,jpg,pdf',
+					description: 'Comma-separated list of allowed file extensions',
+					displayOptions: { show: { type: ['file_input'] } },
 				},
 				{
 					displayName: 'Hint',

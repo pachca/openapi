@@ -2,6 +2,24 @@
 
 # Changelog
 
+## 2.2.7 (2026-11-12)
+
+### Bug Fixes
+
+- Draft > Create and Draft > Update: file fields left at their defaults are not sent, so a draft with a file is created and updated
+
+### Improvements
+
+- The node passes n8n's community package scanner: labels, descriptions and option order follow the n8n rules, and in version 1 the operations `Get all chats`, `Get all users`, `Get all group tags` and `Get messages from a chat` are now `Get Many`. Internal parameter names and option values are unchanged, so saved nodes keep their settings.
+- Optional lists show their empty choice: `All` for Chat > Activity and Reminder > Status, `Original File` for File > Target, `Not Set` elsewhere
+- Form > Create: the block type field is `Block Type` and the allowed file types field is `File Types`, as in version 1
+- Custom Property > Get: `Entity Type` defaults to `User`
+- Errors: a failed upload to file storage and a failed Pachca Trigger request come as `NodeApiError` with the HTTP code, as API errors already did, and any other error as `NodeOperationError` with its item
+
+### Changes
+
+- Pachca Trigger is no longer offered to AI Agent as a tool: a trigger starts a workflow and cannot be called by an agent. Remove a `Pachca Trigger Tool` node from a workflow where it is attached to AI Agent.
+
 ## 2.2.6 (2026-11-12)
 
 ### Features

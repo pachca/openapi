@@ -6,6 +6,7 @@ vi.mock('n8n-workflow', async (importOriginal) => {
 	return { ...actual, sleep: vi.fn(async () => {}) };
 });
 
+import { ExpressionError, NodeApiError, NodeOperationError } from 'n8n-workflow';
 import { router } from '../nodes/Pachca/SharedRouter';
 import * as GenericFunctions from '../nodes/Pachca/GenericFunctions';
 
@@ -511,6 +512,47 @@ describe('Special: messageButtons', () => {
 
 		spy.mockRestore();
 		fileSpy.mockRestore();
+	});
+});
+
+describe('Special: draftFiles', () => {
+	// A file the way n8n fills it at run time: a sub-field left alone holds its default,
+	// File Type is "Not Set" ('') and every number is 0
+	function fileItem(set: Record<string, unknown>) {
+		return { duration_ms: 0, file_type: '', height: 0, id: 0, key: '', name: '', size: 0, waveform: '', width: 0, ...set };
+	}
+
+	const draftParams = {
+		create: { entityType: 'discussion', entityId: 334 },
+		update: { id: 7 },
+	};
+
+	async function sentFiles(operation: 'create' | 'update', file: Record<string, unknown>) {
+		const ctx = createMockContext({
+			resource: 'draft',
+			operation,
+			params: { ...draftParams[operation], additionalFields: { files: { file: [file] } } },
+		});
+		await runRouter(ctx);
+		return (ctx._calls[0].body as any).draft.files;
+	}
+
+	it.each(['create', 'update'] as const)('Draft > %s leaves out the sub-fields left at their defaults', async (operation) => {
+		const files = await sentFiles(operation, fileItem({ key: 'attaches/uploads/1/a.pdf', name: 'a.pdf' }));
+		expect(files).toEqual([{ key: 'attaches/uploads/1/a.pdf', name: 'a.pdf' }]);
+	});
+
+	it.each(['create', 'update'] as const)('Draft > %s sends the sub-fields the user set as they are', async (operation) => {
+		const files = await sentFiles(
+			operation,
+			fileItem({ key: 'attaches/uploads/1/b.png', name: 'b.png', file_type: 'image', width: 100, height: 50 }),
+		);
+		expect(files).toEqual([{ key: 'attaches/uploads/1/b.png', name: 'b.png', file_type: 'image', width: 100, height: 50 }]);
+	});
+
+	it('Draft > Update keeps the ID of a file already attached', async () => {
+		const files = await sentFiles('update', fileItem({ id: 42, key: 'attaches/uploads/1/a.pdf', name: 'a.pdf' }));
+		expect(files).toEqual([{ id: 42, key: 'attaches/uploads/1/a.pdf', name: 'a.pdf' }]);
 	});
 });
 
@@ -1284,6 +1326,110 @@ describe('Multi-item processing', () => {
 		expect(result[0]).toHaveLength(2);
 		expect(result[0][0].json).toHaveProperty('error'); // first failed after retries
 		expect(result[0][1].json).toHaveProperty('id', 1); // second succeeded
+	});
+});
+
+// ============================================================================
+// ERRORS OF AN ITEM
+// ============================================================================
+
+describe('Errors of an item', () => {
+	// The second of two items fails: the first request succeeds, the second one rejects
+	function failSecondRequest(ctx: ReturnType<typeof createMockContext>, error: unknown) {
+		ctx.helpers.httpRequestWithAuthentication
+			.mockResolvedValueOnce({ statusCode: 200, body: { data: { id: 1 } } })
+			.mockRejectedValueOnce(error);
+	}
+
+	// An ExpressionError the way n8n throws it for an expression that cannot reach its item
+	function pairedItemError() {
+		return new ExpressionError("Can't get data for expression", {
+			functionality: 'pairedItem',
+			type: 'paired_item_no_info',
+			descriptionKey: 'pairedItemNoInfo',
+			description: 'The expression refers to an item that cannot be found',
+			runIndex: 2,
+			itemIndex: 1,
+		});
+	}
+
+	it('turns a raw HTTP error into a NodeApiError with its status, message and item', async () => {
+		const ctx = createMockContext({ resource: 'profile', operation: 'get', inputData: [{}, {}] });
+		failSecondRequest(ctx, { statusCode: 500, message: 'Upstream exploded' });
+
+		const error = await runRouter(ctx).catch((e: unknown) => e);
+		expect(error).toBeInstanceOf(NodeApiError);
+		expect((error as NodeApiError).httpCode).toBe('500');
+		expect((error as NodeApiError).message).toBe('Upstream exploded');
+		expect((error as NodeApiError).context.itemIndex).toBe(1);
+	});
+
+	it('turns a plain Error into a NodeOperationError with its message and item', async () => {
+		const ctx = createMockContext({ resource: 'profile', operation: 'get', inputData: [{}, {}] });
+		failSecondRequest(ctx, new Error('Unexpected end of JSON input'));
+
+		const error = await runRouter(ctx).catch((e: unknown) => e);
+		expect(error).toBeInstanceOf(NodeOperationError);
+		expect(error).not.toBeInstanceOf(NodeApiError);
+		expect((error as NodeOperationError).message).toBe('Unexpected end of JSON input');
+		expect((error as NodeOperationError).context.itemIndex).toBe(1);
+	});
+
+	it('passes a NodeApiError of a request through as it is', async () => {
+		const ctx = createMockContext({ resource: 'profile', operation: 'get' });
+		const apiError = new NodeApiError(ctx.getNode() as never, { message: 'Forbidden', httpCode: '403' });
+		ctx.helpers.httpRequestWithAuthentication.mockRejectedValueOnce(apiError);
+
+		await expect(runRouter(ctx)).rejects.toBe(apiError);
+	});
+
+	// The editor reads functionality, the context and runIndex of an ExpressionError: the
+	// NodeOperationError around it keeps them, whether the router reads the parameter itself
+	// (operation) or executeRoute does (the id of Draft > Get, the required entityType of
+	// Custom Property > Get).
+	it.each([
+		['the operation', 'draft', 'get', { id: 7 }, 'operation'],
+		['a path parameter', 'draft', 'get', { id: 7 }, 'id'],
+		['a required query parameter', 'customProperty', 'get', { entityType: 'User' }, 'entityType'],
+	])('keeps what n8n put into an ExpressionError of %s', async (_where, resource, operation, params, failing) => {
+		const ctx = createMockContext({ resource, operation, params, inputData: [{}, {}] });
+		const read = ctx.getNodeParameter.getMockImplementation()!;
+		const expressionError = pairedItemError();
+		ctx.getNodeParameter.mockImplementation((name: string, index: number, defaultVal?: unknown) => {
+			if (name === failing && index === 1) throw expressionError;
+			return read(name, index, defaultVal);
+		});
+
+		const error = (await runRouter(ctx).catch((e: unknown) => e)) as NodeOperationError;
+		expect(error).toBeInstanceOf(NodeOperationError);
+		expect(error.message).toBe("Can't get data for expression");
+		expect(error.description).toBe('The expression refers to an item that cannot be found');
+		expect(error.functionality).toBe('pairedItem');
+		expect(error.context).toMatchObject({
+			type: 'paired_item_no_info',
+			descriptionKey: 'pairedItemNoInfo',
+			runIndex: 2,
+			itemIndex: 1,
+		});
+	});
+
+	it.each([
+		['a raw HTTP error', { statusCode: 500, message: 'Upstream exploded' }, 'Upstream exploded'],
+		['a plain Error', new Error('Unexpected end of JSON input'), 'Unexpected end of JSON input'],
+		['an ExpressionError', pairedItemError(), "Can't get data for expression"],
+	])('with continueOnFail keeps the text of %s as the error of the item', async (_kind, thrown, text) => {
+		const ctx = createMockContext({
+			resource: 'profile',
+			operation: 'get',
+			inputData: [{}, {}],
+			continueOnFail: true,
+		});
+		failSecondRequest(ctx, thrown);
+
+		const result = await runRouter(ctx);
+		expect(result[0]).toHaveLength(2);
+		expect(result[0][0].json).toHaveProperty('id', 1);
+		expect(result[0][1]).toEqual({ json: { error: text }, pairedItem: { item: 1 } });
 	});
 });
 

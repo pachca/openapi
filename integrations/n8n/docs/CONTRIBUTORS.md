@@ -40,10 +40,10 @@ integrations/n8n/
 ## Key Guidelines
 
 - **Do not manually edit generated files** — modify the generator instead
-- **Do not edit V1/ files** — they are frozen from npm v1.0.27 and ensure backward compatibility
+- **V1/ files keep old workflows working** — never change a parameter `name`, option `value`, default, nesting or `displayOptions` there. Labels, descriptions, option order and UI hints follow the n8n community scanner. `V1/pachca.svg` and `V1/pachca.dark.svg` are icon copies the scanner needs
 - **GenericFunctions.ts**, **V2/FormDescription.ts**, and **PachcaTrigger.node.ts** are hand-written — edit directly
 - **Always run tests** after changes: `cd integrations/n8n && npx vitest run`
-- **Follow n8n conventions**: ESLint with `@n8n/node-cli` rules
+- **Follow n8n conventions**: `bun run lint` runs ESLint with `@n8n/node-cli` rules, and `bun run lint:scan` runs the check n8n's community package scanner runs after publish (no `eslint-disable`, V1 included; CI runs it on every pull request that touches the node)
 - **Update changelog.json** when making changes that warrant a release
 
 ## Generated vs Hand-Written

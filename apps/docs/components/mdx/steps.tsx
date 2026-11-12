@@ -14,6 +14,7 @@ export function Step({ title, children }: StepProps) {
       <h3
         id={id}
         className="group/heading relative text-[17px] font-bold! text-text-primary leading-7 mb-2!"
+        style={{ scrollMarginTop: 'var(--scroll-offset)' }}
       >
         <HeadingLink id={id} />
         {title}

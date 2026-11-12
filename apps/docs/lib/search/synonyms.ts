@@ -35,6 +35,7 @@ const SYNONYMS: Record<string, string[]> = {
   лимит: ['лимиты', 'rate', 'limit', '429', 'throttle', 'retry'],
   лимиты: ['лимит', 'rate', 'limit', '429', 'throttle', 'retry'],
   retry: ['backoff', 'повтор', '429', 'лимит'],
+  vscode: ['vs code', 'vs-code'],
 };
 
 const STOP_WORDS = new Set([
@@ -69,6 +70,25 @@ const STOP_WORDS = new Set([
   'так',
   'тоже',
 ]);
+
+/** The product's name in its forms: every page is about it (see sections.ts). */
+const BRAND_WORDS = new Set([
+  'пачка',
+  'пачки',
+  'пачке',
+  'пачку',
+  'пачкой',
+  'пачкою',
+  'пачек',
+  'пачкам',
+  'пачками',
+  'пачках',
+  'pachca',
+]);
+
+export function isBrandWord(word: string): boolean {
+  return BRAND_WORDS.has(word.toLowerCase());
+}
 
 const ACTION_PATTERNS: Record<string, string[]> = {
   отправить: ['create', 'post'],
@@ -201,10 +221,14 @@ export function stemRussian(word: string): string | undefined {
 
 export function addStems(words: string[]): string[] {
   const result = [...words];
+  // A Set for the membership check: keyword lists of large pages run into
+  // thousands of words, and `result.includes` made this quadratic.
+  const present = new Set(words);
   for (const word of words) {
     const stem = stemRussian(word);
-    if (stem && !result.includes(stem)) {
+    if (stem && !present.has(stem)) {
       result.push(stem);
+      present.add(stem);
     }
   }
   return result;

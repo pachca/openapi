@@ -15,14 +15,26 @@ import {
   addStems,
   stemRussian,
   getWordVariants,
+  isBrandWord,
 } from './synonyms';
+import {
+  buildSectionIndex,
+  escapeRegExp,
+  extractSections,
+  hyphenPhrase,
+  isStrongMatch,
+  ORPHAN_MAX,
+  rankSections,
+  stripMarkdown,
+  type PageSection,
+  type RankedSection,
+  type SectionIndex,
+  type SectionPage,
+} from './sections';
 import * as fs from 'fs';
 import * as path from 'path';
 import FlexSearch from 'flexsearch';
 import matter from 'gray-matter';
-
-// FlexSearch document index for fast full-text search
-let flexIndex: FlexSearch.Document<SearchIndex, string[]> | null = null;
 
 export interface SearchIndex {
   id: string;
@@ -36,16 +48,48 @@ export interface SearchIndex {
   schemaFields?: CodeValueWithDescription[];
   /** Code values from MDX files (values in backticks) for highlighting */
   codeValues?: CodeValueWithDescription[];
+  /**
+   * Set on a section result: the title of the page the section belongs to.
+   * `title` is then the heading and `url` is the page URL with `#anchor`.
+   */
+  pageTitle?: string;
 }
 
-let searchIndex: SearchIndex[] = [];
+interface SearchState {
+  /** FlexSearch document index for fast full-text search */
+  flexIndex: FlexSearch.Document<SearchIndex, string[]> | null;
+  searchIndex: SearchIndex[];
+  /**
+   * Headings of guide pages (`##`, `###`, `<Step title>`), see sections.ts. A
+   * separate index: the page and endpoint candidates (and FlexSearch's
+   * per-field limit) stay exactly what they are without sections.
+   */
+  sectionIndex: SectionIndex | null;
+  buildPromise: Promise<SearchIndex[]> | null;
+}
+
+function emptyState(): SearchState {
+  return { flexIndex: null, searchIndex: [], sectionIndex: null, buildPromise: null };
+}
+
+/**
+ * The index lives on `globalThis`, once per server process. Next bundles
+ * `instrumentation.ts` and the search route into different module graphs
+ * (the `instrument` and `rsc` layers), and each graph gets its own copy of
+ * this module: with module-level state the warm-up at server start built an
+ * index the route never read. In development every copy keeps its own state,
+ * so an edit to the indexer rebuilds the index with the new code on reload.
+ */
+const state: SearchState =
+  process.env.NODE_ENV === 'production'
+    ? ((globalThis as { __pachcaSearchState?: SearchState }).__pachcaSearchState ??= emptyState())
+    : emptyState();
 
 /**
  * Clear the search index cache (useful for development)
  */
 export function clearSearchCache() {
-  searchIndex = [];
-  flexIndex = null;
+  Object.assign(state, emptyState());
 }
 
 /**
@@ -462,6 +506,8 @@ interface GuideMetadata {
   codeValues: CodeValueWithDescription[];
   /** Schema names referenced in the guide (from <SchemaBlock name="..." />) */
   schemaNames: string[];
+  /** h2/h3 headings and steps with their text */
+  sections: PageSection[];
 }
 
 /**
@@ -488,7 +534,12 @@ function extractSchemaNames(content: string): string[] {
 /**
  * Extract title and description from MDX/MD content (supports frontmatter)
  */
-function extractGuideMetadata(content: string, id: string, url: string): GuideMetadata {
+function extractGuideMetadata(
+  content: string,
+  id: string,
+  url: string,
+  { withSections = true }: { withSections?: boolean } = {}
+): GuideMetadata {
   // Parse frontmatter if present
   const { data: frontmatter, content: mdxContent } = matter(content);
 
@@ -550,6 +601,7 @@ function extractGuideMetadata(content: string, id: string, url: string): GuideMe
     keywords: [...new Set(mdxData.keywords)],
     codeValues: mdxData.codeValues,
     schemaNames,
+    sections: withSections ? extractSections(mdxContent) : [],
   };
 }
 
@@ -588,10 +640,13 @@ function loadAllGuides(): GuideMetadata[] {
     guides.push(extractGuideMetadata(homeContent, 'home', '/'));
   }
 
-  // Add updates page
+  // Add updates page. No sections: its headings are rendered by the updates
+  // list, not from this text.
   const updatesContent = buildUpdatesContent();
   if (updatesContent) {
-    guides.push(extractGuideMetadata(updatesContent, 'updates', '/updates'));
+    guides.push(
+      extractGuideMetadata(updatesContent, 'updates', '/updates', { withSections: false })
+    );
   }
 
   // Scan guides directory (recursively for nested paths like forms/blocks)
@@ -635,39 +690,6 @@ function loadAllGuides(): GuideMetadata[] {
   scanDir(apiDir, '/api');
 
   return guides;
-}
-
-/**
- * Remove markdown formatting from text for cleaner search results
- */
-function stripMarkdown(text: string): string {
-  if (!text) return '';
-
-  return (
-    text
-      // Remove bold (**text** or __text__)
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/__([^_]+)__/g, '$1')
-      // Remove italic (*text* or _text_)
-      // Note: Only remove underscores used for markdown, not within words like access_token
-      .replace(/\*([^*]+)\*/g, '$1')
-      .replace(/(?<!\w)_([^_]+)_(?!\w)/g, '$1')
-      // Remove inline code (`code`)
-      .replace(/`([^`]+)`/g, '$1')
-      // Remove links [text](url)
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      // Remove blockquotes (> text)
-      .replace(/^>\s+/gm, '')
-      // Remove headings (# text)
-      .replace(/^#+\s+/gm, '')
-      // Remove horizontal rules
-      .replace(/^[-*_]{3,}\s*$/gm, '')
-      // Remove strikethrough (~~text~~)
-      .replace(/~~([^~]+)~~/g, '$1')
-      // Clean up extra whitespace
-      .replace(/\s+/g, ' ')
-      .trim()
-  );
 }
 
 /**
@@ -782,16 +804,28 @@ function extractGuideSchemaFields(
   return { fields, keywords: [...new Set(allKeywords)] };
 }
 
-export async function buildSearchIndex(): Promise<SearchIndex[]> {
-  if (searchIndex.length > 0 && flexIndex) {
-    return searchIndex;
+/**
+ * Build the index once. Concurrent callers (a query that arrives while the
+ * index is warming up at server start) share the same build.
+ */
+export function buildSearchIndex(): Promise<SearchIndex[]> {
+  if (state.searchIndex.length > 0 && state.flexIndex && state.sectionIndex) {
+    return Promise.resolve(state.searchIndex);
   }
+  state.buildPromise ??= buildIndexes().catch((error: unknown) => {
+    state.buildPromise = null;
+    throw error;
+  });
+  return state.buildPromise;
+}
 
+async function buildIndexes(): Promise<SearchIndex[]> {
   const api = await parseOpenAPI();
   const index: SearchIndex[] = [];
 
   // Initialize FlexSearch index
-  flexIndex = createFlexSearchIndex();
+  const pageFlex = createFlexSearchIndex();
+  const sectionPages: SectionPage[] = [];
 
   // Dynamically load all guide pages from content directory
   const guides = loadAllGuides();
@@ -819,10 +853,14 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
     index.push(guideDoc);
 
     // Add to FlexSearch index with keywords as space-separated string for better matching
-    flexIndex!.add({
+    pageFlex.add({
       ...guideDoc,
       keywords: allKeywords.join(' '),
     } as unknown as SearchIndex);
+
+    if (guide.sections.length > 0) {
+      sectionPages.push({ url: guide.url, title: guideDoc.title, sections: guide.sections });
+    }
   }
 
   // Add API endpoints
@@ -888,13 +926,15 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
     index.push(endpointDoc);
 
     // Add to FlexSearch index with keywords as space-separated string for better matching
-    flexIndex!.add({
+    pageFlex.add({
       ...endpointDoc,
       keywords: keywordsWithStems.join(' '),
     } as unknown as SearchIndex);
   }
 
-  searchIndex = index;
+  state.flexIndex = pageFlex;
+  state.sectionIndex = buildSectionIndex(sectionPages);
+  state.searchIndex = index;
   return index;
 }
 
@@ -905,6 +945,13 @@ export interface SearchResult extends SearchIndex {
   matchedByField?: boolean;
   /** FlexSearch relevance score (higher = better match) */
   score?: number;
+  /**
+   * A section of the page the reader is on (`currentPath`). Server side only:
+   * the dialog tells such results by their path.
+   */
+  onCurrentPage?: boolean;
+  /** A section right in front of its own page (`limitResults`). Server side only. */
+  anchored?: boolean;
 }
 
 interface MatchedValueResult {
@@ -914,40 +961,53 @@ interface MatchedValueResult {
 }
 
 /**
- * Find matching schema field or code value for highlighting in search results
+ * Find matching schema field or code value for highlighting in search results.
+ * With `latinWords` (see `latinWordsOf`) a schema field has to have each of
+ * them, unless the item has that word elsewhere (its title, a keyword from
+ * the word start): a field `code` is no match for "как подключить vs code" on
+ * a method that never mentions "vs".
  */
 function findMatchedValue(
   item: SearchIndex,
   lowerQuery: string,
-  queryWords: string[]
+  queryWords: string[],
+  latinWords: string[] = []
 ): MatchedValueResult | undefined {
-  // Check for schema field match (for both API endpoints and guides)
-  // This is a real API parameter - highest priority
-  const matchedField = item.schemaFields?.find((f) => {
-    const lowerValue = f.value.toLowerCase();
-    const lowerDesc = f.description?.toLowerCase() || '';
+  const matches = (value: CodeValueWithDescription) => {
+    const lowerValue = value.value.toLowerCase();
+    const lowerDesc = value.description?.toLowerCase() || '';
     return (
       lowerValue.includes(lowerQuery) ||
       lowerDesc.includes(lowerQuery) ||
       queryWords.some((word) => lowerValue.includes(word)) ||
       (queryWords.length > 1 && queryWords.every((word) => lowerDesc.includes(word)))
     );
-  });
+  };
+  // A Latin word of the query the item has apart from its fields, looked up once.
+  const elsewhere = new Map<string, boolean>();
+  const hasElsewhere = (word: string) => {
+    let has = elsewhere.get(word);
+    if (has === undefined) {
+      has =
+        item.title.toLowerCase().includes(word) || item.keywords.some((k) => k.startsWith(word));
+      elsewhere.set(word, has);
+    }
+    return has;
+  };
+  const coversQuery = (field: CodeValueWithDescription) => {
+    const lowerValue = field.value.toLowerCase();
+    return latinWords.every((word) => lowerValue.includes(word) || hasElsewhere(word));
+  };
+
+  // Check for schema field match (for both API endpoints and guides)
+  // This is a real API parameter - highest priority
+  const matchedField = item.schemaFields?.find((f) => matches(f) && coversQuery(f));
 
   if (matchedField) return { value: matchedField, isSchemaField: true };
 
   // Check for code value match (for guides)
   // This is just a mention in text - lower priority
-  const matchedCodeValue = item.codeValues?.find((v) => {
-    const lowerValue = v.value.toLowerCase();
-    const lowerDesc = v.description?.toLowerCase() || '';
-    return (
-      lowerValue.includes(lowerQuery) ||
-      lowerDesc.includes(lowerQuery) ||
-      queryWords.some((word) => lowerValue.includes(word)) ||
-      (queryWords.length > 1 && queryWords.every((word) => lowerDesc.includes(word)))
-    );
-  });
+  const matchedCodeValue = item.codeValues?.find(matches);
 
   if (matchedCodeValue) return { value: matchedCodeValue, isSchemaField: false };
 
@@ -967,6 +1027,73 @@ function isCodeLikeQuery(query: string): boolean {
   // Single technical-looking word without spaces
   if (!query.includes(' ') && /^[a-z_]+$/i.test(query) && query.length >= 3) return true;
   return false;
+}
+
+const LATIN_WORD = /^[a-z0-9_.-]*[a-z][a-z0-9_.-]*$/;
+const CYRILLIC = /[а-яё]/;
+
+/**
+ * The Latin words of a Russian query, brand words aside ("vs code" of "как
+ * подключить vs code", "mcp vs code" of "mcp в vs code"): what the query
+ * names. A schema field is a match only with every one of them, in its name or
+ * elsewhere in the item (`findMatchedValue`): a field `code` names a part of
+ * "VS Code", not the query's subject. `redirect_uri` stays one for "redirect
+ * uri для бота", `code` for "поле code в реакции".
+ *
+ * None for a query in Latin letters only ("cursor pagination", "upload file"):
+ * the docs are in Russian, a field name is all of English a method has. Nor
+ * for a code-like query (`chat_id`) or one in Russian only ("обменять код на
+ * токен"): they keep every field match.
+ */
+function latinWordsOf(lowerQuery: string, cleanedQuery: string): string[] {
+  if (!CYRILLIC.test(lowerQuery)) return [];
+  return cleanedQuery
+    .split(/\s+/)
+    .filter((w) => w.length > 1 && LATIN_WORD.test(w) && !isBrandWord(w));
+}
+
+/** A word with a hyphen inside: "gemini-cli", "ссылка-приглашение", "idempotency-key". */
+const HYPHENATED = /^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)+$/u;
+
+/** The query with its hyphenated words as phrases: "gemini-cli" is "gemini cli". */
+function withoutHyphens(query: string): string {
+  return query
+    .split(/\s+/)
+    .map((w) => (HYPHENATED.test(w) ? w.replace(/-/g, ' ') : w))
+    .join(' ');
+}
+
+/**
+ * A query word for the content relevance of a result: its variants (stem,
+ * synonyms) or, for a hyphenated word, its parts in a row (`hyphenPhrase`),
+ * which count as that many words: "gemini-cli" in "Gemini CLI" is two, as
+ * "gemini cli" is.
+ */
+type ContentTerm = { phrase: RegExp; words: number } | { variants: string[] };
+
+function contentTermsOf(query: string): ContentTerm[] {
+  return query
+    .split(/\s+/)
+    .filter((w) => w.length > 1)
+    .map((term) => {
+      const phrase = HYPHENATED.test(term) ? hyphenPhrase(term) : undefined;
+      return phrase
+        ? { phrase, words: term.split('-').length }
+        : { variants: getWordVariants(term) };
+    });
+}
+
+/** How many words of the query the title or the description has, see `ContentTerm`. */
+function contentMatchCount(terms: ContentTerm[], titleLower: string, descLower: string): number {
+  let count = 0;
+  for (const term of terms) {
+    if ('phrase' in term) {
+      if (term.phrase.test(titleLower) || term.phrase.test(descLower)) count += term.words;
+    } else if (term.variants.some((v) => titleLower.includes(v) || descLower.includes(v))) {
+      count++;
+    }
+  }
+  return count;
 }
 
 /**
@@ -990,9 +1117,58 @@ export interface SearchResponse {
   results: SearchResult[];
 }
 
-export async function search(query: string): Promise<SearchResponse> {
+/** A result as the search dialog gets it: keywords and field lists stay on the server. */
+export type SearchHit = Pick<
+  SearchResult,
+  'id' | 'type' | 'title' | 'description' | 'url' | 'pageTitle' | 'matchedValue' | 'matchedByField'
+>;
+
+/** Longer than the two lines the dialog shows. */
+const HIT_DESCRIPTION_LENGTH = 300;
+
+export function toSearchHit(result: SearchResult): SearchHit {
+  const { id, type, title, url, pageTitle, matchedValue, matchedByField } = result;
+  const description =
+    result.description.length > HIT_DESCRIPTION_LENGTH
+      ? `${result.description.slice(0, HIT_DESCRIPTION_LENGTH).trimEnd()}…`
+      : result.description;
+  return {
+    id,
+    type,
+    title,
+    description,
+    url,
+    ...(pageTitle ? { pageTitle } : {}),
+    ...(matchedValue ? { matchedValue } : {}),
+    ...(matchedByField ? { matchedByField } : {}),
+  };
+}
+
+const MAX_PATH_LENGTH = 200;
+
+/**
+ * The `page` parameter of a search request: the path of the page the dialog
+ * is open on. Only a site path counts (`/guides/mcp/connect`): no protocol or
+ * host, query or hash, at most 200 characters. Anything else is ignored.
+ */
+export function parseCurrentPath(value: string | null | undefined): string | undefined {
+  if (!value || value.length > MAX_PATH_LENGTH) return undefined;
+  if (!/^\/(?!\/)[A-Za-z0-9\-._~%/]*$/.test(value)) return undefined;
+  return value.length > 1 ? value.replace(/\/+$/, '') || '/' : value;
+}
+
+export interface SearchOptions {
+  /** Path of the page the reader is on (`/guides/mcp/connect`): its sections go first */
+  currentPath?: string;
+}
+
+export async function search(
+  query: string,
+  { currentPath }: SearchOptions = {}
+): Promise<SearchResponse> {
   const index = await buildSearchIndex();
   const lowerQuery = query.toLowerCase().trim();
+  const { flexIndex, sectionIndex } = state;
 
   if (!lowerQuery || !flexIndex) {
     return { results: [] };
@@ -1022,6 +1198,12 @@ export async function search(query: string): Promise<SearchResponse> {
   const searchQueries = isCodeQuery
     ? [lowerQuery]
     : [...new Set([lowerQuery, expandedQuery, stemmedQuery, stemSynonymsQuery].filter(Boolean))];
+
+  // Hyphenated words as phrases ("gemini-cli" is "gemini cli"), as the
+  // section search reads them; Latin words a field has to have all of.
+  const spacedQuery = isCodeQuery ? lowerQuery : withoutHyphens(lowerQuery);
+  const latinWords = isCodeQuery ? [] : latinWordsOf(lowerQuery, cleanedQuery);
+  const contentTerms = isCodeQuery ? [] : contentTermsOf(lowerQuery);
 
   // Collect unique document IDs from all field results
   const matchedIds = new Set<string>();
@@ -1060,7 +1242,7 @@ export async function search(query: string): Promise<SearchResponse> {
     const item = indexMap.get(id);
     if (!item) continue;
 
-    const matchResult = findMatchedValue(item, lowerQuery, expandedWords);
+    const matchResult = findMatchedValue(item, lowerQuery, expandedWords, latinWords);
     const fieldMatches = idToFieldMatches.get(id) || [];
 
     // For code-like queries, only include results that actually contain the query
@@ -1073,18 +1255,16 @@ export async function search(query: string): Promise<SearchResponse> {
     let score = 0;
 
     // Exact title match is strongest signal
-    if (item.title.toLowerCase().includes(lowerQuery)) score += 10;
+    const lowerTitle = item.title.toLowerCase();
+    if (lowerTitle.includes(lowerQuery) || lowerTitle.includes(spacedQuery)) score += 10;
 
     // Content relevance: count how many query words match title+description (via stems + synonyms)
     if (!isCodeQuery) {
-      const titleLower = item.title.toLowerCase();
-      const descLower = item.description.toLowerCase();
-      const queryTerms = lowerQuery.split(/\s+/).filter((w) => w.length > 1);
-      let contentMatches = 0;
-      for (const term of queryTerms) {
-        const variants = getWordVariants(term);
-        if (variants.some((v) => titleLower.includes(v) || descLower.includes(v))) contentMatches++;
-      }
+      const contentMatches = contentMatchCount(
+        contentTerms,
+        lowerTitle,
+        item.description.toLowerCase()
+      );
       if (contentMatches >= 2) score += 20;
       else if (contentMatches === 1) score += 3;
     }
@@ -1140,8 +1320,200 @@ export async function search(query: string): Promise<SearchResponse> {
     });
   }
 
-  // Sort by score (higher = better)
-  return {
-    results: results.sort((a, b) => (b.score || 0) - (a.score || 0)),
+  const hasQueryInTitle = titleMatcher(lowerQuery, cleanedQuery);
+  sortResults(results, hasQueryInTitle);
+
+  if (!sectionIndex) return { results };
+
+  const pageScores = new Map<string, number>();
+  for (const result of results) {
+    if (result.type === 'guide') pageScores.set(result.url, result.score ?? 0);
+  }
+  const titleMatches = results.filter((r) => hasQueryInTitle(r.title));
+  const orphanMax = Math.min(ORPHAN_MAX, ...titleMatches.map((r) => (r.score ?? 0) - 1));
+  // A weak section of a page that did not match stays below every page and
+  // method among the first ten.
+  const top = results.slice(0, ORPHAN_FLOOR_RESULTS);
+  const orphanWeakMax = top.length > 0 ? Math.min(...top.map((r) => r.score ?? 0)) - 1 : undefined;
+  const ranked = rankSections(sectionIndex, { isCodeQuery, lowerQuery, cleanedQuery }, pageScores, {
+    currentPath,
+    orphanMax,
+    orphanWeakMax,
+  });
+
+  return { results: mergeSections(results, ranked, { currentPath, hasQueryInTitle }) };
+}
+
+/**
+ * A result with the whole query in its title, from a word start ("форма" is
+ * not in "Информация"): on a tie it goes first (`sortResults`), a section
+ * never goes above it unless the section's own page does, and a weak match
+ * on the reader's page leaves it in the top three.
+ */
+export function titleMatcher(lowerQuery: string, cleanedQuery: string): (title: string) => boolean {
+  const patterns = [...new Set([lowerQuery, cleanedQuery])]
+    .filter(Boolean)
+    .map((q) => new RegExp(String.raw`(?:^|[^\p{L}\p{N}_])${escapeRegExp(q)}`, 'u'));
+  return (title) => {
+    const lower = title.toLowerCase();
+    return patterns.some((pattern) => pattern.test(lower));
   };
+}
+
+/** Page and method results by score (higher = better); on a tie, a title match first. Stable, in place. */
+export function sortResults(
+  results: SearchResult[],
+  hasQueryInTitle: (title: string) => boolean
+): SearchResult[] {
+  const titleMatches = new Set(results.filter((r) => hasQueryInTitle(r.title)));
+  return results.sort(
+    (a, b) =>
+      (b.score || 0) - (a.score || 0) || Number(titleMatches.has(b)) - Number(titleMatches.has(a))
+  );
+}
+
+/** The first this many page and method results set the cap of weak orphan sections */
+const ORPHAN_FLOOR_RESULTS = 10;
+
+/** Sections of other pages in the results, at most */
+const MAX_SECTION_RESULTS = 8;
+
+/** Of the first this many other results, a weak match on the reader's page stays below title matches */
+const TOP_TITLE_MATCHES = 3;
+
+/** At most this many weak sections of the reader's page go above other results */
+const MAX_PINNED_WEAK = 2;
+
+/** A weak section of the reader's page goes above other results with a score at least this one's */
+const PIN_AGAINST = 4;
+
+function sectionResult(section: RankedSection): SearchResult {
+  const { entry, score, current } = section;
+  return {
+    id: entry.id,
+    title: entry.title,
+    description: section.snippet,
+    url: entry.url,
+    type: 'guide',
+    keywords: [],
+    pageTitle: entry.pageTitle,
+    score,
+    ...(current ? { onCurrentPage: true } : {}),
+  };
+}
+
+/**
+ * Sections among the page and endpoint results (`pages`, sorted):
+ *
+ * - a strong section (`heading`, `breadcrumb`, `near`) goes right in front
+ *   of its own page, with the page's score; other sections by score, below a
+ *   page on a tie;
+ * - at most eight sections of other pages, so pages and methods stay in the
+ *   twenty results the dialog gets;
+ * - the reader's page (`currentPath`): its strong sections (`heading`,
+ *   `breadcrumb`, `near`) first of all. Of its `partial` and `body` sections
+ *   at most two follow them, and only those scored at least as the fourth
+ *   other result; even these stay below every result among the first three
+ *   other results that is named after the query: the query in the title of
+ *   a page or method, or a strong section of another page. The rest go
+ *   among the other results by score. A mention in the text of this page is
+ *   weaker ("токен" on the MCP connection page: its "Токен бота" and "Codex с
+ *   токеном" first, then "Новый токен бота" and the other token methods,
+ *   the page's mentions of tokens far below). With a section of the reader's
+ *   page in the list the page itself goes: the reader is on it.
+ */
+export function mergeSections(
+  pages: SearchResult[],
+  ranked: RankedSection[],
+  {
+    currentPath,
+    hasQueryInTitle,
+  }: { currentPath?: string; hasQueryInTitle: (title: string) => boolean }
+): SearchResult[] {
+  const current = ranked.filter((s) => s.current);
+  const anchored = new Map<string, SearchResult[]>();
+  const floating: SearchResult[] = [];
+  /** Strong sections of other pages (see `isStrongMatch`) */
+  const strongElsewhere = new Set<SearchResult>();
+  for (const section of ranked) {
+    if (section.current) continue;
+    const result = sectionResult(section);
+    if (isStrongMatch(section.match)) strongElsewhere.add(result);
+    if (section.anchored) {
+      result.anchored = true;
+      const list = anchored.get(section.entry.pageUrl) ?? [];
+      list.push(result);
+      anchored.set(section.entry.pageUrl, list);
+    } else {
+      floating.push(result);
+    }
+  }
+  // Stable: on a tie, in the order rankSections gave.
+  floating.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+  const shownPages = current.length > 0 ? pages.filter((page) => page.url !== currentPath) : pages;
+  const merged: SearchResult[] = [];
+  let next = 0;
+  for (const page of shownPages) {
+    while (next < floating.length && (floating[next].score || 0) > (page.score || 0)) {
+      merged.push(floating[next++]);
+    }
+    if (page.type === 'guide') merged.push(...(anchored.get(page.url) ?? []));
+    merged.push(page);
+  }
+  merged.push(...floating.slice(next));
+
+  let sections = 0;
+  const capped = merged.filter((r) => !r.pageTitle || ++sections <= MAX_SECTION_RESULTS);
+  if (current.length === 0) return capped;
+
+  const strong = current.filter((s) => isStrongMatch(s.match)).map(sectionResult);
+  const weak = current.filter((s) => !isStrongMatch(s.match)).map(sectionResult);
+  const bar = capped[PIN_AGAINST - 1]?.score ?? -Infinity;
+  const pinned = weak.filter((r) => (r.score || 0) >= bar).slice(0, MAX_PINNED_WEAK);
+  const rest = weak
+    .filter((r) => !pinned.includes(r))
+    .sort((a, b) => (b.score || 0) - (a.score || 0));
+
+  let keep = 0;
+  for (let i = 0; i < Math.min(TOP_TITLE_MATCHES, capped.length); i++) {
+    if (strongElsewhere.has(capped[i]) || hasQueryInTitle(capped[i].title)) keep = i + 1;
+  }
+  // A section kept on top takes its page along: nothing between them.
+  while (keep > 0 && keep < capped.length && capped[keep - 1].anchored) keep++;
+
+  // The other weak sections among the results by score, below results of the
+  // same score: never between a section and its page, which share a score.
+  const below: SearchResult[] = [];
+  let nextWeak = 0;
+  for (const result of capped.slice(keep)) {
+    while (nextWeak < rest.length && (rest[nextWeak].score || 0) > (result.score || 0)) {
+      below.push(rest[nextWeak++]);
+    }
+    below.push(result);
+  }
+  below.push(...rest.slice(nextWeak));
+  return [...strong, ...capped.slice(0, keep), ...pinned, ...below];
+}
+
+/**
+ * The first `limit` results for the dialog. A page keeps one section right in
+ * front of it: a second one of the same page would only take a place. A
+ * section whose page falls off the list goes too: it is placed by its page's
+ * score and leads to the page.
+ */
+export function limitResults(results: SearchResult[], limit: number): SearchResult[] {
+  const out: SearchResult[] = [];
+  const pages = new Set<string>();
+  for (const result of results) {
+    if (out.length >= limit) break;
+    if (result.anchored) {
+      const page = result.url.split('#')[0];
+      // Its page follows it: the next place must be free for the page.
+      if (pages.has(page) || out.length + 1 >= limit) continue;
+      pages.add(page);
+    }
+    out.push(result);
+  }
+  return out;
 }

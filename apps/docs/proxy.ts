@@ -5,22 +5,20 @@ import type { NextRequest } from 'next/server';
 import { prefersMarkdown } from './lib/accept-markdown';
 
 // Page path → where its pre-generated markdown twin would be in /public, or
-// null for paths that never have one. Whether the file exists is hasPublicFile's job.
+// null for a file path. Whether the twin exists is hasPublicFile's job. Every
+// page of the site has a twin and no page path has a dot in its last segment,
+// so any path without one gets a candidate: a path with no twin is a 404, and
+// an agent asking for markdown gets it as markdown wherever the path is,
+// /no-such-page included. A path with an extension is a file (images,
+// BingSiteAuth.xml, .md handled before this) and is left alone; /internal/*
+// and /.well-known/* are excluded by the matcher, and next.config redirects
+// run before the proxy.
 function markdownTwin(pathname: string): string | null {
   if (pathname === '/') return '/index.md';
-  if (pathname === '/updates') return '/updates.md';
-  if (pathname.startsWith('/updates/')) {
-    if (pathname.endsWith('.md')) return null;
-    return `${pathname.replace(/\/+$/, '')}.md`;
-  }
-  if (pathname.startsWith('/guides/') || pathname.startsWith('/api/')) {
-    // No /api/search or /api/og exclusion here: those route handlers moved to
-    // /internal/* (already excluded by the matcher below), while /api/search/*
-    // are real documentation pages with real .md twins in public/api/search/.
-    if (pathname.endsWith('.md')) return null;
-    return `${pathname.replace(/\/+$/, '')}.md`;
-  }
-  return null;
+  const trimmed = pathname.replace(/\/+$/, '');
+  const lastSegment = trimmed.slice(trimmed.lastIndexOf('/') + 1);
+  if (lastSegment.includes('.')) return null;
+  return `${trimmed}.md`;
 }
 
 // Generated .md files live in public/. In `next dev` and in the standalone

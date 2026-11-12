@@ -50,7 +50,8 @@ and emails an invitation at once.
   and what they lose:
   - all their tags;
   - every other conversation and channel, archived ones included, with no
-    system message there; direct messages and threads stay;
+    system message there; direct messages and threads stay, but an Admin or
+    Editor role in a thread becomes Member (a thread owner stays owner);
   - a chat Admin or Editor role in the kept chat, which becomes Member (a
     Creator stays Creator);
   - every token they hold: personal tokens, CLI logins and the access they

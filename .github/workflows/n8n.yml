@@ -68,6 +68,12 @@ jobs:
         working-directory: integrations/n8n
         run: bun run lint
 
+      # n8n's community package scanner rules (no eslint-disable, V1 included),
+      # the same check n8n runs after publish. Catches violations before merge.
+      - name: Community package scan
+        working-directory: integrations/n8n
+        run: bun run lint:scan
+
       - name: Test
         working-directory: integrations/n8n
         run: bun run test
@@ -170,10 +176,6 @@ jobs:
             npm publish --access public --ignore-scripts
           fi
 
-      - name: Scan community package
-        if: steps.changes.outputs.should_publish == 'true'
-        run: npx @n8n/scan-community-package n8n-nodes-pachca@${{ steps.changes.outputs.version }}
-
       - name: Create GitHub Release
         if: steps.changes.outputs.should_publish == 'true'
         working-directory: integrations/n8n
@@ -190,3 +192,22 @@ jobs:
             --title "n8n-nodes-pachca v${{ steps.changes.outputs.version }}" \
             --notes "See [CHANGELOG](integrations/n8n/CHANGELOG.md) for details." \
             --latest
+
+      # Runs after the release, so a failed scan never leaves a published
+      # version without its GitHub Release. npm serves a just-published version
+      # only after a few minutes ("Your package is being processed"), and the
+      # scan reads its metadata from the registry: wait for the version first.
+      # Until 2.2.6 the scan always ran too early and stopped at "No package
+      # metadata found": scanner 0.42.0 still exited 0, 0.43.0 exits 2. The same
+      # rules run before merge in `bun run lint:scan`, so a failure here means
+      # the scanner gained a rule since then.
+      - name: Scan community package
+        if: steps.changes.outputs.should_publish == 'true'
+        run: |
+          VERSION="${{ steps.changes.outputs.version }}"
+          for i in $(seq 1 30); do
+            if npm view "n8n-nodes-pachca@${VERSION}" version >/dev/null 2>&1; then break; fi
+            echo "n8n-nodes-pachca@${VERSION} is not served by npm yet, waiting"
+            sleep 20
+          done
+          npx @n8n/scan-community-package "n8n-nodes-pachca@${VERSION}"

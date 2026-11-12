@@ -132,6 +132,7 @@ export const securityFields: INodeProperties[] = [
 { name: 'Message Created', value: 'message_created' },
 { name: 'Message Deleted', value: 'message_deleted' },
 { name: 'Message Updated', value: 'message_updated', description: 'Message edited' },
+{ name: 'Not Set', value: '', description: 'The parameter is not sent' },
 { name: 'OAuth Authorization Granted', value: 'oauth_authorization_granted', description: 'User granted an OAuth client access to their data' },
 { name: 'OAuth Authorization Revoked', value: 'oauth_authorization_revoked', description: 'An OAuth client\'s access to user data was revoked' },
 { name: 'OAuth Device Authorization Approved', value: 'oauth_device_authorization_approved', description: 'Employee confirmed an app sign-in from a device' },

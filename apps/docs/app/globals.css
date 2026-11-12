@@ -283,6 +283,12 @@ a:focus:not(:focus-visible) {
   outline: none;
 }
 
+/* Заголовок раздела или <main>, куда поиск перевёл фокус: место видно по прокрутке */
+main[tabindex='-1']:focus,
+:is(h2, h3)[tabindex='-1']:focus {
+  outline: none;
+}
+
 /* Disable transitions during theme switch */
 .disable-transitions *,
 .disable-transitions *::before,

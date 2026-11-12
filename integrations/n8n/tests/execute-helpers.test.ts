@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { IDataObject, IExecuteFunctions, INode } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+import { NodeApiError, NodeOperationError } from 'n8n-workflow';
 import {
   simplifyItem,
   resolveResourceLocator,
@@ -942,5 +942,65 @@ describe('uploadFileToS3 sends acl and bucket only when they came', () => {
     expect(retryBody).toContain('name="bucket"');
     expect(retryBody).not.toContain('name="acl"');
     expect(retryBody).toContain('sig-2');
+  });
+});
+
+describe('uploadFileToS3 reports the last failed upload as a NodeApiError', () => {
+  // What the HTTP client of n8n throws for a 4xx of the storage: an AxiosError with the
+  // status in `response`. NodeApiError reads it from there by the class name.
+  class AxiosError extends Error {
+    response = { status: 403, data: '<Error><Code>AccessDenied</Code></Error>' };
+  }
+
+  it('keeps the 403 of the storage, the message and the item after the last retry', async () => {
+    const presigned = {
+      'Content-Disposition': 'attachment',
+      acl: 'private',
+      policy: 'policy-1',
+      'x-amz-credential': 'cred-1',
+      'x-amz-algorithm': 'AWS4-HMAC-SHA256',
+      'x-amz-date': '20260101T000000Z',
+      'x-amz-signature': 'sig-1',
+      key: 'uploads/${filename}',
+      direct_url: 'https://storage.example.com/uploads',
+    };
+    let apiCalls = 0;
+    let s3Calls = 0;
+
+    const mockCtx = {
+      getNodeParameter: vi.fn((name: string) => {
+        if (name === 'fileSource') return 'url';
+        if (name === 'fileName') return 'test.txt';
+        if (name === 'contentType') return 'text/plain';
+        if (name === 'fileUrl') return 'https://example.com/test.txt';
+        return '';
+      }),
+      getNode: vi.fn(() => MOCK_NODE),
+      getCredentials: vi.fn(async () => ({
+        baseUrl: 'https://api.pachca.com/api/shared/v1',
+        accessToken: 'test-token',
+      })),
+      helpers: {
+        httpRequestWithAuthentication: vi.fn(async () => {
+          apiCalls++;
+          return { statusCode: 200, body: presigned };
+        }),
+        httpRequest: vi.fn(async (opts: { method?: string }) => {
+          if (opts.method === 'GET') return Buffer.from('file-content');
+          s3Calls++;
+          throw new AxiosError('Request failed with status code 403');
+        }),
+      },
+    } as unknown as IExecuteFunctions;
+
+    const error = await uploadFileToS3(mockCtx, 2).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(NodeApiError);
+    expect((error as NodeApiError).httpCode).toBe('403');
+    expect((error as NodeApiError).message).toBe('Request failed with status code 403');
+    expect((error as NodeApiError).context.itemIndex).toBe(2);
+    // Three uploads, each with presigned params of its own: the first request and two retries
+    expect(s3Calls).toBe(3);
+    expect(apiCalls).toBe(3);
   });
 });

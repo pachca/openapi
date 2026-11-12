@@ -98,6 +98,10 @@ for (const file of files) {
       .trim();
     set.add(toSlug(clean));
   }
+  // A <Step title="…"> is an anchor too: components/mdx/steps.tsx sets id = toSlug(title).
+  for (const m of body.matchAll(/<Step\s+title="([^"]+)"/g)) {
+    set.add(toSlug(m[1].trim()));
+  }
   anchors.set(routeOf(file), set);
 }
 

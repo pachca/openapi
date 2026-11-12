@@ -880,7 +880,13 @@ export async function uploadFileToS3(
       });
       break;
     } catch (error) {
-      if (attempt === MAX_RETRIES - 1) throw error;
+      if (attempt === MAX_RETRIES - 1) {
+        // NodeApiError takes the HTTP status from the axios error; the message stays as it was
+        throw new NodeApiError(ctx.getNode(), error as JsonObject, {
+          message: (error as Error).message,
+          itemIndex,
+        });
+      }
       // Re-request presigned URL on retry (it may have expired). Replace the params whole:
       // a field of the old answer, `acl` or `bucket`, must not stay in the new form
       presigned = (await makeApiRequest.call(ctx, 'POST', '/uploads', undefined, undefined, itemIndex)) as IDataObject;

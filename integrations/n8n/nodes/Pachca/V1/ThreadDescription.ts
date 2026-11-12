@@ -1,6 +1,7 @@
 // ============================================================================
 // ThreadDescription.ts — FROZEN V1 description (from n8n-nodes-pachca@1.0.27)
-// DO NOT EDIT — this file is frozen for backward compatibility
+// Saved workflows depend on it: keep every name, option value, default, nesting
+// and displayOptions. Labels, descriptions, order and UI hints follow the n8n linter.
 // ============================================================================
 
 import type { INodeProperties } from 'n8n-workflow';
@@ -13,13 +14,13 @@ export const threadOperations: INodeProperties[] = [
 		noDataExpression: true,
 		options: [
 			{
-				name: 'Create a thread',
+				name: 'Create a Thread',
 				value: 'createThread',
 				action: 'Create a thread',
 				description: 'Create thread to message',
 			},
 			{
-				name: 'Get a thread',
+				name: 'Get a Thread',
 				value: 'getThread',
 				action: 'Get a thread',
 				description: 'Get thread info',

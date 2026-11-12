@@ -1,6 +1,7 @@
 // ============================================================================
 // FormDescription.ts — FROZEN V1 description (from n8n-nodes-pachca@1.0.27)
-// DO NOT EDIT — this file is frozen for backward compatibility
+// Saved workflows depend on it: keep every name, option value, default, nesting
+// and displayOptions. Labels, descriptions, order and UI hints follow the n8n linter.
 // ============================================================================
 
 import type { INodeProperties } from 'n8n-workflow';
@@ -13,13 +14,13 @@ export const formOperations: INodeProperties[] = [
 		noDataExpression: true,
 		options: [
 			{
-				name: 'Create a form',
+				name: 'Create a Form',
 				value: 'createView',
 				action: 'Create a form',
 				description: 'Create and open modal with form',
 			},
 			{
-				name: 'Process form submission',
+				name: 'Process Form Submission',
 				value: 'processSubmission',
 				action: 'Process form submission',
 				description: 'Handle form submit and send response',
@@ -121,74 +122,65 @@ export const formFields: INodeProperties[] = [
 						type: 'options',
 						options: [
 							{
-								name: '📝 Header',
+								name: 'Checkboxes',
+								value: 'checkbox',
+							},
+							{
+								name: 'Date Picker',
+								value: 'date',
+							},
+							{
+								name: 'Divider',
+								value: 'divider',
+							},
+							{
+								name: 'File Upload',
+								value: 'file_input',
+							},
+							{
+								name: 'Header',
 								value: 'header',
 								description: 'Section header',
 							},
 							{
-								name: '📄 Plain Text',
-								value: 'plain_text',
-								description: 'Plain text',
-							},
-							{
-								name: '📝 Markdown Text',
+								name: 'Markdown Text',
 								value: 'markdown',
 								description: 'Formatted text',
 							},
 							{
-								name: '➖ Divider',
-								value: 'divider',
-								description: 'Divider',
+								name: 'Plain Text',
+								value: 'plain_text',
 							},
 							{
-								name: '📝 Text Input',
-								value: 'input',
-								description: 'Text input',
+								name: 'Radio Buttons',
+								value: 'radio',
 							},
 							{
-								name: '📋 Select Dropdown',
+								name: 'Select Dropdown',
 								value: 'select',
 								description: 'Dropdown',
 							},
 							{
-								name: '🔘 Radio Buttons',
-								value: 'radio',
-								description: 'Radio buttons',
+								name: 'Text Input',
+								value: 'input',
 							},
 							{
-								name: '☑️ Checkboxes',
-								value: 'checkbox',
-								description: 'Checkboxes',
-							},
-							{
-								name: '📅 Date Picker',
-								value: 'date',
-								description: 'Date picker',
-							},
-							{
-								name: '🕐 Time Picker',
+								name: 'Time Picker',
 								value: 'time',
-								description: 'Time picker',
-							},
-							{
-								name: '📎 File Upload',
-								value: 'file_input',
-								description: 'File upload',
 							},
 						],
 						default: 'header',
 					},
 					{
-						displayName: 'Text Content',
-						name: 'text',
+						displayName: 'Field Label',
+						name: 'label',
 						type: 'string',
 						default: '',
 						displayOptions: {
 							show: {
-								type: ['header', 'plain_text', 'markdown'],
+								type: ['input', 'select', 'radio', 'checkbox', 'date', 'time', 'file_input'],
 							},
 						},
-						description: 'Display text',
 					},
 					{
 						displayName: 'Field Name',
@@ -203,28 +195,16 @@ export const formFields: INodeProperties[] = [
 						description: 'Field name (sent in webhook)',
 					},
 					{
-						displayName: 'Field Label',
-						name: 'label',
+						displayName: 'File Types',
+						name: 'filetypes',
 						type: 'string',
 						default: '',
 						displayOptions: {
 							show: {
-								type: ['input', 'select', 'radio', 'checkbox', 'date', 'time', 'file_input'],
+								type: ['file_input'],
 							},
 						},
-						description: 'Field label',
-					},
-					{
-						displayName: 'Required',
-						name: 'required',
-						type: 'boolean',
-						default: false,
-						displayOptions: {
-							show: {
-								type: ['input', 'select', 'radio', 'checkbox', 'date', 'time', 'file_input'],
-							},
-						},
-						description: 'Required field',
+						description: 'Allowed file types (comma-separated, e.g. pdf,jpg,png)',
 					},
 					{
 						displayName: 'Hint',
@@ -237,124 +217,6 @@ export const formFields: INodeProperties[] = [
 							},
 						},
 						description: 'Hint below field',
-					},
-					{
-						displayName: 'Placeholder',
-						name: 'placeholder',
-						type: 'string',
-						default: '',
-						displayOptions: {
-							show: {
-								type: ['input'],
-							},
-						},
-						description: 'Placeholder text',
-					},
-					{
-						displayName: 'Multiline',
-						name: 'multiline',
-						type: 'boolean',
-						default: false,
-						displayOptions: {
-							show: {
-								type: ['input'],
-							},
-						},
-						description: 'Multiline field',
-					},
-					{
-						displayName: 'Initial Value',
-						name: 'initial_value',
-						type: 'string',
-						default: '',
-						displayOptions: {
-							show: {
-								type: ['input'],
-							},
-						},
-						description: 'Default value',
-					},
-					{
-						displayName: 'Min Length',
-						name: 'min_length',
-						type: 'number',
-						default: 0,
-						displayOptions: {
-							show: {
-								type: ['input'],
-							},
-						},
-						description: 'Min text length',
-					},
-					{
-						displayName: 'Max Length',
-						name: 'max_length',
-						type: 'number',
-						default: 3000,
-						displayOptions: {
-							show: {
-								type: ['input'],
-							},
-						},
-						description: 'Max text length',
-					},
-					{
-						displayName: 'Options',
-						name: 'options',
-						type: 'fixedCollection',
-						typeOptions: {
-							multipleValues: true,
-						},
-						default: [],
-						displayOptions: {
-							show: {
-								type: ['select', 'radio', 'checkbox'],
-							},
-						},
-						options: [
-							{
-								name: 'option',
-								displayName: 'Option',
-								values: [
-									{
-										displayName: 'Text',
-										name: 'text',
-										type: 'string',
-										default: '',
-										description: 'Display text',
-									},
-									{
-										displayName: 'Value',
-										name: 'value',
-										type: 'string',
-										default: '',
-										description: 'Value to submit',
-									},
-									{
-										displayName: 'Description',
-										name: 'description',
-										type: 'string',
-										default: '',
-										description: 'Option description (radio/checkbox)',
-									},
-									{
-										displayName: 'Selected',
-										name: 'selected',
-										type: 'boolean',
-										default: false,
-										description: 'Selected by default (select/radio)',
-									},
-									{
-										displayName: 'Checked',
-										name: 'checked',
-										type: 'boolean',
-										default: false,
-										description: 'Checked by default (checkbox)',
-									},
-								],
-							},
-						],
-						description: 'Choice options',
 					},
 					{
 						displayName: 'Initial Date',
@@ -381,16 +243,16 @@ export const formFields: INodeProperties[] = [
 						description: 'Initial time (HH:mm)',
 					},
 					{
-						displayName: 'File Types',
-						name: 'filetypes',
+						displayName: 'Initial Value',
+						name: 'initial_value',
 						type: 'string',
 						default: '',
 						displayOptions: {
 							show: {
-								type: ['file_input'],
+								type: ['input'],
 							},
 						},
-						description: 'Allowed file types (comma-separated, e.g. pdf,jpg,png)',
+						description: 'Default value',
 					},
 					{
 						displayName: 'Max Files',
@@ -403,6 +265,136 @@ export const formFields: INodeProperties[] = [
 							},
 						},
 						description: 'Max number of files',
+					},
+					{
+						displayName: 'Max Length',
+						name: 'max_length',
+						type: 'number',
+						default: 3000,
+						displayOptions: {
+							show: {
+								type: ['input'],
+							},
+						},
+						description: 'Max text length',
+					},
+					{
+						displayName: 'Min Length',
+						name: 'min_length',
+						type: 'number',
+						default: 0,
+						displayOptions: {
+							show: {
+								type: ['input'],
+							},
+						},
+						description: 'Min text length',
+					},
+					{
+						displayName: 'Multiline',
+						name: 'multiline',
+						type: 'boolean',
+						default: false,
+						displayOptions: {
+							show: {
+								type: ['input'],
+							},
+						},
+						description: 'Whether the text input takes several lines',
+					},
+					{
+						displayName: 'Options',
+						name: 'options',
+						type: 'fixedCollection',
+						typeOptions: {
+							multipleValues: true,
+						},
+						default: [],
+						displayOptions: {
+							show: {
+								type: ['select', 'radio', 'checkbox'],
+							},
+						},
+						options: [
+							{
+								name: 'option',
+								displayName: 'Option',
+								values: [
+									{
+										displayName: 'Checked',
+										name: 'checked',
+										type: 'boolean',
+										default: false,
+										description: 'Whether the option is checked by default (checkbox)',
+									},
+									{
+										displayName: 'Description',
+										name: 'description',
+										type: 'string',
+										default: '',
+										description: 'Option description (radio/checkbox)',
+									},
+									{
+										displayName: 'Selected',
+										name: 'selected',
+										type: 'boolean',
+										default: false,
+										description: 'Whether the option is selected by default (select/radio)',
+									},
+									{
+										displayName: 'Text',
+										name: 'text',
+										type: 'string',
+										default: '',
+										description: 'Display text',
+									},
+									{
+										displayName: 'Value',
+										name: 'value',
+										type: 'string',
+										default: '',
+										description: 'Value to submit',
+									},
+								],
+							},
+						],
+						description: 'Choice options',
+					},
+					{
+						displayName: 'Placeholder',
+						name: 'placeholder',
+						type: 'string',
+						default: '',
+						displayOptions: {
+							show: {
+								type: ['input'],
+							},
+						},
+						description: 'Placeholder text',
+					},
+					{
+						displayName: 'Required',
+						name: 'required',
+						type: 'boolean',
+						default: false,
+						displayOptions: {
+							show: {
+								type: ['input', 'select', 'radio', 'checkbox', 'date', 'time', 'file_input'],
+							},
+						},
+						description: 'Whether the field must be filled in',
+					},
+					{
+						displayName: 'Text Content',
+						name: 'text',
+						type: 'string',
+						default: '',
+						displayOptions: {
+							show: {
+								type: ['header', 'plain_text', 'markdown'],
+							},
+						},
+						description: 'Display text',
 					},
 				],
 			},
@@ -422,7 +414,7 @@ export const formFields: INodeProperties[] = [
 		name: 'customFormJson',
 		type: 'json',
 		default: '{\n  "title": "My form",\n  "close_text": "Cancel",\n  "submit_text": "Submit",\n  "blocks": [\n    {\n      "type": "header",\n      "text": "Form title"\n    },\n    {\n      "type": "input",\n      "name": "field1",\n      "label": "Input field",\n      "placeholder": "Enter text",\n      "required": true\n    },\n    {\n      "type": "select",\n      "name": "choice",\n      "label": "Choose option",\n      "options": [\n        {"text": "Option 1", "value": "option1", "selected": true},\n        {"text": "Option 2", "value": "option2"}\n      ],\n      "required": true\n    }\n  ]\n}',
-		description: 'JSON structure for custom form. Use blocks: header, plain_text, markdown, divider, input, select, radio, checkbox, date, time, file_input',
+		description: 'JSON structure for custom form. Use blocks: header, plain_text, markdown, divider, input, select, radio, checkbox, date, time, file_input.',
 		displayOptions: {
 			show: {
 				resource: ['form'],
@@ -476,7 +468,7 @@ export const formFields: INodeProperties[] = [
 		type: 'options',
 		options: [
 			{
-				name: '🤖 Auto-detect (recommended)',
+				name: '🤖 Auto-Detect (Recommended)',
 				value: 'auto',
 			},
 			{

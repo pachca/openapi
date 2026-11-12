@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.8.0 (2026-11-12)
+
+Tools for the workspace and its invite link, three new scopes, empty stickers, a thread refused by the chat edit, notes for setting up a new workspace, thread rights, and tool texts that follow the API. schema_version stays 1.2.0.
+
+- Tools `pachca_get_company` and `pachca_update_company`: the workspace name, owner, plan and settings, read in every audience. Renaming the workspace and turning showing personal data and cross-chat threads on or off is for the owner and administrators, and `api_management` and `integrations_management` change only in the web interface. `export_personal_chats` comes to the owner only.
+- Tools `pachca_get_invite_link` and `pachca_reissue_invite_link`, for the owner and administrators: each administrator has their own link, valid for 14 days. Reading it issues a new one when none is valid or under an hour is left, and reissuing stops the old one at once. Reading the link shares the rate limit of the workspace chat and bot lists.
+- `pachca_get_invite_link` is not read-only, since reading may issue a new link and stop the old one: its annotations read `readOnlyHint: false` and `destructiveHint: true`, and it stays idempotent. Its `kind` stays `read`, as the method gives it.
+- The invite link `url` is a secret, like the link to an export: it comes without the untrusted wrapper, and both invite link tools carry the note that a secret goes to the person in the reply and nowhere else.
+- `pachca_get_token_info` names the scopes `company:read`, `company:write` and `invite_links:write`. A connection made through the browser before they existed lacks them and gets `403` `insufficient_scope` from the new tools until the person signs in again; a personal or bot token that lacks them gets them once they are added in its settings. The `tasks:*` scopes are named after reminders, and `chats:mark_unread` follows the Pachca catalog.
+- Message outputs: a sticker comes with an empty `content` and empty `files`, and `pachca_update_message` answers `403` on it.
+- `pachca_update_chat`: a thread's `chat_id` gets `403`, and the description says that only the chat owner or a chat admin changes a chat, open or closed.
+- Chat outputs: `member_ids` leaves out suspended and deleted employees.
+- `pachca_add_reaction`: a `code` over 16 characters gets `400` `too_long`. `pachca_open_form`: a `private_metadata` or `callback_id` that is too long gets `422` `invalid` under its key.
+- `pachca_create_unattached_thread`: `use_global_threads` of `pachca_get_company` shows whether a thread mention adds people.
+- The `402` refusal says the block for the message limit lasts until the workspace is paid for, or at the latest until the next month begins in UTC.
+- The instructions name the workspace and the invite link among what the server covers, and call Pachca a team chat app.
+- `pachca_list_chats`: an answer holding only the chat with yourself means a new workspace. Asked to set it up for a team, the model offers one plan, an open channel for the whole company, an informal chat and a chat with a tag for each team, with the first message of each written out to post and pin once the plan is agreed, and asks only for the colleagues' emails and teams.
+- `pachca_pin_message` names the `403` answer in a thread.
+- A new note on `name` of `pachca_create_chat`, `pachca_update_chat`, `pachca_create_tag`, `pachca_update_tag`, `pachca_create_bot` and `pachca_update_bot`, and on `department` of `pachca_create_user` and `pachca_update_user`: a name the request gives goes in as given, and a name the model chooses is written in the language of the request, with no `#` in front. On `list_tags` of `pachca_create_user` and `pachca_update_user`, an existing tag goes in under its name as Pachca returns it, and only a new tag's name follows the language of the request.
+- `pachca_create_user`: `role` is left out for an ordinary employee, `admin` is passed only when the request asks for it, and the role is set in this call rather than in a later edit. When the request names the employee's team, they get the tag of that team in `list_tags`, since a tag also brings in whoever gets it later.
+- Thread rights follow the API: `pachca_remove_member` takes a member out of a thread for anyone in the thread or its parent chat, a multi-guest only as the Creator or an Admin, whatever the role of the one removed other than `owner`, and your own ID takes you out of the thread by the same rules, as `pachca_leave_chat` now says. `pachca_add_members` says a thread under a message gives everyone `member`, and it, `pachca_create_unattached_thread` and `pachca_delete_message` say the workspace owner and administrators become Admins of an unattached thread whichever way they are added.
+- Tool texts follow the API: `email` and `role` of `pachca_create_user` (the invitation goes to the address, without the invitation email the employee signs in with it on their own, and the role is `user` by default), `role` of `pachca_update_user` (a change between `user` and `admin` keeps the roles in chats already joined), `channel` and `public` of `pachca_create_chat` and `public` of `pachca_update_chat` (who posts in a channel, who sees and joins an open chat), custom property `value` of `pachca_create_user`, `pachca_update_user`, `pachca_create_task` and `pachca_update_task` (a number as a whole number in digits, a date as YYYY-MM-DD), and tags given after joining by the invite link in `pachca_get_invite_link`.
+
 ## 1.7.0 (2026-11-09)
 
 The message source and program in outputs, message details in the audit log, outgoing webhook address error codes, the template check, and the list order without sort. schema_version stays 1.2.0.

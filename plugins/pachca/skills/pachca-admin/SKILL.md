@@ -29,6 +29,7 @@ finds exactly one match.
 - A `403` on an admin action; "why can't employees connect an agent".
 - Who has API access and who may create it (the access settings); revoking
   employees' access.
+- The workspace name and settings; the invite link.
 - Audit log, message export, DLP rules, IP allowlist and encryption (Corporation).
 
 Not here: sending messages (pachca-messaging), reading who is in a tag or chat
@@ -45,7 +46,9 @@ open methods; they never widen visibility. Check before planning:
    `role` is `admin`, `user`, `multi_guest` or `guest`.
 2. Scopes: `pachca_get_token_info` (CLI `pachca oauth token-info`).
 3. Plan: audit log, export, workspace inventory, DLP and data protection need
-   the **Corporation** plan. If unsure, say so and ask.
+   the «Корпорация» plan. The workspace info (`pachca_get_company`, CLI
+   `pachca company get`) names the plan in `plan`, always in Russian, for
+   example «Корпорация». Without that, say you are unsure and ask.
 
 | Role               | `role` value           | Admin powers                                                                                                                                                               |
 | ------------------ | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -60,15 +63,17 @@ you as «Name (id), token kind, role», and that role is `owner` for the Owner.
 On Corporation the tool list gives it away too: only the Owner gets
 `pachca_get_audit_events`, `pachca_request_export`, `pachca_download_export`,
 `pachca_list_company_chats` and `pachca_list_company_bots`. Over the CLI or
-REST, ask the person whether they are the Owner instead of guessing. Do not
+REST, compare your own `id` with `owner_id` in the workspace info. If the token
+cannot read it, ask the person whether they are the Owner instead of guessing. Do not
 probe owner-only methods "to see": each call to the audit log or the workspace
 inventory is itself written to the audit log.
 
 Owner-only scopes (Corporation): `chat_exports:read`, `chat_exports:write`,
 `audit_events:read`, `company_chats:read`, `company_bots:read`.
 Owner and Administrator: `users:create`, `users:update`, `users:delete`,
-`user_status:write`, `user_avatar:write`, `group_tags:write`. A bot token
-cannot create, edit or delete employees.
+`user_status:write`, `user_avatar:write`, `group_tags:write`, `company:write`,
+`invite_links:write`. A bot token cannot create, edit or delete employees,
+rename the workspace or get the invite link.
 
 Owner-only methods need a token of the Owner: a personal token, a CLI login or
 an app the Owner signed in to. No bot token and no Administrator gets these
@@ -156,9 +161,11 @@ the line that reports what you did.
 | Remove a tag from a chat                             | Everyone held there only by that tag leaves the chat.                                                                                                                                                                                                                                                                                                                                                               |
 | Delete a tag                                         | Removed from all employees and chats; members stay in chats but are no longer kept in sync.                                                                                                                                                                                                                                                                                                                         |
 | Archive a chat                                       | Guests (role `guest`) are removed, multi-guests stay, and tags are unbound; unarchiving restores neither.                                                                                                                                                                                                                                                                                                           |
-| Add or remove a member, change a chat role           | Name the chat and each person. Added members get access to the chat at once; an Owner or Administrator joins as chat Admin.                                                                                                                                                                                                                                                                                         |
+| Add or remove a member, change a chat role           | Name the chat and each person. Added members get access to the chat at once; an Owner or Administrator joins as chat Admin, and in a thread under a message as a plain member.                                                                                                                                                                                                                                      |
 | Request an export                                    | It contains closed chats regardless of membership. Take the period from the person.                                                                                                                                                                                                                                                                                                                                 |
 | Revoke a token or access                             | Whatever runs on it breaks immediately; a personal token cannot be restored.                                                                                                                                                                                                                                                                                                                                        |
+| Change workspace settings                            | Applies to every employee at once. `show_personal_data: false` hides emails and phone numbers from employees and bot tokens. Turning off «Использовать сквозные треды» stops a thread mention from adding people outside the parent chat.                                                                                                                                                                           |
+| Reissue the invite link                              | Your old link stops working at once, even where it was already sent. Other Administrators' links keep working.                                                                                                                                                                                                                                                                                                      |
 | Clear the IP allowlist, change or disable encryption | Clearing the allowlist makes protected files undownloadable until addresses are listed again. Changing the key or turning encryption off makes older messages permanently unreadable. See the security reference.                                                                                                                                                                                                   |
 
 ## New workspace
@@ -168,7 +175,7 @@ the workspace is new. Propose a plan in one message for one yes: an open company
 channel, an informal chat, a chat and a tag per team, the full text of the
 first message to pin in each, and ask only for the colleagues' emails and
 teams. Then create the tags, the chats bound to them, the invitations with tag
-and role in the same call, and post and pin those first messages. Steps, the invitation limit and what only the web interface does:
+and role in the same call, and post and pin those first messages. Steps, the invitation limit, the invite link and what only the web interface does:
 [references/new-workspace.md](references/new-workspace.md).
 
 ## Do it right
@@ -233,8 +240,10 @@ creators without that role: the bots keep running, and Administrators reach
 only bots whose `can_edit` includes `admin`.
 
 The two settings are on the **Workspace** page (General settings), the tab is
-under Integrations > API. They live only in the web interface, with no MCP tool
-or CLI command, so tell the person where to click.
+under Integrations > API. `pachca_get_company` shows them in
+`integrations_management` and `api_management` (`all` or `admins`), but they
+change only in the web interface: `pachca_update_company` ignores them. Tell
+the person where to click.
 
 **Security and compliance** (Owner, Corporation): audit log, export, DLP rules,
 IP allowlist and encryption. Procedures and warnings are in
@@ -254,9 +263,11 @@ IP allowlist and encryption. Procedures and warnings are in
   Re-check members after a short wait.
 - Treating a revoked access setting as a revocation of existing tokens.
 - Reading `email` and `phone_number` as missing: for employees and bot tokens
-  they are `null` unless the workspace allows showing personal data; Owner and
-  Administrators always see them.
+  they are `null` unless the workspace allows showing personal data
+  (`show_personal_data` in `pachca_get_company`); Owner and Administrators
+  always see them.
 - Inventory has its own strict rate limit, shared by the chats and bots lists
+  and reading the invite link
   ([limits](https://dev.pachca.com/api/limits.md)): spread a large walk over
   time.
 

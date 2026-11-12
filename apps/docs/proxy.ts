@@ -1,7 +1,11 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { prefersMarkdown } from './lib/accept-markdown';
 
-// Path → its pre-generated markdown twin in /public, or null if none exists.
+// Page path → where its pre-generated markdown twin would be in /public, or
+// null for paths that never have one. Whether the file exists is hasPublicFile's job.
 function markdownTwin(pathname: string): string | null {
   if (pathname === '/') return '/index.md';
   if (pathname === '/updates') return '/updates.md';
@@ -19,39 +23,48 @@ function markdownTwin(pathname: string): string | null {
   return null;
 }
 
-// Parse a single Accept header entry's q-value, defaulting to 1.0 per RFC 9110.
-function parseQ(params: string[]): number {
-  for (const p of params) {
-    const m = /^q=([0-9.]+)$/i.exec(p.trim());
-    if (m) {
-      const q = parseFloat(m[1]);
-      return Number.isFinite(q) ? Math.max(0, Math.min(1, q)) : 1;
-    }
+// Generated .md files live in public/. In `next dev` and in the standalone
+// server (the Dockerfile copies public/ to apps/docs/public and server.js
+// chdirs to apps/docs) the working directory is apps/docs. Next 16 runs the
+// proxy in Node, so a stat per request is cheap and never goes stale.
+const PUBLIC_DIR = path.join(process.cwd(), 'public');
+
+function hasPublicFile(urlPath: string): boolean {
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(urlPath);
+  } catch {
+    return false;
   }
-  return 1;
+  const file = path.join(PUBLIC_DIR, decoded);
+  // path.join resolves `..`: never look outside public/.
+  return file.startsWith(PUBLIC_DIR + path.sep) && existsSync(file);
 }
 
-// Decide whether a client prefers `text/markdown` over `text/html` per
-// RFC 9110 §12.5.1. The previous `includes('text/markdown') &&
-// !includes('text/html')` heuristic was over-strict: a polite agent sending
-// `Accept: text/markdown, text/html;q=0.5` (clearly prefers MD with HTML as
-// fallback) was being routed to HTML. This handles q-values, wildcards
-// (`text/*`, `*/*` count toward the HTML side since browsers send them),
-// and an empty/missing header (treated as ambiguous → HTML).
-function prefersMarkdown(accept: string): boolean {
-  if (!accept) return false;
-  let mdQ = 0;
-  let htmlQ = 0;
-  for (const raw of accept.split(',')) {
-    const [rawType, ...params] = raw.trim().split(';');
-    const type = rawType?.trim().toLowerCase();
-    if (!type) continue;
-    const q = parseQ(params);
-    if (type === 'text/markdown') mdQ = Math.max(mdQ, q);
-    else if (type === 'text/html') htmlQ = Math.max(htmlQ, q);
-    else if (type === 'text/*' || type === '*/*') htmlQ = Math.max(htmlQ, q);
-  }
-  return mdQ > 0 && mdQ > htmlQ;
+// A missing markdown page answers in markdown, not with the 50 KB HTML 404
+// page under a text/markdown header, and is never cached: the page may
+// appear with the next deploy.
+const NOT_FOUND_MARKDOWN = `# Страница не найдена
+
+Такой страницы в документации Пачки нет. Начните с указателя:
+
+- [Указатель документации](https://dev.pachca.com/llms.txt)
+- [Методы API](https://dev.pachca.com/api/llms.txt)
+- [Руководства](https://dev.pachca.com/guides/llms.txt)
+- [Обновления](https://dev.pachca.com/updates/llms.txt)
+`;
+
+function markdownNotFound(): NextResponse {
+  return new NextResponse(NOT_FOUND_MARKDOWN, {
+    status: 404,
+    headers: {
+      'Content-Type': 'text/markdown; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'X-Robots-Tag': 'noindex',
+      'Access-Control-Allow-Origin': '*',
+      Vary: 'Accept, User-Agent',
+    },
+  });
 }
 
 // Live-fetch agent UAs — bots that fetch a page in real-time in response to a
@@ -77,20 +90,35 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect('https://pachca.com/help-center/integrations/albato', 301);
   }
 
-  const twin = markdownTwin(pathname);
+  const readsBody = request.method === 'GET' || request.method === 'HEAD';
+
+  // A direct .md request: the static file from public/ with the next.config
+  // `*.md` headers, or a markdown 404. `/.md` is rewritten to /index.md in
+  // next.config, after the proxy.
+  if (pathname.endsWith('.md')) {
+    const file = pathname === '/.md' ? '/index.md' : pathname;
+    if (readsBody && !hasPublicFile(file)) return markdownNotFound();
+    return NextResponse.next();
+  }
+
+  const candidate = markdownTwin(pathname);
+  const twin = candidate && hasPublicFile(candidate) ? candidate : null;
 
   // Markdown content negotiation (2026 "agent-friendly pages" pattern): an
   // agent that prefers `text/markdown` over `text/html` gets the .md twin
   // at the same URL. Browsers send `text/html` with q=1 (or `*/*`) →
-  // unaffected. See `prefersMarkdown` for q-value handling.
+  // unaffected. See lib/accept-markdown.ts for q-value handling.
   // Also honored: known live-fetch agent UAs (ChatGPT-User, Claude-User,
   // Perplexity-User, etc.) get the MD twin automatically, since the vendor
   // documents these UAs as live-fetch (vs their indexing crawler counterparts
   // like ClaudeBot/GPTBot, which need full HTML for SEO).
-  if (request.method === 'GET' && twin) {
-    const accept = request.headers.get('accept') ?? '';
+  // Every page has a twin, so a path that would have one but does not is a
+  // missing page: such an agent gets the markdown 404.
+  if (readsBody && candidate) {
+    const accept = request.headers.get('accept');
     const ua = request.headers.get('user-agent');
     if (prefersMarkdown(accept) || isLiveFetchAgent(ua)) {
+      if (!twin) return markdownNotFound();
       const url = request.nextUrl.clone();
       url.pathname = twin;
       const rewrite = NextResponse.rewrite(url);
@@ -117,16 +145,15 @@ export function proxy(request: NextRequest) {
   // that fetches any page (e.g. arriving from a web search and reading only
   // the response headers) discovers the documentation index without
   // inspecting the body. Mirrors the Mintlify/Stripe default: the per-page
-  // .md twin, the llms.txt / llms-full.txt index (rel="llms-txt" +
-  // X-Llms-Txt), the skills index (rel="service-meta") and the RFC 9727
-  // API catalog (rel="api-catalog", linkset+json — same payload as the
-  // well-known URI, advertised here so agents that only read headers also
-  // see it).
-  const mdUrl = pathname === '/' ? '/index.md' : `${pathname}.md`;
+  // .md twin (only when it exists), the llms.txt / llms-full.txt index
+  // (rel="llms-txt" + X-Llms-Txt), the skills index (rel="service-meta") and
+  // the RFC 9727 API catalog (rel="api-catalog", linkset+json — same payload
+  // as the well-known URI, advertised here so agents that only read headers
+  // also see it).
   response.headers.set(
     'Link',
     [
-      `<${mdUrl}>; rel="alternate"; type="text/markdown"`,
+      ...(twin ? [`<${twin}>; rel="alternate"; type="text/markdown"`] : []),
       '</llms.txt>; rel="llms-txt"; type="text/plain"',
       '</llms-full.txt>; rel="llms-full-txt"; type="text/plain"',
       '</.well-known/agent-skills/index.json>; rel="service-meta"; type="application/json"',
@@ -134,6 +161,9 @@ export function proxy(request: NextRequest) {
     ].join(', ')
   );
   response.headers.set('X-Llms-Txt', '/llms.txt');
+  // Next 16 replaces Vary on App Router pages with its own list, so this
+  // reaches only other responses. `Vary: Accept` on HTML pages has to come
+  // from the web server in front of the site.
   response.headers.set('Vary', 'Accept');
   // CDN-fronted SSG pages often default to a year-long `s-maxage`, which
   // afdocs flags as «aggressive» and which delays content updates reaching
@@ -145,15 +175,17 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // All pages except static files, the docs site's own route handlers
-    // (under /internal/: search + OG image), .well-known discovery files,
-    // .md/feeds, and the skill ZIPs under /skills/. .well-known/* is excluded so each file's Content-Type /
-    // Cache-Control from next.config wins (no middleware override of headers on
-    // RFC 9727 api-catalog, skills/agent-skills indexes etc.).
+    // All pages and .md files except static assets, the docs site's own route
+    // handlers (under /internal/: search + OG image), .well-known discovery
+    // files, feeds, and the skill ZIPs under /skills/. .well-known/* is
+    // excluded so each file's Content-Type / Cache-Control from next.config
+    // wins (no middleware override of headers on RFC 9727 api-catalog,
+    // skills/agent-skills indexes etc.). .md files pass through so a missing
+    // one gets the markdown 404.
     // `/internal/*` are the site's own machinery (NOT Pachca API docs), so they
     // stay out of /api/ — that keeps /api/ a clean documentation namespace and
     // removes the prefix-collision that used to drop /api/search/<method> doc
     // pages from middleware, the sitemap, and robots.
-    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|internal/|.*\\.(?:ico|svg|png|jpg|webp|md|txt|yaml|json|zip)).*)',
+    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|internal/|.*\\.(?:ico|svg|png|jpg|webp|txt|yaml|json|zip)).*)',
   ],
 };

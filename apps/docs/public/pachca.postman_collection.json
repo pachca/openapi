@@ -575,6 +575,91 @@
       ]
     },
     {
+      "name": "Company",
+      "item": [
+        {
+          "name": "Информация о пространстве",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "company"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Редактирование пространства",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/company",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "company"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Синий склад\",\n  \"show_personal_data\": false,\n  \"use_global_threads\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ссылка-приглашение",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company/invite_link",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "company",
+                "invite_link"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Перевыпуск ссылки-приглашения",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company/invite_link",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "company",
+                "invite_link"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Users",
       "item": [
         {

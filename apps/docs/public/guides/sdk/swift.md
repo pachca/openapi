@@ -97,6 +97,10 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.profile.updateStatus()` | [Новый свой статус](/api/profile/update-status) |
 | `client.profile.deleteProfileAvatar()` | [Удаление своего аватара](/api/profile/delete-avatar) |
 | `client.profile.deleteStatus()` | [Удаление своего статуса](/api/profile/delete-status) |
+| `client.company.reissueInviteLink()` | [Перевыпуск ссылки-приглашения](/api/company/reissue-invite-link) |
+| `client.company.getCompany()` | [Информация о пространстве](/api/company/get) |
+| `client.company.getInviteLink()` | [Ссылка-приглашение](/api/company/get-invite-link) |
+| `client.company.updateCompany()` | [Редактирование пространства](/api/company/update) |
 | `client.users.createUser()` | [Новый сотрудник](/api/users/create) |
 | `client.users.listUsers()` | [Список сотрудников](/api/users/list) |
 | `client.users.getUser()` | [Информация о сотруднике](/api/users/get) |

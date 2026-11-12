@@ -75,7 +75,10 @@ so build it self-contained:
 - fonts and video do not load even when embedded, so use system fonts;
 - forms are cut out, together with `link`, `base`, `meta` and `area` tags;
 - only `https` links (open in a new tab) and anchor links stay links; `http`,
-  `mailto` and relative paths stop being links.
+  `mailto` and relative paths stop being links;
+- in the web and desktop apps the `html` tag gets the Pachca theme in
+  `data-pachca-theme` (`dark` or `light`): style the dark variant with
+  `html[data-pachca-theme="dark"]`.
 
 If something was cut out, the view shows a note that the preview may differ
 from the original.

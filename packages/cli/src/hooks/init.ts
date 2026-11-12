@@ -64,7 +64,11 @@ const hook: Hook<'init'> = async function (opts) {
     const versionFile = path.join(cacheDir, 'version');
     const currentVersion = opts.config.version;
 
-    process.on('exit', () => {
+    process.on('exit', (code) => {
+      // `currentVersion` is the version this process started as, so after a
+      // finished `pachca upgrade` the banner would offer the version just installed.
+      // A failed upgrade exits non-zero and keeps the banner.
+      if (commandId === 'upgrade' && code === 0) return;
       try {
         if (fs.existsSync(versionFile)) {
           const cached = JSON.parse(fs.readFileSync(versionFile, 'utf-8'));

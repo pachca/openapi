@@ -105,16 +105,19 @@ Check this setting with the workspace admin before building anything for regular
    (`pachca bots list-scopes`) lists exactly those. Saving the set refuses bot management
    (`bots:read`, `bots:write`), drafts (`drafts:read`, `drafts:write`) and every owner- or
    admin-only scope: `users:create`, `users:update`, `users:delete`, `user_status:write`,
-   `user_avatar:write`, `group_tags:write`, `chat_exports:read`, `chat_exports:write`,
-   `audit_events:read`, `company_chats:read`, `company_bots:read`. This holds even if only the
-   owner will ever authorize the bot. So an OAuth bot cannot read or write drafts, manage bots,
-   invite, edit, suspend or delete employees, manage tags, change someone else's status or
-   avatar, export messages, read the audit log or list all chats and bots of the workspace. For
-   those tasks a person uses their own personal token or CLI login:
+   `user_avatar:write`, `group_tags:write`, `company:write`, `invite_links:write`,
+   `chat_exports:read`, `chat_exports:write`, `audit_events:read`, `company_chats:read`,
+   `company_bots:read`. This holds even if only the owner will ever authorize the bot. So an
+   OAuth bot cannot read or write drafts, manage bots, invite, edit, suspend or delete
+   employees, manage tags, change someone else's status or avatar, rename the workspace or
+   change its settings, get the invite link, export messages, read the audit log or list all
+   chats and bots of the workspace. For those tasks a person uses their own personal token or
+   CLI login:
    - Drafts: the employee themselves (→ `pachca-messaging`).
    - Bot management: the bot's creator, or an admin if the bot settings allow it
      (→ `pachca-bots`).
-   - Employees, tags, someone else's status or avatar: the owner or an admin (→ `pachca-admin`).
+   - Employees, tags, someone else's status or avatar, workspace settings, the invite link: the
+     owner or an admin (→ `pachca-admin`).
    - Audit log, message exports, workspace-wide lists of chats and bots: the owner only, on the
      **Корпорация** plan (→ `pachca-admin`).
 4. Use PKCE with `S256` always: required for a public client, recommended for a confidential one.

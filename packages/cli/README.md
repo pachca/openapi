@@ -122,6 +122,15 @@ pachca auth switch bot-notify
 | `pachca members remove` | Исключение участника |
 | `pachca members update` | Редактирование роли участника |
 
+### company
+
+| Команда | Описание |
+|---------|---------|
+| `pachca company get` | Информация о пространстве |
+| `pachca company update` | Редактирование пространства |
+| `pachca company get-invite-link` | Ссылка-приглашение |
+| `pachca company reissue-invite-link` | Перевыпуск ссылки-приглашения |
+
 ### custom-properties
 
 | Команда | Описание |

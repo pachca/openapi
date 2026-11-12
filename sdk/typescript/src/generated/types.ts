@@ -327,6 +327,18 @@ export enum ChatSubtype {
 }
 
 /**
+ * Кто может пользоваться возможностью в пространстве
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum CompanyManagementAccess {
+  /** Все сотрудники */
+  All = "all",
+  /** Только администраторы */
+  Admins = "admins",
+}
+
+/**
  * Тип данных дополнительного поля
  *
  * A response may carry a value this SDK does not list yet: it arrives as the raw string.
@@ -507,7 +519,7 @@ export enum OAuthScope {
   ChatsCreate = "chats:create",
   /** Изменение настроек чата */
   ChatsUpdate = "chats:update",
-  /** Отметка чатов непрочитанными */
+  /** Отметка собственных чатов непрочитанными */
   ChatsMarkUnread = "chats:mark_unread",
   /** Архивация и разархивация чатов */
   ChatsArchive = "chats:archive",
@@ -577,19 +589,25 @@ export enum OAuthScope {
   UserAvatarWrite = "user_avatar:write",
   /** Просмотр дополнительных полей */
   CustomPropertiesRead = "custom_properties:read",
+  /** Просмотр информации о пространстве и его настроек */
+  CompanyRead = "company:read",
+  /** Изменение названия пространства и основных настроек */
+  CompanyWrite = "company:write",
+  /** Получение и перевыпуск ссылки-приглашения в пространство */
+  InviteLinksWrite = "invite_links:write",
   /** Просмотр журнала аудита */
   AuditEventsRead = "audit_events:read",
   /** Просмотр списка всех чатов пространства */
   CompanyChatsRead = "company_chats:read",
   /** Просмотр списка всех ботов пространства */
   CompanyBotsRead = "company_bots:read",
-  /** Просмотр задач */
+  /** Просмотр напоминаний */
   TasksRead = "tasks:read",
-  /** Создание задач */
+  /** Создание напоминаний */
   TasksCreate = "tasks:create",
-  /** Изменение задачи */
+  /** Изменение напоминания */
   TasksUpdate = "tasks:update",
-  /** Удаление задачи */
+  /** Удаление напоминания */
   TasksDelete = "tasks:delete",
   /** Скачивание файлов */
   FilesRead = "files:read",
@@ -601,11 +619,11 @@ export enum OAuthScope {
   WebhooksEventsRead = "webhooks:events:read",
   /** Удаление записи в логе вебхука */
   WebhooksEventsDelete = "webhooks:events:delete",
-  /** Поиск сотрудников */
+  /** Поиск по сотрудникам */
   SearchUsers = "search:users",
-  /** Поиск чатов */
+  /** Поиск по чатам */
   SearchChats = "search:chats",
-  /** Поиск сообщений */
+  /** Поиск по сообщениям */
   SearchMessages = "search:messages",
   /** Просмотр черновиков и отложенных сообщений */
   DraftsRead = "drafts:read",
@@ -1580,6 +1598,18 @@ export interface ChatUpdateRequest {
   };
 }
 
+export interface Company {
+  id: number;
+  name: string;
+  ownerId: number;
+  showPersonalData: boolean;
+  useGlobalThreads: boolean;
+  integrationsManagement: CompanyManagementAccess;
+  apiManagement: CompanyManagementAccess;
+  plan: string;
+  exportPersonalChats?: boolean;
+}
+
 export interface CompanyBotResponse {
   id: number;
   oauthClient: BotOAuthClient | null;
@@ -1611,6 +1641,12 @@ export interface CompanyMemberWebhookPayload {
   userIds: number[];
   createdAt: string;
   webhookTimestamp: number;
+}
+
+export interface CompanyUpdateRequest {
+  name?: string;
+  showPersonalData?: boolean;
+  useGlobalThreads?: boolean;
 }
 
 export interface CustomProperty {
@@ -1761,6 +1797,11 @@ export interface GroupTagRequest {
 
 export interface ImportantMessageRequest {
   messageId: number;
+}
+
+export interface InviteLink {
+  url: string;
+  expiresAt: string;
 }
 
 export interface LinkPreview {

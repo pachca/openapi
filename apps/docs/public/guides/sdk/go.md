@@ -98,6 +98,10 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Profile.UpdateStatus()` | [Новый свой статус](/api/profile/update-status) |
 | `client.Profile.DeleteProfileAvatar()` | [Удаление своего аватара](/api/profile/delete-avatar) |
 | `client.Profile.DeleteStatus()` | [Удаление своего статуса](/api/profile/delete-status) |
+| `client.Company.ReissueInviteLink()` | [Перевыпуск ссылки-приглашения](/api/company/reissue-invite-link) |
+| `client.Company.GetCompany()` | [Информация о пространстве](/api/company/get) |
+| `client.Company.GetInviteLink()` | [Ссылка-приглашение](/api/company/get-invite-link) |
+| `client.Company.UpdateCompany()` | [Редактирование пространства](/api/company/update) |
 | `client.Users.CreateUser()` | [Новый сотрудник](/api/users/create) |
 | `client.Users.ListUsers()` | [Список сотрудников](/api/users/list) |
 | `client.Users.GetUser()` | [Информация о сотруднике](/api/users/get) |

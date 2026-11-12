@@ -139,7 +139,7 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 - [Ответ на отправку формы](/api/views/submit-response) возвращает `{"success": true}`
 - [Обмен кода на токен](/api/oauth/exchange-token) возвращает поля токена на верхнем уровне, как принято в OAuth 2.0, а [Отзыв токена](/api/oauth/revoke-token) — пустой объект
 - [Скачивание файла](/api/files/get) отдаёт сам файл, а [Скачать архив экспорта](/api/chats/download-export) отвечает `302` со ссылкой на архив
-- [Открытие представления](/api/views/open) отвечает `201` без тела
+- [Открытие представления](/api/views/open) отвечает `201` с `{"success": true}`
 
 ### Пустой ответ
 

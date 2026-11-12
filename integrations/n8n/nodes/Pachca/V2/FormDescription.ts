@@ -75,7 +75,7 @@ export const formFields: INodeProperties[] = [
 				name: 'callbackId',
 				type: 'string',
 				default: "",
-				description: 'Optional identifier for recognizing this view, which will be sent to your application when the user submits the form. Use this field, for example, to determine which form the user was supposed to fill out.',
+				description: 'Optional view identifier that will come to your application when the employee submits the filled-in form. It tells, for example, which form the employee was filling in. A value that is too long is rejected with `422` and the `invalid` code under the `callback_id` key.',
 				placeholder: 'timeoff_request_form',
 			},
 			{
@@ -91,7 +91,7 @@ export const formFields: INodeProperties[] = [
 				name: 'privateMetadata',
 				type: 'string',
 				default: "",
-				description: 'Optional string that will be sent to your application when the user submits the form. Use this field, for example, to pass additional information in `JSON` format along with the form data.',
+				description: 'Optional string that will come to your application when the employee submits the filled-in form. It can carry, for example, additional data for the form in `JSON` format. A value that is too long is rejected with `422` and the `invalid` code under the `private_metadata` key.',
 				placeholder: '{"timeoff_id":4378}',
 			},
 			{

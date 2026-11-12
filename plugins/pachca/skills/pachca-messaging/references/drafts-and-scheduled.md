@@ -79,5 +79,7 @@ Rules:
 
 - Unless the user gave the exact text, the chat, the first send time and the repetition, show them (the time in the user's time zone) and wait for a yes before creating it. Nobody reviews the message before it goes.
 - The schedule can be changed but not removed: `schedule: null` on a scheduled message returns `422 draft_type_change_forbidden`. To cancel the send, delete it (`pachca_delete_draft`). Deletion is final, and attachments go with it.
+- If the author can no longer write to the chat (removed from it, made a subscriber in a channel), the message is not sent: Pachca turns it into an ordinary draft with no chat, text and files kept, and `entity_type`, `entity_id` and `chat_id` come as `null`. On removal this happens at once, otherwise when the message is due.
+- Nothing is sent into an archived chat either: a one-off scheduled message is deleted, and a recurring one waits for its next time.
 
 Source pages: <https://dev.pachca.com/guides/ai-agents/drafts.md>, <https://dev.pachca.com/api/drafts/create.md>, <https://dev.pachca.com/api/drafts/update.md>, <https://dev.pachca.com/api/drafts/list.md>

@@ -1481,6 +1481,103 @@ public sealed class MembersServiceImpl : MembersService
     }
 }
 
+public class CompanyService
+{
+
+    public virtual async System.Threading.Tasks.Task<Company> GetCompanyAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Company.getCompany is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<InviteLink> GetInviteLinkAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Company.getInviteLink is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<InviteLink> ReissueInviteLinkAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Company.reissueInviteLink is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Company> UpdateCompanyAsync(CompanyUpdateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Company.updateCompany is not implemented");
+    }
+}
+
+public sealed class CompanyServiceImpl : CompanyService
+{
+    private readonly string _baseUrl;
+    private readonly HttpClient _client;
+
+    internal CompanyServiceImpl(string baseUrl, HttpClient client)
+    {
+        _baseUrl = baseUrl;
+        _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task<Company> GetCompanyAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/company";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<CompanyDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<InviteLink> GetInviteLinkAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/company/invite_link";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<InviteLinkDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<InviteLink> ReissueInviteLinkAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/company/invite_link";
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<InviteLinkDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<Company> UpdateCompanyAsync(CompanyUpdateRequest request, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/company";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<CompanyDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+}
+
 public class CustomPropertiesService
 {
 
@@ -4033,6 +4130,7 @@ public sealed class PachcaClient : IDisposable
     public BotsService Bots { get; }
     public ChatsService Chats { get; }
     public CommonService Common { get; }
+    public CompanyService Company { get; }
     public CustomPropertiesService CustomProperties { get; }
     public DraftsService Drafts { get; }
     public FilesService Files { get; }
@@ -4052,11 +4150,12 @@ public sealed class PachcaClient : IDisposable
     public UsersService Users { get; }
     public ViewsService Views { get; }
 
-    private PachcaClient(BotsService bots, ChatsService chats, CommonService common, CustomPropertiesService customProperties, DraftsService drafts, FilesService files, GroupTagsService groupTags, ImportantMessagesService importantMessages, LinkPreviewsService linkPreviews, MembersService members, MessagesService messages, OAuthService oauth, ProfileService profile, ReactionsService reactions, ReadMembersService readMembers, SearchService search, SecurityService security, TasksService tasks, ThreadsService threads, UsersService users, ViewsService views)
+    private PachcaClient(BotsService bots, ChatsService chats, CommonService common, CompanyService company, CustomPropertiesService customProperties, DraftsService drafts, FilesService files, GroupTagsService groupTags, ImportantMessagesService importantMessages, LinkPreviewsService linkPreviews, MembersService members, MessagesService messages, OAuthService oauth, ProfileService profile, ReactionsService reactions, ReadMembersService readMembers, SearchService search, SecurityService security, TasksService tasks, ThreadsService threads, UsersService users, ViewsService views)
     {
         Bots = bots;
         Chats = chats;
         Common = common;
+        Company = company;
         CustomProperties = customProperties;
         Drafts = drafts;
         Files = files;
@@ -4077,7 +4176,7 @@ public sealed class PachcaClient : IDisposable
         Views = views;
     }
 
-    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CompanyService? company = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
         var handler = new SocketsHttpHandler
         {
@@ -4090,6 +4189,7 @@ public sealed class PachcaClient : IDisposable
         Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
         Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
         Common = common ?? new CommonServiceImpl(baseUrl, _client);
+        Company = company ?? new CompanyServiceImpl(baseUrl, _client);
         CustomProperties = customProperties ?? new CustomPropertiesServiceImpl(baseUrl, _client);
         Drafts = drafts ?? new DraftsServiceImpl(baseUrl, _client);
         Files = files ?? new FilesServiceImpl(baseUrl, _client);
@@ -4110,13 +4210,14 @@ public sealed class PachcaClient : IDisposable
         Views = views ?? new ViewsServiceImpl(baseUrl, _client);
     }
 
-    public PachcaClient(string baseUrl, HttpClient client, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public PachcaClient(string baseUrl, HttpClient client, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CompanyService? company = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
         _client = client;
 
         Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
         Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
         Common = common ?? new CommonServiceImpl(baseUrl, _client);
+        Company = company ?? new CompanyServiceImpl(baseUrl, _client);
         CustomProperties = customProperties ?? new CustomPropertiesServiceImpl(baseUrl, _client);
         Drafts = drafts ?? new DraftsServiceImpl(baseUrl, _client);
         Files = files ?? new FilesServiceImpl(baseUrl, _client);
@@ -4137,9 +4238,9 @@ public sealed class PachcaClient : IDisposable
         Views = views ?? new ViewsServiceImpl(baseUrl, _client);
     }
 
-    public static PachcaClient Stub(BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public static PachcaClient Stub(BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CompanyService? company = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
-        return new PachcaClient(bots ?? new BotsService(), chats ?? new ChatsService(), common ?? new CommonService(), customProperties ?? new CustomPropertiesService(), drafts ?? new DraftsService(), files ?? new FilesService(), groupTags ?? new GroupTagsService(), importantMessages ?? new ImportantMessagesService(), linkPreviews ?? new LinkPreviewsService(), members ?? new MembersService(), messages ?? new MessagesService(), oauth ?? new OAuthService(), profile ?? new ProfileService(), reactions ?? new ReactionsService(), readMembers ?? new ReadMembersService(), search ?? new SearchService(), security ?? new SecurityService(), tasks ?? new TasksService(), threads ?? new ThreadsService(), users ?? new UsersService(), views ?? new ViewsService());
+        return new PachcaClient(bots ?? new BotsService(), chats ?? new ChatsService(), common ?? new CommonService(), company ?? new CompanyService(), customProperties ?? new CustomPropertiesService(), drafts ?? new DraftsService(), files ?? new FilesService(), groupTags ?? new GroupTagsService(), importantMessages ?? new ImportantMessagesService(), linkPreviews ?? new LinkPreviewsService(), members ?? new MembersService(), messages ?? new MessagesService(), oauth ?? new OAuthService(), profile ?? new ProfileService(), reactions ?? new ReactionsService(), readMembers ?? new ReadMembersService(), search ?? new SearchService(), security ?? new SecurityService(), tasks ?? new TasksService(), threads ?? new ThreadsService(), users ?? new UsersService(), views ?? new ViewsService());
     }
 
     public void Dispose()

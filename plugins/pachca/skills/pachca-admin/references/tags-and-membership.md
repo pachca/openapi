@@ -115,7 +115,12 @@ Bots in the list carry `bot: true`.
   Not for yourself, not for the Creator, and setting the same role again is an
   error (`already_assigned`), not a no-op.
 - **Remove** (`pachca_remove_member`, CLI `pachca members remove`): chat Creator
-  or Admin. The Creator cannot be removed.
+  or Admin. In a thread, any member of the thread or its parent chat, a bot
+  included, but a multi-guest only as Creator or Admin of the parent chat or as
+  owner of a standalone thread. The Creator, and in a thread a member with the
+  role `owner`, cannot be removed; any other role in a thread can. Your own id
+  takes you out of a thread by the same rules: `pachca_leave_chat` refuses a
+  thread.
 - **Archived chat**: nobody manages members, the Creator included. Archiving
   removes guests (role `guest`; multi-guests stay) and unbinds tags;
   unarchiving restores neither.

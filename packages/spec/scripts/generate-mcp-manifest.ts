@@ -51,7 +51,8 @@
  *     or only a bot token, without a reason in `ACCESS_EXCEPTIONS`;
  *   - a write not marked destructive runs a destructive operation by way of an
  *     argument, without a reason in `DESTRUCTIVE_EFFECTS`; `ADDITIVE` names a
- *     read or gives no reason;
+ *     read or gives no reason; `READS_THAT_CHANGE` names a write or gives no
+ *     reason;
  *   - an exception, an effect or a hand table names an operation the spec no
  *     longer has, excuses nothing, or gives no reason; a name override or a
  *     service tool points at a chain step; a chain step points at an operation
@@ -127,13 +128,16 @@
  *     in words is written (`MOMENT_ARGUMENT`) or carries it twice; a top-level
  *     text argument named `query` lacks the note that a search takes the words
  *     of the request (`QUERY_ARGUMENT`) or carries it twice, or any other
- *     argument or tool carries it; a tool whose answer reaches a field
- *     `TRUSTED_TEXT` marks secret lacks `SECRET_NOTE`, a tool whose answer
- *     reaches none carries it, a field so marked is in no answer of a tool, or a
- *     field of free text named as a token or a secret is marked neither secret
- *     nor masked; an operation that reaches a field `SECRET_ONLY_IN` sorts is
- *     listed neither under whole nor under masked, or under both, a list names
- *     an operation that does not reach the field, or is empty;
+ *     argument or tool carries it; an argument `NAME_ARGUMENT` lists lacks the
+ *     note on a name written for employees, carries it twice or is not taken by
+ *     its tool, or any other argument or tool carries it; a tool whose answer
+ *     reaches a field `TRUSTED_TEXT` marks secret lacks `SECRET_NOTE`, a tool
+ *     whose answer reaches none carries it, a field so marked is in no answer of
+ *     a tool, or a field of free text named as a token or a secret is marked
+ *     neither secret nor masked; an operation that reaches a field
+ *     `SECRET_ONLY_IN` sorts is listed neither under whole nor under masked, or
+ *     under both, a list names an operation that does not reach the field, or
+ *     is empty;
  *   - a description still carries a sentence written for an HTTP client, or a
  *     pattern written to cut one cuts nothing any more;
  *   - prose is written for a tool or an argument that does not exist, says
@@ -191,6 +195,7 @@ import {
   FILE_SOURCES,
   NAME_OVERRIDES,
   NOT_TOOLS,
+  READS_THAT_CHANGE,
   REFUSALS,
   RESPONSE_FORMAT,
   SINGLE_READ_OMIT,
@@ -201,6 +206,7 @@ import {
   INSTRUCTION_PLACEHOLDERS,
   MOMENT_ARGUMENT,
   QUERY_ARGUMENT,
+  NAME_ARGUMENT,
   QUOTED_TERMS,
   SECRET_NOTE,
   STANDALONE_STEPS,
@@ -1537,6 +1543,18 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
     properties.query = { ...query, description: `${sentence(String(query.description ?? ''))} ${QUERY_ARGUMENT.description}`.trim() };
   }
 
+  // A name written for employees to read takes the language of the request and no
+  // prefix (`NAME_ARGUMENT`): the note goes after the spec's words of each
+  // argument listed for this operation, before prose, the same way.
+  for (const at of NAME_ARGUMENT.at[op.key] ?? []) {
+    const field = properties[at];
+    if (!field) {
+      problems.push(`${op.name}: NAME_ARGUMENT lists ${at}, which the tool does not take`);
+      continue;
+    }
+    properties[at] = { ...field, description: `${sentence(String(field.description ?? ''))} ${NAME_ARGUMENT.description}`.trim() };
+  }
+
   // Written argument text follows the spec's rather than replacing it: the spec
   // says what the field is, prose what to put there — the voice a message is
   // written in, the flag a day without an hour takes. Applied once every
@@ -1793,21 +1811,29 @@ function textPlaces(schema: JsonSchema | null | undefined): string[] {
 /**
  * What a client shows the person.
  *
- * A read is safe. A write is destructive unless `ADDITIVE` says why it only adds:
- * the protocol's own reading of the flag, and the safe default for a write
- * nobody has looked at yet. Repeating a read, a PUT or a DELETE changes nothing
- * more, so those are idempotent by method; a POST is not, whatever its
- * description says about a second call — the flag is optional, and false is the
- * cautious value. The world is open only where Pachca reaches outside the
- * workspace (`OPEN_WORLD`); everything else stays inside it, files included.
+ * A read is safe, unless `READS_THAT_CHANGE` says what it changes: then it is
+ * neither read-only nor harmless. A write is destructive unless `ADDITIVE` says
+ * why it only adds: the protocol's own reading of the flag, and the safe default
+ * for a write nobody has looked at yet. Repeating a read, a PUT or a DELETE
+ * changes nothing more, so those are idempotent by method; a POST is not,
+ * whatever its description says about a second call — the flag is optional, and
+ * false is the cautious value. The world is open only where Pachca reaches
+ * outside the workspace (`OPEN_WORLD`); everything else stays inside it, files
+ * included.
  */
 function annotations(op: Operation): Record<string, boolean> {
   return {
-    readOnlyHint: op.kind === 'read',
-    destructiveHint: op.kind === 'write' && !(op.key in ADDITIVE),
+    readOnlyHint: op.kind === 'read' && !(op.key in READS_THAT_CHANGE),
+    destructiveHint: isDestructive(op),
     idempotentHint: op.kind === 'read' || op.method === 'PUT' || op.method === 'DELETE',
     openWorldHint: op.key in OPEN_WORLD,
   };
+}
+
+/** A write that does not only add, or a read that changes something (`READS_THAT_CHANGE`). */
+function isDestructive(op: Operation | undefined): boolean {
+  if (!op) return false;
+  return op.kind === 'write' ? !(op.key in ADDITIVE) : op.key in READS_THAT_CHANGE;
 }
 
 /** Roughly how many tokens a text costs: the ratio measured on the manifest's English. */
@@ -2520,6 +2546,11 @@ function build(): void {
     if (byKey.get(k)?.kind === 'read') problems.push(`ADDITIVE names ${k}, which is a read`);
     if (!ADDITIVE[k]!.trim()) problems.push(`ADDITIVE names ${k} without saying why it only adds`);
   }
+  for (const k of Object.keys(READS_THAT_CHANGE)) {
+    stale('READS_THAT_CHANGE', k);
+    if (byKey.get(k)?.kind === 'write') problems.push(`READS_THAT_CHANGE names ${k}, which is a write`);
+    if (!READS_THAT_CHANGE[k]!.trim()) problems.push(`READS_THAT_CHANGE names ${k} without saying what it changes`);
+  }
   for (const k of Object.keys(UPLOAD_LIFTS)) stale('UPLOAD_LIFTS', k);
   for (const k of Object.keys(UPLOAD_UNAVAILABLE)) stale('UPLOAD_UNAVAILABLE', k);
   stale('DRAFT_CLEANUP.host', DRAFT_CLEANUP.host);
@@ -2664,11 +2695,10 @@ function build(): void {
   // A write that is not marked destructive must not run a destructive operation
   // by way of an argument either, unless `DESTRUCTIVE_EFFECTS` says why: the flag
   // a client groups by speaks for the tool's own operation only.
-  const destructive = (op: Operation | undefined): boolean => op?.kind === 'write' && !(op.key in ADDITIVE);
   const effectUsed = new Set<number>();
   for (const tool of tools) {
     for (const [name, place] of Object.entries(tool.request.arguments)) {
-      if (place.effect?.kind !== 'after' || tool.annotations.destructiveHint || !destructive(byKey.get(place.effect.operation))) continue;
+      if (place.effect?.kind !== 'after' || tool.annotations.destructiveHint || !isDestructive(byKey.get(place.effect.operation))) continue;
       const i = DESTRUCTIVE_EFFECTS.findIndex((e) => e.host === tool.operation && e.argument === name);
       if (i < 0) {
         problems.push(`${tool.name} runs ${place.effect.operation}, a destructive operation, for ${name} — say why in DESTRUCTIVE_EFFECTS or mark the tool`);
@@ -3310,6 +3340,26 @@ function build(): void {
   for (const service of SERVICE_TOOLS) {
     if (occurrences(JSON.stringify(service), QUERY_ARGUMENT.description)) problems.push(`service tool ${service.name} carries QUERY_ARGUMENT, which only the search phrase of an API tool takes`);
   }
+  for (const key of Object.keys(NAME_ARGUMENT.at)) {
+    if (!tools.some((tool) => tool.operation === key)) problems.push(`NAME_ARGUMENT lists ${key}, which no tool runs`);
+  }
+  for (const tool of tools) {
+    if (occurrences(tool.description, NAME_ARGUMENT.description)) problems.push(`${tool.name} carries NAME_ARGUMENT in its description rather than on an argument`);
+    const listed = new Set(NAME_ARGUMENT.at[tool.operation] ?? []);
+    const walk = (node: JsonSchema | undefined, at: string): void => {
+      if (!node || typeof node !== 'object') return;
+      const notes = occurrences(node.description, NAME_ARGUMENT.description);
+      if (listed.has(at) && notes !== 1) problems.push(`${tool.name}: ${at} carries NAME_ARGUMENT ${notes} times rather than once`);
+      if (!listed.has(at) && notes) problems.push(`${tool.name}: ${at} carries NAME_ARGUMENT and NAME_ARGUMENT does not list it`);
+      for (const [name, child] of Object.entries(node.properties ?? {})) walk(child, at ? `${at}.${name}` : name);
+      if (node.items) walk(node.items, `${at}[]`);
+      if (node.additionalProperties && typeof node.additionalProperties === 'object') walk(node.additionalProperties, `${at}{}`);
+    };
+    for (const [name, child] of Object.entries(tool.inputSchema.properties ?? {})) walk(child, name);
+  }
+  for (const service of SERVICE_TOOLS) {
+    if (occurrences(JSON.stringify(service), NAME_ARGUMENT.description)) problems.push(`service tool ${service.name} carries NAME_ARGUMENT, which only the names it lists take`);
+  }
 
   // ── Pages ────────────────────────────────────────────────────────────────
   // A cursor comes from the answer before, and the model keeps an answer small
@@ -3889,6 +3939,7 @@ function build(): void {
     { who: 'the server instructions quote', lines: [SERVER_INSTRUCTIONS] },
     { who: 'MOMENT_ARGUMENT quotes', lines: [MOMENT_ARGUMENT.description] },
     { who: 'QUERY_ARGUMENT quotes', lines: [QUERY_ARGUMENT.description] },
+    { who: 'NAME_ARGUMENT quotes', lines: [NAME_ARGUMENT.description] },
     { who: 'SECRET_NOTE quotes', lines: [SECRET_NOTE] },
     { who: 'DRAFT_ARGUMENT quotes', lines: [DRAFT_ARGUMENT.description] },
     { who: 'VIEW_ARGUMENT quotes', lines: Object.values(VIEW_ARGUMENT.description) },

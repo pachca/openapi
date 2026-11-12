@@ -177,11 +177,11 @@ Over MCP the server's instructions already say whom you act as, in a line like
 token, the workspace role, where the owner reads `owner`. Every tool result ends with a footer repeating the
 name, id and token kind. Do not call a tool only to learn who you are, and do not ask whether the user is the
 owner. The plan is not in that line: a listed `pachca_list_company_chats` or `pachca_get_audit_events` means
-the owner on «Корпорация». If the line did not reach you (some clients drop server instructions) or the role
+the owner on «Корпорация», and `pachca_get_company` (CLI `pachca company get`) names the plan in `plan`. If the line did not reach you (some clients drop server instructions) or the role
 may have changed, use step 1.
 
 1. Read your own profile: MCP `pachca_get_my_card`, CLI `pachca profile get`. You get the name, id and
-   workspace role (the owner shows as `admin` here). With a bot token it is the bot's own profile.
+   workspace role (the owner shows as `admin` here: compare the id with `owner_id` from `pachca_get_company`). With a bot token it is the bot's own profile.
 2. When the question is about scopes, read the token: MCP `pachca_get_token_info`, CLI `pachca auth status`.
    It checks the token the commands use, from `--token`, `PACHCA_TOKEN` or a profile, and shows the sign-in
    method. For a saved profile it lists the scopes saved at login: add `--remote` to ask the server. A CLI
@@ -228,7 +228,7 @@ and role changes: [references/access-model.md](https://dev.pachca.com/.well-know
 | `403` `role_forbidden`             | scope present, the role forbids the action                                                        | only an admin changing the role helps; reconnecting does not                                                                                                                                                                  |
 | `403` `access_denied`              | the token belongs to a guest, a suspended or a deleted employee                                   | use another account                                                                                                                                                                                                           |
 | other `403`                        | not a member of the chat, chat role too low, or a plan feature                                    | check membership and chat role first                                                                                                                                                                                          |
-| `402`                              | the workspace is suspended: the plan's message limit is used up                                   | tell the user; most methods refuse until it is paid                                                                                                                                                                           |
+| `402`                              | the workspace is suspended: the plan's message limit is used up                                   | tell the user; most methods refuse until it is paid, or at the latest until the next month starts (UTC)                                                                                                                       |
 | `404`                              | no such object, or one of another workspace; a chat of your workspace closed to you answers `403` | find the id with search or a list. If every id the user gave answers `404` and search finds none of what they name, you are probably in another workspace (no response names it): say so rather than calling the objects gone |
 | `429`, "Wait N s before repeating" | rate limit                                                                                        | wait the given time, then retry                                                                                                                                                                                               |
 

@@ -66,6 +66,9 @@ from .models import (
     ChatMemberRoleFilter,
     AddMembersRequest,
     ChatMemberRole,
+    Company,
+    InviteLink,
+    CompanyUpdateRequest,
     ListPropertiesParams,
     ListPropertiesResponse,
     SearchEntityType,
@@ -1421,6 +1424,78 @@ class MembersServiceImpl(MembersService):
         match response.status_code:
             case 204:
                 return
+            case _:
+                raise _error_from_response(response)
+
+
+class CompanyService:
+    async def get_company(
+        self) -> Company:
+        raise NotImplementedError("Company.getCompany is not implemented")
+
+    async def get_invite_link(
+        self) -> InviteLink:
+        raise NotImplementedError("Company.getInviteLink is not implemented")
+
+    async def reissue_invite_link(
+        self) -> InviteLink:
+        raise NotImplementedError("Company.reissueInviteLink is not implemented")
+
+    async def update_company(
+        self,
+        request: CompanyUpdateRequest,
+    ) -> Company:
+        raise NotImplementedError("Company.updateCompany is not implemented")
+
+
+class CompanyServiceImpl(CompanyService):
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+
+    async def get_company(
+        self) -> Company:
+        response = await self._client.get(
+            "/company",
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(Company, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def get_invite_link(
+        self) -> InviteLink:
+        response = await self._client.get(
+            "/company/invite_link",
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(InviteLink, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def reissue_invite_link(
+        self) -> InviteLink:
+        response = await self._client.post(
+            "/company/invite_link",
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(InviteLink, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def update_company(
+        self,
+        request: CompanyUpdateRequest,
+    ) -> Company:
+        response = await self._client.put(
+            "/company",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(Company, response.json()["data"])
             case _:
                 raise _error_from_response(response)
 
@@ -3430,7 +3505,7 @@ PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, custom_properties: CustomPropertiesService | None = None, drafts: DraftsService | None = None, files: FilesService | None = None, group_tags: GroupTagsService | None = None, important_messages: ImportantMessagesService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, oauth: OAuthService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, company: CompanyService | None = None, custom_properties: CustomPropertiesService | None = None, drafts: DraftsService | None = None, files: FilesService | None = None, group_tags: GroupTagsService | None = None, important_messages: ImportantMessagesService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, oauth: OAuthService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
@@ -3439,6 +3514,7 @@ class PachcaClient:
         self.bots: BotsService = bots or BotsServiceImpl(self._client)
         self.chats: ChatsService = chats or ChatsServiceImpl(self._client)
         self.common: CommonService = common or CommonServiceImpl(self._client)
+        self.company: CompanyService = company or CompanyServiceImpl(self._client)
         self.custom_properties: CustomPropertiesService = custom_properties or CustomPropertiesServiceImpl(self._client)
         self.drafts: DraftsService = drafts or DraftsServiceImpl(self._client)
         self.files: FilesService = files or FilesServiceImpl(self._client)
@@ -3468,6 +3544,7 @@ class PachcaClient:
         bots: BotsService | None = None,
         chats: ChatsService | None = None,
         common: CommonService | None = None,
+        company: CompanyService | None = None,
         custom_properties: CustomPropertiesService | None = None,
         drafts: DraftsService | None = None,
         files: FilesService | None = None,
@@ -3492,6 +3569,7 @@ class PachcaClient:
         self.bots: BotsService = bots or BotsServiceImpl(client)
         self.chats: ChatsService = chats or ChatsServiceImpl(client)
         self.common: CommonService = common or CommonServiceImpl(client)
+        self.company: CompanyService = company or CompanyServiceImpl(client)
         self.custom_properties: CustomPropertiesService = custom_properties or CustomPropertiesServiceImpl(client)
         self.drafts: DraftsService = drafts or DraftsServiceImpl(client)
         self.files: FilesService = files or FilesServiceImpl(client)
@@ -3518,6 +3596,7 @@ class PachcaClient:
         bots: BotsService | None = None,
         chats: ChatsService | None = None,
         common: CommonService | None = None,
+        company: CompanyService | None = None,
         custom_properties: CustomPropertiesService | None = None,
         drafts: DraftsService | None = None,
         files: FilesService | None = None,
@@ -3542,6 +3621,7 @@ class PachcaClient:
         self.bots = bots or BotsService()
         self.chats = chats or ChatsService()
         self.common = common or CommonService()
+        self.company = company or CompanyService()
         self.custom_properties = custom_properties or CustomPropertiesService()
         self.drafts = drafts or DraftsService()
         self.files = files or FilesService()

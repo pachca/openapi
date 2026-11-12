@@ -7,23 +7,28 @@ const BASE_URL = 'https://dev.pachca.com';
 
 type Rule = { userAgent: string; allow?: string[]; disallow?: string[] };
 
+// RFC 9309 §2.2.1: a crawler obeys only the most specific group that names
+// it, so a named bot never reads the `*` group. Every allowing group carries
+// the same Disallow and Content-Signal lines.
+const ALLOW_DOCS = { allow: ['/'], disallow: ['/internal/search'] };
+
 const rules: Rule[] = [
-  { userAgent: 'GPTBot', allow: ['/'] },
-  { userAgent: 'OAI-SearchBot', allow: ['/'] },
-  { userAgent: 'ClaudeBot', allow: ['/'] },
-  { userAgent: 'Claude-SearchBot', allow: ['/'] },
-  { userAgent: 'PerplexityBot', allow: ['/'] },
-  { userAgent: 'Amazonbot', allow: ['/'] },
+  { userAgent: 'GPTBot', ...ALLOW_DOCS },
+  { userAgent: 'OAI-SearchBot', ...ALLOW_DOCS },
+  { userAgent: 'ClaudeBot', ...ALLOW_DOCS },
+  { userAgent: 'Claude-SearchBot', ...ALLOW_DOCS },
+  { userAgent: 'PerplexityBot', ...ALLOW_DOCS },
+  { userAgent: 'Amazonbot', ...ALLOW_DOCS },
   // Bulk training scraper, not citation-relevant — kept blocked.
   { userAgent: 'CCBot', disallow: ['/'] },
   // Allowed: enables Gemini / Google AI grounding & citation of these
   // docs; does NOT affect Google Search ranking.
-  { userAgent: 'Google-Extended', allow: ['/'] },
+  { userAgent: 'Google-Extended', ...ALLOW_DOCS },
   // `/internal/og` must stay crawlable: it is the og:image / twitter:image for
   // every page, and Twitterbot, Slackbot, LinkedInBot and facebookexternalhit
   // all honour robots.txt — disallowing it stripped the preview from every
   // shared dev.pachca.com link. Only the search endpoint is worth hiding.
-  { userAgent: '*', allow: ['/'], disallow: ['/internal/search'] },
+  { userAgent: '*', ...ALLOW_DOCS },
 ];
 
 // Cloudflare Content Signals Policy (2026): a machine-readable statement of
@@ -36,11 +41,12 @@ function serialize(): string {
     const lines = [`User-Agent: ${rule.userAgent}`];
     for (const path of rule.allow ?? []) lines.push(`Allow: ${path}`);
     for (const path of rule.disallow ?? []) lines.push(`Disallow: ${path}`);
-    // Attach the content signal to the catch-all group so it applies broadly.
-    if (rule.userAgent === '*') lines.push(`Content-Signal: ${CONTENT_SIGNAL}`);
+    // Every group that lets the bot in states the same intent.
+    if (rule.allow?.length) lines.push(`Content-Signal: ${CONTENT_SIGNAL}`);
     return lines.join('\n');
   });
-  blocks.push(`Host: ${BASE_URL}\nSitemap: ${BASE_URL}/sitemap.xml`);
+  // No `Host:` line: Yandex dropped the directive in 2018 and RFC 9309 has none.
+  blocks.push(`Sitemap: ${BASE_URL}/sitemap.xml`);
   return blocks.join('\n\n') + '\n';
 }
 

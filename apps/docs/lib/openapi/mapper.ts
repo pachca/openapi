@@ -35,6 +35,10 @@ const OPERATION_OVERRIDES: Record<string, string> = {
   'GET /bots/{id}/scopes': '/api/bots/list-scopes',
   'POST /bots/{id}/rotate_client_secret': '/api/bots/rotate-client-secret',
   'PUT /chats/{id}/unread': '/api/chats/mark-unread',
+  // Пространство: без пина PUT /company получил бы тот же слаг get, что и GET,
+  // а перевыпуск ссылки читался бы как create-invite-link, хотя прежняя ссылка перестаёт работать.
+  'PUT /company': '/api/company/update',
+  'POST /company/invite_link': '/api/company/reissue-invite-link',
 };
 
 export function generateUrlFromOperation(endpoint: Endpoint): string {

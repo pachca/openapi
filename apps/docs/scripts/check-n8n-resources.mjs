@@ -35,6 +35,7 @@ const GUIDE = path.join(__dirname, '..', 'content', 'guides', 'n8n', 'resources.
 const SECTION = {
   Bot: 'Bot',
   Chat: 'Chat',
+  Company: 'Workspace',
   CustomProperty: 'Custom Property',
   Draft: 'Draft',
   File: 'File',

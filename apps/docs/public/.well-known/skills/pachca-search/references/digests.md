@@ -70,6 +70,8 @@ message of a thread). Then:
 - **Voice**: the text is in `voice_content.transcript`; `null` means not
   transcribed yet or unavailable. Say a voice message was skipped rather
   than invent its content.
+- **Stickers**: a message with empty `content` and empty `files` is a
+  sticker, which the API does not show. Leave it out.
 - **Files**: the message carries each attachment's metadata (`files[].id`,
   `name`, `file_type`, `url`), not its contents. Do not summarize a file
   you have not opened. To read one, download it by `files[].id` with

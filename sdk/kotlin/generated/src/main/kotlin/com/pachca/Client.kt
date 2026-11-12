@@ -1085,6 +1085,64 @@ class MembersServiceImpl internal constructor(
     }
 }
 
+interface CompanyService {
+    suspend fun getCompany(): Company {
+        throw NotImplementedError("Company.getCompany is not implemented")
+    }
+
+    suspend fun getInviteLink(): InviteLink {
+        throw NotImplementedError("Company.getInviteLink is not implemented")
+    }
+
+    suspend fun reissueInviteLink(): InviteLink {
+        throw NotImplementedError("Company.reissueInviteLink is not implemented")
+    }
+
+    suspend fun updateCompany(request: CompanyUpdateRequest): Company {
+        throw NotImplementedError("Company.updateCompany is not implemented")
+    }
+}
+
+class CompanyServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : CompanyService {
+    override suspend fun getCompany(): Company {
+        val response = client.get("$baseUrl/company")
+        return when (response.status.value) {
+            200 -> response.body<CompanyDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun getInviteLink(): InviteLink {
+        val response = client.get("$baseUrl/company/invite_link")
+        return when (response.status.value) {
+            200 -> response.body<InviteLinkDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun reissueInviteLink(): InviteLink {
+        val response = client.post("$baseUrl/company/invite_link")
+        return when (response.status.value) {
+            200 -> response.body<InviteLinkDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun updateCompany(request: CompanyUpdateRequest): Company {
+        val response = client.put("$baseUrl/company") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            200 -> response.body<CompanyDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+}
+
 interface CustomPropertiesService {
     suspend fun listProperties(entityType: SearchEntityType): ListPropertiesResponse {
         throw NotImplementedError("Custom Properties.listProperties is not implemented")
@@ -2770,6 +2828,7 @@ class PachcaClient private constructor(
     val bots: BotsService,
     val chats: ChatsService,
     val common: CommonService,
+    val company: CompanyService,
     val customProperties: CustomPropertiesService,
     val drafts: DraftsService,
     val files: FilesService,
@@ -2801,6 +2860,7 @@ class PachcaClient private constructor(
             bots: BotsService? = null,
             chats: ChatsService? = null,
             common: CommonService? = null,
+            company: CompanyService? = null,
             customProperties: CustomPropertiesService? = null,
             drafts: DraftsService? = null,
             files: FilesService? = null,
@@ -2826,6 +2886,7 @@ class PachcaClient private constructor(
                 bots = bots ?: BotsServiceImpl(baseUrl, client),
                 chats = chats ?: ChatsServiceImpl(baseUrl, client),
                 common = common ?: CommonServiceImpl(baseUrl, client),
+                company = company ?: CompanyServiceImpl(baseUrl, client),
                 customProperties = customProperties ?: CustomPropertiesServiceImpl(baseUrl, client),
                 drafts = drafts ?: DraftsServiceImpl(baseUrl, client),
                 files = files ?: FilesServiceImpl(baseUrl, client),
@@ -2851,6 +2912,7 @@ class PachcaClient private constructor(
             bots: BotsService = object : BotsService {},
             chats: ChatsService = object : ChatsService {},
             common: CommonService = object : CommonService {},
+            company: CompanyService = object : CompanyService {},
             customProperties: CustomPropertiesService = object : CustomPropertiesService {},
             drafts: DraftsService = object : DraftsService {},
             files: FilesService = object : FilesService {},
@@ -2874,6 +2936,7 @@ class PachcaClient private constructor(
             bots = bots,
             chats = chats,
             common = common,
+            company = company,
             customProperties = customProperties,
             drafts = drafts,
             files = files,
@@ -2986,6 +3049,7 @@ class PachcaClient private constructor(
         bots: BotsService? = null,
         chats: ChatsService? = null,
         common: CommonService? = null,
+        company: CompanyService? = null,
         customProperties: CustomPropertiesService? = null,
         drafts: DraftsService? = null,
         files: FilesService? = null,
@@ -3009,6 +3073,7 @@ class PachcaClient private constructor(
         bots = bots ?: BotsServiceImpl(baseUrl, client),
         chats = chats ?: ChatsServiceImpl(baseUrl, client),
         common = common ?: CommonServiceImpl(baseUrl, client),
+        company = company ?: CompanyServiceImpl(baseUrl, client),
         customProperties = customProperties ?: CustomPropertiesServiceImpl(baseUrl, client),
         drafts = drafts ?: DraftsServiceImpl(baseUrl, client),
         files = files ?: FilesServiceImpl(baseUrl, client),

@@ -13,6 +13,7 @@ import { securityOperations, securityFields } from './SecurityDescription';
 import { botOperations, botFields } from './BotDescription';
 import { chatOperations, chatFields } from './ChatDescription';
 import { memberOperations, memberFields } from './MemberDescription';
+import { companyOperations, companyFields } from './CompanyDescription';
 import { customPropertyOperations, customPropertyFields } from './CustomPropertyDescription';
 import { fileOperations, fileFields } from './FileDescription';
 import { draftOperations, draftFields } from './DraftDescription';
@@ -67,6 +68,7 @@ export class PachcaV2 implements INodeType {
 					{ name: 'Security', value: 'security' },
 					{ name: 'Thread', value: 'thread' },
 					{ name: 'User', value: 'user' },
+					{ name: 'Workspace', value: 'company' },
 					],
 					default: 'message',
 				},
@@ -78,6 +80,8 @@ export class PachcaV2 implements INodeType {
 				...chatFields,
 				...memberOperations,
 				...memberFields,
+				...companyOperations,
+				...companyFields,
 				...customPropertyOperations,
 				...customPropertyFields,
 				...fileOperations,

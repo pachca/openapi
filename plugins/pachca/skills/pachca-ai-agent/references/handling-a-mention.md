@@ -22,7 +22,7 @@ deduplication → `pachca-bots`.
 | `chat_id`               | The chat the message lives in; for a thread, the thread's own chat — read history by it                                                                                                                                                                                                                                                                    |
 | `user_id`               | The author; equal to the bot's `id` means an own message. The event does not say whether the author is a bot                                                                                                                                                                                                                                               |
 | `source`, `application` | Set when a program wrote with the employee's token, under the employee's `user_id`: `application` (an MCP client, the Pachca CLI or a bot the employee authorized; the program in `application.id` and `application.name`) or `personal_token`. `null` when the employee wrote it in Pachca, a bot sent it with its own token or it went out on a schedule |
-| `content`               | The text as Markdown that Pachca builds from the message (can contain quotes and lists). Empty for a message with only a file: the event carries no attachments, buttons or forwarding details                                                                                                                                                             |
+| `content`               | The text as Markdown that Pachca builds from the message (can contain quotes and lists). Empty for a message with only a file and for a sticker: the event carries no attachments, buttons or forwarding details                                                                                                                                           |
 | `parent_message_id`     | Set when the employee replied to a message («Ответить»): the id of that message, always in the same chat or thread. `null` otherwise                                                                                                                                                                                                                       |
 | `thread`                | For a thread: `message_id` (the parent message) and `message_chat_id` (the parent chat)                                                                                                                                                                                                                                                                    |
 
@@ -74,7 +74,9 @@ on the **API** tab of the bot card.
 4. A forwarded message keeps the original text, but its mentions call nobody.
    The event does not say a message was forwarded: if it matters, fetch the
    message and skip it when `forwarding` is not `null`.
-5. Anything else in a conversation, channel or thread is employees talking to
+5. An empty `content` is a file-only message or a sticker. Fetch the message:
+   with empty `files` it is a sticker, which the API does not show. Skip it.
+6. Anything else in a conversation, channel or thread is employees talking to
    each other: stay quiet. A bot that answers every message gets in the way.
 
 An employee who adds the mention by editing a message does not call the agent.
@@ -87,7 +89,7 @@ Ask employees to mention the agent in a new message.
 
 Put the `agent-thinking` reaction on the message `id` right away
 (`pachca_add_reaction`, `pachca reactions add`) with `name` set to
-`agent-thinking` and any non-empty `code`. The employee sees a timer counting
+`agent-thinking` and any non-empty `code` of up to 16 characters. The employee sees a timer counting
 the seconds, up to 5 minutes. Needs `reactions:write`. A `404` here usually
 means the workspace has no such reaction: keep working without the indicator
 (SKILL.md, "Show that you are working").
@@ -164,7 +166,7 @@ on message_new(event):                   # runs in the background worker
   if event.user_id == BOT_ID: return
   if (is_bot(event.user_id) or event.source) and not (mentions_me(event) or is_command(event)): return   # users get → bot: true, cached per user_id; source: a program
   if not addressed(event): return        # DM, mention, command, reply to own message, continuation
-  react(event.id, code="⏳", name="agent-thinking")    # code: any non-empty value, name picks the reaction
+  react(event.id, code="⏳", name="agent-thinking")    # code: any non-empty value up to 16 characters, name picks the reaction
   history = recent_messages(chat_id=event.chat_id)    # newest first, pages of 50: page back, then reverse
   parent  = event.thread?.message_id ? get_message(event.thread.message_id) : none
   replied = event.parent_message_id ? get_message(event.parent_message_id) : none

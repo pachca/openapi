@@ -156,8 +156,8 @@ SKILL.md. Watching a thread and replying as new messages come is the
 
 Posting is pachca-messaging. One trap that starts here: an `@nickname` or a
 tag mentioned in a thread comment adds those people to the thread. With the
-workspace setting «Использовать сквозные треды» on (the default; the API
-does not show it), that reaches employees outside the parent chat, and
+workspace setting «Использовать сквозные треды» on (the default;
+`use_global_threads` in `pachca_get_company`), that reaches employees outside the parent chat, and
 `skip_invite_mentions: true` keeps every mentioned person out, members of
 the parent chat included. With it off, only members of the parent chat are
 added and the flag does not stop it. A guest's mention adds only people who

@@ -25,8 +25,9 @@
  *     a file both ways (`FILE_SOURCES`);
  *   - the fields of the API kept out of the tools for safety (`WITHHELD`);
  *   - which writes only add, so a client may treat them as harmless
- *     (`ADDITIVE`), and the argument that deletes inside a tool not marked so
- *     (`DESTRUCTIVE_EFFECTS`);
+ *     (`ADDITIVE`), the reads that change something all the same
+ *     (`READS_THAT_CHANGE`), and the argument that deletes inside a tool not
+ *     marked so (`DESTRUCTIVE_EFFECTS`);
  *   - the arguments the API has no field for — the draft a send replaces
  *     (`DRAFT_ARGUMENT`, `DRAFT_CLEANUP`) and the detail level of a list or of a
  *     read that keeps fields out (`VIEW_ARGUMENT`) — and the roles an argument
@@ -35,7 +36,9 @@
  *   - the notes the generator puts on what they are about, one text each: how
  *     a moment named in words is written, on every date-time argument
  *     (`MOMENT_ARGUMENT`), that a search takes the words of the request as they
- *     are, on every search phrase (`QUERY_ARGUMENT`), and where a secret an
+ *     are, on every search phrase (`QUERY_ARGUMENT`), that a name the model
+ *     chooses for employees takes the language of the request and no #, on the
+ *     names of chats, tags, departments and bots (`NAME_ARGUMENT`), and where a secret an
  *     answer carries may go, on every tool whose answer reaches one
  *     (`SECRET_NOTE`, by the fields `TRUSTED_TEXT` marks secret);
  *   - what a model is told before any call: who the server is (`SERVER_INFO`),
@@ -382,6 +385,20 @@ export const ADDITIVE: Record<OperationKey, string> = {
 };
 
 /**
+ * Reads that change something, each with what they change. Such a tool keeps
+ * the kind of its method, but it is not marked read-only, and it is destructive
+ * by the rule of `ADDITIVE`: what it changes is not only added. Repeating it
+ * changes nothing more, so it stays idempotent like any read.
+ *
+ * Without the line a client would run it unasked as a harmless read, and the
+ * person would not see the call that cut short a link they had already sent.
+ */
+export const READS_THAT_CHANGE: Record<OperationKey, string> = {
+  'GET /company/invite_link':
+    'Issues a new link when the caller has none valid for another hour, and every older link of the caller stops working.',
+};
+
+/**
  * An argument that runs a destructive operation inside a tool not marked so.
  * The flag of a tool speaks for its own operation, so a step that deletes has to
  * be argued for here, or the build fails.
@@ -632,7 +649,7 @@ export const WEB_LINKS = {
  * Every rule of one area lives with the tools of that area, where a model reads
  * it when it loads them: in the spec when every reader of the API needs it, in
  * prose (`mcp-tools.ts`) or a generated note (`MOMENT_ARGUMENT`,
- * `QUERY_ARGUMENT`, `SECRET_NOTE`) when only a model does. The build fails when
+ * `QUERY_ARGUMENT`, `NAME_ARGUMENT`, `SECRET_NOTE`) when only a model does. The build fails when
  * six words in a row here repeat the text of any tool — a fact with two homes
  * drifts.
  *
@@ -642,9 +659,9 @@ export const WEB_LINKS = {
  * the manifest asks.
  */
 export const SERVER_INSTRUCTIONS = [
-  'Pachca is a corporate messenger; its whole API is here: messages, files, reactions, pins and readers in ' +
-    'chats and threads; drafts and scheduled messages with a personal token; chats, members, archive, unread marks; ' +
-    'reminders, handed over by editing; employees, statuses, avatars, extra fields, group tags; bots, tokens, webhooks; ' +
+  'Pachca is a team chat app; its whole API is here: messages, threads, files, reactions, pins, readers; with a ' +
+    'personal token, drafts, scheduled messages; chats, members, archive, unread marks; reminders, handed over by ' +
+    'editing; employees, statuses, avatars, extra fields, group tags; workspace, invite link; bots, tokens, webhooks; ' +
     'with a bot token, event history, forms, link previews; for the owner on the Corporation plan, every chat and ' +
     'bot, exports, security log. Tools follow the token: if one is missing, name your role, or the plan or kind of ' +
     'token it takes, in a partial answer too, and change nothing instead.',
@@ -711,6 +728,48 @@ export const QUERY_ARGUMENT = {
   description:
     'Take the words from the request, in its language: a name put into another language finds nothing, and ' +
     'the example only shows the shape of a value.',
+};
+
+/**
+ * A name the model writes into Pachca for employees to read — a chat, a tag, a
+ * department, a bot — put by the generator after the spec's own words on the
+ * arguments `at` lists, by operation; the build fails on a listed argument
+ * without it, or with it twice, on an argument not listed that carries it, and on
+ * a listed one the tool does not take.
+ *
+ * The examples these arguments carry reach the model in English — Product,
+ * Design, Pool, a tag called New tag name, Tasks bot — because the manifest is
+ * read from the English spec, which translates example values
+ * (`apply-overlay.ts`), and some of them are English in the spec already. On a
+ * run that set up a new workspace from a Russian request, a small model named a
+ * chat #general: the mark of a channel in another chat app, and a name in a
+ * language nobody in that workspace asked for. The note is read where the name is
+ * written, and costs nothing until its tool is loaded. It leaves a name the
+ * request gives as it is, and an emoji in front, which the instructions ask the
+ * model to pick, stays allowed.
+ *
+ * Not listed: `list_tags` of an employee, which names tags that may exist already
+ * and finds them by their exact name, so a translated name makes a new empty tag
+ * and, on an edit, takes the employee out of the old one and its chats (the prose
+ * of `create_user` and `update_user` says how those names are written); and a job
+ * title, which is what the request says about a person, not a name the model
+ * chooses.
+ */
+export const NAME_ARGUMENT = {
+  description:
+    'A name the request gives goes in as given. Write a name you choose in the language of the request, as the ' +
+    'employees of the workspace will read it, with no # in front, the mark of a channel in other chat apps: the ' +
+    'example only shows the shape of a value.',
+  at: {
+    'POST /chats': ['name'],
+    'PUT /chats/{id}': ['name'],
+    'POST /group_tags': ['name'],
+    'PUT /group_tags/{id}': ['name'],
+    'POST /users': ['department'],
+    'PUT /users/{id}': ['department'],
+    'POST /bots': ['name'],
+    'PUT /bots/{id}': ['name'],
+  } as Partial<Record<OperationKey, string[]>>,
 };
 
 /**
@@ -782,9 +841,9 @@ export const REFUSALS: Record<string, string> = {
     'The token no longer works. Tell the person to reconnect Pachca, or to give the bot a new token; ' +
     'retrying will not help.',
   '402':
-    'The workspace is blocked for payment: it has gone over the message limit of its plan. Most ' +
-    'methods answer this way until the workspace is paid for, and nothing an agent does changes that ' +
-    '— tell the person.',
+    'The workspace is blocked for payment: with no paid plan in force, it has gone over the monthly message ' +
+    'limit. Most methods answer this way until the workspace is paid for, or at the latest until the next ' +
+    'month begins in UTC, and nothing an agent does changes that — tell the person.',
   '403':
     'Not allowed, and the code says why. `insufficient_scope`: the token lacks the permission it names — ' +
     'say which, and do not retry: whoever manages the token adds it. A person connected through the browser ' +
@@ -1499,11 +1558,14 @@ export const TRUSTED_TEXT: Array<{ fields: string[]; why: string; secret?: boole
       'BotSelfTokenResponse.access_token',
       'BotWebhook.url',
       'redirect.url',
+      'InviteLink.url',
     ],
     why:
       'Secrets Pachca generates, whole: whoever holds one can act as the bot, sign as Pachca to its server, or ' +
       'download an export. The address of an incoming webhook takes messages as the bot with no token, and the link ' +
-      'to an export opens the archive with no token while it lives.',
+      'to an export opens the archive with no token while it lives. An invite link lets anyone in as an employee ' +
+      'while it lives; the workspace name in it comes escaped, and only the owner and administrators set it, the ' +
+      'same people the link is given to.',
     secret: true,
   },
   {

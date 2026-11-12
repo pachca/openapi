@@ -73,23 +73,30 @@ function loadGuideSchemasFromFiles(): Record<string, GuideSchemaEntry> {
 // ============================================
 
 /**
- * Unified registry of all guide schemas
- * Automatically loaded from JSON files in lib/schemas/guides/
+ * Unified registry of all guide schemas, loaded from the JSON files in
+ * lib/schemas/guides/ on first use. Not at import: the CLI generator imports
+ * this module through the markdown generator for `HTTP_CODES` alone, from
+ * packages/cli, where the folder is not under the working directory.
  */
-export const GUIDE_SCHEMAS: Record<string, GuideSchemaEntry> = loadGuideSchemasFromFiles();
+let guideSchemas: Record<string, GuideSchemaEntry> | undefined;
+
+function guideSchemaRegistry(): Record<string, GuideSchemaEntry> {
+  guideSchemas ??= loadGuideSchemasFromFiles();
+  return guideSchemas;
+}
 
 /**
  * Get a guide schema by name
  */
 export function getGuideSchema(name: string): GuideSchemaEntry | undefined {
-  return GUIDE_SCHEMAS[name];
+  return guideSchemaRegistry()[name];
 }
 
 /**
  * Get all guide schema names (for indexing)
  */
 export function getAllGuideSchemaNames(): string[] {
-  return Object.keys(GUIDE_SCHEMAS);
+  return Object.keys(guideSchemaRegistry());
 }
 
 // ============================================

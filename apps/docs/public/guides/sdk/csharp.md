@@ -86,6 +86,10 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Profile.UpdateStatusAsync()` | [Новый свой статус](/api/profile/update-status) |
 | `client.Profile.DeleteProfileAvatarAsync()` | [Удаление своего аватара](/api/profile/delete-avatar) |
 | `client.Profile.DeleteStatusAsync()` | [Удаление своего статуса](/api/profile/delete-status) |
+| `client.Company.ReissueInviteLinkAsync()` | [Перевыпуск ссылки-приглашения](/api/company/reissue-invite-link) |
+| `client.Company.GetCompanyAsync()` | [Информация о пространстве](/api/company/get) |
+| `client.Company.GetInviteLinkAsync()` | [Ссылка-приглашение](/api/company/get-invite-link) |
+| `client.Company.UpdateCompanyAsync()` | [Редактирование пространства](/api/company/update) |
 | `client.Users.CreateUserAsync()` | [Новый сотрудник](/api/users/create) |
 | `client.Users.ListUsersAsync()` | [Список сотрудников](/api/users/list) |
 | `client.Users.GetUserAsync()` | [Информация о сотруднике](/api/users/get) |

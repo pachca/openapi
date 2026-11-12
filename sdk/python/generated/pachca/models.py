@@ -227,6 +227,13 @@ class ChatSubtype(StrEnum):
     THREAD = "thread"  # Тред
 
 
+class CompanyManagementAccess(OpenStrEnum):
+    """Кто может пользоваться возможностью в пространстве"""
+
+    ALL = "all"  # Все сотрудники
+    ADMINS = "admins"  # Только администраторы
+
+
 class CustomPropertyDataType(OpenStrEnum):
     """Тип данных дополнительного поля"""
 
@@ -336,7 +343,7 @@ class OAuthScope(OpenStrEnum):
     CHATS_READ = "chats:read"  # Просмотр чатов и списка чатов
     CHATS_CREATE = "chats:create"  # Создание новых чатов
     CHATS_UPDATE = "chats:update"  # Изменение настроек чата
-    CHATS_MARK_UNREAD = "chats:mark_unread"  # Отметка чатов непрочитанными
+    CHATS_MARK_UNREAD = "chats:mark_unread"  # Отметка собственных чатов непрочитанными
     CHATS_ARCHIVE = "chats:archive"  # Архивация и разархивация чатов
     CHATS_LEAVE = "chats:leave"  # Выход из чатов
     CHAT_MEMBERS_READ = "chat_members:read"  # Просмотр участников чата
@@ -371,21 +378,24 @@ class OAuthScope(OpenStrEnum):
     USER_STATUS_WRITE = "user_status:write"  # Изменение и удаление статуса сотрудника
     USER_AVATAR_WRITE = "user_avatar:write"  # Изменение и удаление аватара сотрудника
     CUSTOM_PROPERTIES_READ = "custom_properties:read"  # Просмотр дополнительных полей
+    COMPANY_READ = "company:read"  # Просмотр информации о пространстве и его настроек
+    COMPANY_WRITE = "company:write"  # Изменение названия пространства и основных настроек
+    INVITE_LINKS_WRITE = "invite_links:write"  # Получение и перевыпуск ссылки-приглашения в пространство
     AUDIT_EVENTS_READ = "audit_events:read"  # Просмотр журнала аудита
     COMPANY_CHATS_READ = "company_chats:read"  # Просмотр списка всех чатов пространства
     COMPANY_BOTS_READ = "company_bots:read"  # Просмотр списка всех ботов пространства
-    TASKS_READ = "tasks:read"  # Просмотр задач
-    TASKS_CREATE = "tasks:create"  # Создание задач
-    TASKS_UPDATE = "tasks:update"  # Изменение задачи
-    TASKS_DELETE = "tasks:delete"  # Удаление задачи
+    TASKS_READ = "tasks:read"  # Просмотр напоминаний
+    TASKS_CREATE = "tasks:create"  # Создание напоминаний
+    TASKS_UPDATE = "tasks:update"  # Изменение напоминания
+    TASKS_DELETE = "tasks:delete"  # Удаление напоминания
     FILES_READ = "files:read"  # Скачивание файлов
     UPLOADS_WRITE = "uploads:write"  # Получение данных для загрузки файлов
     VIEWS_WRITE = "views:write"  # Открытие форм (представлений)
     WEBHOOKS_EVENTS_READ = "webhooks:events:read"  # Просмотр лога вебхуков
     WEBHOOKS_EVENTS_DELETE = "webhooks:events:delete"  # Удаление записи в логе вебхука
-    SEARCH_USERS = "search:users"  # Поиск сотрудников
-    SEARCH_CHATS = "search:chats"  # Поиск чатов
-    SEARCH_MESSAGES = "search:messages"  # Поиск сообщений
+    SEARCH_USERS = "search:users"  # Поиск по сотрудникам
+    SEARCH_CHATS = "search:chats"  # Поиск по чатам
+    SEARCH_MESSAGES = "search:messages"  # Поиск по сообщениям
     DRAFTS_READ = "drafts:read"  # Просмотр черновиков и отложенных сообщений
     DRAFTS_WRITE = "drafts:write"  # Создание, изменение и удаление черновиков и отложенных сообщений
     IMPORTANT_MESSAGES_READ = "important_messages:read"  # Просмотр важных сообщений
@@ -1313,6 +1323,19 @@ class ChatUpdateRequest:
 
 
 @dataclass
+class Company:
+    id: int
+    name: str
+    owner_id: int
+    show_personal_data: bool
+    use_global_threads: bool
+    integrations_management: CompanyManagementAccess
+    api_management: CompanyManagementAccess
+    plan: str
+    export_personal_chats: bool | None = None
+
+
+@dataclass
 class CompanyBotResponse:
     id: int
     webhook: CompanyBotWebhook
@@ -1346,6 +1369,13 @@ class CompanyMemberWebhookPayload:
     user_ids: list[int]
     created_at: datetime
     webhook_timestamp: int
+
+
+@dataclass
+class CompanyUpdateRequest:
+    name: str | None = None
+    show_personal_data: bool | None = None
+    use_global_threads: bool | None = None
 
 
 @dataclass
@@ -1530,6 +1560,12 @@ class GroupTagRequest:
 @dataclass
 class ImportantMessageRequest:
     message_id: int
+
+
+@dataclass
+class InviteLink:
+    url: str
+    expires_at: datetime
 
 
 @dataclass

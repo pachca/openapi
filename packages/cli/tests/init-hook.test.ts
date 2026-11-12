@@ -7,8 +7,8 @@ import hook from '../src/hooks/init.js';
 let tmpDir: string;
 const saved: Record<string, string | undefined> = {};
 
-function runHook(id: string, argv: string[]) {
-  const config = { cacheDir: tmpDir, version: '0.0.0', findCommand: () => ({}) };
+function runHook(id: string, argv: string[], version = '0.0.0') {
+  const config = { cacheDir: tmpDir, version, findCommand: () => ({}) };
   return (hook as unknown as (opts: unknown) => Promise<void>).call({}, { id, argv, config });
 }
 
@@ -108,5 +108,79 @@ describe('init hook with a login the server no longer renews', () => {
     await runHook('users:list', []);
     expect(process.exit).toHaveBeenCalledWith(3);
     expect(stderrJson()).toMatchObject({ hint: 'pachca auth login' });
+  });
+});
+
+describe('init hook update banner', () => {
+  const ttyKeys = ['stdin', 'stdout'] as const;
+  const savedTty: Partial<Record<(typeof ttyKeys)[number], PropertyDescriptor | undefined>> = {};
+  const savedEnv: Record<string, string | undefined> = {};
+  let exitListeners: Array<(code: number) => void>;
+
+  beforeEach(() => {
+    // The banner is only for a person at the terminal.
+    for (const key of ttyKeys) {
+      savedTty[key] = Object.getOwnPropertyDescriptor(process[key], 'isTTY');
+      Object.defineProperty(process[key], 'isTTY', { value: true, writable: true, configurable: true });
+    }
+    for (const key of ['CI', 'PACHCA_PROMPT_DISABLED', 'PACHCA_SKIP_NEW_VERSION_CHECK']) {
+      savedEnv[key] = process.env[key];
+      delete process.env[key];
+    }
+    // A fresh cache file: the hook does not start a background version check.
+    fs.writeFileSync(path.join(tmpDir, 'version'), JSON.stringify({ latest: '2026.11.2' }));
+
+    // Keep the exit listener out of the test runner's own process.
+    exitListeners = [];
+    const realOn = process.on.bind(process);
+    vi.spyOn(process, 'on').mockImplementation(((event: string, listener: (...args: unknown[]) => void) => {
+      if (event === 'exit') {
+        exitListeners.push(listener as (code: number) => void);
+        return process;
+      }
+      return realOn(event, listener);
+    }) as typeof process.on);
+  });
+
+  afterEach(() => {
+    for (const key of ttyKeys) {
+      const descriptor = savedTty[key];
+      if (descriptor) Object.defineProperty(process[key], 'isTTY', descriptor);
+      else delete (process[key] as { isTTY?: boolean }).isTTY;
+    }
+    for (const [key, value] of Object.entries(savedEnv)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  });
+
+  function bannerAfterExit(code: number): string {
+    expect(exitListeners).toHaveLength(1);
+    const stderr = process.stderr.write as unknown as { mock: { calls: unknown[][] } };
+    stderr.mock.calls.length = 0;
+    exitListeners[0](code);
+    return stderr.mock.calls.map((call) => String(call[0])).join('');
+  }
+
+  it('says nothing about a new version after a finished upgrade', async () => {
+    await runHook('upgrade', [], '2026.10.0');
+    expect(bannerAfterExit(0)).toBe('');
+  });
+
+  it('offers the new version again after a failed upgrade', async () => {
+    await runHook('upgrade', [], '2026.10.0');
+    const banner = bannerAfterExit(1);
+    expect(banner).toContain('Доступна новая версия: 2026.11.2');
+    expect(banner).toContain('pachca upgrade');
+  });
+
+  it('offers the new version after other commands', async () => {
+    await runHook('version', [], '2026.10.0');
+    expect(bannerAfterExit(0)).toContain('Доступна новая версия: 2026.11.2');
+  });
+
+  it('stays quiet once the running version is the latest', async () => {
+    await runHook('version', [], '2026.11.2');
+    expect(bannerAfterExit(0)).toBe('');
   });
 });

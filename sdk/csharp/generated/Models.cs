@@ -830,6 +830,54 @@ internal class ChatSubtypeConverter : JsonConverter<ChatSubtype>
     }
 }
 
+/// <summary>Кто может пользоваться возможностью в пространстве</summary>
+[JsonConverter(typeof(CompanyManagementAccessConverter))]
+public readonly struct CompanyManagementAccess : IEquatable<CompanyManagementAccess>
+{
+    private readonly string? _value;
+
+    public CompanyManagementAccess(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Все сотрудники</summary>
+    public static CompanyManagementAccess All { get; } = new("all");
+    /// <summary>Только администраторы</summary>
+    public static CompanyManagementAccess Admins { get; } = new("admins");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<CompanyManagementAccess> Values { get; } = Array.AsReadOnly(new[] { All, Admins });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(CompanyManagementAccess left, CompanyManagementAccess right) => left.Equals(right);
+    public static bool operator !=(CompanyManagementAccess left, CompanyManagementAccess right) => !left.Equals(right);
+    public static implicit operator CompanyManagementAccess(string value) => new(value);
+    public bool Equals(CompanyManagementAccess other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is CompanyManagementAccess other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class CompanyManagementAccessConverter : JsonConverter<CompanyManagementAccess>
+{
+    public override CompanyManagementAccess Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, CompanyManagementAccess value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
 /// <summary>Тип данных дополнительного поля</summary>
 [JsonConverter(typeof(CustomPropertyDataTypeConverter))]
 public readonly struct CustomPropertyDataType : IEquatable<CustomPropertyDataType>
@@ -1413,7 +1461,7 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope ChatsCreate { get; } = new("chats:create");
     /// <summary>Изменение настроек чата</summary>
     public static OAuthScope ChatsUpdate { get; } = new("chats:update");
-    /// <summary>Отметка чатов непрочитанными</summary>
+    /// <summary>Отметка собственных чатов непрочитанными</summary>
     public static OAuthScope ChatsMarkUnread { get; } = new("chats:mark_unread");
     /// <summary>Архивация и разархивация чатов</summary>
     public static OAuthScope ChatsArchive { get; } = new("chats:archive");
@@ -1483,19 +1531,25 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope UserAvatarWrite { get; } = new("user_avatar:write");
     /// <summary>Просмотр дополнительных полей</summary>
     public static OAuthScope CustomPropertiesRead { get; } = new("custom_properties:read");
+    /// <summary>Просмотр информации о пространстве и его настроек</summary>
+    public static OAuthScope CompanyRead { get; } = new("company:read");
+    /// <summary>Изменение названия пространства и основных настроек</summary>
+    public static OAuthScope CompanyWrite { get; } = new("company:write");
+    /// <summary>Получение и перевыпуск ссылки-приглашения в пространство</summary>
+    public static OAuthScope InviteLinksWrite { get; } = new("invite_links:write");
     /// <summary>Просмотр журнала аудита</summary>
     public static OAuthScope AuditEventsRead { get; } = new("audit_events:read");
     /// <summary>Просмотр списка всех чатов пространства</summary>
     public static OAuthScope CompanyChatsRead { get; } = new("company_chats:read");
     /// <summary>Просмотр списка всех ботов пространства</summary>
     public static OAuthScope CompanyBotsRead { get; } = new("company_bots:read");
-    /// <summary>Просмотр задач</summary>
+    /// <summary>Просмотр напоминаний</summary>
     public static OAuthScope TasksRead { get; } = new("tasks:read");
-    /// <summary>Создание задач</summary>
+    /// <summary>Создание напоминаний</summary>
     public static OAuthScope TasksCreate { get; } = new("tasks:create");
-    /// <summary>Изменение задачи</summary>
+    /// <summary>Изменение напоминания</summary>
     public static OAuthScope TasksUpdate { get; } = new("tasks:update");
-    /// <summary>Удаление задачи</summary>
+    /// <summary>Удаление напоминания</summary>
     public static OAuthScope TasksDelete { get; } = new("tasks:delete");
     /// <summary>Скачивание файлов</summary>
     public static OAuthScope FilesRead { get; } = new("files:read");
@@ -1507,11 +1561,11 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope WebhooksEventsRead { get; } = new("webhooks:events:read");
     /// <summary>Удаление записи в логе вебхука</summary>
     public static OAuthScope WebhooksEventsDelete { get; } = new("webhooks:events:delete");
-    /// <summary>Поиск сотрудников</summary>
+    /// <summary>Поиск по сотрудникам</summary>
     public static OAuthScope SearchUsers { get; } = new("search:users");
-    /// <summary>Поиск чатов</summary>
+    /// <summary>Поиск по чатам</summary>
     public static OAuthScope SearchChats { get; } = new("search:chats");
-    /// <summary>Поиск сообщений</summary>
+    /// <summary>Поиск по сообщениям</summary>
     public static OAuthScope SearchMessages { get; } = new("search:messages");
     /// <summary>Просмотр черновиков и отложенных сообщений</summary>
     public static OAuthScope DraftsRead { get; } = new("drafts:read");
@@ -1523,7 +1577,7 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope ImportantMessagesWrite { get; } = new("important_messages:write");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, UploadsWrite, ViewsWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
+    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, CompanyRead, CompanyWrite, InviteLinksWrite, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, UploadsWrite, ViewsWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -4108,6 +4162,28 @@ public class ChatUpdateRequest
     public ChatUpdateRequestChat Chat { get; set; } = default!;
 }
 
+public class Company
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("owner_id")]
+    public int OwnerId { get; set; } = default!;
+    [JsonPropertyName("show_personal_data")]
+    public bool ShowPersonalData { get; set; } = default!;
+    [JsonPropertyName("use_global_threads")]
+    public bool UseGlobalThreads { get; set; } = default!;
+    [JsonPropertyName("integrations_management")]
+    public CompanyManagementAccess IntegrationsManagement { get; set; } = default!;
+    [JsonPropertyName("api_management")]
+    public CompanyManagementAccess ApiManagement { get; set; } = default!;
+    [JsonPropertyName("plan")]
+    public string Plan { get; set; } = default!;
+    [JsonPropertyName("export_personal_chats")]
+    public bool? ExportPersonalChats { get; set; }
+}
+
 public class CompanyBotResponse
 {
     [JsonPropertyName("id")]
@@ -4152,6 +4228,16 @@ public class CompanyBotWebhook
     public List<BotCanEdit>? CanEdit { get; set; }
     [JsonPropertyName("who_can_add")]
     public BotWhoCanAdd? WhoCanAdd { get; set; }
+}
+
+public class CompanyUpdateRequest
+{
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+    [JsonPropertyName("show_personal_data")]
+    public bool? ShowPersonalData { get; set; }
+    [JsonPropertyName("use_global_threads")]
+    public bool? UseGlobalThreads { get; set; }
 }
 
 public class CustomProperty
@@ -4436,6 +4522,14 @@ public class ImportantMessageRequest
 {
     [JsonPropertyName("message_id")]
     public int MessageId { get; set; } = default!;
+}
+
+public class InviteLink
+{
+    [JsonPropertyName("url")]
+    public string Url { get; set; } = default!;
+    [JsonPropertyName("expires_at")]
+    public DateTimeOffset ExpiresAt { get; set; } = default!;
 }
 
 public class LinkPreviewImage
@@ -5476,6 +5570,18 @@ public class ChatExportDataWrapper
 {
     [JsonPropertyName("data")]
     public ChatExport Data { get; set; } = default!;
+}
+
+public class CompanyDataWrapper
+{
+    [JsonPropertyName("data")]
+    public Company Data { get; set; } = default!;
+}
+
+public class InviteLinkDataWrapper
+{
+    [JsonPropertyName("data")]
+    public InviteLink Data { get; set; } = default!;
 }
 
 public class DraftDataWrapper

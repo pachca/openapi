@@ -51,7 +51,7 @@ The token decides whose name the request runs under and which data it can reach.
 
 - **Personal** sees exactly what its owner sees: same role in the workspace, role in each chat, membership.
 - **Bot** sees all open conversations and channels of the workspace plus the closed channels, conversations and threads it is a member of, and its direct messages with employees.
-- The token also decides which fields come back, and it does so silently. Other employees' `email` and `phone_number` come back `null` for a bot or employee token unless the workspace shows personal data, and always for a multi-guest. Owner and admin tokens always get them. Before a contacts export, read one other employee's record (your own always has them). If it is `null`, run the export on an admin's personal token rather than reporting the data as missing.
+- The token also decides which fields come back, and it does so silently. Other employees' `email` and `phone_number` come back `null` for a bot or employee token unless the workspace shows personal data, and always for a multi-guest. Owner and admin tokens always get them. Before a contacts export, check `show_personal_data` in `GET /company` or read one other employee's record (your own always has them). If it is `false`, or the colleague's `email` is `null`, run the export on an admin's personal token rather than reporting the data as missing.
 
 Personal token from the UI versus CLI browser login:
 

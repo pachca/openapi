@@ -1,6 +1,9 @@
 import { API_GUIDE_PAGES, type SidebarPageItem } from '@/lib/tabs-config';
 
 const SITE_URL = 'https://dev.pachca.com';
+// RFC 9727 §4: the anchor names the API itself, not its documentation.
+const API_URL = 'https://api.pachca.com/api/shared/v1';
+const MCP_URL = 'https://mcp.pachca.com/mcp';
 
 // Hand-written descriptions for API guide pages — gives each service-doc
 // entry a useful title beyond the sidebar label. Keys are page paths
@@ -29,11 +32,13 @@ export async function GET(): Promise<Response> {
   // service-desc: machine-readable specs. service-doc: human-readable docs
   // (top-level entry + agent files + each API rules page from
   // API_GUIDE_PAGES so the list stays in sync with the sidebar).
-  // service-meta: agent-skills discovery indexes.
+  // service-meta: agent-skills discovery indexes. The second entry is the
+  // MCP server: its guide and the OAuth protected resource metadata that a
+  // client reads after the server's 401.
   const linkset = {
     linkset: [
       {
-        anchor: SITE_URL,
+        anchor: API_URL,
         'service-desc': [
           {
             href: `${SITE_URL}/openapi.yaml`,
@@ -75,6 +80,28 @@ export async function GET(): Promise<Response> {
             href: `${SITE_URL}/.well-known/skills/index.json`,
             type: 'application/json',
             title: 'Pachca Skills discovery (earlier format, read by npx skills)',
+          },
+        ],
+      },
+      {
+        anchor: MCP_URL,
+        'service-doc': [
+          {
+            href: `${SITE_URL}/guides/mcp/overview`,
+            type: 'text/html',
+            title: 'Pachca MCP server',
+          },
+          {
+            href: `${SITE_URL}/guides/mcp/overview.md`,
+            type: 'text/markdown',
+            title: 'Pachca MCP server (markdown)',
+          },
+        ],
+        'service-meta': [
+          {
+            href: 'https://mcp.pachca.com/.well-known/oauth-protected-resource/mcp',
+            type: 'application/json',
+            title: 'OAuth protected resource metadata (RFC 9728)',
           },
         ],
       },

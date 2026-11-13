@@ -414,11 +414,11 @@ Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex и приложение 
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 
 ## Обновления
+- [13 ноября 2026 — Исходящий вебхук без адреса](https://dev.pachca.com/updates/2026-11-13.md)
 - [12 ноября 2026 — Пространство и ссылка-приглашение через API](https://dev.pachca.com/updates/2026-11-12.md)
 - [10 ноября 2026 — События бота в терминале и на локальном обработчике без публичного адреса](https://dev.pachca.com/updates/2026-11-10.md)
 - [09 ноября 2026 — Через какую программу отправлено сообщение и коды ошибок адреса вебхука](https://dev.pachca.com/updates/2026-11-09.md)
 - [04 ноября 2026 — Статус расшифровки голосовых сообщений и необязательные поля запросов](https://dev.pachca.com/updates/2026-11-04.md)
-- [03 ноября 2026 — Короткие сообщения коллегам](https://dev.pachca.com/updates/2026-11-03.md)
 - Все записи по датам: [/updates/llms.txt](https://dev.pachca.com/updates/llms.txt)
 
 ## Дополнительно

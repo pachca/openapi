@@ -24,7 +24,7 @@
 npx skills add https://dev.pachca.com -g -a claude-code -y
 ```
 
-Можно попросить об этом и самого агента. Команде нужен Node.js 22.20 или новее, версию показывает `node --version`. Идентификаторы остальных программ и как поставить скиллы в приложение Claude, SourceCraft Code Assistant, GigaCode CLI, DeepSeek Harness и программы без Node.js, сказано в разделе [Установка скиллов](/guides/ai-agents/skills#ustanovka-skillov). В Grok Bot скиллы Пачки не ставятся.
+Можно попросить об этом и самого агента. Команде нужен Node.js 22.20 или новее, версию показывает `node --version`. Исходный код скиллов открыт, он лежит в папке [plugins/pachca/skills](https://github.com/pachca/openapi/tree/main/plugins/pachca/skills) репозитория на GitHub. Идентификаторы остальных программ и как поставить скиллы в приложение Claude, SourceCraft Code Assistant, GigaCode CLI, DeepSeek Harness и программы без Node.js, сказано в разделе [Установка скиллов](/guides/ai-agents/skills#ustanovka-skillov). В Grok Bot скиллы Пачки не ставятся.
 
 Если плагин «Пачка» стоит в другой программе на этом компьютере, сначала проверьте в разделе [Установка скиллов](/guides/ai-agents/skills#ustanovka-skillov), куда ставить скиллы: с флагом `-g` команда часто кладёт их в папку, которую читает и программа с плагином, и там каждый скилл окажется дважды. Агент плагин в другой программе не видит, поэтому перед командой с `-g` он спрашивает, стоит ли плагин «Пачка» в Claude Code, Codex, Cursor или VS Code.
 

@@ -43,6 +43,14 @@ export function Footer({ adjacent, noMargin, prevLabel, nextLabel }: FooterProps
           </div>
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-6 gap-y-2">
             <a
+              href="https://github.com/pachca/openapi"
+              className="font-medium whitespace-nowrap hover:text-primary transition-colors"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub
+            </a>
+            <a
               href="https://pachca.com/contacts"
               className="font-medium whitespace-nowrap hover:text-primary transition-colors"
               target="_blank"

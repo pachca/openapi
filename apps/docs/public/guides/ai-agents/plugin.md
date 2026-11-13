@@ -5,6 +5,9 @@
 
 # Плагин
 
+- [plugins/pachca](https://github.com/pachca/openapi/tree/main/plugins/pachca) GitHub
+
+
 Плагин «Пачка» — необязательный способ подключить Пачку в Claude Code, приложении Claude, Codex, VS Code с GitHub Copilot и Cursor. Одной установкой он ставит [MCP-сервер](/guides/mcp/overview) и [скиллы](/guides/ai-agents/skills). Без плагина то же дают шаги на странице [Подключение к MCP](/guides/mcp/connect): сервер по адресу и скиллы одной командой.
 
 Что даёт плагин сверх этих шагов:

@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
+import { CopiedTooltip } from '../api/copied-tooltip';
 
 type CopyState = 'idle' | 'copied' | 'failed';
 
-const LABELS: Record<CopyState, string> = {
-  idle: 'Скопировать промпт',
+const TOOLTIPS: Record<CopyState, string> = {
+  idle: '',
   copied: 'Скопировано',
   failed: 'Не скопировалось',
 };
@@ -38,9 +39,11 @@ function copyBySelection(text: string): boolean {
 }
 
 /**
- * Кнопка «Скопировать промпт» блока <AgentPrompt>. Текст уходит в буфер дословно:
- * переносы строк и нумерация шагов в промпте значимы. «Скопировано» кнопка пишет только
- * после настоящего копирования: иначе читатель вставит агенту то, что лежало в буфере раньше.
+ * Кнопка «Скопировать» блока <AgentPrompt>. Текст уходит в буфер дословно:
+ * переносы строк и нумерация шагов в промпте значимы. Как у остальных кнопок копирования
+ * на сайте, после нажатия иконка сменяется галочкой и над кнопкой появляется подсказка.
+ * «Скопировано» показывается только после настоящего копирования: иначе читатель вставит
+ * агенту то, что лежало в буфере раньше.
  */
 export function AgentPromptCopy({ text }: { text: string }) {
   const [state, setState] = useState<CopyState>('idle');
@@ -59,28 +62,21 @@ export function AgentPromptCopy({ text }: { text: string }) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={handleCopy}
-        className="inline-flex h-9 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/80 px-4 text-[13px] font-medium text-white shadow-[0_2px_12px_var(--color-primary)/15%] backdrop-blur-md transition-all duration-200 hover:bg-primary/90"
-      >
-        {state === 'copied' ? (
-          <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-        ) : (
-          <Copy className="h-3.5 w-3.5" strokeWidth={2.5} />
-        )}
-        {/* Все подписи занимают одну ячейку: ширина кнопки не меняется после нажатия. */}
-        <span className="grid text-left">
-          {(Object.keys(LABELS) as CopyState[]).map((key) => (
-            <span
-              key={key}
-              className={`col-start-1 row-start-1 ${state === key ? '' : 'invisible'}`}
-            >
-              {LABELS[key]}
-            </span>
-          ))}
-        </span>
-      </button>
+      <CopiedTooltip open={state !== 'idle'} label={TOOLTIPS[state] || TOOLTIPS.copied}>
+        <button
+          type="button"
+          onClick={handleCopy}
+          aria-label="Скопировать промпт"
+          className="inline-flex h-9 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/80 px-4 text-[13px] font-medium text-white shadow-[0_2px_12px_var(--color-primary)/15%] backdrop-blur-md transition-all duration-200 hover:bg-primary/90"
+        >
+          {state === 'copied' ? (
+            <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+          ) : (
+            <Copy className="h-3.5 w-3.5" strokeWidth={2.5} />
+          )}
+          Скопировать
+        </button>
+      </CopiedTooltip>
       {/* Объявление для экранного диктора стоит рядом с кнопкой, а не внутри: так оно не попадает в её имя. */}
       <span aria-live="polite" className="sr-only">
         {ANNOUNCEMENTS[state]}

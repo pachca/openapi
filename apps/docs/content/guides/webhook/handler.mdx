@@ -44,7 +44,7 @@ content-length: 478
 
 <Steps>
   <Step title="Проверьте подпись">
-    Вычислите подпись сами, используя секрет вебхука `Signing secret` с вкладки «Исходящий вебхук» в карточке бота. Через API он приходит в поле `webhook.secret_token` метода [Информация о боте](GET /bots/{id}). Считайте хеш от сырого (raw) тела запроса: после разбора JSON содержимое может измениться. Сравнивайте подписи функцией, которая работает за постоянное время, например `crypto.timingSafeEqual` в Node.js или `hmac.compare_digest` в Python: обычное сравнение строк по времени ответа подсказывает, сколько символов подписи совпало.
+    Вычислите подпись сами по ключу **Signing secret** с вкладки **Исходящий вебхук** в карточке бота. Секрет виден там и до того, как указан **Webhook URL**, поэтому его можно заложить в сервер заранее, подробнее в разделе [Как получать события](/guides/webhook/events#kak-poluchat-sobytiya). Через API он приходит в поле `webhook.secret_token` метода [Информация о боте](GET /bots/{id}). Считайте хеш от сырого (raw) тела запроса: после разбора JSON содержимое может измениться. Сравнивайте подписи функцией, которая работает за постоянное время, например `crypto.timingSafeEqual` в Node.js или `hmac.compare_digest` в Python: обычное сравнение строк по времени ответа подсказывает, сколько символов подписи совпало.
 
     ```javascript title="Вычисление и сравнение подписи"
     // WEBHOOK_SECRET — значение поля Signing secret на вкладке «Исходящий вебхук» в карточке бота
@@ -88,12 +88,12 @@ content-length: 478
 По перенаправлениям Пачка не переходит: ответ `3xx` считается ответом сервера, поэтому в **Webhook URL** указывайте конечный адрес. Исключение — отправка формы, для неё Пачка проходит одно перенаправление.
 
 - Отвечайте `200 OK` сразу, а тяжёлую обработку выносите в фоновую очередь
-- Чтобы не терять события, пока сервер недоступен, включите историю событий — подробнее в разделе [Поллинг](/guides/webhook/polling#istoriya-pri-rabotayuschem-vebhuke)
+- Чтобы не терять события, пока сервер недоступен, оставьте вместе с адресом включённой историю событий, подробнее в разделе [История при работающем вебхуке](/guides/webhook/polling#istoriya-pri-rabotayuschem-vebhuke)
 - Перед запуском в работу пройдите чек-лист из раздела [Разработка и запуск обработчика](/guides/webhook/deploy)
 
 ## Реализация webhook handler
 
-Полный пример обработки вебхуков на TypeScript (Express.js) и Python (Flask) с проверкой подписи, защитой от replay-атак и обработкой всех типов событий. Обработчики ниже только записывают события в лог. Как из обработчика ответить в чат, показано в разделе [Первый бот](/guides/bots/first-bot), а как по нажатию кнопки открыть форму и ответить в тред — в разделе [Интерактивный бот](/guides/bots/interactive). Типы тел событий для TypeScript есть в SDK: как их подключить, описано в разделе [Тело вебхука](/guides/sdk/typescript#telo-vebhuka).
+Полный пример обработки вебхуков на TypeScript (Express.js) и Python (Flask) с проверкой подписи, защитой от replay-атак и обработкой всех типов событий. Обработчики ниже берут **Signing secret** из переменной окружения `PACHCA_SIGNING_SECRET` и только записывают события в лог. Как из обработчика ответить в чат, показано в разделе [Первый бот](/guides/bots/first-bot), а как по нажатию кнопки открыть форму и ответить в тред — в разделе [Интерактивный бот](/guides/bots/interactive). Типы тел событий для TypeScript есть в SDK: как их подключить, описано в разделе [Тело вебхука](/guides/sdk/typescript#telo-vebhuka).
 
 ### TypeScript (Express.js)
 
@@ -101,7 +101,8 @@ content-length: 478
 import express from "express"
 import crypto from "crypto"
 
-const SIGNING_SECRET = "your_signing_secret" // Карточка бота → Исходящий вебхук → Signing secret
+const SIGNING_SECRET = process.env.PACHCA_SIGNING_SECRET ?? "" // Signing secret с вкладки «Исходящий вебхук»
+if (!SIGNING_SECRET) throw new Error("Задайте PACHCA_SIGNING_SECRET")
 const app = express()
 
 // Важно: используем express.raw для получения сырого тела запроса (для корректной проверки HMAC)
@@ -152,10 +153,10 @@ app.listen(3000)
 ### Python (Flask)
 
 ```python
-import hmac, hashlib, json, time
+import hmac, hashlib, json, os, time
 from flask import Flask, request, abort
 
-SIGNING_SECRET = "your_signing_secret"  # Карточка бота → Исходящий вебхук → Signing secret
+SIGNING_SECRET = os.environ["PACHCA_SIGNING_SECRET"]  # Signing secret с вкладки «Исходящий вебхук»
 app = Flask(__name__)
 
 @app.route("/webhook", methods=["POST"])

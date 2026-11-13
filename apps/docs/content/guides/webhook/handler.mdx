@@ -13,6 +13,8 @@ related:
 
 Каждый исходящий вебхук подписан: Пачка вычисляет подпись `HMAC` по алгоритму `SHA256` из тела запроса и передаёт её в заголовке `Pachca-Signature`. В теле вебхука также есть поле `webhook_timestamp` — метка времени отправки в формате UNIX. По заголовку `Idempotency-Key` отсекают повторы доставки, подробнее — в разделе [Идемпотентная обработка](#idempotentnaya-obrabotka).
 
+<AgentPrompt id="webhook-signature" />
+
 ```http title="Пример исходящего вебхука (новое сообщение)"
 POST https://yourweb.site/read HTTP/1.1
 host: yourweb.site

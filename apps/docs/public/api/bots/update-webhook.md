@@ -10,7 +10,7 @@
 
 > **Скоуп:** `bot_self:webhook:write`
 
-Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `id`. Меняется вебхук того бота, которому принадлежит токен. Чтобы отключить вебхук, передайте пустую строку в `outgoing_url`.
+Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `id`. Меняется вебхук того бота, которому принадлежит токен. Пустая строка в `outgoing_url` стирает адрес: события перестают приходить на URL, а при включённой истории событий продолжают сохраняться в ней.
 
 Адрес бота с разворачиванием ссылок (событие `message_link_shared` или режим `trigger_on: unfurl`) меняет только администратор или владелец пространства методом [Редактирование бота](/api/bots/update). Такому боту этот метод отвечает `400` с кодом `forbidden` на любой новый адрес, в том числе на пустую строку.
 
@@ -23,7 +23,7 @@
 ### Схема
 
 - `webhook: object` (required) — Объект параметров вебхука
-  - `outgoing_url: string` (required, max length: 255) — URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`. Пустая строка отключает вебхук. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, max length: 255) — URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`. Пустая строка стирает адрес: события перестают приходить на URL, а при включённой истории событий продолжают сохраняться в ней. Пример: `"https://example.com/tasks/new"`
 
 ### Пример
 
@@ -65,7 +65,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
   - `webhook: object` (required) — Объект параметров вебхука
     - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
     - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-    - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+    - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если адрес не задан: бот тогда получает события только из истории событий, если она включена. Пример: `"https://example.com/tasks/new"`
     - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)

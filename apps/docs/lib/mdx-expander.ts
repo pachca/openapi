@@ -22,6 +22,7 @@ import { generateNavigation, compareEndpointsForNav } from './navigation';
 import { sortTagsByOrder } from './guides-config';
 import { SCOPE_ROLES, SCOPE_ROLE_LABELS } from './scope-roles';
 import { splitAsks } from './prompts';
+import { agentPromptToMarkdown, getAgentPrompt } from './agent-prompts';
 
 // ============================================
 // Helper functions
@@ -298,6 +299,19 @@ export async function expandMdxComponents(content: string): Promise<string> {
     // The source keeps its own blank line after </Prompts>.
     return md.trimEnd();
   });
+
+  // <AgentPrompt id="…" /> -> заголовок блока и промпт блоком кода из content/prompts/<id>.md
+  if (result.includes('<AgentPrompt')) {
+    const tags = result.match(/<AgentPrompt\b/g) ?? [];
+    const written = [...result.matchAll(/<AgentPrompt\s+id="([^"]+)"\s*\/>/g)];
+    // Тег, записанный иначе, остался бы в .md сырым.
+    if (written.length !== tags.length) {
+      throw new Error('<AgentPrompt>: пишется только как <AgentPrompt id="…" />');
+    }
+    result = result.replace(/<AgentPrompt\s+id="([^"]+)"\s*\/>/g, (_, id: string) =>
+      agentPromptToMarkdown(getAgentPrompt(id))
+    );
+  }
 
   // <HttpCodes />
   result = result.replace(/<HttpCodes\s*\/>/g, httpCodesToMarkdown());

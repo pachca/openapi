@@ -440,7 +440,7 @@
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если адрес не задан: бот тогда получает события только из истории событий, если она включена. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -503,7 +503,7 @@
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если адрес не задан: бот тогда получает события только из истории событий, если она включена. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -580,7 +580,7 @@
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если адрес не задан: бот тогда получает события только из истории событий, если она включена. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required, nullable) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -894,17 +894,17 @@
     - `client_id: string` (required) — Идентификатор OAuth-клиента, которому разрешён вход
     - `scopes: array of string` (required) — Скоупы, на которые согласился сотрудник
     - `device_name: string` — Имя устройства, с которого выполняется вход. Нет, если приложение его не передало.
-    - `application_id: integer, int32` (required) — Идентификатор приложения, которому разрешён вход
-    - `application_name: string` — Название приложения. Нет в записях до 7 октября 2026 года.
+    - `application_id: integer, int32` — Идентификатор приложения, которому разрешён вход. Нет у входа в надстройку Outlook.
+    - `application_name: string` — Название приложения. Нет у входа в надстройку Outlook и в записях до 7 октября 2026 года.
     - `device_grant_id: integer, int32` (required) — Идентификатор запроса на вход
-    - `token_kind: string` — Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.
+    - `token_kind: string` — Вид токена: `cli` — вход в CLI, `outlook` — вход в надстройку Outlook. Нет в записях до 7 октября 2026 года.
   - **AuditDetailsDeviceAuthorizationDenied**: При: oauth_device_authorization_denied
     - `client_id: string` (required) — Идентификатор OAuth-клиента, которому отказано во входе
     - `scopes: array of string` (required) — Скоупы, которые клиент запрашивал
     - `device_name: string` — Имя устройства, с которого выполнялся вход. Нет, если приложение его не передало.
-    - `application_id: integer, int32` — Идентификатор приложения. Нет при отказе во входе в CLI: приложение назначается входу только после подтверждения.
+    - `application_id: integer, int32` — Идентификатор приложения. Нет у входа в надстройку Outlook и при отказе во входе в CLI: приложение назначается входу в CLI только после подтверждения.
     - `device_grant_id: integer, int32` (required) — Идентификатор запроса на вход
-    - `token_kind: string` — Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.
+    - `token_kind: string` — Вид токена: `cli` — вход в CLI, `outlook` — вход в надстройку Outlook. Нет в записях до 7 октября 2026 года.
   - **AuditDetailsVideoCallStarted**: При: video_call_started
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
     - `started_message_id: integer, int32` — Идентификатор сообщения о начале звонка. Нет, если такого сообщения не было.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.8.1 (2026-11-13)
+
+Texts only: making someone a guest, an empty outgoing webhook URL, and the Outlook sign-in in the audit log. schema_version stays 1.2.0.
+
+- `pachca_update_user`: what making an employee a guest does now sits on the `role` argument, which also says that in threads an administrator or editor becomes a member and the thread owner stays the owner. The tool description stays under 2048 characters.
+- An empty `outgoing_url` clears the URL: events stop coming to it, and with event history on they keep being stored there. Bot outputs say that a bot without a URL gets events only from the event history, if it is on.
+- `pachca_get_audit_events`: a sign-in to the Outlook add-in comes with `token_kind: outlook` and without `application_id` or `application_name`.
+
 ## 1.8.0 (2026-11-12)
 
 Tools for the workspace and its invite link, three new scopes, empty stickers, a thread refused by the chat edit, notes for setting up a new workspace, thread rights, and tool texts that follow the API. schema_version stays 1.2.0.

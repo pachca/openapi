@@ -34,6 +34,7 @@ import { ImageCard } from '@/components/mdx/image-card';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { McpTools } from '@/components/mdx/mcp-tools';
 import { Prompts, Prompt } from '@/components/mdx/prompts';
+import { AgentPrompt } from '@/components/mdx/agent-prompt';
 import { GlobalFlags } from '@/components/mdx/global-flags';
 import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
@@ -233,6 +234,7 @@ const components = {
   ScopeRoles,
   CliCommands,
   McpTools,
+  AgentPrompt,
   Prompts,
   Prompt,
   GlobalFlags,

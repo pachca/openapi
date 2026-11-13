@@ -251,6 +251,7 @@
         "check-sdk-install",
         "check-examples",
         "check-anchors",
+        "check-agent-prompts",
         "check-urls",
         "@pachca/spec#enum:check"
       ],
@@ -308,6 +309,19 @@
         "scripts/check-anchors.mjs",
         "content/**",
         "lib/utils/transliterate.ts"
+      ],
+      "cache": true
+    },
+    "check-agent-prompts": {
+      "dependsOn": [
+        "generate-llms"
+      ],
+      "inputs": [
+        "scripts/check-agent-prompts.ts",
+        "lib/agent-prompts.ts",
+        "content/**",
+        "public/**/*.md",
+        "../../packages/spec/mcp-manifest.json"
       ],
       "cache": true
     },

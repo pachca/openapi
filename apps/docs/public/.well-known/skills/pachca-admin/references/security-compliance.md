@@ -63,6 +63,9 @@ Traps when reading records:
 - A QR sign-in to the mobile app asks for no 2FA, so it never produces
   `user_2fa_*`. Wrong digits there give `login_grant_denied` with
   `reason: verification_failed`.
+- `oauth_device_authorization_*` with `token_kind: outlook` (`client_id:
+  pachca_outlook`, no `application_id`) is a sign-in to the Outlook add-in,
+  not access to the API: report it as that sign-in.
 - When an Administrator revokes someone's access on the All tokens tab, the
   actor is the Administrator; the access owner is `resource_owner_id` (tokens)
   or `user_id` (bot authorizations).

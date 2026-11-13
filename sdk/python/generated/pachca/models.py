@@ -751,9 +751,9 @@ class AuditDetailsChatRenamed:
 class AuditDetailsDeviceAuthorizationApproved:
     client_id: str
     scopes: list[str]
-    application_id: int
     device_grant_id: int
     device_name: str | None = None
+    application_id: int | None = None
     application_name: str | None = None
     token_kind: str | None = None
 

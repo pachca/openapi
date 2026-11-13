@@ -2,6 +2,13 @@
 
 # Changelog
 
+## 2.2.8 (2026-11-13)
+
+### Improvements
+
+- User > Update: the Role description says that making someone a guest turns their administrator and editor roles in threads into member, and a thread owner stays the owner
+- Bot: the outgoing webhook URL description says that an empty URL clears it, and with event history on the events keep being stored there
+
 ## 2.2.7 (2026-11-12)
 
 ### Bug Fixes

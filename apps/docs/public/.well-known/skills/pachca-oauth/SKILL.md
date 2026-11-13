@@ -49,10 +49,10 @@ Decide with these questions:
 - **A chat bot runs the flow through a DM.** The employee writes to the bot (or the bot writes
   first), the bot answers with a URL button to the consent screen, the employee clicks
   **Разрешить** (Allow), the browser returns to your server with a code, your server exchanges
-  it for the token. Such a bot also needs an outgoing webhook (or the event history) and a bot
-  token with `messages:create`. Most launches break on these, not on OAuth. An app on the
-  employee's device (public client) opens the consent link itself, takes the code on its own
-  redirect address and needs neither: see the
+  it for the token. Such a bot also needs an outgoing webhook (a URL, the event history or
+  both) and a bot token with `messages:create`. Most launches break on these, not on OAuth. An
+  app on the employee's device (public client) opens the consent link itself, takes the code on
+  its own redirect address and needs neither: see the
   [flow reference](references/authorization-flow.md#app-on-the-employees-device-public-client).
 - **Client type** (**Где хранится секрет**):
   - **Серверное, с секретом** (confidential): your backend exchanges the code and is the only

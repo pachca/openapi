@@ -19,20 +19,23 @@ More: <https://dev.pachca.com/guides/bots/access.md>
 
 ## 2. The bot learns about the message
 
-- The outgoing webhook is on and points to your server. If the server cannot accept requests at
-  all, the bot polls the event history instead: `events_history_enabled: true`, set through the
-  API (no URL needed; the UI shows the toggle only after a URL is set), read with the event
-  history method (`GET /webhooks/events`). The bot token then needs `webhooks:events:read`, plus
-  `webhooks:events:delete` if the bot clears processed events.
+- The outgoing webhook is on, with a URL that points to your server, the event history, or
+  both. Without a URL and without history Pachca creates no events for the bot. If the server
+  cannot accept requests at all, the bot reads the history instead: **Включить** on the
+  **Исходящий вебхук** tab turns it on with no URL (API: `events_history_enabled: true`), and
+  the bot reads it with the event history method (`GET /webhooks/events`) or as a stream. The
+  bot token then needs `webhooks:events:read`, plus `webhooks:events:delete` if the bot clears
+  processed events.
   More: <https://dev.pachca.com/guides/webhook/polling.md>
 - The **Новые сообщения** (new messages) event is on, in **Любые сообщения** (any messages)
   mode or with the command that starts the conversation, for example `/start`. This applies to
   polling too.
-- With a webhook, the server verifies the request signature. Either way, the bot ignores its own
-  messages.
+- With a Webhook URL, the server verifies the request signature. Either way, the bot ignores its
+  own messages.
 
-Symptom: the employee writes, the bot stays silent. A new bot listens only to commands, and its
-command list is empty.
+Symptom: the employee writes, the bot stays silent. First check that the bot has a URL or
+history: without either Pachca creates no events for it. A new bot also listens only to
+commands, and its command list is empty.
 More: <https://dev.pachca.com/guides/bots/conversations.md>
 
 ## 3. The bot answers with the button

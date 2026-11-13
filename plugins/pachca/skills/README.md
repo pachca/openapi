@@ -1,0 +1,15 @@
+# Pachca skills
+
+The skills of the [Pachca plugin](../README.md). The descriptions of the MCP tools carry the rules of each API method; a skill covers a task that takes several steps. The agent reads a skill when a task matches it, and you can also call one directly, such as `/pachca:pachca-watch-thread` in Claude Code.
+
+| Skill | Helps with |
+| --- | --- |
+| [pachca](pachca/) | Connecting an agent or an MCP client to Pachca, checking the connection, choosing a token, sorting out a 401 or 403 refusal or a missing tool. It sends other tasks to the skills below |
+| [pachca-messaging](pachca-messaging/) | Writing to Pachca: markup, mentions, where to write (a thread, a reply with a quote, a direct message), a draft the employee sends, scheduled and recurring messages, files, reactions, pins, edits |
+| [pachca-search](pachca-search/) | Search, summaries and reminders: what each search covers, a whole thread, the problem or the remarks in a thread, a digest for a period, tasks turned into reminders, who is in a tag or a chat |
+| [pachca-watch-thread](pachca-watch-thread/) | Watching a thread and replying in it while the session is open, within the task you gave |
+| [pachca-admin](pachca-admin/) | Workspace administration: a new workspace, employees, tags and chat members, API access and the All tokens tab, the audit log, exports, DLP, the secure perimeter and encryption |
+| [pachca-bots](pachca-bots/) | Bots and integrations: an incoming webhook, a bot with events or an app with authorization, bot settings, tokens and scopes, chat access, receiving events, buttons, forms, link previews |
+| [pachca-ai-agent](pachca-ai-agent/) | A bot or MCP, and an AI agent that lives in Pachca as a bot: called by a mention or in a direct chat, it reads the thread, shows that it is thinking and answers in the thread |
+| [pachca-oauth](pachca-oauth/) | Authorization on behalf of an employee (OAuth 2.0 with PKCE): the OAuth tab, return addresses and scopes, the authorization link, the code exchange, storing and revoking tokens, the launch checklist |
+| [pachca-api](pachca-api/) | The Pachca API from code, scripts and CI: a token for a script or a service, all pages of a list, errors and retries without duplicates, files from code, SDK and generator, the CLI in scripts |

@@ -139,7 +139,7 @@ export const botFields: INodeProperties[] = [
 		type: 'string',
 		required: true,
 		default: "",
-		description: 'Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code. An empty string disables the webhook.',
+		description: 'Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code. An empty string clears the URL: events stop coming to it, and with event history on they keep being stored there.',
 		displayOptions: { show: { resource: ['bot'], operation: ['updateWebhook'] } },
 		placeholder: 'https://example.com/tasks/new',
 	},

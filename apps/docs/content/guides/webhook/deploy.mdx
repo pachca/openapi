@@ -57,11 +57,11 @@ related:
     Для потока токену бота нужно право `webhooks:events:read`, а чтобы удалять обработанные события из истории — `webhooks:events:delete`. Остальные права — как у рабочего бота, подробнее в разделе [Наборы прав под типовые задачи](/guides/permissions#nabory-prav-pod-tipovye-zadachi).
   </Step>
   <Step title="Посмотрите события в терминале">
-    Запустите команду [CLI](/guides/cli/overview) с токеном бота разработки: события бота пойдут в терминал по мере прихода, по одной строке JSON. Команда сама дожидается подтверждения подписки, дочитывает историю и меняет ссылку до истечения срока.
+    Запустите команду [CLI](/guides/cli/overview) с токеном бота разработки: события бота пойдут в терминал по мере прихода, по одной строке JSON. Команда сама дожидается подтверждения подписки, дочитывает историю и меняет ссылку до истечения срока. `npx` запускает CLI без установки, нужен Node.js 20.3.0 или новее.
 
     ```bash title="События бота в терминале"
     # PACHCA_BOT_TOKEN — токен бота разработки
-    PACHCA_TOKEN=$PACHCA_BOT_TOKEN pachca bots listen-events
+    PACHCA_TOKEN=$PACHCA_BOT_TOKEN npx -y @pachca/cli bots listen-events
     ```
 
     Если команда ответила `404`, токен не принадлежит боту, у бота выключена история событий или поток недоступен. Если переменная `PACHCA_BOT_TOKEN` пуста, команда берёт токен сохранённого профиля CLI, а он обычно персональный.
@@ -72,7 +72,7 @@ related:
     ```bash title="Пересылка событий обработчику"
     # PACHCA_SIGNING_SECRET — Signing secret бота разработки
     PACHCA_TOKEN=$PACHCA_BOT_TOKEN PACHCA_SIGNING_SECRET=$PACHCA_SIGNING_SECRET \
-      pachca bots listen-events --forward-to http://localhost:3000/webhook
+      npx -y @pachca/cli bots listen-events --forward-to http://localhost:3000/webhook
     ```
 
     **Signing secret** скопируйте на вкладке **Исходящий вебхук**: он виден и у бота без адреса вебхука. Через API секрет приходит в поле `webhook.secret_token`, подробнее в разделе [Через API](/guides/webhook/events#cherez-api).
@@ -135,6 +135,8 @@ related:
 ## Чек-лист перед запуском в работу
 
 Пройдите по списку перед запуском рабочего сервера. Адрес сервера в **Webhook URL** сохраняйте последним, как в пункте [Порядок запуска](#poryadok-zapuska).
+
+<AgentPrompt id="webhook-launch-check" />
 
 <Steps>
   <Step title="Безопасность">

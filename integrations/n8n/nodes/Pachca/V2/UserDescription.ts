@@ -422,7 +422,7 @@ export const userFields: INodeProperties[] = [
 { name: 'Multi Guest', value: 'multi_guest', description: 'Multi-guest' },
 { name: 'User', value: 'user', description: 'Employee' }],
 				default: "user",
-				description: 'Access level. A change between `user` and `admin` keeps the roles in the chats the employee already belongs to: those are changed by the [Change member role](PUT /chats/{ID}/members/{user_id}) method.',
+				description: 'Access level. A change between `user` and `admin` keeps the roles in the chats the employee already belongs to: those are changed by the [Change member role](PUT /chats/{ID}/members/{user_id}) method. Making an employee or a multi-guest a guest (`guest` with `chat_ids`) removes all their tags and takes them out of the other conversations and channels, direct messages and threads aside. In threads an administrator or editor becomes a member, and the thread owner stays the owner. All of their tokens, the access given to bots and apps included, are revoked and respond `401`. Promotion restores none of this.',
 			},
 			{
 				displayName: 'Suspended',

@@ -1311,8 +1311,6 @@ actions:
 
         The workspace owner can be edited only by themselves, and their role can be changed only to administrator, otherwise the response is `403`.
 
-        Making an employee or a multi-guest a guest (`guest` with `chat_ids`) removes all their tags and takes them out of the other conversations and channels, direct messages and threads aside. All of their tokens, the access given to bots and apps included, are revoked and respond `401`. Promotion restores none of this.
-
         An unknown role value is silently ignored by the method: the response is successful and the role stays as it was.
 
         For a bot the method changes only the name (`first_name`), nickname, tags and `suspended`, and skips the other fields in the request. Which nickname and which tags a bot can be given is said at the `nickname` and `list_tags` fields. If the bot's settings changed during the request, the `422` response comes with the `bot_changed_concurrently` code: retry the request.
@@ -1651,16 +1649,16 @@ actions:
       description: "Name of the device the sign-in is made from. Absent if the app did not pass it."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.application_id
     update:
-      description: "ID of the application that was allowed to log in"
+      description: "ID of the application that was allowed to log in. Absent for a sign-in to the Outlook add-in."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.application_name
     update:
-      description: "Application name. Absent in records before October 7, 2026."
+      description: "Application name. Absent for a sign-in to the Outlook add-in and in records before October 7, 2026."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.device_grant_id
     update:
       description: "ID of the login request"
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.token_kind
     update:
-      description: "Token kind: `cli` — CLI login. Absent in records before October 7, 2026."
+      description: "Token kind: `cli` — CLI login, `outlook` — sign-in to the Outlook add-in. Absent in records before October 7, 2026."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied
     update:
       description: 'For: oauth_device_authorization_denied'
@@ -1675,13 +1673,13 @@ actions:
       description: "Name of the device the sign-in was made from. Absent if the app did not pass it."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.application_id
     update:
-      description: "Application ID. Absent when a CLI sign-in is refused: an application is assigned to the sign-in only after it is confirmed."
+      description: "Application ID. Absent for a sign-in to the Outlook add-in and when a CLI sign-in is refused: an application is assigned to a CLI sign-in only after it is confirmed."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.device_grant_id
     update:
       description: "ID of the login request"
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.token_kind
     update:
-      description: "Token kind: `cli` — CLI login. Absent in records before October 7, 2026."
+      description: "Token kind: `cli` — CLI login, `outlook` — sign-in to the Outlook add-in. Absent in records before October 7, 2026."
   - target: $.components.schemas.AuditDetailsDlp
     update:
       description: 'For: dlp_violation_detected'
@@ -2431,7 +2429,7 @@ actions:
       description: Bot nickname
   - target: $.components.schemas.BotWebhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
+      description: "Outgoing webhook URL. `null` or an empty string if no URL is set: the bot then gets events only from the event history, if it is on."
   - target: $.components.schemas.BotWebhook.properties.events
     update:
       description: Events the bot is subscribed to
@@ -2491,7 +2489,7 @@ actions:
       description: Bot nickname
   - target: $.components.schemas.CompanyBotWebhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
+      description: "Outgoing webhook URL. `null` or an empty string if no URL is set: the bot then gets events only from the event history, if it is on."
   - target: $.components.schemas.CompanyBotWebhook.properties.events
     update:
       description: Events the bot is subscribed to
@@ -2539,13 +2537,13 @@ actions:
       description: Webhook parameters object
   - target: $.components.schemas.BotWebhookSelfUpdateRequest.properties.webhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code. An empty string disables the webhook."
+      description: "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code. An empty string clears the URL: events stop coming to it, and with event history on they keep being stored there."
   - target: $.paths['/bot/webhook'].put
     update:
       description: |-
         Bot webhook self-registration
 
-        Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without knowing its own `id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an empty string in `outgoing_url`.
+        Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without knowing its own `id`. The webhook of the bot that owns the token is changed. An empty string in `outgoing_url` clears the URL: events stop coming to it, and with event history on they keep being stored there.
 
         The address of a bot with link unfurling (the `message_link_shared` event or the `trigger_on: unfurl` mode) is changed only by a workspace administrator or owner, with [Edit bot](PUT /bots/{id}). To such a bot this method responds `400` with the `forbidden` code to any new address, an empty string included.
 
@@ -4391,7 +4389,7 @@ actions:
     update:
       description: >-
         Access level. A change between `user` and `admin` keeps the roles in the chats the employee already belongs
-        to: those are changed by the [Change member role](PUT /chats/{id}/members/{user_id}) method.
+        to: those are changed by the [Change member role](PUT /chats/{id}/members/{user_id}) method. Making an employee or a multi-guest a guest (`guest` with `chat_ids`) removes all their tags and takes them out of the other conversations and channels, direct messages and threads aside. In threads an administrator or editor becomes a member, and the thread owner stays the owner. All of their tokens, the access given to bots and apps included, are revoked and respond `401`. Promotion restores none of this.
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.chat_ids
     update:
       description: "The chat the employee keeps when made a guest (`role: \"guest\"`): exactly one active conversation or channel where the token may add members. Without such a chat the response is `400` on this field, and nothing changes. With other roles, and for someone already a guest, the field is ignored. When made a guest, an employee with an email on file gets an email about the role change with a link to this chat, even if they have not signed in to Pachca yet or are suspended. It does not count towards the daily limit of invitation emails."
@@ -5315,7 +5313,7 @@ actions:
       description: "Bot nickname"
   - target: $.components.schemas.BotSelfWebhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
+      description: "Outgoing webhook URL. `null` or an empty string if no URL is set: the bot then gets events only from the event history, if it is on."
   - target: $.components.schemas.BotSelfWebhook.properties.scopes
     update:
       description: "Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values that cannot be set explicitly may appear here."

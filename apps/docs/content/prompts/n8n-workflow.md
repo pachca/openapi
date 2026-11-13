@@ -2,7 +2,7 @@
 does: Агент соберёт сценарий n8n под вашу задачу, подготовит бота и чаты в Пачке и проверит, что сценарий срабатывает
 ---
 
-Собери сценарий n8n по странице https://dev.pachca.com/guides/n8n/workflows.md. Скачай её и ещё одну: `curl -sL https://dev.pachca.com/guides/n8n/workflows.md https://dev.pachca.com/guides/n8n/setup.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если и он не открыл страницу, остановись и скажи.
+Собери сценарий n8n по документации. Скачай страницы: `curl -sL https://dev.pachca.com/guides/n8n/overview.md https://dev.pachca.com/guides/n8n/workflows.md https://dev.pachca.com/guides/n8n/setup.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если и он не открыл страницу, остановись и скажи.
 
 Если у тебя нет инструментов Пачки, сначала подключи её по странице https://dev.pachca.com/guides/mcp/connect.md, потом я пришлю тебе этот запрос ещё раз.
 

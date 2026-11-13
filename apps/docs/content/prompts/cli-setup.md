@@ -4,7 +4,7 @@ mcp: false
 hint: Вставьте промпт в чат с ИИ-агентом, у которого есть терминал на вашей машине
 ---
 
-Настрой Pachca CLI по странице https://dev.pachca.com/guides/cli/installation.md. Скачай её и страницу о входе: `curl -sL https://dev.pachca.com/guides/cli/installation.md https://dev.pachca.com/guides/cli/authentication.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если и он не открыл страницу, остановись и скажи.
+Настрой Pachca CLI по документации. Скачай страницы: `curl -sL https://dev.pachca.com/guides/cli/overview.md https://dev.pachca.com/guides/cli/installation.md https://dev.pachca.com/guides/cli/authentication.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если и он не открыл страницу, остановись и скажи.
 
 1. Спроси меня, ставить CLI глобально или запускать через `npx -y @pachca/cli`. Если вход в CLI уже есть, спроси, оставить его или добавить профиль по разделу «Профили».
 2. Проверь, что Node.js подходит под требование страницы. Поставь CLI выбранным способом и проверь версию.

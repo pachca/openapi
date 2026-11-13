@@ -2,7 +2,7 @@
 does: Агент настроит боту события и режим новых сообщений, а потом проверит их в беседе
 ---
 
-Настрой события бота в Пачке по странице https://dev.pachca.com/guides/webhook/events.md. Скачай её и ещё одну: `curl -sL https://dev.pachca.com/guides/webhook/events.md https://dev.pachca.com/guides/webhook/polling.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если и он не открыл страницу, остановись и скажи.
+Настрой события бота в Пачке по документации. Скачай страницы: `curl -sL https://dev.pachca.com/guides/webhook/overview.md https://dev.pachca.com/guides/webhook/events.md https://dev.pachca.com/guides/webhook/polling.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если и он не открыл страницу, остановись и скажи.
 
 Если у тебя нет инструментов Пачки, сначала подключи её по странице https://dev.pachca.com/guides/mcp/connect.md, потом я пришлю тебе этот запрос ещё раз.
 

@@ -2,7 +2,7 @@
 does: Агент создаст бота с формой под вашу задачу, напишет обработчик и проверит в беседе ошибки под полями и ответ бота
 ---
 
-Создай бота Пачки с формой под мою задачу по странице https://dev.pachca.com/guides/forms/handling.md. Скачай её и ещё две: `curl -sL https://dev.pachca.com/guides/forms/handling.md https://dev.pachca.com/guides/forms/blocks.md https://dev.pachca.com/guides/bots/interactive.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если и он не открыл страницу, остановись и скажи.
+Создай бота Пачки с формой под мою задачу по документации. Скачай страницы: `curl -sL https://dev.pachca.com/guides/forms/overview.md https://dev.pachca.com/guides/forms/handling.md https://dev.pachca.com/guides/forms/blocks.md https://dev.pachca.com/guides/bots/interactive.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если и он не открыл страницу, остановись и скажи.
 
 Если у тебя нет инструментов Пачки, сначала подключи её по странице https://dev.pachca.com/guides/mcp/connect.md, потом я пришлю тебе этот запрос ещё раз.
 

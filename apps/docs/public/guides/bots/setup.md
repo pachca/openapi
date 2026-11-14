@@ -106,7 +106,14 @@ curl -X POST https://api.pachca.com/api/shared/v1/messages \
 
   ### Шаг 3. Запустите обработчик
 
-Подключите к обработчику события, как в разделе [Проверка](/guides/bots/conversations#proverka): адресом в **Webhook URL** или на своей машине командой CLI с токеном бота и **Signing secret**: `PACHCA_TOKEN=$PACHCA_BOT_TOKEN PACHCA_SIGNING_SECRET=$PACHCA_SIGNING_SECRET npx -y @pachca/cli bots listen-events --forward-to http://localhost:3000/webhook`. Команда рассчитана на бота с пустым **Webhook URL**, подробнее в разделе [Через CLI](/guides/webhook/polling#cherez-cli). Затем ответьте в треде под сообщением бота: бот ответит туда же. Перед запуском в рабочих чатах пройдите [Чек-лист перед запуском в работу](/guides/webhook/deploy#chek-list-pered-zapuskom-v-rabotu): там же повторы событий и порядок запуска.
+Подключите к обработчику события, как в разделе [Проверка](/guides/bots/conversations#proverka): адресом в **Webhook URL** или на своей машине командой CLI с токеном бота и **Signing secret**. Команда рассчитана на бота с пустым **Webhook URL**, подробнее в разделе [Через CLI](/guides/webhook/polling#cherez-cli).
+
+```bash
+PACHCA_TOKEN=$PACHCA_BOT_TOKEN PACHCA_SIGNING_SECRET=$PACHCA_SIGNING_SECRET \
+  npx -y @pachca/cli bots listen-events --forward-to http://localhost:3000/webhook
+```
+
+Затем ответьте в треде под сообщением бота: бот ответит туда же. Перед запуском в рабочих чатах пройдите [Чек-лист перед запуском в работу](/guides/webhook/deploy#chek-list-pered-zapuskom-v-rabotu): там же повторы событий и порядок запуска.
 
 
 ## Создание бота через API

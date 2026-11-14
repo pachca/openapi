@@ -411,7 +411,12 @@ python bot.py
 Запустите обработчик и подключите к нему события одним из способов:
 
 - **Адрес в интернете** — укажите адрес обработчика в **Webhook URL**, например `https://bot.example.com/webhook`, как в разделе [Что настроить](#chto-nastroit).
-- **Своя машина** — команда CLI `PACHCA_TOKEN=$PACHCA_BOT_TOKEN PACHCA_SIGNING_SECRET=$PACHCA_SIGNING_SECRET npx -y @pachca/cli bots listen-events --forward-to http://localhost:3000/webhook` пересылает события обработчику без публичного адреса и подписывает их секретом из `PACHCA_SIGNING_SECRET`. **Webhook URL** у такого бота пустой, а токену нужны ещё права `webhooks:events:read` и `webhooks:events:delete`. Подойдёт и туннель с адресом в **Webhook URL**. С обоими способами обработчик работает без изменений, подробнее в разделе [Разработка и запуск обработчика](/guides/webhook/deploy).
+- **Своя машина** — команда CLI ниже пересылает события обработчику без публичного адреса и подписывает их секретом из `PACHCA_SIGNING_SECRET`. **Webhook URL** у такого бота пустой, а токену нужны ещё права `webhooks:events:read` и `webhooks:events:delete`. Подойдёт и туннель с адресом в **Webhook URL**. С обоими способами обработчик работает без изменений, подробнее в разделе [Разработка и запуск обработчика](/guides/webhook/deploy).
+
+```bash
+PACHCA_TOKEN=$PACHCA_BOT_TOKEN PACHCA_SIGNING_SECRET=$PACHCA_SIGNING_SECRET \
+  npx -y @pachca/cli bots listen-events --forward-to http://localhost:3000/webhook
+```
 
 Напишите в беседе с ботом или ответьте в треде под его сообщением: бот ответит в тред. Если ответа нет:
 

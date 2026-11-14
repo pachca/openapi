@@ -12,6 +12,28 @@ const PROMPTS_DIR = path.join(process.cwd(), 'content', 'prompts');
 /** Заголовок блока, если файл промпта не задаёт свой */
 const DEFAULT_TITLE = 'Сделать с агентом';
 
+const SITE = 'https://dev.pachca.com';
+
+/**
+ * Общая часть первого абзаца: откуда взять страницы и когда остановиться. Она одна на все
+ * промпты, поэтому лежит здесь, а не в каждом файле: так её меняют в одном месте, а файл
+ * промпта держит только задачу и шаги. Curl идёт первым, потому что инструмент для веба
+ * у агентов отдаёт пересказ страницы и теряет детали.
+ */
+function fetchSentence(pages: string[], mcp: boolean): string {
+  const urls = pages.map((page) => `${SITE}/${page}.md`).join(' ');
+  const one = pages.length === 1;
+  const fetch = one
+    ? 'Скачай страницу документации и делай по ней'
+    : 'Скачай страницы документации и делай по ним';
+  const failed = one ? 'страница не открылась' : 'страницы не открылись';
+  const orNoPachca = mcp ? ' или у тебя нет инструментов Пачки' : '';
+  return (
+    `${fetch}: \`curl -sL ${urls}\`. Инструмент для веба отдаёт пересказ, бери его, ` +
+    `только если curl не сработал. Если ${failed} и так${orNoPachca}, остановись и скажи.`
+  );
+}
+
 export interface AgentPromptData {
   id: string;
   /** Заголовок блока */
@@ -22,7 +44,13 @@ export interface AgentPromptData {
   mcp: boolean;
   /** Своя подпись под промптом вместо общей: куда его вставить */
   hint?: string;
-  /** Текст промпта, который копирует читатель: дословно, без первой и последней пустой строки */
+  /**
+   * Страницы, по которым агент делает задачу, вида `guides/bots/first-bot`: первая — та, где
+   * стоит блок. По ним собирается общая часть первого абзаца. Без поля текст берётся из файла
+   * как есть (так устроен промпт подключения: он совпадает с экраном в приложении).
+   */
+  pages: string[];
+  /** Текст промпта, который копирует читатель: первый абзац файла с общей частью и остальной текст */
   text: string;
 }
 
@@ -35,14 +63,23 @@ function readPrompt(id: string): AgentPromptData {
   if (typeof data.does !== 'string' || !data.does.trim()) {
     throw new Error(`content/prompts/${id}.md: во фронтматтере нужна строка does`);
   }
+  const pages = Array.isArray(data.pages) ? data.pages.map(String) : [];
+  const mcp = data.mcp !== false;
+  // CRLF from a Windows checkout would count twice toward the limit and reach the clipboard.
+  const body = content.replace(/\r\n?/g, '\n').trim();
+  let text = body;
+  if (pages.length > 0) {
+    const [task, ...rest] = body.split('\n\n');
+    text = [`${task} ${fetchSentence(pages, mcp)}`, ...rest].join('\n\n');
+  }
   return {
     id,
     title: typeof data.title === 'string' && data.title.trim() ? data.title.trim() : DEFAULT_TITLE,
     does: data.does.trim(),
-    mcp: data.mcp !== false,
+    mcp,
     hint: typeof data.hint === 'string' && data.hint.trim() ? data.hint.trim() : undefined,
-    // CRLF from a Windows checkout would count twice toward the limit and reach the clipboard.
-    text: content.replace(/\r\n?/g, '\n').trim(),
+    pages,
+    text,
   };
 }
 

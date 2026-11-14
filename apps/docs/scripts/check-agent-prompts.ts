@@ -18,13 +18,12 @@ const CONTENT = path.join(DOCS, 'content');
 const PUBLIC = path.join(DOCS, 'public');
 const PROMPTS = path.join(CONTENT, 'prompts');
 const SITE = 'https://dev.pachca.com';
-const CONNECT_URL = `${SITE}/guides/mcp/connect.md`;
 
 /** Hosts a prompt may name. Anything else is a typo or another vendor's address. */
 const ALLOWED_HOSTS = new Set(['dev.pachca.com', 'mcp.pachca.com', 'app.pachca.com', 'localhost']);
-const FRONTMATTER_KEYS = new Set(['title', 'does', 'mcp', 'hint']);
+const FRONTMATTER_KEYS = new Set(['title', 'does', 'mcp', 'hint', 'pages']);
 const MIN_CHARS = 300;
-const MAX_CHARS = 1500;
+const MAX_CHARS = 1350;
 const CAPTION_MAX_CHARS = 120;
 
 const errors: string[] = [];
@@ -187,8 +186,22 @@ for (const prompt of prompts) {
   if (!text.includes(`curl -sL ${homeUrl}`)) {
     fail(where, `нет команды «curl -sL ${homeUrl}»: ею агент скачивает страницу целиком`);
   }
-  if (prompt.mcp && !text.includes(CONNECT_URL)) {
-    fail(where, `нет фразы для агента без инструментов Пачки со ссылкой ${CONNECT_URL}`);
+  // The opening with curl is assembled from `pages` in lib/agent-prompts.ts: the first page is
+  // the one that shows the block, and the file itself does not repeat the common sentence.
+  if ('pages' in data) {
+    const listed = Array.isArray(data.pages) ? data.pages : [];
+    if (listed.length === 0 || !listed.every((page) => typeof page === 'string')) {
+      fail(where, 'поле pages: список страниц вида guides/bots/first-bot');
+    } else if (listed[0] !== routeOf(home)) {
+      fail(where, `поле pages: первой идёт страница с блоком, ${routeOf(home)}`);
+    }
+    const { content } = matter(fs.readFileSync(path.join(PROMPTS, `${prompt.id}.md`), 'utf-8'));
+    if (content.includes('Инструмент для веба отдаёт пересказ')) {
+      fail(
+        where,
+        'общую фразу про curl и инструмент для веба собирает шаблон: уберите её из файла'
+      );
+    }
   }
 
   // «из раздела «…»», «по шагам «…», «…» и «…»»: every section and step the prompt names

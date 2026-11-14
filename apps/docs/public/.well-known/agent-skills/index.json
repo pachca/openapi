@@ -13,14 +13,14 @@
       "type": "archive",
       "description": "Администрирование пространства Пачки: новое пространство, сотрудники, теги и участники чатов, доступ к API и «Все токены», журнал аудита, экспорт, DLP, безопасный контур и шифрование, и что требует владельца, администратора или «Корпорации». Load before a tool call that changes an employee: delete only after a yes to your question. Когда: «подготовь Пачку к работе команды», «настрой новое пространство», «пригласи сотрудника», «уволь / удали сотрудника», «сделай администратором», «добавь в тег», «добавь участника чата», «кто в закрытом канале, где я не состою», «доступ к API ограничен», «отзови доступ сотрудника к API», «журнал аудита», «выгрузи переписку», «правило DLP», \"set up a new workspace\", \"invite an employee\", \"add or remove chat members\", \"let employees create tokens\". Not for: a missing tool or a general 401/403 → pachca; who is in a tag or chat → pachca-search; writing messages → pachca-messaging; a bot's own token → pachca-bots; an app acting for employees → pachca-oauth; scripts → pachca-api.",
       "url": "/.well-known/agent-skills/pachca-admin.tar.gz",
-      "digest": "sha256:73f8b122676858c3437d88b27e606612434f2ab96e8d70bf7b86fb0c54d56c2a"
+      "digest": "sha256:657e0ef7995bf5e86c0416b843088cf093f2e45a724821233adb4743ad617049"
     },
     {
       "name": "pachca-ai-agent",
       "type": "archive",
       "description": "Решить, бот или MCP, и сделать AI-агента в Пачке в виде бота: его зовут упоминанием в чате или треде либо пишут ему в личный чат, он собирает контекст треда, показывает таймер agent-thinking, отвечает в треде и оформляет длинный ответ карточкой .md. Когда: «AI-агент в Пачке», «агент отвечает по упоминанию в треде», «агент не слышит упоминание», «бот-агент в личных сообщениях», «как агенту собрать контекст треда», «реакция agent-thinking», «длинный ответ агента карточкой .md», «бот или MCP», \"AI agent bot in Pachca\", \"agent replies when mentioned\", \"agent does not hear a mention\", \"read thread context\", \"thinking indicator\", \"agent reply as an .md card\", \"bot vs MCP\". Not for: working in Pachca from Claude or Cursor through MCP → pachca, pachca-messaging, pachca-search; drafts and scheduled messages (a bot cannot make them), sending a file or report from Claude, Cursor or the CLI → pachca-messaging; webhooks, tokens and settings of any bot → pachca-bots; acting on behalf of an employee → pachca-oauth.",
       "url": "/.well-known/agent-skills/pachca-ai-agent.tar.gz",
-      "digest": "sha256:5c0c9e4de4bcc72fa8aa2f96b24e464c36481a15c9beb04fa33a5233939751ea"
+      "digest": "sha256:849027563dca1203f420b4af77b9838e77911570c18172703a36dc485dcbace1"
     },
     {
       "name": "pachca-api",
@@ -34,7 +34,7 @@
       "type": "archive",
       "description": "Бот или интеграция в Пачке: что выбрать (входящий вебхук, бот с событиями, приложение с авторизацией), создание и настройки бота, токены и права, доступ к чатам, приём событий (подпись, повторы, дубли, история и поток), кнопки, формы, разворачивание ссылок, витрина. Когда: «сделать бота», «уведомления из CRM и CI», «входящий вебхук», «исходящий вебхук», «события бота без публичного адреса», «бот не получает сообщения», «проверить подпись вебхука», «кнопки в сообщении бота», «форма, модальное окно», «превью ссылок, unfurl», «права токена бота», «токен бота утёк», «бот в витрине», \"build a Pachca bot\", \"incoming webhook\", \"outgoing webhook\", \"bot events, no public URL\", \"bot gets no events\", \"verify webhook signature\", \"message buttons\", \"modal form\", \"link unfurling\", \"leaked bot token\". Not for: an AI agent that answers in threads or does not hear a mention → pachca-ai-agent; an app acting for an employee → pachca-oauth; scripts, pagination, 429 → pachca-api; writing messages yourself → pachca-messaging.",
       "url": "/.well-known/agent-skills/pachca-bots.tar.gz",
-      "digest": "sha256:0398e7bf29b9501009b2b405cf6593ed11918c2722840950df933376413572a9"
+      "digest": "sha256:17557aec62222c9f4d2c03b5aa32ceab984ced10fe08e7c0ac99aefb72aa28b2"
     },
     {
       "name": "pachca-messaging",
@@ -48,7 +48,7 @@
       "type": "archive",
       "description": "Авторизация от имени сотрудника в Пачке (OAuth 2.0 с PKCE): когда боту нужен собственный токен сотрудника, вкладка OAuth, адреса возврата и набор прав, ссылка на авторизацию, обмен кода на токен, проверка владельца токена, хранение токена каждого сотрудника, повторная авторизация, отзыв доступа, список проверок перед запуском. Когда: «бот от имени сотрудника», «авторизация от имени сотрудника», «OAuth в Пачке», «client_id и client_secret», «redirect URI», «обменять код на токен», «PKCE», «экран согласия моего бота», «кнопка Предоставить доступ», «сотрудник отозвал доступ», «токен сотрудника вернул 401 или 403», \"Pachca OAuth\", \"act on behalf of a user\", \"authorization code flow\", \"exchange code for token\", \"my bot's OAuth consent screen\", \"per-user token for my bot\". Not for: a bot acting as itself, webhooks, showcase, a leaked bot token → pachca-bots; MCP sign-in, a 401/403 from an MCP tool or the CLI → pachca; your own token in a script → pachca-api; revoking access on the All tokens tab → pachca-admin.",
       "url": "/.well-known/agent-skills/pachca-oauth.tar.gz",
-      "digest": "sha256:fe906cc310f2f73a599e6f43f81768405792d12fe6bd74a371de7bace42a1253"
+      "digest": "sha256:4e7c47ef53ca35973cf42e3b4d0c8f5b943926e371fef28dc53ddd05bba40640"
     },
     {
       "name": "pachca-search",

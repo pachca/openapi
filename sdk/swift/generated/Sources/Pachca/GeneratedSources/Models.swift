@@ -2630,12 +2630,12 @@ public struct AuditDetailsDeviceAuthorizationApproved: Codable {
     public let clientId: String
     public let scopes: [String]
     public let deviceName: String?
-    public let applicationId: Int
+    public let applicationId: Int?
     public let applicationName: String?
     public let deviceGrantId: Int
     public let tokenKind: String?
 
-    public init(clientId: String, scopes: [String], deviceName: String? = nil, applicationId: Int, applicationName: String? = nil, deviceGrantId: Int, tokenKind: String? = nil) {
+    public init(clientId: String, scopes: [String], deviceName: String? = nil, applicationId: Int? = nil, applicationName: String? = nil, deviceGrantId: Int, tokenKind: String? = nil) {
         self.clientId = clientId
         self.scopes = scopes
         self.deviceName = deviceName

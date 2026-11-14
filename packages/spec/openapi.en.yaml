@@ -298,8 +298,8 @@ paths:
 
 
         Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without
-        knowing its own `id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an
-        empty string in `outgoing_url`.
+        knowing its own `id`. The webhook of the bot that owns the token is changed. An empty string in `outgoing_url`
+        clears the URL: events stop coming to it, and with event history on they keep being stored there.
 
 
         The address of a bot with link unfurling (the `message_link_shared` event or the `trigger_on: unfurl` mode) is
@@ -8941,11 +8941,6 @@ paths:
         otherwise the response is `403`.
 
 
-        Making an employee or a multi-guest a guest (`guest` with `chat_ids`) removes all their tags and takes them out
-        of the other conversations and channels, direct messages and threads aside. All of their tokens, the access
-        given to bots and apps included, are revoked and respond `401`. Promotion restores none of this.
-
-
         An unknown role value is silently ignored by the method: the response is successful and the role stays as it
         was.
 
@@ -10484,7 +10479,6 @@ components:
       required:
         - client_id
         - scopes
-        - application_id
         - device_grant_id
       properties:
         client_id:
@@ -10501,17 +10495,19 @@ components:
         application_id:
           type: integer
           format: int32
-          description: ID of the application that was allowed to log in
+          description: ID of the application that was allowed to log in. Absent for a sign-in to the Outlook add-in.
         application_name:
           type: string
-          description: Application name. Absent in records before October 7, 2026.
+          description: Application name. Absent for a sign-in to the Outlook add-in and in records before October 7, 2026.
         device_grant_id:
           type: integer
           format: int32
           description: ID of the login request
         token_kind:
           type: string
-          description: 'Token kind: `cli` — CLI login. Absent in records before October 7, 2026.'
+          description: >-
+            Token kind: `cli` — CLI login, `outlook` — sign-in to the Outlook add-in. Absent in records before October
+            7, 2026.
       description: 'For: oauth_device_authorization_approved'
     AuditDetailsDeviceAuthorizationDenied:
       type: object
@@ -10535,15 +10531,17 @@ components:
           type: integer
           format: int32
           description: >-
-            Application ID. Absent when a CLI sign-in is refused: an application is assigned to the sign-in only after
-            it is confirmed.
+            Application ID. Absent for a sign-in to the Outlook add-in and when a CLI sign-in is refused: an application
+            is assigned to a CLI sign-in only after it is confirmed.
         device_grant_id:
           type: integer
           format: int32
           description: ID of the login request
         token_kind:
           type: string
-          description: 'Token kind: `cli` — CLI login. Absent in records before October 7, 2026.'
+          description: >-
+            Token kind: `cli` — CLI login, `outlook` — sign-in to the Outlook add-in. Absent in records before October
+            7, 2026.
       description: 'For: oauth_device_authorization_denied'
     AuditDetailsDlp:
       type: object
@@ -12161,7 +12159,9 @@ components:
         outgoing_url:
           type: string
           nullable: true
-          description: Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured.
+          description: >-
+            Outgoing webhook URL. `null` or an empty string if no URL is set: the bot then gets events only from the
+            event history, if it is on.
           example: https://example.com/tasks/new
         events:
           type: array
@@ -12492,7 +12492,9 @@ components:
         outgoing_url:
           type: string
           nullable: true
-          description: Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured.
+          description: >-
+            Outgoing webhook URL. `null` or an empty string if no URL is set: the bot then gets events only from the
+            event history, if it is on.
           example: https://example.com/tasks/new
         events:
           type: array
@@ -12640,7 +12642,8 @@ components:
               description: >-
                 Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is
                 `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or
-                `webhook_url_forbidden` code. An empty string disables the webhook.
+                `webhook_url_forbidden` code. An empty string clears the URL: events stop coming to it, and with event
+                history on they keep being stored there.
               example: https://example.com/tasks/new
           required:
             - outgoing_url
@@ -13159,7 +13162,9 @@ components:
         outgoing_url:
           type: string
           nullable: true
-          description: Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured.
+          description: >-
+            Outgoing webhook URL. `null` or an empty string if no URL is set: the bot then gets events only from the
+            event history, if it is on.
           example: https://example.com/tasks/new
         events:
           type: array
@@ -16683,6 +16688,10 @@ components:
               description: >-
                 Access level. A change between `user` and `admin` keeps the roles in the chats the employee already
                 belongs to: those are changed by the [Change member role](PUT /chats/{id}/members/{user_id}) method.
+                Making an employee or a multi-guest a guest (`guest` with `chat_ids`) removes all their tags and takes
+                them out of the other conversations and channels, direct messages and threads aside. In threads an
+                administrator or editor becomes a member, and the thread owner stays the owner. All of their tokens, the
+                access given to bots and apps included, are revoked and respond `401`. Promotion restores none of this.
               example: user
             chat_ids:
               type: array

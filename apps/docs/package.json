@@ -18,6 +18,7 @@
     "check-anchors": "node scripts/check-anchors.mjs",
     "check-n8n-resources": "node scripts/check-n8n-resources.mjs",
     "check-sdk-install": "node scripts/check-sdk-install.mjs",
+    "check-agent-prompts": "bun scripts/check-agent-prompts.ts",
     "test": "bun scripts/test-accept-markdown.ts && bun scripts/test-search.ts"
   },
   "dependencies": {

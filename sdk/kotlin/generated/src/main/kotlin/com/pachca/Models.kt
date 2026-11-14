@@ -1780,7 +1780,7 @@ data class AuditDetailsDeviceAuthorizationApproved(
     @SerialName("client_id") val clientId: String,
     val scopes: List<String>,
     @SerialName("device_name") val deviceName: String? = null,
-    @SerialName("application_id") val applicationId: Int,
+    @SerialName("application_id") val applicationId: Int? = null,
     @SerialName("application_name") val applicationName: String? = null,
     @SerialName("device_grant_id") val deviceGrantId: Int,
     @SerialName("token_kind") val tokenKind: String? = null,

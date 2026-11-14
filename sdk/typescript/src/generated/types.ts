@@ -1096,7 +1096,7 @@ export interface AuditDetailsDeviceAuthorizationApproved {
   clientId: string;
   scopes: string[];
   deviceName?: string;
-  applicationId: number;
+  applicationId?: number;
   applicationName?: string;
   deviceGrantId: number;
   tokenKind?: string;

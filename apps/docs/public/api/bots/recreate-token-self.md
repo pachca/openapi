@@ -40,7 +40,7 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bot/recreate_token" \
   - `webhook: object` (required) — Объект параметров вебхука
     - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
     - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-    - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+    - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если адрес не задан: бот тогда получает события только из истории событий, если она включена. Пример: `"https://example.com/tasks/new"`
     - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)

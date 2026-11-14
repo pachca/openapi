@@ -2768,7 +2768,7 @@ public class AuditDetailsDeviceAuthorizationApproved : AuditEventDetailsUnion
     [JsonPropertyName("device_name")]
     public string? DeviceName { get; set; }
     [JsonPropertyName("application_id")]
-    public int ApplicationId { get; set; } = default!;
+    public int? ApplicationId { get; set; }
     [JsonPropertyName("application_name")]
     public string? ApplicationName { get; set; }
     [JsonPropertyName("device_grant_id")]
@@ -3419,7 +3419,7 @@ internal static class UnionRequiredKeys
         ["AuditDetailsBotOAuthClient"] = (new[] { "bot_id", "client_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsOAuthAuthorizationGranted"] = (new[] { "scopes", "application_id", "authorization_grant_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsOAuthAuthorizationRevoked"] = (new[] { "client_id", "revoked_tokens_count", "application_id" }, Array.Empty<(string, string)>()),
-        ["AuditDetailsDeviceAuthorizationApproved"] = (new[] { "client_id", "scopes", "application_id", "device_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsDeviceAuthorizationApproved"] = (new[] { "client_id", "scopes", "device_grant_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsDeviceAuthorizationDenied"] = (new[] { "client_id", "scopes", "device_grant_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsVideoCallStarted"] = (new[] { "chat_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsVideoCallFinished"] = (new[] { "chat_id", "max_members_count" }, Array.Empty<(string, string)>()),

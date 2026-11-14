@@ -806,9 +806,9 @@ type AuditDetailsChatRenamed struct {
 type AuditDetailsDeviceAuthorizationApproved struct {
 	ClientID        string   `json:"client_id"`
 	Scopes          []string `json:"scopes"`
-	ApplicationID   int32    `json:"application_id"`
 	DeviceGrantID   int32    `json:"device_grant_id"`
 	DeviceName      *string  `json:"device_name,omitempty"`
+	ApplicationID   *int32   `json:"application_id,omitempty"`
 	ApplicationName *string  `json:"application_name,omitempty"`
 	TokenKind       *string  `json:"token_kind,omitempty"`
 }
@@ -2812,7 +2812,7 @@ var requiredShapes = map[string]requiredShape{
 	"AuditDetailsBotOAuthClient":              {keys: []string{"bot_id", "client_id"}},
 	"AuditDetailsOAuthAuthorizationGranted":   {keys: []string{"scopes", "application_id", "authorization_grant_id"}},
 	"AuditDetailsOAuthAuthorizationRevoked":   {keys: []string{"client_id", "revoked_tokens_count", "application_id"}},
-	"AuditDetailsDeviceAuthorizationApproved": {keys: []string{"client_id", "scopes", "application_id", "device_grant_id"}},
+	"AuditDetailsDeviceAuthorizationApproved": {keys: []string{"client_id", "scopes", "device_grant_id"}},
 	"AuditDetailsDeviceAuthorizationDenied":   {keys: []string{"client_id", "scopes", "device_grant_id"}},
 	"AuditDetailsVideoCallStarted":            {keys: []string{"chat_id"}},
 	"AuditDetailsVideoCallFinished":           {keys: []string{"chat_id", "max_members_count"}},

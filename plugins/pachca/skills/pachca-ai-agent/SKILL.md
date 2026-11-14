@@ -52,7 +52,8 @@ What actually differs:
 - **They combine.** The MCP server accepts a bot token in the `Authorization`
   header, so a bot agent whose runtime speaks MCP can make its calls through
   `https://mcp.pachca.com/mcp`. Messages still reach the agent through the
-  outgoing webhook (or the event history, polled or as a live stream).
+  outgoing webhook: on its URL, from the event history (polled or as a live
+  stream), or both.
 - **MCP costs context.** The tool list depends on the token (role, plan, token
   kind), and all tool descriptions together take tens of thousands of tokens.
   If the runtime allows, turn off the tools the agent does not need.
@@ -60,9 +61,11 @@ What actually differs:
 ## Set up the bot for an agent
 
 1. **One bot per agent.** A separate bot separates rights, tokens and logic.
-2. **Outgoing webhook** with a URL reachable from the internet (a tunnel for
-   development, or the event history, polled or as a live stream, if you cannot
-   accept requests → `pachca-bots`).
+2. **Outgoing webhook**: «Включить» on the «Исходящий вебхук» tab, then pick
+   how events reach the agent: a URL reachable from the internet (a tunnel for
+   development), the event history polled or as a live stream if you cannot
+   accept requests, or both. With neither, Pachca creates no events for the bot
+   → `pachca-bots`.
 3. **Event «Новые сообщения» (`message_new`) in the «Любые сообщения» (any
    messages) mode.** There is no "mentions only" mode: the agent gets every
    message and decides itself whether it is addressed. A new bot listens only to
@@ -70,7 +73,8 @@ What actually differs:
    hears nothing.
 4. **«Игнорировать свои сообщения»** (ignore own messages) on, or compare the
    event's `user_id` with the bot's `id`. Otherwise the agent answers itself.
-5. **Signature check** with the Signing secret on every request → `pachca-bots`.
+5. **Signature check** with the Signing secret on every request to the URL →
+   `pachca-bots`.
 6. **Token scopes** for the loop: `messages:create` (reply), `threads:create`
    (reply as a thread), `reactions:write` (thinking reaction), `messages:read`
    and `chats:read` (history and members), `profile:read` (own `id`, name and
@@ -225,6 +229,10 @@ employee sees how long the agent has been working. The timer runs up to 5 minute
 
 ## Pitfalls
 
+- Debugging a silent agent before checking the bot info: with neither
+  `outgoing_url` nor `events_history_enabled: true` Pachca creates no events for
+  the bot, and the missed ones never come back. Check this first, then the
+  message mode and membership → `pachca-bots`.
 - Waiting for a "mentions only" mode — it does not exist; pick «Любые сообщения».
 - Testing mentions with a new bot: it is non-public, and a mention does not
   bring a non-public bot into a thread. Make it public or add it as a member.

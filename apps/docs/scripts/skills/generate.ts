@@ -1018,6 +1018,17 @@ export function publishSkills(): PublishedFile[] {
   const readme = path.join(PLUGIN_DIR, 'README.md');
   if (fs.existsSync(readme))
     checkMarkdown(fs.readFileSync(readme, 'utf8'), `${PLUGIN_REL}/README.md`, ctx);
+  // The index GitHub shows for the skills folder: a skill missing from it is invisible there.
+  const skillsReadme = path.join(SOURCE_DIR, 'README.md');
+  if (!fs.existsSync(skillsReadme)) problems.push(`${SOURCE_REL}/README.md: missing`);
+  else {
+    const index = fs.readFileSync(skillsReadme, 'utf8');
+    checkMarkdown(index, `${SOURCE_REL}/README.md`, ctx);
+    for (const s of all) {
+      if (!index.includes(`](${s.name}/)`))
+        problems.push(`${SOURCE_REL}/README.md: no line for the ${s.name} skill`);
+    }
+  }
   const pluginFiles = checkPlugin(problems);
 
   const entry = skills.find((s) => s.name === ENTRY_SKILL);

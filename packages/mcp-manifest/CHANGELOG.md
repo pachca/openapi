@@ -18,6 +18,7 @@ Texts only: making someone a guest, an empty outgoing webhook URL, forms, the Ou
 - `pachca_request_export`: a thread comes with the chat of its parent message. `pachca_get_audit_events`: what `user_chat_leave` records and whom the `actor_id` filter finds.
 - Clearer `pachca_pin_message`, `pachca_delete_message`, `pachca_create_thread`, draft files, and main token rotation: the new main token gets a new ID and no name.
 - `pachca_update_message`, `pachca_delete_message` and `pachca_archive_chat`: messages in the feed of an archived chat are neither edited nor deleted, while comments in its threads are posted, edited and deleted as usual.
+- `pachca_create_bot` names `scopes` and `kind` as its own arguments, without pointing to a `webhook` object the tool does not have.
 
 ## 1.8.0 (2026-11-12)
 

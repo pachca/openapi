@@ -52,6 +52,7 @@ _13 ноября 2026_
 - `pachca messages list`: курсор не хранит направление, `--order` передают и вместе с `--cursor`
 - Уточнена справка флагов `pachca chats request-export`, `pachca messages create`, `pachca messages unfurl` и `pachca security list`
 - `pachca messages update`, `pachca messages delete` и `pachca chats archive`: в справке сказано, что комментарии в тредах архивного чата правятся и удаляются как обычно
+- `pachca bots create`: в справке `scopes` и `kind` названы без отсылки к объекту `webhook`
 
 ### n8n Node v2.2.8
 
@@ -79,6 +80,7 @@ _13 ноября 2026_
 - `pachca_request_export`: тред выгружается с чатом родительского сообщения. `pachca_get_audit_events`: что записывает `user_chat_leave` и кого находит фильтр `actor_id`
 - Уточнены `pachca_pin_message`, `pachca_delete_message`, `pachca_create_thread`, `pachca_create_draft` (файлы черновика) и пересоздание токена бота: новый основной токен получает новый ID и без имени
 - `pachca_update_message`, `pachca_delete_message` и `pachca_archive_chat`: в ленте архивного чата сообщения не правятся и не удаляются, а комментарии в его тредах пишутся, правятся и удаляются как обычно
+- `pachca_create_bot`: `scopes` и `kind` в описании названы аргументами инструмента, без отсылки к объекту `webhook`, которого у инструмента нет
 
 ### SDK-генератор v1.4.1
 

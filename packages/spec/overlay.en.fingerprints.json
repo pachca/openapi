@@ -1217,7 +1217,7 @@
 		"$.paths['/bots'].get.parameters[?(@.name=='cursor')].description": "bf46e5b9db5fb5ca",
 		"$.paths['/bots'].get.parameters[?(@.name=='limit')].description": "912e9f82610a4aa4",
 		"$.paths['/bots'].get.parameters[?(@.name=='query')].description": "4246bc97dee81026",
-		"$.paths['/bots'].post.description": "99870fdb7840ae81",
+		"$.paths['/bots'].post.description": "0d5560b5b8f33db7",
 		"$.paths['/bots/{id}'].delete.description": "b7aa23b0a497d361",
 		"$.paths['/bots/{id}'].delete.parameters[?(@.name=='id')].description": "7f144ab93d026143",
 		"$.paths['/bots/{id}'].get.description": "ef62e4607ac9468e",

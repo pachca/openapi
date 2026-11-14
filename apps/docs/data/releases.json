@@ -70,6 +70,10 @@
       {
         "type": "~",
         "description": "`pachca messages update`, `pachca messages delete` и `pachca chats archive`: в справке сказано, что комментарии в тредах архивного чата правятся и удаляются как обычно"
+      },
+      {
+        "type": "~",
+        "description": "`pachca bots create`: в справке `scopes` и `kind` названы без отсылки к объекту `webhook`"
       }
     ]
   },
@@ -168,6 +172,10 @@
       {
         "type": "~",
         "description": "`pachca_update_message`, `pachca_delete_message` и `pachca_archive_chat`: в ленте архивного чата сообщения не правятся и не удаляются, а комментарии в его тредах пишутся, правятся и удаляются как обычно"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_create_bot`: `scopes` и `kind` в описании названы аргументами инструмента, без отсылки к объекту `webhook`, которого у инструмента нет"
       }
     ]
   },

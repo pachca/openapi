@@ -12,6 +12,7 @@
 - **Изменено** (messages list): Курсор не хранит направление: `--order` передают и вместе с `--cursor`
 - **Изменено**: Уточнена справка флагов `pachca chats request-export`, `pachca messages create`, `pachca messages unfurl` и `pachca security list`
 - **Изменено**: `pachca messages update`, `pachca messages delete` и `pachca chats archive`: в справке сказано, что комментарии в тредах архивного чата правятся и удаляются как обычно
+- **Изменено** (bots create): В справке `scopes` и `kind` названы без отсылки к объекту `webhook`
 
 ## 2026.11.3  (12 ноября 2026)
 

@@ -49,6 +49,11 @@
       {
         "type": "~",
         "description": "`pachca messages update`, `pachca messages delete` и `pachca chats archive`: в справке сказано, что комментарии в тредах архивного чата правятся и удаляются как обычно"
+      },
+      {
+        "type": "~",
+        "command": "bots create",
+        "description": "В справке `scopes` и `kind` названы без отсылки к объекту `webhook`"
       }
     ]
   },

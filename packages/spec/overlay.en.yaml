@@ -2295,7 +2295,7 @@ actions:
 
         Creates a bot in the workspace. By default the bot gets an incoming webhook in its own format and immediately returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to reissue it with [Bot token rotation](POST /bots/{id}/recreate_token).
 
-        With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without an incoming webhook and, unless `scopes` is passed in the `webhook` object, without a token. Tokens are issued to it with [New bot token](POST /bots/{id}/tokens), and the incoming webhook is enabled with the `kind` field in the `webhook` object.
+        With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without an incoming webhook and, unless `scopes` is passed, without a token. Tokens are issued to it with [New bot token](POST /bots/{id}/tokens), and the incoming webhook is enabled with the `kind` field.
 
         A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member, and it is added like an employee — with the [Add chat members](POST /chats/{id}/members) method, passing the bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require membership.
 

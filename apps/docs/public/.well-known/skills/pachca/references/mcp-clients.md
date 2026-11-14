@@ -13,7 +13,11 @@ steps: [Connecting to MCP](https://dev.pachca.com/guides/mcp/connect.md).
   `if defined PACHCA_TOKEN (echo set) else (echo unset)`), and do not open settings files
   that hold the token itself. Where the example has `<token>`, the person pastes the token into the file.
 - A program sees only variables set before it started, and a server added from an open session shows up only
-  after a restart: quit fully (Cmd+Q on macOS), and start a CLI from a new terminal window.
+  after a restart: quit fully (Cmd+Q on macOS), and start a CLI from a new terminal window. An app opened
+  outside a terminal may still not see the variable: the person starts it from a terminal, or pastes the token in
+  place of the variable reference in its config in the home folder, outside the repository. In Codex that is
+  `http_headers = { Authorization = "Bearer <token>" }` in place of `bearer_token_env_var = "PACHCA_TOKEN"`
+  under `[mcp_servers.pachca]` in `~/.codex/config.toml`.
 
 ## Commands
 

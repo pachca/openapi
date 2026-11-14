@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { toSlug } from './utils/transliterate';
 
 const PROMPTS_DIR = path.join(process.cwd(), 'content', 'prompts');
 
@@ -15,12 +16,33 @@ const DEFAULT_TITLE = 'Сделать с агентом';
 const SITE = 'https://dev.pachca.com';
 
 /**
+ * Скиллы плагина «Пачка» и их разделы на странице скиллов: блок под промптом ведёт на раздел
+ * скилла, который знает правила этой задачи. Поле `skill` в файле промпта берёт имя отсюда.
+ */
+export const SKILL_SECTIONS: Record<string, string> = {
+  pachca: 'С чего начать',
+  'pachca-messaging': 'Сообщения',
+  'pachca-search': 'Поиск, пересказ и напоминания',
+  'pachca-watch-thread': 'Слежение за тредом',
+  'pachca-admin': 'Администрирование',
+  'pachca-bots': 'Боты и интеграции',
+  'pachca-ai-agent': 'AI-агент в Пачке',
+  'pachca-oauth': 'Работа от имени сотрудника',
+  'pachca-api': 'API в скриптах и сервисах',
+};
+
+/** Ссылка на раздел скилла на странице скиллов */
+export function agentPromptSkillHref(skill: string): string {
+  return `/guides/ai-agents/skills#${toSlug(SKILL_SECTIONS[skill] ?? '')}`;
+}
+
+/**
  * Общая часть первого абзаца: откуда взять страницы и когда остановиться. Она одна на все
  * промпты, поэтому лежит здесь, а не в каждом файле: так её меняют в одном месте, а файл
  * промпта держит только задачу и шаги. Curl идёт первым, потому что инструмент для веба
  * у агентов отдаёт пересказ страницы и теряет детали.
  */
-function fetchSentence(pages: string[], mcp: boolean): string {
+function fetchSentence(pages: string[], mcp: boolean, skill?: string): string {
   const urls = pages.map((page) => `${SITE}/${page}.md`).join(' ');
   const one = pages.length === 1;
   const fetch = one
@@ -30,7 +52,8 @@ function fetchSentence(pages: string[], mcp: boolean): string {
   const orNoPachca = mcp ? ' или у тебя нет инструментов Пачки' : '';
   return (
     `${fetch}: \`curl -sL ${urls}\`. Инструмент для веба отдаёт пересказ, бери его, ` +
-    `только если curl не сработал. Если ${failed} и так${orNoPachca}, остановись и скажи.`
+    `только если curl не сработал. Если ${failed} и так${orNoPachca}, остановись и скажи.` +
+    (skill ? ` Если у тебя есть скилл \`${skill}\`, работай и по нему.` : '')
   );
 }
 
@@ -50,6 +73,8 @@ export interface AgentPromptData {
    * как есть (так устроен промпт подключения: он совпадает с экраном в приложении).
    */
   pages: string[];
+  /** Скилл плагина, который знает правила этой задачи: промпт велит работать и по нему */
+  skill?: string;
   /** Текст промпта, который копирует читатель: первый абзац файла с общей частью и остальной текст */
   text: string;
 }
@@ -65,12 +90,13 @@ function readPrompt(id: string): AgentPromptData {
   }
   const pages = Array.isArray(data.pages) ? data.pages.map(String) : [];
   const mcp = data.mcp !== false;
+  const skill = typeof data.skill === 'string' && data.skill.trim() ? data.skill.trim() : undefined;
   // CRLF from a Windows checkout would count twice toward the limit and reach the clipboard.
   const body = content.replace(/\r\n?/g, '\n').trim();
   let text = body;
   if (pages.length > 0) {
     const [task, ...rest] = body.split('\n\n');
-    text = [`${task} ${fetchSentence(pages, mcp)}`, ...rest].join('\n\n');
+    text = [`${task} ${fetchSentence(pages, mcp, skill)}`, ...rest].join('\n\n');
   }
   return {
     id,
@@ -79,6 +105,7 @@ function readPrompt(id: string): AgentPromptData {
     mcp,
     hint: typeof data.hint === 'string' && data.hint.trim() ? data.hint.trim() : undefined,
     pages,
+    skill,
     text,
   };
 }
@@ -127,5 +154,8 @@ export function agentPromptToMarkdown(prompt: AgentPromptData): string {
   const where = hint.link ? `${hint.before}[${hint.link.text}](${hint.link.href})` : hint.before;
   const forAgent =
     'Агенту, который уже выполняет этот промпт: ниже его копия, начинать заново не нужно.';
-  return `**${prompt.title}.** ${prompt.does}. ${where}. ${forAgent}\n\n${fence}text\n${prompt.text}\n${fence}`;
+  const skill = prompt.skill
+    ? ` Правила задачи знает скилл [${prompt.skill}](${agentPromptSkillHref(prompt.skill)}).`
+    : '';
+  return `**${prompt.title}.** ${prompt.does}. ${where}.${skill} ${forAgent}\n\n${fence}text\n${prompt.text}\n${fence}`;
 }

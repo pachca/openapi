@@ -1,6 +1,7 @@
 ---
 does: Агент создаст бота с формой под вашу задачу, напишет обработчик и проверит в беседе ошибки под полями и ответ бота
 pages: [guides/forms/overview, guides/forms/handling, guides/forms/blocks, guides/bots/interactive]
+skill: pachca-bots
 ---
 
 Создай бота с формой под мою задачу.

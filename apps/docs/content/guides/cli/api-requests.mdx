@@ -48,6 +48,8 @@ cat payload.json | pachca api POST /messages --input -
 pachca api GET /search/users --query 'company_roles[]=admin' --query 'company_roles[]=user'
 ```
 
+Команда `pachca api DELETE` удаляет сразу, без подтверждения, подробнее — в разделе [Деструктивные операции](/guides/cli/scripting#destruktivnye-operatsii).
+
 <Info>Команда `pachca api` выводит сырой ответ API без извлечения данных из обёртки `data`</Info>
 
 ## Встроенный справочник по API

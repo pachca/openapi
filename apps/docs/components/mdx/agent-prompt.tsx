@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
-import { agentPromptHint, getAgentPrompt } from '@/lib/agent-prompts';
+import { agentPromptHint, agentPromptSkillHref, getAgentPrompt } from '@/lib/agent-prompts';
 import { AgentPromptCopy } from './agent-prompt-copy';
 import { AgentPromptText } from './agent-prompt-text';
 
@@ -50,6 +50,18 @@ export function AgentPrompt({ id }: { id: string }) {
           >
             {hint.link.text}
           </Link>
+        )}
+        {prompt.skill && (
+          <>
+            . Правила задачи знает скилл{' '}
+            <Link
+              href={agentPromptSkillHref(prompt.skill)}
+              className="font-mono text-[12.5px] text-text-primary underline underline-offset-[3px] transition-colors duration-200 hover:text-primary"
+            >
+              {prompt.skill}
+            </Link>
+            .
+          </>
         )}
       </div>
     </section>

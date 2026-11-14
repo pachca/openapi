@@ -262,7 +262,7 @@ export const chatFields: INodeProperties[] = [
 				name: 'chatIds',
 				type: 'string',
 				default: "",
-				description: 'Array of chat IDs. Specify to export messages from specific chats only.',
+				description: 'Array of chat IDs. Specify to export messages from specific chats only. A thread is exported with the chat of its parent message, so a thread ID in the list adds nothing, and an unattached thread is not exported. What goes into the archive is listed in the <a href="https://dev.pachca.com/guides/export#chto-popadaet-v-arhiv">Export</a> section.',
 				placeholder: '1381521',
 			},
 			{

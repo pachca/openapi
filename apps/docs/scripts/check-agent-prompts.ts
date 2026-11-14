@@ -11,7 +11,7 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { agentPromptToMarkdown, getAllAgentPrompts } from '../lib/agent-prompts';
+import { SKILL_SECTIONS, agentPromptToMarkdown, getAllAgentPrompts } from '../lib/agent-prompts';
 
 const DOCS = process.cwd();
 const CONTENT = path.join(DOCS, 'content');
@@ -21,9 +21,9 @@ const SITE = 'https://dev.pachca.com';
 
 /** Hosts a prompt may name. Anything else is a typo or another vendor's address. */
 const ALLOWED_HOSTS = new Set(['dev.pachca.com', 'mcp.pachca.com', 'app.pachca.com', 'localhost']);
-const FRONTMATTER_KEYS = new Set(['title', 'does', 'mcp', 'hint', 'pages']);
+const FRONTMATTER_KEYS = new Set(['title', 'does', 'mcp', 'hint', 'pages', 'skill']);
 const MIN_CHARS = 300;
-const MAX_CHARS = 1350;
+const MAX_CHARS = 1400;
 const CAPTION_MAX_CHARS = 120;
 
 const errors: string[] = [];
@@ -109,6 +109,15 @@ for (const prompt of prompts) {
     if (value.length > CAPTION_MAX_CHARS) {
       fail(where, `поле ${field} длиннее ${CAPTION_MAX_CHARS} знаков: ${value.length}`);
     }
+  }
+
+  // The skill named under the block must exist in the plugin and have its section on the skills page.
+  if (prompt.skill) {
+    const skillFile = path.join(DOCS, '../../plugins/pachca/skills', prompt.skill, 'SKILL.md');
+    if (!fs.existsSync(skillFile))
+      fail(where, `поле skill: нет скилла ${prompt.skill} в plugins/pachca/skills`);
+    else if (!SKILL_SECTIONS[prompt.skill])
+      fail(where, `поле skill: нет раздела скилла ${prompt.skill} в SKILL_SECTIONS`);
   }
 
   const { text } = prompt;

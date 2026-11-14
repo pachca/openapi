@@ -114,7 +114,7 @@ value class AuditEventKey(val value: String) {
         val CHAT_PERMISSION_CHANGED = AuditEventKey("chat_permission_changed")
         /** Пользователь присоединился к чату */
         val USER_CHAT_JOIN = AuditEventKey("user_chat_join")
-        /** Пользователь покинул чат */
+        /** Участника исключили из чата или перевели в гости. Выход по своей воле не записывается, а уход вместе с тегом записывает событие `user_removed_from_tag` или `tag_removed_from_chat`. */
         val USER_CHAT_LEAVE = AuditEventKey("user_chat_leave")
         /** Тег добавлен в чат */
         val TAG_ADDED_TO_CHAT = AuditEventKey("tag_added_to_chat")
@@ -287,7 +287,7 @@ value class BotCanEdit(val value: String) {
     companion object {
         /** Администраторы компании */
         val ADMIN = BotCanEdit("admin")
-        /** Владельцы чатов, в которые добавлен бот */
+        /** Владельцы и администраторы бесед и каналов, в которые добавлен бот */
         val CHAT_OWNERS = BotCanEdit("chat_owners")
 
         /** Every value this SDK version lists */
@@ -1343,7 +1343,7 @@ value class ValidationErrorCode(val value: String) {
         val DECRYPTION_FAILED = ValidationErrorCode("decryption_failed")
         /** Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value` */
         val BOT_ADD_DENIED = ValidationErrorCode("bot_add_denied")
-        /** Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value` */
+        /** Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале (архивные не в счёт): `id` таких ботов приходят в `value` */
         val SINGLE_CHAT_BOT_OCCUPIED = ValidationErrorCode("single_chat_bot_occupied")
         /** Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег */
         val SINGLE_CHAT_BOT_TAG_DENIED = ValidationErrorCode("single_chat_bot_tag_denied")

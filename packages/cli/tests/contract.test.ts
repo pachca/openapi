@@ -234,7 +234,7 @@ describe('contract tests', () => {
       }
 
       // Boolean flags → allowNo
-      const boolFlags = [...cmd.content.matchAll(/'([^']+)':\s*Flags\.boolean\(\{([^}]*)\}/gs)];
+      const boolFlags = [...cmd.content.matchAll(/'([^']+)':\s*Flags\.boolean\(\{(.*?)\}\)/gs)];
       for (const [, name, body] of boolFlags) {
         if (name === 'force' || name === 'all') continue;
         it(`--${name} has allowNo`, () => {

@@ -112,7 +112,7 @@ describe('smoke tests', () => {
         it('boolean flags should have allowNo', () => {
           content = content || fs.readFileSync(cmd.filePath, 'utf-8');
           // Find Flags.boolean blocks, except --force and --all which are action flags
-          const booleanBlocks = [...content.matchAll(/'([^']+)':\s*Flags\.boolean\(\{([^}]*)\}/gs)];
+          const booleanBlocks = [...content.matchAll(/'([^']+)':\s*Flags\.boolean\(\{(.*?)\}\)/gs)];
           for (const [, name, body] of booleanBlocks) {
             if (name === 'force' || name === 'all') continue;
             expect(body, `Boolean flag --${name} should have allowNo: true`).toContain('allowNo: true');

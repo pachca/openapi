@@ -26,6 +26,25 @@
       {
         "type": "~",
         "description": "В справке флагов сказано, на какой вывод они действуют: `--columns` на table, csv и `--plain`, `--no-header` на table и csv"
+      },
+      {
+        "type": "~",
+        "command": "bots create",
+        "description": "В справке флагов сказано, когда бот получает события, какие права не входят в набор по умолчанию, какие домены принимает `--unfurl-domains` и как получить значение токена пустого бота"
+      },
+      {
+        "type": "~",
+        "command": "bots update",
+        "description": "В справке флагов сказано, когда бот получает события, что делает пустой `--outgoing-url`, какой шаблонизатор включает `--kind` и как получить значение токена, созданного через `--scopes`"
+      },
+      {
+        "type": "~",
+        "command": "messages list",
+        "description": "Курсор не хранит направление: `--order` передают и вместе с `--cursor`"
+      },
+      {
+        "type": "~",
+        "description": "Уточнена справка флагов `pachca chats request-export`, `pachca messages create`, `pachca messages unfurl` и `pachca security list`"
       }
     ]
   },

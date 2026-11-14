@@ -1,6 +1,7 @@
 ---
 does: Агент создаст бота, который отвечает с помощью модели, напишет обработчик и проверит ответ в треде
 pages: [guides/ai-agents/interaction, guides/bots/conversations, guides/webhook/deploy]
+skill: pachca-ai-agent
 ---
 
 Создай бота с ИИ-агентом, который отвечает сотрудникам в треде.

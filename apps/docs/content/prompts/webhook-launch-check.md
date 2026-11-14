@@ -4,6 +4,7 @@ does: Агент пройдёт по чек-листу, покажет, что �
 mcp: false
 hint: Вставьте промпт в чат с ИИ-агентом, открытым в папке с кодом обработчика
 pages: [guides/webhook/deploy, guides/webhook/handler]
+skill: pachca-bots
 ---
 
 Проверь мой обработчик вебхуков Пачки перед запуском.

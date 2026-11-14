@@ -58,8 +58,13 @@ Traps when reading records:
   the Administrator's own `actor_id` as `user_updated`, with `company_role` or
   `group_tags` in `changed_attrs` but without the values.
 - To find who removed someone from a chat, query `user_chat_leave` with the
-  chat as `entity_id` and read `initiator_id`. Leaving a chat on one's own is
-  not logged.
+  chat as `entity_id` and read `initiator_id`. It is written when someone
+  removes a member or makes them a guest. Leaving on one's own, archiving
+  (which removes guests) and deleting the employee leave no `user_chat_leave`.
+  A departure by tag shows only as `user_removed_from_tag` or
+  `tag_removed_from_chat`.
+- A tag created from a new name in `list_tags` leaves no `tag_created`: it
+  shows only as `user_added_to_tag`.
 - A QR sign-in to the mobile app asks for no 2FA, so it never produces
   `user_2fa_*`. Wrong digits there give `login_grant_denied` with
   `reason: verification_failed`.
@@ -69,11 +74,17 @@ Traps when reading records:
 - When an Administrator revokes someone's access on the All tokens tab, the
   actor is the Administrator; the access owner is `resource_owner_id` (tokens)
   or `user_id` (bot authorizations).
+- `kms_encrypt` and `kms_decrypt`: the actor is the author of the message or
+  file. When someone else downloads it, the record shows only their
+  `ip_address` and `user_agent`. Viewing an encrypted message is not logged.
 - Making an employee a guest revokes all their tokens at once: one
   `access_token_destroy` per token with `reason: guest_downgrade` in
   `details`, and the actor is whoever changed the role. Access they gave bots
   and apps comes this way too, not as `oauth_authorization_revoked`. Report
   such records as the demotion, not as a manual revocation.
+- Token events up to 7 October 2026 carry fewer `details`: personal tokens
+  only `scopes`, bot tokens only `bot_id` and `actor_id`, with no
+  `resource_owner_id` or `token_kind`.
 - `message_updated` and `message_deleted` carry `details`: `chat_id` (for a
   message in a thread, the chat of the thread's parent message, or the thread
   itself when it has none), `thread_chat_id` for a message in a thread, and
@@ -82,7 +93,8 @@ Traps when reading records:
   image fetched by its link). A deletion has only `employee` or `bot`.
   Records up to 7 November 2026 inclusive may have empty `details`.
 - Code exchange and token refresh leave no records; the consent does.
-- Changes to the IP allowlist and encryption settings are not logged.
+- Changes to the IP allowlist, encryption settings and DLP rules are not
+  logged, and neither are tag renames.
 
 Full event list and `details` fields: [audit log guide](https://dev.pachca.com/guides/audit-events.md).
 
@@ -92,10 +104,18 @@ Tools `pachca_request_export` and `pachca_download_export`, CLI
 `pachca chats request-export` and `pachca chats download-export`. Scopes
 `chat_exports:write` and `chat_exports:read`.
 
-The archive holds open, closed and archived chats with threads, regardless of
-the Owner's membership. Direct chats come with author and time but no content;
-threads in direct chats, attachments and forwarded messages are not included.
-Treat the archive as sensitive data, and say so when you request it.
+The archive holds the open, closed and archived chats that have messages in
+the period, regardless of the Owner's membership. Chats with no messages in
+the period are in neither the archive nor `chats.json`. A thread comes with its
+parent chat when its root message falls in the period, with all its replies.
+To get a thread, pass its parent chat in `chat_ids`: a thread id there adds
+nothing. Unattached threads are not exported. Direct chats come with author
+and time only (`content` is `-`) and without their threads. With
+`export_personal_chats: true` in `pachca_get_company` (the Owner sees it), they
+come with text and threads: Pachca support turns this on at the Owner's
+request. Attachments and forwarded messages are not included. Deleted messages
+come with `deleted_at` and no text. Treat the archive as sensitive data, and
+say so when you request it.
 
 1. Period: up to 45 days; with `chat_ids` (up to 50 chats) up to 366 days,
    and `end_at` not earlier than `start_at`. A longer or reversed period gives
@@ -137,7 +157,9 @@ test it, and hand it to the Owner to paste.
 A rule has a name, a priority and a JSON body with `conditions` (required),
 `action` (required) and `scope` (optional).
 
-- **Name**: unique in the workspace, ignoring case and punctuation.
+- **Name**: unique in the workspace, ignoring case, spaces and punctuation.
+  The name a rule was created with stays taken after a rename, until the rule
+  is deleted.
 - **Priority**: an integer from 1, higher runs first. Two rules may share a
   value; on a tie the rule created earlier runs first. The first matching rule
   stops processing.
@@ -195,7 +217,8 @@ Drafting procedure:
 4. Write `action.message` neutrally: it is shown in the chat to every
    participant, not only to the author.
 5. After it is live, check hits in the audit log with
-   `event_key=dlp_violation_detected`.
+   `event_key=dlp_violation_detected`. A saved or changed rule checks messages
+   sent or edited from then on, not older ones. A disabled rule checks none.
 
 ## IP allowlist and encryption
 
@@ -221,8 +244,12 @@ active while the list is not empty.
 **Encryption on your own key** (Yandex KMS, Cloud.ru, Vault).
 
 - Encrypts message text and part of attachments, for new messages only.
-- Changing the key or turning encryption off makes **older messages
-  unreadable**; Pachca cannot recover them without the key.
+- Turning encryption off makes **older messages unreadable**. Pachca cannot
+  recover them without the key.
+- **Сохранить изменения** updates the credentials for the current key. The
+  key itself stays fixed: a new provider, key ID, Vault address, or Cloud.ru
+  Advanced `project_id` and `region` is refused on save, also after turning
+  encryption off and on again.
 - `400` `decryption_failed` usually means the key store is unreachable or the
   key was revoked. Key use is logged as `kms_encrypt` and `kms_decrypt`.
 

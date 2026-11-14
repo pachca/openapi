@@ -14,6 +14,8 @@
 - User > Update: the Role description says that making someone a guest turns their administrator and editor roles in threads into member, and a thread owner stays the owner
 - Bot: the outgoing webhook URL description says that an empty URL clears it, and with event history on the events keep being stored there
 - Pachca Trigger: hints and the missing-scope error speak of publishing the workflow, as n8n 2.x calls it, and the automatic-mode hint points to the Bot ID field above it
+- Bot > Create and Update: the field descriptions say when the bot gets events, which scopes the default set leaves out, and which domains link unfurling accepts
+- Clearer descriptions of the export chat list, message sort order, the link preview map, the Actor ID filter and the User Chat Leave audit event
 
 ## 2.2.7 (2026-11-12)
 

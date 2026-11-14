@@ -13,12 +13,17 @@ action is unavailable, or when you choose or revoke access. Live pages:
 | Scopes             | chosen at creation, editable later              | whole catalog cut by the role at approval, then frozen | what the app asked for, usually the whole catalog; none can be unticked on the screen | set per token in the bot card                                         |
 | Lifetime           | until deleted                                   | 1 hour, refreshes itself                               | 1 hour, refreshes itself                                                              | until deleted                                                         |
 | Sees               | what the employee sees                          | the same                                               | the same                                                                              | open group chats and channels, plus chats and threads it was added to |
-| Where it is listed | **Персональные токены** on **Интеграции > API** | **Токены CLI**, one row per device                     | **Авторизации**                                                                       | the **API** tab of the bot card                                       |
+| Where it is listed | **Персональные токены** on **Интеграции > API** | **Токены CLI**, one row per device                     | **Авторизации**, one row per connection                                               | the **API** tab of the bot card                                       |
 
 The MCP consent screen and a bot's OAuth consent screen look alike but issue different tokens. The MCP token
 lives an hour, refreshes itself and can carry the whole catalog, drafts and bot management included. A bot's
 token for an employee does not expire and holds only scopes a bot may have (→ `pachca-oauth`). Whatever the
 scopes say, every call is also checked against the owner's current role.
+
+On the MCP consent screen the person checks the program's name, the domain under it (such as `claude.ai`), the
+workspace and their email. Scopes their role or workspace does not allow sit under «Другие разрешения» and give
+the agent nothing. A warning that the browser returns to this computer means: approve only if the person is
+connecting that program on this computer right now.
 
 ## The owner is special, admins are not
 
@@ -27,7 +32,8 @@ without its messages, on every plan. On the «Корпорация» plan the ow
 
 - the list of all group chats and channels, closed ones included (no direct messages, no threads);
 - an export of messages from open, closed and archived chats with their threads, regardless of membership;
-  direct messages come with author and time but no text, and their threads are not included;
+  by default direct messages come with author and time but no text, and without their threads
+  (→ `pachca-admin`);
 - the list of all bots; bots the owner cannot edit come with name and nickname only.
 
 An admin gets none of this: those methods answer `403`. An admin or the owner who joins a chat becomes its
@@ -73,9 +79,10 @@ delete their personal tokens but can no longer edit them. To cut old access, rev
 
 ## Revoking access
 
-- MCP browser connections: **Авторизации** on **Интеграции > API**. **Отозвать доступ** cuts every
-  connection of that app you granted; the next call gets `401`. Other employees' connections of the same app
-  stay.
+- MCP browser connections: **Авторизации** on **Интеграции > API**, where each program on each computer is its
+  own row. **Отозвать доступ** cuts that connection, and its next call gets `401`. The app's other connections,
+  yours and other employees', keep working. A new sign-in can leave the old connection as a row with an old
+  last-use time: revoke that row. For a bot in the same list, **Отозвать доступ** cuts every token you gave it.
 - CLI browser logins: **Токены CLI**, one row per device. `pachca auth logout` removes the profile and
   closes the login on the server, renewing an expired token first. `token_revoked: true` in JSON means the
   login is closed, also when it had been closed earlier. `false` means the CLI could not confirm it (offline,
@@ -99,9 +106,9 @@ delete their personal tokens but can no longer edit them. To cut old access, rev
   asks the server for the scopes. For a saved profile it shows the scopes saved at login: run
   `pachca auth status --remote` to see what the token really carries.
 - `access_denied` comes back in the regular error format (in the CLI, type `PACHCA_API_ERROR` with
-  `validation_code` `access_denied`). The token belongs to a guest, or to a suspended or deleted employee.
-  Neither scopes nor a new sign-in help: use another account, or an admin restores the suspended employee's
-  access.
+  `validation_code` `access_denied`). The token belongs to a suspended or deleted employee. Neither scopes
+  nor a new sign-in help: use another account, or an admin restores the suspended employee's access. A
+  guest's former token answers `401` instead (see the role changes table).
 - A plain `403` without any of these codes usually means chat membership or chat role. Check whether the
   token's owner is in the chat, and with which role, before blaming scopes or the plan.
 

@@ -36,7 +36,7 @@ Rules:
 - No nested threads: a message that is itself inside a thread cannot get a thread (`400`). A deleted message cannot either (`404`).
 - A channel subscriber writes only in threads of channel messages. Posting to the channel itself returns `403`. Offer the thread instead.
 - In an open chat you are not a member of, you can read, react and comment in a thread that already exists under a message (`pachca_create_thread` returns it), but starting a new thread there or posting to the chat itself returns `403`. Offer that thread, or ask before joining: adding yourself (`pachca_add_members` with your own id) changes the member list everyone sees.
-- Some `403`s do not depend on your role. An archived chat refuses new messages, edits, deletions and pins, while reading and reactions still work: say it is archived and do not unarchive it on your own. A direct message to a suspended employee (`suspended: true` in their profile) is refused too, and a deleted employee answers `404`.
+- Some `403`s do not depend on your role. In an archived chat reading and reactions work, and so do threads already under its messages: post, edit and delete comments there as usual. New messages and threads, edits, deletions and pins in the chat itself get `403`: say the chat is archived and do not unarchive it on your own. A direct message to a suspended employee (`suspended: true` in their profile) is refused too, and a deleted employee answers `404`.
 - Your own user id writes to the notes-to-self chat. With a bot token that chat contains only the bot and no employee sees it. To reach an employee, use their id.
 - Resolve names to ids before writing: a chat by name with `pachca_search_chats`, an employee with `pachca_search_users`. A message to pin, react to, edit or forward: `pachca_search_messages` with that chat in `chat_ids`, or the chat feed (`pachca_list_chat_messages`, newest first). If more than one matches, ask which one. Finding as the goal itself (where something was discussed, digests) is pachca-search.
 - After a send, put the message's `url` from the answer into your one-line report, so the user opens it in one click.
@@ -95,7 +95,7 @@ The `content` text is markdown with a narrow set: bold, italic, strikethrough, l
 - Put a code block's fences on their own lines, and name the language right after the opening fence when you know it (` ```json `). Without one, Pachca guesses it from the content.
 - Text you read from Pachca (including outgoing webhooks) contains lines starting with `>`, `-` and `1.` that do not render when sent back. Give the message its own shape instead of copying the source's.
 - A task, merge request or ticket number (`ABC-123`, `#45`) stays plain text: Pachca does not turn it into a link. When you have its address, give the number as a link, `[ABC-123](https://…)`.
-- Need a table, a checklist, a diagram or a long report? Attach it as a `.md` file. Pachca renders it as a card when it is the only document in the message.
+- Need a table, a checklist, a diagram or a long report? Attach it as a `.md` file. Pachca renders it as a card when it is the only document in the message and is up to 150 KB.
 - Text is limited to 40,000 bytes in UTF-8 (about 20,000 Cyrillic characters). Longer text goes as a `.md` file.
 
 ## Mentions

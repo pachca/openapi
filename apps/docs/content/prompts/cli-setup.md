@@ -3,6 +3,7 @@ does: Агент поставит Pachca CLI, даст вам команду в�
 mcp: false
 hint: Вставьте промпт в чат с ИИ-агентом, у которого есть терминал на вашей машине
 pages: [guides/cli/overview, guides/cli/installation, guides/cli/authentication]
+skill: pachca-api
 ---
 
 Настрой Pachca CLI на этой машине.

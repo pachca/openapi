@@ -2,12 +2,21 @@
 
 ## 1.8.1 (2026-11-13)
 
-Texts only: making someone a guest, an empty outgoing webhook URL, answering a form, and the Outlook sign-in in the audit log. schema_version stays 1.2.0.
+Texts only: making someone a guest, an empty outgoing webhook URL, forms, the Outlook sign-in in the audit log, and bot, token and event history tools checked against the guides and skills. schema_version stays 1.2.0.
 
 - `pachca_update_user`: what making an employee a guest does now sits on the `role` argument, which also says that in threads an administrator or editor becomes a member and the thread owner stays the owner. The tool description stays under 2048 characters.
 - An empty `outgoing_url` clears the URL: events stop coming to it, and with event history on they keep being stored there. Bot outputs say that a bot without a URL gets events only from the event history, if it is on.
 - `pachca_get_audit_events`: a sign-in to the Outlook add-in comes with `token_kind: outlook` and without `application_id` or `application_name`.
 - `pachca_answer_form` works only for a bot with no outgoing webhook URL and with event history on. A bot with a URL answers the webhook itself, and a call to the tool gets `410` `submit_expired`, even with event history on. The `view_id` example is a UUID, as Pachca issues it.
+- `pachca_create_bot` and `pachca_update_bot`: the default mode is `commands`, events exist only with an `outgoing_url` or event history on, and the default scopes leave out `bot_self:webhook:write`, `bot_self:write` and `user_status:read`. With `oauth_client` and its own `scopes`, a main token created without `scopes` gets the authorization's scopes.
+- `empty` with `scopes`, and `scopes` on a bot without a token, create the main token without returning its value: `pachca_recreate_bot_token` gives it.
+- Bot and bot token tools say that when only administrators may create integrations, an employee without that role gets `403`, for their own bots too.
+- `unfurl_domains` takes hosts only. `link_preview_enabled` also decides whether other bots get the links from this bot's messages. `can_edit` `chat_owners` means the owners and admins of the bot's conversations and channels.
+- `pachca_get_webhook_events` and `pachca_delete_webhook_event`: a bot has one event history for its server, the event stream and `pachca bots listen-events`, so delete only what your code has processed.
+- `pachca_open_form` and `pachca_answer_form`: where `view_submit` goes, `404` `view_not_found`, and `503` with a retry within the 5 seconds.
+- `pachca_list_chat_messages`: a thread's parent message is not in its feed, and `order` goes with `cursor` too. `pachca_search_messages` without `query` also returns deleted messages.
+- `pachca_request_export`: a thread comes with the chat of its parent message. `pachca_get_audit_events`: what `user_chat_leave` records and whom the `actor_id` filter finds.
+- Clearer `pachca_pin_message`, `pachca_delete_message`, `pachca_create_thread`, draft files, and main token rotation: the new main token gets a new ID and no name.
 
 ## 1.8.0 (2026-11-12)
 

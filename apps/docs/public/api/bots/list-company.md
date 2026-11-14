@@ -43,7 +43,7 @@ curl "https://api.pachca.com/api/shared/v1/company/bots?query=задач&limit=1
   - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
   - `oauth_client: object` (required) — Параметры авторизации от имени сотрудника. `null` у бота, недоступного вам для редактирования. Может прийти и у бота с выключенной авторизацией, а у бота без токенов может прийти `null`.
     - `client_id: string` (required) — Идентификатор клиента для ссылки авторизации. Пример: `"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY"`
-    - `client_secret_preview: string` (required) — Секрет клиента в маскированном виде. Полное значение приходит в `client_secret` один раз: при включении серверного клиента и при ротации секрета. Пример: `"cH5kR9mN...x7Qp"`
+    - `client_secret_preview: string` (required) — Секрет клиента в маскированном виде. Полное значение приходит в `client_secret` один раз: при включении серверного клиента, при переключении клиента на серверный и при ротации секрета. Пример: `"cH5kR9mN...x7Qp"`
     - `confidential: boolean` (required) — Где хранится секрет: `true` — серверное приложение, `false` — приложение без секрета, обмен кода по PKCE. Пример: `true`
     - `redirect_uris: array of string` (required) — Адреса возврата после согласия. Пример: `["https://example.com/oauth/callback"]`
     - `scopes: array of string` (required) — Права, которые бот запрашивает у сотрудника на экране согласия. Пример: `["messages:read","messages:create"]`
@@ -60,7 +60,7 @@ curl "https://api.pachca.com/api/shared/v1/company/bots?query=задач&limit=1
     - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
       Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
     - `challenge_key: string` (required, nullable) — Название поля проверки для верификации входящего вебхука. `null`, если не задано. Пример: `"challenge"`
-    - `link_preview_enabled: boolean` (required, nullable) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
+    - `link_preview_enabled: boolean` (required, nullable) — Показывать превью ссылок в сообщениях входящего вебхука. При `true` ссылки из любых сообщений этого бота, в том числе отправленных через API, получают и [боты с разворачиванием ссылок](/guides/link-previews#vebhuk-o-ssylke). Пример: `true`
     - `ignore_self_messages: boolean` (required, nullable) — Не присылать боту события о сообщениях, которые он отправил сам, и о реакциях на эти сообщения, кто бы их ни поставил или снял. Нажатия кнопок приходят всегда. Пример: `false`
     - `events_history_enabled: boolean` (required, nullable) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
     - `single_chat: boolean` (required, nullable) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Пример: `false`

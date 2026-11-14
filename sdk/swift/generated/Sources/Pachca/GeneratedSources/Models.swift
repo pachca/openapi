@@ -44,7 +44,7 @@ public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, Ex
     case chatPermissionChanged
     /// Пользователь присоединился к чату
     case userChatJoin
-    /// Пользователь покинул чат
+    /// Участника исключили из чата или перевели в гости. Выход по своей воле не записывается, а уход вместе с тегом записывает событие `user_removed_from_tag` или `tag_removed_from_chat`.
     case userChatLeave
     /// Тег добавлен в чат
     case tagAddedToChat
@@ -377,7 +377,7 @@ public enum AuditLoginGrantDevicePlatform: Codable, Hashable, RawRepresentable, 
 public enum BotCanEdit: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Администраторы компании
     case admin
-    /// Владельцы чатов, в которые добавлен бот
+    /// Владельцы и администраторы бесед и каналов, в которые добавлен бот
     case chatOwners
     /// A value this SDK version does not list yet
     case unknown(String)
@@ -1866,7 +1866,7 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
     case decryptionFailed
     /// Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
     case botAddDenied
-    /// Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
+    /// Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале (архивные не в счёт): `id` таких ботов приходят в `value`
     case singleChatBotOccupied
     /// Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
     case singleChatBotTagDenied

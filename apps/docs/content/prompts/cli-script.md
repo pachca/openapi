@@ -3,6 +3,7 @@ does: Агент напишет скрипт на Pachca CLI под вашу з�
 mcp: false
 hint: Вставьте промпт в чат с ИИ-агентом, у которого есть терминал на вашей машине
 pages: [guides/cli/scripting]
+skill: pachca-api
 ---
 
 Напиши скрипт на Pachca CLI под мою задачу.

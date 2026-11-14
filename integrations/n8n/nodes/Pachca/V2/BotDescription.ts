@@ -238,7 +238,7 @@ export const botFields: INodeProperties[] = [
 				name: 'empty',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to create an empty bot: without an incoming webhook and, unless scopes are passed, without a token. Without this field the bot is created with an incoming webhook in its own format, and its token comes in `access_token`.',
+				description: 'Whether to create an empty bot: without an incoming webhook and, unless scopes are passed, without a token. With scopes the main token is created, but its value does not come in the response: get one with [Bot token rotation](POST /bots/{ID}/recreate_token). Without this field the bot is created with an incoming webhook in its own format, and its token comes at once in `access_token`.',
 			},
 			{
 				displayName: 'Events',
@@ -253,7 +253,7 @@ export const botFields: INodeProperties[] = [
 				name: 'eventsHistoryEnabled',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to save the bot\'s event history for later retrieval via the event history method',
+				description: 'Whether to save the bot\'s event history for later retrieval via the event history method. Pachca creates events only while the bot has `outgoing_url` set or this field on: what happens with neither never arrives later.',
 			},
 			{
 				displayName: 'Ignore Self Messages',
@@ -277,7 +277,7 @@ export const botFields: INodeProperties[] = [
 				name: 'linkPreviewEnabled',
 				type: 'boolean',
 				default: true,
-				description: 'Whether to show link previews in incoming webhook messages',
+				description: 'Whether to show link previews in incoming webhook messages. With `true`, <a href="https://dev.pachca.com/guides/link-previews#vebhuk-o-ssylke">bots that unfurl links</a> also receive links from any message of this bot, API ones included.',
 			},
 			{
 				displayName: 'Nickname',
@@ -292,7 +292,7 @@ export const botFields: INodeProperties[] = [
 				name: 'oauthClient',
 				type: 'json',
 				default: "{}",
-				description: 'Enable authorization on behalf of an employee right at creation',
+				description: 'Enable authorization on behalf of an employee right at creation. Learn more in <a href="https://dev.pachca.com/guides/oauth/setup">Authorization setup</a>.',
 			},
 			{
 				displayName: 'Outgoing URL',
@@ -314,7 +314,7 @@ export const botFields: INodeProperties[] = [
 				name: 'scopes',
 				type: 'string',
 				default: "",
-				description: 'Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned.',
+				description: 'Scopes (permissions) of the bot\'s main token. Without this field the main token gets the default set, which lacks `bot_self:webhook:write`, `bot_self:write` and `user_status:read`: pass them explicitly. With `oauth_client` carrying its own `scopes` in the same request, the main token without this field gets those scopes instead, so pass `scopes` alongside `oauth_client`. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned.',
 				placeholder: 'messages:create',
 			},
 			{
@@ -349,14 +349,14 @@ export const botFields: INodeProperties[] = [
 { name: 'Commands', value: 'commands', description: 'Only on commands (trigger words) from commands' },
 { name: 'Unfurl', value: 'unfurl', description: 'On link unfurling (link previews)' }],
 				default: "commands",
-				description: 'Outgoing webhook trigger condition',
+				description: 'Outgoing webhook trigger condition. Defaults to `commands`: events about new and edited messages arrive for the commands in the `commands` field. For events about all messages, pass `all_messages`.',
 			},
 			{
 				displayName: 'Unfurl Domains',
 				name: 'unfurlDomains',
 				type: 'string',
 				default: "",
-				description: 'Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event.',
+				description: 'Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event. Each item is a host without protocol, path or port: a domain with a dot, an IPv4 address or `localhost`. A domain outside the <a href="https://dev.pachca.com/guides/link-previews#pravila-raspoznavaniya-domenov">domain recognition rules</a>, a Cyrillic one for example, gets `400` with the `invalid` code.',
 				placeholder: 'example.com',
 			},
 			{
@@ -466,7 +466,7 @@ export const botFields: INodeProperties[] = [
 				name: 'eventsHistoryEnabled',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to save the bot\'s event history for later retrieval via the event history method',
+				description: 'Whether to save the bot\'s event history for later retrieval via the event history method. Pachca creates events only while the bot has `outgoing_url` set or this field on: what happens with neither never arrives later.',
 			},
 			{
 				displayName: 'Ignore Self Messages',
@@ -484,14 +484,14 @@ export const botFields: INodeProperties[] = [
 { name: 'None', value: 'null', description: 'Deletes the incoming webhook' },
 { name: 'Simple', value: 'simple', description: 'Custom format: the message is built from the request body with the bot\'s template' }],
 				default: "simple",
-				description: 'Incoming webhook source. If the bot had no incoming webhook, it is enabled. "None" deletes the incoming webhook: the address stops working, the template and the incoming webhook settings are reset, and on the next enabling the bot gets a new address.',
+				description: 'Incoming webhook source. If the bot had no incoming webhook, it is enabled. "None" deletes the incoming webhook: the address stops working, the template and the incoming webhook settings are reset, and on the next enabling the bot gets a new address. For a Liquid template pass `template_engine: "liquid"` in the same request.',
 			},
 			{
 				displayName: 'Link Preview Enabled',
 				name: 'linkPreviewEnabled',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to show link previews in incoming webhook messages',
+				description: 'Whether to show link previews in incoming webhook messages. With `true`, <a href="https://dev.pachca.com/guides/link-previews#vebhuk-o-ssylke">bots that unfurl links</a> also receive links from any message of this bot, API ones included.',
 			},
 			{
 				displayName: 'Name',
@@ -514,14 +514,14 @@ export const botFields: INodeProperties[] = [
 				name: 'oauthClient',
 				type: 'json',
 				default: "{}",
-				description: 'Settings of authorization on behalf of an employee. If authorization is disabled, the object enables it, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot\'s own tokens keep working.',
+				description: 'Settings of authorization on behalf of an employee. If authorization is disabled, the object enables it, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot\'s own tokens keep working. When the object enables authorization, again included, or makes the client server-side, `client_secret` carries the server-side client\'s existing secret. A new secret is issued by [Client secret rotation](POST /bots/{ID}/rotate_client_secret).',
 			},
 			{
 				displayName: 'Outgoing URL',
 				name: 'webhookUrl',
 				type: 'string',
 				default: "",
-				description: 'Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code.',
+				description: 'Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code. An empty string clears the URL and keeps the other settings and the signing secret. An empty string together with an empty `events` and without `events_history_enabled: true` deletes the outgoing webhook: the event history is turned off, the other settings go back to their initial values, and a new `secret_token` is issued. More in the <a href="https://dev.pachca.com/guides/webhook/events#cherez-api">Via the API</a> section.',
 				placeholder: 'https://example.com/tasks/new',
 			},
 			{
@@ -536,7 +536,7 @@ export const botFields: INodeProperties[] = [
 				name: 'scopes',
 				type: 'string',
 				default: "",
-				description: 'Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned.',
+				description: 'Scopes (permissions) of the bot\'s main token. If omitted, the scopes do not change. If the bot has no token, passing scopes creates the main token, but its value does not come back: get one with [Bot token rotation](POST /bots/{ID}/recreate_token). Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned.',
 				placeholder: 'messages:create',
 			},
 			{
@@ -561,7 +561,7 @@ export const botFields: INodeProperties[] = [
 				options: [{ name: 'Liquid', value: 'liquid', description: 'Liquid — conditions, loops, and filters' },
 { name: 'Mustache', value: 'mustache', description: 'Mustache — simple substitution without logic' }],
 				default: "liquid",
-				description: 'Template engine used to process the incoming webhook template',
+				description: 'Template engine used to process the incoming webhook template. When `kind` turns the incoming webhook on, the stored engine applies, and for an empty bot and after `kind: null` it is `mustache`: for a Liquid template pass `template_engine: "liquid"` in the same request.',
 			},
 			{
 				displayName: 'Trigger On',
@@ -578,7 +578,7 @@ export const botFields: INodeProperties[] = [
 				name: 'unfurlDomains',
 				type: 'string',
 				default: "",
-				description: 'Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event. The list is replaced as a whole.',
+				description: 'Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event. Each item is a host without protocol, path or port: a domain with a dot, an IPv4 address or `localhost`. A domain outside the <a href="https://dev.pachca.com/guides/link-previews#pravila-raspoznavaniya-domenov">domain recognition rules</a>, a Cyrillic one for example, gets `400` with the `invalid` code. The list is replaced as a whole.',
 				placeholder: 'example.com',
 			},
 			{

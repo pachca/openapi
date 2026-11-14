@@ -102,18 +102,22 @@ Check this setting with the workspace admin before building anything for regular
    OAuth without it requests a broad default set (most, not all, of the scopes a bot can hold),
    or, if OAuth was on before, the set saved back then.
 3. Only scopes the bot itself can hold go in the set: `pachca_get_bot_scopes`
-   (`pachca bots list-scopes`) lists exactly those. Saving the set refuses bot management
-   (`bots:read`, `bots:write`), drafts (`drafts:read`, `drafts:write`) and every owner- or
-   admin-only scope: `users:create`, `users:update`, `users:delete`, `user_status:write`,
-   `user_avatar:write`, `group_tags:write`, `company:write`, `invite_links:write`,
-   `chat_exports:read`, `chat_exports:write`, `audit_events:read`, `company_chats:read`,
-   `company_bots:read`. This holds even if only the owner will ever authorize the bot. So an
-   OAuth bot cannot read or write drafts, manage bots, invite, edit, suspend or delete
+   (`pachca bots list-scopes`) lists exactly those. Two of them, `bot_self:write` and
+   `bot_self:webhook:write`, work with the bot's own token: an employee token gets
+   `403 role_forbidden` on them, so leave them out of the set. Saving the set refuses bot management
+   (`bots:read`, `bots:write`), drafts (`drafts:read`, `drafts:write`), the employee's «Важное»
+   (`important_messages:read`, `important_messages:write`) and every owner- or admin-only scope:
+   `users:create`, `users:update`, `users:delete`, `user_status:write`, `user_avatar:write`,
+   `group_tags:write`, `company:write`, `invite_links:write`, `chat_exports:read`,
+   `chat_exports:write`, `audit_events:read`, `company_chats:read`, `company_bots:read`. This
+   holds even if only the owner will ever authorize the bot. So an OAuth bot cannot read or
+   write drafts or the employee's «Важное», manage bots, invite, edit, suspend or delete
    employees, manage tags, change someone else's status or avatar, rename the workspace or
    change its settings, get the invite link, export messages, read the audit log or list all
    chats and bots of the workspace. For those tasks a person uses their own personal token or
    CLI login:
-   - Drafts: the employee themselves (→ `pachca-messaging`).
+   - Drafts and «Важное»: the employee themselves (marking → `pachca-messaging`, listing →
+     `pachca-search`).
    - Bot management: the bot's creator, or an admin if the bot settings allow it
      (→ `pachca-bots`).
    - Employees, tags, someone else's status or avatar, workspace settings, the invite link: the
@@ -153,9 +157,11 @@ token, CLI login or MCP sign-in can carry it, a bot token never does):
 - `pachca_update_bot` (`pachca bots update --oauth-client …`), or `pachca_create_bot` at
   creation, with the `oauth_client` object. The consent set is `oauth_client.scopes`; the
   top-level `scopes` are the rights of the bot's own token. Lists are replaced whole.
-- A confidential client's `client_secret` comes in the response once: on enabling and on
-  switching to confidential. Hand it to the user in your reply only, to put into their secret
-  store.
+- A confidential client's `client_secret` comes in the response when OAuth is enabled or
+  re-enabled and when the client is switched to confidential. Re-enabling and switching return
+  the secret the client already had. A new secret comes from rotation
+  (`pachca_rotate_bot_client_secret`): rotate it if it may have leaked. Hand it to the user in
+  your reply only, to put into their secret store.
 
 Redirect URI rules:
 
@@ -165,7 +171,8 @@ Redirect URI rules:
 - The `redirect_uri` in the link must match one in the list exactly. If the listed address has
   no query string, query parameters in the link are ignored. If it has one, the link must carry
   exactly the same parameters, in any order. For local addresses the port is not compared, so a
-  desktop or CLI app can use any free port.
+  desktop or CLI app can use any free port. The host and path are compared, so `localhost` and
+  `127.0.0.1` are different addresses.
 - At least one address is required.
 
 `client_id` is not secret: it goes into the link.

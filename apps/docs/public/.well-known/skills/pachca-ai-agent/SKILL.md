@@ -172,7 +172,7 @@ employee sees how long the agent has been working. The timer runs up to 5 minute
 - **No such reaction** in the workspace: the call returns `404`, the same
   status as for a message the bot cannot see. Treat it as "no indicator" and
   keep working: do not retry and do not abort the task.
-- **Remove** after the reply with the same `name` and any non-empty `code`
+- **Remove** after the reply by the same `name` alone
   ([Delete reaction](https://dev.pachca.com/api/reactions/remove.md)): without
   `name` the method looks up a standard emoji by `code` and does not find the
   custom reaction.

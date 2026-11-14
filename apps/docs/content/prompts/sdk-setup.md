@@ -3,6 +3,7 @@ does: Агент поставит SDK Пачки в ваш проект, под�
 mcp: false
 hint: Вставьте промпт в чат с ИИ-агентом, открытым в папке вашего проекта
 pages: [guides/sdk/overview, guides/sdk/typescript, api/authorization]
+skill: pachca-api
 ---
 
 Подключи SDK Пачки к проекту в этой папке.

@@ -82,6 +82,9 @@ codex mcp add pachca --url https://mcp.pachca.com/mcp --bearer-token-env-var PAC
 Look for `pachca_*` tools first: if you have them, add nothing. A sign-in started from your shell may never finish:
 ask the person to sign in (`/mcp` in Claude Code, `codex mcp login pachca` in their terminal), restart the program
 if no tools appear and send the request again. Report success only after `pachca_get_my_card` answers.
+In Codex your commands run in a sandbox without network that writes only inside the project: `curl` fails with
+`Could not resolve host`, and so do `npx skills add` and `codex mcp add`. Rerun the command asking to leave the
+sandbox, or give the person the commands for their terminal. If web search misses a `.md` page, drop `.md`.
 
 GitHub Copilot CLI and VS Code, Gemini CLI, Devin, Qwen Code, GigaCode CLI, Cursor, OpenCode, the Claude app, the
 other clients, and the skills without the plugin: [references/mcp-clients.md](https://dev.pachca.com/.well-known/skills/pachca/references/mcp-clients.md).
@@ -92,14 +95,13 @@ Do it right:
   0.148.0: an older Codex says `Dynamic client registration not supported`, so ask the person to update it
   (`codex --version`). If sign-in still fails or the client asks you to register a client, connect with a
   personal token in the header instead.
-- Do not narrow the scopes of a browser sign-in (`codex mcp login --scopes`, `scopes` in the client's config):
-  the program asks for the scopes and the consent screen only shows them, with no choice. A narrowed
-  connection lists the same tools and refuses the rest with `insufficient_scope`. A missing scope takes a new
-  sign-in without the narrowing; retrying the call does not help. To limit an agent, give it a read-only
-  personal token instead (below).
+- Do not narrow the scopes of a browser sign-in (`codex mcp login --scopes`, `scopes` in the client's config): the
+  program asks for the scopes and the consent screen only shows them, with no choice. A narrowed connection lists
+  the same tools and refuses the rest with `insufficient_scope`. A missing scope takes a new sign-in without the
+  narrowing; retrying the call does not help. To limit an agent, give it a read-only personal token instead (below).
 - The consent screen has no workspace picker, and neither has a CLI browser login: access goes to the workspace
   open in that browser. Wrong workspace: revoke the connection (CLI: `pachca auth logout`), switch workspaces in
-  Pachca in that browser, sign in again.
+  Pachca in that browser, sign in again. What the screen shows: [references/access-model.md](https://dev.pachca.com/.well-known/skills/pachca/references/access-model.md).
 - Several workspaces: add the server several times under different names (`pachca-main`, `pachca-partner`),
   each with a personal token created in its own workspace.
 - A server-side agent that answers many people connects with a **bot token**. With a personal token everyone
@@ -109,7 +111,8 @@ Do it right:
 - Keep the token in an environment variable such as `PACHCA_TOKEN`, never in a config file that lands in the
   repository. The program reads it from the environment it was started in: set it in the shell profile (on
   Windows, in the system environment variables) and restart the program. An app started outside the terminal,
-  such as the ChatGPT desktop app, may still not see it.
+  such as the ChatGPT desktop app, may still not see it. Keep the same token and hand it over as
+  [references/mcp-clients.md](https://dev.pachca.com/.well-known/skills/pachca/references/mcp-clients.md) says.
 - All tool descriptions together take tens of thousands of tokens. If the client allows, turn off the tools
   the agent does not need.
 
@@ -127,13 +130,12 @@ npx -y @pachca/cli users list             # one-off run without installing, toke
 - `pachca auth login` prints an address and a code and waits for approval; `--no-browser` prints them
   without opening a browser. The token lives an hour and refreshes itself. Its scopes are the whole catalog
   cut by your role at the moment of approval, and they do not grow later.
-- `pachca auth login` without `--token` needs a person at a terminal. Your own shell is usually not one (no
-  TTY), and CI is not either: the command fails at once with "Token required in non-interactive mode", and a
-  retry fails the same way. Ask the user to run `pachca auth login` in their own terminal window (for the
-  MCP server, `/mcp` in Claude Code), wait for them, then check with `pachca auth status`. Never ask for a
-  token in the conversation. The user saves a ready token in their own terminal (next bullet) or puts
-  `PACHCA_TOKEN` in the environment the agent starts from. CI and unattended agents take `PACHCA_TOKEN` from
-  their secrets and add `--no-input`.
+- `pachca auth login` without `--token` needs a person at a terminal. Your own shell is usually not one (no TTY),
+  and CI is not either: the command fails at once with "Token required in non-interactive mode", and a retry fails
+  the same way. Ask the user to run `pachca auth login` in their own terminal window (for the MCP server, `/mcp` in
+  Claude Code), wait for them, then check with `pachca auth status`. Never ask for a token in the conversation. The
+  user saves a ready token in their own terminal (next bullet) or puts `PACHCA_TOKEN` in the environment the agent
+  starts from. CI and unattended agents take `PACHCA_TOKEN` from their secrets and add `--no-input`.
 - Pass a copied token through stdin, not as an argument: `pbpaste | pachca auth login --token -`. An argument
   stays in shell history and in the process list.
 - Token sources in order: `--token`, `--profile`, `PACHCA_TOKEN`, `PACHCA_PROFILE`, the active profile. A
@@ -205,19 +207,18 @@ Each call passes five checks, and any one can refuse:
 5. **Token kind**: only a bot token has forms, link unfurling, event history, changing its own webhook and
    rotating its own token. Only a personal token has drafts, scheduled messages, «Важное» and bot management.
 
-The MCP server lists only the tools that fit the token's role, plan and kind. Some programs show only part of
-it. A list of Pachca tools that stops part-way through the alphabet was cut by the program, not by Pachca: in
-Codex a plugin older than 1.0.5 gets only 64 KB of tool descriptions, so update it
+The MCP server lists only the tools that fit the token's role, plan and kind. Some programs show only part of it. A
+list of Pachca tools that stops part-way through the alphabet was cut by the program, not by Pachca: in Codex a
+plugin older than 1.0.5 gets only 64 KB of tool descriptions, so update it
 (`codex plugin marketplace upgrade pachca`, then a new session) or add the server by hand with
-`codex mcp add pachca --url https://mcp.pachca.com/mcp`. Codex also hides every MCP tool behind its tool search
-once all servers together have more than 100, and that search can miss a tool asked for among others. VS Code
-folds a server's tools into a group once the chat has 64 tools or more: call the group's `activate_…` tool to
-open it. Before you call a tool missing, search
-for it by its exact name alone, such as `pachca_send_message`. A tool that this search does not find is the answer,
-not a glitch: tell the user which role, plan or token kind the action needs, and do not reach for the same
-result through other tools. No `pachca_*` tool at all is not a missing right: the server did not connect or is
-not signed in, so connect as [Connect over MCP](#connect-over-mcp) says. Owner privileges, multi-guest limits
-and role changes: [references/access-model.md](https://dev.pachca.com/.well-known/skills/pachca/references/access-model.md).
+`codex mcp add pachca --url https://mcp.pachca.com/mcp`. Codex also hides every MCP tool behind its tool search once
+all servers together have more than 100, and that search can miss a tool asked for among others. VS Code passes at
+most 128 tools per request and over that folds tools into groups: call the group's `activate_…` tool to open it.
+Before you call a tool missing, search for it by its exact name alone, such as `pachca_send_message`. A tool that
+this search does not find is the answer, not a glitch: tell the user which role, plan or token kind the action
+needs, and do not reach for the same result through other tools. No `pachca_*` tool at all is not a missing right:
+the server did not connect or is not signed in, so connect as [Connect over MCP](#connect-over-mcp) says. Owner
+privileges, multi-guest limits and role changes: [references/access-model.md](https://dev.pachca.com/.well-known/skills/pachca/references/access-model.md).
 
 ## Diagnose a refusal
 
@@ -226,7 +227,7 @@ and role changes: [references/access-model.md](https://dev.pachca.com/.well-know
 | `401`                              | no token, expired or revoked (also when its owner was made a guest)                               | reconnect (`/mcp` in Claude Code, `pachca auth login`); a header token may have been deleted                                                                                                                                  |
 | `403` `insufficient_scope`         | the token lacks the scope the response names                                                      | personal token from the UI: add it in the token menu on **Интеграции > API**; bot token: in the bot settings; MCP browser sign-in or CLI login: sign in anew, a plain reconnect keeps the old scopes                          |
 | `403` `role_forbidden`             | scope present, the role forbids the action                                                        | only an admin changing the role helps; reconnecting does not                                                                                                                                                                  |
-| `403` `access_denied`              | the token belongs to a guest, a suspended or a deleted employee                                   | use another account                                                                                                                                                                                                           |
+| `403` `access_denied`              | the token belongs to a suspended or a deleted employee                                            | use another account                                                                                                                                                                                                           |
 | other `403`                        | not a member of the chat, chat role too low, or a plan feature                                    | check membership and chat role first                                                                                                                                                                                          |
 | `402`                              | the workspace is suspended: the plan's message limit is used up                                   | tell the user; most methods refuse until it is paid, or at the latest until the next month starts (UTC)                                                                                                                       |
 | `404`                              | no such object, or one of another workspace; a chat of your workspace closed to you answers `403` | find the id with search or a list. If every id the user gave answers `404` and search finds none of what they name, you are probably in another workspace (no response names it): say so rather than calling the objects gone |
@@ -257,9 +258,8 @@ not depend on it.
 
 ## Pitfalls
 
-- Expecting an admin to see every chat, or reading `role: admin` as "owner". Closed chats are member-only for
-  every role; only the owner gets the members of any chat, and on «Корпорация» also the list of all chats and
-  an export.
+- Expecting an admin to see every chat, or reading `role: admin` as "owner". Closed chats are member-only for every
+  role; only the owner gets the members of any chat, and on «Корпорация» also the list of all chats and an export.
 - The server never announces a changed tool list, and the client keeps the list it loaded when it connected.
   After a role or plan change, or when Pachca adds methods, a tool that should now be there appears only after
   you reconnect the server (`/mcp` > Reconnect in Claude Code, or restart the client). If the new tool then

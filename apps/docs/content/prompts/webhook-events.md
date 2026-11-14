@@ -1,6 +1,7 @@
 ---
 does: Агент настроит боту события и режим новых сообщений, а потом проверит их в беседе
 pages: [guides/webhook/overview, guides/webhook/events, guides/webhook/polling]
+skill: pachca-bots
 ---
 
 Настрой события бота в Пачке и проверь, что они приходят.

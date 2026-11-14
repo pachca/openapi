@@ -150,9 +150,8 @@ model call → `pachca-bots`.
 
 After the reply, remove `agent-thinking` with the remove reaction method
 (`pachca_remove_reaction`,
-`pachca reactions remove <id> --name agent-thinking --code ⏳ --force`), passing
-`name` set to `agent-thinking` again and any non-empty `code`: without `name`
-the method looks the reaction up by `code` and does not find it. If the agent
+`pachca reactions remove <id> --name agent-thinking --force`) by `name` alone:
+without `name` the method looks the reaction up by `code` and does not find it. If the agent
 failed, it still replies — with what went wrong — and removes the reaction.
 
 ## Sketch
@@ -175,7 +174,7 @@ on message_new(event):                   # runs in the background worker
               ? thread(create_thread(event.id).id)
               : (event.entity_type, event.entity_id)
   send(target, result)                   # long result: .md file
-  unreact(event.id, code="⏳", name="agent-thinking")
+  unreact(event.id, name="agent-thinking")
 ```
 
 ## Starting a conversation in a DM

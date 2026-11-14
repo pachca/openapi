@@ -13,10 +13,10 @@
 > **Внимание:** Создавать ботов могут администраторы и сотрудники, а владелец или администратор пространства может оставить это только администраторам. Подробнее — в разделе [Кто может создавать токены](/api/authorization#kto-mozhet-sozdavat-tokeny).
 
 
-**Сделать с агентом.** Агент создаст бота с токеном, напишет обработчик и проверит, что бот отвечает в треде. Вставьте промпт в чат с ИИ-агентом, к которому [подключена Пачка](/guides/mcp/connect). Агенту, который уже выполняет этот промпт: ниже его копия, начинать заново не нужно.
+**Сделать с агентом.** Агент создаст бота с токеном, напишет обработчик и проверит, что бот отвечает в треде. Вставьте промпт в чат с ИИ-агентом, к которому [подключена Пачка](/guides/mcp/connect). Правила задачи знает скилл [pachca-bots](/guides/ai-agents/skills#boty-i-integratsii). Агенту, который уже выполняет этот промпт: ниже его копия, начинать заново не нужно.
 
 ```text
-Создай бота в Пачке, который отвечает в треде. Скачай страницы документации и делай по ним: `curl -sL https://dev.pachca.com/guides/bots/setup.md https://dev.pachca.com/guides/bots/conversations.md https://dev.pachca.com/guides/webhook/deploy.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если страницы не открылись и так или у тебя нет инструментов Пачки, остановись и скажи.
+Создай бота в Пачке, который отвечает в треде. Скачай страницы документации и делай по ним: `curl -sL https://dev.pachca.com/guides/bots/setup.md https://dev.pachca.com/guides/bots/conversations.md https://dev.pachca.com/guides/webhook/deploy.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если страницы не открылись и так или у тебя нет инструментов Пачки, остановись и скажи. Если у тебя есть скилл `pachca-bots`, работай и по нему.
 
 1. Спроси, как назвать бота и на чём писать обработчик: TypeScript или Python. Если такой бот у меня уже есть, спроси, продолжать ли с ним.
 2. Создай бота с токеном по шагу «Выпустите токен», исходящий вебхук включи по шагу «Включите исходящий вебхук» без адреса. Создай беседу для проверки с ботом.
@@ -106,7 +106,7 @@ curl -X POST https://api.pachca.com/api/shared/v1/messages \
 
   ### Шаг 3. Запустите обработчик
 
-Подключите к обработчику события, как в разделе [Проверка](/guides/bots/conversations#proverka): адресом в **Webhook URL** или на своей машине командой CLI с токеном бота и **Signing secret**: `PACHCA_TOKEN=$PACHCA_BOT_TOKEN PACHCA_SIGNING_SECRET=$PACHCA_SIGNING_SECRET npx -y @pachca/cli bots listen-events --forward-to http://localhost:3000/webhook`. Затем ответьте в треде под сообщением бота: бот ответит туда же. Перед запуском в рабочих чатах пройдите [Чек-лист перед запуском в работу](/guides/webhook/deploy#chek-list-pered-zapuskom-v-rabotu): там же повторы событий и порядок запуска.
+Подключите к обработчику события, как в разделе [Проверка](/guides/bots/conversations#proverka): адресом в **Webhook URL** или на своей машине командой CLI с токеном бота и **Signing secret**: `PACHCA_TOKEN=$PACHCA_BOT_TOKEN PACHCA_SIGNING_SECRET=$PACHCA_SIGNING_SECRET npx -y @pachca/cli bots listen-events --forward-to http://localhost:3000/webhook`. Команда рассчитана на бота с пустым **Webhook URL**, подробнее в разделе [Через CLI](/guides/webhook/polling#cherez-cli). Затем ответьте в треде под сообщением бота: бот ответит туда же. Перед запуском в рабочих чатах пройдите [Чек-лист перед запуском в работу](/guides/webhook/deploy#chek-list-pered-zapuskom-v-rabotu): там же повторы событий и порядок запуска.
 
 
 ## Создание бота через API
@@ -120,7 +120,7 @@ curl -X POST https://api.pachca.com/api/shared/v1/messages \
 
 Если бот должен отвечать на сообщения, передайте `trigger_on: "all_messages"` или перечислите команды в `commands`: без них бот о новых сообщениях не узнает. Подробнее — в разделе [Сообщения](/guides/webhook/events#soobscheniya).
 
-В том же запросе можно включить авторизацию от имени сотрудника объектом `oauth_client` — подробнее в разделе [Настройка авторизации](/guides/oauth/setup#cherez-api).
+В том же запросе можно включить авторизацию от имени сотрудника объектом `oauth_client` — подробнее в разделе [Настройка авторизации](/guides/oauth/setup#cherez-api). Тогда передайте и `scopes`: без них основной токен получит права из `oauth_client.scopes`, подробнее в разделе [Токены через API](/guides/bots/tokens#tokeny-cherez-api).
 
 
   ### Шаг 2. Сохраните access_token

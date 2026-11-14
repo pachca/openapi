@@ -380,7 +380,7 @@ amoCRM отключает вебхук, если тот часто отвеча�
 
 - `kind` — источник: `simple` для своего формата, `gitlab` или `grafana`
 - `template` — шаблон сообщения
-- `template_engine` — шаблонизатор (`liquid` или `mustache`)
+- `template_engine` — шаблонизатор (`liquid` или `mustache`). Новый бот без этого поля получает `liquid`. У пустого бота (`empty: true`) и при включении вебхука после `kind: null` действует `mustache`, поэтому для шаблона на Liquid передайте `template_engine: "liquid"` вместе с `kind`.
 - `challenge_key` — поле для верификации
 - `link_preview_enabled` — показывать превью ссылок
 

@@ -1,6 +1,7 @@
 ---
 does: Агент создаст бота с токеном, напишет обработчик и проверит, что бот отвечает в треде
 pages: [guides/bots/setup, guides/bots/conversations, guides/webhook/deploy]
+skill: pachca-bots
 ---
 
 Создай бота в Пачке, который отвечает в треде.

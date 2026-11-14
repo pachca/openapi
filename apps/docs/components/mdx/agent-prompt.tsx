@@ -25,19 +25,22 @@ export function AgentPrompt({ id }: { id: string }) {
       aria-label={prompt.title}
       className="@container not-prose my-6 overflow-hidden rounded-xl border border-glass-border"
     >
-      <div className="flex flex-col gap-3 px-4 py-3.5 @md:flex-row @md:items-center @md:justify-between @md:gap-5 @md:px-5">
-        <div className="flex min-w-0 gap-2">
-          <Sparkles className="mt-[3px] h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={2} />
-          <div className="min-w-0">
-            <div className="text-[14px] font-semibold leading-[1.45] text-text-primary">
-              {prompt.title}
-            </div>
-            <div className="mt-0.5 text-[14px] leading-[1.55] text-text-secondary">
-              {prompt.does}
-            </div>
+      {/* В широком блоке описание стоит под заголовком, а кнопка по центру справа. В узком
+          (колонка главной) кнопка справа от заголовка, а описание под ними на всю ширину. В самом
+          узком (телефон) заголовок рядом с кнопкой не помещается, и кнопка уходит под описание. */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 px-4 py-3.5 @md:gap-x-5 @md:px-5">
+        <div className="col-start-1 row-start-1 flex min-w-0 items-center gap-2 self-center">
+          <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={2} />
+          <div className="min-w-0 text-[14px] font-semibold leading-[1.45] text-text-primary">
+            {prompt.title}
           </div>
         </div>
-        <AgentPromptCopy text={prompt.text} />
+        <div className="col-span-2 col-start-1 row-start-2 mt-1 pl-[22px] text-[14px] leading-[1.55] text-text-secondary @md:col-span-1 @md:mt-0.5">
+          {prompt.does}
+        </div>
+        <div className="col-start-2 row-start-1 @md:row-span-2 @md:self-center @max-[22rem]:col-start-1 @max-[22rem]:row-start-3 @max-[22rem]:mt-3 @max-[22rem]:pl-[22px]">
+          <AgentPromptCopy text={prompt.text} />
+        </div>
       </div>
       {/* Первые строки видны сразу, остальное разворачивается: читатель видит, что отдаёт агенту. */}
       <AgentPromptText id={id} text={prompt.text} />

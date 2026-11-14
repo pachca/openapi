@@ -67,7 +67,7 @@ export function AgentPromptCopy({ text }: { text: string }) {
           type="button"
           onClick={handleCopy}
           aria-label="Скопировать промпт"
-          className="inline-flex h-9 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/80 px-4 text-[13px] font-medium text-white shadow-[0_2px_12px_var(--color-primary)/15%] backdrop-blur-md transition-all duration-200 hover:bg-primary/90"
+          className="inline-flex h-9 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-primary/20 bg-primary/80 px-3 text-[13px] @md:gap-2 @md:px-4 font-medium text-white shadow-[0_2px_12px_var(--color-primary)/15%] backdrop-blur-md transition-all duration-200 hover:bg-primary/90"
         >
           {state === 'copied' ? (
             <Check className="h-3.5 w-3.5" strokeWidth={2.5} />

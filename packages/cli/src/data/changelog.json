@@ -45,6 +45,10 @@
       {
         "type": "~",
         "description": "Уточнена справка флагов `pachca chats request-export`, `pachca messages create`, `pachca messages unfurl` и `pachca security list`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca messages update`, `pachca messages delete` и `pachca chats archive`: в справке сказано, что комментарии в тредах архивного чата правятся и удаляются как обычно"
       }
     ]
   },

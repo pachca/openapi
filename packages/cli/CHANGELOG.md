@@ -11,6 +11,7 @@
 - **Изменено** (bots update): В справке флагов сказано, когда бот получает события, что делает пустой `--outgoing-url`, какой шаблонизатор включает `--kind` и как получить значение токена, созданного через `--scopes`
 - **Изменено** (messages list): Курсор не хранит направление: `--order` передают и вместе с `--cursor`
 - **Изменено**: Уточнена справка флагов `pachca chats request-export`, `pachca messages create`, `pachca messages unfurl` и `pachca security list`
+- **Изменено**: `pachca messages update`, `pachca messages delete` и `pachca chats archive`: в справке сказано, что комментарии в тредах архивного чата правятся и удаляются как обычно
 
 ## 2026.11.3  (12 ноября 2026)
 

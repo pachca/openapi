@@ -66,6 +66,10 @@
       {
         "type": "~",
         "description": "Уточнена справка флагов `pachca chats request-export`, `pachca messages create`, `pachca messages unfurl` и `pachca security list`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca messages update`, `pachca messages delete` и `pachca chats archive`: в справке сказано, что комментарии в тредах архивного чата правятся и удаляются как обычно"
       }
     ]
   },
@@ -160,6 +164,10 @@
       {
         "type": "~",
         "description": "Уточнены `pachca_pin_message`, `pachca_delete_message`, `pachca_create_thread`, `pachca_create_draft` (файлы черновика) и пересоздание токена бота: новый основной токен получает новый ID и без имени"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_update_message`, `pachca_delete_message` и `pachca_archive_chat`: в ленте архивного чата сообщения не правятся и не удаляются, а комментарии в его тредах пишутся, правятся и удаляются как обычно"
       }
     ]
   },

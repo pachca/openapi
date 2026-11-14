@@ -125,8 +125,17 @@ for (const prompt of prompts) {
   }
 
   const { text } = prompt;
-  if (text.length < MIN_CHARS || text.length > MAX_CHARS) {
-    fail(where, `длина промпта ${text.length} знаков, нужно от ${MIN_CHARS} до ${MAX_CHARS}`);
+  // The limit guards the prompt's own text against growing. The shared part the template adds
+  // (the curl sentence with every page address, the skill sentence) is not counted: a prompt
+  // that downloads more pages must not lose its steps to the addresses.
+  const ownText = matter(
+    fs.readFileSync(path.join(PROMPTS, `${prompt.id}.md`), 'utf-8')
+  ).content.trim();
+  if (ownText.length < MIN_CHARS || ownText.length > MAX_CHARS) {
+    fail(
+      where,
+      `собственный текст промпта ${ownText.length} знаков без общей части, нужно от ${MIN_CHARS} до ${MAX_CHARS}`
+    );
   }
   // The prompt is plain text in a user message: Markdown markup would arrive as literal signs,
   // a component tag or a code fence would break the Markdown version of the page.

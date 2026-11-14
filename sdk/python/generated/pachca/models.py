@@ -2581,6 +2581,12 @@ class ListReactionsResponse:
 
 
 @dataclass
+class ListReadMembersResponse:
+    data: list[int]
+    meta: PaginationMeta
+
+
+@dataclass
 class SearchChatsResponse:
     data: list[Chat]
     meta: SearchPaginationMeta

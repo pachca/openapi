@@ -2622,13 +2622,21 @@ public sealed class ReactionsServiceImpl : ReactionsService
 public class ReadMembersService
 {
 
-    public virtual async System.Threading.Tasks.Task<object> ListReadMembersAsync(
+    public virtual async System.Threading.Tasks.Task<ListReadMembersResponse> ListReadMembersAsync(
         int id,
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Read members.listReadMembers is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<int>> ListReadMembersAllAsync(
+        int id,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Read members.listReadMembersAll is not implemented");
     }
 }
 
@@ -2643,7 +2651,7 @@ public sealed class ReadMembersServiceImpl : ReadMembersService
         _client = client;
     }
 
-    public override async System.Threading.Tasks.Task<object> ListReadMembersAsync(
+    public override async System.Threading.Tasks.Task<ListReadMembersResponse> ListReadMembersAsync(
         int id,
         int? limit = null,
         string? cursor = null,
@@ -2661,10 +2669,29 @@ public sealed class ReadMembersServiceImpl : ReadMembersService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<object>(json);
+                return PachcaUtils.Deserialize<ListReadMembersResponse>(json);
             default:
                 throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }
+    }
+
+    public override async System.Threading.Tasks.Task<List<int>> ListReadMembersAllAsync(
+        int id,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        var items = new List<int>();
+        string? cursor = null;
+        var hasNext = true;
+        while (hasNext)
+        {
+            var response = await ListReadMembersAsync(id, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            items.AddRange(response.Data);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
+        return items;
     }
 }
 

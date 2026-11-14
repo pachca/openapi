@@ -118,7 +118,7 @@ related:
 | Создан, изменён или удалён персональный токен | `access_token_created`, `access_token_updated`, `access_token_destroy` |
 | Сотрудник подтвердил или отклонил вход в CLI или в надстройку Outlook | `oauth_device_authorization_approved`, `oauth_device_authorization_denied`, в деталях `token_kind: cli` или `token_kind: outlook` |
 | Вход в CLI завершён в интерфейсе | `access_token_destroy` |
-| Вход в CLI завершён командой `pachca auth logout` | `oauth_token_revoked` |
+| Вход в CLI завершён командой `pachca auth logout` или повторным входом `pachca auth login` в тот же профиль | `oauth_token_revoked` |
 | Боту выпущен токен, в том числе первый при создании бота | `bot_token_created` |
 | У токена бота изменены название или права | `bot_token_updated` |
 | Токен бота перевыпущен | `bot_token_reissued`, `bot_token_recreated` |

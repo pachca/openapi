@@ -460,7 +460,7 @@
   },
   "ReadMemberOperations_listReadMembers": {
     "usage": "params := &pachca.ListReadMembersParams{\n\tLimit: pachca.Ptr(int32(300)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.ReadMembers.ListReadMembers(ctx, int32(194275), params)",
-    "output": "any",
+    "output": "ListReadMembersResponse{Data: []int32, Meta: PaginationMeta}",
     "imports": [
       "ListReadMembersParams"
     ]
@@ -648,7 +648,7 @@
     "usage": "client.Users.DeleteUserStatus(ctx, int32(12))"
   },
   "FormOperations_submitViewResponse": {
-    "usage": "request := pachca.SubmitViewResponseRequest{\n\tSubmitID: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n\tErrors: map[string]string{\"key\": \"example\"},\n}\nresponse, err := client.Views.SubmitViewResponse(ctx, \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request)",
+    "usage": "request := pachca.SubmitViewResponseRequest{\n\tSubmitID: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n\tErrors: map[string]string{\"key\": \"example\"},\n}\nresponse, err := client.Views.SubmitViewResponse(ctx, \"3f2b8c1e-7a4d-4e9b-9c2f-5d6a1b8e0f47\", request)",
     "output": "SubmitViewResponseResult{Success: bool}",
     "imports": [
       "SubmitViewResponseRequest"

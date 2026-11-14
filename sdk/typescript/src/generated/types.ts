@@ -2683,6 +2683,11 @@ export interface ListReactionsResponse {
   meta: PaginationMeta;
 }
 
+export interface ListReadMembersResponse {
+  data: number[];
+  meta: PaginationMeta;
+}
+
 export interface SearchChatsResponse {
   data: Chat[];
   meta: SearchPaginationMeta;

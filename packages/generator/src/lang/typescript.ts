@@ -12,7 +12,7 @@ import {
   type IRResponseType,
   paginateHasNext,
 } from '../ir.js';
-import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, withPrimitiveData, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToPascal,
@@ -496,7 +496,7 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
           needsDeserialize = true;
           if (op.successResponse.isList) {
             addImport(responseTypeName(op, ir));
-            if (op.isPaginated && op.successResponse.dataRef) {
+            if (op.isPaginated && op.successResponse.dataRef && !op.successResponse.dataItemType) {
               addImport(op.successResponse.dataRef);
             }
           } else if (op.successResponse.isSingleWithMeta && op.successResponse.dataRef) {
@@ -1668,7 +1668,8 @@ function generateExamples(ir: IR): string {
 export class TypeScriptGenerator implements LanguageGenerator {
   readonly dirName = 'ts';
 
-  generate(ir: IR, options?: GenerateOptions): GeneratedFile[] {
+  generate(sharedIr: IR, options?: GenerateOptions): GeneratedFile[] {
+    const ir = withPrimitiveData(sharedIr, (ft) => tsType(ft, { allModels: new Map(), inlineAsObject: new Set() }));
     const files: GeneratedFile[] = [];
     files.push({ path: 'types.ts', content: generateTypes(ir) });
     const client = generateClient(ir);

@@ -312,7 +312,7 @@ for {
 
 ### Автопагинация
 
-Для каждого метода с пагинацией, кроме `ReadMembers.ListReadMembers()`, есть `*All()` вариант:
+Для каждого метода с пагинацией есть `*All()` вариант:
 
 ```go
 // Все чаты одним слайсом
@@ -341,6 +341,7 @@ fmt.Printf("Всего: %d\n", len(chats))
 | `Members.ListMembersAll()` | `[]User` |
 | `Messages.ListChatMessagesAll()` | `[]Message` |
 | `Reactions.ListReactionsAll()` | `[]Reaction` |
+| `ReadMembers.ListReadMembersAll()` | `[]int32` |
 | `Search.SearchChatsAll()` | `[]Chat` |
 | `Search.SearchMessagesAll()` | `[]Message` |
 | `Search.SearchUsersAll()` | `[]User` |

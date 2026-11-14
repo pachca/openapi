@@ -320,6 +320,37 @@ describe('single object with meta', () => {
   });
 });
 
+// `GET /messages/{id}/read_member_ids` answers `{ data: int32[], meta }`: no model
+// names the items, and the method was left untyped (`any`, `object`, and in Swift
+// a `String` that failed on the object). The value's type stands in for the model.
+describe('lists of plain values', () => {
+  const ir = transform(parseOpenAPI(path.join(TESTS_DIR, 'primitive-list', 'fixture.yaml')));
+  const op = ir.services.flatMap((s) => s.operations).find((o) => o.methodName === 'listReadMembers')!;
+
+  it('types the items by the value and gives the list its response type', () => {
+    expect(op.successResponse).toMatchObject({
+      isList: true,
+      dataItemType: { kind: 'primitive', primitive: 'integer', format: 'int32' },
+      responseRef: 'ListReadMembersResponse',
+    });
+    expect(op.successResponse.dataRef).toBeUndefined();
+    expect(ir.responses.find((r) => r.name === 'ListReadMembersResponse')).toMatchObject({
+      dataIsArray: true,
+      dataItemType: { kind: 'primitive' },
+      metaRef: 'PaginationMeta',
+    });
+  });
+
+  it('every paginated list of the Pachca spec has a typed item', () => {
+    const pachca = transform(parseOpenAPI(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml')));
+    const untyped = pachca.services
+      .flatMap((s) => s.operations)
+      .filter((o) => o.isPaginated && !o.successResponse.dataRef && !o.successResponse.dataItemType)
+      .map((o) => `${o.method} ${o.path}`);
+    expect(untyped).toEqual([]);
+  });
+});
+
 // A 5xx says nothing about whether the server already applied the request, and
 // the API has no idempotency key: a retried POST /messages sends the message
 // twice. Every runtime retries a 5xx only for GET, HEAD, OPTIONS, PUT and

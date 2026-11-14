@@ -765,7 +765,7 @@ function PreviewDate({ block }: { block: ViewBlock }) {
             <span
               className={`flex-1 text-left text-[14px] ${formatted ? 'text-text-primary' : 'text-text-tertiary'}`}
             >
-              {formatted || 'дд.мм.гггг'}
+              {formatted || 'Укажите дату'}
             </span>
             {value && (
               <span
@@ -901,7 +901,7 @@ function PreviewTime({ block }: { block: ViewBlock }) {
               ref={inputRef}
               type="text"
               value={value}
-              placeholder="чч:мм"
+              placeholder="Укажите время"
               onChange={(e) => handleInputChange(e.target.value)}
               onFocus={(e) => {
                 e.target.select();

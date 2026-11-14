@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "const client = new PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "ReadMemberOperations_listReadMembers": {
+    "usage": "const response = await client.readMembers.listReadMembers(194275, { limit: 300, cursor: \"example\" })",
+    "output": "ListReadMembersResponse({ data: number[], meta: PaginationMeta })"
+  }
+}

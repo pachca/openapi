@@ -6,6 +6,7 @@ import {
   getActiveProfile,
   getProfile,
   getSecretStorage,
+  getAuthMethod,
   expiresAtFromNow,
   tokenSource,
   type Profile,
@@ -14,6 +15,7 @@ import { isSecretStoreAvailable } from '../../secret-store.js';
 import { ApiError, request } from '../../client.js';
 import { outputError } from '../../output.js';
 import { fetchIdentity, type TokenInfo } from '../../identity.js';
+import { revokeSession, type SessionRevocation } from '../../token-refresh.js';
 import {
   OAuthError,
   copyToClipboard,
@@ -134,13 +136,42 @@ export default class AuthLogin extends BaseCommand {
           : ('file' as const),
     };
 
+    // Only now, with the new login verified, close the one it replaces.
+    const previous = await this.closePreviousLogin(profileName, grant.access_token);
+
     setProfile(profileName, profile);
     if (!getActiveProfile()) setActiveProfile(profileName);
 
     // setProfile downgrades to the file if the write failed, so report what was
     // actually stored, not what was asked for.
     const saved = getProfile(profileName) ?? profile;
-    this.report(profileName, saved, scopes);
+    this.report(profileName, saved, scopes, previous);
+  }
+
+  /**
+   * Close the browser login a new login to the same profile replaces.
+   *
+   * Overwriting the profile drops its refresh token, and with it the last way to
+   * close that login from here: it would stay open in the «Токены CLI» list under
+   * the same device name as the new one. It runs before the profile is written:
+   * `revokeSession` may first renew an expired token, and the renewal is saved to
+   * the profile it came from. A pasted token is not the CLI's to cancel, so a
+   * profile without a browser login is left alone. Any failure here is only a
+   * warning: the new login has already succeeded.
+   */
+  private async closePreviousLogin(
+    profileName: string,
+    newToken: string,
+  ): Promise<SessionRevocation | undefined> {
+    const previous = getProfile(profileName);
+    if (!previous || getAuthMethod(previous) !== 'oauth') return undefined;
+    // The same token pasted back into its own profile: nothing is being replaced.
+    if (previous.token && previous.token === newToken) return undefined;
+    try {
+      return await revokeSession(profileName, previous);
+    } catch {
+      return 'open';
+    }
   }
 
   /**
@@ -257,7 +288,12 @@ export default class AuthLogin extends BaseCommand {
     }
   }
 
-  private report(profileName: string, profile: Profile, scopes?: string[]): void {
+  private report(
+    profileName: string,
+    profile: Profile,
+    scopes?: string[],
+    previous?: SessionRevocation,
+  ): void {
     const format = this.getOutputFormat();
 
     if (format === 'json') {
@@ -270,7 +306,11 @@ export default class AuthLogin extends BaseCommand {
         expires_at: profile.expires_at ?? null,
         scopes: scopes ?? null,
         storage: getSecretStorage(profile),
+        // Present only when the profile held a browser login before. True when the
+        // server confirms that login is closed, as `token_revoked` in `auth logout`.
+        ...(previous ? { previous_token_revoked: previous !== 'open' } : {}),
       });
+      this.warnPreviousLoginOpen(previous);
       return;
     }
 
@@ -297,6 +337,21 @@ export default class AuthLogin extends BaseCommand {
     if (src.kind === 'env') {
       process.stderr.write(`  Пока задан PACHCA_TOKEN, команды используют его, а не профиль ${profileName}\n`);
     }
+
+    if (previous === 'revoked') {
+      process.stderr.write(`  Прежний вход профиля закрыт на сервере\n`);
+    }
+    this.warnPreviousLoginOpen(previous);
+  }
+
+  /**
+   * Never let a replaced login look closed when it is not: it keeps working
+   * until someone revokes it, and only the list in Pachca can do that now.
+   */
+  private warnPreviousLoginOpen(previous?: SessionRevocation): void {
+    if (previous !== 'open' || this.parsedFlags.quiet) return;
+    process.stderr.write(`⚠ Прежний вход профиля закрыть на сервере не удалось, он продолжает действовать.\n`);
+    process.stderr.write(`  Отзовите его в Пачке: Интеграции > API, список «Токены CLI».\n`);
   }
 }
 

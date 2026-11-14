@@ -1,0 +1,15 @@
+{
+  "Client_Init": {
+    "usage": "client = PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "ReadMemberOperations_listReadMembers": {
+    "usage": "params = ListReadMembersParams(limit=300, cursor=\"example\")\nresponse = await client.read_members.list_read_members(id=194275, params=params)",
+    "output": "ListReadMembersResponse(data: list[int], meta: PaginationMeta)",
+    "imports": [
+      "ListReadMembersParams"
+    ]
+  }
+}

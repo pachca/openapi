@@ -46,7 +46,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 
 Автоматическое приветственное сообщение при добавлении сотрудника в канал.
 
-![Workflow приветствия нового сотрудника](/images/n8n/workflow-welcome.avif)
+![Workflow приветствия: Pachca Trigger на событие chat_member_added и узел Pachca «Приветствие»](/images/n8n/workflow-welcome.avif)
 
 *Приветствие нового сотрудника*
 
@@ -70,7 +70,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 
 Автоматическая пересылка сообщений из одного чата в другой.
 
-![Workflow пересылки сообщений](/images/n8n/workflow-forward.avif)
+![Workflow пересылки: Pachca Trigger, узел IF «IF из нужного чата» и узел Pachca «Переслать»](/images/n8n/workflow-forward.avif)
 
 *Пересылка сообщений между каналами*
 
@@ -210,7 +210,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 
 Бот, использующий AI для ответов на вопросы на основе истории чата.
 
-![Настройка AI Agent с Pachca Tool](/images/n8n/ai-agent-tool.avif)
+![Workflow AI-ассистента: Pachca Trigger → AI Agent, к агенту подключены Anthropic Chat Model и инструменты Pachca «Поиск сообщений» и «Ответ в чат»](/images/n8n/ai-agent-tool.avif)
 
 *AI Agent с инструментами Pachca*
 

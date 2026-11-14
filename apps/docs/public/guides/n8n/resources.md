@@ -7,14 +7,14 @@
 
 В расширении Пачки каждый узел **Pachca** работает по модели **Resource → Operation**: вы выбираете ресурс (например, Message) и операцию над ним (например, Create).
 
-![Выпадающий список ресурсов в узле Pachca](/images/n8n/resource-dropdown.avif)
+![Выпадающий список Resource в узле Pachca: 20 ресурсов от Bot до Workspace и Custom API Call](/images/n8n/resource-dropdown.avif)
 
 *Выбор ресурса в узле Pachca*
 
 
 Для каждого ресурса доступен свой набор операций.
 
-![Выпадающий список операций для ресурса Message](/images/n8n/operation-dropdown.avif)
+![Операции ресурса Message в узле Pachca: Create, Delete, Get, Get Many, Pin, Unfurl, Unpin, Update и Custom API Call](/images/n8n/operation-dropdown.avif)
 
 *Операции для ресурса Message*
 
@@ -456,7 +456,9 @@ n8n автоматически отправляет повторные запр�
 | **ID** и **User ID** в операциях User, **User ID** в Chat Member | Сотрудники |
 | **Entity ID** в Message > Create | Чаты при **Entity Type** = Discussion, сотрудники при User |
 
-Без введённого текста список приходит из методов [Список чатов](/api/chats/list) и [Список сотрудников](/api/users/list), с текстом — из [Поиск чатов](/api/search/list-chats) и [Поиск сотрудников](/api/search/list-users). Поэтому в списке только то, что доступно токену из Credentials, и токену нужны права на эти методы, например `chats:read` и `search:chats` для чатов. При **Entity Type** = Thread список пуст: укажите id треда в режиме **By ID**. В полях чата, кроме **Entity ID**, есть и режим **By URL**: вставьте ссылку на чат из веб-приложения, например `https://app.pachca.com/chats/12345`, и узел возьмёт из неё id. Как найти идентификатор без списка — в разделе [Где взять идентификаторы](/api/requests-responses#gde-vzyat-identifikatory).
+Без введённого текста список приходит из методов [Список чатов](/api/chats/list) и [Список сотрудников](/api/users/list), с текстом — из [Поиск чатов](/api/search/list-chats) и [Поиск сотрудников](/api/search/list-users). Поэтому в списке только то, что доступно токену из Credentials, и токену нужны права на эти методы, например `chats:read` и `search:chats` для чатов. При **Entity Type** = Thread список пуст: укажите id треда в режиме **By ID**. Как найти идентификатор без списка — в разделе [Где взять идентификаторы](/api/requests-responses#gde-vzyat-identifikatory).
+
+В полях чата и сотрудника, кроме **Entity ID**, есть и режим **By URL**: вставьте ссылку из веб-приложения, и узел возьмёт из неё id. Ссылку на чат копирует пункт **Скопировать ссылку** в меню чата: `https://app.pachca.com/chats/12345`. Ссылку на сотрудника копирует такой же пункт в меню его профиля: `https://app.pachca.com/chats?user_id=12345`.
 
 
 ## Связанные разделы

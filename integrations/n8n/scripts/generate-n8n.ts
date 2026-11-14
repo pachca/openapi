@@ -402,9 +402,14 @@ const URL_PATTERNS: Record<string, { regex: string; placeholder: string; error: 
     placeholder: 'https://app.pachca.com/chats/12345',
     error: 'Not a valid Pachca chat URL',
   },
+  // The web app has no /users/{id} page: «Скопировать ссылку» on an employee
+  // gives `<app>/chats?user_id=12345`, and `user_id` stays in the query on any
+  // page while the profile is open (`/chats/678?user_id=12345`). The regex takes
+  // `user_id` from anywhere in the query, never `chat_user_id` or `profile_id`.
+  // n8n anchors a validation regex with ^…$, hence the optional tail.
   searchUsers: {
-    regex: 'https?://[^/]+/users/(\\d+)',
-    placeholder: 'https://app.pachca.com/users/12345',
+    regex: 'https?://[^/?#]+/[^?#]*\\?(?:[^#]*&)?user_id=(\\d+)(?:[&#].*)?',
+    placeholder: 'https://app.pachca.com/chats?user_id=12345',
     error: 'Not a valid Pachca user URL',
   },
 };
@@ -2678,7 +2683,7 @@ ${optionEntries}
 \t\t\t},
 \t\t\t{
 \t\t\t\tdisplayName:
-\t\t\t\t\t'Automatic mode registers and clears this node\\'s webhook URL in Pachca on activate/deactivate. With a <b>bot token</b> it self-registers — no Bot ID needed: the token needs the <code>profile:read</code> and <code>bot_self:webhook:write</code> scopes. With a <b>personal token</b> it needs the <code>bots:write</code> scope, editor access to the target bot, and the <b>Bot ID</b> below. The node sets only the URL: tick the events in bot settings in Pachca (Outgoing webhook tab), and for New Message choose <b>Any messages</b> or list commands.',
+\t\t\t\t\t'Automatic mode registers and clears this node\\'s webhook URL in Pachca on publish/unpublish. With a <b>bot token</b> it self-registers — no Bot ID needed: the token needs the <code>profile:read</code> and <code>bot_self:webhook:write</code> scopes. With a <b>personal token</b> it needs the <code>bots:write</code> scope, editor access to the target bot, and the <b>Bot ID</b> below. The node sets only the URL: tick the events in bot settings in Pachca (Outgoing webhook tab), and for New Message choose <b>Any messages</b> or list commands.',
 \t\t\t\tname: 'automaticSetupNotice',
 \t\t\t\ttype: 'notice',
 \t\t\t\tdefault: '',
@@ -2690,7 +2695,7 @@ ${optionEntries}
 \t\t\t},
 \t\t\t{
 \t\t\t\tdisplayName:
-\t\t\t\t\t'Copy the <b>Production URL</b> above and paste it into bot settings in Pachca (Outgoing webhook tab → Webhook URL). On the same tab tick the events this node listens for, and for New Message choose <b>Any messages</b> or list commands. Then activate the workflow. In manual mode n8n does not touch the bot webhook slot.',
+\t\t\t\t\t'Copy the <b>Production URL</b> above and paste it into bot settings in Pachca (Outgoing webhook tab → Webhook URL). On the same tab tick the events this node listens for, and for New Message choose <b>Any messages</b> or list commands. Then publish the workflow. In manual mode n8n does not touch the bot webhook slot.',
 \t\t\t\tname: 'manualSetupNotice',
 \t\t\t\ttype: 'notice',
 \t\t\t\tdefault: '',
@@ -2732,10 +2737,10 @@ ${optionEntries}
 \t\t\t\t) {
 \t\t\t\t\tthrow new NodeOperationError(
 \t\t\t\t\t\tthis.getNode(),
-\t\t\t\t\t\t'Cannot listen for test events while the workflow is active — Pachca bots support only one webhook URL per bot, and a test run would overwrite the production webhook.',
+\t\t\t\t\t\t'Cannot listen for test events while the workflow is published — Pachca bots support only one webhook URL per bot, and a test run would overwrite the production webhook.',
 \t\t\t\t\t\t{
 \t\t\t\t\t\t\tdescription:
-\t\t\t\t\t\t\t\t'Deactivate the workflow before testing, or use a separate bot dedicated to testing.',
+\t\t\t\t\t\t\t\t'Unpublish the workflow before testing, or use a separate bot dedicated to testing.',
 \t\t\t\t\t\t},
 \t\t\t\t\t);
 \t\t\t\t}

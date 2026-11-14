@@ -58,7 +58,7 @@
 |----------------|----------|-------------------------------------|----------------|
 | All Events | `*` | Пункты всех событий, которые разбирает workflow | Любое событие, которое Пачка отправила боту |
 
-![Список событий в поле Event узла Pachca Trigger](/images/n8n/trigger-events.avif)
+![Все 20 событий поля Event в Pachca Trigger, от All Events до Video Call Started](/images/n8n/trigger-events.avif)
 
 *Выбор события в Pachca Trigger*
 
@@ -109,7 +109,7 @@ Pachca Trigger поддерживает два режима настройки: 
 
 ## Ручной режим
 
-![Конфигурация Pachca Trigger с выбором события](/images/n8n/trigger-node.avif)
+![Pachca Trigger: учётные данные Pachca Bot, событие New Message, Webhook Setup в значении Manual и подсказка ручного режима](/images/n8n/trigger-node.avif)
 
 *Настройка Pachca Trigger*
 
@@ -131,7 +131,7 @@ Pachca Trigger поддерживает два режима настройки: 
 
 Для настройки в Пачке нужен **Production URL**. Нажмите иконку копирования рядом с ним.
 
-![Test URL и Production URL в панели узла n8n](/images/n8n/trigger-webhook-urls.avif)
+![Раскрытый блок Webhook URLs в Pachca Trigger: переключатель Test URL и Production URL и адрес Production URL](/images/n8n/trigger-webhook-urls.avif)
 
 *Test URL и Production URL в верхней части панели узла*
 
@@ -159,7 +159,7 @@ Pachca Trigger поддерживает два режима настройки: 
 > Автоматический режим работает и с **токеном бота** (проще всего — саморегистрация, без Bot ID, нужны права `profile:read` и `bot_self:webhook:write`), и с **персональным токеном** (нужны скоуп `bots:write`, доступ редактора к боту и Bot ID).
 
 
-![Pachca Trigger в автоматическом режиме: Webhook Setup = Automatic и поле Bot ID](/images/n8n/trigger-automatic-mode.avif)
+![Pachca Trigger: учётные данные Pachca Bot, событие New Message, Webhook Setup в значении Automatic, поле Bot ID и подсказка автоматического режима](/images/n8n/trigger-automatic-mode.avif)
 
 *Автоматический режим: переключатель Webhook Setup и поле Bot ID (нужно только для персонального токена)*
 

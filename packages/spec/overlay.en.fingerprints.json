@@ -1479,7 +1479,7 @@
 		"$.paths['/users/{user_id}/status'].put.description": "a7b9061690c6b412",
 		"$.paths['/users/{user_id}/status'].put.parameters[?(@.name=='user_id')].description": "9cdb042039366879",
 		"$.paths['/views/open'].post.description": "15e6b67da3948964",
-		"$.paths['/views/{view_id}/submit_response'].post.description": "290c1b8535d2e41a",
+		"$.paths['/views/{view_id}/submit_response'].post.description": "18ab5528e508d799",
 		"$.paths['/views/{view_id}/submit_response'].post.parameters[?(@.name=='view_id')].description": "03cc29f14249cd1e",
 		"$.paths['/webhooks/events'].get.description": "7b50db2602a7fa91",
 		"$.paths['/webhooks/events'].get.parameters[?(@.name=='cursor')].description": "b4f36c8529bb9d83",

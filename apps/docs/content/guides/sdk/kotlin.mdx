@@ -155,7 +155,7 @@ while (hasNext) {
 
 ### Автопагинация
 
-Для каждого метода с пагинацией, кроме `readMembers.listReadMembers()`, есть `*All()` вариант:
+Для каждого метода с пагинацией есть `*All()` вариант:
 
 ```kotlin
 // Все чаты одним списком
@@ -181,6 +181,7 @@ println("Всего: ${chats.size}")
 | `members.listMembersAll()` | `List<User>` |
 | `messages.listChatMessagesAll()` | `List<Message>` |
 | `reactions.listReactionsAll()` | `List<Reaction>` |
+| `readMembers.listReadMembersAll()` | `List<Int>` |
 | `search.searchChatsAll()` | `List<Chat>` |
 | `search.searchMessagesAll()` | `List<Message>` |
 | `search.searchUsersAll()` | `List<User>` |

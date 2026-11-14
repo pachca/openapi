@@ -50,7 +50,7 @@
             "name": "query",
             "type": "option",
             "required": false,
-            "description": "Query-параметр (key=value)"
+            "description": "Query-параметр (key=value). Повтор с тем же ключом передаёт несколько значений"
           }
         ]
       }

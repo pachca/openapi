@@ -290,6 +290,7 @@ console.log(`Всего: ${chats.length}`)
 | `members.listMembersAll()` | `User[]` |
 | `messages.listChatMessagesAll()` | `Message[]` |
 | `reactions.listReactionsAll()` | `Reaction[]` |
+| `readMembers.listReadMembersAll()` | `number[]` |
 | `search.searchChatsAll()` | `Chat[]` |
 | `search.searchMessagesAll()` | `Message[]` |
 | `search.searchUsersAll()` | `User[]` |

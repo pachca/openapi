@@ -1264,8 +1264,8 @@ interface GlobalFlagEntry {
  */
 const GLOBAL_FLAG_DESCRIPTIONS_RU: Record<string, string> = {
   output: 'Формат вывода: table, json, yaml, csv',
-  columns: 'Колонки для table-вывода (через запятую)',
-  'no-header': 'Скрыть заголовок таблицы',
+  columns: 'Колонки для вывода table, csv и --plain (через запятую)',
+  'no-header': 'Скрыть строку заголовков в table и csv',
   'no-truncate': 'Не обрезать длинные значения',
   profile: 'Профиль для этой команды',
   token: 'Токен для этого вызова (без сохранения)',

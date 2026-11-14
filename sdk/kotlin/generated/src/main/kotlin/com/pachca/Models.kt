@@ -3538,6 +3538,12 @@ data class ListReactionsResponse(
 )
 
 @Serializable
+data class ListReadMembersResponse(
+    val data: List<Int>,
+    val meta: PaginationMeta,
+)
+
+@Serializable
 data class SearchChatsResponse(
     val data: List<Chat>,
     val meta: SearchPaginationMeta,

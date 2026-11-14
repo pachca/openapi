@@ -253,3 +253,26 @@ export function bodyExample(
       };
   return { type: scopedType, ir: scopedIr, models: scoped };
 }
+
+/**
+ * A list of plain values (`data: int32[]`) has no model to name: this gives its
+ * operations and response type the language's own name for the value, so that
+ * the method, its `All` variant and the response type are typed like any list.
+ * `dataItemType` stays set: code that treats `dataRef` as a model (imports, data
+ * wrappers) checks it first. The shared IR is left as is, a copy comes back.
+ */
+export function withPrimitiveData(ir: IR, typeName: (ft: IRFieldType) => string): IR {
+  const hasPrimitive = ir.services.some((s) => s.operations.some((op) => op.successResponse.dataItemType));
+  if (!hasPrimitive) return ir;
+  return {
+    ...ir,
+    services: ir.services.map((s) => ({
+      ...s,
+      operations: s.operations.map((op) => {
+        const item = op.successResponse.dataItemType;
+        return item ? { ...op, successResponse: { ...op.successResponse, dataRef: typeName(item) } } : op;
+      }),
+    })),
+    responses: ir.responses.map((rt) => (rt.dataItemType ? { ...rt, dataRef: typeName(rt.dataItemType) } : rt)),
+  };
+}

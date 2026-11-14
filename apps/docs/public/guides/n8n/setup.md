@@ -86,7 +86,7 @@ docker run -it --rm \
 
 Нажмите на ноду — откроется страница **Node details** с описанием, списком operations и кнопкой **Install**. Через несколько секунд нода появится в обычном поиске узлов и будет доступна всем участникам instance.
 
-![Node details для Pachca: verified by n8n, статус Installed, список операций](/images/n8n/node-details-pachca.avif)
+![Node details узла Pachca в панели узлов n8n: отметка verified, статус Installed и список операций Actions (105)](/images/n8n/node-details-pachca.avif)
 
 *Node details: verified by n8n, статус Installed и список операций*
 
@@ -141,7 +141,7 @@ Credentials — данные для авторизации. Перейдите �
 | **Webhook Signing Secret** | нет | Секрет, которым Pachca Trigger проверяет подпись вебхуков (HMAC-SHA256). Скопируйте поле **Signing secret** с вкладки **Исходящий вебхук** в карточке бота. Для узла Pachca не нужен. |
 | **Webhook Allowed IPs** | нет | Адреса через запятую, с которых Pachca Trigger принимает вебхуки. Адреса Пачки перечислены в разделе [Безопасность и обработчик](/guides/webhook/handler#bezopasnost). Пустое поле — разрешить все. |
 
-![Форма Credentials для Пачки в n8n](/images/n8n/credentials-v2.avif)
+![Новые учётные данные Pachca API в n8n: Base URL, Access Token, Webhook Signing Secret и Webhook Allowed IPs с подсказками про Pachca Trigger](/images/n8n/credentials-v2.avif)
 
 *Форма Pachca API Credentials*
 
@@ -156,7 +156,7 @@ Credentials — данные для авторизации. Перейдите �
 
 После заполнения полей нажмите **Save** — n8n проверит подключение вызовом [Информация о токене](/api/oauth/token-info). При успехе вы увидите подтверждение, повторить проверку можно кнопкой **Retry** в нём.
 
-![Успешная проверка Credentials](/images/n8n/credentials-test.avif)
+![Окно учётных данных Pachca Bot после сохранения: «Connection tested successfully» с кнопкой Retry, поля Base URL, Access Token, Webhook Signing Secret и Webhook Allowed IPs](/images/n8n/credentials-test.avif)
 
 *Connection tested successfully*
 
@@ -173,7 +173,7 @@ Workflow — визуальный редактор, в котором выстр
 
 Нажмите **+** на выходе триггера и найдите **Pachca** в списке узлов.
 
-![Поиск Pachca в списке узлов n8n](/images/n8n/workflow-add-node.avif)
+![Панель «What happens next?» после Manual Trigger: в поиске Pachca и узел Pachca с отметкой verified](/images/n8n/workflow-add-node.avif)
 
 *Поиск узла Pachca*
 
@@ -208,7 +208,7 @@ Workflow — визуальный редактор, в котором выстр
 
 Закройте панель настроек и нажмите **Execute Workflow**. При успехе узлы подсветятся зелёным и покажут количество обработанных элементов.
 
-![Успешное выполнение workflow](/images/n8n/workflow-execute-success.avif)
+![Manual Trigger и узел Pachca после запуска: оба подсвечены зелёным, на связях 1 item](/images/n8n/workflow-execute-success.avif)
 
 *Workflow выполнен*
 

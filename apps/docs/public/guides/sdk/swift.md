@@ -272,7 +272,7 @@ while hasNext {
 
 ### Автопагинация
 
-Для каждого метода с пагинацией, кроме `readMembers.listReadMembers()`, есть `*All()` вариант:
+Для каждого метода с пагинацией есть `*All()` вариант:
 
 ```swift
 // Все чаты одним массивом
@@ -298,6 +298,7 @@ print("Всего: \(chats.count)")
 | `members.listMembersAll()` | `[User]` |
 | `messages.listChatMessagesAll()` | `[Message]` |
 | `reactions.listReactionsAll()` | `[Reaction]` |
+| `readMembers.listReadMembersAll()` | `[Int]` |
 | `search.searchChatsAll()` | `[Chat]` |
 | `search.searchMessagesAll()` | `[Message]` |
 | `search.searchUsersAll()` | `[User]` |

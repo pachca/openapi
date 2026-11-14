@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "val client = PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "ReadMemberOperations_listReadMembers": {
+    "usage": "val response = client.readMembers.listReadMembers(id = 194275, limit = 300, cursor = \"example\")",
+    "output": "ListReadMembersResponse(data: List<Int>, meta: PaginationMeta)"
+  }
+}

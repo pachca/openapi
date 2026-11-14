@@ -23,10 +23,10 @@ export abstract class BaseCommand extends Command {
     }),
     columns: Flags.string({
       char: 'c',
-      description: 'Columns to display (comma-separated)',
+      description: 'Columns for table, csv and --plain output (comma-separated)',
     }),
     'no-header': Flags.boolean({
-      description: 'Hide table header',
+      description: 'Hide the header row in table and csv output',
       default: false,
     }),
     'no-truncate': Flags.boolean({

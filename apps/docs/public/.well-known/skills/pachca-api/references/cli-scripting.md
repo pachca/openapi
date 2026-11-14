@@ -26,6 +26,7 @@ A token kept in the OS key store is tied to that machine: copying the profile el
 Ending access:
 
 - `pachca auth logout` after a browser login removes the profile and closes the login on the server: if the saved one-hour token has run out or is about to, it refreshes it first and revokes the fresh one. In JSON, `token_revoked: true` means the login is closed on the server, also when it had been closed earlier (for example in the **Токены CLI** list). `token_revoked: false` means the CLI could not confirm it (offline, a server error): the profile is gone, but the login may still be valid and stays in that list. Then tell the user to revoke it with **Отозвать** in the **Токены CLI** list on **Интеграции > API**.
+- `pachca auth login` again into a profile that had a browser login closes the previous login on the server. In JSON, `previous_token_revoked: false` means it could not be closed: tell the user to revoke it in the **Токены CLI** list.
 - A ready token keeps working after logout: it never expires. Delete it in Pachca when it is no longer needed.
 
 ## Diagnosing auth

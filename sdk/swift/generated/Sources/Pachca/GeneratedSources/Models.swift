@@ -7093,6 +7093,16 @@ public struct ListReactionsResponse: Codable {
     }
 }
 
+public struct ListReadMembersResponse: Codable {
+    public let data: [Int]
+    public let meta: PaginationMeta
+
+    public init(data: [Int], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
+}
+
 public struct SearchChatsResponse: Codable {
     public let data: [Chat]
     public let meta: SearchPaginationMeta

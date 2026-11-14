@@ -33,7 +33,7 @@
 
 Откройте узел **Pachca**, настройте параметры (Resource, Operation, поля) и нажмите **Execute Step** в верхней части панели. n8n выполнит только этот узел, используя данные из предыдущего узла (если он уже отработал).
 
-![Успешное выполнение узла](/images/n8n/workflow-execute-success.avif)
+![Manual Trigger и узел Pachca после запуска: оба подсвечены зелёным, на связях 1 item](/images/n8n/workflow-execute-success.avif)
 
 *После запуска узлы подсвечиваются зелёным и показывают число элементов*
 
@@ -85,7 +85,7 @@
 
 Перед первым запуском сохраните Credentials кнопкой **Save**: n8n вызовет [Информация о токене](/api/oauth/token-info) и покажет результат. Повторить проверку можно кнопкой **Retry** в баннере.
 
-![Успешная проверка Credentials](/images/n8n/credentials-test.avif)
+![Окно учётных данных Pachca Bot после сохранения: «Connection tested successfully» с кнопкой Retry, поля Base URL, Access Token, Webhook Signing Secret и Webhook Allowed IPs](/images/n8n/credentials-test.avif)
 
 *Connection tested successfully*
 
@@ -102,7 +102,7 @@
 
 У триггерного узла n8n два webhook URL — оба показаны в верхней части панели узла:
 
-![Test URL и Production URL в панели узла n8n](/images/n8n/trigger-webhook-urls.avif)
+![Раскрытый блок Webhook URLs в Pachca Trigger: переключатель Test URL и Production URL и адрес Production URL](/images/n8n/trigger-webhook-urls.avif)
 
 *Test URL и Production URL в панели узла*
 

@@ -3775,6 +3775,11 @@ type ListReactionsResponse struct {
 	Meta PaginationMeta `json:"meta"`
 }
 
+type ListReadMembersResponse struct {
+	Data []int32        `json:"data"`
+	Meta PaginationMeta `json:"meta"`
+}
+
 type SearchChatsResponse struct {
 	Data []Chat               `json:"data"`
 	Meta SearchPaginationMeta `json:"meta"`

@@ -49,7 +49,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 
 Автоматическое приветственное сообщение при добавлении сотрудника в канал.
 
-<ImageCard src="/images/n8n/workflow-welcome.avif" alt="Workflow приветствия нового сотрудника" caption="Приветствие нового сотрудника" maxWidth={960} />
+<ImageCard src="/images/n8n/workflow-welcome.avif" alt="Workflow приветствия: Pachca Trigger на событие chat_member_added и узел Pachca «Приветствие»" caption="Приветствие нового сотрудника" maxWidth={960} />
 
 **Как работает:**
 
@@ -70,7 +70,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 
 Автоматическая пересылка сообщений из одного чата в другой.
 
-<ImageCard src="/images/n8n/workflow-forward.avif" alt="Workflow пересылки сообщений" caption="Пересылка сообщений между каналами" maxWidth={960} />
+<ImageCard src="/images/n8n/workflow-forward.avif" alt="Workflow пересылки: Pachca Trigger, узел IF «IF из нужного чата» и узел Pachca «Переслать»" caption="Пересылка сообщений между каналами" maxWidth={960} />
 
 **Как работает:**
 
@@ -201,7 +201,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 
 Бот, использующий AI для ответов на вопросы на основе истории чата.
 
-<ImageCard src="/images/n8n/ai-agent-tool.avif" alt="Настройка AI Agent с Pachca Tool" caption="AI Agent с инструментами Pachca" maxWidth={960} />
+<ImageCard src="/images/n8n/ai-agent-tool.avif" alt="Workflow AI-ассистента: Pachca Trigger → AI Agent, к агенту подключены Anthropic Chat Model и инструменты Pachca «Поиск сообщений» и «Ответ в чат»" caption="AI Agent с инструментами Pachca" maxWidth={960} />
 
 **Как работает:**
 

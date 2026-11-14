@@ -62,7 +62,7 @@ related:
 |----------------|----------|-------------------------------------|----------------|
 | All Events | `*` | Пункты всех событий, которые разбирает workflow | Любое событие, которое Пачка отправила боту |
 
-<ImageCard src="/images/n8n/trigger-events.avif" alt="Список событий в поле Event узла Pachca Trigger" caption="Выбор события в Pachca Trigger" maxWidth={960} />
+<ImageCard src="/images/n8n/trigger-events.avif" alt="Все 20 событий поля Event в Pachca Trigger, от All Events до Video Call Started" caption="Выбор события в Pachca Trigger" maxWidth={419} />
 
 ### Режим новых сообщений
 
@@ -105,7 +105,7 @@ Pachca Trigger поддерживает два режима настройки: 
 
 ## Ручной режим
 
-<ImageCard src="/images/n8n/trigger-node.avif" alt="Конфигурация Pachca Trigger с выбором события" caption="Настройка Pachca Trigger" maxWidth={960} />
+<ImageCard src="/images/n8n/trigger-node.avif" alt="Pachca Trigger: учётные данные Pachca Bot, событие New Message, Webhook Setup в значении Manual и подсказка ручного режима" caption="Настройка Pachca Trigger" maxWidth={419} />
 
 Режим по умолчанию. Узел не обращается к API Пачки: вы копируете адрес вебхука из n8n и вставляете его в настройки бота в Пачке сами. При снятии workflow с публикации узел тоже ничего не делает со слотом.
 
@@ -121,7 +121,7 @@ Pachca Trigger поддерживает два режима настройки: 
 
     Для настройки в Пачке нужен **Production URL**. Нажмите иконку копирования рядом с ним.
 
-    <ImageCard src="/images/n8n/trigger-webhook-urls.avif" alt="Test URL и Production URL в панели узла n8n" caption="Test URL и Production URL в верхней части панели узла" maxWidth={960} />
+    <ImageCard src="/images/n8n/trigger-webhook-urls.avif" alt="Раскрытый блок Webhook URLs в Pachca Trigger: переключатель Test URL и Production URL и адрес Production URL" caption="Test URL и Production URL в верхней части панели узла" maxWidth={419} />
   </Step>
   <Step title="Вставьте URL в настройки бота в Пачке">
     Откройте карточку бота в Пачке и на вкладке **Исходящий вебхук** нажмите **Включить**, если вебхук ещё не включён. В карточке **Как получать события** вставьте скопированный Production URL в поле **Webhook URL** и нажмите **Сохранить** рядом с полем. Подробнее — в разделе [Как получать события](/guides/webhook/events#kak-poluchat-sobytiya).
@@ -140,7 +140,7 @@ Pachca Trigger поддерживает два режима настройки: 
 
 <Info>Автоматический режим работает и с **токеном бота** (проще всего — саморегистрация, без Bot ID, нужны права `profile:read` и `bot_self:webhook:write`), и с **персональным токеном** (нужны скоуп `bots:write`, доступ редактора к боту и Bot ID).</Info>
 
-<ImageCard src="/images/n8n/trigger-automatic-mode.avif" alt="Pachca Trigger в автоматическом режиме: Webhook Setup = Automatic и поле Bot ID" caption="Автоматический режим: переключатель Webhook Setup и поле Bot ID (нужно только для персонального токена)" maxWidth={960} />
+<ImageCard src="/images/n8n/trigger-automatic-mode.avif" alt="Pachca Trigger: учётные данные Pachca Bot, событие New Message, Webhook Setup в значении Automatic, поле Bot ID и подсказка автоматического режима" caption="Автоматический режим: переключатель Webhook Setup и поле Bot ID (нужно только для персонального токена)" maxWidth={419} />
 
 Узел определяет тип токена методом [Свой профиль](GET /profile). **Токен бота** регистрирует свой вебхук сам — методом [Саморегистрация вебхука бота](PUT /bot/webhook), Bot ID не нужен. **Персональный токен** прописывает вебхук выбранному боту методом [Редактирование бота](PUT /bots/{id}) — Bot ID обязателен, потому что персональный токен не привязан к конкретному боту.
 

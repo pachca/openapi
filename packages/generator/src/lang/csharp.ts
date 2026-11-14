@@ -16,7 +16,7 @@ import {
   valueUnionMemberName,
   paginateHasNext,
 } from '../ir.js';
-import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, withPrimitiveData, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToPascal,
@@ -2297,7 +2297,8 @@ function generateExamples(ir: IR): string {
 export class CSharpGenerator implements LanguageGenerator {
   readonly dirName = 'cs';
 
-  generate(ir: IR, options?: GenerateOptions): GeneratedFile[] {
+  generate(sharedIr: IR, options?: GenerateOptions): GeneratedFile[] {
+    const ir = withPrimitiveData(sharedIr, (ft) => csType(ft));
     csOpenEnums = new Set(ir.enums.filter((e) => e.open).map((e) => e.name));
     const files: GeneratedFile[] = [
       { path: 'Models.cs', content: generateModels(ir) },

@@ -289,6 +289,12 @@ export interface IRSuccessResponse {
   isSingleWithMeta?: boolean;
   /** Referenced model name for data */
   dataRef?: string;
+  /**
+   * `{ data: T[] }` whose items are plain values (`int32` ids, for instance), not a
+   * model. Each language turns it into its own type name before generating, see
+   * `withPrimitiveData` in `lang/types.ts`: from then on `dataRef` holds that name.
+   */
+  dataItemType?: IRFieldType;
   /** For list and single-with-meta responses: generated Response type name */
   responseRef?: string;
   /** 302 redirect → return Location header */
@@ -365,7 +371,10 @@ export interface IRParamsType {
 
 export interface IRResponseType {
   name: string;
+  /** The data model, or, with `dataItemType`, the language type of a plain value */
   dataRef: string;
+  /** Items of `data` are plain values of this type, see `IRSuccessResponse.dataItemType` */
+  dataItemType?: IRFieldType;
   /** `data: T[]` for a list, `data: T` for a single object with meta */
   dataIsArray: boolean;
   metaRef?: string;

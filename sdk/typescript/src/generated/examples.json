@@ -411,7 +411,7 @@
   },
   "ReadMemberOperations_listReadMembers": {
     "usage": "const response = await client.readMembers.listReadMembers(194275, { limit: 300, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
-    "output": "unknown"
+    "output": "ListReadMembersResponse({ data: number[], meta: PaginationMeta })"
   },
   "ThreadOperations_listThreads": {
     "usage": "const response = await client.threads.listThreads({\n  lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\",\n  lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
@@ -580,7 +580,7 @@
     "usage": "await client.users.deleteUserStatus(12)"
   },
   "FormOperations_submitViewResponse": {
-    "usage": "const request: SubmitViewResponseRequest = { submitId: \"791a056b-006c-49dd-834b-c633fde52fe8\", errors: { key: \"example\" } }\nconst response = await client.views.submitViewResponse(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request)",
+    "usage": "const request: SubmitViewResponseRequest = { submitId: \"791a056b-006c-49dd-834b-c633fde52fe8\", errors: { key: \"example\" } }\nconst response = await client.views.submitViewResponse(\"3f2b8c1e-7a4d-4e9b-9c2f-5d6a1b8e0f47\", request)",
     "output": "SubmitViewResponseResult({ success: boolean })",
     "imports": [
       "SubmitViewResponseRequest"

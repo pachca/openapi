@@ -578,17 +578,29 @@ export function resolveResourceLocator(
   fallbackParam?: string,
 ): number | string {
   let value: unknown;
+  let readName = paramName;
   try {
     value = ctx.getNodeParameter(paramName, itemIndex);
   } catch {
     if (fallbackParam) {
+      readName = fallbackParam;
       value = ctx.getNodeParameter(fallbackParam, itemIndex);
     } else {
       throw new NodeOperationError(ctx.getNode(), `Missing required parameter: ${paramName}`, { itemIndex });
     }
   }
   if (typeof value === 'object' && value !== null && (value as IDataObject).__rl) {
-    const rlValue = (value as IDataObject).value;
+    let rlValue = (value as IDataObject).value;
+    // In By URL mode n8n keeps the pasted link as the value: extractValue runs the
+    // mode's regex and returns the id from it, or throws on a link that does not match.
+    if ((value as IDataObject).mode === 'url' && typeof rlValue === 'string' && rlValue !== '') {
+      try {
+        rlValue = ctx.getNodeParameter(readName, itemIndex, undefined, { extractValue: true }) as string;
+      } catch (e) {
+        // A NodeOperationError passed in comes back as is
+        throw new NodeOperationError(ctx.getNode(), e as Error, { itemIndex });
+      }
+    }
     if (rlValue === null || rlValue === undefined || rlValue === '') {
       throw new NodeOperationError(ctx.getNode(), `Parameter "${paramName}" is empty`, { itemIndex });
     }

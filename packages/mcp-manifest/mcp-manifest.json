@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "4f9528984bdef907"
+    "digest": "ce81819448671967"
   },
   "server": {
     "name": "pachca",
@@ -19347,7 +19347,7 @@
         "bot"
       ],
       "bot_token_only": true,
-      "description": "Respond to a form submission. Closes the form for the employee or shows them errors under the fields. The method is needed by a bot that has no outgoing webhook address set: such a bot has nowhere to answer the webhook, and it receives the `view_submit` event through the `get_webhook_events` method. If the webhook address is set, answer the webhook directly — that is simpler and does not require polling the history. The `view_id` and `submit_id` identifiers arrive in the event payload. You must respond within 5 seconds of the form submission, otherwise the employee sees a submission error and the field values are kept for another attempt. A body without the `errors` field closes the form as successfully submitted; with the `errors` field it shows the error text under each named field. The response is accepted once. A repeated call with the same `view_id` and `submit_id` pair, as well as a late one, receives `410` with the `submit_expired` code. From a conversation this window is almost always missed: it runs from the employee’s submission, and reading the history and composing the call take longer. Forms work when an automated handler — the bot’s webhook server or a server polling the history — answers within seconds; in a conversation, offer to ask the employee in a message instead.",
+      "description": "Respond to a form submission. Closes the form for the employee or shows them errors under the fields. The method works only for a bot that has no outgoing webhook address set and has the event history enabled. Such a bot receives the `view_submit` event through the `get_webhook_events` method and answers it with this method. A bot with a webhook address answers the webhook itself, and a call to this method receives `410` with the `submit_expired` code, even if the bot also has the event history enabled. The `view_id` and `submit_id` identifiers arrive in the event payload. You must respond within 5 seconds of the form submission, otherwise the employee sees a submission error and the field values are kept for another attempt. A body without the `errors` field closes the form as successfully submitted; with the `errors` field it shows the error text under each named field. The response is accepted once. A repeated call with the same `view_id` and `submit_id` pair, as well as a late one, receives `410` with the `submit_expired` code. From a conversation this window is almost always missed: it runs from the employee’s submission, and reading the history and composing the call take longer. Forms work when an automated handler — the bot’s webhook server or a server polling the history — answers within seconds; in a conversation, offer to ask the employee in a message instead.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -19361,7 +19361,7 @@
             "type": "string",
             "description": "View ID",
             "examples": [
-              "01KAJZ2XDSS2S3DSW9EXJZ0TBV"
+              "3f2b8c1e-7a4d-4e9b-9c2f-5d6a1b8e0f47"
             ]
           },
           "submit_id": {

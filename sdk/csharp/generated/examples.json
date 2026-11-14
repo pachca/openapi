@@ -428,7 +428,7 @@
   },
   "ReadMemberOperations_listReadMembers": {
     "usage": "var response = await client.ReadMembers.ListReadMembersAsync(194275, 300, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "object"
+    "output": "ListReadMembersResponse(Data: List<int>, Meta: PaginationMeta)"
   },
   "ThreadOperations_listThreads": {
     "usage": "var response = await client.Threads.ListThreadsAsync(DateTimeOffset.Parse(\"2025-01-01T00:00:00.000Z\"), DateTimeOffset.Parse(\"2025-02-01T00:00:00.000Z\"), 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
@@ -603,7 +603,7 @@
     "usage": "await client.Users.DeleteUserStatusAsync(12);"
   },
   "FormOperations_submitViewResponse": {
-    "usage": "var request = new SubmitViewResponseRequest { SubmitId = \"791a056b-006c-49dd-834b-c633fde52fe8\", Errors = new Dictionary<string, string> { [\"key\"] = \"example\" } };\nvar response = await client.Views.SubmitViewResponseAsync(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request);",
+    "usage": "var request = new SubmitViewResponseRequest { SubmitId = \"791a056b-006c-49dd-834b-c633fde52fe8\", Errors = new Dictionary<string, string> { [\"key\"] = \"example\" } };\nvar response = await client.Views.SubmitViewResponseAsync(\"3f2b8c1e-7a4d-4e9b-9c2f-5d6a1b8e0f47\", request);",
     "output": "SubmitViewResponseResult(Success: bool)",
     "imports": [
       "SubmitViewResponseRequest"

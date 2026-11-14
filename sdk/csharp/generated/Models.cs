@@ -5462,6 +5462,14 @@ public class ListReactionsResponse
     public PaginationMeta Meta { get; set; } = default!;
 }
 
+public class ListReadMembersResponse
+{
+    [JsonPropertyName("data")]
+    public List<int> Data { get; set; } = new();
+    [JsonPropertyName("meta")]
+    public PaginationMeta Meta { get; set; } = default!;
+}
+
 public class SearchChatsResponse
 {
     [JsonPropertyName("data")]

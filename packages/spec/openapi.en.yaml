@@ -9562,10 +9562,11 @@ paths:
         Respond to a form submission
 
 
-        Closes the form for the employee or shows them errors under the fields. The method is needed by a bot that has
-        no outgoing webhook address set: such a bot has nowhere to answer the webhook, and it receives the `view_submit`
-        event through the [Event history](GET /webhooks/events) method. If the webhook address is set, answer the
-        webhook directly — that is simpler and does not require polling the history.
+        Closes the form for the employee or shows them errors under the fields. The method works only for a bot that has
+        no outgoing webhook address set and has the event history enabled. Such a bot receives the `view_submit` event
+        through the [Event history](GET /webhooks/events) method and answers it with this method. A bot with a webhook
+        address answers the webhook itself, and a call to this method receives `410` with the `submit_expired` code,
+        even if the bot also has the event history enabled.
 
 
         The `view_id` and `submit_id` identifiers arrive in the event payload. You must respond within 5 seconds of the
@@ -9586,8 +9587,8 @@ paths:
           description: View ID
           schema:
             type: string
-            example: 01KAJZ2XDSS2S3DSW9EXJZ0TBV
-          example: 01KAJZ2XDSS2S3DSW9EXJZ0TBV
+            example: 3f2b8c1e-7a4d-4e9b-9c2f-5d6a1b8e0f47
+          example: 3f2b8c1e-7a4d-4e9b-9c2f-5d6a1b8e0f47
       responses:
         '200':
           description: The request has succeeded.
@@ -17612,7 +17613,7 @@ components:
           description: >-
             View ID. A bot with no outgoing webhook address needs it to respond with the [Respond to a form
             submission](POST /views/{view_id}/submit_response) method.
-          example: 01KAJZ2XDSS2S3DSW9EXJZ0TBV
+          example: 3f2b8c1e-7a4d-4e9b-9c2f-5d6a1b8e0f47
         submit_id:
           type: string
           description: >-

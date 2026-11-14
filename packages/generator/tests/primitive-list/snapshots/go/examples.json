@@ -1,0 +1,15 @@
+{
+  "Client_Init": {
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")\nctx := context.Background()",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "ReadMemberOperations_listReadMembers": {
+    "usage": "params := &pachca.ListReadMembersParams{\n\tLimit: pachca.Ptr(int32(300)),\n\tCursor: pachca.Ptr(\"example\"),\n}\nresponse, err := client.ReadMembers.ListReadMembers(ctx, int32(194275), params)",
+    "output": "ListReadMembersResponse{Data: []int32, Meta: PaginationMeta}",
+    "imports": [
+      "ListReadMembersParams"
+    ]
+  }
+}

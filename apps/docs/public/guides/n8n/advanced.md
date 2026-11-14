@@ -174,7 +174,7 @@
 
 ## AI-агент
 
-![Pachca как инструмент AI Agent в n8n](/images/n8n/ai-agent-tool.avif)
+![Workflow AI-ассистента: Pachca Trigger → AI Agent, к агенту подключены Anthropic Chat Model и инструменты Pachca «Поиск сообщений» и «Ответ в чат»](/images/n8n/ai-agent-tool.avif)
 
 *Pachca Tool в панели инструментов AI Agent*
 

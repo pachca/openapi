@@ -268,7 +268,7 @@ while (hasNext)
 
 ### Автопагинация
 
-Для каждого метода с пагинацией, кроме `ReadMembers.ListReadMembersAsync()`, есть `*AllAsync()` вариант, который автоматически обходит все страницы и возвращает плоский список:
+Для каждого метода с пагинацией есть `*AllAsync()` вариант, который автоматически обходит все страницы и возвращает плоский список:
 
 ```csharp
 // Все чаты одним списком
@@ -294,6 +294,7 @@ Console.WriteLine($"Всего: {chats.Count}");
 | `Members.ListMembersAllAsync()` | `List<User>` |
 | `Messages.ListChatMessagesAllAsync()` | `List<Message>` |
 | `Reactions.ListReactionsAllAsync()` | `List<Reaction>` |
+| `ReadMembers.ListReadMembersAllAsync()` | `List<int>` |
 | `Search.SearchChatsAllAsync()` | `List<Chat>` |
 | `Search.SearchMessagesAllAsync()` | `List<Message>` |
 | `Search.SearchUsersAllAsync()` | `List<User>` |

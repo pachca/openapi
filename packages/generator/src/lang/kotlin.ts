@@ -15,7 +15,7 @@ import {
   valueUnionMemberName,
   paginateHasNext,
 } from '../ir.js';
-import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, withPrimitiveData, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToUpperSnake,
@@ -2049,7 +2049,8 @@ function generateExamples(ir: IR): string {
 export class KotlinGenerator implements LanguageGenerator {
   readonly dirName = 'kt';
 
-  generate(ir: IR, options?: GenerateOptions): GeneratedFile[] {
+  generate(sharedIr: IR, options?: GenerateOptions): GeneratedFile[] {
+    const ir = withPrimitiveData(sharedIr, (ft) => ktType(ft));
     const files: GeneratedFile[] = [
       { path: 'Models.kt', content: generateModels(ir) },
       { path: 'Client.kt', content: generateClient(ir) },

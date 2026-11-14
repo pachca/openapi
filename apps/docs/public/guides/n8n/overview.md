@@ -7,7 +7,7 @@
 
 Расширение Пачки опубликовано в [официальной витрине интеграций n8n](https://n8n.io/integrations/pachca/) со статусом **verified by n8n** — это партнёрская интеграция, проверенная командой n8n и доступная в один клик из редактора workflow.
 
-![Страница Pachca в витрине n8n с заголовком Integrate Pachca with 1000+ apps and services и блоком verified by n8n](/images/n8n/marketplace-pachca.avif)
+![Страница Pachca в витрине интеграций n8n: заголовок Integrate Pachca with 2,000+ apps and services и блок Pachca integration с пометкой verified by n8n](/images/n8n/marketplace-pachca.avif)
 
 *Страница Pachca в официальной витрине n8n*
 
@@ -35,7 +35,7 @@
 - **Узел триггера** — событие, запускающее рабочий процесс: новое сообщение, нажатие кнопки, обновление статуса и др.
 - **Узел действия** — логика после триггера: отправка сообщения в чат, создание напоминания, добавление записи в БД и т.д.
 
-![Редактор n8n с workflow «Заявка на отпуск»: Pachca Trigger, узел Switch и узлы Pachca, кнопка Publish](/images/n8n/n8n-interface.avif)
+![Редактор n8n с workflow «Заявка на отпуск»: Pachca Trigger, узел Switch «Тип события» и узлы Pachca, кнопка Publish вверху и Execute внизу](/images/n8n/n8n-interface.avif)
 
 *Визуальный редактор n8n*
 

@@ -7,9 +7,9 @@
 
 ## Загрузка файлов
 
-![Настройка загрузки файла в узле Pachca](/images/n8n/file-upload.avif)
+![Узел Pachca, File > Create: File Source URL, в поле File URL ссылка на PDF, ниже Additional Fields](/images/n8n/file-upload.avif)
 
-*Ресурс File с параметрами загрузки*
+*File > Create с загрузкой файла по ссылке*
 
 
 Операция **File** > **Create** загружает файл через двухшаговый S3 upload. n8n выполняет оба этапа сам: запрашивает параметры загрузки через API и загружает файл в хранилище.
@@ -18,7 +18,7 @@
 
 | File Source | Поле | Описание |
 |-------------|------|----------|
-| **Binary Data** (по умолчанию) | **Input Binary Field** | Файл из бинарного свойства предыдущего узла, например HTTP Request или Read Binary File. По умолчанию свойство называется `data`. |
+| **Binary Data** (по умолчанию) | **Input Binary Field** | Файл из бинарного свойства предыдущего узла, например HTTP Request или Read/Write Files from Disk. По умолчанию свойство называется `data`. |
 | **URL** | **File URL** | Узел сам скачает файл по ссылке |
 
 В **Additional Fields** можно задать **File Name** и **Content Type**. Если их не указать, имя возьмётся из бинарных данных или ссылки, а тип — из бинарных данных или расширения файла.
@@ -42,7 +42,7 @@
 
 **Как использовать:**
 
-1. **HTTP Request** или **Read Binary File** — загрузите изображение в бинарное свойство (по умолчанию `data`)
+1. **HTTP Request** или **Read/Write Files from Disk** — загрузите изображение в бинарное свойство (по умолчанию `data`)
 2. **Pachca** (например, Profile > Update Avatar или User > Update Avatar) — в поле **Input Binary Field** укажите имя бинарного свойства
 
 Для удаления аватара используйте операцию **Delete Avatar**: для Profile она не требует параметров, для User, Chat и Bot нужен только ID.
@@ -100,9 +100,9 @@
 
 ## Кнопки в сообщениях
 
-![Настройка кнопок в сообщении в узле Pachca](/images/n8n/message-buttons.avif)
+![Узел Pachca, Message > Create: Button Layout Single Row и две кнопки в конструкторе Buttons, «Подтвердить» с типом Data (Webhook) и «Открыть сайт» с типом URL (Link)](/images/n8n/message-buttons.avif)
 
-*Кнопки в параметрах сообщения*
+*Две кнопки в одной строке, Button Layout = Single Row*
 
 
 Кнопки к сообщению задаются в операциях Message > **Create** и **Update** полем **Button Layout**. По умолчанию в нём стоит **None**, и кнопки не отправляются.
@@ -126,8 +126,8 @@
 ```json
 [
   [
-    { "text": "Открыть сайт", "url": "https://example.com" },
-    { "text": "Подтвердить", "data": "confirm_action" }
+    { "text": "Подтвердить", "data": "confirm_action" },
+    { "text": "Открыть сайт", "url": "https://example.com" }
   ]
 ]
 ```
@@ -140,7 +140,7 @@
 
 ## Формы
 
-Ресурс **Form** позволяет открывать модальные формы (представления) для пользователей.
+Ресурс **Form** открывает сотрудникам модальные формы (представления).
 
 **Как это работает:**
 
@@ -176,10 +176,10 @@
 
 ![Workflow AI-ассистента: Pachca Trigger → AI Agent, к агенту подключены Anthropic Chat Model и инструменты Pachca «Поиск сообщений» и «Ответ в чат»](/images/n8n/ai-agent-tool.avif)
 
-*Pachca Tool в панели инструментов AI Agent*
+*Узлы Pachca Tool на входе Tool узла AI Agent*
 
 
-Узел Pachca поддерживает `usableAsTool: true`, поэтому **AI Agent** в n8n может вызывать его как инструмент. Pachca Trigger запускает сценарий и инструментом быть не может.
+Узел Pachca поддерживает `usableAsTool: true`, поэтому **AI Agent** в n8n может вызывать его как инструмент. В панели инструментов он называется **Pachca Tool**. Pachca Trigger запускает сценарий и инструментом быть не может.
 
 **Что это значит:**
 
@@ -190,24 +190,24 @@
 **Пример: AI-помощник для команды**
 
 
-  ### Шаг 1. Добавьте AI Agent
+  ### Шаг 1. Настройте триггер
 
-Создайте новый workflow. Добавьте узел **AI Agent** и подключите LLM-модель (OpenAI, Anthropic и др.) через соответствующие Credentials.
-
-
-  ### Шаг 2. Подключите инструменты Pachca
-
-Нажмите **+** на входе **Tool** узла AI Agent и добавьте узел **Pachca**. Выберите нужную операцию — например, **Search > Get Many Messages** для поиска по сообщениям. Добавьте ещё один узел Pachca для **Message > Create** — отправки ответов.
+Создайте новый workflow и нажмите **Add first step…**. В панели **What triggers this workflow?** найдите **Pachca** и в списке **Triggers** выберите **On new message**: на холсте появится **Pachca Trigger** с событием `New Message`.
 
 
-  ### Шаг 3. Настройте триггер
+  ### Шаг 2. Добавьте AI Agent
 
-Добавьте **Pachca Trigger** с событием `New Message` на вход workflow. AI Agent будет автоматически отвечать на сообщения пользователей, используя поиск по истории чатов.
+Нажмите **+** на выходе Pachca Trigger и добавьте узел **AI Agent**. Без чат-триггера агент не найдёт текст запроса, поэтому в **Source for Prompt (User Message)** выберите **Define below**, а в **Prompt (User Message)** укажите `{{ $json.content }}`. Затем нажмите **+** на входе **Chat Model** и выберите модель в панели **Language Models**, например **Anthropic Chat Model** или **OpenAI Chat Model**, с Credentials провайдера.
 
 
-AI Agent самостоятельно выбирает подходящий инструмент на основе запроса пользователя — ищет информацию, создаёт напоминания или отправляет сообщения.
+  ### Шаг 3. Подключите инструменты Pachca
 
-> Для использования AI Agent необходимо настроить LLM-провайдер (OpenAI, Anthropic и др.) в Credentials n8n.
+Нажмите **+** на входе **Tool** узла AI Agent, найдите в панели **Tools** узел **Pachca Tool** и выберите операцию, например **Search** > **Get Many Messages** для поиска по сообщениям. Добавьте ещё один Pachca Tool с операцией **Message** > **Create**, чтобы агент отправлял ответы.
+
+
+AI Agent самостоятельно выбирает подходящий инструмент на основе запроса сотрудника — ищет информацию, создаёт напоминания или отправляет сообщения.
+
+> Без модели на входе **Chat Model** узел AI Agent не запустится. Это обязательный вход, на холсте он отмечен звёздочкой.
 
 
 ---

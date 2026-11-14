@@ -37,7 +37,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 [external-alerts.json](/workflows/n8n/external-alerts.json) — Готовый workflow для импорта в n8n
 
 
-> После импорта замените Credentials, `CHAT_ID_ДЕЖУРНЫХ` и `CHAT_ID_АЛЕРТОВ`, добавьте бота в оба чата и опубликуйте workflow. Чтобы адрес принимал запросы только от вашего сервиса, включите в узле Webhook проверку **Authentication**, например **Header Auth**.
+> После импорта замените Credentials, `CHAT_ID_ДЕЖУРНЫХ` и `CHAT_ID_АЛЕРТОВ`, добавьте бота в оба чата и опубликуйте workflow кнопкой **Publish**. Чтобы адрес принимал запросы только от вашего сервиса, включите в узле Webhook проверку **Authentication**, например **Header Auth**.
 
 
 ---
@@ -95,7 +95,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 
 Ежедневная проверка просроченных напоминаний с уведомлением в чат.
 
-![Workflow просроченных напоминаний](/images/n8n/workflow-reminder.avif)
+![Workflow просроченных напоминаний: Schedule Trigger, узел Pachca «Получить напоминания» (getAll: task), узел IF «IF просрочено» и узел Pachca «Уведомление»](/images/n8n/workflow-reminder.avif)
 
 *Просроченные напоминания*
 
@@ -121,9 +121,9 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 
 Запрос на согласование через сообщение с кнопками и обработка ответа.
 
-![Workflow согласования с кнопками](/images/n8n/workflow-approval.avif)
+![Workflow обработки нажатий: Pachca Trigger на событие button_pressed, узел Switch с выходами «Одобрено» и «Отклонено» и два узла Pachca update: message](/images/n8n/workflow-approval.avif)
 
-*Согласование с Data-кнопками*
+*Обработка нажатий кнопок согласования*
 
 
 **Как работает:**
@@ -160,7 +160,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 
 Периодическая проверка состояния и отправка алерта при аномалиях.
 
-![Workflow мониторинга с алертами](/images/n8n/workflow-monitoring.avif)
+![Workflow мониторинга: Schedule Trigger, узел HTTP Request, узел IF «IF не 200» и узел Pachca «Алерт в Пачку»](/images/n8n/workflow-monitoring.avif)
 
 *Мониторинг с отправкой алертов в Пачку*
 
@@ -169,7 +169,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 
 1. **Schedule Trigger** — проверка каждые 5 минут
 2. **HTTP Request** — запрос к внешнему API или сервису
-3. **IF** — проверка: статус не 200 или сервис не ответил. В HTTP Request включены **Full Response** и **Never Error**, а при ошибке соединения узел продолжает работу, поэтому до IF доходит любой исход
+3. **IF** — проверка: статус не 200 или сервис не ответил. В HTTP Request в **Options** > **Response** включены **Include Response Headers and Status** и **Never Error**, а в **Settings** > **On Error** выбрано **Continue**, поэтому до IF доходит любой исход.
 4. **Pachca** (Message > Create) — отправка алерта в канал мониторинга
 
 **Что можно добавить:** проверка нескольких сервисов, графики через разворачивание ссылок, эскалация в личные сообщения.
@@ -188,10 +188,10 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 
 **Как работает:** у бота один адрес вебхука, поэтому весь сценарий — один workflow с одним **Pachca Trigger** на событие `All Events`. Узел **Switch** разводит события по четырём веткам:
 
-1. **Команда `/отпуск`** (новое сообщение) — **Pachca** (Message > Create) отправляет в тот же чат сообщение с Data-кнопкой «Создать заявку»
-2. **Нажатие «Создать заявку»** — **Pachca** (Form > Create) открывает форму с полями «Дата начала», «Дата окончания», «Комментарий». `trigger_id` берётся из события кнопки, `callbackId` формы — `vacation_form`
-3. **Отправка формы** (`callback_id` = `vacation_form`) — **Pachca** (Message > Create) отправляет заявку в чат руководителя с кнопками «Согласовать» и «Отклонить». В `data` кнопок записан id сотрудника
-4. **Решение руководителя** — **Pachca** (Message > Update) убирает кнопки, **Pachca** (Thread > Create) заводит тред под заявкой, **Pachca** (Message > Create) пишет решение в тред, ещё один Message > Create сообщает его сотруднику в личные сообщения
+1. **Команда `/отпуск`** (новое сообщение) — **Pachca** (Message > Create) отправляет в тот же чат сообщение с Data-кнопкой «Создать заявку».
+2. **Нажатие «Создать заявку»** — **Pachca** (Form > Create) открывает форму с полями «Дата начала», «Дата окончания», «Комментарий». `trigger_id` берётся из события кнопки, `callbackId` формы — `vacation_form`.
+3. **Отправка формы** (`callback_id` = `vacation_form`) — **Pachca** (Message > Create) отправляет заявку в чат руководителя с кнопками «Согласовать» и «Отклонить». В `data` кнопок записан id сотрудника.
+4. **Решение руководителя** — **Pachca** (Message > Update) убирает кнопки, **Pachca** (Thread > Create) заводит тред под заявкой, **Pachca** (Message > Create) пишет решение в тред, ещё один Message > Create сообщает его сотруднику в личные сообщения.
 
 **Что задействовано:** триггер, кнопки, формы, треды, условная логика.
 
@@ -218,13 +218,13 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 **Как работает:**
 
 1. **Pachca Trigger** — событие `New Message`
-2. **AI Agent** — обработка запроса с LLM
-3. **Pachca** (Search > Get Many Messages) — как Tool для поиска информации
-4. **Pachca** (Message > Create) — как Tool для отправки ответа
+2. **AI Agent** — обработка текста сообщения моделью, подключённой ко входу **Chat Model**
+3. **Pachca Tool** (Search > Get Many Messages) — инструмент агента для поиска информации
+4. **Pachca Tool** (Message > Create) — инструмент агента для отправки ответа
 
 На вкладке **Исходящий вебхук** отметьте пункт «Новые сообщения» в режиме «Любые сообщения» и включите «Игнорировать свои сообщения», чтобы бот не отвечал на собственные ответы.
 
-> Для использования AI Agent необходимо настроить LLM-провайдер (OpenAI, Anthropic и др.) в n8n. Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#ai-agent).
+> Узлу AI Agent нужна языковая модель: подключите ко входу **Chat Model** узел провайдера, например **Anthropic Chat Model** или **OpenAI Chat Model**, с его Credentials. Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#ai-agent).
 
 
 

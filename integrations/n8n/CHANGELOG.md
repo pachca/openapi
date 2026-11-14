@@ -13,7 +13,7 @@
 
 - User > Update: the Role description says that making someone a guest turns their administrator and editor roles in threads into member, and a thread owner stays the owner
 - Bot: the outgoing webhook URL description says that an empty URL clears it, and with event history on the events keep being stored there
-- Pachca Trigger: hints speak of publishing the workflow, as n8n 2.x calls it, instead of activating it
+- Pachca Trigger: hints and the missing-scope error speak of publishing the workflow, as n8n 2.x calls it, and the automatic-mode hint points to the Bot ID field above it
 
 ## 2.2.7 (2026-11-12)
 

@@ -29,7 +29,7 @@ n8n можно использовать в двух режимах — выби�
 
 Запустите n8n на собственном сервере или локально. Два варианта: **npx** — для быстрой локальной пробы, **Docker** — для постоянной работы и продакшена. Пачка отправляет вебхуки только на публичный адрес. Если n8n запущен на вашей машине, события доходят до него через туннель, как в разделе [Локальная разработка](/guides/n8n/testing#lokalnaya-razrabotka), или через команду CLI `pachca bots listen-events --forward-to`, как в разделе [Разработка без публичного адреса](/guides/webhook/deploy#razrabotka-bez-publichnogo-adresa).
 
-**С помощью команды** (требуется Node.js 22+):
+**С помощью команды** (требуется Node.js 24 или новее):
 
 ```bash
 npx n8n
@@ -46,20 +46,19 @@ docker run -it --rm \
   -e GENERIC_TIMEZONE="Europe/Moscow" \
   -e TZ="Europe/Moscow" \
   -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true \
-  -e N8N_RUNNERS_ENABLED=true \
   -v n8n_data:/home/node/.n8n \
-  docker.n8n.io/n8nio/n8n
+  n8nio/n8n
 ```
 
 Подробные инструкции — в [официальной документации n8n](https://docs.n8n.io/hosting/) и на [GitHub](https://github.com/n8n-io/n8n).
 
-После запуска откройте `http://localhost:5678` и настройте аккаунт владельца (Owner Account), указав почту, имя и пароль.
+После запуска откройте `http://localhost:5678` и заполните форму **Set up owner account**: почта, имя, фамилия и пароль владельца. Затем нажмите **Next**.
 
-<ImageCard src="/images/n8n/owner-account.avif" alt="Настройка аккаунта владельца n8n" caption="Настройка Owner Account" maxWidth={960} />
+<ImageCard src="/images/n8n/owner-account.avif" alt="Форма Set up owner account в n8n: заполнены Email, First Name, Last Name и Password, внизу кнопка Next" caption="Настройка аккаунта владельца" maxWidth={960} />
 
-После входа вы увидите главный экран n8n с пустым списком workflow.
+После этого n8n может показать короткую анкету **Customize n8n to you** и затем откроет главную страницу. Пока workflow нет, на ней заголовок **Let's build your first automation** и карточки **Build an agent** и **Build a workflow**.
 
-<ImageCard src="/images/n8n/main-dashboard.avif" alt="Главная страница n8n после авторизации" caption="Главная страница n8n" maxWidth={960} />
+<ImageCard src="/images/n8n/main-dashboard.avif" alt="Главная страница n8n без workflow: заголовок Let's build your first automation и карточки Build an agent и Build a workflow" caption="Главная страница n8n" maxWidth={960} />
 
 ## Установка расширения
 
@@ -67,15 +66,17 @@ docker run -it --rm \
 
 <Steps>
   <Step title="Откройте Nodes panel">
-    Войдите в n8n, создайте или откройте любой workflow и нажмите **+** в правом верхнем углу — справа откроется Nodes panel.
+    Войдите в n8n, создайте или откройте любой workflow и нажмите **+** в правом верхнем углу канваса. Справа откроется Nodes panel. В пустом workflow она называется **What triggers this workflow?**, а если триггер уже есть, **What happens next?**.
   </Step>
   <Step title="Найдите Pachca в поиске">
-    Введите «Pachca» в поиск. В результатах появится нода **Pachca** с галочкой **verified by n8n** — это партнёрский статус. Нода **Pachca Trigger** найдётся таким же поиском, если открыть Nodes panel в начале workflow (выбор триггера).
+    Введите «Pachca» в поиск. Пока расширение не установлено, n8n показывает его в разделе **More from the community** внизу панели. Нода **Pachca** отмечена значком verified: это партнёрский статус **verified by n8n**.
 
-    <ImageCard src="/images/n8n/nodes-search-pachca.avif" alt="Поиск Pachca в Nodes panel внутри n8n с пометкой verified by n8n" caption="Поиск Pachca в Nodes panel — verified-бейдж рядом с названием" maxWidth={960} />
+    Узел действий Pachca и триггер Pachca Trigger n8n объединяет в одну запись **Pachca**, поэтому под названием стоит описание триггера «Starts workflow when Pachca events occur». Из панели **What happens next?** запись открывает список действий узла (**Actions**), а из **What triggers this workflow?** открывает события триггера (**Triggers**).
+
+    <ImageCard src="/images/n8n/nodes-search-pachca.avif" alt="Панель What happens next? после ручного триггера: в поиске Pachca, найдена одна запись Pachca со значком verified и описанием Starts workflow when Pachca events occur" caption="Поиск Pachca в Nodes panel: значок verified рядом с названием" maxWidth={960} />
   </Step>
   <Step title="Установите ноду">
-    Нажмите на ноду — откроется страница **Node details** с описанием, списком operations и кнопкой **Install**. Через несколько секунд нода появится в обычном поиске узлов и будет доступна всем участникам instance.
+    Нажмите на запись. Откроется панель **Node details** с описанием, списком действий и кнопкой **Install node**. Через несколько секунд в панели появится статус **Installed**, а нода станет доступна в поиске узлов всем участникам instance.
 
     <ImageCard src="/images/n8n/node-details-pachca.avif" alt="Node details узла Pachca в панели узлов n8n: отметка verified, статус Installed и список операций Actions (105)" caption="Node details: verified by n8n, статус Installed и список операций" maxWidth={960} />
 
@@ -83,7 +84,7 @@ docker run -it --rm \
   </Step>
 </Steps>
 
-<Info>Альтернативный путь — **Settings → Community Nodes**: введите `n8n-nodes-pachca` и нажмите **Install**. Подходит, если удобнее начать из настроек. Итог тот же — нода доступна в Nodes panel.</Info>
+<Info>На self-hosted ноду можно поставить и из настроек: **Settings** > **Community nodes** > **Install**. Введите `n8n-nodes-pachca` в поле **npm Package Name**, отметьте **I understand the risks of installing unverified code from a public source** и нажмите **Install**. Итог тот же: нода появится в Nodes panel.</Info>
 
 ### Запасной путь: установка из npm для air-gapped self-hosted
 
@@ -98,7 +99,7 @@ npm install n8n-nodes-pachca
 
 ### Если расширение не видно в поиске
 
-- **n8n Cloud:** verified-ноды включены по умолчанию. Если в поиске их нет, instance owner мог отключить их в Cloud Admin Panel — попросите включить.
+- **n8n Cloud:** verified-ноды включены по умолчанию. Если в поиске их нет, instance owner мог выключить переключатель **Verified community nodes** в разделе **Instance settings** консоли n8n Cloud. Попросите его включить.
 - **Self-hosted** или **старая версия n8n** — что проверить, описано в разделе [Расширение не появляется в Nodes panel](/guides/n8n/troubleshooting#rasshirenie-ne-poyavlyaetsya-v-nodes-panel).
 
 Подробнее — в [официальных доках n8n про verified-ноды](https://docs.n8n.io/integrations/community-nodes/installation/verified-install/).
@@ -107,13 +108,15 @@ npm install n8n-nodes-pachca
 
 <Steps>
   <Step title="Создание Credentials">
-    Credentials — данные для авторизации. Перейдите на вкладку **Credentials** и нажмите **Create credential**.
+    Credentials — данные для авторизации. Откройте **Overview** на боковой панели (значок домика), перейдите на вкладку **Credentials** и нажмите **Create credential**.
 
-    <ImageCard src="/images/n8n/credentials-list.avif" alt="Список Credentials в n8n" caption="Список Credentials" maxWidth={960} />
+    <ImageCard src="/images/n8n/credentials-list.avif" alt="Вкладка Credentials на странице Overview: кнопка Create credential и учётные данные Pachca Bot типа Pachca API" caption="Вкладка Credentials" maxWidth={960} />
 
-    Найдите **Pachca API** в списке и заполните поля:
+    Откроется окно **Add new credential**. Введите «Pachca» в поле поиска, выберите **Pachca API** и нажмите **Continue**.
 
-    <ImageCard src="/images/n8n/credentials-search.avif" alt="Поиск Pachca API в списке Credentials" caption="Поиск Pachca API в списке Credentials" maxWidth={960} />
+    <ImageCard src="/images/n8n/credentials-search.avif" alt="Окно Add new credential: в поиске Pachca, в списке вариант Pachca API" caption="Выбор Pachca API в окне Add new credential" maxWidth={960} />
+
+    Заполните поля Pachca API:
 
     | Поле | Обязательное | Описание |
     |------|:---:|----------|
@@ -122,7 +125,9 @@ npm install n8n-nodes-pachca
     | **Webhook Signing Secret** | нет | Секрет, которым Pachca Trigger проверяет подпись вебхуков (HMAC-SHA256). Скопируйте поле **Signing secret** с вкладки **Исходящий вебхук** в карточке бота. Для узла Pachca не нужен. |
     | **Webhook Allowed IPs** | нет | Адреса через запятую, с которых Pachca Trigger принимает вебхуки. Адреса Пачки перечислены в разделе [Безопасность и обработчик](/guides/webhook/handler#bezopasnost). Пустое поле — разрешить все. |
 
-    <ImageCard src="/images/n8n/credentials-v2.avif" alt="Новые учётные данные Pachca API в n8n: Base URL, Access Token, Webhook Signing Secret и Webhook Allowed IPs с подсказками про Pachca Trigger" caption="Форма Pachca API Credentials" maxWidth={896} />
+    Под этими полями n8n добавляет своё поле **Allowed HTTP Request Domains**: оно задаёт, к каким доменам узлы HTTP Request и GraphQL могут обращаться с этими учётными данными. Оставьте значение **All**.
+
+    <ImageCard src="/images/n8n/credentials-v2.avif" alt="Новые учётные данные Pachca API в n8n: Base URL, Access Token, Webhook Signing Secret и Webhook Allowed IPs с подсказками про Pachca Trigger, ниже поле n8n Allowed HTTP Request Domains со значением All" caption="Форма Pachca API Credentials" maxWidth={896} />
   </Step>
   <Step title="Где получить токен">
     Для сценариев n8n подходит **токен бота**: сообщения уходят от имени бота, а Pachca Trigger получает события этого бота. Токен выпускается в карточке бота на вкладке **API** (**Интеграции** > **Боты** > **Управление**). По умолчанию любой сотрудник может создать бота и выпустить токен своему боту, а кому ещё открыта вкладка **API**, сказано в разделе [Токены бота](/guides/bots/tokens). Права для узлов Pachca и Pachca Trigger выберите по набору «Сценарий n8n» из раздела [Наборы прав под типовые задачи](/guides/permissions#nabory-prav-pod-tipovye-zadachi).
@@ -133,7 +138,7 @@ npm install n8n-nodes-pachca
 
     После заполнения полей нажмите **Save** — n8n проверит подключение вызовом [Информация о токене](GET /oauth/token/info). При успехе вы увидите подтверждение, повторить проверку можно кнопкой **Retry** в нём.
 
-    <ImageCard src="/images/n8n/credentials-test.avif" alt="Окно учётных данных Pachca Bot после сохранения: «Connection tested successfully» с кнопкой Retry, поля Base URL, Access Token, Webhook Signing Secret и Webhook Allowed IPs" caption="Connection tested successfully" maxWidth={896} />
+    <ImageCard src="/images/n8n/credentials-test.avif" alt="Окно учётных данных Pachca Bot после сохранения: «Connection tested successfully» с кнопкой Retry, поля Base URL, Access Token, Webhook Signing Secret, Webhook Allowed IPs и Allowed HTTP Request Domains" caption="Connection tested successfully" maxWidth={896} />
 
     <Info>Если тест не проходит — проверьте правильность токена и доступность API. Подробнее — в разделе [Устранение ошибок](/guides/n8n/troubleshooting).</Info>
   </Step>
@@ -143,39 +148,39 @@ npm install n8n-nodes-pachca
 
 <Steps>
   <Step title="Создание workflow">
-    Workflow — визуальный редактор, в котором выстраиваются цепочки триггеров и действий. Создайте новый workflow и добавьте триггер **Manual Trigger** для ручного запуска.
+    Workflow — визуальный редактор, в котором выстраиваются цепочки триггеров и действий. Создайте новый workflow, нажмите **Add first step** и выберите **Trigger manually**. На канвасе появится триггер ручного запуска **When clicking ‘Execute workflow’** (узел Manual Trigger).
 
-    Нажмите **+** на выходе триггера и найдите **Pachca** в списке узлов.
+    Нажмите **+** на выходе триггера и в панели **What happens next?** найдите **Pachca**.
 
-    <ImageCard src="/images/n8n/workflow-add-node.avif" alt="Панель «What happens next?» после Manual Trigger: в поиске Pachca и узел Pachca с отметкой verified" caption="Поиск узла Pachca" maxWidth={960} />
+    <ImageCard src="/images/n8n/workflow-add-node.avif" alt="Панель «What happens next?» после ручного триггера: в поиске Pachca и запись Pachca со значком verified" caption="Поиск узла Pachca" maxWidth={960} />
 
-    После добавления узла на канвасе появится цепочка: Manual Trigger → Pachca.
+    Нажмите на запись **Pachca** и выберите действие **Create a message**. На канвасе появится цепочка из триггера и узла Pachca. n8n называет узел по действию, **Create a message**, а под названием показывает операцию `create: message`.
 
-    <ImageCard src="/images/n8n/workflow-pachca-node.avif" alt="Узел Pachca на канвасе workflow" caption="Pachca на канвасе" maxWidth={960} />
+    <ImageCard src="/images/n8n/workflow-pachca-node.avif" alt="Канвас «Первый workflow»: триггер When clicking ‘Execute workflow’ и связанный с ним узел Pachca Create a message с подписью create: message" caption="Узел Pachca на канвасе" maxWidth={960} />
   </Step>
   <Step title="Настройка и запуск">
-    Дважды кликните на узел **Pachca** и настройте:
+    После выбора действия n8n сразу открывает окно узла **Create a message**. Позже его можно открыть двойным кликом по узлу. Настройте:
 
-    - **Credential:** выберите созданный Pachca API
+    - **Credential:** выберите созданные учётные данные Pachca API
     - **Resource:** Message
     - **Operation:** Create
     - **Entity Type:** Discussion (беседа или канал)
     - **Entity ID:** чат, куда отправить сообщение
     - **Content:** текст сообщения
 
-    Чат в поле **Entity ID** проще всего выбрать в режиме **From List**: начните вводить название, и n8n покажет подходящие чаты, доступные токену. В режиме **By ID** укажите число из ссылки на чат в веб-приложении Пачки. Как найти идентификаторы сотрудника, треда или сообщения — в разделе [Где взять идентификаторы](/api/requests-responses#gde-vzyat-identifikatory).
+    Чат в поле **Entity ID** проще всего выбрать в режиме **From list**: начните вводить название, и n8n покажет подходящие чаты, доступные токену. В режиме **By ID** укажите число из ссылки на чат в веб-приложении Пачки. Как найти идентификаторы сотрудника, треда или сообщения — в разделе [Где взять идентификаторы](/api/requests-responses#gde-vzyat-identifikatory).
 
-    <ImageCard src="/images/n8n/node-message-create.avif" alt="Настройка отправки сообщения в узле Pachca" caption="Настройка Message → Create" maxWidth={960} />
+    <ImageCard src="/images/n8n/node-message-create.avif" alt="Окно узла Create a message: Credential Pachca Bot, Resource Message, Operation Create, Entity Type Discussion, Entity ID в режиме By ID и Content «Привет из n8n!»" caption="Настройка Message → Create" maxWidth={960} />
 
     <Warning>Перед отправкой сообщения [добавьте бота в чат](/guides/bots/access).</Warning>
 
-    Закройте панель настроек и нажмите **Execute Workflow**. При успехе узлы подсветятся зелёным и покажут количество обработанных элементов.
+    Закройте окно узла и нажмите **Execute** внизу канваса. При успехе узлы подсветятся зелёным и покажут количество обработанных элементов.
 
-    <ImageCard src="/images/n8n/workflow-execute-success.avif" alt="Manual Trigger и узел Pachca после запуска: оба подсвечены зелёным, на связях 1 item" caption="Workflow выполнен" maxWidth={960} />
+    <ImageCard src="/images/n8n/workflow-execute-success.avif" alt="Триггер When clicking ‘Execute workflow’ и узел Create a message после запуска: оба подсвечены зелёным, на связях 1 item" caption="Workflow выполнен" maxWidth={960} />
 
-    Откройте узел Pachca, чтобы увидеть ответ API с данными созданного сообщения.
+    Откройте узел **Create a message**: в панели **Output** будет ответ API с данными созданного сообщения. Переключатель **Schema**, **Table** и **JSON** меняет вид ответа.
 
-    <ImageCard src="/images/n8n/workflow-output-data.avif" alt="Данные ответа API после выполнения" caption="Ответ API в панели Output" maxWidth={960} />
+    <ImageCard src="/images/n8n/workflow-output-data.avif" alt="Окно узла Create a message после запуска: в Output 1 item, ответ API в виде JSON с id, chat_id, content «Привет из n8n!» и url созданного сообщения" caption="Ответ API в панели Output" maxWidth={960} />
 
     Больше примеров — в разделе [Примеры workflow](/guides/n8n/workflows).
   </Step>

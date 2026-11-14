@@ -66,9 +66,9 @@
 
 **Ключевые параметры Create:** **Entity Type** (Discussion, Thread или User), **Entity ID** (чат, тред или сотрудник), **Content** (текст, Markdown), **Button Layout** с кнопками, а в **Additional Fields** — **Files**, **Parent Message ID** и другие. Как задать кнопки — в разделе [Кнопки в сообщениях](/guides/n8n/advanced#knopki-v-soobscheniyah).
 
-**Сортировка в Get Many:** параметры `sort` (по умолчанию `id`) и `order` (`asc` / `desc`) определяют порядок выдачи сообщений.
+**Сортировка в Get Many:** поле **Sort** со значением **ID** и поле **Order** (**Ascending** или **Descending**, по умолчанию **Descending**) определяют порядок выдачи сообщений.
 
-![Настройка Message Get Many с Entity ID и Return All](/images/n8n/message-get-many.avif)
+![Узел Pachca, Message → Get Many: Return All включён, Chat ID в режиме By ID, сортировка Sort и Order](/images/n8n/message-get-many.avif)
 
 *Настройка Message → Get Many*
 
@@ -96,7 +96,7 @@
 
 **Create** возвращает созданный чат и поля `not_found_member_ids` и `not_found_group_tag_ids`: идентификаторы из **Member IDs**, которых не удалось добавить в чат, и идентификаторы из **Group Tag IDs**, которых нет среди тегов пространства.
 
-**Сортировка в Get Many:** параметры `sort` (`id` или `last_message_at`) и `order` (`asc` / `desc`). Также доступны фильтры `availability`, `lastMessageAtAfter`, `lastMessageAtBefore`.
+**Сортировка в Get Many:** поля **Sort** (**ID** или **Last Message At**) и **Order** (**Ascending** или **Descending**). Также доступны фильтры **Availability**, **Last Message At After** и **Last Message At Before**.
 
 **Get Many Workspace Chats** отдаёт беседы и каналы всего пространства, включая закрытые, где владелец токена не состоит. Фильтр `Activity` оставляет только активные или только архивные. Доступно владельцу пространства на тарифе «Корпорация».
 
@@ -408,7 +408,7 @@
 
 **Limit** не больше 50, у **Search** > **Get Many Chats** до 100, у **Get Many Messages** и **Get Many Users** в **Search** до 200, у **Read Member** до 300. Чтобы получить больше, включите **Return All**.
 
-![Переключатель Return All и поле Limit в узле Pachca](/images/n8n/return-all.avif)
+![Узел Pachca, Message → Get Many: Return All выключен, под ним поле Limit со значением 50](/images/n8n/return-all.avif)
 
 *Return All и Limit для операции Get Many*
 
@@ -443,12 +443,12 @@ n8n автоматически отправляет повторные запр�
 
 ## Поисковые выпадающие списки
 
-![Поисковый выпадающий список Chat ID в узле Pachca](/images/n8n/searchable-dropdown.avif)
+![Поле Chat ID в режиме From list: в поиске «Разраб», в списке чаты «Разработка» и «Разработка: релизы»](/images/n8n/searchable-dropdown.avif)
 
 *Поиск чата по имени в поле Chat ID*
 
 
-Поля чата и сотрудника с режимом **From List** показывают список и ищут по названию или имени: начните вводить текст, и n8n покажет подходящие результаты из пространства.
+Поля чата и сотрудника с режимом **From list** показывают список и ищут по названию или имени: начните вводить текст, и n8n покажет подходящие результаты из пространства.
 
 | Поле | Что в списке |
 |------|--------------|

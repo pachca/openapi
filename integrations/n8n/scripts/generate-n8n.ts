@@ -2658,7 +2658,7 @@ ${optionEntries}
 \t\t\t\t\t{
 \t\t\t\t\t\tname: 'Automatic',
 \t\t\t\t\t\tvalue: 'automatic',
-\t\t\t\t\t\tdescription: 'The node registers and clears this webhook URL in Pachca automatically. A bot token self-registers via PUT /bot/webhook (no Bot ID needed) and needs the profile:read and bot_self:webhook:write scopes. A personal token uses PUT /bots/:botId and needs the bots:write scope, editor access to the bot, and the Bot ID below.',
+\t\t\t\t\t\tdescription: 'The node registers and clears this webhook URL in Pachca automatically. A bot token self-registers via PUT /bot/webhook (no Bot ID needed) and needs the profile:read and bot_self:webhook:write scopes. A personal token uses PUT /bots/:botId and needs the bots:write scope, editor access to the bot, and the Bot ID field.',
 \t\t\t\t\t},
 \t\t\t\t\t{
 \t\t\t\t\t\tname: 'Manual',
@@ -2683,7 +2683,7 @@ ${optionEntries}
 \t\t\t},
 \t\t\t{
 \t\t\t\tdisplayName:
-\t\t\t\t\t'Automatic mode registers and clears this node\\'s webhook URL in Pachca on publish/unpublish. With a <b>bot token</b> it self-registers — no Bot ID needed: the token needs the <code>profile:read</code> and <code>bot_self:webhook:write</code> scopes. With a <b>personal token</b> it needs the <code>bots:write</code> scope, editor access to the target bot, and the <b>Bot ID</b> below. The node sets only the URL: tick the events in bot settings in Pachca (Outgoing webhook tab), and for New Message choose <b>Any messages</b> or list commands.',
+\t\t\t\t\t'Automatic mode registers and clears this node\\'s webhook URL in Pachca on publish/unpublish. With a <b>bot token</b> it self-registers — no Bot ID needed: the token needs the <code>profile:read</code> and <code>bot_self:webhook:write</code> scopes. With a <b>personal token</b> it needs the <code>bots:write</code> scope, editor access to the target bot, and the <b>Bot ID</b> field above. The node sets only the URL: tick the events in bot settings in Pachca (Outgoing webhook tab), and for New Message choose <b>Any messages</b> or list commands.',
 \t\t\t\tname: 'automaticSetupNotice',
 \t\t\t\ttype: 'notice',
 \t\t\t\tdefault: '',
@@ -2783,7 +2783,7 @@ ${optionEntries}
 \t\t\t\t\t\t\t\t'The token lacks the profile:read scope, so the node cannot tell a bot token from a personal one.',
 \t\t\t\t\t\t\t\t{
 \t\t\t\t\t\t\t\t\tdescription:
-\t\t\t\t\t\t\t\t\t\t'Automatic mode reads GET /profile to choose how to register the webhook URL. With a bot token, add the profile:read scope to this token in bot settings in Pachca (API tab) and activate the workflow again — the scopes of a bot token are chosen per token. With a personal token, fill in the Bot ID field of this node. Or switch Webhook Setup to Manual.',
+\t\t\t\t\t\t\t\t\t\t'Automatic mode reads GET /profile to choose how to register the webhook URL. With a bot token, add the profile:read scope to this token in bot settings in Pachca (API tab) and publish the workflow again — the scopes of a bot token are chosen per token. With a personal token, fill in the Bot ID field of this node. Or switch Webhook Setup to Manual.',
 \t\t\t\t\t\t\t\t},
 \t\t\t\t\t\t\t);
 \t\t\t\t\t\t}

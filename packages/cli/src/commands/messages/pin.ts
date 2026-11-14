@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class MessagesPin extends BaseCommand {
-  static override description = "Закрепление сообщения";
+  static override summary = "Закрепление сообщения";
+  static override description = "Закрепляет сообщение в шапке беседы, канала или личной переписки, где его видят все участники. Ограничения на число закреплённых сообщений нет.\n\nПолное описание: pachca api POST /messages/{id}/pin --docs";
   static scope = "pins:write";
   static apiMethod = "POST";
   static apiPath = "/messages/{id}/pin";

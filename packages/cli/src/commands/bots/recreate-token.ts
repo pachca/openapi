@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class BotsRecreateToken extends BaseCommand {
-  static override description = "Ротация токена бота";
+  static override summary = "Ротация токена бота";
+  static override description = "Метод генерирует боту новый `access_token` и сразу инвалидирует прежний. Используйте его при компрометации токена или плановой ротации секрета в `CI`.\n\nПолное описание: pachca api POST /bots/{id}/recreate_token --docs";
   static scope = "bots:write";
   static apiMethod = "POST";
   static apiPath = "/bots/{id}/recreate_token";

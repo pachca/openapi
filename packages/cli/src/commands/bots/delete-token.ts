@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class BotsDeleteToken extends BaseCommand {
-  static override description = "Удаление токена бота";
+  static override summary = "Удаление токена бота";
+  static override description = "Удаляет токен: запросы с ним сразу перестают проходить. Остальные токены бота продолжают работать.\n\nПолное описание: pachca api DELETE /bots/{id}/tokens/{token_id} --docs";
   static scope = "bots:write";
   static apiMethod = "DELETE";
   static apiPath = "/bots/{id}/tokens/{token_id}";

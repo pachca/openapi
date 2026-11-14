@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class UsersUpdate extends BaseCommand {
-  static override description = "Редактирование сотрудника";
+  static override summary = "Редактирование сотрудника";
+  static override description = "Меняет карточку сотрудника: перезаписываются только переданные поля. Идентификаторы дополнительных полей отдаёт Список дополнительных полей.\n\nПолное описание: pachca api PUT /users/{id} --docs";
   static scope = "users:update";
   static apiMethod = "PUT";
   static apiPath = "/users/{id}";

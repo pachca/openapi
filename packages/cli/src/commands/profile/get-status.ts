@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ProfileGetStatus extends BaseCommand {
-  static override description = "Свой статус";
+  static override summary = "Свой статус";
+  static override description = "Статус владельца токена: эмодзи, подпись, срок и режим «Нет на месте».\n\nПолное описание: pachca api GET /profile/status --docs";
   static scope = "profile_status:read";
   static apiMethod = "GET";
   static apiPath = "/profile/status";

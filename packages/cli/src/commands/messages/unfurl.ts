@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MessagesUnfurl extends BaseCommand {
-  static override description = "Unfurl (разворачивание ссылок)";
+  static override summary = "Unfurl (разворачивание ссылок)";
+  static override description = "Подставляет в сообщение предпросмотр ссылки, собранный самим ботом: заголовок, описание и картинку. Так внутренние адреса компании, которые Пачка сама открыть не может, показываются в переписке карточкой.\n\nПолное описание: pachca api POST /messages/{id}/link_previews --docs";
   static override hiddenAliases = ["link-previews:add"];
   static scope = "link_previews:write";
   static apiMethod = "POST";

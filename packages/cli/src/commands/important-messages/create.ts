@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ImportantMessagesCreate extends BaseCommand {
-  static override description = "Добавление сообщения в важные";
+  static override summary = "Добавление сообщения в важные";
+  static override description = "Добавляет сообщение в раздел «Важное» владельца токена, как «Добавить в важное» в интерфейсе. Отметка личная и видна только самому сотруднику. Закрепление, которое видят все участники чата, ставит метод Закрепление сообщения.\n\nПолное описание: pachca api POST /important_messages --docs";
   static scope = "important_messages:write";
   static apiMethod = "POST";
   static apiPath = "/important_messages";

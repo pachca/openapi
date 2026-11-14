@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class BotsCreate extends BaseCommand {
-  static override description = "Новый бот";
+  static override summary = "Новый бот";
+  static override description = "Создаёт бота в пространстве. По умолчанию бот получает входящий вебхук в своём формате и сразу отдаёт свой `access_token`. Сохраните токен при создании: тот же самый повторно не показывают, останется перевыпустить его методом Ротация токена бота.\n\nПолное описание: pachca api POST /bots --docs";
   static scope = "bots:write";
   static apiMethod = "POST";
   static apiPath = "/bots";

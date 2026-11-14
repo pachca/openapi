@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MessagesCreate extends BaseCommand {
-  static override description = "Новое сообщение";
+  static override summary = "Новое сообщение";
+  static override description = "Отправляет сообщение в беседу или канал, личное сообщение пользователю или комментарий в тред.\n\nПолное описание: pachca api POST /messages --docs";
   static scope = "messages:create";
   static apiMethod = "POST";
   static apiPath = "/messages";

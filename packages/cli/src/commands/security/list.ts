@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class SecurityList extends BaseCommand {
-  static override description = "Журнал аудита событий";
+  static override summary = "Журнал аудита событий";
+  static override description = "Что происходило в пространстве: входы и выходы, изменения ролей и настроек, действия с чатами, сотрудниками и ботами. Записи только читаются — изменить или удалить их нельзя ни через API, ни из интерфейса.\n\nПолное описание: pachca api GET /audit_events --docs";
   static scope = "audit_events:read";
   static plan = "corporation";
   static apiMethod = "GET";

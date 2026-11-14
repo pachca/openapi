@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import { nullableString } from '../../lib/flags.js';
 
 export default class UsersUpdateStatus extends BaseCommand {
-  static override description = "Новый статус сотрудника";
+  static override summary = "Новый статус сотрудника";
+  static override description = "Ставит статус другому сотруднику — например, «в отпуске» на время отсутствия. Доступно владельцу пространства и администратору, боту метод недоступен даже с выданным скоупом.\n\nПолное описание: pachca api PUT /users/{user_id}/status --docs";
   static scope = "user_status:write";
   static apiMethod = "PUT";
   static apiPath = "/users/{user_id}/status";

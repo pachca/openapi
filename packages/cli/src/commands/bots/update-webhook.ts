@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class BotsUpdateWebhook extends BaseCommand {
-  static override description = "Саморегистрация вебхука бота";
+  static override summary = "Саморегистрация вебхука бота";
+  static override description = "Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `id`. Меняется вебхук того бота, которому принадлежит токен.\n\nПолное описание: pachca api PUT /bot/webhook --docs";
   static scope = "bot_self:webhook:write";
   static apiMethod = "PUT";
   static apiPath = "/bot/webhook";

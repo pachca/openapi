@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MembersRemoveGroupTag extends BaseCommand {
-  static override description = "Исключение тега из чата";
+  static override summary = "Исключение тега из чата";
+  static override description = "Отцепляет тег от беседы или канала и выводит оттуда сотрудников, которых держал только он.\n\nПолное описание: pachca api DELETE /chats/{id}/group_tags/{tag_id} --docs";
   static scope = "chat_members:write";
   static apiMethod = "DELETE";
   static apiPath = "/chats/{id}/group_tags/{tag_id}";

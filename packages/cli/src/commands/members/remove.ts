@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MembersRemove extends BaseCommand {
-  static override description = "Исключение участника";
+  static override summary = "Исключение участника";
+  static override description = "Убирает сотрудника или бота из беседы, канала или треда. Из треда исключают по его `chat_id`: это может любой участник треда или чата, где находится родительское сообщение, в том числе бот, а мульти-гость — только если он Создатель или Админ этого чата или владелец самостоятельного треда.\n\nПолное описание: pachca api DELETE /chats/{id}/members/{user_id} --docs";
   static scope = "chat_members:write";
   static apiMethod = "DELETE";
   static apiPath = "/chats/{id}/members/{user_id}";

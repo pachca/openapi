@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MembersAdd extends BaseCommand {
-  static override description = "Добавление участников";
+  static override summary = "Добавление участников";
+  static override description = "Добавляет сотрудников и ботов в беседу, канал или тред. Бота добавляют так же, как сотрудника: его `id` в `member_ids`. В канале он получает роль редактора, а в беседе становится обычным участником — и только после этого может туда писать.\n\nПолное описание: pachca api POST /chats/{id}/members --docs";
   static scope = "chat_members:write";
   static apiMethod = "POST";
   static apiPath = "/chats/{id}/members";

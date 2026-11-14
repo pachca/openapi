@@ -26,19 +26,18 @@ export function AgentPrompt({ id }: { id: string }) {
       className="@container not-prose my-6 overflow-hidden rounded-xl border border-glass-border"
     >
       {/* В широком блоке описание стоит под заголовком, а кнопка по центру справа. В узком
-          (колонка главной) кнопка справа от заголовка, а описание под ними на всю ширину. В самом
-          узком (телефон) заголовок рядом с кнопкой не помещается, и кнопка уходит под описание. */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 px-4 py-3.5 @md:gap-x-5 @md:px-5">
-        <div className="col-start-1 row-start-1 flex min-w-0 items-center gap-2 self-center">
+          (колонка главной, телефон) кнопка стоит под описанием по ширине своего текста. */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start px-4 py-3.5 @md:gap-x-5 @md:px-5">
+        <div className="col-span-2 col-start-1 row-start-1 flex min-w-0 items-center gap-2 @md:col-span-1">
           <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={2} />
           <div className="min-w-0 text-[14px] font-semibold leading-[1.45] text-text-primary">
             {prompt.title}
           </div>
         </div>
-        <div className="col-span-2 col-start-1 row-start-2 mt-1 pl-[22px] text-[14px] leading-[1.55] text-text-secondary @md:col-span-1 @md:mt-0.5">
+        <div className="col-span-2 col-start-1 row-start-2 mt-0.5 pl-[22px] text-[14px] leading-[1.55] text-text-secondary @md:col-span-1">
           {prompt.does}
         </div>
-        <div className="col-start-2 row-start-1 @md:row-span-2 @md:self-center @max-[22rem]:col-start-1 @max-[22rem]:row-start-3 @max-[22rem]:mt-3 @max-[22rem]:pl-[22px]">
+        <div className="col-start-1 row-start-3 mt-3 pl-[22px] @md:col-start-2 @md:row-span-2 @md:row-start-1 @md:mt-0 @md:self-center @md:pl-0">
           <AgentPromptCopy text={prompt.text} />
         </div>
       </div>

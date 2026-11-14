@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ThreadsList extends BaseCommand {
-  static override description = "Список тредов";
+  static override summary = "Список тредов";
+  static override description = "Треды, доступные владельцу токена.\n\nПолное описание: pachca api GET /threads --docs";
   static scope = "threads:read";
   static apiMethod = "GET";
   static apiPath = "/threads";

@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class BotsUpdateToken extends BaseCommand {
-  static override description = "Изменение токена бота";
+  static override summary = "Изменение токена бота";
+  static override description = "Меняет имя или права токена. Новые права действуют сразу: перевыпускать токен не нужно, его значение остаётся прежним. Права заменяются переданным списком целиком.\n\nПолное описание: pachca api PUT /bots/{id}/tokens/{token_id} --docs";
   static scope = "bots:write";
   static apiMethod = "PUT";
   static apiPath = "/bots/{id}/tokens/{token_id}";

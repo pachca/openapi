@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class GroupTagsGet extends BaseCommand {
-  static override description = "Информация о теге";
+  static override summary = "Информация о теге";
+  static override description = "Название тега и число сотрудников в нём.\n\nПолное описание: pachca api GET /group_tags/{id} --docs";
   static scope = "group_tags:read";
   static apiMethod = "GET";
   static apiPath = "/group_tags/{id}";

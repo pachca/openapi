@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class UsersDelete extends BaseCommand {
-  static override description = "Удаление сотрудника";
+  static override summary = "Удаление сотрудника";
+  static override description = "Убирает сотрудника из пространства. Отменить это нельзя: вернуть его можно только новым приглашением, и это будет уже другой сотрудник.\n\nПолное описание: pachca api DELETE /users/{id} --docs";
   static scope = "users:delete";
   static apiMethod = "DELETE";
   static apiPath = "/users/{id}";

@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class BotsListEvents extends BaseCommand {
-  static override description = "История событий";
+  static override summary = "История событий";
+  static override description = "Журнал событий бота: то же самое, что уходит в исходящий вебхук, но забирается запросом. Метод нужен, когда принимать вебхуки на свой адрес нельзя — обработчик недоступен из интернета, поднимается не всегда или пишется прямо сейчас.\n\nПолное описание: pachca api GET /webhooks/events --docs";
   static scope = "webhooks:events:read";
   static apiMethod = "GET";
   static apiPath = "/webhooks/events";

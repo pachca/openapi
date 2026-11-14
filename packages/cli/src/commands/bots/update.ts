@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import { nullableString } from '../../lib/flags.js';
 
 export default class BotsUpdate extends BaseCommand {
-  static override description = "Редактирование бота";
+  static override summary = "Редактирование бота";
+  static override description = "Меняет настройки бота: перезаписываются только переданные поля.\n\nПолное описание: pachca api PUT /bots/{id} --docs";
   static scope = "bots:write";
   static apiMethod = "PUT";
   static apiPath = "/bots/{id}";

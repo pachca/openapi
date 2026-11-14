@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class CustomPropertiesList extends BaseCommand {
-  static override description = "Список дополнительных полей";
+  static override summary = "Список дополнительных полей";
+  static override description = "Схема дополнительных полей пространства: идентификатор, название и тип каждого. Такие поля доступны только для сотрудников и напоминаний, наборы у них независимые, а нужный выбирает параметр `entity_type`. Значения приходят в самой сущности — в карточке сотрудника или в напоминании.\n\nПолное описание: pachca api GET /custom_properties --docs";
   static override hiddenAliases = ["common:custom-properties"];
   static scope = "custom_properties:read";
   static apiMethod = "GET";

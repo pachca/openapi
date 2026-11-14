@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ImportantMessagesDelete extends BaseCommand {
-  static override description = "Удаление сообщения из важных";
+  static override summary = "Удаление сообщения из важных";
+  static override description = "Убирает сообщение из раздела «Важное» владельца токена по идентификатору сообщения. Если сообщения в важных не было, ответ всё равно `204`, поэтому повторный вызов безопасен. Убрать можно и сообщение из чата, где сотрудник больше не состоит.\n\nПолное описание: pachca api DELETE /important_messages/{id} --docs";
   static scope = "important_messages:write";
   static apiMethod = "DELETE";
   static apiPath = "/important_messages/{id}";

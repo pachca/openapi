@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class BotsRemoveEvent extends BaseCommand {
-  static override description = "Удаление события истории";
+  static override summary = "Удаление события истории";
+  static override description = "Убирает событие из журнала бота. Разбирая журнал, удаляйте событие сразу после обработки: журнал не очищается сам, и всё, что осталось, придёт снова при повторном запросе.\n\nПолное описание: pachca api DELETE /webhooks/events/{id} --docs";
   static scope = "webhooks:events:delete";
   static apiMethod = "DELETE";
   static apiPath = "/webhooks/events/{id}";

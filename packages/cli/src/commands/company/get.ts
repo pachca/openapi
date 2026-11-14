@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class CompanyGet extends BaseCommand {
-  static override description = "Информация о пространстве";
+  static override summary = "Информация о пространстве";
+  static override description = "Название пространства, его владелец, тариф и основные настройки: показ личных данных, сквозные треды, кто может создавать персональные токены и интеграции. Метод работает, даже когда пространство заблокировано и другие методы отвечают `402`.\n\nПолное описание: pachca api GET /company --docs";
   static scope = "company:read";
   static apiMethod = "GET";
   static apiPath = "/company";

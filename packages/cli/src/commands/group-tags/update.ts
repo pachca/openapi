@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class GroupTagsUpdate extends BaseCommand {
-  static override description = "Редактирование тега";
+  static override summary = "Редактирование тега";
+  static override description = "Переименовывает тег. Состав сотрудников и привязки к чатам при этом не меняются: у всех, кто был в теге, он остаётся, только под новым названием.\n\nПолное описание: pachca api PUT /group_tags/{id} --docs";
   static scope = "group_tags:write";
   static apiMethod = "PUT";
   static apiPath = "/group_tags/{id}";

@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class UsersRemoveAvatar extends BaseCommand {
-  static override description = "Удаление аватара сотрудника";
+  static override summary = "Удаление аватара сотрудника";
+  static override description = "Убирает аватар другому сотруднику, дальше в интерфейсе показываются инициалы. Доступно владельцу пространства и администратору, боту метод недоступен, а аватар владельца пространства убирает только он сам.\n\nПолное описание: pachca api DELETE /users/{user_id}/avatar --docs";
   static scope = "user_avatar:write";
   static apiMethod = "DELETE";
   static apiPath = "/users/{user_id}/avatar";

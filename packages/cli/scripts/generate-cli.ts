@@ -1040,7 +1040,8 @@ function generateCommandCode(p: CommandGenParams): string {
 ${imports.join('\n')}
 
 export default class ${p.className} extends BaseCommand {
-  static override description = ${JSON.stringify(p.summary)};
+  static override summary = ${JSON.stringify(p.summary)};
+  static override description = ${JSON.stringify(helpDescription(p.endpoint, p.summary))};
 ${staticMeta.join('\n')}
 
   static override args = {
@@ -1242,6 +1243,34 @@ function buildDescribe(
   md += `Документация: ${ctx.docLink}\n`;
   md += `Полная справка: \`pachca api ${ep.method} ${ep.path} --docs\` · схема: \`--spec\`\n`;
   return md;
+}
+
+/**
+ * The DESCRIPTION of a command's `--help`: the opening of the method description as plain
+ * text, then where the full one is. The whole description with its links does not read in a
+ * terminal and would bury the flags; `pachca api <METHOD> <path> --docs` prints it in full.
+ * The command title stays in `summary`, which the command lists show.
+ */
+function helpDescription(endpoint: { method: string; path: string; description?: string }, summary: string): string {
+  // The spec description opens with the method title as its own paragraph: skip it.
+  const paragraphs = (endpoint.description ?? '').trim().split(/\n\s*\n/).map((part) => part.trim());
+  const firstParagraph = paragraphs.find((part) => part && part !== summary) ?? '';
+  let text = firstParagraph
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const LIMIT = 300;
+  if (text.length > LIMIT) {
+    const sentences = text.split(/(?<=\.)\s+/);
+    text = '';
+    for (const sentence of sentences) {
+      if (text && (text + ' ' + sentence).length > LIMIT) break;
+      text = text ? `${text} ${sentence}` : sentence;
+    }
+  }
+  const pointer = `Полное описание: pachca api ${endpoint.method} ${endpoint.path} --docs`;
+  return text && text !== summary ? `${text}\n\n${pointer}` : pointer;
 }
 
 // ----- D3: Global Flags Index (single source of truth) -----

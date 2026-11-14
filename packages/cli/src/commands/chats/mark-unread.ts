@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsMarkUnread extends BaseCommand {
-  static override description = "Отметка чата непрочитанным";
+  static override summary = "Отметка чата непрочитанным";
+  static override description = "Помечает чат непрочитанным для владельца токена, как «Отметить непрочитанным» в интерфейсе. Меняется только его собственный счётчик, остальные участники ничего не замечают.\n\nПолное описание: pachca api PUT /chats/{id}/unread --docs";
   static scope = "chats:mark_unread";
   static apiMethod = "PUT";
   static apiPath = "/chats/{id}/unread";

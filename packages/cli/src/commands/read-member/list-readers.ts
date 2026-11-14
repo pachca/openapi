@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ReadMemberListReaders extends BaseCommand {
-  static override description = "Список прочитавших сообщение";
+  static override summary = "Список прочитавших сообщение";
+  static override description = "Кто из участников чата дочитал ленту до этого сообщения. Отдаётся плоский массив идентификаторов.\n\nПолное описание: pachca api GET /messages/{id}/read_member_ids --docs";
   static scope = "messages:read";
   static apiMethod = "GET";
   static apiPath = "/messages/{id}/read_member_ids";

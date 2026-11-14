@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsListCompany extends BaseCommand {
-  static override description = "Список чатов пространства";
+  static override summary = "Список чатов пространства";
+  static override description = "Беседы и каналы всего пространства, включая закрытые, где вы не состоите участником. Личные переписки и треды не возвращаются.\n\nПолное описание: pachca api GET /company/chats --docs";
   static scope = "company_chats:read";
   static plan = "corporation";
   static apiMethod = "GET";

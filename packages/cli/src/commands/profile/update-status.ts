@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import { nullableString } from '../../lib/flags.js';
 
 export default class ProfileUpdateStatus extends BaseCommand {
-  static override description = "Новый свой статус";
+  static override summary = "Новый свой статус";
+  static override description = "Ставит статус владельцу токена: эмодзи, подпись и, если нужно, срок. Метод доступен и боту — статус появится в карточке самого бота.\n\nПолное описание: pachca api PUT /profile/status --docs";
   static scope = "profile_status:write";
   static apiMethod = "PUT";
   static apiPath = "/profile/status";

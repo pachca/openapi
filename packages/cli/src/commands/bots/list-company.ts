@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class BotsListCompany extends BaseCommand {
-  static override description = "Список ботов пространства";
+  static override summary = "Список ботов пространства";
+  static override description = "Все боты пространства, включая тех, кто недоступен вам для редактирования. У таких ботов приходят только имя и ник, остальные настройки — `null`. Только тех ботов, которых вы можете настраивать, возвращает метод Список ботов.\n\nПолное описание: pachca api GET /company/bots --docs";
   static scope = "company_bots:read";
   static plan = "corporation";
   static apiMethod = "GET";

@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class MessagesGet extends BaseCommand {
-  static override description = "Информация о сообщении";
+  static override summary = "Информация о сообщении";
+  static override description = "Сообщение вместе с автором, вложениями и кнопками.\n\nПолное описание: pachca api GET /messages/{id} --docs";
   static scope = "messages:read";
   static apiMethod = "GET";
   static apiPath = "/messages/{id}";

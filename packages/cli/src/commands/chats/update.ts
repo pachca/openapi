@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsUpdate extends BaseCommand {
-  static override description = "Редактирование чата";
+  static override summary = "Редактирование чата";
+  static override description = "Меняет название беседы или канала и его доступность. Оба изменения видны участникам системным сообщением в ленте чата.\n\nПолное описание: pachca api PUT /chats/{id} --docs";
   static scope = "chats:update";
   static apiMethod = "PUT";
   static apiPath = "/chats/{id}";

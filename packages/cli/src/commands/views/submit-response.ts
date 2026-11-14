@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ViewsSubmitResponse extends BaseCommand {
-  static override description = "Ответ на отправку формы";
+  static override summary = "Ответ на отправку формы";
+  static override description = "Закрывает форму сотруднику или показывает ему ошибки под полями. Метод работает только у бота, у которого не задан адрес исходящего вебхука и включена история событий. Такой бот получает событие `view_submit` из метода История событий и отвечает на него этим методом.\n\nПолное описание: pachca api POST /views/{view_id}/submit_response --docs";
   static scope = "views:write";
   static apiMethod = "POST";
   static apiPath = "/views/{view_id}/submit_response";

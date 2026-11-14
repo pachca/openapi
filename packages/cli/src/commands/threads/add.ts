@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ThreadsAdd extends BaseCommand {
-  static override description = "Новый тред";
+  static override summary = "Новый тред";
+  static override description = "Заводит тред под сообщением — место, где обсуждают сказанное, не засоряя ленту чата. Тред — это отдельный доступ: в него можно позвать сотрудника, не открывая ему сам чат, и он увидит только тред и родительское сообщение.\n\nПолное описание: pachca api POST /messages/{id}/thread --docs";
   static scope = "threads:create";
   static apiMethod = "POST";
   static apiPath = "/messages/{id}/thread";

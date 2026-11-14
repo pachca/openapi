@@ -600,8 +600,8 @@ export async function ScopeRoles() {
 
 // Update manually when a new product release goes out
 const LATEST_PRODUCT_UPDATE = {
-  date: '3 ноября 2026',
-  title: 'Голосовые сообщения',
+  date: '13 ноября 2026',
+  title: 'У коллеги уже ночь 🌙',
 };
 
 export function ProductUpdatesLink() {

@@ -161,7 +161,7 @@ token, CLI login or MCP sign-in can carry it, a bot token never does):
   re-enabled and when the client is switched to confidential. Re-enabling and switching return
   the secret the client already had. A new secret comes from rotation
   (`pachca_rotate_bot_client_secret`): rotate it if it may have leaked. Hand it to the user in
-  your reply only, to put into their secret store.
+  your reply only, or, when they ask, write it to a gitignored `.env` without echoing it.
 
 Redirect URI rules:
 

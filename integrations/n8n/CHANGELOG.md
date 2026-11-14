@@ -2,20 +2,12 @@
 
 # Changelog
 
-## 2.2.8 (2026-11-13)
+## 2.2.8 (2026-11-14)
 
 ### Bug Fixes
 
 - By URL mode of chat and user fields: the node sends the ID from the pasted link
-- By URL mode of user fields (`ID` and `User ID` in User operations, `User ID` in Chat Member): takes a `https://app.pachca.com/chats?user_id=12345` link from Copy link in the user's profile menu, also with other query parameters
-
-### Improvements
-
-- User > Update: the Role description says that making someone a guest turns their administrator and editor roles in threads into member, and a thread owner stays the owner
-- Bot: the outgoing webhook URL description says that an empty URL clears it, and with event history on the events keep being stored there
-- Pachca Trigger: hints and the missing-scope error speak of publishing the workflow, as n8n 2.x calls it, and the automatic-mode hint points to the Bot ID field above it
-- Bot > Create and Update: the field descriptions say when the bot gets events, which scopes the default set leaves out, and which domains link unfurling accepts
-- Clearer descriptions of the export chat list, message sort order, the link preview map, the Actor ID filter and the User Chat Leave audit event
+- By URL mode of user fields (`ID` and `User ID` in User operations, `User ID` in Chat Member): takes a `https://app.pachca.com/chats?user_id=12345` link from Copy link in the user's profile menu, also with other query parameters in the address
 
 ## 2.2.7 (2026-11-12)
 

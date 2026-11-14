@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class CompanyUpdate extends BaseCommand {
-  static override description = "Редактирование пространства";
+  static override summary = "Редактирование пространства";
+  static override description = "Меняет название пространства, показ личных данных и сквозные треды. Поля передаются без обёртки, перезаписываются только переданные. В ответе приходит пространство целиком, как в методе Информация о пространстве.\n\nПолное описание: pachca api PUT /company --docs";
   static scope = "company:write";
   static apiMethod = "PUT";
   static apiPath = "/company";

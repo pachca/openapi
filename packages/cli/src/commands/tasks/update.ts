@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class TasksUpdate extends BaseCommand {
-  static override description = "Редактирование напоминания";
+  static override summary = "Редактирование напоминания";
+  static override description = "Меняет напоминание: перезаписываются только переданные поля.\n\nПолное описание: pachca api PUT /tasks/{id} --docs";
   static scope = "tasks:update";
   static apiMethod = "PUT";
   static apiPath = "/tasks/{id}";

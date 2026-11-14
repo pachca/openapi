@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class GroupTagsList extends BaseCommand {
-  static override description = "Список тегов";
+  static override summary = "Список тегов";
+  static override description = "Все теги пространства с числом сотрудников в каждом, независимо от того, к каким чатам они привязаны. Мульти-гостю приходят только теги активных бесед и каналов, где он участник.\n\nПолное описание: pachca api GET /group_tags --docs";
   static scope = "group_tags:read";
   static apiMethod = "GET";
   static apiPath = "/group_tags";

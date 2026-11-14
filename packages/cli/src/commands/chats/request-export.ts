@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ChatsRequestExport extends BaseCommand {
-  static override description = "Экспорт сообщений";
+  static override summary = "Экспорт сообщений";
+  static override description = "Заказ выгрузки сообщений пространства за период. Архив готовится в фоне.\n\nПолное описание: pachca api POST /chats/exports --docs";
   static override hiddenAliases = ["common:request-export"];
   static scope = "chat_exports:write";
   static plan = "corporation";

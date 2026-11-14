@@ -6,7 +6,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 export default class FilesDirectUrl extends BaseCommand {
-  static override description = "Загрузка файла";
+  static override summary = "Загрузка файла";
+  static override description = "Второй шаг загрузки: сам файл уходит в хранилище формой `multipart/form-data`. Поля формы и адрес берутся из ответа метода Получение подписи, ключа и других параметров и передаются как есть, в том же порядке, а файл идёт последним полем.\n\nПолное описание: pachca api POST /direct_url --docs";
   static override hiddenAliases = ["common:direct-url"];
   static apiMethod = "POST";
   static apiPath = "/direct_url";

@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsList extends BaseCommand {
-  static override description = "Список чатов";
+  static override summary = "Список чатов";
+  static override description = "По умолчанию — беседы, каналы и личные переписки, где состоит владелец токена. С `availability=public` метод отдаёт вместо этого все открытые чаты пространства, включая те, куда вызывающий не вступал. Мульти-гостю — только открытые чаты, где он участник.\n\nПолное описание: pachca api GET /chats --docs";
   static scope = "chats:read";
   static apiMethod = "GET";
   static apiPath = "/chats";

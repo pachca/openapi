@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ChatsRemoveAvatar extends BaseCommand {
-  static override description = "Удаление аватара чата";
+  static override summary = "Удаление аватара чата";
+  static override description = "Убирает аватар беседы или канала. Доступно тому же, кому доступна Загрузка аватара чата.\n\nПолное описание: pachca api DELETE /chats/{id}/avatar --docs";
   static scope = "chats:update";
   static apiMethod = "DELETE";
   static apiPath = "/chats/{id}/avatar";

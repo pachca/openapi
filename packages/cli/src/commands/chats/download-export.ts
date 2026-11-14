@@ -5,7 +5,8 @@ import { downloadFile } from '../../client.js';
 import { formatSize } from '../../utils.js';
 
 export default class ChatsDownloadExport extends BaseCommand {
-  static override description = "Скачать архив экспорта";
+  static override summary = "Скачать архив экспорта";
+  static override description = "В ответ на запрос сервер вернёт `302 Found` с заголовком `Location`, содержащим временную ссылку на скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.\n\nПолное описание: pachca api GET /chats/exports/{id} --docs";
   static override hiddenAliases = ["common:get-exports"];
   static scope = "chat_exports:read";
   static plan = "corporation";

@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class SearchListUsers extends BaseCommand {
-  static override description = "Поиск сотрудников";
+  static override summary = "Поиск сотрудников";
+  static override description = "Ищет сотрудников по имени и фамилии, нику, должности и отделу. Опечатки прощаются только в имени и фамилии, остальным полям нужно точное слово.\n\nПолное описание: pachca api GET /search/users --docs";
   static scope = "search:users";
   static apiMethod = "GET";
   static apiPath = "/search/users";

@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class DraftsGet extends BaseCommand {
-  static override description = "Информация о черновике";
+  static override summary = "Информация о черновике";
+  static override description = "Черновик. У отложенного сообщения сюда же приходит его расписание.\n\nПолное описание: pachca api GET /drafts/{id} --docs";
   static scope = "drafts:read";
   static apiMethod = "GET";
   static apiPath = "/drafts/{id}";

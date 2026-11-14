@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.8.1 (2026-11-13)
+## 1.9.0 (2026-11-13)
 
-Texts only: making someone a guest, an empty outgoing webhook URL, forms, the Outlook sign-in in the audit log, and bot, token and event history tools checked against the guides and skills. schema_version stays 1.2.0.
+Texts, and one argument example: making someone a guest, an empty outgoing webhook URL, forms, the Outlook sign-in in the audit log, and bot, token and event history tools checked against the guides and skills. schema_version stays 1.2.0.
 
 - `pachca_update_user`: what making an employee a guest does now sits on the `role` argument, which also says that in threads an administrator or editor becomes a member and the thread owner stays the owner. The tool description stays under 2048 characters.
 - An empty `outgoing_url` clears the URL: events stop coming to it, and with event history on they keep being stored there. Bot outputs say that a bot without a URL gets events only from the event history, if it is on.

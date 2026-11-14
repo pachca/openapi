@@ -2139,6 +2139,10 @@ function sanitizeDescription(desc: string): string {
   // field name `id` as it is: the MCP manifest and the docs read it from there.
   result = result.replace(/`(i|I)d(s?)`/g, 'ID$2');
   result = result.replace(/\b(i|I)d(s?)\b/g, 'ID$2');
+  // "url" → "URL" — n8n lint: node-param-description-miscased-url, the same way as "id"
+  // above. CI generates without `eslint --fix`, so the generator itself must not emit it.
+  result = result.replace(/`(u|U)rl(s?)`/g, 'URL$2');
+  result = result.replace(/\b(u|U)rl(s?)\b/g, 'URL$2');
   // Strip leading quoted/backticked word so description starts with a letter (n8n lint)
   result = result.replace(/^`([^`]+)`\s*/, (_m, w: string) => w + ' ');
   result = result.replace(/^"([^"]+)"\s*/, (_m, w: string) => w + ' ');

@@ -618,7 +618,7 @@ export const messageFields: INodeProperties[] = [
 		type: 'json',
 		required: true,
 		default: "{}",
-		description: 'JSON map of link previews, where each key is a `URL` from the `links` array of the `message_link_shared` event (`type: message`, `event: link_shared`)',
+		description: 'JSON map of link previews, where each key is a URL from the `links` array of the `message_link_shared` event (`type: message`, `event: link_shared`)',
 		displayOptions: { show: { resource: ['message'], operation: ['unfurl'] } },
 	},
 	{

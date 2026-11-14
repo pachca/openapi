@@ -30,7 +30,7 @@ dependencyResolutionManagement {
 
 ```kotlin
 dependencies {
-    implementation("com.github.pachca:openapi:1.9.2")
+    implementation("com.github.pachca:openapi:1.10.0")
 }
 ```
 
@@ -88,6 +88,10 @@ client.use { c ->
 // Или вручную
 client.close()
 ```
+
+Для прокси, таймаутов и других параметров HTTP передайте свой Ktor `HttpClient`: `PachcaClient(client = http, baseUrl = PACHCA_API_URL)`. Заголовок `Authorization` и разбор JSON (`ContentNegotiation`) такой клиент настраивает сам. Переходы по редиректам в нём выключите (`followRedirects = false`), иначе `downloadExport` выбросит ошибку вместо ссылки на архив. Повторов у такого клиента нет: SDK включает их только в клиенте, который создаёт по токену. Метод `close()` закрывает и переданный клиент.
+
+Для тестов без сети есть клиент-заглушка: `PachcaClient.stub(messages = FakeMessages())`. В нём подменяют только нужные сервисы: класс реализует интерфейс сервиса, например `MessagesService`, и переопределяет нужные методы. Метод, который вы не переопределили, выбрасывает `NotImplementedError`.
 
 ## Все методы
 
@@ -267,7 +271,7 @@ val request = BotUpdateRequest(
 
 ## Пагинация
 
-Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`. У методов поиска в `meta.paginate` только `nextPage` и `hasNext`, зато есть `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -315,6 +319,7 @@ println("Всего: ${chats.size}")
 | `members.listMembersAll()` | `List<User>` |
 | `messages.listChatMessagesAll()` | `List<Message>` |
 | `reactions.listReactionsAll()` | `List<Reaction>` |
+| `readMembers.listReadMembersAll()` | `List<Int>` |
 | `search.searchChatsAll()` | `List<Chat>` |
 | `search.searchMessagesAll()` | `List<Message>` |
 | `search.searchUsersAll()` | `List<User>` |
@@ -328,7 +333,7 @@ SDK выбрасывает два типа исключений:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
+Возникает при ответе с массивом `errors` в теле: это коды `400`, `402`, `403`, `404`, `409`, `410`, `422`, `429`, `503` и `504`. Ответы `429` и `5xx` SDK сначала повторяет по правилам из раздела [Повторные запросы](#povtornye-zaprosy), а `ApiError` выбрасывает, если повторы не помогли или не положены:
 
 ```kotlin
 import com.pachca.sdk.ApiError
@@ -376,14 +381,58 @@ try {
 
 Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 с заголовком `Retry-After` до минуты:** срок из заголовка
+- **429 с `Retry-After` дольше минуты:** без повтора, SDK сразу выбрасывает `ApiError` с кодом статуса `429`
 - **429 без заголовка:** 1 сек, 2 сек, 4 сек
 - **5xx:** ~10 сек, ~20 сек, ~40 сек
 - **Сетевая ошибка у GET, PUT и DELETE:** ~10 сек, ~20 сек, ~40 сек
 
-Таймаут запроса и сетевую ошибку у POST SDK не повторяет. Повторы делает плагин Ktor `HttpRequestRetry`.
+Срок дольше минуты бывает только у суточного предела сообщений и блокировки отправки, они описаны на странице [Лимиты](/api/limits). Самого заголовка `Retry-After` в `ApiError` нет, поэтому срок паузы SDK не сообщает. Получив такую ошибку, остановите задачу и вернитесь к ней позже без пробных запросов.
+
+Таймаут запроса и сетевую ошибку у POST SDK не повторяет. Клиент по токену ждёт ответа до 15 секунд, это таймаут движка CIO по умолчанию, а другой срок задают в своём `HttpClient`. Повторы делает плагин Ktor `HttpRequestRetry`.
 
 Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
+
+## Загрузка файлов
+
+Загрузка файла идёт в три шага: получить параметры загрузки, отправить файл по адресу `directUrl` и прикрепить его к сообщению по ключу. Поля каждого шага описаны в разделе [Файлы](/api/file-uploads).
+
+```kotlin
+val file = java.io.File("report.pdf")
+val bytes = file.readBytes()
+
+// 1. Получить параметры загрузки и подставить имя файла в ключ
+val params = client.files.getUploadParams()
+val key = params.key.replace("\${filename}", file.name)
+
+// 2. Загрузить файл по адресу directUrl
+client.files.uploadFile(
+    params.directUrl,
+    FileUploadRequest(
+        contentDisposition = params.contentDisposition,
+        acl = params.acl,
+        policy = params.policy,
+        xAmzCredential = params.xAmzCredential,
+        xAmzAlgorithm = params.xAmzAlgorithm,
+        xAmzDate = params.xAmzDate,
+        xAmzSignature = params.xAmzSignature,
+        key = key,
+        bucket = params.bucket,
+        file = bytes,
+    ),
+)
+
+// 3. Отправить сообщение с файлом
+client.messages.createMessage(
+    MessageCreateRequest(
+        message = MessageCreateRequestMessage(
+            entityId = chatId,
+            content = "Отчёт за неделю",
+            files = listOf(MessageCreateRequestFile(key = key, name = file.name, fileType = FileType.FILE, size = bytes.size.toLong())),
+        )
+    )
+)
+```
 
 ## Типы
 
@@ -413,7 +462,7 @@ val oauthError: OAuthError
 
 Перечисление в ответе — `value class` со строкой `value`: значение, которого SDK ещё не знает, приходит как есть, и `isKnown` у него `false`. Поэтому `when` по такому перечислению заканчивается веткой `else`. Строку значения возвращает и `toString()`, а имя константы даёт `name`.
 
-Все перечисления SDK: `AuditEventKey`, `AuditLoginGrantDenyReason`, `AuditLoginGrantDevicePlatform`, `BotCanEdit`, `BotEventName`, `BotTemplateEngine`, `BotTriggerOn`, `BotWebhookKind`, `BotWhoCanAdd`, `ChatActivity`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSortField`, `ChatSubtype`, `CustomPropertyDataType`, `DraftRepetitionInterval`, `DraftType`, `FileTarget`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `MessageSearchSort`, `MessageSortField`, `OAuthErrorCode`, `OAuthScope`, `OAuthTokenTypeHint`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserCreateRole`, `UserEventType`, `UserRole`, `UserRoleInput`, `ValidationErrorCode`, `VideoCallEventType`, `VoiceTranscriptStatus` и `WebhookEventType`.
+Все перечисления SDK: `AuditEventKey`, `AuditLoginGrantDenyReason`, `AuditLoginGrantDevicePlatform`, `BotCanEdit`, `BotEventName`, `BotTemplateEngine`, `BotTriggerOn`, `BotWebhookKind`, `BotWhoCanAdd`, `ChatActivity`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSortField`, `ChatSubtype`, `CompanyManagementAccess`, `CustomPropertyDataType`, `DraftRepetitionInterval`, `DraftType`, `FileTarget`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `MessageSearchSort`, `MessageSortField`, `MessageSource`, `OAuthErrorCode`, `OAuthScope`, `OAuthTokenTypeHint`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserCreateRole`, `UserEventType`, `UserRole`, `UserRoleInput`, `ValidationErrorCode`, `VideoCallEventType`, `VoiceTranscriptStatus` и `WebhookEventType`.
 
 ## Тело вебхука
 

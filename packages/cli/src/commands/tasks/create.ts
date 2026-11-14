@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class TasksCreate extends BaseCommand {
-  static override description = "Новое напоминание";
+  static override summary = "Новое напоминание";
+  static override description = "Создаёт напоминание и назначает на него ответственных.\n\nПолное описание: pachca api POST /tasks --docs";
   static scope = "tasks:create";
   static apiMethod = "POST";
   static apiPath = "/tasks";

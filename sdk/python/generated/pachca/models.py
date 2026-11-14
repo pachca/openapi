@@ -59,7 +59,7 @@ class AuditEventKey(OpenStrEnum):
     CHAT_RENAMED = "chat_renamed"  # Чат переименован
     CHAT_PERMISSION_CHANGED = "chat_permission_changed"  # Изменены права доступа к чату
     USER_CHAT_JOIN = "user_chat_join"  # Пользователь присоединился к чату
-    USER_CHAT_LEAVE = "user_chat_leave"  # Пользователь покинул чат
+    USER_CHAT_LEAVE = "user_chat_leave"  # Участника исключили из чата или перевели в гости. Выход по своей воле не записывается, а уход вместе с тегом записывает событие `user_removed_from_tag` или `tag_removed_from_chat`.
     TAG_ADDED_TO_CHAT = "tag_added_to_chat"  # Тег добавлен в чат
     TAG_REMOVED_FROM_CHAT = "tag_removed_from_chat"  # Тег удален из чата
     MESSAGE_UPDATED = "message_updated"  # Сообщение отредактировано
@@ -123,7 +123,7 @@ class BotCanEdit(OpenStrEnum):
     """Роль, которой разрешено редактировать настройки бота"""
 
     ADMIN = "admin"  # Администраторы компании
-    CHAT_OWNERS = "chat_owners"  # Владельцы чатов, в которые добавлен бот
+    CHAT_OWNERS = "chat_owners"  # Владельцы и администраторы бесед и каналов, в которые добавлен бот
 
 
 class BotEventName(OpenStrEnum):
@@ -532,7 +532,7 @@ class ValidationErrorCode(OpenStrEnum):
     CONFIDENTIAL_DOWNLOAD_DENIED = "confidential_download_denied"  # Скачивание файла запрещено: нужен запрос из безопасного контура или в файле найден вирус
     DECRYPTION_FAILED = "decryption_failed"  # Не удалось расшифровать файл
     BOT_ADD_DENIED = "bot_add_denied"  # Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
-    SINGLE_CHAT_BOT_OCCUPIED = "single_chat_bot_occupied"  # Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
+    SINGLE_CHAT_BOT_OCCUPIED = "single_chat_bot_occupied"  # Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале (архивные не в счёт): `id` таких ботов приходят в `value`
     SINGLE_CHAT_BOT_TAG_DENIED = "single_chat_bot_tag_denied"  # Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
     RESTRICTED_BOT_TAG_DENIED = "restricted_bot_tag_denied"  # В тег можно добавить только бота, которого может добавить в чат любой сотрудник
     BOT_CHANGED_CONCURRENTLY = "bot_changed_concurrently"  # Настройки бота изменились во время запроса: повторите его
@@ -751,9 +751,9 @@ class AuditDetailsChatRenamed:
 class AuditDetailsDeviceAuthorizationApproved:
     client_id: str
     scopes: list[str]
-    application_id: int
     device_grant_id: int
     device_name: str | None = None
+    application_id: int | None = None
     application_name: str | None = None
     token_kind: str | None = None
 
@@ -2577,6 +2577,12 @@ class ListChatMessagesResponse:
 @dataclass
 class ListReactionsResponse:
     data: list[Reaction]
+    meta: PaginationMeta
+
+
+@dataclass
+class ListReadMembersResponse:
+    data: list[int]
     meta: PaginationMeta
 
 

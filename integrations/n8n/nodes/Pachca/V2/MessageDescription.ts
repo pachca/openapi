@@ -371,7 +371,7 @@ export const messageFields: INodeProperties[] = [
 		options: [{ name: 'Ascending', value: 'asc' },
 { name: 'Descending', value: 'desc' }],
 		default: "desc",
-		description: 'Sort direction by ID: `asc` returns messages oldest first, `desc` newest first',
+		description: 'Sort direction by ID: `asc` returns messages oldest first, `desc` newest first. The cursor does not keep the direction: pass `order` on requests with `cursor` too.',
 		displayOptions: { show: { resource: ['message'], operation: ['getAll'] } },
 	},
 	{
@@ -618,7 +618,7 @@ export const messageFields: INodeProperties[] = [
 		type: 'json',
 		required: true,
 		default: "{}",
-		description: 'JSON map of link previews, where each key is a `URL` received in the outgoing webhook about a new message',
+		description: 'JSON map of link previews, where each key is a URL from the `links` array of the `message_link_shared` event (`type: message`, `event: link_shared`)',
 		displayOptions: { show: { resource: ['message'], operation: ['unfurl'] } },
 	},
 	{

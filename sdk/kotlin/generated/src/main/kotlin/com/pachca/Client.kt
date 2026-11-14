@@ -1818,8 +1818,12 @@ interface ReadMembersService {
         id: Int,
         limit: Int? = null,
         cursor: String? = null,
-    ): Any {
+    ): ListReadMembersResponse {
         throw NotImplementedError("Read members.listReadMembers is not implemented")
+    }
+
+    suspend fun listReadMembersAll(id: Int, limit: Int? = null): List<Int> {
+        throw NotImplementedError("Read members.listReadMembersAll is not implemented")
     }
 }
 
@@ -1831,7 +1835,7 @@ class ReadMembersServiceImpl internal constructor(
         id: Int,
         limit: Int?,
         cursor: String?,
-    ): Any {
+    ): ListReadMembersResponse {
         val response = client.get("$baseUrl/messages/$id/read_member_ids") {
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
@@ -1840,6 +1844,20 @@ class ReadMembersServiceImpl internal constructor(
             200 -> response.body()
             else -> throw errorFromResponse(response)
         }
+    }
+
+    override suspend fun listReadMembersAll(id: Int, limit: Int?): List<Int> {
+        val items = mutableListOf<Int>()
+        var cursor: String? = null
+        var hasNext = true
+        while (hasNext) {
+            val response = listReadMembers(id = id, limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
+        return items
     }
 }
 

@@ -31,7 +31,7 @@
 
 ### Схема
 
-- `link_previews: Record<string, object>` (required) — `JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении
+- `link_previews: Record<string, object>` (required) — `JSON` карта предпросмотров ссылок, где каждый ключ — `url` из массива `links` события `message_link_shared` (`type: message`, `event: link_shared`)
   **Структура значений Record:**
   - `title: string` (required) — Заголовок. Пример: `"Статья: Отправка файлов"`
   - `description: string` (required) — Описание. Пример: `"Пример отправки файлов на удаленный сервер"`

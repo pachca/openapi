@@ -13,23 +13,25 @@ related:
 
 Историю включает настройка **Сохранять историю событий** на вкладке **Исходящий вебхук** в карточке бота, и **Webhook URL** для неё не нужен. Кнопка **Включить** на вкладке включает историю сразу. Через API это поле `events_history_enabled` в методах [Новый бот](POST /bots) и [Редактирование бота](PUT /bots/{id}). Пока история выключена, новые события в неё не попадают, а уже сохранённые записи метод [История событий](GET /webhooks/events) отдаёт, пока вы их не удалите. Если у бота нет ни адреса вебхука, ни истории, Пачка не создаёт для него события, и то, что произошло за это время, потом не забрать.
 
+<AgentPrompt id="webhook-polling" />
+
 ## Через CLI
 
-Быстрее всего получать события одной командой CLI `pachca bots listen-events`, без своего кода. Она подключается к [потоку событий](#sobytiya-v-realnom-vremeni), дожидается подтверждения подписки, дочитывает историю от старых событий к новым и меняет ссылку до истечения срока. Нужен токен бота с правом `webhooks:events:read` и включённая настройка **Сохранять историю событий**. Если команда отвечает `404`, токен не принадлежит боту, у бота выключена история событий или поток недоступен. Если переменная `PACHCA_BOT_TOKEN` пуста, команда берёт токен сохранённого профиля CLI, а он обычно персональный.
+Быстрее всего получать события одной командой CLI `pachca bots listen-events`, без своего кода. Она подключается к [потоку событий](#sobytiya-v-realnom-vremeni), дожидается подтверждения подписки, дочитывает историю от старых событий к новым и меняет ссылку до истечения срока. Нужен токен бота с правом `webhooks:events:read` и включённая настройка **Сохранять историю событий**. Если команда отвечает `404`, токен не принадлежит боту, у бота выключена история событий или поток недоступен. Если переменная `PACHCA_BOT_TOKEN` пуста, команда берёт токен сохранённого профиля CLI, а он обычно персональный. `npx` запускает CLI без установки, нужен Node.js 20.3.0 или новее.
 
 ```bash title="События в терминале"
-PACHCA_TOKEN=$PACHCA_BOT_TOKEN pachca bots listen-events
+PACHCA_TOKEN=$PACHCA_BOT_TOKEN npx -y @pachca/cli bots listen-events
 ```
 
 ```bash title="Пересылка на свой обработчик"
 PACHCA_TOKEN=$PACHCA_BOT_TOKEN PACHCA_SIGNING_SECRET=$PACHCA_SIGNING_SECRET \
-  pachca bots listen-events --forward-to http://localhost:3000/webhook
+  npx -y @pachca/cli bots listen-events --forward-to http://localhost:3000/webhook
 ```
 
 | Режим | Что делает команда | Что с историей |
 | --- | --- | --- |
 | Без `--forward-to` | Печатает каждую запись истории строкой JSON: `id`, `event_type`, `payload` и `created_at`. | Записи остаются. При запуске команда печатает всю накопленную историю, а после переподключения только новые записи. |
-| С `--forward-to` | Отправляет `payload` запросом POST на ваш адрес, как исходящий вебхук. | Запись удаляется после ответа `2xx`. Для этого нужно право `webhooks:events:delete`. |
+| С `--forward-to` | Отправляет `payload` запросом POST на ваш адрес, как исходящий вебхук. | Запись удаляется после ответа `2xx`. Без права `webhooks:events:delete` команда с `--forward-to` не запускается. |
 
 Пересылка устроена как доставка вебхука, поэтому подходит [обработчик из руководства](/guides/webhook/handler#realizatsiya-webhook-handler):
 
@@ -99,7 +101,7 @@ PACHCA_TOKEN=$PACHCA_BOT_TOKEN pachca bots remove-event <id> --force
 
 ### Пример подключения
 
-Пример на TypeScript для Node.js проходит все шаги: ждёт подтверждения, дочитывает историю, меняет ссылку до `expires_at` и подключается заново после `disconnect`. Если ссылку получить не удалось, пример повторяет запрос через пять секунд. `EventSource` в Node.js даёт пакет `eventsource`. Если подключение оборвалось, `EventSource` переподключается сам, а Пачка снова присылает `confirm_subscription`, и пример ещё раз дочитывает историю.
+Пример на TypeScript для Node.js проходит все шаги: ждёт подтверждения, дочитывает историю, меняет ссылку до `expires_at` и подключается заново после `disconnect`. Если ссылку получить не удалось, пример повторяет запрос через пять секунд. Если при чтении истории [лимит](/api/limits) исчерпан и пришёл ответ `429`, пример ждёт столько секунд, сколько указано в заголовке `Retry-After`, и повторяет запрос. `EventSource` в Node.js даёт пакет `eventsource`. Если подключение оборвалось, `EventSource` переподключается сам, а Пачка снова присылает `confirm_subscription`, и пример ещё раз дочитывает историю.
 
 ```typescript title="Подключение к потоку событий"
 import { EventSource } from "eventsource" // npm install eventsource
@@ -128,7 +130,15 @@ async function readHistory() {
   while (true) {
     const query = new URLSearchParams({ limit: "50" })
     if (cursor) query.set("cursor", cursor)
-    const body = await (await fetch(`${API}/webhooks/events?${query}`, { headers })).json()
+    const response = await fetch(`${API}/webhooks/events?${query}`, { headers })
+    // Лимит запросов исчерпан: ждём, сколько просит сервер, и повторяем ту же страницу
+    if (response.status === 429) {
+      const wait = Number(response.headers.get("retry-after") ?? 1)
+      await new Promise((resolve) => setTimeout(resolve, wait * 1000))
+      continue
+    }
+    if (!response.ok) throw new Error(`История недоступна: ${response.status}`)
+    const body = await response.json()
     records.push(...body.data)
     if (!body.meta.paginate.has_next) break
     cursor = body.meta.paginate.next_page
@@ -192,7 +202,7 @@ reconnect()
 
 ## Пример поллинга
 
-<Info>SDK helpers по умолчанию начинают читать только события, созданные после запуска воркера, и дедуплицируют уже обработанные delivery ID в памяти.</Info>
+<Info>SDK helpers по умолчанию читают только события, созданные после запуска воркера, и отсеивают повторы по `id` в памяти. Чтобы забрать то, что накопилось за простой, передайте время начала в `createdAfter` (в Python `created_after`, в Go `CreatedAfter`). Из истории helpers ничего не удаляют: обработанные записи удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), иначе история будет расти.</Info>
 
 <ApiCodeExample title="Polling событий" operations={[
   { id: "BotOperations_getWebhookEvents_pollWebhookEvents" }

@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.9.0 (2026-11-14)
+
+Texts, refusals and one argument example: making an employee a guest, an empty outgoing webhook URL, bots and their tokens, the event history, forms, drafts, exports, the audit log and archived chats. schema_version stays 1.2.0.
+
+- `pachca_update_user`: making an employee a guest is described on the `role` argument, and in threads an administrator or editor becomes a member while the thread owner stays the owner.
+- The `401` refusal says that an employee made a guest has lost their tokens and cannot reconnect, since guests have no API access. `access_denied` in the `403` refusal names a suspended or deleted employee.
+- `pachca_update_bot` and `pachca_self_update_bot_webhook`: an empty `outgoing_url` clears the URL, so events stop coming to it, and with event history on they keep being stored there. In `pachca_update_bot`, an empty `outgoing_url` with an empty `events` and without `events_history_enabled: true` deletes the outgoing webhook and issues a new `secret_token`.
+- `pachca_create_bot`: the default mode is `commands`, the default scopes leave out `bot_self:webhook:write`, `bot_self:write` and `user_status:read`, and with `oauth_client` carrying its own `scopes`, a main token created without `scopes` gets the authorization's scopes. In `pachca_create_bot` and `pachca_update_bot`, events exist only while the bot has an `outgoing_url` or event history on.
+- `pachca_create_bot` with `empty` and `scopes`, and `pachca_update_bot` with `scopes` on a bot without a token, create the main token without returning its value: `pachca_recreate_bot_token` gives it.
+- Bot and bot token tools say that when only administrators may create integrations, an employee without that role gets `403`, for their own bots too.
+- `pachca_create_bot` and `pachca_update_bot`: `unfurl_domains` takes hosts only, and a domain outside the domain recognition rules gets `400` `invalid`. With `link_preview_enabled`, bots that unfurl links also get the links from this bot's messages. `chat_owners` in `can_edit` means the owners and admins of the conversations and channels the bot is in.
+- `pachca_get_webhook_events` and `pachca_delete_webhook_event`: the bot's server, the event stream and `pachca bots listen-events` read one event history, so delete only what your code has processed.
+- `pachca_open_form`: `view_submit` goes to the webhook and, with event history on, into the history too. `pachca_answer_form` works only for a bot with no outgoing webhook URL and with event history on, and a bot with a URL gets `410` `submit_expired`. It answers `404` `view_not_found` when the form does not exist or another bot opened it, and a `503` means the answer did not reach the employee: retry while the 5 seconds last. The `view_id` example is a UUID, as Pachca issues it.
+- `pachca_list_chat_messages`: a thread's parent message is not in its feed, and the cursor does not keep the direction, so `order` goes with `cursor` too. `pachca_search_messages` without `query` also returns deleted messages, with empty `content` and `files`.
+- `pachca_request_export`: a thread comes with the chat of its parent message, and an unattached thread is not exported. Direct chats come with text and threads only when `export_personal_chats` of `pachca_get_company` is `true`.
+- `pachca_get_audit_events`: a sign-in to the Outlook add-in comes with `token_kind: outlook` and without `application_id` or `application_name`. `user_chat_leave` records a member removed from a chat or made a guest, and leaving on one's own is not logged. A role or tag change in a profile is found by `actor_id` of whoever made it, in the `user_updated` event.
+- `pachca_create_draft` and `pachca_update_draft` take keys only of files the author uploaded: for another employee's file, one copied from a message included, a draft answers `422` with key `draft.files`. An author has up to 50 scheduled messages in one chat or thread.
+- `pachca_pin_message` pins in direct messages too, and answers `403` in a thread, in an archived chat and to a channel subscriber. In direct messages, `pachca_delete_message` lets a guest or a multi-guest delete only their own messages. After `pachca_recreate_bot_token` the new main token has a new ID and no name.
+- `pachca_update_message`, `pachca_delete_message` and `pachca_archive_chat`: messages in the feed of an archived chat are neither edited nor deleted, while comments in its threads are posted, edited and deleted as usual.
+
 ## 1.8.0 (2026-11-12)
 
 Tools for the workspace and its invite link, three new scopes, empty stickers, a thread refused by the chat edit, notes for setting up a new workspace, thread rights, and tool texts that follow the API. schema_version stays 1.2.0.

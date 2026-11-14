@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ProfileDeleteAvatar extends BaseCommand {
-  static override description = "Удаление своего аватара";
+  static override summary = "Удаление своего аватара";
+  static override description = "Убирает аватар владельца токена, дальше в интерфейсе показываются инициалы. Если аватара не было, ответ всё равно `204`.\n\nПолное описание: pachca api DELETE /profile/avatar --docs";
   static scope = "profile_avatar:write";
   static apiMethod = "DELETE";
   static apiPath = "/profile/avatar";

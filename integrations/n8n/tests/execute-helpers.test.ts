@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { IDataObject, IExecuteFunctions, INode } from 'n8n-workflow';
+import type { IDataObject, IExecuteFunctions, INode, INodeProperties } from 'n8n-workflow';
 import { NodeApiError, NodeOperationError } from 'n8n-workflow';
 import {
   simplifyItem,
@@ -11,6 +11,8 @@ import {
   uploadFileToS3,
   buildMultipartBody,
 } from '../nodes/Pachca/GenericFunctions';
+import { userFields } from '../nodes/Pachca/V2/UserDescription';
+import { memberFields } from '../nodes/Pachca/V2/MemberDescription';
 
 // ============================================================================
 // Mock helpers
@@ -228,6 +230,98 @@ describe('resolveResourceLocator', () => {
     const ctx = createMockCtx({});
     // fallbackParam also not in params, so getNodeParameter for fallback will also throw
     expect(() => resolveResourceLocator(ctx, 'chatId', 0, 'entityId')).toThrow();
+  });
+});
+
+// ============================================================================
+// resolveResourceLocator: By URL mode
+// ============================================================================
+
+type UrlMode = { name: string; placeholder?: string; extractValue?: { regex: string }; validation?: Array<{ properties: { regex: string } }> };
+
+function urlModesOf(fields: INodeProperties[], searchMethod: string): UrlMode[] {
+  return fields
+    .filter((f) => f.type === 'resourceLocator')
+    .filter((f) => (f.modes ?? []).some((m) => m.typeOptions?.searchListMethod === searchMethod))
+    .map((f) => (f.modes ?? []).find((m) => m.name === 'url') as UrlMode | undefined)
+    .filter((m): m is UrlMode => m !== undefined);
+}
+
+/** What n8n does with { extractValue: true }: the mode's regex, exactly one group, else an error. */
+function n8nExtract(mode: UrlMode, link: string): string {
+  const match = new RegExp(mode.extractValue!.regex).exec(link);
+  if (!match) throw new Error("ERROR: ID parameter's value is invalid. This is likely because the URL entered is incorrect");
+  if (match.length !== 2) throw new Error('regex extraction should contain exactly one group');
+  return match[1];
+}
+
+/** What n8n does to validate a mode: the regex anchored with ^…$. */
+function n8nValidates(mode: UrlMode, link: string): boolean {
+  return mode.validation!.every((v) => new RegExp(`^${v.properties.regex}$`).test(link));
+}
+
+function createUrlModeCtx(paramName: string, link: string, mode: UrlMode) {
+  const getNodeParameter = vi.fn(
+    (name: string, _itemIndex: number, _fallback?: unknown, options?: { extractValue?: boolean }) => {
+      if (name !== paramName) throw new Error(`Parameter "${name}" not found`);
+      return options?.extractValue ? n8nExtract(mode, link) : { __rl: true, mode: 'url', value: link };
+    },
+  );
+  return { getNodeParameter, getNode: vi.fn(() => MOCK_NODE) } as unknown as IExecuteFunctions;
+}
+
+describe('User fields By URL mode', () => {
+  const userUrlModes = [...urlModesOf(userFields, 'searchUsers'), ...urlModesOf(memberFields, 'searchUsers')];
+  const [mode] = userUrlModes;
+
+  it('is present on user and chat member fields, with one pattern', () => {
+    expect(userUrlModes.length).toBeGreaterThan(0);
+    for (const m of userUrlModes) {
+      expect(m.extractValue?.regex).toBe(mode.extractValue?.regex);
+      expect(m.validation?.[0].properties.regex).toBe(mode.extractValue?.regex);
+    }
+  });
+
+  // «Скопировать ссылку» on an employee in the web app: `${appUrl}/chats?user_id=${id}`
+  it.each([
+    ['https://app.pachca.com/chats?user_id=12345', '12345'],
+    ['https://app.pachca.com/chats/678?user_id=12345', '12345'],
+    ['https://app.pachca.com/chats/678?thread_message_id=9&user_id=12345&is_edit=1', '12345'],
+    ['https://app.pachca.com/employees?profile_id=3&user_id=12345#top', '12345'],
+    ['https://pachca.example.ru/chats?user_id=42', '42'],
+    ['http://localhost:3000/chats/?user_id=7', '7'],
+  ])('takes the id from %s', (link, id) => {
+    expect(mode.placeholder).toBe('https://app.pachca.com/chats?user_id=12345');
+    expect(n8nValidates(mode, link)).toBe(true);
+    expect(n8nExtract(mode, link)).toBe(id);
+  });
+
+  it.each([
+    'https://app.pachca.com/users/12345',
+    'https://app.pachca.com/chats/12345',
+    'https://app.pachca.com/chats?chat_user_id=12345',
+    'https://app.pachca.com/chats?profile_id=12345',
+    '12345',
+  ])('rejects %s', (link) => {
+    expect(n8nValidates(mode, link)).toBe(false);
+    expect(() => n8nExtract(mode, link)).toThrow();
+  });
+
+  it('resolveResourceLocator returns the id from the link, not the link', () => {
+    const ctx = createUrlModeCtx('id', 'https://app.pachca.com/chats?user_id=12345', mode);
+    expect(resolveResourceLocator(ctx, 'id', 0)).toBe('12345');
+    expect(ctx.getNodeParameter).toHaveBeenCalledWith('id', 0, undefined, { extractValue: true });
+  });
+
+  it('resolveResourceLocator reads the fallback parameter when it was the one set', () => {
+    const ctx = createUrlModeCtx('userId', 'https://app.pachca.com/chats?user_id=77', mode);
+    expect(resolveResourceLocator(ctx, 'id', 0, 'userId')).toBe('77');
+    expect(ctx.getNodeParameter).toHaveBeenCalledWith('userId', 0, undefined, { extractValue: true });
+  });
+
+  it('resolveResourceLocator turns a link that does not match into NodeOperationError', () => {
+    const ctx = createUrlModeCtx('id', 'https://app.pachca.com/users/12345', mode);
+    expect(() => resolveResourceLocator(ctx, 'id', 0)).toThrow(NodeOperationError);
   });
 });
 

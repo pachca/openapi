@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class GroupTagsListUsers extends BaseCommand {
-  static override description = "Список сотрудников тега";
+  static override summary = "Список сотрудников тега";
+  static override description = "Кто состоит в теге. Приостановленные сотрудники в списке приходят, хотя в `users_count` самого тега они не учтены. Удалённые не приходят, а боты, помеченные тегом, в выдачу попадают.\n\nПолное описание: pachca api GET /group_tags/{id}/users --docs";
   static scope = "group_tags:read";
   static apiMethod = "GET";
   static apiPath = "/group_tags/{id}/users";

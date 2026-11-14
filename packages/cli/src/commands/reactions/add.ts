@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ReactionsAdd extends BaseCommand {
-  static override description = "Добавление реакции";
+  static override summary = "Добавление реакции";
+  static override description = "Ставит эмодзи-реакцию на сообщение от имени владельца токена.\n\nПолное описание: pachca api POST /messages/{id}/reactions --docs";
   static scope = "reactions:write";
   static apiMethod = "POST";
   static apiPath = "/messages/{id}/reactions";

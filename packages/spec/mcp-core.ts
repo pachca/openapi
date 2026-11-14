@@ -653,18 +653,19 @@ export const WEB_LINKS = {
  * six words in a row here repeat the text of any tool — a fact with two homes
  * drifts.
  *
- * The filled text has about a hundred characters to spare below the client's
- * limit, and the rule that ends it is the one most often lost. The server keeps
- * it whole by shortening the name in `{caller}` when it has to, as the schema of
- * the manifest asks.
+ * Filled with the longest examples of its placeholders, the text sits right at
+ * `INSTRUCTIONS_LIMIT` of the generator, with no room to spare: a new rule has to
+ * save as many characters as it adds. The rule that ends the text is the one
+ * most often lost. The server keeps it whole by shortening the name in
+ * `{caller}` when it has to, as the schema of the manifest asks.
  */
 export const SERVER_INSTRUCTIONS = [
-  'Pachca is a team chat app; its whole API is here: messages, threads, files, reactions, pins, readers; with a ' +
+  'Pachca is a team chat app; its whole API: messages, threads, files, reactions, pins, readers; with a ' +
     'personal token, drafts, scheduled messages; chats, members, archive, unread marks; reminders, handed over by ' +
     'editing; employees, statuses, avatars, extra fields, group tags; workspace, invite link; bots, tokens, webhooks; ' +
     'with a bot token, event history, forms, link previews; for the owner on the Corporation plan, every chat and ' +
-    'bot, exports, security log. Tools follow the token: if one is missing, name your role, or the plan or kind of ' +
-    'token it takes, in a partial answer too, and change nothing instead.',
+    'bot, exports, security log. Tools follow the token: if one isn’t found by exact name, name your role, or the ' +
+    'plan or token kind it takes, in a partial answer too; change nothing instead.',
   '',
   'You act as {caller}; «мне» is you, or, with a bot token, whoever writes to you. Today is {today}; then {days}.',
   '',
@@ -839,7 +840,8 @@ export const REFUSALS: Record<string, string> = {
     'once that dates and ids are in their format; if they are, tell the person.',
   '401':
     'The token no longer works. Tell the person to reconnect Pachca, or to give the bot a new token; ' +
-    'retrying will not help.',
+    'retrying will not help. An employee made a guest has lost their tokens and cannot reconnect: guests have ' +
+    'no API access.',
   '402':
     'The workspace is blocked for payment: with no paid plan in force, it has gone over the monthly message ' +
     'limit. Most methods answer this way until the workspace is paid for, or at the latest until the next ' +
@@ -851,7 +853,7 @@ export const REFUSALS: Record<string, string> = {
     'them), a personal token gets the scope in its menu, a bot’s creator adds it to the bot’s token, with no ' +
     'reissue. `role_forbidden`: the permission is there but the role ' +
     'of the token’s account does not allow the action, and no reconnection changes that. `access_denied`: ' +
-    'the token belongs to a guest, or to a suspended or deleted employee. `not_authorized`: no right to ' +
+    'the token belongs to a suspended or deleted employee. `not_authorized`: no right to ' +
     'this object or action — not a member of that chat, a subscriber in a channel, an archived chat — or a ' +
     'feature the workspace plan lacks; the body does not tell these apart, so check membership before blaming ' +
     'the plan. `permission_denied` and any other code: the method’s own rule — its description names the ' +

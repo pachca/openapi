@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "ReadMemberOperations_listReadMembers": {
+    "usage": "var response = await client.ReadMembers.ListReadMembersAsync(194275, 300, \"example\");",
+    "output": "ListReadMembersResponse(Data: List<int>, Meta: PaginationMeta)"
+  }
+}

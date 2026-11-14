@@ -5,7 +5,8 @@ import * as clack from '@clack/prompts';
 import { nullableInteger } from '../../lib/flags.js';
 
 export default class DraftsCreate extends BaseCommand {
-  static override description = "Новый черновик";
+  static override summary = "Новый черновик";
+  static override description = "Кладёт черновик в беседу, тред или личную переписку. В интерфейсе Пачки он появляется в поле ввода этого чата, где сотрудник его допишет и отправит. Этим же методом создаётся отложенное сообщение: с полем `schedule` черновик уходит сам в назначенное время, без него просто лежит.\n\nПолное описание: pachca api POST /drafts --docs";
   static scope = "drafts:write";
   static apiMethod = "POST";
   static apiPath = "/drafts";

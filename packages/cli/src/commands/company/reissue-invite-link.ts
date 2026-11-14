@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class CompanyReissueInviteLink extends BaseCommand {
-  static override description = "Перевыпуск ссылки-приглашения";
+  static override summary = "Перевыпуск ссылки-приглашения";
+  static override description = "Выпускает новую ссылку-приглашение владельца токена. Прежняя ссылка этого администратора сразу перестаёт работать, в том числе уже разосланная из интерфейса. Ссылки других администраторов остаются.\n\nПолное описание: pachca api POST /company/invite_link --docs";
   static scope = "invite_links:write";
   static apiMethod = "POST";
   static apiPath = "/company/invite_link";

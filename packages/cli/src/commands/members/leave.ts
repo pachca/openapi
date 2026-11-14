@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MembersLeave extends BaseCommand {
-  static override description = "Выход из чата";
+  static override summary = "Выход из чата";
+  static override description = "Владелец токена выходит из беседы или канала сам. В закрытой беседе остальные видят системное сообщение о выходе, в открытом чате и канале — нет.\n\nПолное описание: pachca api DELETE /chats/{id}/leave --docs";
   static scope = "chats:leave";
   static apiMethod = "DELETE";
   static apiPath = "/chats/{id}/leave";

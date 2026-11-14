@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ViewsOpen extends BaseCommand {
-  static override description = "Открытие представления";
+  static override summary = "Открытие представления";
+  static override description = "Показывает пользователю модальное окно с формой в ответ на его действие. Метод вызывают токеном бота: события о нажатии кнопок приходят только ботам, от имени бота окно и открывается.\n\nПолное описание: pachca api POST /views/open --docs";
   static scope = "views:write";
   static apiMethod = "POST";
   static apiPath = "/views/open";

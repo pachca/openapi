@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ImportantMessagesList extends BaseCommand {
-  static override description = "Список важных сообщений";
+  static override summary = "Список важных сообщений";
+  static override description = "Сообщения, которые владелец токена добавил в раздел «Важное», от последних добавленных к ранним.\n\nПолное описание: pachca api GET /important_messages --docs";
   static scope = "important_messages:read";
   static apiMethod = "GET";
   static apiPath = "/important_messages";

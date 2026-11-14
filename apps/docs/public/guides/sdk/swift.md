@@ -19,7 +19,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.8.0")
+    .package(url: "https://github.com/pachca/openapi", from: "1.10.0")
 ],
 targets: [
     .target(name: "MyApp", dependencies: [
@@ -70,7 +70,11 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `token` | `String` | — | Bearer-токен для авторизации |
 | `baseURL` | `String` | `https://api.pachca.com/api/shared/v1` | Базовый URL API |
 
-Клиент — value type (`struct`), использует `URLSession.shared`. Явного закрытия не требует.
+Клиент — value type (`struct`), по умолчанию использует `URLSession.shared`. Явного закрытия не требует.
+
+Для прокси, сертификатов и других параметров HTTP передайте заголовки и свою сессию: `PachcaClient(headers: ["Authorization": "Bearer \(token)"], session: session)`. Повторы SDK у такого клиента сохраняются.
+
+Для тестов без сети есть клиент-заглушка: `PachcaClient.stub(messages: FakeMessages())`. В нём подменяют только нужные сервисы: класс наследует сервис, например `MessagesService`, и переопределяет нужные методы. Метод, который вы не переопределили, выбрасывает ошибку «… is not implemented».
 
 ## Все методы
 
@@ -188,7 +192,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 
 ## Запросы
 
-Все методы — `async throws`.
+Методы запросов — `async throws`, а `pollWebhookEvents` и `pollWebhookPayloads` возвращают `AsyncThrowingStream`.
 
 **GET с параметрами:**
 
@@ -246,7 +250,7 @@ let request = BotUpdateRequest(
 
 ## Пагинация
 
-Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`. У методов поиска в `meta.paginate` только `nextPage` и `hasNext`, зато есть `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -294,6 +298,7 @@ print("Всего: \(chats.count)")
 | `members.listMembersAll()` | `[User]` |
 | `messages.listChatMessagesAll()` | `[Message]` |
 | `reactions.listReactionsAll()` | `[Reaction]` |
+| `readMembers.listReadMembersAll()` | `[Int]` |
 | `search.searchChatsAll()` | `[Chat]` |
 | `search.searchMessagesAll()` | `[Message]` |
 | `search.searchUsersAll()` | `[User]` |
@@ -307,7 +312,7 @@ SDK выбрасывает два типа ошибок (реализуют пр
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
+Возникает при ответе с массивом `errors` в теле: это коды `400`, `402`, `403`, `404`, `409`, `410`, `422`, `429`, `503` и `504`. Ответы `429` и `5xx` SDK сначала повторяет по правилам из раздела [Повторные запросы](#povtornye-zaprosy), а `ApiError` выбрасывает, если повторы не помогли или не положены:
 
 ```swift
 do {
@@ -351,13 +356,54 @@ do {
 
 Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 с заголовком `Retry-After` до минуты:** срок из заголовка
+- **429 с `Retry-After` дольше минуты:** без повтора, SDK сразу выбрасывает `ApiError` с кодом статуса `429`
 - **429 без заголовка:** 1 сек, 2 сек, 4 сек
 - **5xx:** 1 сек, 2 сек, 3 сек
+
+Срок дольше минуты бывает только у суточного предела сообщений и блокировки отправки, они описаны на странице [Лимиты](/api/limits). Самого заголовка `Retry-After` в `ApiError` нет, поэтому срок паузы SDK не сообщает. Получив такую ошибку, остановите задачу и вернитесь к ней позже без пробных запросов.
 
 Сетевую ошибку без ответа сервера SDK не повторяет: ошибка URLSession приходит сразу. Паузы идут через `_Concurrency.Task.sleep(nanoseconds:)` и поток не блокируют.
 
 Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
+
+## Загрузка файлов
+
+Загрузка файла идёт в три шага: получить параметры загрузки, отправить файл по адресу `directUrl` и прикрепить его к сообщению по ключу. Поля каждого шага описаны в разделе [Файлы](/api/file-uploads).
+
+```swift
+let fileURL = URL(fileURLWithPath: "report.pdf")
+let filename = fileURL.lastPathComponent
+let fileData = try Data(contentsOf: fileURL)
+
+// 1. Получить параметры загрузки и подставить имя файла в ключ
+let params = try await client.files.getUploadParams()
+let key = params.key.replacingOccurrences(of: "${filename}", with: filename)
+
+// 2. Загрузить файл по адресу directUrl
+let uploadRequest = FileUploadRequest(
+    ContentDisposition: params.ContentDisposition,
+    acl: params.acl,
+    policy: params.policy,
+    xAmzCredential: params.xAmzCredential,
+    xAmzAlgorithm: params.xAmzAlgorithm,
+    xAmzDate: params.xAmzDate,
+    xAmzSignature: params.xAmzSignature,
+    key: key,
+    bucket: params.bucket,
+    file: fileData
+)
+try await client.files.uploadFile(directUrl: params.directUrl, request: uploadRequest)
+
+// 3. Отправить сообщение с файлом
+_ = try await client.messages.createMessage(request: MessageCreateRequest(
+    message: MessageCreateRequestMessage(
+        entityId: chatId,
+        content: "Отчёт за неделю",
+        files: [MessageCreateRequestFile(key: key, name: filename, fileType: .file, size: Int64(fileData.count))]
+    )
+))
+```
 
 ## Типы
 
@@ -384,7 +430,7 @@ let oauthError: OAuthError
 
 Перечисление в ответе принимает и значение, которого SDK ещё не знает: оно приходит случаем `.unknown(String)`, а `rawValue` возвращает исходную строку. Поэтому `switch` по такому перечислению включает `case .unknown` или `default`. Незнакомую строку и `init?(rawValue:)` превращает в случай `.unknown`: проверить, знает ли SDK значение, помогает `allCases.contains(value)`.
 
-Все перечисления SDK: `AuditEventKey`, `AuditLoginGrantDenyReason`, `AuditLoginGrantDevicePlatform`, `BotCanEdit`, `BotEventName`, `BotTemplateEngine`, `BotTriggerOn`, `BotWebhookKind`, `BotWhoCanAdd`, `ChatActivity`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSortField`, `ChatSubtype`, `CustomPropertyDataType`, `DraftRepetitionInterval`, `DraftType`, `FileTarget`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `MessageSearchSort`, `MessageSortField`, `OAuthErrorCode`, `OAuthScope`, `OAuthTokenTypeHint`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserCreateRole`, `UserEventType`, `UserRole`, `UserRoleInput`, `ValidationErrorCode`, `VideoCallEventType`, `VoiceTranscriptStatus` и `WebhookEventType`.
+Все перечисления SDK: `AuditEventKey`, `AuditLoginGrantDenyReason`, `AuditLoginGrantDevicePlatform`, `BotCanEdit`, `BotEventName`, `BotTemplateEngine`, `BotTriggerOn`, `BotWebhookKind`, `BotWhoCanAdd`, `ChatActivity`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSortField`, `ChatSubtype`, `CompanyManagementAccess`, `CustomPropertyDataType`, `DraftRepetitionInterval`, `DraftType`, `FileTarget`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `MessageSearchSort`, `MessageSortField`, `MessageSource`, `OAuthErrorCode`, `OAuthScope`, `OAuthTokenTypeHint`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserCreateRole`, `UserEventType`, `UserRole`, `UserRoleInput`, `ValidationErrorCode`, `VideoCallEventType`, `VoiceTranscriptStatus` и `WebhookEventType`.
 
 ### Имена Task и Thread
 

@@ -61,13 +61,12 @@ files open as an ordinary attachment to download instead of a preview.
 
 ## .html file
 
-Pachca shows attached `.html`, `.htm` and `.txt` in a full-screen view on
-click; `.txt` is shown as is. As with the `.md` card, a thumbnail in the chat
-appears only when the file is the only document of the message. For `.html` the
-thumbnail also needs a typical document size, and that size must be known:
-when you attach by key, pass `size` in `files` so it shows right away (with
-file contents in MCP the server fills it in). HTML opens in an isolated frame,
-so build it self-contained:
+Pachca shows attached `.html`, `.htm`, `.txt` and `.json` in a full-screen view
+on click. `.txt` and `.json` are shown as is. As with the `.md` card, a thumbnail in the chat appears only when the file is the
+only document of the message. For `.html` the thumbnail also needs a typical
+document size, and that size must be known: when you attach by key, pass `size`
+in `files` so it shows right away (with file contents in MCP the server fills
+it in). HTML opens in an isolated frame, so build it self-contained:
 
 - scripts do not run — the page is static;
 - external resources do not load: embed images as `data:image/…` URIs, keep

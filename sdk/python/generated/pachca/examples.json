@@ -460,7 +460,7 @@
   },
   "ReadMemberOperations_listReadMembers": {
     "usage": "params = ListReadMembersParams(limit=300, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.read_members.list_read_members(id=194275, params=params)",
-    "output": "object",
+    "output": "ListReadMembersResponse(data: list[int], meta: PaginationMeta)",
     "imports": [
       "ListReadMembersParams"
     ]
@@ -648,7 +648,7 @@
     "usage": "await client.users.delete_user_status(user_id=12)"
   },
   "FormOperations_submitViewResponse": {
-    "usage": "request = SubmitViewResponseRequest(submit_id=\"791a056b-006c-49dd-834b-c633fde52fe8\", errors={\"key\": \"example\"})\nresponse = await client.views.submit_view_response(view_id=\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request=request)",
+    "usage": "request = SubmitViewResponseRequest(submit_id=\"791a056b-006c-49dd-834b-c633fde52fe8\", errors={\"key\": \"example\"})\nresponse = await client.views.submit_view_response(view_id=\"3f2b8c1e-7a4d-4e9b-9c2f-5d6a1b8e0f47\", request=request)",
     "output": "SubmitViewResponseResult(success: bool)",
     "imports": [
       "SubmitViewResponseRequest"

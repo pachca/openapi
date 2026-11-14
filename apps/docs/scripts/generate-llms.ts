@@ -177,7 +177,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     ['Авторизация и выбор токена', '/api/authorization.md'],
     ['Отправить сообщение', '/api/messages/create.md'],
     ['Уведомления из внешней системы: входящий вебхук', '/guides/incoming-webhooks.md'],
-    ['Первый бот: отправить сообщение и получить ответ', '/guides/bots/first-bot.md'],
+    ['Создание бота: от создания до первого ответа', '/guides/bots/setup.md'],
     ['Общение с ботом: команды, упоминания, ответ в тред', '/guides/bots/conversations.md'],
     ['Боты: что выбрать под задачу', '/guides/bots/overview.md'],
     ['Получать события через вебхуки', '/guides/webhook/overview.md'],
@@ -222,7 +222,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '## Своя интеграция\n\n';
   content +=
     'Обычно интеграция работает через бота: сервис пишет и читает чаты от его имени. Весь путь по шагам — ' +
-    `[Первый бот](${SITE_URL}/guides/bots/first-bot.md), бот с командой, кнопками и формой — ` +
+    `[Создание бота](${SITE_URL}/guides/bots/setup.md), бот с командой, кнопками и формой — ` +
     `[Интерактивный бот](${SITE_URL}/guides/bots/interactive.md).\n\n`;
   content +=
     '1. **Бот и токен.** **Интеграции** > **Боты** > **Создать бота**, затем на вкладке **API** ' +
@@ -263,7 +263,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content +=
     '| Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
   content +=
-    '| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.9.2")`, репозиторий `maven("https://jitpack.io")` |\n';
+    '| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.10.0")`, репозиторий `maven("https://jitpack.io")` |\n';
   content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n';
   content += '| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |\n\n';
   content += 'Конвенции:\n';
@@ -659,7 +659,7 @@ function generateLibraryRules(): string {
 | TypeScript | \`@pachca/sdk\` | \`npm install @pachca/sdk\` |
 | Python | \`pachca-sdk\` | \`pip install pachca-sdk\` |
 | Go | \`github.com/pachca/openapi/sdk/go/generated\` | \`go get github.com/pachca/openapi/sdk/go/generated\` |
-| Kotlin | \`com.github.pachca:openapi\` | \`implementation("com.github.pachca:openapi:1.9.2")\`, repository \`maven("https://jitpack.io")\` |
+| Kotlin | \`com.github.pachca:openapi\` | \`implementation("com.github.pachca:openapi:1.10.0")\`, repository \`maven("https://jitpack.io")\` |
 | Swift | \`PachcaSDK\` | SPM: \`https://github.com/pachca/openapi\` |
 | C# | \`Pachca.Sdk\` | \`dotnet add package Pachca.Sdk\` |
 
@@ -2438,7 +2438,7 @@ function assertGeneratedMarkdownIntegrity(llmsTxt: string) {
   walk(publicDir);
 
   const LEAK_TAGS =
-    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero|McpTools|CliCommands|Prompts|Prompt)\b/;
+    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero|McpTools|CliCommands|Prompts|Prompt|AgentPrompt)\b/;
   const errors: string[] = [];
 
   for (const file of mdFiles) {

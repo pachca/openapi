@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ThreadsGet extends BaseCommand {
-  static override description = "Информация о треде";
+  static override summary = "Информация о треде";
+  static override description = "Идентификаторы треда и сообщения, под которым он висит. По `id` в тред пишут методом Новое сообщение с `entity_type: \"thread\"`, а по `chat_id` читают его сообщения. У самостоятельного треда `message_id` и `message_chat_id` приходят как `null`.\n\nПолное описание: pachca api GET /threads/{id} --docs";
   static scope = "threads:read";
   static apiMethod = "GET";
   static apiPath = "/threads/{id}";

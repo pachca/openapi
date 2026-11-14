@@ -33,7 +33,7 @@ const (
 	AuditEventKeyChatRenamed                      AuditEventKey = "chat_renamed" // Чат переименован
 	AuditEventKeyChatPermissionChanged            AuditEventKey = "chat_permission_changed" // Изменены права доступа к чату
 	AuditEventKeyUserChatJoin                     AuditEventKey = "user_chat_join" // Пользователь присоединился к чату
-	AuditEventKeyUserChatLeave                    AuditEventKey = "user_chat_leave" // Пользователь покинул чат
+	AuditEventKeyUserChatLeave                    AuditEventKey = "user_chat_leave" // Участника исключили из чата или перевели в гости. Выход по своей воле не записывается, а уход вместе с тегом записывает событие `user_removed_from_tag` или `tag_removed_from_chat`.
 	AuditEventKeyTagAddedToChat                   AuditEventKey = "tag_added_to_chat" // Тег добавлен в чат
 	AuditEventKeyTagRemovedFromChat               AuditEventKey = "tag_removed_from_chat" // Тег удален из чата
 	AuditEventKeyMessageUpdated                   AuditEventKey = "message_updated" // Сообщение отредактировано
@@ -100,7 +100,7 @@ type BotCanEdit string
 
 const (
 	BotCanEditAdmin      BotCanEdit = "admin" // Администраторы компании
-	BotCanEditChatOwners BotCanEdit = "chat_owners" // Владельцы чатов, в которые добавлен бот
+	BotCanEditChatOwners BotCanEdit = "chat_owners" // Владельцы и администраторы бесед и каналов, в которые добавлен бот
 )
 
 // BotEventName may hold a value this SDK does not list yet: a response keeps it as is.
@@ -532,7 +532,7 @@ const (
 	ValidationErrorCodeConfidentialDownloadDenied ValidationErrorCode = "confidential_download_denied" // Скачивание файла запрещено: нужен запрос из безопасного контура или в файле найден вирус
 	ValidationErrorCodeDecryptionFailed           ValidationErrorCode = "decryption_failed" // Не удалось расшифровать файл
 	ValidationErrorCodeBotAddDenied               ValidationErrorCode = "bot_add_denied" // Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
-	ValidationErrorCodeSingleChatBotOccupied      ValidationErrorCode = "single_chat_bot_occupied" // Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
+	ValidationErrorCodeSingleChatBotOccupied      ValidationErrorCode = "single_chat_bot_occupied" // Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале (архивные не в счёт): `id` таких ботов приходят в `value`
 	ValidationErrorCodeSingleChatBotTagDenied     ValidationErrorCode = "single_chat_bot_tag_denied" // Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
 	ValidationErrorCodeRestrictedBotTagDenied     ValidationErrorCode = "restricted_bot_tag_denied" // В тег можно добавить только бота, которого может добавить в чат любой сотрудник
 	ValidationErrorCodeBotChangedConcurrently     ValidationErrorCode = "bot_changed_concurrently" // Настройки бота изменились во время запроса: повторите его
@@ -806,9 +806,9 @@ type AuditDetailsChatRenamed struct {
 type AuditDetailsDeviceAuthorizationApproved struct {
 	ClientID        string   `json:"client_id"`
 	Scopes          []string `json:"scopes"`
-	ApplicationID   int32    `json:"application_id"`
 	DeviceGrantID   int32    `json:"device_grant_id"`
 	DeviceName      *string  `json:"device_name,omitempty"`
+	ApplicationID   *int32   `json:"application_id,omitempty"`
 	ApplicationName *string  `json:"application_name,omitempty"`
 	TokenKind       *string  `json:"token_kind,omitempty"`
 }
@@ -2812,7 +2812,7 @@ var requiredShapes = map[string]requiredShape{
 	"AuditDetailsBotOAuthClient":              {keys: []string{"bot_id", "client_id"}},
 	"AuditDetailsOAuthAuthorizationGranted":   {keys: []string{"scopes", "application_id", "authorization_grant_id"}},
 	"AuditDetailsOAuthAuthorizationRevoked":   {keys: []string{"client_id", "revoked_tokens_count", "application_id"}},
-	"AuditDetailsDeviceAuthorizationApproved": {keys: []string{"client_id", "scopes", "application_id", "device_grant_id"}},
+	"AuditDetailsDeviceAuthorizationApproved": {keys: []string{"client_id", "scopes", "device_grant_id"}},
 	"AuditDetailsDeviceAuthorizationDenied":   {keys: []string{"client_id", "scopes", "device_grant_id"}},
 	"AuditDetailsVideoCallStarted":            {keys: []string{"chat_id"}},
 	"AuditDetailsVideoCallFinished":           {keys: []string{"chat_id", "max_members_count"}},
@@ -3772,6 +3772,11 @@ type ListChatMessagesResponse struct {
 
 type ListReactionsResponse struct {
 	Data []Reaction     `json:"data"`
+	Meta PaginationMeta `json:"meta"`
+}
+
+type ListReadMembersResponse struct {
+	Data []int32        `json:"data"`
 	Meta PaginationMeta `json:"meta"`
 }
 

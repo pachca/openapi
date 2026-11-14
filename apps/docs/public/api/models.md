@@ -440,7 +440,7 @@
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если адрес не задан: бот тогда получает события только из истории событий, если она включена. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -450,7 +450,7 @@
   - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
     Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
   - `challenge_key: string` (required, nullable) — Название поля проверки для верификации входящего вебхука. `null`, если не задано. Пример: `"challenge"`
-  - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
+  - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. При `true` ссылки из любых сообщений этого бота, в том числе отправленных через API, получают и [боты с разворачиванием ссылок](/guides/link-previews#vebhuk-o-ssylke). Пример: `true`
   - `ignore_self_messages: boolean` (required) — Не присылать боту события о сообщениях, которые он отправил сам, и о реакциях на эти сообщения, кто бы их ни поставил или снял. Нажатия кнопок приходят всегда. Пример: `false`
   - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
   - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Пример: `false`
@@ -467,7 +467,7 @@
 - `oauth_client_enabled: boolean` (required) — Включена ли у бота авторизация от имени сотрудника. Пример: `true`
 - `oauth_client: object` (required) — Параметры авторизации от имени сотрудника. Может прийти и у бота с выключенной авторизацией, поэтому включена ли она, смотрите в `oauth_client_enabled`. У бота без токенов может прийти `null`.
   - `client_id: string` (required) — Идентификатор клиента для ссылки авторизации. Пример: `"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY"`
-  - `client_secret_preview: string` (required) — Секрет клиента в маскированном виде. Полное значение приходит в `client_secret` один раз: при включении серверного клиента и при ротации секрета. Пример: `"cH5kR9mN...x7Qp"`
+  - `client_secret_preview: string` (required) — Секрет клиента в маскированном виде. Полное значение приходит в `client_secret` один раз: при включении серверного клиента, при переключении клиента на серверный и при ротации секрета. Пример: `"cH5kR9mN...x7Qp"`
   - `confidential: boolean` (required) — Где хранится секрет: `true` — серверное приложение, `false` — приложение без секрета, обмен кода по PKCE. Пример: `true`
   - `redirect_uris: array of string` (required) — Адреса возврата после согласия. Пример: `["https://example.com/oauth/callback"]`
   - `scopes: array of string` (required) — Права, которые бот запрашивает у сотрудника на экране согласия. Пример: `["messages:read","messages:create"]`
@@ -496,14 +496,14 @@
 - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
 - `oauth_client: object` (required) — Параметры авторизации от имени сотрудника. Может прийти и у бота с выключенной авторизацией. У бота без токенов может прийти `null`.
   - `client_id: string` (required) — Идентификатор клиента для ссылки авторизации. Пример: `"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY"`
-  - `client_secret_preview: string` (required) — Секрет клиента в маскированном виде. Полное значение приходит в `client_secret` один раз: при включении серверного клиента и при ротации секрета. Пример: `"cH5kR9mN...x7Qp"`
+  - `client_secret_preview: string` (required) — Секрет клиента в маскированном виде. Полное значение приходит в `client_secret` один раз: при включении серверного клиента, при переключении клиента на серверный и при ротации секрета. Пример: `"cH5kR9mN...x7Qp"`
   - `confidential: boolean` (required) — Где хранится секрет: `true` — серверное приложение, `false` — приложение без секрета, обмен кода по PKCE. Пример: `true`
   - `redirect_uris: array of string` (required) — Адреса возврата после согласия. Пример: `["https://example.com/oauth/callback"]`
   - `scopes: array of string` (required) — Права, которые бот запрашивает у сотрудника на экране согласия. Пример: `["messages:read","messages:create"]`
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если адрес не задан: бот тогда получает события только из истории событий, если она включена. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -513,7 +513,7 @@
   - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
     Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
   - `challenge_key: string` (required, nullable) — Название поля проверки для верификации входящего вебхука. `null`, если не задано. Пример: `"challenge"`
-  - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
+  - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. При `true` ссылки из любых сообщений этого бота, в том числе отправленных через API, получают и [боты с разворачиванием ссылок](/guides/link-previews#vebhuk-o-ssylke). Пример: `true`
   - `ignore_self_messages: boolean` (required) — Не присылать боту события о сообщениях, которые он отправил сам, и о реакциях на эти сообщения, кто бы их ни поставил или снял. Нажатия кнопок приходят всегда. Пример: `false`
   - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
   - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Пример: `false`
@@ -573,14 +573,14 @@
 - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
 - `oauth_client: object` (required) — Параметры авторизации от имени сотрудника. `null` у бота, недоступного вам для редактирования. Может прийти и у бота с выключенной авторизацией, а у бота без токенов может прийти `null`.
   - `client_id: string` (required) — Идентификатор клиента для ссылки авторизации. Пример: `"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY"`
-  - `client_secret_preview: string` (required) — Секрет клиента в маскированном виде. Полное значение приходит в `client_secret` один раз: при включении серверного клиента и при ротации секрета. Пример: `"cH5kR9mN...x7Qp"`
+  - `client_secret_preview: string` (required) — Секрет клиента в маскированном виде. Полное значение приходит в `client_secret` один раз: при включении серверного клиента, при переключении клиента на серверный и при ротации секрета. Пример: `"cH5kR9mN...x7Qp"`
   - `confidential: boolean` (required) — Где хранится секрет: `true` — серверное приложение, `false` — приложение без секрета, обмен кода по PKCE. Пример: `true`
   - `redirect_uris: array of string` (required) — Адреса возврата после согласия. Пример: `["https://example.com/oauth/callback"]`
   - `scopes: array of string` (required) — Права, которые бот запрашивает у сотрудника на экране согласия. Пример: `["messages:read","messages:create"]`
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null` или пустая строка, если адрес не задан: бот тогда получает события только из истории событий, если она включена. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required, nullable) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -590,7 +590,7 @@
   - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
     Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
   - `challenge_key: string` (required, nullable) — Название поля проверки для верификации входящего вебхука. `null`, если не задано. Пример: `"challenge"`
-  - `link_preview_enabled: boolean` (required, nullable) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
+  - `link_preview_enabled: boolean` (required, nullable) — Показывать превью ссылок в сообщениях входящего вебхука. При `true` ссылки из любых сообщений этого бота, в том числе отправленных через API, получают и [боты с разворачиванием ссылок](/guides/link-previews#vebhuk-o-ssylke). Пример: `true`
   - `ignore_self_messages: boolean` (required, nullable) — Не присылать боту события о сообщениях, которые он отправил сам, и о реакциях на эти сообщения, кто бы их ни поставил или снял. Нажатия кнопок приходят всегда. Пример: `false`
   - `events_history_enabled: boolean` (required, nullable) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
   - `single_chat: boolean` (required, nullable) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Пример: `false`
@@ -668,7 +668,7 @@
     - `private_metadata: string` (required, nullable) — Приватные метаданные, указанные при открытии представления. `null`, если при открытии формы они не были указаны. Пример: `"{\"timeoff_id\":4378}"`
     - `chat_id: integer, int32` (required, nullable) — Идентификатор чата, в котором была нажата кнопка, открывшая форму. Фиксируется при открытии формы, а не при её отправке. Пример: `9012`
     - `user_id: integer, int32` (required) — Идентификатор пользователя, который отправил форму. Пример: `1235523`
-    - `view_id: string` (required) — Идентификатор представления. Нужен боту без адреса исходящего вебхука, чтобы ответить методом [Ответ на отправку формы](/api/views/submit-response). Пример: `"01KAJZ2XDSS2S3DSW9EXJZ0TBV"`
+    - `view_id: string` (required) — Идентификатор представления. Нужен боту без адреса исходящего вебхука, чтобы ответить методом [Ответ на отправку формы](/api/views/submit-response). Пример: `"3f2b8c1e-7a4d-4e9b-9c2f-5d6a1b8e0f47"`
     - `submit_id: string` (required) — Идентификатор отправки формы. Нужен боту без адреса исходящего вебхука, чтобы ответить методом [Ответ на отправку формы](/api/views/submit-response). Пример: `"791a056b-006c-49dd-834b-c633fde52fe8"`
     - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные. У блока `file_input` значение приходит массивом объектов с полями `name`, `size` и `url`, ссылка действует 2 часа.
       **Структура значений Record:**
@@ -764,7 +764,7 @@
 - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 - `event_key: string` (required) — Ключ типа события
-  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_2fa_disabled` — Двухфакторная аутентификация отключена у сотрудника, `login_grant_created` — Создан QR-код для входа в мобильное приложение, `login_grant_approved` — Сотрудник подтвердил вход по QR-коду, `login_grant_denied` — Вход по QR-коду отклонён, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `company_chats_accessed` — Получен список всех чатов пространства, `company_bots_accessed` — Получен список всех ботов пространства, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота, `bot_oauth_client_disabled` — У бота выключена авторизация от имени сотрудника, `bot_oauth_client_secret_rotated` — Обновлён секрет OAuth-клиента бота, `bot_oauth_client_secret_issued` — Выпущен секрет OAuth-клиента бота, `bot_token_created` — Выпущен токен бота, `bot_token_updated` — Изменены имя или скоупы токена бота, `bot_token_reissued` — Отдельный токен бота перевыпущен, `bot_token_deleted` — Токен бота удалён, `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным, `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван, `oauth_token_revoked` — OAuth-клиент отозвал выданный ему токен, `oauth_device_authorization_approved` — Сотрудник подтвердил вход приложения с устройства, `oauth_device_authorization_denied` — Сотрудник отклонил вход приложения с устройства, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова, `exchange_disabled` — Отключена интеграция с Exchange
+  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_2fa_disabled` — Двухфакторная аутентификация отключена у сотрудника, `login_grant_created` — Создан QR-код для входа в мобильное приложение, `login_grant_approved` — Сотрудник подтвердил вход по QR-коду, `login_grant_denied` — Вход по QR-коду отклонён, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Участника исключили из чата или перевели в гости. Выход по своей воле не записывается, а уход вместе с тегом записывает событие `user_removed_from_tag` или `tag_removed_from_chat`., `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `company_chats_accessed` — Получен список всех чатов пространства, `company_bots_accessed` — Получен список всех ботов пространства, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота, `bot_oauth_client_disabled` — У бота выключена авторизация от имени сотрудника, `bot_oauth_client_secret_rotated` — Обновлён секрет OAuth-клиента бота, `bot_oauth_client_secret_issued` — Выпущен секрет OAuth-клиента бота, `bot_token_created` — Выпущен токен бота, `bot_token_updated` — Изменены имя или скоупы токена бота, `bot_token_reissued` — Отдельный токен бота перевыпущен, `bot_token_deleted` — Токен бота удалён, `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным, `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван, `oauth_token_revoked` — OAuth-клиент отозвал выданный ему токен, `oauth_device_authorization_approved` — Сотрудник подтвердил вход приложения с устройства, `oauth_device_authorization_denied` — Сотрудник отклонил вход приложения с устройства, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова, `exchange_disabled` — Отключена интеграция с Exchange
 - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
 - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
 - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. У событий user_role_changed, user_chat_join, user_chat_leave, user_added_to_tag и user_removed_from_tag это сотрудник, которого коснулось изменение, а кто его выполнил, приходит в `details`: в `initiator_id` или `inviter_id`. Пример: `"98765"`
@@ -894,17 +894,17 @@
     - `client_id: string` (required) — Идентификатор OAuth-клиента, которому разрешён вход
     - `scopes: array of string` (required) — Скоупы, на которые согласился сотрудник
     - `device_name: string` — Имя устройства, с которого выполняется вход. Нет, если приложение его не передало.
-    - `application_id: integer, int32` (required) — Идентификатор приложения, которому разрешён вход
-    - `application_name: string` — Название приложения. Нет в записях до 7 октября 2026 года.
+    - `application_id: integer, int32` — Идентификатор приложения, которому разрешён вход. Нет у входа в надстройку Outlook.
+    - `application_name: string` — Название приложения. Нет у входа в надстройку Outlook и в записях до 7 октября 2026 года.
     - `device_grant_id: integer, int32` (required) — Идентификатор запроса на вход
-    - `token_kind: string` — Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.
+    - `token_kind: string` — Вид токена: `cli` — вход в CLI, `outlook` — вход в надстройку Outlook. Нет в записях до 7 октября 2026 года.
   - **AuditDetailsDeviceAuthorizationDenied**: При: oauth_device_authorization_denied
     - `client_id: string` (required) — Идентификатор OAuth-клиента, которому отказано во входе
     - `scopes: array of string` (required) — Скоупы, которые клиент запрашивал
     - `device_name: string` — Имя устройства, с которого выполнялся вход. Нет, если приложение его не передало.
-    - `application_id: integer, int32` — Идентификатор приложения. Нет при отказе во входе в CLI: приложение назначается входу только после подтверждения.
+    - `application_id: integer, int32` — Идентификатор приложения. Нет у входа в надстройку Outlook и при отказе во входе в CLI: приложение назначается входу в CLI только после подтверждения.
     - `device_grant_id: integer, int32` (required) — Идентификатор запроса на вход
-    - `token_kind: string` — Вид токена: `cli` — вход в CLI. Нет в записях до 7 октября 2026 года.
+    - `token_kind: string` — Вид токена: `cli` — вход в CLI, `outlook` — вход в надстройку Outlook. Нет в записях до 7 октября 2026 года.
   - **AuditDetailsVideoCallStarted**: При: video_call_started
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
     - `started_message_id: integer, int32` — Идентификатор сообщения о начале звонка. Нет, если такого сообщения не было.

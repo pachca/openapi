@@ -5,7 +5,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 export default class ProfileUpdateAvatar extends BaseCommand {
-  static override description = "Загрузка своего аватара";
+  static override summary = "Загрузка своего аватара";
+  static override description = "Ставит или заменяет аватар владельца токена. Файл передаётся в формате `multipart/form-data`, в ответе приходит только ссылка на новое изображение.\n\nПолное описание: pachca api PUT /profile/avatar --docs";
   static scope = "profile_avatar:write";
   static apiMethod = "PUT";
   static apiPath = "/profile/avatar";

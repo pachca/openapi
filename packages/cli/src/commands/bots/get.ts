@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class BotsGet extends BaseCommand {
-  static override description = "Информация о боте";
+  static override summary = "Информация о боте";
+  static override description = "Настройки бота. Токен в ответе не приходит — его показывают один раз при создании бота и при вызове метода Ротация токена бота. Токены бота отдаёт Список токенов бота.\n\nПолное описание: pachca api GET /bots/{id} --docs";
   static scope = "bots:read";
   static apiMethod = "GET";
   static apiPath = "/bots/{id}";

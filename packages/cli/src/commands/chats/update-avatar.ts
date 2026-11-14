@@ -5,7 +5,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 export default class ChatsUpdateAvatar extends BaseCommand {
-  static override description = "Загрузка аватара чата";
+  static override summary = "Загрузка аватара чата";
+  static override description = "Ставит или заменяет аватар беседы или канала. Менять его может тот, кому доступно Редактирование чата. У личного чата и треда своего аватара нет, и на них метод отвечает `403`. Тот же ответ придёт для архивного чата: сначала верните его из архива методом Разархивация чата.\n\nПолное описание: pachca api PUT /chats/{id}/avatar --docs";
   static scope = "chats:update";
   static apiMethod = "PUT";
   static apiPath = "/chats/{id}/avatar";

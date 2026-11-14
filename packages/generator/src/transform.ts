@@ -753,11 +753,9 @@ function transformSuccessResponse(endpoint: Endpoint): IRSuccessResponse {
     if (dataIsArray) {
       const dataRef =
         dataSchema.items?.$ref ? refName(dataSchema.items.$ref) : undefined;
-      const metaRef =
-        hasMeta && responseSchema.properties.meta?.$ref
-          ? refName(responseSchema.properties.meta.$ref)
-          : undefined;
-      const metaIsRequired = (responseSchema.required || []).includes('meta');
+      // A list of plain values (`data: int32[]`): typed by the value, not by a model.
+      const itemType = !dataRef && dataSchema.items ? resolveFieldType(dataSchema.items) : undefined;
+      const dataItemType = itemType?.kind === 'primitive' ? itemType : undefined;
 
       return {
         statusCode,
@@ -765,6 +763,7 @@ function transformSuccessResponse(endpoint: Endpoint): IRSuccessResponse {
         isList: true,
         isUnwrap: false,
         dataRef,
+        dataItemType,
         isRedirect: false,
       };
     }
@@ -900,8 +899,8 @@ function generateResponseType(
   endpoint: Endpoint,
   models: IRModel[],
 ): IRResponseType | undefined {
-  const { isList, isSingleWithMeta, dataRef } = op.successResponse;
-  if ((!isList && !isSingleWithMeta) || !dataRef) return undefined;
+  const { isList, isSingleWithMeta, dataRef, dataItemType } = op.successResponse;
+  if ((!isList && !isSingleWithMeta) || (!dataRef && !dataItemType)) return undefined;
 
   const pascalMethod = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
   const name = `${pascalMethod}Response`;
@@ -928,7 +927,9 @@ function generateResponseType(
 
   return {
     name,
-    dataRef,
+    // A plain item gets its language type name in `withPrimitiveData`.
+    dataRef: dataRef ?? '',
+    dataItemType,
     dataIsArray: !!isList,
     metaRef,
     metaIsRequired,

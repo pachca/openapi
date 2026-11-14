@@ -2,6 +2,13 @@
 
 # Changelog
 
+## 2.2.8 (2026-11-14)
+
+### Bug Fixes
+
+- By URL mode of chat and user fields: the node sends the ID from the pasted link
+- By URL mode of user fields (`ID` and `User ID` in User operations, `User ID` in Chat Member): takes a `https://app.pachca.com/chats?user_id=12345` link from Copy link in the user's profile menu, also with other query parameters in the address
+
 ## 2.2.7 (2026-11-12)
 
 ### Bug Fixes

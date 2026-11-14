@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MembersUpdate extends BaseCommand {
-  static override description = "Редактирование роли участника";
+  static override summary = "Редактирование роли участника";
+  static override description = "Меняет роль участника беседы или канала. Роль в чате с ролью в пространстве не связана: рядовой сотрудник может быть администратором чата, а повышение в пространстве роли в чатах не меняет.\n\nПолное описание: pachca api PUT /chats/{id}/members/{user_id} --docs";
   static scope = "chat_members:write";
   static apiMethod = "PUT";
   static apiPath = "/chats/{id}/members/{user_id}";

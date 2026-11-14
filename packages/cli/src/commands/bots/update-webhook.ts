@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class BotsUpdateWebhook extends BaseCommand {
-  static override description = "Саморегистрация вебхука бота";
+  static override summary = "Саморегистрация вебхука бота";
+  static override description = "Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `id`. Меняется вебхук того бота, которому принадлежит токен.\n\nПолное описание: pachca api PUT /bot/webhook --docs";
   static scope = "bot_self:webhook:write";
   static apiMethod = "PUT";
   static apiPath = "/bot/webhook";
@@ -18,7 +19,7 @@ export default class BotsUpdateWebhook extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'outgoing-url': Flags.string({
-      description: "URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`. Пустая строка отключает вебхук. (макс. 255 символов)",
+      description: "URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`. Пустая строка стирает адрес: события перестают приходить на URL, а при включённой истории событий продолжают сохраняться в ней. (макс. 255 символов)",
     }),
   };
 
@@ -27,7 +28,7 @@ export default class BotsUpdateWebhook extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'outgoing-url', label: "URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`. Пустая строка отключает вебхук.", type: 'string' },
+      { flag: 'outgoing-url', label: "URL исходящего вебхука: публичный адрес с протоколом `http` или `https`. Иначе ответ `400` на поле `webhook.outgoing_url` с кодом `webhook_url_invalid`, `webhook_url_unresolved` или `webhook_url_forbidden`. Пустая строка стирает адрес: события перестают приходить на URL, а при включённой истории событий продолжают сохраняться в ней.", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {

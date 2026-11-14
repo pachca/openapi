@@ -24,7 +24,7 @@ actions:
       description: Filter by specific event type
   - target: $.paths['/audit_events'].get.parameters[?(@.name=='actor_id')]
     update:
-      description: "ID of the event's actor, as in the record's `actor_id` field. For a role change, adding to and removing from a chat, and assigning and removing tags, the filter finds the employee they affected."
+      description: "ID of the event's actor, as in the record's `actor_id` field. For a role change, adding to and removing from a chat, and assigning and removing tags, the filter finds the employee they affected. By whoever changed the role or tags in an employee's profile, the filter finds the `user_updated` event with `company_role` or `group_tags` in `changed_attrs`."
   - target: $.paths['/audit_events'].get.parameters[?(@.name=='actor_type')]
     update:
       description: Actor type
@@ -55,7 +55,7 @@ actions:
 
         If a change takes away the bot's right to be in tags (`single_chat: true` or `who_can_add` set to `creator` or `creator_admin`), it leaves all tags and the chats it got into through them, and stays in the chats it was added to directly. More in the [Bot in tags](/guides/bots/settings#bot-v-tegah) section.
 
-        The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be changed for a bot whose settings are not accessible to you (the "Who can edit bot settings" field on the "General" tab).
+        The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be changed for a bot whose settings are not accessible to you (the "Who can edit bot settings" field on the "General" tab). When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
 
         The bot's avatar is set and removed by separate methods, [Upload bot avatar](PUT /bots/{id}/avatar) and [Delete bot avatar](DELETE /bots/{id}/avatar).
   - target: $.paths['/bots/{id}'].put.parameters[?(@.name=='id')]
@@ -66,7 +66,7 @@ actions:
       description: |-
         List bots
 
-        The bots the caller is entitled to configure: those they created themselves and those whose settings grant them edit access.
+        The bots the caller is entitled to configure: those they created themselves and those whose settings grant them edit access. When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
 
         The `query` parameter selects bots by part of the name or nickname, without typos. Bot tokens do not come in the list: a token value is shown once, and the bot's tokens themselves are returned by [Bot token list](GET /bots/{id}/tokens).
 
@@ -109,7 +109,7 @@ actions:
 
         Removes the bot from the workspace for good. All of the bot's tokens stop working at once, as do the authorizations employees granted to it. The bot is removed from all chats, and its webhooks and catalog page are deleted.
 
-        Deletion is available to the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Chat owners and admins cannot delete a bot, even if they are allowed to edit it.
+        Deletion is available to the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Chat owners and admins cannot delete a bot, even if they are allowed to edit it. When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
   - target: $.paths['/bots/{id}'].delete.parameters[?(@.name=='id')]
     update:
       description: Bot ID
@@ -124,7 +124,7 @@ actions:
 
         To create a 1-on-1 direct message with a user, use the [New message](POST /messages) method. To discuss a particular message there is no need to create a chat — a thread is started under it with the [New thread](POST /messages/{id}/thread) method. Talking over a single topic needs no permanent place either: there is the [New unattached thread](POST /threads) method for it.
 
-        Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, do not stop the request: the chat is created with the other members, and such IDs come back in `meta.not_found_member_ids`. The same goes for IDs from `group_tag_ids` that are not tags of the workspace: the chat is created with the other tags, and such IDs come back in `meta.not_found_group_tag_ids`. Bots are stricter: if a bot's "Who can add the bot to chats" setting does not let you add it, the chat is not created, and the method responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel stops the request too if it is in `member_ids` or creates the chat itself: the chat is not created, and the method responds `409` with the `single_chat_bot_occupied` code and the IDs of such bots in `value`.
+        Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, do not stop the request: the chat is created with the other members, and such IDs come back in `meta.not_found_member_ids`. The same goes for IDs from `group_tag_ids` that are not tags of the workspace: the chat is created with the other tags, and such IDs come back in `meta.not_found_group_tag_ids`. Bots are stricter: if a bot's "Who can add the bot to chats" setting does not let you add it, the chat is not created, and the method responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel (an archived one does not count) stops the request too if it is in `member_ids` or creates the chat itself: the chat is not created, and the method responds `409` with the `single_chat_bot_occupied` code and the IDs of such bots in `value`.
 
         The chat's avatar is set after creation with the [Upload chat avatar](PUT /chats/{id}/avatar) method.
   - target: $.paths['/chats'].post.responses['201'].content['application/json'].schema.properties.meta
@@ -249,6 +249,8 @@ actions:
 
         Order an export of the workspace messages for a period. The archive is prepared in the background.
 
+        Direct chats are exported with text and threads when the `export_personal_chats` field of [Workspace info](GET /company) is `true`. Otherwise their messages come with `-` in `content`, and their threads are not exported.
+
         The export period is at most 45 days, with `chat_ids` up to 366 days, and `end_at` cannot be earlier than `start_at`. A different period responds `422` with the `invalid_date_range` code. More than 50 `chat_ids` respond `422` with the `too_long` code, and a date not in the YYYY-MM-DD format responds `422` with the `invalid` code under the key of that field.
 
         With the `Prefer: return=representation` header the response comes with status `202` and the export identifier in `data.id`. Without the header the response is empty, with status `204`. By the identifier the archive is served by the [Download export archive](GET /chats/exports/{id}) method once it is assembled.
@@ -317,7 +319,7 @@ actions:
 
         Archiving does not merely freeze the chat. Guests with the `guest` role are removed from it, and all tags are unlinked from it. Multi-guests (`multi_guest`) stay in the chat. The employees a tag brought in stay as ordinary members, but the membership is no longer maintained by itself. The [Unarchive chat](PUT /chats/{id}/unarchive) method brings back neither the guests nor the tag links.
 
-        Threads created in the chat stay open: they can still be written to after archiving.
+        Threads created in the chat stay open: comments in them are still posted, edited and deleted after archiving.
 
         A direct chat and a thread are not sent to the archive. Archiving a chat that is already archived responds `403`.
   - target: $.paths['/chats/{id}/archive'].put.parameters[?(@.name=='id')]
@@ -404,7 +406,7 @@ actions:
 
         A bot is added only by someone its "Who can add the bot to chats" setting allows — see [Bot settings](/guides/bots/settings#kto-mozhet-dobavlyat-bota-v-chaty). If `member_ids` contains a bot you are not allowed to add, the method adds nobody and responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. If the same request also has an unknown ID, the response is `404` with both errors.
 
-        A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel is not added either: the response is `409` with the `single_chat_bot_occupied` code and the IDs of such bots in `value`, and nobody from the request is added. Such a bot can still be added to threads.
+        A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel (an archived one does not count) is not added either: the response is `409` with the `single_chat_bot_occupied` code and the IDs of such bots in `value`, and nobody from the request is added. Such a bot can still be added to threads.
 
         Adding a whole department at once is more convenient with a tag — [Add tags](POST /chats/{id}/group_tags): then the chat membership is maintained by itself.
   - target: $.paths['/chats/{id}/members'].post.parameters[?(@.name=='id')]
@@ -481,7 +483,7 @@ actions:
 
         Puts a draft into a conversation, a thread, or a direct message. In the Pachca interface it shows up in that chat's input box, where an employee finishes it and sends it. A scheduled message is created by this same method: with the `schedule` field the draft goes out by itself at the appointed time, without it the draft simply lies there. The method itself sends nothing: a draft is sent with [New message](POST /messages), passing it the draft's `content` and `parent_message_id`, and `key`, `name` and `file_type` of each file in `files`. Sending a message does not remove the draft: the Pachca app clears it by itself, while through the API it is removed with the [Delete draft](DELETE /drafts/{id}) method — otherwise the text stays in the input box.
 
-        A draft is visible only to its author — neither the other party nor a workspace administrator sees it. A chat can hold only one ordinary draft. A repeated call responds `409` with the `already_exists` code and the ID of the existing one in `payload.draft_id`. That one is finished with the [Edit draft](PUT /drafts/{id}) method. A chat holds no more than 50 scheduled messages.
+        A draft is visible only to its author — neither the other party nor a workspace administrator sees it. A chat can hold only one ordinary draft. A repeated call responds `409` with the `already_exists` code and the ID of the existing one in `payload.draft_id`. That one is finished with the [Edit draft](PUT /drafts/{id}) method. An author can have up to 50 scheduled messages in one chat or thread.
 
         For a thread, `entity_id` takes the ID of the thread itself, not of the message it hangs under. A direct message with an employee may not exist yet — then it is created by itself, the same way as when an ordinary message is sent.
 
@@ -667,7 +669,7 @@ actions:
 
         Deleted messages do not make it into the list.
 
-        The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent message hangs. This `chat_id` arrives in the `thread.chat_id` field of the parent message.
+        The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent message hangs. This `chat_id` arrives in the `thread.chat_id` field of the parent message. The parent message is not part of the thread's feed: [Message info](GET /messages/{id}) returns it by the thread's `message_id`.
   - target: $.paths['/messages'].get.parameters[?(@.name=='chat_id')]
     update:
       description: Chat ID (conversation, channel, direct message, or thread chat)
@@ -676,7 +678,7 @@ actions:
       description: Sort field
   - target: $.paths['/messages'].get.parameters[?(@.name=='order')]
     update:
-      description: "Sort direction by `id`: `asc` returns messages oldest first, `desc` newest first."
+      description: "Sort direction by `id`: `asc` returns messages oldest first, `desc` newest first. The cursor does not keep the direction: pass `order` on requests with `cursor` too."
   - target: $.paths['/messages'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
@@ -703,7 +705,7 @@ actions:
 
         Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the [List users who read the message](GET /messages/{id}/read_member_ids) method. The text follows the same formatting rules as in the [New message](POST /messages) method.
 
-        You can edit only your own messages, and only ordinary ones: for a system, a forwarded, a voice message and a sticker the method responds `403`. The same response comes for a deleted message and a message of an archived chat. There are no restrictions on how long ago the message was sent.
+        You can edit only your own messages, and only ordinary ones: for a system, a forwarded, a voice message and a sticker the method responds `403`. The same response comes for a deleted message and for a message in the feed of an archived chat. Comments in the threads of an archived chat are edited as usual. There are no restrictions on how long ago the message was sent.
 
         Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.
   - target: $.paths['/messages/{id}'].put.parameters[?(@.name=='id')]
@@ -714,7 +716,7 @@ actions:
       description: |-
         Delete message
 
-        Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its owner and the Admins of the thread. The creator becomes the owner, and the workspace owner and administrators become Admins when they are added to the thread. There are no time restrictions on message deletion, and in an archived chat messages are not deleted: the method responds `403`.
+        Message deletion is available to the sender, admins, and editors in the chat. In direct messages both people are admins and delete each other's messages, while a guest or a multi-guest deletes only their own there. In a thread, other people's messages are deleted by role in the chat that holds the parent message, and in an unattached thread by its owner and the Admins of the thread. The creator becomes the owner, and the workspace owner and administrators become Admins when they are added to the thread. There are no time restrictions on message deletion. In the feed of an archived chat messages are not deleted and the method responds `403`, while comments in its threads are deleted as usual.
 
         The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a "Message deleted" note stays in place of the message in the chat.
 
@@ -740,9 +742,9 @@ actions:
       description: |-
         Pin message
 
-        Pins a message in the header of a conversation or a channel, where all members see it. There is no limit on the number of pinned messages.
+        Pins a message in the header of a conversation, a channel or a direct message, where all members see it. There is no limit on the number of pinned messages.
 
-        In threads the method does not work and responds `403`. A message that is already pinned responds `409`, and a deleted one `422`.
+        The method responds `403` in a thread, in an archived chat, and to a channel subscriber. A message that is already pinned responds `409`, and a deleted one `422`.
   - target: $.paths['/messages/{id}/pin'].post.parameters[?(@.name=='id')]
     update:
       description: Message ID
@@ -881,9 +883,9 @@ actions:
 
         A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either.
 
-        An empty thread holds no talk yet: send the first message into it right away with the [New message](POST /messages) method, `entity_type: "thread"` and the thread's `id` from the response. A thread has no name, and it cannot be deleted either through the API or in the app.
+        To talk in it, send the first message right away with the [New message](POST /messages) method, `entity_type: "thread"` and the thread's `id` from the response. To only follow a thread, as "Subscribe to thread" in the message menu does, no first message is needed: the thread's topic is the parent message. A thread has no name, and it cannot be deleted either through the API or in the app.
 
-        If a thread has already been created for the message, the response will return information about the previously created thread. For a deleted message the method responds `404` with the `message_deleted` code, even if a thread under it already exists: its ID arrives in the `thread` field of the [Message info](GET /messages/{id}) method. Only a member of the chat starts a new thread, and only while the chat is not archived: to someone who sees an open conversation or channel without belonging to it, and in an archived chat, the method responds `403`, while an existing thread is returned. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.
+        If the message already has a thread, the method returns it. For a deleted message the method responds `404` with the `message_deleted` code, even if a thread under it already exists: its ID arrives in the `thread` field of the [Message info](GET /messages/{id}) method. Only a member of the chat starts a new thread, and only while the chat is not archived: to someone who sees an open conversation or channel without belonging to it, and in an archived chat, the method responds `403`, while an existing thread is returned. To read a thread, the method is not needed: its ID arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.
   - target: $.paths['/messages/{id}/thread'].post.parameters[?(@.name=='id')]
     update:
       description: Message ID
@@ -1024,6 +1026,8 @@ actions:
         The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query wrapped entirely in quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it. Straight quotes `"…"` and typographic ones `«…»`, `“…”`, `„…“` both work.
 
         By default messages come from newest to oldest. `sort=relevance` switches the results to how well they match the query, where recent messages are still valued higher.
+
+        Without `query`, deleted messages also come back, with empty `content` and `files` and `deleted_at` set, and they count toward `total`. A search with `query` never matches them.
 
         A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and the query is worth narrowing.
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='query')]
@@ -1311,8 +1315,6 @@ actions:
 
         The workspace owner can be edited only by themselves, and their role can be changed only to administrator, otherwise the response is `403`.
 
-        Making an employee or a multi-guest a guest (`guest` with `chat_ids`) removes all their tags and takes them out of the other conversations and channels, direct messages and threads aside. All of their tokens, the access given to bots and apps included, are revoked and respond `401`. Promotion restores none of this.
-
         An unknown role value is silently ignored by the method: the response is successful and the role stays as it was.
 
         For a bot the method changes only the name (`first_name`), nickname, tags and `suspended`, and skips the other fields in the request. Which nickname and which tags a bot can be given is said at the `nickname` and `list_tags` fields. If the bot's settings changed during the request, the `422` response comes with the `bot_changed_concurrently` code: retry the request.
@@ -1408,19 +1410,19 @@ actions:
 
         There is only one way to open the window — by the `trigger_id` from the button click event. One `trigger_id` opens one window and lives for 3 seconds. For a bot with a webhook they count from the moment Pachca delivered the click, and for a bot that reads [Event history](GET /webhooks/events), from the moment the click was written to the log. That is why the window is opened first of all, and everything else for the event is done afterwards.
 
-        The filled-in form comes back as a `view_submit` event: to the outgoing webhook, and if no address is set, to the event history. A webhook is answered in the response to it, and Pachca waits 3 seconds for that. An event from the history is closed with [Respond to a form submission](POST /views/{view_id}/submit_response), and there are 5 seconds for that. Miss the window and the user sees a submission error.
+        The filled-in form comes back as a `view_submit` event: to the outgoing webhook and, with the event history on, into the history too. A webhook is answered in the response to it, and Pachca waits 3 seconds for that. A bot with no webhook address closes an event from the history with [Respond to a form submission](POST /views/{view_id}/submit_response), and there are 5 seconds for that. Miss the window and the user sees a submission error.
   - target: $.paths['/views/{view_id}/submit_response'].post
     update:
       description: |-
         Respond to a form submission
 
-        Closes the form for the employee or shows them errors under the fields. The method is needed by a bot that has no outgoing webhook address set: such a bot has nowhere to answer the webhook, and it receives the `view_submit` event through the [Event history](GET /webhooks/events) method. If the webhook address is set, answer the webhook directly — that is simpler and does not require polling the history.
+        Closes the form for the employee or shows them errors under the fields. The method works only for a bot that has no outgoing webhook address set and has the event history enabled. Such a bot receives the `view_submit` event through the [Event history](GET /webhooks/events) method and answers it with this method. A bot with a webhook address answers the webhook itself, and a call to this method receives `410` with the `submit_expired` code, even if the bot also has the event history enabled.
 
         The `view_id` and `submit_id` identifiers arrive in the event payload. You must respond within 5 seconds of the form submission, otherwise the employee sees a submission error and the field values are kept for another attempt.
 
         A body without the `errors` field closes the form as successfully submitted; with the `errors` field it shows the error text under each named field.
 
-        The response is accepted once. A repeated call with the same `view_id` and `submit_id` pair, as well as a late one, receives `410` with the `submit_expired` code.
+        The response is accepted once. A repeated call with the same `view_id` and `submit_id` pair, as well as a late one, receives `410` with the `submit_expired` code. If the form does not exist or another bot opened it, the method answers `404` with the `view_not_found` code. A `503` means the answer did not reach the employee: retry while the 5 seconds last.
   - target: $.paths['/views/{view_id}/submit_response'].post.parameters[?(@.name=='view_id')]
     update:
       description: View ID
@@ -1435,7 +1437,9 @@ actions:
 
         The method works only with a bot token: a personal token has no history of its own. Events are returned from newest to oldest, and an event identifier is a string, not a number.
 
-        The history does not clear itself: delete the events you have read with the [Delete history event](DELETE /webhooks/events/{id}) method, otherwise they come again on a repeat request.
+        The history does not clear itself: delete the events you have processed with the [Delete history event](DELETE /webhooks/events/{id}) method, otherwise they come again on a repeat request.
+
+        The bot has one history for everything that uses its token: the bot's server, the event stream, the CLI command `pachca bots listen-events`. Leave the events you only look through in the history for them.
 
         The same events can be received as they happen, by the link from the [Event stream](GET /webhooks/events/stream) method.
   - target: $.paths['/webhooks/events/stream'].get
@@ -1465,7 +1469,7 @@ actions:
 
         Removes an event from the bot's event history. When working through the history, delete an event right after processing it: the history does not clear itself, and everything left in it comes again on a repeat request.
 
-        The method works only with the token of the bot the event belongs to.
+        The method works only with the token of the bot the event belongs to. The bot has one history for everything that uses its token, so delete only the events your code has processed.
   - target: $.paths['/webhooks/events/{id}'].delete.parameters[?(@.name=='id')]
     update:
       description: Event ID
@@ -1651,16 +1655,16 @@ actions:
       description: "Name of the device the sign-in is made from. Absent if the app did not pass it."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.application_id
     update:
-      description: "ID of the application that was allowed to log in"
+      description: "ID of the application that was allowed to log in. Absent for a sign-in to the Outlook add-in."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.application_name
     update:
-      description: "Application name. Absent in records before October 7, 2026."
+      description: "Application name. Absent for a sign-in to the Outlook add-in and in records before October 7, 2026."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.device_grant_id
     update:
       description: "ID of the login request"
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationApproved.properties.token_kind
     update:
-      description: "Token kind: `cli` — CLI login. Absent in records before October 7, 2026."
+      description: "Token kind: `cli` — CLI login, `outlook` — sign-in to the Outlook add-in. Absent in records before October 7, 2026."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied
     update:
       description: 'For: oauth_device_authorization_denied'
@@ -1675,13 +1679,13 @@ actions:
       description: "Name of the device the sign-in was made from. Absent if the app did not pass it."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.application_id
     update:
-      description: "Application ID. Absent when a CLI sign-in is refused: an application is assigned to the sign-in only after it is confirmed."
+      description: "Application ID. Absent for a sign-in to the Outlook add-in and when a CLI sign-in is refused: an application is assigned to a CLI sign-in only after it is confirmed."
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.device_grant_id
     update:
       description: "ID of the login request"
   - target: $.components.schemas.AuditDetailsDeviceAuthorizationDenied.properties.token_kind
     update:
-      description: "Token kind: `cli` — CLI login. Absent in records before October 7, 2026."
+      description: "Token kind: `cli` — CLI login, `outlook` — sign-in to the Outlook add-in. Absent in records before October 7, 2026."
   - target: $.components.schemas.AuditDetailsDlp
     update:
       description: 'For: dlp_violation_detected'
@@ -2074,7 +2078,7 @@ actions:
         chat_renamed: Chat renamed
         chat_permission_changed: Chat access permissions changed
         user_chat_join: User joined the chat
-        user_chat_leave: User left the chat
+        user_chat_leave: "Member removed from the chat or made a guest. Leaving on one's own is not logged, and dropping out with a tag is logged as `user_removed_from_tag` or `tag_removed_from_chat`."
         tag_added_to_chat: Tag added to chat
         tag_removed_from_chat: Tag removed from chat
         message_updated: Message edited
@@ -2241,7 +2245,7 @@ actions:
       description: Webhook parameters object of the bot to update
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code."
+      description: "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code. An empty string clears the URL and keeps the other settings and the signing secret. An empty string together with an empty `events` and without `events_history_enabled: true` deletes the outgoing webhook: the event history is turned off, the other settings go back to their initial values, and a new `secret_token` is issued. More in the [Via the API](/guides/webhook/events#cherez-api) section."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.name
     update:
       description: Bot name
@@ -2259,25 +2263,25 @@ actions:
       description: Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the commands together with the `, ` separators (comma and space) must not exceed 255 characters.
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.scopes
     update:
-      description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
+      description: "Scopes (permissions) of the bot's main token. If omitted, the scopes do not change. If the bot has no token, passing scopes creates the main token, but its value does not come back: get one with [Bot token rotation](POST /bots/{id}/recreate_token). Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.template
     update:
       description: "Template for formatting the incoming webhook. The template is checked when the request changes `template`, `template_engine` or `kind`, so changing the template engine alone or turning on `kind: simple` checks the template already saved as well. A template with a syntax error for the `simple` source gets `400` on this field with the `invalid` code, and the request is not applied. The reason comes in `message`."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.template_engine
     update:
-      description: Template engine used to process the incoming webhook template
+      description: "Template engine used to process the incoming webhook template. When `kind` turns the incoming webhook on, the stored engine applies, and for an empty bot and after `kind: null` it is `mustache`: for a Liquid template pass `template_engine: \"liquid\"` in the same request."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.challenge_key
     update:
       description: Verification field name for incoming webhook verification
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.link_preview_enabled
     update:
-      description: Show link previews in incoming webhook messages
+      description: "Show link previews in incoming webhook messages. With `true`, [bots that unfurl links](/guides/link-previews#vebhuk-o-ssylke) also receive links from any message of this bot, API ones included."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.ignore_self_messages
     update:
       description: "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.events_history_enabled
     update:
-      description: Save the bot's event history for later retrieval via the event history method
+      description: "Save the bot's event history for later retrieval via the event history method. Pachca creates events only while the bot has `outgoing_url` set or this field on: what happens with neither never arrives later."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.who_can_add
     update:
       description: Who can add the bot to chats
@@ -2291,15 +2295,15 @@ actions:
 
         Creates a bot in the workspace. By default the bot gets an incoming webhook in its own format and immediately returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to reissue it with [Bot token rotation](POST /bots/{id}/recreate_token).
 
-        With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without an incoming webhook and, unless `scopes` is passed in the `webhook` object, without a token. Tokens are issued to it with [New bot token](POST /bots/{id}/tokens), and the incoming webhook is enabled with the `kind` field in the `webhook` object.
+        With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without an incoming webhook and, unless `scopes` is passed, without a token. Tokens are issued to it with [New bot token](POST /bots/{id}/tokens), and the incoming webhook is enabled with the `kind` field.
 
         A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member, and it is added like an employee — with the [Add chat members](POST /chats/{id}/members) method, passing the bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require membership.
 
         The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it is the set of its chats that decides where it lands. No token is needed for that, the webhook address is enough. To write into one particular chat, take the [New message](POST /messages) method — that one does need a token.
 
-        Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. Learn more in [Authorization setup](/guides/oauth/setup). The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow).
+        Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow).
 
-        Only a workspace administrator or owner creates a bot that unfurls links: others get `400` with the `forbidden` code.
+        Only a workspace administrator or owner creates a bot that unfurls links: others get `400` with the `forbidden` code. When creating integrations is limited to administrators, others get `403` from this method.
 
         The bot's avatar is set after creation with the [Upload bot avatar](PUT /bots/{id}/avatar) method.
   - target: $.paths['/bots/{id}'].get
@@ -2309,9 +2313,9 @@ actions:
 
         The bot's settings. The token does not come in the response — it is shown once at the bot's creation and at [Bot token rotation](POST /bots/{id}/recreate_token). The bot's tokens are returned by [Bot token list](GET /bots/{id}/tokens).
 
-        The method returns only the bots the caller is entitled to configure: their own, and, if the bot's settings allow it, also as a workspace administrator or as an owner or admin of a chat the bot belongs to. For someone else's bot the method responds `403`.
+        The method returns only the bots the caller is entitled to configure: their own, and, if the bot's settings allow it, also as a workspace administrator or as an owner or admin of a conversation or channel the bot belongs to. For someone else's bot the method responds `403`. When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
 
-        The method also answers a token with the `bots:write` scope and no `bots:read`. If you can also manage the bot's tokens (`permissions.recreate_token`), `webhook` carries the incoming webhook address `url`, the signing secret `secret_token` and the body of the last request to the incoming webhook `last_request_body`.
+        The method also answers a token with the `bots:write` scope and no `bots:read`. With the `bots:write` scope and the right to manage the bot's tokens (`permissions.recreate_token`), `webhook` carries the incoming webhook address `url`, the signing secret `secret_token` and the body of the last request to the incoming webhook `last_request_body`.
 
         The list of all bots in the workspace, including other people's, is available to the workspace owner on the "Corporation" plan — [List workspace bots](GET /company/bots).
   - target: $.paths['/bots/{id}'].get.parameters[?(@.name=='id')]
@@ -2365,7 +2369,7 @@ actions:
       description: Role allowed to edit the bot settings
       x-enum-descriptions:
         admin: Company administrators
-        chat_owners: Owners of the chats the bot is added to
+        chat_owners: Owners and admins of the conversations and channels the bot is in
   - target: $.components.schemas.BotCreateRequest
     update:
       description: Bot creation request
@@ -2386,13 +2390,13 @@ actions:
       description: Events the bot is subscribed to. Without this field the bot is subscribed to `message_new`.
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.trigger_on
     update:
-      description: Outgoing webhook trigger condition
+      description: "Outgoing webhook trigger condition. Defaults to `commands`: events about new and edited messages arrive for the commands in the `commands` field. For events about all messages, pass `all_messages`."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.commands
     update:
       description: Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the commands together with the `, ` separators (comma and space) must not exceed 255 characters.
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.scopes
     update:
-      description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
+      description: "Scopes (permissions) of the bot's main token. Without this field the main token gets the default set, which lacks `bot_self:webhook:write`, `bot_self:write` and `user_status:read`: pass them explicitly. With `oauth_client` carrying its own `scopes` in the same request, the main token without this field gets those scopes instead, so pass `scopes` alongside `oauth_client`. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.template
     update:
       description: "Template for formatting the incoming webhook. A template with a syntax error for the `simple` source, an empty bot with `kind: simple` included, gets `400` on this field with the `invalid` code, and the bot is not created. The reason comes in `message`."
@@ -2404,13 +2408,13 @@ actions:
       description: Verification field name for incoming webhook verification
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.link_preview_enabled
     update:
-      description: Show link previews in incoming webhook messages
+      description: "Show link previews in incoming webhook messages. With `true`, [bots that unfurl links](/guides/link-previews#vebhuk-o-ssylke) also receive links from any message of this bot, API ones included."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.ignore_self_messages
     update:
       description: "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.events_history_enabled
     update:
-      description: Save the bot's event history for later retrieval via the event history method
+      description: "Save the bot's event history for later retrieval via the event history method. Pachca creates events only while the bot has `outgoing_url` set or this field on: what happens with neither never arrives later."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.who_can_add
     update:
       description: Who can add the bot to chats
@@ -2431,7 +2435,7 @@ actions:
       description: Bot nickname
   - target: $.components.schemas.BotWebhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
+      description: "Outgoing webhook URL. `null` or an empty string if no URL is set: the bot then gets events only from the event history, if it is on."
   - target: $.components.schemas.BotWebhook.properties.events
     update:
       description: Events the bot is subscribed to
@@ -2455,7 +2459,7 @@ actions:
       description: Verification field name for incoming webhook verification. `null` if not set.
   - target: $.components.schemas.BotWebhook.properties.link_preview_enabled
     update:
-      description: Show link previews in incoming webhook messages
+      description: "Show link previews in incoming webhook messages. With `true`, [bots that unfurl links](/guides/link-previews#vebhuk-o-ssylke) also receive links from any message of this bot, API ones included."
   - target: $.components.schemas.BotWebhook.properties.ignore_self_messages
     update:
       description: "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
@@ -2491,7 +2495,7 @@ actions:
       description: Bot nickname
   - target: $.components.schemas.CompanyBotWebhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
+      description: "Outgoing webhook URL. `null` or an empty string if no URL is set: the bot then gets events only from the event history, if it is on."
   - target: $.components.schemas.CompanyBotWebhook.properties.events
     update:
       description: Events the bot is subscribed to
@@ -2515,7 +2519,7 @@ actions:
       description: Verification field name for incoming webhook verification. `null` if not set.
   - target: $.components.schemas.CompanyBotWebhook.properties.link_preview_enabled
     update:
-      description: Show link previews in incoming webhook messages
+      description: "Show link previews in incoming webhook messages. With `true`, [bots that unfurl links](/guides/link-previews#vebhuk-o-ssylke) also receive links from any message of this bot, API ones included."
   - target: $.components.schemas.CompanyBotWebhook.properties.ignore_self_messages
     update:
       description: "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
@@ -2539,13 +2543,13 @@ actions:
       description: Webhook parameters object
   - target: $.components.schemas.BotWebhookSelfUpdateRequest.properties.webhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code. An empty string disables the webhook."
+      description: "Outgoing webhook URL: a public address with the `http` or `https` protocol. Otherwise the response is `400` on the `webhook.outgoing_url` field with the `webhook_url_invalid`, `webhook_url_unresolved` or `webhook_url_forbidden` code. An empty string clears the URL: events stop coming to it, and with event history on they keep being stored there."
   - target: $.paths['/bot/webhook'].put
     update:
       description: |-
         Bot webhook self-registration
 
-        Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without knowing its own `id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an empty string in `outgoing_url`.
+        Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without knowing its own `id`. The webhook of the bot that owns the token is changed. An empty string in `outgoing_url` clears the URL: events stop coming to it, and with event history on they keep being stored there.
 
         The address of a bot with link unfurling (the `message_link_shared` event or the `trigger_on: unfurl` mode) is changed only by a workspace administrator or owner, with [Edit bot](PUT /bots/{id}). To such a bot this method responds `400` with the `forbidden` code to any new address, an empty string included.
 
@@ -2556,11 +2560,11 @@ actions:
 
         Generates a new `access_token` for the bot and immediately invalidates the previous one. Use it when a token is compromised or for scheduled secret rotation in `CI`.
 
-        The bot's main token is reissued — the one without a name, or the oldest one if there is none. An additional token is reissued by [Reissue bot token](POST /bots/{id}/tokens/{token_id}/reissue).
+        The bot's main token is reissued — the one without a name, or the oldest one if there is none. The previous token is deleted, and the new one is created with a new ID and no name. [Reissue bot token](POST /bots/{id}/tokens/{token_id}/reissue) keeps the token's name and ID and changes only the value: use it for an additional token and for a main token with a name.
 
         The new token is returned in the response only once — save it right away. Its permissions are the same: the scopes are carried over from the previous token. In `webhook` the response carries the incoming webhook address `url`, the signing secret `secret_token`, and the body of the last request to the incoming webhook `last_request_body`.
 
-        Rotation is available to the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. The owner of a chat the bot belongs to cannot rotate the token, even when the rest of the bot's settings are open to them.
+        Rotation is available to the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. The owner of a chat the bot belongs to cannot rotate the token, even when the rest of the bot's settings are open to them. When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
   - target: $.paths['/bots/{id}/recreate_token'].post.parameters[?(@.name=='id')]
     update:
       description: Bot ID
@@ -2571,7 +2575,7 @@ actions:
 
         Allows a bot to generate a new `access_token` for itself using its own token — without an administrator and without knowing its own `id`.
 
-        The bot's main token is reissued — the one without a name, or the oldest one if there is none — and it is invalidated immediately. If the bot works with an additional token, that token stays as it was.
+        The bot's main token is reissued — the one without a name, or the oldest one if there is none — and it is invalidated immediately. The new main token is created with a new ID and no name. If the bot works with an additional token, that token stays as it was.
 
         The new token is returned in the response once — be sure to save it, otherwise the bot loses access to the API. The scopes are carried over from the previous token.
   - target: $.components.schemas.BotCreateResponse
@@ -3100,7 +3104,7 @@ actions:
       description: Address that the webhook with the number of the finished export arrives at once the archive is assembled. The number comes in the `export_id` field, and the whole webhook body is described in the [Export](/guides/export) section.
   - target: $.components.schemas.ExportRequest.properties.chat_ids
     update:
-      description: Array of chat IDs. Specify to export messages from specific chats only.
+      description: "Array of chat IDs. Specify to export messages from specific chats only. A thread is exported with the chat of its parent message, so a thread ID in the list adds nothing, and an unattached thread is not exported. What goes into the archive is listed in the [Export](/guides/export#chto-popadaet-v-arhiv) section."
   - target: $.components.schemas.ExportRequest.properties.skip_chats_file
     update:
       description: Skip generating the chat list file (chats.json)
@@ -3303,7 +3307,7 @@ actions:
       description: Link unfurling request
   - target: $.components.schemas.LinkPreviewsRequest.properties.link_previews
     update:
-      description: "`JSON` map of link previews, where each key is a `URL` received in the outgoing webhook about a new message"
+      description: "`JSON` map of link previews, where each key is a `url` from the `links` array of the `message_link_shared` event (`type: message`, `event: link_shared`)"
   - target: $.components.schemas.LinkSharedWebhookPayload
     update:
       description: Outgoing webhook payload for link unfurling
@@ -3570,7 +3574,7 @@ actions:
       description: Image height in px (used when file_type is set to image)
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.buttons
     update:
-      description: "Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons per row. Buttons are shown under the text. A button with `url` follows the link whoever sent the message and creates no event. A button with `data` works in a message from a bot: a click on it arrives as a `button_click` event to the bot that sent the message, carrying a `trigger_id` — there are 3 seconds to open a form with it, the [Open view](POST /views/open) method. Details are in the [Buttons](/guides/buttons) section."
+      description: "Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons per row. Buttons are shown under the text. A button with `url` follows the link whoever sent the message and creates no event. A button with `data` works in a message from a bot: a click on it arrives as a `button_click` event to the bot that sent the message, carrying a `trigger_id` — there are 3 seconds to open a form with it, the [Open view](POST /views/open) method. The click arrives while the bot is a member of the message's chat, and for a message in a thread, of the thread or its parent chat. Details are in the [Buttons](/guides/buttons) section."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.parent_message_id
     update:
       description: "ID of the message you are replying to with a quote. You can reply to a message in any chat, including a thread: send the reply to the same chat or thread where that message is, otherwise the request returns a `422` error. To write into the thread under a message, set `entity_type: \"thread\"` and the thread's `id` in `entity_id`."
@@ -4391,7 +4395,7 @@ actions:
     update:
       description: >-
         Access level. A change between `user` and `admin` keeps the roles in the chats the employee already belongs
-        to: those are changed by the [Change member role](PUT /chats/{id}/members/{user_id}) method.
+        to: those are changed by the [Change member role](PUT /chats/{id}/members/{user_id}) method. Making an employee or a multi-guest a guest (`guest` with `chat_ids`) removes all their tags and takes them out of the other conversations and channels, direct messages and threads aside. In threads an administrator or editor becomes a member, and the thread owner stays the owner. All of their tokens, the access given to bots and apps included, are revoked and respond `401`. Promotion restores none of this.
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.chat_ids
     update:
       description: "The chat the employee keeps when made a guest (`role: \"guest\"`): exactly one active conversation or channel where the token may add members. Without such a chat the response is `400` on this field, and nothing changes. With other roles, and for someone already a guest, the field is ignored. When made a guest, an employee with an email on file gets an email about the role change with a link to this chat, even if they have not signed in to Pachca yet or are suspended. It does not count towards the daily limit of invitation emails."
@@ -4471,7 +4475,7 @@ actions:
         confidential_download_denied: "Downloading the file is denied: the request has to come from the secure perimeter, or a virus was found in the file"
         decryption_failed: The file could not be decrypted
         bot_add_denied: "The bot's \"Who can add the bot to chats\" setting does not let you add it: the `id` of each such bot comes in `value`"
-        single_chat_bot_occupied: "A bot with the \"Restrict to a single chat\" setting already belongs to another conversation or channel: the `id` of each such bot comes in `value`"
+        single_chat_bot_occupied: "A bot with the \"Restrict to a single chat\" setting already belongs to another conversation or channel (an archived one does not count): the `id` of each such bot comes in `value`"
         single_chat_bot_tag_denied: "A bot with the \"Restrict to a single chat\" setting cannot be added to a tag"
         restricted_bot_tag_denied: Only a bot that any employee can add to a chat can be added to a tag
         bot_changed_concurrently: "The bot's settings changed during the request: retry it"
@@ -5048,10 +5052,10 @@ actions:
       description: "ID of the bot the token belongs to"
   - target: $.components.schemas.BotCreateRequest.properties.empty
     update:
-      description: "Create an empty bot: without an incoming webhook and, unless scopes are passed, without a token. Without this field the bot is created with an incoming webhook in its own format, and its token comes in `access_token`."
+      description: "Create an empty bot: without an incoming webhook and, unless scopes are passed, without a token. With scopes the main token is created, but its value does not come in the response: get one with [Bot token rotation](POST /bots/{id}/recreate_token). Without this field the bot is created with an incoming webhook in its own format, and its token comes at once in `access_token`."
   - target: $.components.schemas.BotCreateRequest.properties.oauth_client
     update:
-      description: "Enable authorization on behalf of an employee right at creation"
+      description: "Enable authorization on behalf of an employee right at creation. Learn more in [Authorization setup](/guides/oauth/setup)."
   - target: $.components.schemas.BotCreateRequest.properties.promo
     update:
       description: "The bot's catalog page. Set only together with `oauth_client`: without authorization the bot has no page."
@@ -5060,7 +5064,7 @@ actions:
       description: "Incoming webhook source. Without `empty` it defaults to `simple`, and an empty bot gets an incoming webhook only through this field."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.unfurl_domains
     update:
-      description: "Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event."
+      description: "Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event. Each item is a host without protocol, path or port: a domain with a dot, an IPv4 address or `localhost`. A domain outside the [domain recognition rules](/guides/link-previews#pravila-raspoznavaniya-domenov), a Cyrillic one for example, gets `400` with the `invalid` code."
   - target: $.components.schemas.BotCreateResponse.properties.authorized_users_count
     update:
       description: "How many employees have authorized the bot"
@@ -5105,7 +5109,7 @@ actions:
       description: "Client ID for the authorization link"
   - target: $.components.schemas.BotOAuthClient.properties.client_secret_preview
     update:
-      description: "Masked client secret. The full value comes in `client_secret` once: when a server-side client is enabled and when the secret is rotated."
+      description: "Masked client secret. The full value comes in `client_secret` once: when a server-side client is enabled, when the client switches to server-side, and when the secret is rotated."
   - target: $.components.schemas.BotOAuthClient.properties.confidential
     update:
       description: "Where the secret is stored: `true` — a server-side application, `false` — an application without a secret that exchanges the code with PKCE"
@@ -5126,7 +5130,7 @@ actions:
       description: "Redirect URIs after consent. A web address needs HTTPS: plain `http` is allowed only for `localhost`, `127.0.0.1` and `[::1]`. An app's own scheme such as `com.example.app:/oauth` also fits. A fragment `#…` is not allowed in the address. The address in the authorization link must match one from the list. Query parameters are compared only if the address in the list has them, and the port is not compared for addresses on the same computer. More in the [Enabling](/guides/oauth/setup#vklyuchenie) section. Pass at least one address when enabling. The list is replaced as a whole."
   - target: $.components.schemas.BotOAuthClientRequest.properties.scopes
     update:
-      description: "Scopes the bot requests from an employee on the consent screen. Only scopes that can be granted to the bot itself are available. If omitted when enabling, all bot scopes are requested. The list is replaced as a whole."
+      description: "Scopes the bot requests from an employee on the consent screen. Only scopes that can be granted to the bot itself are available. Without this field the set does not change, and the first time authorization is enabled the bot requests the default set: almost all scopes available to a bot. Pass the list explicitly. The list is replaced as a whole."
   - target: $.components.schemas.BotPermissions
     update:
       description: "What the current user can do with the bot"
@@ -5306,7 +5310,7 @@ actions:
       description: "Skip events about messages the bot sent itself and about reactions to those messages, whoever adds or removes them. Button clicks always arrive."
   - target: $.components.schemas.BotSelfWebhook.properties.link_preview_enabled
     update:
-      description: "Show link previews in incoming webhook messages"
+      description: "Show link previews in incoming webhook messages. With `true`, [bots that unfurl links](/guides/link-previews#vebhuk-o-ssylke) also receive links from any message of this bot, API ones included."
   - target: $.components.schemas.BotSelfWebhook.properties.name
     update:
       description: "Bot name"
@@ -5315,7 +5319,7 @@ actions:
       description: "Bot nickname"
   - target: $.components.schemas.BotSelfWebhook.properties.outgoing_url
     update:
-      description: "Outgoing webhook URL. `null` or an empty string if the bot has no outgoing webhook configured."
+      description: "Outgoing webhook URL. `null` or an empty string if no URL is set: the bot then gets events only from the event history, if it is on."
   - target: $.components.schemas.BotSelfWebhook.properties.scopes
     update:
       description: "Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values that cannot be set explicitly may appear here."
@@ -5354,19 +5358,19 @@ actions:
       description: "New token scopes. The list is replaced as a whole and takes effect immediately, there is no need to reissue the token."
   - target: $.components.schemas.BotUpdateRequest.properties.oauth_client
     update:
-      description: "Settings of authorization on behalf of an employee. If authorization is disabled, the object enables it, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own tokens keep working."
+      description: "Settings of authorization on behalf of an employee. If authorization is disabled, the object enables it, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own tokens keep working. When the object enables authorization, again included, or makes the client server-side, `client_secret` carries the server-side client's existing secret. A new secret is issued by [Client secret rotation](POST /bots/{id}/rotate_client_secret)."
   - target: $.components.schemas.BotUpdateRequest.properties.promo
     update:
       description: "The bot's catalog page. Available only while authorization is enabled for the bot."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.kind
     update:
-      description: "Incoming webhook source. If the bot had no incoming webhook, it is enabled. `null` deletes the incoming webhook: the address stops working, the template and the incoming webhook settings are reset, and on the next enabling the bot gets a new address."
+      description: "Incoming webhook source. If the bot had no incoming webhook, it is enabled. `null` deletes the incoming webhook: the address stops working, the template and the incoming webhook settings are reset, and on the next enabling the bot gets a new address. For a Liquid template pass `template_engine: \"liquid\"` in the same request."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.single_chat
     update:
       description: "Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don't count toward this limit"
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.unfurl_domains
     update:
-      description: "Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event. The list is replaced as a whole."
+      description: "Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event. Each item is a host without protocol, path or port: a domain with a dot, an IPv4 address or `localhost`. A domain outside the [domain recognition rules](/guides/link-previews#pravila-raspoznavaniya-domenov), a Cyrillic one for example, gets `400` with the `invalid` code. The list is replaced as a whole."
   - target: $.components.schemas.BotWebhook.properties.kind
     update:
       description: "Incoming webhook source. `null` if the bot's incoming webhook is disabled."
@@ -5418,7 +5422,7 @@ actions:
 
         The new secret comes in `client_secret` once. The method works only for a bot with authorization enabled and a server-side client (`confidential: true`), otherwise it responds `400` with the `invalid` code. In `webhook` the response carries the incoming webhook address `url`, the signing secret `secret_token`, and the body of the last request to the incoming webhook `last_request_body`.
 
-        Rotation is available to the bot's creator, and to a workspace administrator if the bot's settings give administrators edit access.
+        Rotation is available to the bot's creator, and to a workspace administrator if the bot's settings give administrators edit access. When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
   - target: "$.paths['/bots/{id}/rotate_client_secret'].post.parameters[?(@.name=='id')]"
     update:
       description: "Bot ID"
@@ -5440,7 +5444,7 @@ actions:
 
         The bot's active tokens: the main one, issued together with the bot, and additional ones — each with its own name and scopes. The token value is masked here: in full it is shown once, when the token is issued and when it is reissued.
 
-        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them.
+        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them. When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
   - target: "$.paths['/bots/{id}/tokens'].get.parameters[?(@.name=='cursor')]"
     update:
       description: "Pagination cursor (from `meta.paginate.next_page`)"
@@ -5461,7 +5465,7 @@ actions:
 
         Scopes are chosen from those that can be granted to a bot: they are listed by [Bot scope catalog](GET /bots/{id}/scopes). For a scope that is not in the catalog the method responds `400`. Without `scopes` the token is issued without scopes.
 
-        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them.
+        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them. When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
   - target: "$.paths['/bots/{id}/tokens'].post.parameters[?(@.name=='id')]"
     update:
       description: "Bot ID"
@@ -5472,7 +5476,7 @@ actions:
 
         Deletes the token: requests with it stop passing at once. The bot's other tokens keep working.
 
-        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them.
+        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them. When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
   - target: "$.paths['/bots/{id}/tokens/{token_id}'].delete.parameters[?(@.name=='id')]"
     update:
       description: "Bot ID"
@@ -5486,7 +5490,7 @@ actions:
 
         Changes the token's name or scopes. New scopes take effect immediately: there is no need to reissue the token, and its value stays the same. Scopes are replaced by the passed list as a whole.
 
-        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them.
+        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them. When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
   - target: "$.paths['/bots/{id}/tokens/{token_id}'].put.parameters[?(@.name=='id')]"
     update:
       description: "Bot ID"
@@ -5502,7 +5506,7 @@ actions:
 
         The method is needed when a token has leaked or is changed on schedule. The bot's main token can also be reissued with [Bot token rotation](POST /bots/{id}/recreate_token).
 
-        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them.
+        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them. When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
   - target: "$.paths['/bots/{id}/tokens/{token_id}/reissue'].post.parameters[?(@.name=='id')]"
     update:
       description: "Bot ID"

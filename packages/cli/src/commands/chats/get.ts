@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsGet extends BaseCommand {
-  static override description = "Информация о чате";
+  static override summary = "Информация о чате";
+  static override description = "Карточка чата вместе с составом участников и привязанными тегами. Что в чате написано, возвращает Список сообщений чата.\n\nПолное описание: pachca api GET /chats/{id} --docs";
   static scope = "chats:read";
   static apiMethod = "GET";
   static apiPath = "/chats/{id}";

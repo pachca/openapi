@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class SecurityList extends BaseCommand {
-  static override description = "Журнал аудита событий";
+  static override summary = "Журнал аудита событий";
+  static override description = "Что происходило в пространстве: входы и выходы, изменения ролей и настроек, действия с чатами, сотрудниками и ботами. Записи только читаются — изменить или удалить их нельзя ни через API, ни из интерфейса.\n\nПолное описание: pachca api GET /audit_events --docs";
   static scope = "audit_events:read";
   static plan = "corporation";
   static apiMethod = "GET";
@@ -27,7 +28,7 @@ export default class SecurityList extends BaseCommand {
       options: ["user_login","user_logout","user_2fa_fail","user_2fa_success","user_2fa_disabled","login_grant_created","login_grant_approved","login_grant_denied","user_created","user_deleted","user_role_changed","user_updated","tag_created","tag_deleted","user_added_to_tag","user_removed_from_tag","chat_created","chat_renamed","chat_permission_changed","user_chat_join","user_chat_leave","tag_added_to_chat","tag_removed_from_chat","message_updated","message_deleted","message_created","reaction_created","reaction_deleted","thread_created","access_token_created","access_token_updated","access_token_destroy","kms_encrypt","kms_decrypt","audit_events_accessed","company_chats_accessed","company_bots_accessed","dlp_violation_detected","search_users_api","search_chats_api","search_messages_api","bot_scopes_updated","bot_webhook_settings_updated","bot_token_recreated","bot_deleted","bot_oauth_client_updated","bot_oauth_client_disabled","bot_oauth_client_secret_rotated","bot_oauth_client_secret_issued","bot_token_created","bot_token_updated","bot_token_reissued","bot_token_deleted","oauth_authorization_granted","oauth_authorization_revoked","oauth_token_revoked","oauth_device_authorization_approved","oauth_device_authorization_denied","video_call_started","video_call_finished","video_call_recording_ready","exchange_disabled"],
     }),
     'actor-id': Flags.string({
-      description: "Идентификатор актора события, как в поле `actor_id` записи. Смену роли, добавление в чат и исключение из чата, назначение и снятие тегов фильтр находит по сотруднику, которого они коснулись.",
+      description: "Идентификатор актора события, как в поле `actor_id` записи. Смену роли, добавление в чат и исключение из чата, назначение и снятие тегов фильтр находит по сотруднику, которого они коснулись. По тому, кто сменил роль или теги в профиле сотрудника, фильтр находит событие `user_updated` с `company_role` или `group_tags` в `changed_attrs`.",
     }),
     'actor-type': Flags.string({
       description: "Тип актора",

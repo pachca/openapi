@@ -77,6 +77,7 @@ import {
   ReactionRequest,
   RemoveReactionParams,
   ListReadMembersParams,
+  ListReadMembersResponse,
   ListThreadsParams,
   ListThreadsResponse,
   Thread,
@@ -2091,8 +2092,12 @@ export class ReactionsServiceImpl extends ReactionsService {
 }
 
 export class ReadMembersService {
-  async listReadMembers(id: number, params?: ListReadMembersParams): Promise<unknown> {
+  async listReadMembers(id: number, params?: ListReadMembersParams): Promise<ListReadMembersResponse> {
     throw new Error("Read members.listReadMembers is not implemented");
+  }
+
+  async listReadMembersAll(id: number, params?: Omit<ListReadMembersParams, 'cursor'>): Promise<number[]> {
+    throw new Error("Read members.listReadMembersAll is not implemented");
   }
 }
 
@@ -2104,7 +2109,7 @@ export class ReadMembersServiceImpl extends ReadMembersService {
     super();
   }
 
-  async listReadMembers(id: number, params?: ListReadMembersParams): Promise<unknown> {
+  async listReadMembers(id: number, params?: ListReadMembersParams): Promise<ListReadMembersResponse> {
     const query = new URLSearchParams();
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
@@ -2115,11 +2120,25 @@ export class ReadMembersServiceImpl extends ReadMembersService {
     switch (response.status) {
       case 200: {
         const body = await response.json();
-        return deserialize(body) as unknown;
+        return deserialize(body) as ListReadMembersResponse;
       }
       default:
         throw await errorFromResponse(response);
     }
+  }
+
+  async listReadMembersAll(id: number, params?: Omit<ListReadMembersParams, 'cursor'>): Promise<number[]> {
+    const items: number[] = [];
+    let cursor: string | undefined;
+    let hasNext = true;
+    while (hasNext) {
+      const response = await this.listReadMembers(id, { ...params, cursor } as ListReadMembersParams);
+      items.push(...response.data);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
+    return items;
   }
 }
 

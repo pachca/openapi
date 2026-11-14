@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class BotsGetStream extends BaseCommand {
-  static override description = "Поток событий";
+  static override summary = "Поток событий";
+  static override description = "Ссылка, по которой события бота приходят сразу, как они происходят, в формате Server-Sent Events. Это те же события, что ложатся в Историю событий. Поток подходит боту, который не принимает вебхуки на свой адрес, но должен отвечать быстро, например на нажатие кнопки или отправку формы.\n\nПолное описание: pachca api GET /webhooks/events/stream --docs";
   static scope = "webhooks:events:read";
   static apiMethod = "GET";
   static apiPath = "/webhooks/events/stream";

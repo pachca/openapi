@@ -61,7 +61,7 @@ export default class Api extends BaseCommand {
       description: 'Тело запроса инлайн JSON-строкой',
     }),
     query: Flags.string({
-      description: 'Query-параметр (key=value)',
+      description: 'Query-параметр (key=value). Повтор с тем же ключом передаёт несколько значений',
       multiple: true,
     }),
   };
@@ -105,14 +105,7 @@ export default class Api extends BaseCommand {
       this.exit(2);
     }
 
-    // Build query params
-    const query: Record<string, string> = {};
-    if (flags.query) {
-      for (const q of flags.query) {
-        const [key, ...rest] = q.split('=');
-        query[key] = rest.join('=');
-      }
-    }
+    const query = parseQueryFlags(flags.query);
 
     // Build request body
     let body: unknown = undefined;
@@ -249,6 +242,25 @@ export default class Api extends BaseCommand {
     }
     process.stdout.write(renderIntrospect(entry, mode) + '\n');
   }
+}
+
+/**
+ * Collect `--query key=value` pairs. A key given more than once keeps every value
+ * in order, and each goes out as its own pair, which is how a list parameter such
+ * as `company_roles[]` is sent: `--query 'company_roles[]=admin' --query 'company_roles[]=user'`.
+ */
+export function parseQueryFlags(pairs: string[] | undefined): Record<string, string | string[]> {
+  // No prototype: a key such as `constructor` must not read an inherited value.
+  const query: Record<string, string | string[]> = Object.create(null);
+  for (const pair of pairs ?? []) {
+    const [key, ...rest] = pair.split('=');
+    const value = rest.join('=');
+    const previous = query[key];
+    if (previous === undefined) query[key] = value;
+    else if (Array.isArray(previous)) previous.push(value);
+    else query[key] = [previous, value];
+  }
+  return query;
 }
 
 /**

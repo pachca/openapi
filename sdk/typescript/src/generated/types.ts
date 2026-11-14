@@ -44,7 +44,7 @@ export enum AuditEventKey {
   ChatPermissionChanged = "chat_permission_changed",
   /** Пользователь присоединился к чату */
   UserChatJoin = "user_chat_join",
-  /** Пользователь покинул чат */
+  /** Участника исключили из чата или перевели в гости. Выход по своей воле не записывается, а уход вместе с тегом записывает событие `user_removed_from_tag` или `tag_removed_from_chat`. */
   UserChatLeave = "user_chat_leave",
   /** Тег добавлен в чат */
   TagAddedToChat = "tag_added_to_chat",
@@ -166,7 +166,7 @@ export enum AuditLoginGrantDevicePlatform {
 export enum BotCanEdit {
   /** Администраторы компании */
   Admin = "admin",
-  /** Владельцы чатов, в которые добавлен бот */
+  /** Владельцы и администраторы бесед и каналов, в которые добавлен бот */
   ChatOwners = "chat_owners",
 }
 
@@ -849,7 +849,7 @@ export enum ValidationErrorCode {
   DecryptionFailed = "decryption_failed",
   /** Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value` */
   BotAddDenied = "bot_add_denied",
-  /** Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value` */
+  /** Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале (архивные не в счёт): `id` таких ботов приходят в `value` */
   SingleChatBotOccupied = "single_chat_bot_occupied",
   /** Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег */
   SingleChatBotTagDenied = "single_chat_bot_tag_denied",
@@ -1096,7 +1096,7 @@ export interface AuditDetailsDeviceAuthorizationApproved {
   clientId: string;
   scopes: string[];
   deviceName?: string;
-  applicationId: number;
+  applicationId?: number;
   applicationName?: string;
   deviceGrantId: number;
   tokenKind?: string;
@@ -2680,6 +2680,11 @@ export interface ListChatMessagesResponse {
 
 export interface ListReactionsResponse {
   data: Reaction[];
+  meta: PaginationMeta;
+}
+
+export interface ListReadMembersResponse {
+  data: number[];
   meta: PaginationMeta;
 }
 

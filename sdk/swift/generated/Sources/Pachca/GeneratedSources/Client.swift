@@ -2160,8 +2160,12 @@ public final class ReactionsServiceImpl: ReactionsService {
 open class ReadMembersService {
     public init() {}
 
-    open func listReadMembers(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> String {
+    open func listReadMembers(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> ListReadMembersResponse {
         throw pachcaNotImplemented("Read members.listReadMembers")
+    }
+
+    open func listReadMembersAll(id: Int, limit: Int? = nil) async throws -> [Int] {
+        throw pachcaNotImplemented("Read members.listReadMembersAll")
     }
 }
 
@@ -2177,7 +2181,7 @@ public final class ReadMembersServiceImpl: ReadMembersService {
         super.init()
     }
 
-    public override func listReadMembers(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> String {
+    public override func listReadMembers(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> ListReadMembersResponse {
         var components = URLComponents(string: "\(baseURL)/messages/\(id)/read_member_ids")!
         var queryItems: [URLQueryItem] = []
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
@@ -2189,10 +2193,24 @@ public final class ReadMembersServiceImpl: ReadMembersService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try deserialize(String.self, from: data)
+            return try deserialize(ListReadMembersResponse.self, from: data)
         default:
             throw pachcaErrorFromResponse(statusCode, data)
         }
+    }
+
+    public override func listReadMembersAll(id: Int, limit: Int? = nil) async throws -> [Int] {
+        var items: [Int] = []
+        var cursor: String? = nil
+        var hasNext = true
+        while hasNext {
+            let response = try await listReadMembers(id: id, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
+        return items
     }
 }
 

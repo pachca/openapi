@@ -11,7 +11,7 @@ import {
   type IRUnion,
   paginateHasNext,
 } from '../ir.js';
-import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, withPrimitiveData, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   camelToSnake,
   snakeToUpperSnake,
@@ -494,7 +494,7 @@ function collectClientImports(ir: IR): string[] {
         if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
           const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
           if (rt) add(rt.name);
-          if (op.isPaginated && op.successResponse.dataRef) {
+          if (op.isPaginated && op.successResponse.dataRef && !op.successResponse.dataItemType) {
             add(op.successResponse.dataRef);
           }
         } else if (op.successResponse.dataRef) {
@@ -1962,7 +1962,8 @@ function generateExamples(ir: IR): string {
 export class PythonGenerator implements LanguageGenerator {
   readonly dirName = 'py';
 
-  generate(ir: IR, options?: GenerateOptions): GeneratedFile[] {
+  generate(sharedIr: IR, options?: GenerateOptions): GeneratedFile[] {
+    const ir = withPrimitiveData(sharedIr, (ft) => pyType(ft));
     const files: GeneratedFile[] = [];
     files.push({ path: '__init__.py', content: '' });
     files.push({ path: 'models.py', content: generateModels(ir) });

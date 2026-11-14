@@ -104,6 +104,7 @@ from .models import (
     ReactionRequest,
     RemoveReactionParams,
     ListReadMembersParams,
+    ListReadMembersResponse,
     ListThreadsParams,
     ListThreadsResponse,
     Thread,
@@ -2368,8 +2369,15 @@ class ReadMembersService:
         self,
         id: int,
         params: ListReadMembersParams | None = None,
-    ) -> object:
+    ) -> ListReadMembersResponse:
         raise NotImplementedError("Read members.listReadMembers is not implemented")
+
+    async def list_read_members_all(
+        self,
+        id: int,
+        params: ListReadMembersParams | None = None,
+    ) -> list[int]:
+        raise NotImplementedError("Read members.listReadMembersAll is not implemented")
 
 
 class ReadMembersServiceImpl(ReadMembersService):
@@ -2380,7 +2388,7 @@ class ReadMembersServiceImpl(ReadMembersService):
         self,
         id: int,
         params: ListReadMembersParams | None = None,
-    ) -> object:
+    ) -> ListReadMembersResponse:
         query: dict[str, str] = {}
         if params is not None and params.limit is not None:
             query["limit"] = str(params.limit)
@@ -2392,9 +2400,30 @@ class ReadMembersServiceImpl(ReadMembersService):
         )
         match response.status_code:
             case 200:
-                return deserialize(object, response.json())
+                return deserialize(ListReadMembersResponse, response.json())
             case _:
                 raise _error_from_response(response)
+
+    async def list_read_members_all(
+        self,
+        id: int,
+        params: ListReadMembersParams | None = None,
+    ) -> list[int]:
+        items: list[int] = []
+        cursor: str | None = None
+        has_next = True
+        while has_next:
+            if params is None:
+                params = ListReadMembersParams()
+            params.cursor = cursor
+            response = await self.list_read_members(id, params=params)
+            items.extend(response.data)
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
+        return items
 
 
 class ThreadsService:

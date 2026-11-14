@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ProfileGet extends BaseCommand {
-  static override description = "Свой профиль";
+  static override summary = "Свой профиль";
+  static override description = "Карточка владельца токена. У бот-токена это карточка самого бота.\n\nПолное описание: pachca api GET /profile --docs";
   static scope = "profile:read";
   static apiMethod = "GET";
   static apiPath = "/profile";

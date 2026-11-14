@@ -36,6 +36,16 @@ cat payload.json | pachca api POST /messages --input -
 
 Имена полей с квадратными скобками берите в кавычки: zsh считает `[...]` шаблоном имён файлов и без кавычек обрывает команду ошибкой `no matches found`.
 
+`-F` превращает `true`, `false`, `null` и числа в значения JSON, а `@файл` подставляет содержимое файла строкой. `-f` всегда передаёт строку. Тело задают одним способом: полями `-f` и `-F`, файлом `--input` или строкой `--data`. Вместе их передать нельзя, команда ответит ошибкой `PACHCA_USAGE_ERROR`.
+
+Чтобы передать несколько значений одного параметра, повторите `--query` с тем же именем: CLI отправит все значения по порядку. Так передают параметр-массив, например `company_roles[]`:
+
+```bash
+pachca api GET /search/users --query 'company_roles[]=admin' --query 'company_roles[]=user'
+```
+
+Команда `pachca api DELETE` удаляет сразу, без подтверждения, подробнее — в разделе [Деструктивные операции](/guides/cli/scripting#destruktivnye-operatsii).
+
 > Команда `pachca api` выводит сырой ответ API без извлечения данных из обёртки `data`
 
 
@@ -68,7 +78,8 @@ pachca api ls --json
 pachca api POST /messages --describe
 
 # # POST /messages — Новое сообщение
-# > Скоуп: messages:create
+#
+# > **Скоуп:** `messages:create`
 #
 # ## Тело запроса
 # - message: object (required) — Собранный объект параметров создаваемого сообщения
@@ -95,8 +106,12 @@ pachca api GET /messages --spec
 pachca api POST /messages --docs
 
 # # Новое сообщение
-# Метод: POST · Путь: /messages
-# > Скоуп: messages:create
+#
+# **Метод**: `POST`
+#
+# **Путь**: `/messages`
+#
+# > **Скоуп:** `messages:create`
 #
 # ## Тело запроса
 # ...

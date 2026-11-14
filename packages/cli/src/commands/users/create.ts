@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class UsersCreate extends BaseCommand {
-  static override description = "Новый сотрудник";
+  static override summary = "Новый сотрудник";
+  static override description = "Заводит сотрудника в пространстве и отправляет ему приглашение на почту. Доступно владельцу пространства и администратору, боту метод недоступен.\n\nПолное описание: pachca api POST /users --docs";
   static scope = "users:create";
   static apiMethod = "POST";
   static apiPath = "/users";

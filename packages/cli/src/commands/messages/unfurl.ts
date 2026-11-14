@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MessagesUnfurl extends BaseCommand {
-  static override description = "Unfurl (разворачивание ссылок)";
+  static override summary = "Unfurl (разворачивание ссылок)";
+  static override description = "Подставляет в сообщение предпросмотр ссылки, собранный самим ботом: заголовок, описание и картинку. Так внутренние адреса компании, которые Пачка сама открыть не может, показываются в переписке карточкой.\n\nПолное описание: pachca api POST /messages/{id}/link_previews --docs";
   static override hiddenAliases = ["link-previews:add"];
   static scope = "link_previews:write";
   static apiMethod = "POST";
@@ -21,7 +22,7 @@ export default class MessagesUnfurl extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'link-previews': Flags.string({
-      description: "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении",
+      description: "`JSON` карта предпросмотров ссылок, где каждый ключ — `url` из массива `links` события `message_link_shared` (`type: message`, `event: link_shared`)",
     }),
   };
 
@@ -30,7 +31,7 @@ export default class MessagesUnfurl extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'link-previews', label: "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении", type: 'string' },
+      { flag: 'link-previews', label: "`JSON` карта предпросмотров ссылок, где каждый ключ — `url` из массива `links` события `message_link_shared` (`type: message`, `event: link_shared`)", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {

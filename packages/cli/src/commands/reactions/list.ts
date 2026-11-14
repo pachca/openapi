@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ReactionsList extends BaseCommand {
-  static override description = "Список реакций";
+  static override summary = "Список реакций";
+  static override description = "Все реакции на сообщении и кто их поставил: в каждой записи приходит `user_id` и сам символ.\n\nПолное описание: pachca api GET /messages/{id}/reactions --docs";
   static scope = "reactions:read";
   static apiMethod = "GET";
   static apiPath = "/messages/{id}/reactions";

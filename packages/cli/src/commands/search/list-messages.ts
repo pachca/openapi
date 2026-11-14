@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class SearchListMessages extends BaseCommand {
-  static override description = "Поиск сообщений";
+  static override summary = "Поиск сообщений";
+  static override description = "Ищет по тексту сообщений и по именам вложенных файлов, но только в чатах, где владелец токена состоит. Открытый канал, в который он не вступал, в поиск не попадает, хотя ленту его читать можно.\n\nПолное описание: pachca api GET /search/messages --docs";
   static scope = "search:messages";
   static apiMethod = "GET";
   static apiPath = "/search/messages";

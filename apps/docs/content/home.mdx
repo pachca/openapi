@@ -22,7 +22,7 @@ hideTableOfContents: true
     <Card compact title="n8n" icon="Blocks" href="/guides/n8n/overview" />
   </HomeHeroContent>
   <HomeHeroCode>
-    <ApiCodeExample defaultLang="cli" operationId="MessageOperations_createMessage" title="Отправка сообщения" show="request" />
+<AgentPrompt id="start" />
   </HomeHeroCode>
 </HomeHero>
 
@@ -54,13 +54,60 @@ hideTableOfContents: true
   </Card>
 </CardGroup>
 
+## AI-агенты и MCP
+
+Подключите AI-агента к Пачке через MCP-сервер, поставьте скиллы и зовите агента в чаты и треды.
+
+<CardGroup>
+  <Card title="Подключение MCP" icon="Plug" href="/guides/mcp/connect">
+    Сервер по адресу, вход, скиллы и проверка
+  </Card>
+  <Card title="Инструменты MCP" icon="Wrench" href="/guides/mcp/tools">
+    Инструмент на каждый метод API и кому он доступен
+  </Card>
+  <Card title="Скиллы" icon="Sparkles" href="/guides/ai-agents/skills">
+    Как агент связывает вызовы в задачу
+  </Card>
+  <Card title="Плагин" icon="Puzzle" href="/guides/ai-agents/plugin">
+    MCP-сервер и скиллы одной установкой
+  </Card>
+  <Card title="Агент в чатах" icon="BotMessageSquare" href="/guides/ai-agents/interaction">
+    Бот-агент, которого зовут по нику в чате или треде
+  </Card>
+  <Card title="Агент следит за тредом" icon="Eye" href="/guides/ai-agents/watch-thread">
+    Агент на вашем компьютере отвечает в треде
+  </Card>
+  <Card title="Черновик вместо отправки" icon="FilePen" href="/guides/ai-agents/drafts">
+    Агент готовит сообщение, отправляет сотрудник
+  </Card>
+</CardGroup>
+
+## Треды, теги и разметка
+
+Как устроены треды и теги в Пачке и какую разметку понимают сообщения, вебхуки и формы.
+
+<CardGroup>
+  <Card title="Треды" icon="MessageSquareMore" href="/guides/threads">
+    Сквозные и самостоятельные треды через API
+  </Card>
+  <Card title="Теги" icon="Tags" href="/guides/tags">
+    Состав чата по тегу и упоминание тега
+  </Card>
+  <Card title="Форматирование текста" icon="Code" href="/guides/markdown">
+    Какой markdown понимает Пачка
+  </Card>
+</CardGroup>
+
 ## Основы API
 
-Базовые концепции для работы с API: авторизация, формат запросов и ответов, обработка ошибок, лимиты, пагинация и загрузка файлов.
+Базовые концепции для работы с API: авторизация и права, формат запросов и ответов, обработка ошибок, лимиты, пагинация и загрузка файлов.
 
 <CardGroup>
   <Card title="Авторизация" icon="KeyRound" href="/api/authorization">
     Bearer-токен и доступ к API
+  </Card>
+  <Card title="Права и роли" icon="Users" href="/guides/permissions">
+    Роли в пространстве и в чате, что видит токен
   </Card>
   <Card title="Запросы и ответы" icon="ArrowLeftRight" href="/api/requests-responses">
     Базовый URL, заголовки, формат данных
@@ -88,7 +135,7 @@ hideTableOfContents: true
     Кто подключает агентов, где отозвать доступ
   </Card>
   <Card title="Экспорт сообщений" icon="Download" href="/guides/export">
-    Выгрузка всех сообщений в JSON
+    Архив сообщений за выбранный период в JSON
   </Card>
   <Card title="DLP-система" icon="ShieldCheck" href="/guides/dlp">
     Защита от утечек данных
@@ -113,10 +160,10 @@ hideTableOfContents: true
     Все методы с примерами
   </Card>
   <Card title="llms.txt" icon="Sparkles" href="/llms.txt" download>
-    Краткое описание API для LLM
+    Сводка API и ссылки на страницы для LLM
   </Card>
   <Card title="llms-full.txt" icon="Sparkles" href="/llms-full.txt" download>
-    Полное описание API для LLM
+    Вся документация одним файлом для LLM
   </Card>
   <Card title="llms-en.txt" icon="Sparkles" href="/llms-en.txt" download>
     English API documentation for LLM

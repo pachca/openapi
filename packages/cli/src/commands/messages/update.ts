@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class MessagesUpdate extends BaseCommand {
-  static override description = "Редактирование сообщения";
+  static override summary = "Редактирование сообщения";
+  static override description = "Меняет текст, файлы и кнопки уже отправленного сообщения. В интерфейсе у него появляется пометка о правке, а уведомлений правка не присылает и непрочитанным сообщение не делает: кто его уже прочитал, изменений не заметит. Кто прочитал, показывает метод Список прочитавших сообщение.\n\nПолное описание: pachca api PUT /messages/{id} --docs";
   static scope = "messages:update";
   static apiMethod = "PUT";
   static apiPath = "/messages/{id}";

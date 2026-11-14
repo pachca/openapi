@@ -5,7 +5,8 @@ import * as fs from 'node:fs';
 import { formatSize } from '../../utils.js';
 
 export default class FilesGet extends BaseCommand {
-  static override description = "Скачивание файла";
+  static override summary = "Скачивание файла";
+  static override description = "Отдаёт сам файл, а не ссылку на него, и подходит для любого вложения, которое видно токену. Для вложений без прямой ссылки на хранилище это единственный способ: в поле `url` у них стоит адрес этого метода, и открыть его можно только с токеном.\n\nПолное описание: pachca api GET /files/{id} --docs";
   static scope = "files:read";
   static apiMethod = "GET";
   static apiPath = "/files/{id}";

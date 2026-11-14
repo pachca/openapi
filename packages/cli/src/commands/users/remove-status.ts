@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class UsersRemoveStatus extends BaseCommand {
-  static override description = "Удаление статуса сотрудника";
+  static override summary = "Удаление статуса сотрудника";
+  static override description = "Снимает статус с другого сотрудника вместе с режимом «Нет на месте» и его текстом. Доступно владельцу пространства и администратору, боту метод недоступен.\n\nПолное описание: pachca api DELETE /users/{user_id}/status --docs";
   static scope = "user_status:write";
   static apiMethod = "DELETE";
   static apiPath = "/users/{user_id}/status";

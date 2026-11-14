@@ -44,7 +44,7 @@ public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, Ex
     case chatPermissionChanged
     /// Пользователь присоединился к чату
     case userChatJoin
-    /// Пользователь покинул чат
+    /// Участника исключили из чата или перевели в гости. Выход по своей воле не записывается, а уход вместе с тегом записывает событие `user_removed_from_tag` или `tag_removed_from_chat`.
     case userChatLeave
     /// Тег добавлен в чат
     case tagAddedToChat
@@ -377,7 +377,7 @@ public enum AuditLoginGrantDevicePlatform: Codable, Hashable, RawRepresentable, 
 public enum BotCanEdit: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Администраторы компании
     case admin
-    /// Владельцы чатов, в которые добавлен бот
+    /// Владельцы и администраторы бесед и каналов, в которые добавлен бот
     case chatOwners
     /// A value this SDK version does not list yet
     case unknown(String)
@@ -1866,7 +1866,7 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
     case decryptionFailed
     /// Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
     case botAddDenied
-    /// Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
+    /// Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале (архивные не в счёт): `id` таких ботов приходят в `value`
     case singleChatBotOccupied
     /// Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
     case singleChatBotTagDenied
@@ -2630,12 +2630,12 @@ public struct AuditDetailsDeviceAuthorizationApproved: Codable {
     public let clientId: String
     public let scopes: [String]
     public let deviceName: String?
-    public let applicationId: Int
+    public let applicationId: Int?
     public let applicationName: String?
     public let deviceGrantId: Int
     public let tokenKind: String?
 
-    public init(clientId: String, scopes: [String], deviceName: String? = nil, applicationId: Int, applicationName: String? = nil, deviceGrantId: Int, tokenKind: String? = nil) {
+    public init(clientId: String, scopes: [String], deviceName: String? = nil, applicationId: Int? = nil, applicationName: String? = nil, deviceGrantId: Int, tokenKind: String? = nil) {
         self.clientId = clientId
         self.scopes = scopes
         self.deviceName = deviceName
@@ -7088,6 +7088,16 @@ public struct ListReactionsResponse: Codable {
     public let meta: PaginationMeta
 
     public init(data: [Reaction], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
+}
+
+public struct ListReadMembersResponse: Codable {
+    public let data: [Int]
+    public let meta: PaginationMeta
+
+    public init(data: [Int], meta: PaginationMeta) {
         self.data = data
         self.meta = meta
     }

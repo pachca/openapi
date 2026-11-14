@@ -56,7 +56,7 @@ public readonly struct AuditEventKey : IEquatable<AuditEventKey>
     public static AuditEventKey ChatPermissionChanged { get; } = new("chat_permission_changed");
     /// <summary>Пользователь присоединился к чату</summary>
     public static AuditEventKey UserChatJoin { get; } = new("user_chat_join");
-    /// <summary>Пользователь покинул чат</summary>
+    /// <summary>Участника исключили из чата или перевели в гости. Выход по своей воле не записывается, а уход вместе с тегом записывает событие `user_removed_from_tag` или `tag_removed_from_chat`.</summary>
     public static AuditEventKey UserChatLeave { get; } = new("user_chat_leave");
     /// <summary>Тег добавлен в чат</summary>
     public static AuditEventKey TagAddedToChat { get; } = new("tag_added_to_chat");
@@ -286,7 +286,7 @@ public readonly struct BotCanEdit : IEquatable<BotCanEdit>
 
     /// <summary>Администраторы компании</summary>
     public static BotCanEdit Admin { get; } = new("admin");
-    /// <summary>Владельцы чатов, в которые добавлен бот</summary>
+    /// <summary>Владельцы и администраторы бесед и каналов, в которые добавлен бот</summary>
     public static BotCanEdit ChatOwners { get; } = new("chat_owners");
 
     /// <summary>Every value this SDK version lists</summary>
@@ -2179,7 +2179,7 @@ public readonly struct ValidationErrorCode : IEquatable<ValidationErrorCode>
     public static ValidationErrorCode DecryptionFailed { get; } = new("decryption_failed");
     /// <summary>Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`</summary>
     public static ValidationErrorCode BotAddDenied { get; } = new("bot_add_denied");
-    /// <summary>Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`</summary>
+    /// <summary>Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале (архивные не в счёт): `id` таких ботов приходят в `value`</summary>
     public static ValidationErrorCode SingleChatBotOccupied { get; } = new("single_chat_bot_occupied");
     /// <summary>Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег</summary>
     public static ValidationErrorCode SingleChatBotTagDenied { get; } = new("single_chat_bot_tag_denied");
@@ -2768,7 +2768,7 @@ public class AuditDetailsDeviceAuthorizationApproved : AuditEventDetailsUnion
     [JsonPropertyName("device_name")]
     public string? DeviceName { get; set; }
     [JsonPropertyName("application_id")]
-    public int ApplicationId { get; set; } = default!;
+    public int? ApplicationId { get; set; }
     [JsonPropertyName("application_name")]
     public string? ApplicationName { get; set; }
     [JsonPropertyName("device_grant_id")]
@@ -3419,7 +3419,7 @@ internal static class UnionRequiredKeys
         ["AuditDetailsBotOAuthClient"] = (new[] { "bot_id", "client_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsOAuthAuthorizationGranted"] = (new[] { "scopes", "application_id", "authorization_grant_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsOAuthAuthorizationRevoked"] = (new[] { "client_id", "revoked_tokens_count", "application_id" }, Array.Empty<(string, string)>()),
-        ["AuditDetailsDeviceAuthorizationApproved"] = (new[] { "client_id", "scopes", "application_id", "device_grant_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsDeviceAuthorizationApproved"] = (new[] { "client_id", "scopes", "device_grant_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsDeviceAuthorizationDenied"] = (new[] { "client_id", "scopes", "device_grant_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsVideoCallStarted"] = (new[] { "chat_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsVideoCallFinished"] = (new[] { "chat_id", "max_members_count" }, Array.Empty<(string, string)>()),
@@ -5458,6 +5458,14 @@ public class ListReactionsResponse
 {
     [JsonPropertyName("data")]
     public List<Reaction> Data { get; set; } = new();
+    [JsonPropertyName("meta")]
+    public PaginationMeta Meta { get; set; } = default!;
+}
+
+public class ListReadMembersResponse
+{
+    [JsonPropertyName("data")]
+    public List<int> Data { get; set; } = new();
     [JsonPropertyName("meta")]
     public PaginationMeta Meta { get; set; } = default!;
 }

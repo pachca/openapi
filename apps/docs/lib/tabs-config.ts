@@ -133,10 +133,9 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
         path: '/guides/bots/overview',
         children: [
           { title: 'Обзор', path: '/guides/bots/overview' },
-          { title: 'Первый бот', path: '/guides/bots/first-bot' },
+          { title: 'Создание бота', path: '/guides/bots/setup' },
           { title: 'Общение с ботом', path: '/guides/bots/conversations' },
           { title: 'Интерактивный бот', path: '/guides/bots/interactive' },
-          { title: 'Создание бота', path: '/guides/bots/setup' },
           { title: 'Настройки бота', path: '/guides/bots/settings' },
           { title: 'Токены бота', path: '/guides/bots/tokens' },
           { title: 'Доступы к чатам и сообщениям', path: '/guides/bots/access' },

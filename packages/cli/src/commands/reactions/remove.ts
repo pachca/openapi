@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ReactionsRemove extends BaseCommand {
-  static override description = "Удаление реакции";
+  static override summary = "Удаление реакции";
+  static override description = "Снимает с сообщения свою реакцию.\n\nПолное описание: pachca api DELETE /messages/{id}/reactions --docs";
   static scope = "reactions:write";
   static apiMethod = "DELETE";
   static apiPath = "/messages/{id}/reactions";

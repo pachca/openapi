@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ProfileDeleteStatus extends BaseCommand {
-  static override description = "Удаление своего статуса";
+  static override summary = "Удаление своего статуса";
+  static override description = "Снимает статус с владельца токена вместе с режимом «Нет на месте» и его текстом. Если статуса не было, ответ всё равно `204`, поэтому повторный вызов безопасен.\n\nПолное описание: pachca api DELETE /profile/status --docs";
   static scope = "profile_status:write";
   static apiMethod = "DELETE";
   static apiPath = "/profile/status";

@@ -16,13 +16,13 @@
     "name": "columns",
     "char": "c",
     "type": "string",
-    "description": "Колонки для table-вывода (через запятую)",
+    "description": "Колонки для вывода table, csv и --plain (через запятую)",
     "hidden": false
   },
   {
     "name": "no-header",
     "type": "boolean",
-    "description": "Скрыть заголовок таблицы",
+    "description": "Скрыть строку заголовков в table и csv",
     "hidden": false
   },
   {

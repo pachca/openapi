@@ -55,7 +55,7 @@ pachca config set defaults.timeout 60
 pachca config list
 ```
 
-Флаги команды всегда имеют приоритет над настройками.
+Ключей два: `defaults.output` и `defaults.timeout`. Значение одного ключа показывает `pachca config get <ключ>`. Флаги команды всегда имеют приоритет над настройками, а `defaults.timeout` важнее переменной `PACHCA_TIMEOUT`.
 
 Настройки и профили хранятся в файле `config.toml`. Каталог для него CLI выбирает по первому подходящему правилу:
 

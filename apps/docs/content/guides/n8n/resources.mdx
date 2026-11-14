@@ -11,11 +11,11 @@ related:
 
 В расширении Пачки каждый узел **Pachca** работает по модели **Resource → Operation**: вы выбираете ресурс (например, Message) и операцию над ним (например, Create).
 
-<ImageCard src="/images/n8n/resource-dropdown.avif" alt="Выпадающий список ресурсов в узле Pachca" caption="Выбор ресурса в узле Pachca" maxWidth={960} />
+<ImageCard src="/images/n8n/resource-dropdown.avif" alt="Выпадающий список Resource в узле Pachca: 20 ресурсов от Bot до Workspace и Custom API Call" caption="Выбор ресурса в узле Pachca" maxWidth={419} />
 
 Для каждого ресурса доступен свой набор операций.
 
-<ImageCard src="/images/n8n/operation-dropdown.avif" alt="Выпадающий список операций для ресурса Message" caption="Операции для ресурса Message" maxWidth={960} />
+<ImageCard src="/images/n8n/operation-dropdown.avif" alt="Операции ресурса Message в узле Pachca: Create, Delete, Get, Get Many, Pin, Unfurl, Unpin, Update и Custom API Call" caption="Операции для ресурса Message" maxWidth={419} />
 
 ## Список ресурсов
 
@@ -63,9 +63,9 @@ related:
 
 **Ключевые параметры Create:** **Entity Type** (Discussion, Thread или User), **Entity ID** (чат, тред или сотрудник), **Content** (текст, Markdown), **Button Layout** с кнопками, а в **Additional Fields** — **Files**, **Parent Message ID** и другие. Как задать кнопки — в разделе [Кнопки в сообщениях](/guides/n8n/advanced#knopki-v-soobscheniyah).
 
-**Сортировка в Get Many:** параметры `sort` (по умолчанию `id`) и `order` (`asc` / `desc`) определяют порядок выдачи сообщений.
+**Сортировка в Get Many:** поле **Sort** со значением **ID** и поле **Order** (**Ascending** или **Descending**, по умолчанию **Descending**) определяют порядок выдачи сообщений.
 
-<ImageCard src="/images/n8n/message-get-many.avif" alt="Настройка Message Get Many с Entity ID и Return All" caption="Настройка Message → Get Many" maxWidth={960} />
+<ImageCard src="/images/n8n/message-get-many.avif" alt="Узел Pachca, Message → Get Many: Return All включён, Chat ID в режиме By ID, сортировка Sort и Order" caption="Настройка Message → Get Many" maxWidth={960} />
 
 ---
 
@@ -90,7 +90,7 @@ related:
 
 **Create** возвращает созданный чат и поля `not_found_member_ids` и `not_found_group_tag_ids`: идентификаторы из **Member IDs**, которых не удалось добавить в чат, и идентификаторы из **Group Tag IDs**, которых нет среди тегов пространства.
 
-**Сортировка в Get Many:** параметры `sort` (`id` или `last_message_at`) и `order` (`asc` / `desc`). Также доступны фильтры `availability`, `lastMessageAtAfter`, `lastMessageAtBefore`.
+**Сортировка в Get Many:** поля **Sort** (**ID** или **Last Message At**) и **Order** (**Ascending** или **Descending**). Также доступны фильтры **Availability**, **Last Message At After** и **Last Message At Before**.
 
 **Get Many Workspace Chats** отдаёт беседы и каналы всего пространства, включая закрытые, где владелец токена не состоит. Фильтр `Activity` оставляет только активные или только архивные. Доступно владельцу пространства на тарифе «Корпорация».
 
@@ -309,6 +309,8 @@ related:
 | Create | [Открытие представления](POST /views/open) |
 | Submit Response | [Ответ на отправку формы](POST /views/{view_id}/submit_response) |
 
+**Submit Response** нужен, только если у бота нет адреса вебхука и отправку формы он забирает из истории событий операцией **Bot** > **Get Many Events** или **Get Stream**, подробнее в разделе [Ответ через историю событий](/guides/forms/handling#otvet-cherez-istoriyu-sobytiy). Отправку, которая пришла в Pachca Trigger, Пачка закрывает по ответу узла на вебхук. Узел отвечает сразу, поэтому форма закрывается, а показать сотруднику ошибки под полями из такого workflow нельзя.
+
 Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#formy) и в [документации форм](/guides/forms/overview).
 
 ---
@@ -397,7 +399,9 @@ related:
 - **Return All** = `true` — получить все результаты автоматически, переключаясь между страницами
 - **Return All** = `false` — получить не более **Limit** результатов (по умолчанию 50)
 
-<ImageCard src="/images/n8n/return-all.avif" alt="Переключатель Return All и поле Limit в узле Pachca" caption="Return All и Limit для операции Get Many" maxWidth={960} />
+**Limit** не больше 50, у **Search** > **Get Many Chats** до 100, у **Get Many Messages** и **Get Many Users** в **Search** до 200, у **Read Member** до 300. Чтобы получить больше, включите **Return All**.
+
+<ImageCard src="/images/n8n/return-all.avif" alt="Узел Pachca, Message → Get Many: Return All выключен, под ним поле Limit со значением 50" caption="Return All и Limit для операции Get Many" maxWidth={960} />
 
 n8n автоматически отправляет повторные запросы с курсором до получения всех данных.
 
@@ -427,9 +431,9 @@ n8n автоматически отправляет повторные запр�
 
 ## Поисковые выпадающие списки
 
-<ImageCard src="/images/n8n/searchable-dropdown.avif" alt="Поисковый выпадающий список Chat ID в узле Pachca" caption="Поиск чата по имени в поле Chat ID" maxWidth={960} />
+<ImageCard src="/images/n8n/searchable-dropdown.avif" alt="Поле Chat ID в режиме From list: в поиске «Разраб», в списке чаты «Разработка» и «Разработка: релизы»" caption="Поиск чата по имени в поле Chat ID" maxWidth={960} />
 
-Поля чата и сотрудника с режимом **From List** показывают список и ищут по названию или имени: начните вводить текст, и n8n покажет подходящие результаты из пространства.
+Поля чата и сотрудника с режимом **From list** показывают список и ищут по названию или имени: начните вводить текст, и n8n покажет подходящие результаты из пространства.
 
 | Поле | Что в списке |
 |------|--------------|
@@ -438,3 +442,5 @@ n8n автоматически отправляет повторные запр�
 | **Entity ID** в Message > Create | Чаты при **Entity Type** = Discussion, сотрудники при User |
 
 Без введённого текста список приходит из методов [Список чатов](GET /chats) и [Список сотрудников](GET /users), с текстом — из [Поиск чатов](GET /search/chats) и [Поиск сотрудников](GET /search/users). Поэтому в списке только то, что доступно токену из Credentials, и токену нужны права на эти методы, например `chats:read` и `search:chats` для чатов. При **Entity Type** = Thread список пуст: укажите id треда в режиме **By ID**. Как найти идентификатор без списка — в разделе [Где взять идентификаторы](/api/requests-responses#gde-vzyat-identifikatory).
+
+В полях чата и сотрудника, кроме **Entity ID**, есть и режим **By URL**: вставьте ссылку из веб-приложения, и узел возьмёт из неё id. Ссылку на чат копирует пункт **Скопировать ссылку** в меню чата: `https://app.pachca.com/chats/12345`. Ссылку на сотрудника копирует такой же пункт в меню его профиля: `https://app.pachca.com/chats?user_id=12345`.

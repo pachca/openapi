@@ -5,7 +5,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 export default class BotsUpdateAvatar extends BaseCommand {
-  static override description = "Загрузка аватара бота";
+  static override summary = "Загрузка аватара бота";
+  static override description = "Ставит или заменяет аватар бота. Менять его может тот, кому доступно Редактирование бота.\n\nПолное описание: pachca api PUT /bots/{id}/avatar --docs";
   static scope = "bots:write";
   static apiMethod = "PUT";
   static apiPath = "/bots/{id}/avatar";

@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class SearchListChats extends BaseCommand {
-  static override description = "Поиск чатов";
+  static override summary = "Поиск чатов";
+  static override description = "Ищет беседы и каналы по названию, прощая опечатки. Находит и открытые чаты пространства, куда вызывающий не вступал, а закрытые — только те, где он состоит.\n\nПолное описание: pachca api GET /search/chats --docs";
   static scope = "search:chats";
   static apiMethod = "GET";
   static apiPath = "/search/chats";

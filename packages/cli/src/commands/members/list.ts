@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class MembersList extends BaseCommand {
-  static override description = "Список участников чата";
+  static override summary = "Список участников чата";
+  static override description = "Кто состоит в беседе, канале или треде. Боты приходят наравне с сотрудниками, с `bot: true`.\n\nПолное описание: pachca api GET /chats/{id}/members --docs";
   static scope = "chat_members:read";
   static apiMethod = "GET";
   static apiPath = "/chats/{id}/members";

@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MembersAddGroupTags extends BaseCommand {
-  static override description = "Добавление тегов";
+  static override summary = "Добавление тегов";
+  static override description = "Привязывает теги к беседе или каналу, чтобы состав чата поддерживался сам.\n\nПолное описание: pachca api POST /chats/{id}/group_tags --docs";
   static scope = "chat_members:write";
   static apiMethod = "POST";
   static apiPath = "/chats/{id}/group_tags";

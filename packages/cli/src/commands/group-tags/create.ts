@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class GroupTagsCreate extends BaseCommand {
-  static override description = "Новый тег";
+  static override summary = "Новый тег";
+  static override description = "Создаёт тег. Тег — это способ держать состав чатов сам собой: его привязывают к беседе или каналу, и все, у кого этот тег есть, оказываются там автоматически.\n\nПолное описание: pachca api POST /group_tags --docs";
   static scope = "group_tags:write";
   static apiMethod = "POST";
   static apiPath = "/group_tags";

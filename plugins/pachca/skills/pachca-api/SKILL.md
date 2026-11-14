@@ -64,16 +64,16 @@ Personal token from the UI versus CLI browser login:
 
 A UI token carries its owner's rights wherever it is copied. Treat it as a password.
 
-A personal token works only while its owner's access does. Suspend the employee and every request on their tokens answers `403` with `errors[].code` `access_denied`. Restoring access brings the tokens back. A deleted employee's tokens never come back. Lower their role and the scopes the new role lacks answer `403` `role_forbidden`. A job that must keep running after one employee leaves or changes role runs on a bot token: it outlives whoever created it.
+A personal token works only while its owner's access does. Suspend the employee and every request on their tokens answers `403` with `errors[].code` `access_denied`. Restoring access brings the tokens back. A deleted employee's tokens never come back. Making an employee a guest revokes all their tokens: requests answer `401` `invalid_token`, and raising the role back does not restore them. Lower their role and the scopes the new role lacks answer `403` `role_forbidden`. A job that must keep running after one employee leaves or changes role runs on a bot token: it outlives whoever created it.
 
 Scope rules that surprise:
 
 - **Bot token only**: link unfurling, opening a form and answering its submission, reading and deleting the bot's event history, a bot changing its own webhook URL or reissuing its own token, and `display_name` / `display_avatar_url` on a message. Another token gets `403` for those two fields and for the bot's own webhook and token methods. The other methods fail with a different code (`404`, `410`, `422`), so check the token kind first.
-- **Personal token only**: `bots:read`, `bots:write`, `drafts:read`, `drafts:write`. A bot token gets `403`.
+- **Personal token only**: `bots:read`, `bots:write`, `drafts:read`, `drafts:write`, `important_messages:read`, `important_messages:write`. A bot token gets `403`.
 - Some methods also need a plan (export, audit log). The plan is shown next to the scope in the method header.
 - Grant only the scopes the job needs.
 
-If the user cannot get a token at all: by default only admins create personal tokens, and then employees and multi-guests also cannot log in to the CLI or authorize bots and MCP apps. Once an admin allows it, a multi-guest works with tokens like an employee but cannot create bots or their tokens. Guests cannot create any token under any setting. Changing that is an admin task → pachca-admin.
+If the user cannot get a token at all: by default only admins create personal tokens, and then employees and multi-guests also cannot log in to the CLI or authorize bots and MCP apps. Once an admin allows it, a multi-guest works with tokens like an employee but cannot create bots or their tokens. Guests cannot create any token under any setting. Changing that is an admin task → pachca-admin. A job that can run as a bot (a script, CI, notifications) need not wait: while **Кто может создавать интеграции** allows employees (the default), an employee creates a bot and uses its token. That token sees what a bot sees, not the employee's chats.
 
 Before a long job, check what the current token can do: `pachca_get_token_info` / `pachca oauth token-info -o json` returns its scopes (the CLI's terminal table leaves them out). In the CLI, `pachca auth status` shows whose token the commands use and its scopes, `PACHCA_TOKEN` included. For a saved profile they are the scopes saved at login, and `--remote` re-reads them from the server.
 
@@ -107,7 +107,7 @@ Polling for new records (`prev_page` in newest-first lists, the last `next_page`
 ## Limits, errors and retries in one screen
 
 - Limits are counted per kind of operation, mostly per token. Sending messages has the most rules: counted per recipient (`entity_id`), with a cap across all recipients, and a daily cap per sender per chat. Workspace inventory (all chats, all bots of the workspace) and the bot event history have their own per-token caps, far below the general one. Numbers are approximate and change: read <https://dev.pachca.com/api/limits.md>, do not hard-code them.
-- On `429` wait at least `Retry-After`. A `Retry-After` longer than a minute means a retry will not help (daily chat cap or overload block): stop and hand the error back with that time.
+- On `429` wait at least `Retry-After`. A `Retry-After` longer than a minute means a retry will not help (daily chat cap or overload block): stop and hand the error back with that time. An SDK or CLI error does not carry that time: report the job as paused and resume it later.
 - Retry a `5xx` on `GET`, `PUT` and `DELETE` (except a `504` `timeout`, below) with exponential backoff and jitter, at most 3 times. A `5xx`, timeout or network error on a `POST` (a send, a create) may already be applied: look for the message or object first and send again only if it is missing.
 - Do not retry `400`, `401`, `403`, `404`, `422`: fix the request or the token. The few codes that clear on their own are in the reference.
 - `504` with code `timeout` from search or the employee list with `query`: the query is too heavy. Do not just repeat it, with or without backoff: the same request will likely time out again. Narrow it first: for message search, fewer chats (`chat_ids`), a shorter period (`created_from`, `created_to`) or an author (`user_ids`); for chat and employee search, a more specific `query` or the method's filters; for the employee list, a more specific `query`.
@@ -173,7 +173,7 @@ Token sources, auth diagnostics, output modes, error JSON and raw `pachca api` r
 
 - `401` is the token itself (missing, unknown, expired, revoked), not a permission.
 - `403` `role_forbidden`: neither a new token nor a re-login helps. Someone with the needed role does the action, or an admin changes the role; Owner-only scopes need the Owner.
-- `403` with an `errors` array (`ApiError`) is not about scopes. With code `access_denied` it is the token's owner: a guest, or an employee whose access is suspended or deleted, and a new token will not help. Any other code is not about scopes either. Usually it is the object: a closed chat, a chat rule, a role in the chat or workspace. It can also be a feature the workspace plan lacks (`not_authorized`, which does not say which case it is: check membership before blaming the plan), `display_name` / `display_avatar_url` sent with a token that is not a bot token, or a protected file requested from outside the secure perimeter or a file the antivirus flagged (`confidential_download_denied`).
+- `403` with an `errors` array (`ApiError`) is not about scopes. With code `access_denied` it is the token's owner: an employee whose access is suspended or deleted, and a new token will not help. Any other code is not about scopes either. Usually it is the object: a closed chat, a chat rule, a role in the chat or workspace. It can also be a feature the workspace plan lacks (`not_authorized`, which does not say which case it is: check membership before blaming the plan), `display_name` / `display_avatar_url` sent with a token that is not a bot token, or a protected file requested from outside the secure perimeter or a file the antivirus flagged (`confidential_download_denied`).
 - Search has no `prev_page`: search results cannot be polled by cursor.
 - `limit` outside the allowed range is clamped silently; a non-integer gives `400` `invalid`.
 - A duplicate gives `409` `already_exists` with the field in `errors[].key`; a taken tag name gives `400` `taken`.

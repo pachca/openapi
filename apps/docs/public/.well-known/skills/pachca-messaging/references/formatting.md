@@ -51,18 +51,21 @@ For a table, a checklist, a diagram, a code review or anything long, attach a fi
 
 **`.md` file.** Rendered as a formatted card in the chat with a full-screen view. The card appears when the `.md` is the only document in the message. Among several files it opens in the same viewer on click. Supported: headings, lists, quotes, links, images, tables, task checklists, code blocks with highlighting, `diff` blocks (added and removed lines coloured), `mermaid` diagrams. The `.md` extension in the file name turns the card on.
 
-**`.html` file.** Shown as a document thumbnail and opened full screen in an isolated frame, so build it self-contained:
+**`.html` or `.htm` file.** Shown as a document thumbnail and opened full screen in an isolated frame, so build it self-contained:
 
 - scripts do not run, the page is static;
 - external resources do not load: embed images as `data:` URIs, keep styles in a `style` tag or attribute;
+- fonts and video do not load even when embedded, so use system fonts;
 - forms are stripped, along with `link`, `base`, `meta` and `area` tags;
 - only `https` and anchor links stay links. `http`, `mailto` and relative paths stop being links.
 
+In the web and desktop apps the document gets the app theme as `data-pachca-theme="dark"` or `"light"` on `<html>`: style the dark theme with `html[data-pachca-theme="dark"]`.
+
 If something was stripped, the viewer shows a note that the preview may differ from the original.
 
-**`.txt` file.** Shown as is, with no formatting: a thumbnail of its beginning in the chat when it is the only document in the message, and the same full-screen viewer on click.
+**`.txt` or `.json` file.** Shown as is, with no formatting: a thumbnail of its beginning in the chat when it is the only document in the message, and the same full-screen viewer on click.
 
-A large `.md`, `.html` or `.txt` file shows as a plain file, without the in-chat card or thumbnail, even when it is the only document. A click still opens the viewer. Very large `.md`, `.html` and `.txt` files open as a plain download instead of a preview. To get the card, keep a report compact or split it across several messages.
+The card and the thumbnail appear for files up to 150 KB. A bigger file shows as a plain file, even when it is the only document. The full-screen view opens `.md`, `.txt` and `.json` up to 1 MB and `.html` up to 2 MB, and offers a bigger file as a download. An `.html` sent by key gets its thumbnail right away when the file record has `size` ([files.md](files.md)). To get the card, keep a report under 150 KB or split it across several messages.
 
 ## Limits
 

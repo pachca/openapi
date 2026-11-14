@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class TasksDelete extends BaseCommand {
-  static override description = "Удаление напоминания";
+  static override summary = "Удаление напоминания";
+  static override description = "Убирает напоминание насовсем: восстановить его нельзя, и у ответственных оно тоже пропадает. Если напоминание уехало в подключённый календарь, событие удаляется и там, когда напоминание удаляет его автор. Если удаляет ответственный, событие может остаться в календаре автора.\n\nПолное описание: pachca api DELETE /tasks/{id} --docs";
   static scope = "tasks:delete";
   static apiMethod = "DELETE";
   static apiPath = "/tasks/{id}";

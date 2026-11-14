@@ -432,7 +432,7 @@
   },
   "ReadMemberOperations_listReadMembers": {
     "usage": "val response = client.readMembers.listReadMembers(id = 194275, limit = 300, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "Any"
+    "output": "ListReadMembersResponse(data: List<Int>, meta: PaginationMeta)"
   },
   "ThreadOperations_listThreads": {
     "usage": "val lastMessageAtAfter = OffsetDateTime.parse(\"2025-01-01T00:00:00.000Z\")\nval lastMessageAtBefore = OffsetDateTime.parse(\"2025-02-01T00:00:00.000Z\")\nval response = client.threads.listThreads(lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -607,7 +607,7 @@
     "usage": "client.users.deleteUserStatus(userId = 12)"
   },
   "FormOperations_submitViewResponse": {
-    "usage": "val request = SubmitViewResponseRequest(submitId = \"791a056b-006c-49dd-834b-c633fde52fe8\", errors = mapOf(\"key\" to \"example\"))\nval response = client.views.submitViewResponse(viewId = \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request = request)",
+    "usage": "val request = SubmitViewResponseRequest(submitId = \"791a056b-006c-49dd-834b-c633fde52fe8\", errors = mapOf(\"key\" to \"example\"))\nval response = client.views.submitViewResponse(viewId = \"3f2b8c1e-7a4d-4e9b-9c2f-5d6a1b8e0f47\", request = request)",
     "output": "SubmitViewResponseResult(success: Boolean)",
     "imports": [
       "SubmitViewResponseRequest"

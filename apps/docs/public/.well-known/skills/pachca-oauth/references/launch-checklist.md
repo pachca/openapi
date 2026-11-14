@@ -19,20 +19,23 @@ More: <https://dev.pachca.com/guides/bots/access.md>
 
 ## 2. The bot learns about the message
 
-- The outgoing webhook is on and points to your server. If the server cannot accept requests at
-  all, the bot polls the event history instead: `events_history_enabled: true`, set through the
-  API (no URL needed; the UI shows the toggle only after a URL is set), read with the event
-  history method (`GET /webhooks/events`). The bot token then needs `webhooks:events:read`, plus
-  `webhooks:events:delete` if the bot clears processed events.
+- The outgoing webhook is on, with a URL that points to your server, the event history, or
+  both. Without a URL and without history Pachca creates no events for the bot. If the server
+  cannot accept requests at all, the bot reads the history instead: **Включить** on the
+  **Исходящий вебхук** tab turns it on with no URL (API: `events_history_enabled: true`), and
+  the bot reads it with the event history method (`GET /webhooks/events`) or as a stream. The
+  bot token then needs `webhooks:events:read`, plus `webhooks:events:delete` if the bot clears
+  processed events.
   More: <https://dev.pachca.com/guides/webhook/polling.md>
 - The **Новые сообщения** (new messages) event is on, in **Любые сообщения** (any messages)
   mode or with the command that starts the conversation, for example `/start`. This applies to
   polling too.
-- With a webhook, the server verifies the request signature. Either way, the bot ignores its own
-  messages.
+- With a Webhook URL, the server verifies the request signature. Either way, the bot ignores its
+  own messages.
 
-Symptom: the employee writes, the bot stays silent. A new bot listens only to commands, and its
-command list is empty.
+Symptom: the employee writes, the bot stays silent. First check that the bot has a URL or
+history: without either Pachca creates no events for it. A new bot also listens only to
+commands, and its command list is empty.
 More: <https://dev.pachca.com/guides/bots/conversations.md>
 
 ## 3. The bot answers with the button
@@ -56,17 +59,16 @@ More: <https://dev.pachca.com/guides/bots/tokens.md>
 
 Symptoms and causes:
 
-| What the employee or the bot sees                                              | Likely cause                                                                                                                                                                                                             |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| «Доступ к API ограничен администраторами пространства»                         | Workspace setting **Кто может создавать персональные токены** is **Только администраторы**: an admin switches it to **Все сотрудники**                                                                                   |
-| «Гостям доступ к API не выдаётся»                                              | The employee is a guest. No setting helps                                                                                                                                                                                |
-| An error message and **Вернуться в Пачку** instead of the consent screen       | The link is wrong: `redirect_uri` not in the bot's list, no `code_challenge` from a public client, or a method other than `S256`. Nothing reaches your server                                                            |
-| The Pachca sign-in screen instead of consent, though the employee is signed in | Unknown `client_id`, OAuth off on the bot, the bot deleted, or the bot is from another workspace. An employee of several workspaces switches to the bot's workspace in Pachca in that browser and opens the button again |
-| Clicked the button, never saw the consent screen, but the bot got a code       | Expected: a confidential client re-authorizing with an unchanged set skips the screen                                                                                                                                    |
-| Clicked **Отменить**, the bot got nothing                                      | Expected: Cancel does not call your server                                                                                                                                                                               |
-| The bot gets `invalid_grant`                                                   | Code older than 10 minutes, reused, wrong `redirect_uri`, or wrong `code_verifier`                                                                                                                                       |
-| The bot gets `invalid_client`                                                  | Wrong `client_id`, wrong or rotated `client_secret`, or a confidential client sent no secret                                                                                                                             |
-| Calls with the token return `403 role_forbidden`                               | The employee's role does not allow it; re-authorizing will not help                                                                                                                                                      |
+| What the employee or the bot sees                                                          | Likely cause                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| «Доступ к API ограничен администраторами пространства»                                     | Workspace setting **Кто может создавать персональные токены** is **Только администраторы**: an admin switches it to **Все сотрудники**                                                                                                                                                                                                                                     |
+| «Гостям доступ к API не выдаётся»                                                          | The employee is a guest. No setting helps                                                                                                                                                                                                                                                                                                                                  |
+| «Не удалось подключить программу» with **Вернуться в Пачку** instead of the consent screen | Unknown `client_id`, `redirect_uri` not in the bot's list, OAuth off on the bot or the bot deleted, a public client without `code_challenge` or with a method other than `S256`, or the bot is from another workspace: an employee of several workspaces switches to the bot's workspace in Pachca in that browser and opens the button again. Nothing reaches your server |
+| Clicked the button, never saw the consent screen, but the bot got a code                   | Expected: a confidential client re-authorizing with an unchanged set skips the screen                                                                                                                                                                                                                                                                                      |
+| Clicked **Отменить**, the bot got nothing                                                  | Expected: Cancel does not call your server                                                                                                                                                                                                                                                                                                                                 |
+| The bot gets `invalid_grant`                                                               | Code older than 10 minutes, reused, wrong `redirect_uri`, or wrong `code_verifier`                                                                                                                                                                                                                                                                                         |
+| The bot gets `invalid_client`                                                              | Wrong `client_id`, wrong or rotated `client_secret`, or a confidential client sent no secret                                                                                                                                                                                                                                                                               |
+| Calls with the token return `403 role_forbidden`                                           | The employee's role does not allow it; re-authorizing will not help                                                                                                                                                                                                                                                                                                        |
 
 Settings: <https://dev.pachca.com/guides/oauth/setup.md>
 Errors: <https://dev.pachca.com/guides/oauth/flow.md>

@@ -1451,9 +1451,17 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
         required: (item.required ?? []).filter((name: string) => !UPLOAD_FILLS.includes(name)),
         additionalProperties: false,
       },
+      // A draft takes only keys of files the caller uploaded: the key of someone
+      // else's file, one copied from a message included, is refused, so a draft
+      // is not told to take any file already in Pachca.
       description: uploader
-        ? `${sentence(said)} Each file goes as its contents, which the server uploads, filling in key and size, ` +
-          `or by key: of a file already in Pachca, or of one you uploaded with \`${uploader}\`.`
+        ? owner === 'draft'
+          ? `${sentence(said)} Each file goes as its contents, which the server uploads, filling in key and size, ` +
+            `or by the key of a file you uploaded yourself, with \`${uploader}\` or as contents before. For ` +
+            'another person’s file, one copied from a message included, a draft answers `422` with key ' +
+            '`draft.files` and code `invalid`.'
+          : `${sentence(said)} Each file goes as its contents, which the server uploads, filling in key and size, ` +
+            `or by key: of a file already in Pachca, or of one you uploaded with \`${uploader}\`.`
         : `${sentence(said)} Each file goes as its contents or as the key of a file already in Pachca: ` +
           'the server uploads contents, filling in key and size.',
     });

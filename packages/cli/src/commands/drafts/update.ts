@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import { nullableInteger } from '../../lib/flags.js';
 
 export default class DraftsUpdate extends BaseCommand {
-  static override description = "Редактирование черновика";
+  static override summary = "Редактирование черновика";
+  static override description = "Меняет свой черновик: текст, вложения, расписание и сообщение, ответом на которое он уйдёт (`parent_message_id`). Перезаписываются только переданные поля, поэтому дописать текст, не трогая вложения, можно одним `content`.\n\nПолное описание: pachca api PUT /drafts/{id} --docs";
   static scope = "drafts:write";
   static apiMethod = "PUT";
   static apiPath = "/drafts/{id}";

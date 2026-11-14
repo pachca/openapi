@@ -337,6 +337,155 @@ describe('manual commands — functional tests', () => {
       expect(parsed.expires_at).toBeNull();
     });
 
+    describe('повторный вход в профиль с входом через браузер', () => {
+      function setupOAuthProfile(expiresAt: string) {
+        const configDir = path.join(tmpDir, 'pachca');
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(configDir, 'config.toml'),
+          [
+            'active_profile = "test"',
+            '',
+            '[profiles.test]',
+            'type = "user"',
+            'token = "saved-access"',
+            'user = "Test User"',
+            'auth = "oauth"',
+            'refresh_token = "saved-refresh"',
+            `expires_at = "${expiresAt}"`,
+          ].join('\n') + '\n',
+        );
+      }
+
+      const live = () => new Date(Date.now() + 3_600_000).toISOString();
+      const expired = () => new Date(Date.now() - 60_000).toISOString();
+
+      function answer(status: number, body: unknown) {
+        return {
+          ok: status < 400,
+          status,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve(body),
+          text: () => Promise.resolve(JSON.stringify(body)),
+        };
+      }
+
+      /** Routes every request of a login; `revoke` decides how the server takes the revoke. */
+      function mockLoginServer(revoke: () => Promise<unknown> = async () => answer(200, {})) {
+        const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+          const u = String(url);
+          if (u.includes('/oauth/device_authorization')) {
+            return answer(200, {
+              device_code: 'dev-code',
+              user_code: 'BCDF-GHJK',
+              verification_uri: 'https://app.pachca.com/apps/authorize',
+              expires_in: 60,
+              interval: 0,
+            });
+          }
+          if (u.includes('/oauth/token/info')) return answer(200, { data: { user_id: 1, scopes: ['users:read'] } });
+          if (u.endsWith('/profile')) {
+            return answer(200, { data: { first_name: 'Test', last_name: 'User', email: null, bot: false } });
+          }
+          if (u.endsWith('/oauth/revoke')) return revoke();
+          if (u.endsWith('/oauth/token')) {
+            // The device code is exchanged for the new login, a refresh token for a renewed old one.
+            return answer(200, { access_token: 'renewed-access', refresh_token: 'renewed-refresh', expires_in: 3600 });
+          }
+          throw new Error(`unexpected request: ${u}`);
+        });
+        globalThis.fetch = fetchMock as unknown as typeof fetch;
+        return fetchMock;
+      }
+
+      const endpoint = (url: unknown) => String(url).replace(/^https?:\/\/[^/]+/, '');
+      const revokeBodies = (fetchMock: ReturnType<typeof vi.fn>) =>
+        fetchMock.mock.calls.filter(([url]) => endpoint(url).endsWith('/oauth/revoke')).map(([, init]) => init.body);
+      const config = () => fs.readFileSync(path.join(tmpDir, 'pachca', 'config.toml'), 'utf-8');
+
+      it('вход через браузер закрывает прежний вход после подтверждения нового', async () => {
+        Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
+        Object.defineProperty(process.stdout, 'isTTY', { value: true, writable: true, configurable: true });
+        setEnv('CI', undefined);
+        setEnv('PACHCA_PROMPT_DISABLED', undefined);
+        setEnv('PACHCA_SKIP_NEW_VERSION_CHECK', '1');
+        setEnv('PATH', tmpDir);
+        setupOAuthProfile(live());
+        const fetchMock = mockLoginServer();
+
+        // --quiet keeps the request spinner off: it needs a real terminal.
+        const { error } = await runCommand(
+          ['auth', 'login', '--profile', 'test', '--no-browser', '--quiet'],
+          { root: CLI_ROOT },
+        );
+
+        expect(error).toBeUndefined();
+        // The old login is revoked only once the new one is in hand and verified.
+        const order = fetchMock.mock.calls.map(([url]) => endpoint(url).split('?')[0]);
+        const at = (suffix: string) => order.findIndex((p) => p.endsWith(suffix));
+        expect(at('/oauth/token/info')).toBeGreaterThan(-1);
+        expect(at('/oauth/revoke')).toBeGreaterThan(at('/oauth/token/info'));
+        expect(revokeBodies(fetchMock)).toEqual(['token=saved-access']);
+        expect(config()).toContain('token = "renewed-access"');
+        expect(config()).not.toContain('saved-access');
+      });
+
+      it('истёкший прежний токен сначала обновляет, отзывает свежий и сохраняет новый вход', async () => {
+        setupOAuthProfile(expired());
+        const fetchMock = mockLoginServer();
+
+        const { stdout, error } = await runCommand(
+          ['auth', 'login', '--profile', 'test', '--token', 'pasted', '--json'],
+          { root: CLI_ROOT },
+        );
+
+        expect(error).toBeUndefined();
+        expect(JSON.parse(stdout)).toMatchObject({ auth: 'token', previous_token_revoked: true });
+        expect(revokeBodies(fetchMock)).toEqual(['token=renewed-access']);
+        // The renewal of the old login lands in the profile before the new login
+        // overwrites it, never after.
+        expect(config()).toContain('token = "pasted"');
+        expect(config()).not.toContain('renewed');
+        expect(config()).not.toContain('saved-refresh');
+      });
+
+      it('ошибка отзыва — предупреждение, вход всё равно сохраняется', async () => {
+        setupOAuthProfile(live());
+        mockLoginServer(() => Promise.reject(new TypeError('fetch failed')));
+
+        const table = await runCommand(
+          ['auth', 'login', '--profile', 'test', '--token', 'pasted', '-o', 'table'],
+          { root: CLI_ROOT },
+        );
+        expect(table.error).toBeUndefined();
+        expect(table.stderr).toContain('Подключён как');
+        expect(table.stderr).toContain('Прежний вход профиля закрыть на сервере не удалось');
+        expect(table.stderr).toContain('Токены CLI');
+        expect(config()).toContain('token = "pasted"');
+
+        setupOAuthProfile(live());
+        const json = await runCommand(
+          ['auth', 'login', '--profile', 'test', '--token', 'pasted', '--json'],
+          { root: CLI_ROOT },
+        );
+        expect(json.error).toBeUndefined();
+        expect(JSON.parse(json.stdout).previous_token_revoked).toBe(false);
+      });
+
+      it('профиль с готовым токеном не отзывает', async () => {
+        setupProfile('test');
+        const fetchMock = mockLoginServer();
+
+        const { stdout } = await runCommand(
+          ['auth', 'login', '--profile', 'test', '--token', 'pasted', '--json'],
+          { root: CLI_ROOT },
+        );
+
+        expect(JSON.parse(stdout)).not.toHaveProperty('previous_token_revoked');
+        expect(revokeBodies(fetchMock)).toEqual([]);
+      });
+    });
+
   });
 
   describe('auth logout', () => {

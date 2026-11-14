@@ -11,7 +11,9 @@ related:
 
 Расширение Пачки опубликовано в [официальной витрине интеграций n8n](https://n8n.io/integrations/pachca/) со статусом **verified by n8n** — это партнёрская интеграция, проверенная командой n8n и доступная в один клик из редактора workflow.
 
-<ImageCard src="/images/n8n/marketplace-pachca.avif" alt="Страница Pachca в витрине n8n с заголовком Integrate Pachca with 1000+ apps and services и блоком verified by n8n" caption="Страница Pachca в официальной витрине n8n" maxWidth={960} />
+<ImageCard src="/images/n8n/marketplace-pachca.avif" alt="Страница Pachca в витрине интеграций n8n: заголовок Integrate Pachca with 2,000+ apps and services и блок Pachca integration с пометкой verified by n8n" caption="Страница Pachca в официальной витрине n8n" maxWidth={960} />
+
+<AgentPrompt id="n8n-workflow" />
 
 ## Что такое n8n
 
@@ -22,7 +24,7 @@ related:
 - **Узел триггера** — событие, запускающее рабочий процесс: новое сообщение, нажатие кнопки, обновление статуса и др.
 - **Узел действия** — логика после триггера: отправка сообщения в чат, создание напоминания, добавление записи в БД и т.д.
 
-<ImageCard src="/images/n8n/n8n-interface.avif" alt="Интерфейс n8n с визуальным редактором workflow" caption="Визуальный редактор n8n" maxWidth={960} />
+<ImageCard src="/images/n8n/n8n-interface.avif" alt="Редактор n8n с workflow «Заявка на отпуск»: Pachca Trigger, узел Switch «Тип события» и узлы Pachca, кнопка Publish вверху и Execute внизу" caption="Визуальный редактор n8n" maxWidth={960} />
 
 ## Что можно автоматизировать
 
@@ -64,7 +66,7 @@ related:
 
 Версия 2.0 — полностью автогенерируемая из OpenAPI-спецификации с сохранением 100% обратной совместимости с v1.
 
-- **Новые ресурсы:** Chat Member, Draft, Important Message, OAuth, Read Member, Search, Security (экспорт чата и unfurl — операции внутри Chat и Message)
+- **Новые ресурсы:** Chat Member, Draft, Important Message, OAuth, Read Member, Search, Security, Workspace (экспорт чата и unfurl — операции внутри Chat и Message)
 - **Курсорная пагинация** с Return All / Limit вместо ручного `per`/`page`
 - **AI Tool Use** — `usableAsTool: true` для использования с AI Agent
 - **Узел Pachca Trigger** с ручной и автоматической регистрацией вебхука и 19 событиями

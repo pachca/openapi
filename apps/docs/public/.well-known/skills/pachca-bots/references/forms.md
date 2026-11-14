@@ -12,24 +12,26 @@ A form is a modal window with fields defined by the bot; the API calls it a view
 ## Lifecycle
 
 1. Employee clicks a Data button → the bot receives a `button` / `click` event with `trigger_id`.
-2. The bot opens the view: `pachca_open_form` with `type: "modal"`, `trigger_id` and the `view` object (`title`, `blocks`). CLI: `pachca views open --type modal --trigger-id … --title … --blocks '<JSON array>'`. `trigger_id` lives **3 seconds** — open the form first, log and do everything else afterwards.
+2. The bot opens the view: `pachca_open_form` with `type: "modal"`, `trigger_id` and the `view` object (`title`, `blocks`). CLI: `pachca views open --type modal --trigger-id … --title … --blocks '<JSON array>'`. `trigger_id` lives **3 seconds** — open the form first, log and do everything else afterwards. A repeated or late call gets `410` (`trigger_expired`, or `trigger_not_found` a few seconds after the click): this click can no longer open a form, so ask the employee in a message instead.
 3. Employee fills in the blocks and submits → the bot receives a `view` / `submit` event.
 4. The bot answers within **3 seconds** (5 on the history path below): close the window, or show errors under fields.
+
+Closing the window without submitting sends nothing: there is no close event, and the entered values are lost. Keep no state or lock waiting for the submission. A new form needs a new click.
 
 ## Build the view
 
 The block types and their fields are in the `pachca_open_form` input schema and on [Form blocks](https://dev.pachca.com/guides/forms/blocks.md). What the schema does not tell you:
 
-- Pass `callback_id` (which form this is) and `private_metadata` (your context, e.g. a record id as a JSON string) next to `view`. Both come back in the submission; `null` if you did not set them.
-- In `markdown` blocks lists and quotes are not recognized and show as plain text.
+- Pass `callback_id` (which form this is) and `private_metadata` (your context, e.g. a record id as a JSON string) next to `view`. Both come back in the submission; `null` if you did not set them. The submission carries no `message_id` of the button message: to edit that message after the submission, put the click's `message_id` into `private_metadata`.
+- In `markdown` blocks lists and quotes are not recognized: list markers and `>` disappear, and each list item becomes its own paragraph.
 - Preselect with `selected` on a `select` option, but with `checked` in `radio` and `checkbox`.
 - `file_input` `filetypes` only filters the file picker; check the received extension yourself.
-- `required`, `min_length` and `max_length` are checked by the Pachca app before sending, not by the server: re-check presence and length on your side together with the meaning of values, and answer with `errors` if they fail. Use `hint` to guide the employee.
+- `required`, `min_length`, `max_length` and `max_files` are checked by the Pachca app before sending, not by the server: re-check presence, length and file count on your side together with the meaning of values, and answer with `errors` if they fail. Use `hint` to guide the employee.
 - An unfilled field comes as `null` (`input`, `select`, `radio`, `date`) or an empty array (`checkbox`, `file_input`); an empty `time` may be absent from `data`.
 
 ## Handle the submission
 
-The payload carries everything; no extra request is needed:
+The payload carries the values and your context:
 
 - `data` — `name` → value. `checkbox` gives an array, `file_input` gives an array of `{name, size, url}`.
 - `callback_id`, `private_metadata`, `user_id` (who submitted).

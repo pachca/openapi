@@ -43,7 +43,27 @@ function saveState(engine: TemplateEngine, json: string, template: string) {
   }
 }
 
-/** Backend-compatible CleanContent: unescape HTML entities, trim leading/trailing newlines */
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+/**
+ * Backend-compatible Mustache escaping for `{{var}}`: Ruby mustache uses
+ * CGI.escapeHTML, which escapes only & < > " '. mustache.js escapes
+ * / = ` as well, so a URL would come out as `https:&#x2F;&#x2F;…`.
+ */
+function escapeHtml(value: unknown): string {
+  return String(value).replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+}
+
+/**
+ * Backend-compatible Webhooks::CleanContent: unescape &amp; and &quot; only
+ * (&lt; &gt; &#39; stay in the message), trim leading/trailing newlines
+ */
 function cleanContent(text: string): string {
   return text
     .replace(/&amp;/g, '&')
@@ -74,11 +94,15 @@ async function renderTemplate(
   try {
     if (engine === 'liquid') {
       const { Liquid } = await import('liquidjs');
-      const liquid = new Liquid();
+      // Backend (Ruby Liquid) keeps a date string in its own offset; without
+      // preserveTimezones liquidjs would print it in the browser's time zone
+      const liquid = new Liquid({ preserveTimezones: true });
       rendered = liquid.parseAndRenderSync(effectiveTemplate, data);
     } else {
       const Mustache = await import('mustache');
-      rendered = Mustache.default.render(effectiveTemplate, data);
+      rendered = Mustache.default.render(effectiveTemplate, data, undefined, {
+        escape: escapeHtml,
+      });
     }
   } catch (e) {
     // Backend: template errors are sent as regular messages
@@ -86,7 +110,7 @@ async function renderTemplate(
     return { content: `Ошибка в шаблоне: ${msg}` };
   }
 
-  // Backend: Webhooks::CleanContent — unescape HTML entities, trim newlines
+  // Backend: Webhooks::CleanContent — unescape &amp; and &quot;, trim newlines
   const cleaned = cleanContent(rendered);
 
   // Backend: empty content or over 40,000 chars → message not sent

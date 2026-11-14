@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MessagesDelete extends BaseCommand {
-  static override description = "Удаление сообщения";
+  static override summary = "Удаление сообщения";
+  static override description = "Удаление сообщения доступно отправителю, админам и редакторам в чате. В личных сообщениях оба собеседника — админы и удаляют сообщения друг друга, а гость и мульти-гость удаляют там только свои.\n\nПолное описание: pachca api DELETE /messages/{id} --docs";
   static scope = "messages:delete";
   static apiMethod = "DELETE";
   static apiPath = "/messages/{id}";

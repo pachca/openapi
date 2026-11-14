@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MessagesUnpin extends BaseCommand {
-  static override description = "Открепление сообщения";
+  static override summary = "Открепление сообщения";
+  static override description = "Снимает закрепление с сообщения. Если сообщение не было закреплено, ответ всё равно `204`, поэтому повторный вызов безопасен.\n\nПолное описание: pachca api DELETE /messages/{id}/pin --docs";
   static scope = "pins:write";
   static apiMethod = "DELETE";
   static apiPath = "/messages/{id}/pin";

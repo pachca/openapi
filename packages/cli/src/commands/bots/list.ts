@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class BotsList extends BaseCommand {
-  static override description = "Список ботов";
+  static override summary = "Список ботов";
+  static override description = "Боты, которых вызывающий вправе настраивать: созданные им самим и те, чьи настройки открывают ему доступ к редактированию. Если создавать интеграции разрешено только администраторам, сотруднику без этой роли метод отвечает `403`, даже для его собственных ботов.\n\nПолное описание: pachca api GET /bots --docs";
   static scope = "bots:read";
   static apiMethod = "GET";
   static apiPath = "/bots";

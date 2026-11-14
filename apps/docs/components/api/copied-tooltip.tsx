@@ -6,9 +6,11 @@ import React from 'react';
 interface CopiedTooltipProps {
   children: React.ReactNode;
   open: boolean;
+  /** Текст подсказки: по умолчанию «Скопировано», при ошибке копирования свой. */
+  label?: string;
 }
 
-export function CopiedTooltip({ children, open }: CopiedTooltipProps) {
+export function CopiedTooltip({ children, open, label = 'Скопировано' }: CopiedTooltipProps) {
   return (
     <Tooltip.Root open={open}>
       <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
@@ -20,7 +22,7 @@ export function CopiedTooltip({ children, open }: CopiedTooltipProps) {
           collisionPadding={8}
           className="z-50 pointer-events-none animate-tooltip rounded-lg px-2.5 py-1.5 shadow-xl border border-glass-heavy-border bg-glass-heavy backdrop-blur-md text-text-primary text-[12px] font-semibold whitespace-nowrap"
         >
-          Скопировано
+          {label}
         </Tooltip.Content>
       </Tooltip.Portal>
     </Tooltip.Root>

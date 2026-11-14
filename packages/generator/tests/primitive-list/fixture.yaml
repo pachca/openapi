@@ -1,0 +1,106 @@
+openapi: 3.0.0
+info:
+  title: Test API — List of Plain Values
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Read members
+paths:
+  /messages/{id}/read_member_ids:
+    get:
+      operationId: ReadMemberOperations_listReadMembers
+      description: Список прочитавших сообщение — в data плоский массив идентификаторов, а не моделей
+      x-paginated: true
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор сообщения
+          schema:
+            type: integer
+            format: int32
+            example: 194275
+        - name: limit
+          in: query
+          required: false
+          description: Количество записей
+          schema:
+            type: integer
+            format: int32
+            example: 300
+        - name: cursor
+          in: query
+          required: false
+          description: Курсор пагинации
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: integer
+                      format: int32
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Read members
+components:
+  schemas:
+    PaginationMeta:
+      type: object
+      required:
+        - paginate
+      properties:
+        paginate:
+          type: object
+          required:
+            - next_page
+          properties:
+            next_page:
+              type: string
+
+    ApiError:
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            required:
+              - message
+            properties:
+              key:
+                type: string
+              message:
+                type: string
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string

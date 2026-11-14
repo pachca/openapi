@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class DraftsDelete extends BaseCommand {
-  static override description = "Удаление черновика";
+  static override summary = "Удаление черновика";
+  static override description = "Убирает свой черновик насовсем: восстановить его нельзя, вложения удаляются вместе с ним. У отложенного сообщения удаление и есть отмена отправки.\n\nПолное описание: pachca api DELETE /drafts/{id} --docs";
   static scope = "drafts:write";
   static apiMethod = "DELETE";
   static apiPath = "/drafts/{id}";

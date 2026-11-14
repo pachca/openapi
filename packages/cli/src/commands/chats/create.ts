@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ChatsCreate extends BaseCommand {
-  static override description = "Новый чат";
+  static override summary = "Новый чат";
+  static override description = "Создаёт беседу или канал. Владелец токена становится владельцем чата, и роль эта в дальнейшем не передаётся.\n\nПолное описание: pachca api POST /chats --docs";
   static scope = "chats:create";
   static apiMethod = "POST";
   static apiPath = "/chats";

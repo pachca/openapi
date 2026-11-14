@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class FilesUploads extends BaseCommand {
-  static override description = "Получение подписи, ключа и других параметров";
+  static override summary = "Получение подписи, ключа и других параметров";
+  static override description = "Первый шаг загрузки файла: метод выдаёт адрес хранилища и подписанные поля формы, с которыми файл заливают следующим запросом.\n\nПолное описание: pachca api POST /uploads --docs";
   static override hiddenAliases = ["common:uploads"];
   static scope = "uploads:write";
   static apiMethod = "POST";

@@ -15,7 +15,7 @@ import {
   valueUnionMemberName,
   paginateModel,
 } from '../ir.js';
-import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { bodyExample, buildModelIndex, collectTypeRefs, namedBodyExamples, nullableOptionalFields, requestModelNames, withPrimitiveData, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, snakeToPascal, tagToServiceName, serviceToImplName, serviceToStubName } from '../naming.js';
 
 function upperFirst(s: string): string {
@@ -2163,7 +2163,8 @@ function generateExamples(ir: IR): string {
 export class GoGenerator implements LanguageGenerator {
   readonly dirName = 'go';
 
-  generate(ir: IR, options?: GenerateOptions): GeneratedFile[] {
+  generate(sharedIr: IR, options?: GenerateOptions): GeneratedFile[] {
+    const ir = withPrimitiveData(sharedIr, (ft) => goType(ft));
     const files: GeneratedFile[] = [
       { path: 'types.go', content: generateTypes(ir) },
       { path: 'client.go', content: generateClient(ir) },

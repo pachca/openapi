@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class CompanyGetInviteLink extends BaseCommand {
-  static override description = "Ссылка-приглашение";
+  static override summary = "Ссылка-приглашение";
+  static override description = "Ссылка, по которой сотрудник сам входит в пространство. Это та же ссылка, что администратор получает в интерфейсе: у каждого администратора она своя, и метод отдаёт ссылку владельца токена.\n\nПолное описание: pachca api GET /company/invite_link --docs";
   static scope = "invite_links:write";
   static apiMethod = "GET";
   static apiPath = "/company/invite_link";

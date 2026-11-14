@@ -3190,13 +3190,18 @@ func (s *ReactionsServiceImpl) RemoveReaction(ctx context.Context, id int32, par
 }
 
 type ReadMembersService interface {
-	ListReadMembers(ctx context.Context, id int32, params *ListReadMembersParams) (*any, error)
+	ListReadMembers(ctx context.Context, id int32, params *ListReadMembersParams) (*ListReadMembersResponse, error)
+	ListReadMembersAll(ctx context.Context, id int32, params *ListReadMembersParams) ([]int32, error)
 }
 
 type ReadMembersServiceStub struct{}
 
-func (s *ReadMembersServiceStub) ListReadMembers(ctx context.Context, id int32, params *ListReadMembersParams) (*any, error) {
+func (s *ReadMembersServiceStub) ListReadMembers(ctx context.Context, id int32, params *ListReadMembersParams) (*ListReadMembersResponse, error) {
 	return nil, NotImplementedError{Method: "Read members.listReadMembers"}
+}
+
+func (s *ReadMembersServiceStub) ListReadMembersAll(ctx context.Context, id int32, params *ListReadMembersParams) ([]int32, error) {
+	return nil, NotImplementedError{Method: "Read members.listReadMembersAll"}
 }
 
 type ReadMembersServiceImpl struct {
@@ -3204,7 +3209,7 @@ type ReadMembersServiceImpl struct {
 	client  *http.Client
 }
 
-func (s *ReadMembersServiceImpl) ListReadMembers(ctx context.Context, id int32, params *ListReadMembersParams) (*any, error) {
+func (s *ReadMembersServiceImpl) ListReadMembers(ctx context.Context, id int32, params *ListReadMembersParams) (*ListReadMembersResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/messages/%v/read_member_ids", s.baseURL, id))
 	if err != nil {
 		return nil, err
@@ -3228,7 +3233,7 @@ func (s *ReadMembersServiceImpl) ListReadMembers(ctx context.Context, id int32, 
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK:
-		var result any
+		var result ListReadMembersResponse
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err
 		}
@@ -3236,6 +3241,32 @@ func (s *ReadMembersServiceImpl) ListReadMembers(ctx context.Context, id int32, 
 	default:
 		return nil, errorFromResponse(resp)
 	}
+}
+
+func (s *ReadMembersServiceImpl) ListReadMembersAll(ctx context.Context, id int32, params *ListReadMembersParams) ([]int32, error) {
+	if params == nil {
+		params = &ListReadMembersParams{}
+	}
+	var items []int32
+	var cursor *string
+	hasNext := true
+	for hasNext {
+		params.Cursor = cursor
+		result, err := s.ListReadMembers(ctx, id, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if len(result.Data) == 0 {
+			return items, nil
+		}
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
+	}
+	return items, nil
 }
 
 type ThreadsService interface {

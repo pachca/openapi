@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class UsersGetStatus extends BaseCommand {
-  static override description = "Статус сотрудника";
+  static override summary = "Статус сотрудника";
+  static override description = "Статус другого сотрудника: эмодзи, подпись, срок и режим «Нет на месте».\n\nПолное описание: pachca api GET /users/{user_id}/status --docs";
   static scope = "user_status:read";
   static apiMethod = "GET";
   static apiPath = "/users/{user_id}/status";

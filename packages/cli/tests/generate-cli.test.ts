@@ -195,7 +195,7 @@ describe('generate-cli', () => {
     it('bots/update --kind reads the literal null and says so in its help', () => {
       const content = fs.readFileSync(path.join(COMMANDS_DIR, 'bots', 'update.ts'), 'utf-8');
       expect(content).toContain("import { nullableString } from '../../lib/flags.js';");
-      expect(content).toMatch(/'kind': nullableString\(\{\s*description: "[^"]*Чтобы передать null, укажите `--kind null`\."/);
+      expect(content).toMatch(/'kind': nullableString\(\{\s*description: "(?:[^"\\]|\\.)*Чтобы передать null, укажите `--kind null`\."/);
       expect(content).toContain("kind: flags['kind'],");
     });
 

@@ -64,7 +64,7 @@ export const securityFields: INodeProperties[] = [
 				name: 'actorId',
 				type: 'string',
 				default: "",
-				description: 'ID of the event\'s actor, as in the record\'s `actor_id` field. For a role change, adding to and removing from a chat, and assigning and removing tags, the filter finds the employee they affected.',
+				description: 'ID of the event\'s actor, as in the record\'s `actor_id` field. For a role change, adding to and removing from a chat, and assigning and removing tags, the filter finds the employee they affected. By whoever changed the role or tags in an employee\'s profile, the filter finds the `user_updated` event with `company_role` or `group_tags` in `changed_attrs`.',
 				placeholder: '98765',
 			},
 			{
@@ -153,7 +153,7 @@ export const securityFields: INodeProperties[] = [
 { name: 'User 2fa Success', value: 'user_2fa_success', description: 'Successful two-factor authentication' },
 { name: 'User Added To Tag', value: 'user_added_to_tag' },
 { name: 'User Chat Join', value: 'user_chat_join', description: 'User joined the chat' },
-{ name: 'User Chat Leave', value: 'user_chat_leave', description: 'User left the chat' },
+{ name: 'User Chat Leave', value: 'user_chat_leave', description: 'Member removed from the chat or made a guest. Leaving on one\'s own is not logged, and dropping out with a tag is logged as `user_removed_from_tag` or `tag_removed_from_chat`.' },
 { name: 'User Created', value: 'user_created', description: 'New user account created' },
 { name: 'User Deleted', value: 'user_deleted', description: 'User account deleted' },
 { name: 'User Login', value: 'user_login', description: 'User logged in successfully' },

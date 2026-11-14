@@ -3,7 +3,8 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class BotsListScopes extends BaseCommand {
-  static override description = "Каталог прав бота";
+  static override summary = "Каталог прав бота";
+  static override description = "Права, которые можно выдать этому боту: его токенам и авторизации от имени сотрудника. У каждого права есть описание, категория и готовые наборы, в которые оно входит, как при выборе прав в интерфейсе.\n\nПолное описание: pachca api GET /bots/{id}/scopes --docs";
   static scope = "bots:read";
   static apiMethod = "GET";
   static apiPath = "/bots/{id}/scopes";

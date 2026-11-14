@@ -17,7 +17,7 @@ https://api.pachca.com/api/shared/v1
 
 | Заголовок | Значение | Когда нужен |
 |-----------|----------|-------------|
-| `Authorization` | `Bearer YOUR_ACCESS_TOKEN` | Все методы, кроме обмена кода на токен и отзыва токена |
+| `Authorization` | `Bearer YOUR_ACCESS_TOKEN` | Все методы, кроме [Загрузка файла](/api/files/direct-url), [Обмен кода на токен](/api/oauth/exchange-token) и [Отзыв токена](/api/oauth/revoke-token) серверным приложением |
 | `Content-Type` | `application/json; charset=utf-8` | Запросы POST и PUT с телом в JSON |
 
 Подробнее о типах токенов и скоупах — в разделе [Авторизация](/api/authorization).
@@ -25,7 +25,7 @@ https://api.pachca.com/api/shared/v1
 Несколько методов принимают тело в другом формате:
 
 - Загрузка аватара сотрудника, бота или чата (например, [Загрузка своего аватара](/api/profile/update-avatar)) — форма `multipart/form-data`
-- [Обмен кода на токен](/api/oauth/exchange-token) и [Отзыв токена](/api/oauth/revoke-token) — `application/x-www-form-urlencoded`, как требует OAuth 2.0, а приложение подтверждает себя секретом клиента
+- [Обмен кода на токен](/api/oauth/exchange-token) и [Отзыв токена](/api/oauth/revoke-token) — `application/x-www-form-urlencoded`, как требует OAuth 2.0. Серверное приложение подтверждает себя секретом клиента, а приложение без секрета передаёт проверочный код PKCE при обмене и сам отзываемый токен при отзыве.
 - [Получение подписи, ключа и других параметров](/api/files/uploads) вызывается без тела, а сам файл уходит в хранилище на адрес `direct_url` формой `multipart/form-data` и без заголовка `Authorization`: подробнее — в разделе [Файлы](/api/file-uploads)
 
 ## Запросы из браузера

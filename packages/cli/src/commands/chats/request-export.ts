@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ChatsRequestExport extends BaseCommand {
-  static override description = "Экспорт сообщений";
+  static override summary = "Экспорт сообщений";
+  static override description = "Заказ выгрузки сообщений пространства за период. Архив готовится в фоне.\n\nПолное описание: pachca api POST /chats/exports --docs";
   static override hiddenAliases = ["common:request-export"];
   static scope = "chat_exports:write";
   static plan = "corporation";
@@ -29,7 +30,7 @@ export default class ChatsRequestExport extends BaseCommand {
       description: "Адрес, на который придёт вебхук с номером готовой выгрузки, когда архив будет собран. Номер приходит в поле `export_id`, а всё тело вебхука описано в разделе [Экспорт](https://dev.pachca.com/guides/export).",
     }),
     'chat-ids': Flags.string({
-      description: "Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов.",
+      description: "Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов. Тред выгружается вместе с чатом родительского сообщения, поэтому идентификатор треда в списке ничего не добавляет, а самостоятельный тред не выгружается. Что попадает в архив, сказано в разделе [Экспорт](https://dev.pachca.com/guides/export#chto-popadaet-v-arhiv).",
     }),
     'skip-chats-file': Flags.boolean({
       description: "Пропуск формирования файла со списком чатов (chats.json)",

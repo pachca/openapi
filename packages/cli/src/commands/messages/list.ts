@@ -4,7 +4,8 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MessagesList extends BaseCommand {
-  static override description = "Список сообщений чата";
+  static override summary = "Список сообщений чата";
+  static override description = "Лента сообщений беседы, канала, треда или личной переписки — по `chat_id` нужного чата.\n\nПолное описание: pachca api GET /messages --docs";
   static scope = "messages:read";
   static apiMethod = "GET";
   static apiPath = "/messages";
@@ -29,7 +30,7 @@ export default class MessagesList extends BaseCommand {
       default: "id",
     }),
     'order': Flags.string({
-      description: "Направление сортировки по `id`: `asc` отдаёт сообщения от старых к новым, `desc` от новых к старым.",
+      description: "Направление сортировки по `id`: `asc` отдаёт сообщения от старых к новым, `desc` от новых к старым. Курсор направление не хранит: передавайте `order` и в запросах со `cursor`.",
       options: ["asc","desc"],
       default: "desc",
     }),

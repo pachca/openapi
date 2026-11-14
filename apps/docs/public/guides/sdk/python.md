@@ -66,6 +66,24 @@ client = PachcaClient("YOUR_TOKEN", base_url="https://custom-api.example.com/api
 await client.close()
 ```
 
+Для unit-тестов есть `PachcaClient.stub()`: клиент без HTTP, в который передают свои реализации сервисов, например `messages=MockMessagesService()`. Методы, которые вы не заменили, выбрасывают `NotImplementedError`.
+
+Клиент работает с таймаутом httpx по умолчанию: 5 секунд на подключение и на ожидание ответа. Если ответ не пришёл за это время, httpx выбрасывает исключение, и SDK его не повторяет. Чтобы задать таймаут, прокси или другие настройки HTTP, соберите свой `httpx.AsyncClient` и передайте его в `PachcaClient.from_client()`. Повторы такому клиенту даёт транспорт `RetryTransport` из `pachca.utils`, а прокси задаётся во внутреннем транспорте:
+
+```python
+import httpx
+from pachca.client import PACHCA_API_URL, PachcaClient
+from pachca.utils import RetryTransport
+
+http = httpx.AsyncClient(
+    base_url=PACHCA_API_URL,
+    headers={"Authorization": f"Bearer {token}"},
+    timeout=30.0,
+    transport=RetryTransport(httpx.AsyncHTTPTransport(proxy=httpx.Proxy("http://proxy:8080"))),
+)
+client = PachcaClient.from_client(http)
+```
+
 ## Все методы
 
 | Метод | Метод API |
@@ -182,7 +200,7 @@ await client.close()
 
 ## Запросы
 
-Все методы — асинхронные (`async def`) и возвращают корутины.
+Все методы — асинхронные (`async def`) и возвращают корутины. Исключение — `poll_webhook_events` и `poll_webhook_payloads`: они отдают события по одному, их обходят через `async for`.
 
 **GET с параметрами:**
 
@@ -237,6 +255,8 @@ response = await client.chats.get_chat(id=334)
 ```
 
 
+Файл загружают в три шага: `get_upload_params()`, `upload_file()` по адресу `direct_url` и сообщение с ключом файла. Пример — в разделе [Файлы](/api/file-uploads#python-sdk).
+
 ### Значение null
 
 Необязательное поле, которое не задано, в запрос не попадает, поэтому метод обновления меняет только то, что вы передали. Некоторые поля API принимают `null`: например, `null` в `oauth_client` выключает у бота авторизацию от имени сотрудника, а в `webhook.kind` удаляет входящий вебхук. Чтобы отправить `null`, назовите поле в `null_fields` той же модели запроса так, как оно называется в Python:
@@ -251,7 +271,7 @@ request = BotUpdateRequest(
 
 ## Пагинация
 
-Поля пагинации называются как в API: `meta.paginate.next_page`, `prev_page`, `has_next` и `has_prev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
+Поля пагинации называются как в API: `meta.paginate.next_page`, `prev_page`, `has_next` и `has_prev`. У методов поиска в `meta.paginate` только `next_page` и `has_next`, зато есть `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -300,6 +320,7 @@ print(f"Всего: {len(chats)}")
 | `members.list_members_all()` | `list[User]` |
 | `messages.list_chat_messages_all()` | `list[Message]` |
 | `reactions.list_reactions_all()` | `list[Reaction]` |
+| `read_members.list_read_members_all()` | `list[int]` |
 | `search.search_chats_all()` | `list[Chat]` |
 | `search.search_messages_all()` | `list[Message]` |
 | `search.search_users_all()` | `list[User]` |
@@ -313,7 +334,7 @@ SDK выбрасывает два типа исключений:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
+Возникает при ответе с массивом `errors` в теле: это коды `400`, `402`, `403`, `404`, `409`, `410`, `422`, `429`, `503` и `504`. Ответы `429` и `5xx` SDK сначала повторяет по правилам из раздела [Повторные запросы](#povtornye-zaprosy), а `ApiError` выбрасывает, если повторы не помогли или не положены:
 
 ```python
 from pachca.models import ApiError
@@ -358,13 +379,16 @@ except OAuthError as error:
 
 Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 с заголовком `Retry-After` до минуты:** срок из заголовка
+- **429 с `Retry-After` дольше минуты:** без повтора, SDK сразу выбрасывает `ApiError` с кодом статуса `429`
 - **429 без заголовка:** 1 сек, 2 сек, 4 сек
 - **5xx:** 1 сек, 2 сек, 3 сек
 
+Срок дольше минуты бывает только у суточного предела сообщений и блокировки отправки, они описаны на странице [Лимиты](/api/limits). Самого заголовка `Retry-After` в `ApiError` нет, поэтому срок паузы SDK не сообщает. Получив такую ошибку, остановите задачу и вернитесь к ней позже без пробных запросов.
+
 Сетевую ошибку без ответа сервера SDK не повторяет: исключение httpx приходит сразу. Повторы делает `RetryTransport`, обёртка над транспортом httpx.
 
-Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
+Какие ответы и методы SDK повторяет, описано в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
 
 ## Типы
 

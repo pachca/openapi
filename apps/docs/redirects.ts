@@ -15,6 +15,11 @@ const redirects: Redirect[] = [
     permanent: true,
   },
 
+  // «Первый бот» объединён с «Созданием бота»: путь до первого ответа теперь там,
+  // а код бота, который отвечает в треде, — в разделе «Пример бота» на «Общении с ботом».
+  { source: '/guides/bots/first-bot', destination: '/guides/bots/setup', permanent: true },
+  { source: '/guides/bots/first-bot.md', destination: '/guides/bots/setup.md', permanent: true },
+
   // Страницы сценариев убраны: знание о том, как делать задачи в Пачке, теперь
   // в скиллах для агентов, а `pachca guide` из CLI удалён.
   { source: '/guides/workflows', destination: '/guides/ai-agents/overview', permanent: true },

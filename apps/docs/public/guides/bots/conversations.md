@@ -1,11 +1,11 @@
 > Расположение: Боты
-> Краткое содержание: Как бот в Пачке общается с сотрудниками в личных сообщениях, беседах, каналах и тредах: что настроить, как бот узнаёт о сообщениях, когда отвечать, как разбирать команды, куда отвечать и как прочитать контекст разговора
+> Краткое содержание: Как бот в Пачке общается с сотрудниками в личных сообщениях, беседах, каналах и тредах: что настроить, как бот узнаёт о сообщениях, когда отвечать, как разбирать команды, куда отвечать, как прочитать контекст разговора и пример бота на TypeScript и Python, который отвечает в тред
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
 
 # Общение с ботом
 
-Бот работает там же, где работают сотрудники: в личных сообщениях, беседах, каналах и тредах. Сотрудник пишет боту в личные сообщения, зовёт его по нику в обсуждении или пишет команду в чате, а бот отвечает там, где его позвали. Здесь — что настроить, как бот узнаёт о сообщениях и понимает, что обращаются к нему, как разбирает команды, куда отвечает и откуда берёт контекст разговора.
+Бот работает там же, где работают сотрудники: в личных сообщениях, беседах, каналах и тредах. Сотрудник пишет боту в личные сообщения, зовёт его по нику в обсуждении или пишет команду в чате, а бот отвечает там, где его позвали. Здесь — что настроить, как бот узнаёт о сообщениях и понимает, что обращаются к нему, как разбирает команды, куда отвечает и откуда берёт контекст разговора. В конце страницы — код бота на TypeScript и Python, который отвечает в тред.
 
 ![Сотрудница зовёт агента по нику в чате команды, агент отвечает тредом к её сообщению и упоминает разработчика из другой команды, тот заходит в тред из уведомления](/images/ai-agent-kai.webp)
 
@@ -15,13 +15,14 @@
 **Сделать с агентом.** Агент создаст бота, напишет обработчик и проверит, что бот отвечает в личных сообщениях и на упоминание. Вставьте промпт в чат с ИИ-агентом, к которому [подключена Пачка](/guides/mcp/connect). Агенту, который уже выполняет этот промпт: ниже его копия, начинать заново не нужно.
 
 ```text
-Создай бота, который отвечает сотрудникам в личных сообщениях и на упоминание. Скачай страницы документации и делай по ним: `curl -sL https://dev.pachca.com/guides/bots/conversations.md https://dev.pachca.com/guides/bots/first-bot.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если страницы не открылись и так или у тебя нет инструментов Пачки, остановись и скажи.
+Создай бота, который отвечает сотрудникам в личных сообщениях и на упоминание. Скачай страницы документации и делай по ним: `curl -sL https://dev.pachca.com/guides/bots/conversations.md https://dev.pachca.com/guides/webhook/deploy.md`. Инструмент для веба отдаёт пересказ, бери его, только если curl не сработал. Если страницы не открылись и так или у тебя нет инструментов Пачки, остановись и скажи.
 
 1. Спроси, как назвать бота, что он отвечает и на чём писать обработчик: TypeScript или Python.
-2. Создай непубличного бота с токеном по разделу «Что настроить», без адреса вебхука: события он забирает потоком по разделу «Разработка на своей машине». Создай беседу для проверки с ботом.
-3. В этой папке напиши обработчик по разделам «Когда отвечать» и «Куда отвечать». Токен держи только в `.env`, добавленном в `.gitignore`. Запусти обработчик в фоне.
-4. Отправь мне от бота приветствие по разделу «Личные сообщения». Попроси меня ответить на него и упомянуть бота в беседе, проверь оба ответа.
-5. Перечисли, что создано, как перезапустить и как всё убрать.
+2. Создай непубличного бота с токеном по разделу «Что настроить», без адреса вебхука, и беседу для проверки с ботом.
+3. В этой папке напиши обработчик на основе раздела «Пример бота», отвечать он должен по разделам «Когда отвечать» и «Куда отвечать». Токен и Signing secret держи только в `.env`, добавленном в `.gitignore`.
+4. Запусти в фоне обработчик и пересылку событий из раздела «Разработка без публичного адреса» второй страницы.
+5. Отправь мне от бота приветствие по разделу «Личные сообщения». Попроси меня ответить на него и упомянуть бота в беседе, проверь оба ответа.
+6. Перечисли, что создано, как перезапустить и как всё убрать.
 
 Если мешают права, роль или настройки пространства, не обходи: скажи, что мешает и кто это изменит. Чего не можешь сам, дай мне готовыми командами.
 ```
@@ -61,7 +62,7 @@
 *Вкладка «Исходящий вебхук» с настройками из шагов выше*
 
 
-Как собрать из этих настроек работающего бота с кодом обработчика, показано в разделе [Первый бот](/guides/bots/first-bot). Бот с командой, кнопками и формой целиком — в разделе [Интерактивный бот](/guides/bots/interactive).
+Работающий бот с кодом обработчика на этих настройках — в разделе [Пример бота](#primer-bota). Бот с командой, кнопками и формой целиком — в разделе [Интерактивный бот](/guides/bots/interactive).
 
 ## Где бот общается
 
@@ -124,7 +125,7 @@ function isAddressed(event: { user_id: number; entity_type: string; content: str
 
 Упоминания в пересланном сообщении никого не зовут, а событие не говорит, что сообщение переслано. Если это важно, получите сообщение методом [Информация о сообщении](/api/messages/get) и пропустите его, когда поле `forwarding` не `null`.
 
-Свой `id`, имя и ник бот узнаёт методом [Информация о профиле](/api/profile/get) со своим токеном, а `id` есть и на вкладке **API** в карточке бота. Текст в `content` — markdown, который Пачка собирает из сообщения: в нём бывают цитаты и списки. Подробнее — в разделе [Разметка в исходящих вебхуках](/guides/markdown#razmetka-v-ishodyaschih-vebhukah).
+Свой `id`, имя и ник бот узнаёт методом [Свой профиль](/api/profile/get) со своим токеном, а `id` есть и на вкладке **API** в карточке бота. Текст в `content` — markdown, который Пачка собирает из сообщения: в нём бывают цитаты и списки. Подробнее — в разделе [Разметка в исходящих вебхуках](/guides/markdown#razmetka-v-ishodyaschih-vebhukah).
 
 ## Команды
 
@@ -261,6 +262,180 @@ function findRequest(event: {
 Чтобы начать разговор самому, например поприветствовать нового сотрудника, бот отправляет сообщение методом [Новое сообщение](/api/messages/create) с `entity_type: "user"` и идентификатором сотрудника в `entity_id`. Где взять идентификаторы сотрудников и чатов — в разделе [Где взять идентификаторы](/api/requests-responses#gde-vzyat-identifikatory).
 
 В личных сообщениях бот просит и доступ, когда ему нужны права самого сотрудника: присылает кнопку авторизации. Это отдельный путь со своими настройками — подробнее в разделах [Авторизация от имени сотрудника](/guides/oauth/overview) и [Чек-лист запуска](/guides/oauth/checklist).
+
+## Пример бота
+
+Бот из примера отвечает на каждое новое сообщение в чатах, где состоит: в беседе и канале тредом под сообщением, в треде и личных сообщениях там же, как в разделе [Куда отвечать](#kuda-otvechat). Поэтому проверяйте его в отдельной беседе. Боту нужны настройки из раздела [Что настроить](#chto-nastroit) с режимом **Любые сообщения** и токен с правами `messages:create`, `threads:create` и `profile:read`.
+
+Обработчик принимает события на порту `3000` по пути `/webhook`, проверяет подпись и время отправки и сразу отвечает `200`: Пачка ждёт ответа 5 секунд, все сроки — в разделе [Сроки ответа](/guides/webhook/handler#sroki-otveta). Почему подпись считают от сырого тела запроса и как проверить IP-адрес отправителя, описано в разделе [Безопасность](/guides/webhook/handler#bezopasnost). Свои сообщения код пропускает по `id` бота из метода [Свой профиль](/api/profile/get), даже если **Игнорировать свои сообщения** выключено.
+
+### TypeScript
+
+Пример работает на Node.js 18 или новее.
+
+```typescript title="bot.ts"
+import crypto from "node:crypto"
+import express from "express"
+
+const API = "https://api.pachca.com/api/shared/v1"
+const TOKEN = process.env.PACHCA_BOT_TOKEN ?? "" // токен бота
+const SIGNING_SECRET = process.env.PACHCA_SIGNING_SECRET ?? "" // Signing secret с вкладки «Исходящий вебхук»
+if (!TOKEN) throw new Error("Задайте PACHCA_BOT_TOKEN")
+
+// Запрос к API Пачки: возвращает поле data из ответа
+async function api(method: string, path: string, body?: unknown) {
+  const response = await fetch(`${API}${path}`, {
+    method,
+    headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+  if (!response.ok) throw new Error(`${method} ${path}: ${response.status} ${await response.text()}`)
+  return response.status === 204 ? null : (await response.json()).data
+}
+
+type PachcaEvent = {
+  type: string
+  event: string
+  id: number
+  entity_type: "discussion" | "thread" | "user"
+  entity_id: number
+  user_id: number
+}
+
+let botId: number | undefined // id бота, узнаём методом «Свой профиль» при первом событии
+
+async function handleEvent(event: PachcaEvent) {
+  if (event.type !== "message" || event.event !== "new") return
+  botId ??= (await api("GET", "/profile")).id
+  if (event.user_id === botId) return // своё сообщение
+
+  // Из беседы или канала отвечаем тредом под сообщением, из треда и личных сообщений — туда же
+  let target = { entity_type: event.entity_type, entity_id: event.entity_id }
+  if (event.entity_type === "discussion") {
+    const thread = await api("POST", `/messages/${event.id}/thread`) // если тред уже есть, вернётся он
+    target = { entity_type: "thread", entity_id: thread.id }
+  }
+  await api("POST", "/messages", { message: { ...target, content: "Получил ваше сообщение, разбираюсь" } })
+}
+
+const app = express()
+
+// express.raw: подпись считают от сырого тела запроса
+app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  const expected = crypto.createHmac("sha256", SIGNING_SECRET).update(req.body).digest()
+  const received = Buffer.from(String(req.headers["pachca-signature"] ?? ""), "hex")
+  if (!SIGNING_SECRET || received.length !== expected.length || !crypto.timingSafeEqual(received, expected)) {
+    return res.status(401).end() // секрет не задан или подпись не совпала: запрос не принимаем
+  }
+
+  const event = JSON.parse(req.body.toString())
+  if (Math.abs(Date.now() / 1000 - event.webhook_timestamp) > 60) {
+    return res.status(401).end() // запрос старше минуты: его могли перехватить и отправить повторно
+  }
+
+  res.status(200).end() // отвечаем сразу, а сообщение отправляем после ответа
+  handleEvent(event).catch(console.error)
+})
+
+app.listen(3000)
+```
+
+```bash title="Запуск"
+npm install express
+export PACHCA_BOT_TOKEN="токен бота" PACHCA_SIGNING_SECRET="Signing secret"
+npx tsx bot.ts
+```
+
+### Python
+
+Сообщение пример отправляет в фоне через `threading.Thread`, чтобы ответить Пачке сразу.
+
+```python title="bot.py"
+import hashlib
+import hmac
+import json
+import os
+import threading
+import time
+
+import httpx
+from flask import Flask, request
+
+API = "https://api.pachca.com/api/shared/v1"
+HEADERS = {"Authorization": f"Bearer {os.environ['PACHCA_BOT_TOKEN']}"}  # токен бота
+SIGNING_SECRET = os.environ.get("PACHCA_SIGNING_SECRET", "")  # Signing secret с вкладки «Исходящий вебхук»
+
+
+def api(method, path, body=None):
+    """Запрос к API Пачки: возвращает поле data из ответа."""
+    response = httpx.request(method, API + path, headers=HEADERS, json=body)
+    response.raise_for_status()
+    return response.json()["data"] if response.content else None
+
+
+bot_id = None  # id бота, узнаём методом «Свой профиль» при первом событии
+
+
+def handle_event(event):
+    global bot_id
+    if event["type"] != "message" or event["event"] != "new":
+        return
+    if bot_id is None:
+        bot_id = api("GET", "/profile")["id"]
+    if event["user_id"] == bot_id:
+        return  # своё сообщение
+
+    # Из беседы или канала отвечаем тредом под сообщением, из треда и личных сообщений — туда же
+    target = {"entity_type": event["entity_type"], "entity_id": event["entity_id"]}
+    if event["entity_type"] == "discussion":
+        thread = api("POST", f"/messages/{event['id']}/thread")  # если тред уже есть, вернётся он
+        target = {"entity_type": "thread", "entity_id": thread["id"]}
+    api("POST", "/messages", {"message": {**target, "content": "Получил ваше сообщение, разбираюсь"}})
+
+
+app = Flask(__name__)
+
+
+@app.post("/webhook")
+def webhook():
+    raw_body = request.get_data()  # подпись считают от сырого тела запроса
+    expected = hmac.new(SIGNING_SECRET.encode(), raw_body, hashlib.sha256).hexdigest()
+    received = request.headers.get("Pachca-Signature", "")
+    if not SIGNING_SECRET or not hmac.compare_digest(expected.encode(), received.encode()):
+        return "", 401  # секрет не задан или подпись не совпала: запрос не принимаем
+
+    event = json.loads(raw_body)
+    if abs(time.time() - event["webhook_timestamp"]) > 60:
+        return "", 401  # запрос старше минуты: его могли перехватить и отправить повторно
+
+    # Отвечаем сразу, а сообщение отправляем в фоне
+    threading.Thread(target=handle_event, args=(event,)).start()
+    return "", 200
+
+
+if __name__ == "__main__":
+    app.run(port=3000)
+```
+
+```bash title="Запуск"
+pip install flask httpx
+export PACHCA_BOT_TOKEN="токен бота" PACHCA_SIGNING_SECRET="Signing secret"
+python bot.py
+```
+
+### Проверка
+
+Запустите обработчик и подключите к нему события одним из способов:
+
+- **Адрес в интернете** — укажите адрес обработчика в **Webhook URL**, например `https://bot.example.com/webhook`, как в разделе [Что настроить](#chto-nastroit).
+- **Своя машина** — команда CLI `pachca bots listen-events --forward-to http://localhost:3000/webhook` пересылает события обработчику без публичного адреса и подписывает их секретом из `PACHCA_SIGNING_SECRET`. **Webhook URL** у такого бота пустой, а токену нужны ещё права `webhooks:events:read` и `webhooks:events:delete`. Подойдёт и туннель с адресом в **Webhook URL**. С обоими способами обработчик работает без изменений, подробнее в разделе [Разработка и запуск обработчика](/guides/webhook/deploy).
+
+Напишите в беседе с ботом или ответьте в треде под его сообщением: бот ответит в тред. Если ответа нет:
+
+- **Обработчик не получает запросов** — проверьте, что бот состоит в беседе, отмечено **Новые сообщения** с режимом **Любые сообщения**, а адрес в **Webhook URL** заканчивается на `/webhook` и сохранён кнопкой **Сохранить**
+- **Команда `listen-events` остановилась с ошибкой** — у токена нет права `webhooks:events:read` или `webhooks:events:delete`, или у бота выключено **Сохранять историю событий**
+- **Обработчик отвечает `401`** — **Signing secret** не задан в переменной окружения обработчика или команды CLI, отличается от секрета на вкладке, или часы сервера расходятся с точным временем больше чем на минуту
+- **Запрос к API отвечает `403` с кодом `insufficient_scope`** — токену не хватает одного из прав выше, его добавляют в меню токена
 
 
 ## Связанные разделы

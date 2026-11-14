@@ -177,7 +177,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     ['Авторизация и выбор токена', '/api/authorization.md'],
     ['Отправить сообщение', '/api/messages/create.md'],
     ['Уведомления из внешней системы: входящий вебхук', '/guides/incoming-webhooks.md'],
-    ['Первый бот: отправить сообщение и получить ответ', '/guides/bots/first-bot.md'],
+    ['Создание бота: от создания до первого ответа', '/guides/bots/setup.md'],
     ['Общение с ботом: команды, упоминания, ответ в тред', '/guides/bots/conversations.md'],
     ['Боты: что выбрать под задачу', '/guides/bots/overview.md'],
     ['Получать события через вебхуки', '/guides/webhook/overview.md'],
@@ -222,7 +222,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '## Своя интеграция\n\n';
   content +=
     'Обычно интеграция работает через бота: сервис пишет и читает чаты от его имени. Весь путь по шагам — ' +
-    `[Первый бот](${SITE_URL}/guides/bots/first-bot.md), бот с командой, кнопками и формой — ` +
+    `[Создание бота](${SITE_URL}/guides/bots/setup.md), бот с командой, кнопками и формой — ` +
     `[Интерактивный бот](${SITE_URL}/guides/bots/interactive.md).\n\n`;
   content +=
     '1. **Бот и токен.** **Интеграции** > **Боты** > **Создать бота**, затем на вкладке **API** ' +

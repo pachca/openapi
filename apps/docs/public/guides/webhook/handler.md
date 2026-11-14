@@ -107,7 +107,7 @@ if (received.length !== expected.length || !crypto.timingSafeEqual(received, exp
 
 ## Реализация webhook handler
 
-Полный пример обработки вебхуков на TypeScript (Express.js) и Python (Flask) с проверкой подписи, защитой от replay-атак и обработкой всех типов событий. Обработчики ниже берут **Signing secret** из переменной окружения `PACHCA_SIGNING_SECRET` и только записывают события в лог. Как из обработчика ответить в чат, показано в разделе [Первый бот](/guides/bots/first-bot), а как по нажатию кнопки открыть форму и ответить в тред — в разделе [Интерактивный бот](/guides/bots/interactive). Типы тел событий для TypeScript есть в SDK: как их подключить, описано в разделе [Тело вебхука](/guides/sdk/typescript#telo-vebhuka).
+Полный пример обработки вебхуков на TypeScript (Express.js) и Python (Flask) с проверкой подписи, защитой от replay-атак и обработкой всех типов событий. Обработчики ниже берут **Signing secret** из переменной окружения `PACHCA_SIGNING_SECRET` и только записывают события в лог. Как из обработчика ответить в тред, показано в разделе [Пример бота](/guides/bots/conversations#primer-bota), а как по нажатию кнопки открыть форму и ответить в тред — в разделе [Интерактивный бот](/guides/bots/interactive). Типы тел событий для TypeScript есть в SDK: как их подключить, описано в разделе [Тело вебхука](/guides/sdk/typescript#telo-vebhuka).
 
 ### TypeScript (Express.js)
 

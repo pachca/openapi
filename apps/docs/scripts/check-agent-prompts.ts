@@ -37,7 +37,7 @@ function walk(dir: string): string[] {
   });
 }
 
-/** `content/guides/bots/first-bot.mdx` → `guides/bots/first-bot` */
+/** `content/guides/bots/setup.mdx` → `guides/bots/setup` */
 const routeOf = (file: string) => path.relative(CONTENT, file).replace(/\.mdx$/, '');
 
 /** Headings and step titles of a page: what a prompt may call «раздел» or «шаг». */
@@ -191,7 +191,7 @@ for (const prompt of prompts) {
   if ('pages' in data) {
     const listed = Array.isArray(data.pages) ? data.pages : [];
     if (listed.length === 0 || !listed.every((page) => typeof page === 'string')) {
-      fail(where, 'поле pages: список страниц вида guides/bots/first-bot');
+      fail(where, 'поле pages: список страниц вида guides/bots/setup');
     } else if (listed[0] !== routeOf(home)) {
       fail(where, `поле pages: первой идёт страница с блоком, ${routeOf(home)}`);
     }

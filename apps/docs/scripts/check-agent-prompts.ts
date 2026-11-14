@@ -37,8 +37,12 @@ function walk(dir: string): string[] {
   });
 }
 
-/** `content/guides/bots/setup.mdx` → `guides/bots/setup` */
-const routeOf = (file: string) => path.relative(CONTENT, file).replace(/\.mdx$/, '');
+/** `content/guides/bots/setup.mdx` → `guides/bots/setup`; the home page `content/home.mdx` → `index` */
+const routeOf = (file: string) =>
+  path
+    .relative(CONTENT, file)
+    .replace(/\.mdx$/, '')
+    .replace(/^home$/, 'index');
 
 /** Headings and step titles of a page: what a prompt may call «раздел» or «шаг». */
 function sectionTitles(file: string): Set<string> {
@@ -189,11 +193,15 @@ for (const prompt of prompts) {
   const home = pages[0];
   const homeUrl = `${SITE}/${routeOf(home)}.md`;
 
-  if (!text.includes(homeUrl)) {
-    fail(where, `нет адреса своей страницы ${homeUrl}: по ней агент выполняет задачу`);
-  }
-  if (!text.includes(`curl -sL ${homeUrl}`)) {
-    fail(where, `нет команды «curl -sL ${homeUrl}»: ею агент скачивает страницу целиком`);
+  // The start prompt of the home page connects Pachca by the connection page and then asks
+  // what to do: the home page itself is not what the agent works by.
+  if (routeOf(home) !== 'index') {
+    if (!text.includes(homeUrl)) {
+      fail(where, `нет адреса своей страницы ${homeUrl}: по ней агент выполняет задачу`);
+    }
+    if (!text.includes(`curl -sL ${homeUrl}`)) {
+      fail(where, `нет команды «curl -sL ${homeUrl}»: ею агент скачивает страницу целиком`);
+    }
   }
   // The opening with curl is assembled from `pages` in lib/agent-prompts.ts: the first page is
   // the one that shows the block, and the file itself does not repeat the common sentence.

@@ -49,7 +49,7 @@ export function AgentPromptText({ id, text }: { id: string; text: string }) {
   const folded = foldable && !open;
 
   return (
-    <div ref={rootRef} className="border-y border-glass-border bg-glass px-4 pt-3.5 pb-3 sm:px-5">
+    <div ref={rootRef} className="border-y border-glass-border bg-glass px-4 pt-3.5 pb-3 @md:px-5">
       <pre
         ref={preRef}
         id={`agent-prompt-${id}`}

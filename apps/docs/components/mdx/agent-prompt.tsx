@@ -23,9 +23,9 @@ export function AgentPrompt({ id }: { id: string }) {
   return (
     <section
       aria-label={prompt.title}
-      className="not-prose my-6 overflow-hidden rounded-xl border border-glass-border"
+      className="@container not-prose my-6 overflow-hidden rounded-xl border border-glass-border"
     >
-      <div className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:px-5">
+      <div className="flex flex-col gap-3 px-4 py-3.5 @md:flex-row @md:items-center @md:justify-between @md:gap-5 @md:px-5">
         <div className="flex min-w-0 gap-2">
           <Sparkles className="mt-[3px] h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={2} />
           <div className="min-w-0">
@@ -41,7 +41,7 @@ export function AgentPrompt({ id }: { id: string }) {
       </div>
       {/* Первые строки видны сразу, остальное разворачивается: читатель видит, что отдаёт агенту. */}
       <AgentPromptText id={id} text={prompt.text} />
-      <div className="px-4 py-2.5 text-[13px] leading-[1.5] text-text-secondary sm:px-5">
+      <div className="px-4 py-2.5 text-[13px] leading-[1.5] text-text-secondary @md:px-5">
         {hint.before}
         {hint.link && (
           <Link

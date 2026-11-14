@@ -52,5 +52,6 @@ export function HomeHeroContent({
 }
 
 export function HomeHeroCode({ children }: { children: React.ReactNode }) {
-  return <div>{children}</div>;
+  // Блок промпта стоит первым и выравнивается по верху колонки, как заголовок слева.
+  return <div className="[&>section:first-child]:mt-0">{children}</div>;
 }

@@ -73,7 +73,7 @@
 Меняйте настройки узлов IF, Switch, Pachca — при нажатии **Execute Step** они будут получать зафиксированный вход триггера. Не нужно ждать новых событий от Пачки.
 
 
-  ### Шаг 4. Уберите Pin перед активацией
+  ### Шаг 4. Снимите Pin перед публикацией
 
 Закреплённые данные действуют только при запуске из редактора, продакшен-запуски после **Publish** их не используют. Снимите Pin, когда отладка закончена, чтобы следующий тестовый запуск снова получил настоящее событие.
 
@@ -148,7 +148,7 @@
 Этот способ подходит для регулярной отладки и для команды: каждый разработчик может завести свой тестовый бот.
 
 
-  ### Шаг 2. Временная деактивация продакшен-workflow
+  ### Шаг 2. Временное снятие с публикации
 
 Если второго бота нет, перед тестом снимите продакшен-workflow с публикации: в меню рядом с кнопкой **Publish** в правом верхнем углу выберите **Unpublish**. В автоматическом режиме узел **Pachca Trigger** освободит слот: запишет пустой `outgoing_url` методом [Саморегистрация вебхука бота](/api/bots/update-webhook) или [Редактирование бота](/api/bots/update), в зависимости от токена.
 
@@ -249,8 +249,8 @@ sequenceDiagram
 ## Если что-то пошло не так
 
 - **Вебхук не приходит** — проверьте, что бот в чате, событие отмечено на вкладке **Исходящий вебхук** и workflow опубликован. Симптомы и решения: [Вебхук не приходит](/guides/n8n/troubleshooting#vebhuk-ne-prihodit).
-- **403 при активации Pachca Trigger** — токену не хватает прав: для токена бота `profile:read` и `bot_self:webhook:write`, для персонального `bots:write` плюс доступ редактора к боту. Решение: [403 Forbidden при активации Pachca Trigger](/guides/n8n/troubleshooting#403-forbidden-pri-aktivatsii-pachca-trigger).
-- **Ошибка подписи** — узел молча отклоняет событие, и в **Executions** нет запуска, если Webhook Signing Secret в Credentials не совпадает с секретом бота. Решение: [Ошибка подписи](/guides/n8n/troubleshooting#oshibka-podpisi-signature-mismatch).
+- **403 при публикации Pachca Trigger** — токену не хватает прав: для токена бота `profile:read` и `bot_self:webhook:write`, для персонального `bots:write` плюс доступ редактора к боту. Решение: [403 Forbidden при активации Pachca Trigger](/guides/n8n/troubleshooting#403-forbidden-pri-publikatsii-pachca-trigger).
+- **Ошибка подписи** — узел молча отклоняет событие, и в **Executions** нет запуска, если Webhook Signing Secret в Credentials не совпадает с секретом бота. Решение: [Событие отклонено проверкой подписи или IP](/guides/n8n/troubleshooting#sobytie-otkloneno-proverkoy-podpisi-ili-ip).
 - **401 Unauthorized** — неверный или просроченный токен. Решение: [401 Unauthorized](/guides/n8n/troubleshooting#nevernyy-token-401-unauthorized).
 
 Полный список типовых ошибок — в разделе [Устранение ошибок](/guides/n8n/troubleshooting).

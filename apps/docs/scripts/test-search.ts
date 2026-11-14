@@ -1306,7 +1306,7 @@ await test('current page: a word of its title does not lead with an arbitrary st
     []
   );
   assert.equal(
-    ranked.find((r) => r.entry.url === `${trigger}#vernites-v-n8n-i-aktiviruyte`)?.match,
+    ranked.find((r) => r.entry.url === `${trigger}#vernites-v-n8n-i-opublikuyte-workflow`)?.match,
     'partial'
   );
 });

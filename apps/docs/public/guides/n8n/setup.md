@@ -111,8 +111,7 @@ npm install n8n-nodes-pachca
 ### Если расширение не видно в поиске
 
 - **n8n Cloud:** verified-ноды включены по умолчанию. Если в поиске их нет, instance owner мог отключить их в Cloud Admin Panel — попросите включить.
-- **Self-hosted:** убедитесь, что переменная `N8N_COMMUNITY_PACKAGES_ENABLED=true` (это значение по умолчанию для актуальных версий n8n).
-- **Старая версия n8n** (< 1.0): community-ноды не поддерживаются — обновите n8n.
+- **Self-hosted** или **старая версия n8n** — что проверить, описано в разделе [Расширение не появляется в Nodes panel](/guides/n8n/troubleshooting#rasshirenie-ne-poyavlyaetsya-v-nodes-panel).
 
 Подробнее — в [официальных доках n8n про verified-ноды](https://docs.n8n.io/integrations/community-nodes/installation/verified-install/).
 

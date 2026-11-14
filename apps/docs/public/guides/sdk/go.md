@@ -62,7 +62,7 @@ client := pachca.NewPachcaClient("YOUR_TOKEN", pachca.WithBaseURL("https://custo
 | Параметр | Тип | По умолчанию | Описание |
 |----------|-----|-------------|----------|
 | `token` | `string` | — | Bearer-токен для авторизации |
-| `opts` | `...ClientOption` | — | Необязательные настройки. `pachca.WithBaseURL(url)` меняет базовый URL API, по умолчанию `https://api.pachca.com/api/shared/v1`. |
+| `opts` | `...ClientOption` | — | Необязательные настройки. `pachca.WithBaseURL(url)` меняет базовый URL API, по умолчанию `https://api.pachca.com/api/shared/v1`. Опции вида `pachca.WithMessages(service)` подменяют сервис своей реализацией. |
 
 Все методы принимают `context.Context` первым аргументом — используйте его для таймаутов и отмены:
 
@@ -72,6 +72,10 @@ defer cancel()
 
 user, err := client.Profile.GetProfile(ctx)
 ```
+
+Для прокси, TLS и других настроек транспорта передайте готовый `*http.Client` в `pachca.NewPachcaClientWithHTTP(pachca.PachcaAPIURL, httpClient)`. Заголовок `Authorization` такой клиент ставит сам, например своим `http.RoundTripper`. Повторы SDK у него сохраняются. Переходы по редиректам в нём выключите: `CheckRedirect` должен возвращать `http.ErrUseLastResponse`, иначе `DownloadExport` вернёт ошибку вместо ссылки на архив.
+
+Для тестов без сети есть клиент-заглушка: `pachca.NewStubPachcaClient(pachca.WithStubMessages(&fakeMessages{}))`. В нём подменяют только нужные сервисы, встроив в свой тип `pachca.MessagesServiceStub` и переопределив нужные методы. Метод, который вы не переопределили, возвращает ошибку `NotImplementedError`.
 
 ## Все методы
 
@@ -189,7 +193,7 @@ user, err := client.Profile.GetProfile(ctx)
 
 ## Запросы
 
-Все методы — синхронные и возвращают `(*T, error)`.
+Все методы синхронные. Метод с телом ответа возвращает `(*T, error)`, метод без тела, например `DeleteBot` или `ArchiveChat`, возвращает только `error`, а методы `*All()` возвращают `([]T, error)`.
 
 **GET с параметрами:**
 
@@ -279,7 +283,7 @@ request := pachca.BotUpdateRequest{
 
 ## Пагинация
 
-Поля пагинации называются как в API, но в PascalCase: `Meta.Paginate.NextPage`, `PrevPage`, `HasNext` и `HasPrev`, а у методов поиска ещё `Meta.Total`. Необязательные поля, в том числе `HasNext`, приходят указателями. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в PascalCase: `Meta.Paginate.NextPage`, `PrevPage`, `HasNext` и `HasPrev`. У методов поиска в `Meta.Paginate` только `NextPage` и `HasNext`, зато есть `Meta.Total`. Необязательные поля, в том числе `HasNext`, приходят указателями. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -308,7 +312,7 @@ for {
 
 ### Автопагинация
 
-Для каждого метода с пагинацией есть `*All()` вариант:
+Для каждого метода с пагинацией, кроме `ReadMembers.ListReadMembers()`, есть `*All()` вариант:
 
 ```go
 // Все чаты одним слайсом
@@ -350,7 +354,7 @@ SDK возвращает два типа ошибок (реализуют инт
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
+Возникает при ответе с массивом `errors` в теле: это коды `400`, `402`, `403`, `404`, `409`, `410`, `422`, `429`, `503` и `504`. Ответы `429` и `5xx` SDK сначала повторяет по правилам из раздела [Повторные запросы](#povtornye-zaprosy), а `*ApiError` возвращает, если повторы не помогли или не положены:
 
 ```go
 _, err := client.Chats.CreateChat(ctx, request)
@@ -379,7 +383,7 @@ if err != nil {
 
 ### OAuthError
 
-Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `Err` (в JSON это `error`), список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```go
 user, err := client.Profile.GetProfile(ctx)
@@ -398,13 +402,63 @@ if err != nil {
 
 Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 с заголовком `Retry-After` до минуты:** срок из заголовка
+- **429 с `Retry-After` дольше минуты:** без повтора, метод сразу возвращает `*ApiError` с кодом статуса `429`
 - **429 без заголовка:** 1 сек, 2 сек, 4 сек
 - **5xx:** ~10 сек, ~20 сек, ~40 сек
+
+Срок дольше минуты бывает только у суточного предела сообщений и блокировки отправки, они описаны на странице [Лимиты](/api/limits). Самого заголовка `Retry-After` в `ApiError` нет.
 
 Сетевую ошибку без ответа сервера SDK не повторяет и сразу возвращает её из метода. Тело запроса для каждой попытки SDK создаёт заново через `req.GetBody()`.
 
 Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
+
+## Загрузка файлов
+
+Загрузка файла идёт в три шага: получить параметры загрузки, отправить файл по адресу `DirectURL` и прикрепить его к сообщению по ключу. Поля каждого шага описаны в разделе [Файлы](/api/file-uploads).
+
+```go
+filename := "report.pdf"
+data, err := os.ReadFile(filename)
+if err != nil {
+    log.Fatal(err)
+}
+
+// 1. Получить параметры загрузки и подставить имя файла в ключ
+params, err := client.Files.GetUploadParams(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+key := strings.Replace(params.Key, "${filename}", filename, 1)
+
+// 2. Загрузить файл по адресу DirectURL
+err = client.Files.UploadFile(ctx, params.DirectURL, pachca.FileUploadRequest{
+    ContentDisposition: params.ContentDisposition,
+    ACL:                params.ACL,
+    Policy:             params.Policy,
+    XAMZCredential:     params.XAMZCredential,
+    XAMZAlgorithm:      params.XAMZAlgorithm,
+    XAMZDate:           params.XAMZDate,
+    XAMZSignature:      params.XAMZSignature,
+    Key:                key,
+    Bucket:             params.Bucket,
+    File:               bytes.NewReader(data),
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+// 3. Отправить сообщение с файлом
+_, err = client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{
+    Message: pachca.MessageCreateRequestMessage{
+        EntityID: chatID,
+        Content:  pachca.Ptr("Отчёт за неделю"),
+        Files: []pachca.MessageCreateRequestFile{
+            {Key: key, Name: filename, FileType: pachca.Ptr(pachca.FileTypeFile), Size: pachca.Ptr(int64(len(data)))},
+        },
+    },
+})
+```
 
 ## Типы
 
@@ -434,7 +488,7 @@ var oauthErr *pachca.OAuthError
 
 Перечисление — строковый тип, поэтому значение, которого SDK ещё не знает, приходит в ответе как есть.
 
-Все перечисления SDK: `AuditEventKey`, `AuditLoginGrantDenyReason`, `AuditLoginGrantDevicePlatform`, `BotCanEdit`, `BotEventName`, `BotTemplateEngine`, `BotTriggerOn`, `BotWebhookKind`, `BotWhoCanAdd`, `ChatActivity`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSortField`, `ChatSubtype`, `CustomPropertyDataType`, `DraftRepetitionInterval`, `DraftType`, `FileTarget`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `MessageSearchSort`, `MessageSortField`, `OAuthErrorCode`, `OAuthScope`, `OAuthTokenTypeHint`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserCreateRole`, `UserEventType`, `UserRole`, `UserRoleInput`, `ValidationErrorCode`, `VideoCallEventType`, `VoiceTranscriptStatus` и `WebhookEventType`.
+Все перечисления SDK: `AuditEventKey`, `AuditLoginGrantDenyReason`, `AuditLoginGrantDevicePlatform`, `BotCanEdit`, `BotEventName`, `BotTemplateEngine`, `BotTriggerOn`, `BotWebhookKind`, `BotWhoCanAdd`, `ChatActivity`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSortField`, `ChatSubtype`, `CompanyManagementAccess`, `CustomPropertyDataType`, `DraftRepetitionInterval`, `DraftType`, `FileTarget`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `MessageSearchSort`, `MessageSortField`, `MessageSource`, `OAuthErrorCode`, `OAuthScope`, `OAuthTokenTypeHint`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserCreateRole`, `UserEventType`, `UserRole`, `UserRoleInput`, `ValidationErrorCode`, `VideoCallEventType`, `VoiceTranscriptStatus` и `WebhookEventType`.
 
 ## Тело вебхука
 

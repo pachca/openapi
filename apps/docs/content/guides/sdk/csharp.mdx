@@ -60,13 +60,17 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 
 Клиент реализует `IDisposable` — рекомендуется использовать `using` для автоматического освобождения ресурсов.
 
+Для прокси, таймаутов и других параметров HTTP передайте готовый `HttpClient`: `new PachcaClient(PachcaConstants.PachcaApiUrl, http)`. Заголовок `Authorization` задайте в `http.DefaultRequestHeaders`, а переходы по редиректам выключите (`AllowAutoRedirect = false` в обработчике), иначе `DownloadExportAsync` выбросит ошибку вместо ссылки на архив. Повторы SDK у такого клиента сохраняются, а `Dispose()` закрывает и переданный `HttpClient`.
+
+Для тестов без сети есть клиент-заглушка: `PachcaClient.Stub(messages: fakeMessages)`. В нём подменяют только нужные сервисы: класс наследует сервис, например `MessagesService`, и переопределяет нужные методы. Метод, который вы не переопределили, выбрасывает `NotImplementedException`.
+
 ## Все методы
 
 <SdkCommands lang="csharp" />
 
 ## Запросы
 
-Все методы — асинхронные и возвращают `Task<T>`.
+Все методы асинхронные. Метод с телом ответа возвращает `Task<T>`, метод без тела, например `DeleteBotAsync`, возвращает `Task`, а `PollWebhookEventsAsync` и `PollWebhookPayloadsAsync` возвращают `IAsyncEnumerable<T>`.
 
 **GET с параметрами:**
 
@@ -104,7 +108,7 @@ var request = new BotUpdateRequest
 
 ## Пагинация
 
-Поля пагинации называются как в API, но в PascalCase: `Meta.Paginate.NextPage`, `PrevPage`, `HasNext` и `HasPrev`, а у методов поиска ещё `Meta.Total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в PascalCase: `Meta.Paginate.NextPage`, `PrevPage`, `HasNext` и `HasPrev`. У методов поиска в `Meta.Paginate` только `NextPage` и `HasNext`, зато есть `Meta.Total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -127,7 +131,7 @@ while (hasNext)
 
 ### Автопагинация
 
-Для каждого метода с пагинацией есть `*AllAsync()` вариант, который автоматически обходит все страницы и возвращает плоский список:
+Для каждого метода с пагинацией, кроме `ReadMembers.ListReadMembersAsync()`, есть `*AllAsync()` вариант, который автоматически обходит все страницы и возвращает плоский список:
 
 ```csharp
 // Все чаты одним списком
@@ -166,7 +170,7 @@ SDK выбрасывает два типа исключений:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
+Возникает при ответе с массивом `errors` в теле: это коды `400`, `402`, `403`, `404`, `409`, `410`, `422`, `429`, `503` и `504`. Ответы `429` и `5xx` SDK сначала повторяет по правилам из раздела [Повторные запросы](#povtornye-zaprosy), а `ApiError` выбрасывает, если повторы не помогли или не положены:
 
 ```csharp
 using Pachca.Sdk;
@@ -199,7 +203,7 @@ catch (ApiError e)
 
 ### OAuthError
 
-Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `Error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```csharp
 using Pachca.Sdk;
@@ -221,9 +225,12 @@ catch (OAuthError e)
 
 Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 с заголовком `Retry-After` до минуты:** срок из заголовка
+- **429 с `Retry-After` дольше минуты:** без повтора, SDK сразу выбрасывает `ApiError` с кодом статуса `429`
 - **429 без заголовка:** 1 сек, 2 сек, 4 сек
 - **5xx:** ~10 сек, ~20 сек, ~40 сек
+
+Срок дольше минуты бывает только у суточного предела сообщений и блокировки отправки, они описаны на странице [Лимиты](/api/limits). Самого заголовка `Retry-After` в `ApiError` нет.
 
 Сетевую ошибку без ответа сервера SDK не повторяет: исключение `HttpRequestException` приходит сразу. Паузы прерывает `CancellationToken`, переданный в метод.
 
@@ -332,6 +339,8 @@ OAuthError oauthError;
 ```
 
 Перечисление в ответе — структура со строкой `Value`: значение, которого SDK ещё не знает, приходит как есть, и `IsKnown` у него `false`. Значения такого перечисления сравниваются через `==`, а в `switch` — по `Value`. Ту же строку, что и `Value`, возвращает `ToString()`.
+
+Все перечисления SDK: `AuditEventKey`, `AuditLoginGrantDenyReason`, `AuditLoginGrantDevicePlatform`, `BotCanEdit`, `BotEventName`, `BotTemplateEngine`, `BotTriggerOn`, `BotWebhookKind`, `BotWhoCanAdd`, `ChatActivity`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSortField`, `ChatSubtype`, `CompanyManagementAccess`, `CustomPropertyDataType`, `DraftRepetitionInterval`, `DraftType`, `FileTarget`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `MessageSearchSort`, `MessageSortField`, `MessageSource`, `OAuthErrorCode`, `OAuthScope`, `OAuthTokenTypeHint`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserCreateRole`, `UserEventType`, `UserRole`, `UserRoleInput`, `ValidationErrorCode`, `VideoCallEventType`, `VoiceTranscriptStatus` и `WebhookEventType`.
 
 ### Имена Task, Thread, File и TaskStatus
 

@@ -1,5 +1,5 @@
 > Расположение: SDK
-> Краткое содержание: Типизированный клиент для Pachca API на TypeScript: Node.js 18+ или любое окружение с fetch. Автодополнение, автопагинация и retry. npm-пакет @pachca/sdk
+> Краткое содержание: Типизированный клиент для Pachca API на TypeScript: Node.js 18+ и другие серверные среды с fetch. Автодополнение, автопагинация и retry. npm-пакет @pachca/sdk
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
 
@@ -8,7 +8,7 @@
 - [@pachca/sdk](https://www.npmjs.com/package/@pachca/sdk) npm
 
 
-Типизированный клиент для Pachca API. Работает в Node.js 18+ и в любом окружении с поддержкой `fetch`. Пакет подключается и как ES Module (`import`), и как CommonJS (`require`). TypeScript-декларации входят в пакет.
+Типизированный клиент для Pachca API. Работает в Node.js 18+ и в других серверных средах с поддержкой `fetch`. Со страницы сайта в браузере API не вызывают: подробнее — в разделе [Запросы из браузера](/api/requests-responses#zaprosy-iz-brauzera). Пакет подключается и как ES Module (`import`), и как CommonJS (`require`). TypeScript-декларации входят в пакет.
 
 ## Быстрый старт
 
@@ -58,6 +58,8 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `baseUrl` | `string` | `https://api.pachca.com/api/shared/v1` | Базовый URL API |
 
 Клиент не требует явного закрытия — все запросы используют глобальный `fetch`.
+
+Свои заголовки задаёт вторая форма конструктора: `new PachcaClient({ headers, baseUrl })`. Токен в ней передают сами, заголовком `Authorization` в `headers`. Для unit-тестов есть `PachcaClient.stub()`: клиент без HTTP, в который передают свои реализации сервисов, например `{ messages: new MockMessagesService() }`. Методы, которые вы не заменили, выбрасывают `Error("Service.method is not implemented")`.
 
 ## Все методы
 
@@ -175,7 +177,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 
 ## Запросы
 
-Все методы — асинхронные и возвращают `Promise`.
+Все методы — асинхронные и возвращают `Promise`. Исключение — `pollWebhookEvents` и `pollWebhookPayloads`: они отдают события по одному, их обходят через `for await`.
 
 **GET с параметрами:**
 
@@ -227,9 +229,19 @@ const response = await client.chats.getChat(334)
 ```
 
 
+Файл загружают в три шага: `getUploadParams()`, `uploadFile()` по адресу `directUrl` и сообщение с ключом файла. Пример — в разделе [Файлы](/api/file-uploads#typescript-sdk).
+
+### Значение null
+
+Необязательное поле со значением `undefined` в запрос не попадает, поэтому метод обновления меняет только то, что вы передали. Некоторые поля API принимают `null`: например, `null` в `oauthClient` выключает у бота авторизацию от имени сотрудника, а в `webhook.kind` удаляет входящий вебхук. В типах такие поля помечены `| null`, и SDK отправляет `null` как есть:
+
+```typescript
+await client.bots.updateBot(botId, { webhook: { kind: null } })
+```
+
 ## Пагинация
 
-Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`, а у методов поиска ещё `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
+Поля пагинации называются как в API, но в camelCase: `meta.paginate.nextPage`, `prevPage`, `hasNext` и `hasPrev`. У методов поиска в `meta.paginate` только `nextPage` и `hasNext`, зато есть `meta.total`. Какие поля приходят у каждого метода и как понять, что страницы закончились, описано в разделе [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -291,7 +303,7 @@ SDK выбрасывает два типа ошибок:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
+Возникает при ответе с массивом `errors` в теле: это коды `400`, `402`, `403`, `404`, `409`, `410`, `422`, `429`, `503` и `504`. Ответы `429` и `5xx` SDK сначала повторяет по правилам из раздела [Повторные запросы](#povtornye-zaprosy), а `ApiError` выбрасывает, если повторы не помогли или не положены:
 
 ```typescript
 import { PachcaClient, ApiError } from "@pachca/sdk"
@@ -342,13 +354,13 @@ try {
 
 Паузы между попытками, к каждой SDK добавляет случайную величину до 25%:
 
-- **429 с заголовком `Retry-After`:** срок из заголовка
+- **429 с заголовком `Retry-After` до минуты:** срок из заголовка
 - **429 без заголовка:** 1 сек, 2 сек, 4 сек
 - **5xx:** 1 сек, 2 сек, 3 сек
 
 Сетевую ошибку без ответа сервера SDK не повторяет: исключение из `fetch` приходит сразу.
 
-Общие правила повторов — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
+Какие ответы и методы SDK повторяет, описано в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry).
 
 ## Сериализация
 
@@ -367,6 +379,8 @@ SDK автоматически конвертирует имена полей м
 // Вы получаете:
 { lastMessageAt: "2025-01-01T00:00:00Z" }
 ```
+
+Ключи словарей SDK не меняет: это данные, а не имена полей. Так остаются как есть адреса в `linkPreviews`, имена полей формы в `data` события `view` и ключи `payload` у ошибки: `payload.draft_id`, а не `draftId`.
 
 ## Типы
 

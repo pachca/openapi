@@ -71,7 +71,7 @@
 
 Версия 2.0 — полностью автогенерируемая из OpenAPI-спецификации с сохранением 100% обратной совместимости с v1.
 
-- **Новые ресурсы:** Chat Member, Draft, Important Message, OAuth, Read Member, Search, Security (экспорт чата и unfurl — операции внутри Chat и Message)
+- **Новые ресурсы:** Chat Member, Draft, Important Message, OAuth, Read Member, Search, Security, Workspace (экспорт чата и unfurl — операции внутри Chat и Message)
 - **Курсорная пагинация** с Return All / Limit вместо ручного `per`/`page`
 - **AI Tool Use** — `usableAsTool: true` для использования с AI Agent
 - **Узел Pachca Trigger** с ручной и автоматической регистрацией вебхука и 19 событиями

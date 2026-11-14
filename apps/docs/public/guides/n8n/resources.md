@@ -316,6 +316,8 @@
 | Create | [Открытие представления](/api/views/open) |
 | Submit Response | [Ответ на отправку формы](/api/views/submit-response) |
 
+**Submit Response** нужен, только если у бота нет адреса вебхука и отправку формы он забирает из истории событий операцией **Bot** > **Get Many Events** или **Get Stream**, подробнее в разделе [Ответ через историю событий](/guides/forms/handling#otvet-cherez-istoriyu-sobytiy). Отправку, которая пришла в Pachca Trigger, Пачка закрывает по ответу узла на вебхук. Узел отвечает сразу, поэтому форма закрывается, а показать сотруднику ошибки под полями из такого workflow нельзя.
+
 Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#formy) и в [документации форм](/guides/forms/overview).
 
 ---
@@ -404,6 +406,8 @@
 - **Return All** = `true` — получить все результаты автоматически, переключаясь между страницами
 - **Return All** = `false` — получить не более **Limit** результатов (по умолчанию 50)
 
+**Limit** не больше 50, у **Search** > **Get Many Chats** до 100, у **Get Many Messages** и **Get Many Users** в **Search** до 200, у **Read Member** до 300. Чтобы получить больше, включите **Return All**.
+
 ![Переключатель Return All и поле Limit в узле Pachca](/images/n8n/return-all.avif)
 
 *Return All и Limit для операции Get Many*
@@ -452,7 +456,7 @@ n8n автоматически отправляет повторные запр�
 | **ID** и **User ID** в операциях User, **User ID** в Chat Member | Сотрудники |
 | **Entity ID** в Message > Create | Чаты при **Entity Type** = Discussion, сотрудники при User |
 
-Без введённого текста список приходит из методов [Список чатов](/api/chats/list) и [Список сотрудников](/api/users/list), с текстом — из [Поиск чатов](/api/search/list-chats) и [Поиск сотрудников](/api/search/list-users). Поэтому в списке только то, что доступно токену из Credentials, и токену нужны права на эти методы, например `chats:read` и `search:chats` для чатов. При **Entity Type** = Thread список пуст: укажите id треда в режиме **By ID**. Как найти идентификатор без списка — в разделе [Где взять идентификаторы](/api/requests-responses#gde-vzyat-identifikatory).
+Без введённого текста список приходит из методов [Список чатов](/api/chats/list) и [Список сотрудников](/api/users/list), с текстом — из [Поиск чатов](/api/search/list-chats) и [Поиск сотрудников](/api/search/list-users). Поэтому в списке только то, что доступно токену из Credentials, и токену нужны права на эти методы, например `chats:read` и `search:chats` для чатов. При **Entity Type** = Thread список пуст: укажите id треда в режиме **By ID**. В полях чата, кроме **Entity ID**, есть и режим **By URL**: вставьте ссылку на чат из веб-приложения, например `https://app.pachca.com/chats/12345`, и узел возьмёт из неё id. Как найти идентификатор без списка — в разделе [Где взять идентификаторы](/api/requests-responses#gde-vzyat-identifikatory).
 
 
 ## Связанные разделы

@@ -54,9 +54,11 @@ npx -y @pachca/generator --spec https://example.com/openapi.yaml --output ./gene
 | Параметр | Описание |
 |----------|----------|
 | `--spec <path\|url>` | Путь или URL к OpenAPI 3.0 YAML (по умолчанию: `https://dev.pachca.com/openapi.yaml`) |
-| `--output <dir>` | Директория для сгенерированного кода |
+| `--output <dir>` | Директория для сгенерированного кода. Код каждого языка ложится в свою подпапку: `ts`, `py`, `go`, `kt`, `swift` и `cs` |
 | `--lang <langs>` | Языки через запятую: `typescript`, `python`, `go`, `kotlin`, `swift`, `csharp` |
 | `--examples` | Генерировать `examples.json` с примерами вызовов. Если у тела запроса есть именованные примеры, код каждого из них лежит в поле `examples` записи метода по ключу примера. |
+
+Генератор пишет только исходники клиента, без файла пакета. Зависимости поставьте сами: `httpx` для Python, Ktor и kotlinx для Kotlin. Их версии перечислены в разделе «Зависимости» на страницах [Python](/guides/sdk/python#zavisimosti) и [Kotlin](/guides/sdk/kotlin#zavisimosti). Код на Python импортирует свои модули относительно, поэтому папку `py` подключают как пакет.
 
 ## Возможности
 
@@ -66,7 +68,7 @@ npx -y @pachca/generator --spec https://example.com/openapi.yaml --output ./gene
 | **Автопагинация** | Методы для автоматического обхода всех страниц: `*All()` в TypeScript, Go, Kotlin и Swift, `*_all()` в Python, `*AllAsync()` в C# |
 | **Повторные запросы** | SDK повторяет запросы сам. Паузы между попытками описаны на странице каждого языка, общие правила — в разделе [Повторные запросы](/api/limits#povtornye-zaprosy-retry). |
 | **Обработка ошибок** | Типизированные `ApiError` и `OAuthError` |
-| **Сериализация** | Автоматическая конвертация между форматами (snake_case ↔ camelCase) |
+| **Сериализация** | Поля названы по правилам языка, как в строке Naming раздела [Сравнение языков](#sravnenie-yazykov). SDK сам переводит их в имена API и обратно |
 | **Авторизация** | Bearer-токен передаётся один раз при создании клиента |
 
 ## Пример

@@ -94,7 +94,7 @@ related:
 | `bot_oauth_client_secret_issued`, `bot_oauth_client_secret_rotated` | `bot_id`, `actor_id`, `client_id` |
 | `bot_oauth_client_disabled` | `bot_id`, `actor_id`, `client_id`, `deleted_access_tokens_count`, `deleted_access_grants_count` |
 | `oauth_authorization_revoked` | `client_id`, `application_id`, `application_name`, `revoked_tokens_count`. `bot_id` и `bot_name` — у бота. `user_id` — когда доступ сотрудника отозвал администратор. |
-| `oauth_device_authorization_approved`, `oauth_device_authorization_denied` | `client_id`, `scopes`, `device_name` |
+| `oauth_device_authorization_approved`, `oauth_device_authorization_denied` | `client_id`, `scopes`, `device_name`, `device_grant_id` — идентификатор запроса на вход. `token_kind` — `cli` у входа в CLI или `outlook` у входа в надстройку Outlook. `application_id` и `application_name` — у подтверждённого входа в CLI. |
 | `message_updated`, `message_deleted` | `chat_id` — чат сообщения: у сообщения в треде чат сообщения-родителя треда, у самостоятельного треда чат самого треда. `thread_chat_id` — чат треда, только у сообщений в тредах. `source` — кто изменил сообщение: `employee`, `bot`, `dlp`, если текст заменило правило [DLP](/guides/dlp#zhurnal-audita), или `system`, если сообщение изменила сама Пачка, например прикрепила картинку по ссылке. У `message_deleted` приходит `employee` или `bot`. `message_version_id` — версия сообщения с текстом и файлами до правки или на момент удаления, у правки по DLP текст в ней скрыт. В записях до 7 ноября 2026 года включительно может прийти пустой объект. |
 | `kms_encrypt`, `kms_decrypt` | `chat_id`, `message_id`, `reason` — повод обращения к ключу, значения в разделе [Журнал аудита](/guides/data-protection#zhurnal-audita) гайда по шифрованию |
 | `dlp_violation_detected` | `dlp_rule_id`, `dlp_rule_name`, `message_id`, `chat_id`, `user_id`, `action_message`, `conditions_matched` |
@@ -109,14 +109,14 @@ related:
 
 ## Токены и авторизации в журнале
 
-Журнал записывает выдачу и отзыв каждого доступа к API. Вид доступа приходит в деталях в поле `token_kind`, а его владелец — в `resource_owner_id`.
+Журнал записывает выдачу и отзыв каждого доступа к API. Вид доступа приходит в деталях в поле `token_kind`: `personal` — персональный токен, `cli` — вход в CLI, `bot` — токен бота, `oauth` — доступ, который сотрудник выдал боту на экране согласия, `client` — подключение программы с MCP. Владелец доступа приходит в `resource_owner_id`.
 
 Объект у событий `access_token_*` — токен с `entity_type: AccessToken`. У `bot_token_reissued`, `bot_token_updated`, `bot_token_deleted` и `oauth_token_revoked` объект тоже токен, но с `entity_type: OauthAccessToken`, а у `bot_token_created` и `bot_token_recreated` — сам бот с `entity_type: User`. Поэтому события токенов надёжнее отбирать по `event_key`.
 
 | Что произошло | Событие |
 | --- | --- |
 | Создан, изменён или удалён персональный токен | `access_token_created`, `access_token_updated`, `access_token_destroy` |
-| Сотрудник подтвердил или отклонил вход в CLI или в надстройку Outlook | `oauth_device_authorization_approved`, `oauth_device_authorization_denied` |
+| Сотрудник подтвердил или отклонил вход в CLI или в надстройку Outlook | `oauth_device_authorization_approved`, `oauth_device_authorization_denied`, в деталях `token_kind: cli` или `token_kind: outlook` |
 | Вход в CLI завершён в интерфейсе | `access_token_destroy` |
 | Вход в CLI завершён командой `pachca auth logout` | `oauth_token_revoked` |
 | Боту выпущен токен, в том числе первый при создании бота | `bot_token_created` |
@@ -144,7 +144,7 @@ related:
 
 ## Вход по QR-коду в журнале
 
-Сотрудник, который уже вошёл в Пачку на компьютере, может войти в мобильное приложение по QR-коду: приложение сканирует код с экрана компьютера, а сотрудник подтверждает вход, введя на компьютере две цифры с экрана телефона.
+Сотрудник, который уже вошёл в Пачку на компьютере, может войти в мобильное приложение по QR-коду: на компьютере он нажимает **Вход по QR-коду** в разделе **Личные настройки** > **Аккаунт**, приложение сканирует код с экрана, а сотрудник подтверждает вход, введя на компьютере две цифры с экрана телефона.
 
 | Что произошло | Событие |
 | --- | --- |
@@ -176,7 +176,7 @@ related:
 
 Метод отдаёт записи от новых к старым и использует курсорную пагинацию: `limit` до 50 записей за запрос, `cursor` из `meta.paginate.next_page` для следующей страницы.
 
-Для регулярной выгрузки в SIEM удобнее курсор `meta.paginate.prev_page`: он указывает на начало списка, и запрос с ним возвращает только те события, которые появились после предыдущей выгрузки. Сохраняйте `prev_page` между запусками, вместо того чтобы каждый раз перебирать журнал с начала.
+Для регулярной выгрузки в SIEM удобнее курсор `meta.paginate.prev_page`: он указывает на начало списка, и запрос с ним возвращает только те события, которые появились после предыдущей выгрузки. Сохраняйте `prev_page` между запусками, вместо того чтобы каждый раз перебирать журнал с начала. Если новых событий больше, чем `limit`, в ответе придёт `has_prev: true`: повторяйте запрос по новому `prev_page`, пока `has_prev` не станет `false`. Подробнее — в разделе [Polling новых данных](/api/pagination#polling-novyh-dannyh).
 
 ## Примеры использования
 

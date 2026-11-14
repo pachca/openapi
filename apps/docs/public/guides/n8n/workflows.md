@@ -37,7 +37,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 [external-alerts.json](/workflows/n8n/external-alerts.json) — Готовый workflow для импорта в n8n
 
 
-> После импорта замените Credentials, `CHAT_ID_ДЕЖУРНЫХ` и `CHAT_ID_АЛЕРТОВ`, добавьте бота в оба чата и активируйте workflow. Чтобы адрес принимал запросы только от вашего сервиса, включите в узле Webhook проверку **Authentication**, например **Header Auth**.
+> После импорта замените Credentials, `CHAT_ID_ДЕЖУРНЫХ` и `CHAT_ID_АЛЕРТОВ`, добавьте бота в оба чата и опубликуйте workflow. Чтобы адрес принимал запросы только от вашего сервиса, включите в узле Webhook проверку **Authentication**, например **Header Auth**.
 
 
 ---
@@ -112,7 +112,7 @@ curl -X POST "https://N8N_HOST/webhook/pachca-alerts" \
 [reminder.json](/workflows/n8n/reminder.json) — Готовый workflow для импорта в n8n
 
 
-> После импорта замените Credentials и `CHAT_ID` во всех узлах Pachca. Reminder > Get Many возвращает напоминания, доступные владельцу токена: с токеном бота в списке только напоминания бота.
+> После импорта замените Credentials и `CHAT_ID` во всех узлах Pachca. Reminder > Get Many возвращает напоминания, доступные владельцу токена: с токеном бота — все напоминания чатов, куда добавлен бот, и напоминания без чата, которые бот создал или которые назначены ему. Чтобы проверять напоминания команды, добавьте бота в её чаты.
 
 
 ---

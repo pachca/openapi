@@ -94,7 +94,7 @@ cd ~/.n8n/nodes
 npm install n8n-nodes-pachca
 ```
 
-Или скачайте архив `.tgz` из [GitHub Releases](https://github.com/pachca/openapi/releases?q=n8n) и распакуйте в `~/.n8n/nodes/`. После этого перезапустите n8n.
+Или скачайте архив `n8n-nodes-pachca.tgz` из [GitHub Releases](https://github.com/pachca/openapi/releases?q=n8n) в папку `~/.n8n/nodes` и установите его там командой `npm install ./n8n-nodes-pachca.tgz`. После этого перезапустите n8n.
 
 ### Если расширение не видно в поиске
 
@@ -108,7 +108,7 @@ npm install n8n-nodes-pachca
 
 <Steps>
   <Step title="Создание Credentials">
-    Credentials — данные для авторизации. Перейдите в **Credentials** и нажмите **Add Credential**.
+    Credentials — данные для авторизации. Перейдите на вкладку **Credentials** и нажмите **Create credential**.
 
     <ImageCard src="/images/n8n/credentials-list.avif" alt="Список Credentials в n8n" caption="Список Credentials" maxWidth={960} />
 
@@ -126,13 +126,13 @@ npm install n8n-nodes-pachca
     <ImageCard src="/images/n8n/credentials-v2.avif" alt="Форма Credentials для Пачки в n8n" caption="Форма Pachca API Credentials" maxWidth={960} />
   </Step>
   <Step title="Где получить токен">
-    Для сценариев n8n подходит **токен бота**: сообщения уходят от имени бота, а Pachca Trigger получает события этого бота. Токен выпускается в карточке бота на вкладке **API** (**Интеграции** > **Боты** > **Управление**), по умолчанию это может любой сотрудник. Права для узлов Pachca и Pachca Trigger выберите по набору «Сценарий n8n» из раздела [Наборы прав под типовые задачи](/guides/permissions#nabory-prav-pod-tipovye-zadachi).
+    Для сценариев n8n подходит **токен бота**: сообщения уходят от имени бота, а Pachca Trigger получает события этого бота. Токен выпускается в карточке бота на вкладке **API** (**Интеграции** > **Боты** > **Управление**). По умолчанию любой сотрудник может создать бота и выпустить токен своему боту, а кому ещё открыта вкладка **API**, сказано в разделе [Токены бота](/guides/bots/tokens). Права для узлов Pachca и Pachca Trigger выберите по набору «Сценарий n8n» из раздела [Наборы прав под типовые задачи](/guides/permissions#nabory-prav-pod-tipovye-zadachi).
 
     **Персональный токен** (**Интеграции** > **API**) нужен для операций от имени сотрудника, например с черновиками или разделом «Важное». По умолчанию его создают только администраторы. Как выбрать токен под задачу — в разделе [Какой токен выбрать](/api/authorization#kakoy-token-vybrat), кому открыт выпуск токенов — в разделе [Кто может создавать токены](/api/authorization#kto-mozhet-sozdavat-tokeny).
 
     Набор операций зависит и от [скоупов](/api/authorization#skoupy), и от типа токена: формы, разворачивание ссылок и история событий работают только с токеном бота, а черновики и «Важное» — только с персональным.
 
-    После заполнения полей нажмите **Test** — n8n проверит подключение вызовом [Информация о токене](GET /oauth/token/info). При успехе вы увидите подтверждение.
+    После заполнения полей нажмите **Save** — n8n проверит подключение вызовом [Информация о токене](GET /oauth/token/info). При успехе вы увидите подтверждение, повторить проверку можно кнопкой **Retry** в нём.
 
     <ImageCard src="/images/n8n/credentials-test.avif" alt="Успешная проверка Credentials" caption="Connection tested successfully" maxWidth={960} />
 

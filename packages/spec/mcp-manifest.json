@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "c8d0e292feab3cec"
+    "digest": "7d0c75ebbd97c2ce"
   },
   "server": {
     "name": "pachca",
@@ -7070,6 +7070,75 @@
       "untrusted": []
     },
     {
+      "name": "pachca_mark_chat_read",
+      "title": "Mark chat as read",
+      "operation": "PUT /chats/{id}/read",
+      "kind": "write",
+      "scope": "chats:mark_read",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin",
+        "user",
+        "multi_guest",
+        "bot"
+      ],
+      "bot_token_only": false,
+      "description": "Mark chat as read. Marks the whole chat as read for the token owner, like reading it to the end in the interface. The chat is marked as of the request: a message that arrives between reading and marking becomes read too. No message to read up to is accepted. `last_read_message_id` is the message the token owner has now read the chat up to: their stored read position. The method never moves it back (`mark_chat_unread` does), so it may point to a deleted message. It is `null` only when there is no stored position in the chat, as in a new chat without messages. The method resets the counter, the «@» mention and the manual \"unread\" mark; the chat leaves \"Unread\" and a thread leaves the unread threads, archived and muted chats included. The other members get the same read event as after reading in the interface: authors see \"Read\", and the token owner appears in `list_message_readers`. The \"chat read\" push reaches the owner's phones only if the chat had unread messages or the call completes \"Read\" after the owner's own message. A repeated call and a chat without messages respond `200`, change nothing and send no events. Sending a message moves the position but gives no \"Read\" and no read event: the first call after sending completes the mark. Marked within 3 seconds after a message, the chat sends no push about it, as in the interface. Works in conversations, channels, direct chats and threads the token owner belongs to: a thread is passed by its `chat_id`. The method subscribes nobody: a thread or public chat the token owner is not in, and a chat of another workspace, respond `404`; a private chat and an inaccessible thread respond `403`, and so does a public chat a multi-guest is not in. With a bot token the chat is marked for the bot itself, so authors see \"Read\" even if no employee has read the messages. The method has its own request \"limit\" (https://dev.pachca.com/api/limits): when it is exceeded, the method responds `429` and says how long to wait before the next attempt.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Chat ID (conversation, channel, direct chat, or thread chat)",
+            "format": "int32",
+            "examples": [
+              334
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "id* (integer)",
+      "request": {
+        "arguments": {
+          "id": {
+            "in": "path"
+          }
+        }
+      },
+      "entity": "ChatReadPosition",
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "The token owner's read position in a chat",
+            "properties": {
+              "last_read_message_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "ID of the message the token owner has now read the chat up to: their stored read position. The method never moves it back, so it may point to a message that has since been deleted. `null` only if there is no stored position in the chat, for example in a new chat without messages."
+              }
+            }
+          }
+        }
+      },
+      "untrusted": []
+    },
+    {
       "name": "pachca_unarchive_chat",
       "title": "Unarchive chat",
       "operation": "PUT /chats/{id}/unarchive",
@@ -13801,7 +13870,7 @@
                 "description": "List of token scopes",
                 "items": {
                   "type": "string",
-                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark own chats as unread; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; company:read — View workspace information and its settings; company:write — Change the workspace name and main settings; invite_links:write — Get and reissue the workspace invite link; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; tasks:read — View reminders; tasks:create — Create reminders; tasks:update — Update reminder; tasks:delete — Delete reminder; files:read — Download files; uploads:write — Get file upload data; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it."
+                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark own chats as unread; chats:mark_read — Mark own chats as read; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; company:read — View workspace information and its settings; company:write — Change the workspace name and main settings; invite_links:write — Get and reissue the workspace invite link; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; tasks:read — View reminders; tasks:create — Create reminders; tasks:update — Update reminder; tasks:delete — Delete reminder; files:read — Download files; uploads:write — Get file upload data; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it."
                 }
               },
               "created_at": {
@@ -20049,6 +20118,7 @@
         "pachca_add_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",
@@ -20149,6 +20219,7 @@
         "pachca_add_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",
@@ -20247,6 +20318,7 @@
         "pachca_add_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",
@@ -20345,6 +20417,7 @@
         "pachca_add_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",
@@ -20411,6 +20484,7 @@
         "pachca_list_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",
@@ -20482,6 +20556,7 @@
         "pachca_add_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",

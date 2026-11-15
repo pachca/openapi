@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.9.0 (2026-11-14)
+
+A tool that marks a chat as read, and its scope. schema_version stays 1.2.0.
+
+- Tool `pachca_mark_chat_read`: marks the whole chat as read for the token owner, as reading it to the end in the interface does, and answers with `last_read_message_id`, the position the chat is now read up to. It clears the counter, the «@» mention and the manual unread mark, and the other members of the chat get the read event, so authors see "Read". It is idempotent: a repeated call and a chat without messages change nothing. It works in conversations, channels, direct chats and threads the token owner belongs to, archived chats and chats with notifications off included, for every role, a bot among them. A thread or an open chat the owner is not in answers `404`, a closed chat `403`, and so does an open chat a multi-guest is not in. The answer never moves the read position back, and `null` comes only when the owner has no stored position in the chat. The tool has its own rate limit, 30 requests in 5 seconds per token.
+- `pachca_get_token_info` names the scope `chats:mark_read`. A personal or bot token issued with separate scopes before it existed lacks it and gets `403` `insufficient_scope` from the new tool until the scope is added in the token settings; a connection made through the browser or the CLI needs a new sign-in.
+
 ## 1.8.0 (2026-11-12)
 
 Tools for the workspace and its invite link, three new scopes, empty stickers, a thread refused by the chat edit, notes for setting up a new workspace, thread rights, and tool texts that follow the API. schema_version stays 1.2.0.

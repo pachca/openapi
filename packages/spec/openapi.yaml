@@ -3158,6 +3158,85 @@ paths:
               $ref: '#/components/schemas/UpdateMemberRoleRequest'
       x-requirements:
         scope: chat_members:write
+  /chats/{id}/read:
+    put:
+      operationId: ChatOperations_markChatRead
+      description: |-
+        Отметка чата прочитанным
+
+        Помечает чат прочитанным целиком для владельца токена, как когда сотрудник дочитал чат до конца в интерфейсе. Отмечается весь чат на момент запроса: сообщение, пришедшее между чтением и отметкой, тоже станет прочитанным. Сообщение, до которого читать, метод не принимает.
+
+        `last_read_message_id` — сообщение, до которого владелец токена теперь прочитал чат: его сохранённая позиция прочтения. Метод не двигает её назад ([Отметка чата непрочитанным](PUT /chats/{id}/unread) двигает), поэтому она может указывать на удалённое сообщение. `null` приходит, только если сохранённой позиции в чате нет, например в новом чате без сообщений.
+
+        Метод сбрасывает счётчик, упоминание «@» и ручную отметку «непрочитанное»; чат уходит из «Непрочитанных», а тред — из непрочитанных тредов, в том числе в архивном чате и в чате с выключенными уведомлениями. Остальные участники получают то же событие о прочтении, что и после прочтения в интерфейсе: у авторов появляется «Прочитано», а владелец токена попадает в [Список прочитавших сообщение](GET /messages/{id}/read_member_ids). Пуш «чат прочитан» уходит на телефоны владельца, только если в чате были непрочитанные или вызов доводит «Прочитано» после собственного сообщения владельца.
+
+        Повторный вызов и чат без сообщений отвечают `200`, ничего не меняют и событий не отправляют. Отправка сообщения ставит позицию, но «Прочитано» и события о прочтении не даёт: первый вызов после отправки доводит отметку до конца. Если отметить чат в первые 3 секунды после сообщения, пуш о нём не уходит, как в интерфейсе.
+
+        Работает в беседах, каналах, личных чатах и тредах, где владелец токена состоит: тред передают его `chat_id`. Метод никого не подписывает: тред или открытый чат, где владелец не состоит, и чат другого пространства отвечают `404`; закрытый чат и недоступный тред отвечают `403`, как и открытый чат, где не состоит мульти-гость. С токеном бота чат отмечается для самого бота, поэтому у авторов появится «Прочитано», даже если сообщения не читал ни один сотрудник.
+
+        У метода свой [лимит](/api/limits) на частоту запросов: при превышении метод отвечает `429`, а в заголовке `Retry-After` приходит пауза до следующей попытки.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата (беседы, канала, личного чата или чата треда)
+          schema:
+            type: integer
+            format: int32
+            example: 334
+          example: 334
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ChatReadPosition'
+                description: Обертка ответа с данными
+              example:
+                data:
+                  last_read_message_id: 1194275
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '429':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Chats
+      x-requirements:
+        scope: chats:mark_read
   /chats/{id}/unarchive:
     put:
       operationId: ChatOperations_unarchiveChat
@@ -11689,6 +11768,18 @@ components:
           description: Дата и время отправки вебхука (UTC+0) в формате UNIX
           example: 1747574400
       description: Структура исходящего вебхука об участниках чата
+    ChatReadPosition:
+      type: object
+      required:
+        - last_read_message_id
+      properties:
+        last_read_message_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: 'Идентификатор сообщения, до которого владелец токена теперь прочитал чат: его сохранённая позиция прочтения. Метод не двигает её назад, поэтому она может указывать на уже удалённое сообщение. `null`, только если сохранённой позиции в чате нет, например в новом чате без сообщений.'
+          example: 1194275
+      description: Позиция прочтения чата владельцем токена
     ChatSortField:
       type: string
       enum:
@@ -13455,6 +13546,7 @@ components:
         - chats:create
         - chats:update
         - chats:mark_unread
+        - chats:mark_read
         - chats:archive
         - chats:leave
         - chat_members:read
@@ -13531,6 +13623,12 @@ components:
           - multi_guest
           - bot
         chats_mark_unread:
+          - owner
+          - admin
+          - user
+          - multi_guest
+          - bot
+        chats_mark_read:
           - owner
           - admin
           - user
@@ -13813,6 +13911,7 @@ components:
         chats_create: Создание новых чатов
         chats_update: Изменение настроек чата
         chats_mark_unread: Отметка собственных чатов непрочитанными
+        chats_mark_read: Отметка собственных чатов прочитанными
         chats_archive: Архивация и разархивация чатов
         chats_leave: Выход из чатов
         chat_members_read: Просмотр участников чата

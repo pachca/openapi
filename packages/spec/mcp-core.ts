@@ -374,6 +374,7 @@ export const ADDITIVE: Record<OperationKey, string> = {
   'POST /chats/{id}/group_tags': 'Links tags and brings their members in; nothing is unlinked and nobody leaves.',
   'PUT /chats/{id}/unarchive': 'Brings a chat back from the archive and removes nothing.',
   'PUT /chats/{id}/unread': "Moves only the caller's own unread marker; nothing anyone wrote changes.",
+  'PUT /chats/{id}/read': "Moves only the caller's own read marker and clears their own counter; nothing anyone wrote changes.",
   'POST /chats/exports': 'Starts an archive of messages; the messages stay where they are.',
   'POST /drafts': 'A new draft; a second ordinary draft in the same chat is refused, not overwritten.',
   'POST /uploads': 'A signed form for one upload; nothing in the workspace changes until a message takes the key.',

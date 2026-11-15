@@ -3517,6 +3517,107 @@ paths:
               $ref: '#/components/schemas/UpdateMemberRoleRequest'
       x-requirements:
         scope: chat_members:write
+  /chats/{id}/read:
+    put:
+      operationId: ChatOperations_markChatRead
+      description: >-
+        Mark chat as read
+
+
+        Marks the whole chat as read for the token owner, like reading it to the end in the interface. The chat is
+        marked as of the request: a message that arrives between reading and marking becomes read too. No message to
+        read up to is accepted.
+
+
+        `last_read_message_id` is the message the token owner has now read the chat up to: their stored read position.
+        The method never moves it back ([Mark chat as unread](PUT /chats/{id}/unread) does), so it may point to a
+        deleted message. It is `null` only when there is no stored position in the chat, as in a new chat without
+        messages.
+
+
+        The method resets the counter, the «@» mention and the manual "unread" mark; the chat leaves "Unread" and a
+        thread leaves the unread threads, archived and muted chats included. The other members get the same read event
+        as after reading in the interface: authors see "Read", and the token owner appears in [List users who read the
+        message](GET /messages/{id}/read_member_ids). The "chat read" push reaches the owner's phones only if the chat
+        had unread messages or the call completes "Read" after the owner's own message.
+
+
+        A repeated call and a chat without messages respond `200`, change nothing and send no events. Sending a message
+        moves the position but gives no "Read" and no read event: the first call after sending completes the mark.
+        Marked within 3 seconds after a message, the chat sends no push about it, as in the interface.
+
+
+        Works in conversations, channels, direct chats and threads the token owner belongs to: a thread is passed by its
+        `chat_id`. The method subscribes nobody: a thread or public chat the token owner is not in, and a chat of
+        another workspace, respond `404`; a private chat and an inaccessible thread respond `403`, and so does a public
+        chat a multi-guest is not in. With a bot token the chat is marked for the bot itself, so authors see "Read" even
+        if no employee has read the messages.
+
+
+        The method has its own request [limit](/api/limits): when it is exceeded, the method responds `429`, and the
+        `Retry-After` header carries the pause before the next attempt.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Chat ID (conversation, channel, direct chat, or thread chat)
+          schema:
+            type: integer
+            format: int32
+            example: 334
+          example: 334
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ChatReadPosition'
+                description: Response wrapper with data
+              example:
+                data:
+                  last_read_message_id: 1194275
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '429':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Chats
+      x-requirements:
+        scope: chats:mark_read
   /chats/{id}/unarchive:
     put:
       operationId: ChatOperations_unarchiveChat
@@ -12997,6 +13098,21 @@ components:
           description: Webhook send date and time (UTC+0) in UNIX format
           example: 1747574400
       description: Outgoing webhook payload for chat members
+    ChatReadPosition:
+      type: object
+      required:
+        - last_read_message_id
+      properties:
+        last_read_message_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: >-
+            ID of the message the token owner has now read the chat up to: their stored read position. The method never
+            moves it back, so it may point to a message that has since been deleted. `null` only if there is no stored
+            position in the chat, for example in a new chat without messages.
+          example: 1194275
+      description: The token owner's read position in a chat
     ChatSortField:
       type: string
       enum:
@@ -15004,6 +15120,7 @@ components:
         - chats:create
         - chats:update
         - chats:mark_unread
+        - chats:mark_read
         - chats:archive
         - chats:leave
         - chat_members:read
@@ -15080,6 +15197,12 @@ components:
           - multi_guest
           - bot
         chats_mark_unread:
+          - owner
+          - admin
+          - user
+          - multi_guest
+          - bot
+        chats_mark_read:
           - owner
           - admin
           - user
@@ -15362,6 +15485,7 @@ components:
         chats_create: Create new chats
         chats_update: Update chat settings
         chats_mark_unread: Mark own chats as unread
+        chats_mark_read: Mark own chats as read
         chats_archive: Archive and unarchive chats
         chats_leave: Leave chats
         chat_members_read: View chat members

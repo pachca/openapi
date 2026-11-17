@@ -1,6 +1,94 @@
 [
   {
     "product": "sdk",
+    "version": "1.10.1",
+    "date": "2026-11-18",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Метод `Список закреплённых сообщений` (`GET /chats/{id}/pinned_messages`) и `listPinnedMessagesAll`, который обходит все страницы"
+      },
+      {
+        "type": "+",
+        "description": "Метод `Отметка чата прочитанным` (`PUT /chats/{id}/read`), модель `ChatReadPosition` и значение `chats:mark_read` в `OAuthScope`"
+      },
+      {
+        "type": "+",
+        "description": "Параметр `after_message_id` в методе `Список сообщений чата` (`GET /messages`): сообщения после известного, от старых к новым"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.11.5",
+    "date": "2026-11-18",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca messages list-pinned` — список закреплённых сообщений чата"
+      },
+      {
+        "type": "+",
+        "description": "`pachca chats mark-read` — отметка чата прочитанным"
+      },
+      {
+        "type": "+",
+        "description": "`pachca messages list`: флаг `--after-message-id` вместе с `--order asc` отдаёт сообщения после известного, от старых к новым"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.2.9",
+    "date": "2026-11-18",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`Message`: новая операция `Get Many Pinned Messages` — закреплённые сообщения чата"
+      },
+      {
+        "type": "+",
+        "description": "`Chat`: новая операция `Mark Read` — отметка чата прочитанным"
+      },
+      {
+        "type": "+",
+        "description": "`Message`: операция `Get Many` принимает `After Message ID` и отдаёт сообщения после известного, от старых к новым"
+      }
+    ]
+  },
+  {
+    "product": "mcp",
+    "version": "1.10.0",
+    "date": "2026-11-18",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca_list_pinned_messages` отдаёт закреплённые сообщения чата, от последних закреплённых к ранним"
+      },
+      {
+        "type": "+",
+        "description": "`pachca_mark_chat_read` отмечает чат прочитанным для владельца токена, и для него нужно право `chats:mark_read`"
+      },
+      {
+        "type": "+",
+        "description": "`pachca_list_chat_messages` принимает `after_message_id` и отдаёт сообщения после известного, от старых к новым"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_update_bot`: `scopes` меняют только создатель бота и администратор пространства, а остальным запрос с этим полем отвечает `403`. `chat_owners` в `can_edit` относится только к неархивным беседам и каналам."
+      },
+      {
+        "type": "~",
+        "description": "`pachca_update_message`: превью ссылок, которые остались в тексте, сохраняются, а по ссылкам, добавленным правкой, бот с событием `message_link_shared` получает вебхук `link_shared`"
+      },
+      {
+        "type": "~",
+        "description": "`transcript_status` держится в `pending`, пока расшифровка не завершилась, а `failed` означает, что расшифровка не удалась"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
     "version": "1.10.0",
     "date": "2026-11-14",
     "changes": [
@@ -194,6 +282,33 @@
       {
         "type": "~",
         "description": "Все языки: для ответа со списком простых значений в `data`, например идентификаторов, генерируется свой тип ответа, а для постраничного ещё и метод `All`, как для списка моделей"
+      }
+    ]
+  },
+  {
+    "product": "plugin",
+    "version": "1.0.16",
+    "date": "2026-11-18",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca-messaging` и `pachca-search`: список закреплённых сообщений чата и отметка чата прочитанным. Если сотрудник хочет получать сообщения агента с уведомлением, агент предлагает личного бота"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-watch-thread`: скрипт слежения берёт новые сообщения через `after_message_id` и не теряет их, когда приходит больше 50 сразу. Нужен CLI 2026.11.5, со старым CLI скрипт работает как раньше"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-bots`, `pachca` и `pachca-api`: токен бота для CLI агент не показывает, а даёт сотруднику одну команду, которая выпускает токен сразу в профиль"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-bots` и `pachca-admin`: приостановленный бот не получает событий и не пишет через входящий вебхук, скоупы основного токена меняют только создатель и администратор, ответ `422` `text_too_long` на длинный текст входящего вебхука"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-bots` и `pachca-ai-agent`: упоминание добавляет непубличного бота в тред, если он уже в родительском чате, а `link_shared` после правки приходит только по добавленным ссылкам"
       }
     ]
   },

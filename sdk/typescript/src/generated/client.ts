@@ -38,12 +38,21 @@ import {
   ExportRequest,
   ChatExport,
   ChatUpdateRequest,
+  ChatReadPosition,
   MarkChatUnreadRequest,
   ListMembersParams,
   ListMembersResponse,
   User,
   AddMembersRequest,
   ChatMemberRole,
+  ListPinnedMessagesParams,
+  ListPinnedMessagesResponse,
+  Message,
+  ListChatMessagesParams,
+  ListChatMessagesResponse,
+  MessageCreateRequest,
+  LinkPreviewsRequest,
+  MessageUpdateRequest,
   Company,
   InviteLink,
   CompanyUpdateRequest,
@@ -65,12 +74,6 @@ import {
   GroupTagRequest,
   ListImportantMessagesParams,
   ListImportantMessagesResponse,
-  Message,
-  ListChatMessagesParams,
-  ListChatMessagesResponse,
-  MessageCreateRequest,
-  LinkPreviewsRequest,
-  MessageUpdateRequest,
   ListReactionsParams,
   ListReactionsResponse,
   Reaction,
@@ -839,6 +842,10 @@ export class ChatsService {
     throw new Error("Chats.updateChatAvatar is not implemented");
   }
 
+  async markChatRead(id: number): Promise<ChatReadPosition> {
+    throw new Error("Chats.markChatRead is not implemented");
+  }
+
   async unarchiveChat(id: number): Promise<void> {
     throw new Error("Chats.unarchiveChat is not implemented");
   }
@@ -1043,6 +1050,21 @@ export class ChatsServiceImpl extends ChatsService {
     }
   }
 
+  async markChatRead(id: number): Promise<ChatReadPosition> {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/read`, {
+      method: "PUT",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("ChatReadPosition", body.data) as ChatReadPosition;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
   async unarchiveChat(id: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/unarchive`, {
       method: "PUT",
@@ -1229,6 +1251,227 @@ export class MembersServiceImpl extends MembersService {
 
   async removeMember(id: number, userId: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members/${userId}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+}
+
+export class MessagesService {
+  async listPinnedMessages(id: number, params?: ListPinnedMessagesParams): Promise<ListPinnedMessagesResponse> {
+    throw new Error("Messages.listPinnedMessages is not implemented");
+  }
+
+  async listPinnedMessagesAll(id: number, params?: Omit<ListPinnedMessagesParams, 'cursor'>): Promise<Message[]> {
+    throw new Error("Messages.listPinnedMessagesAll is not implemented");
+  }
+
+  async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {
+    throw new Error("Messages.listChatMessages is not implemented");
+  }
+
+  async listChatMessagesAll(params: Omit<ListChatMessagesParams, 'cursor'>): Promise<Message[]> {
+    throw new Error("Messages.listChatMessagesAll is not implemented");
+  }
+
+  async getMessage(id: number): Promise<Message> {
+    throw new Error("Messages.getMessage is not implemented");
+  }
+
+  async createMessage(request: MessageCreateRequest): Promise<Message> {
+    throw new Error("Messages.createMessage is not implemented");
+  }
+
+  async unfurl(id: number, request: LinkPreviewsRequest): Promise<void> {
+    throw new Error("Messages.unfurl is not implemented");
+  }
+
+  async pinMessage(id: number): Promise<void> {
+    throw new Error("Messages.pinMessage is not implemented");
+  }
+
+  async updateMessage(id: number, request: MessageUpdateRequest): Promise<Message> {
+    throw new Error("Messages.updateMessage is not implemented");
+  }
+
+  async deleteMessage(id: number): Promise<void> {
+    throw new Error("Messages.deleteMessage is not implemented");
+  }
+
+  async unpinMessage(id: number): Promise<void> {
+    throw new Error("Messages.unpinMessage is not implemented");
+  }
+}
+
+export class MessagesServiceImpl extends MessagesService {
+  constructor(
+    private baseUrl: string,
+    private headers: Record<string, string>,
+  ) {
+    super();
+  }
+
+  async listPinnedMessages(id: number, params?: ListPinnedMessagesParams): Promise<ListPinnedMessagesResponse> {
+    const query = new URLSearchParams();
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
+    const url = `${this.baseUrl}/chats/${id}/pinned_messages${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserialize(body) as ListPinnedMessagesResponse;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async listPinnedMessagesAll(id: number, params?: Omit<ListPinnedMessagesParams, 'cursor'>): Promise<Message[]> {
+    const items: Message[] = [];
+    let cursor: string | undefined;
+    let hasNext = true;
+    while (hasNext) {
+      const response = await this.listPinnedMessages(id, { ...params, cursor } as ListPinnedMessagesParams);
+      items.push(...response.data);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
+    return items;
+  }
+
+  async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {
+    const query = new URLSearchParams();
+    query.set("chat_id", String(params.chatId));
+    if (params?.sort !== undefined) query.set("sort", params.sort);
+    if (params?.order !== undefined) query.set("order", params.order);
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
+    if (params?.afterMessageId !== undefined) query.set("after_message_id", String(params.afterMessageId));
+    const response = await fetchWithRetry(`${this.baseUrl}/messages?${query}`, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserialize(body) as ListChatMessagesResponse;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async listChatMessagesAll(params: Omit<ListChatMessagesParams, 'cursor'>): Promise<Message[]> {
+    const items: Message[] = [];
+    let cursor: string | undefined;
+    let hasNext = true;
+    while (hasNext) {
+      const response = await this.listChatMessages({ ...params, cursor } as ListChatMessagesParams);
+      items.push(...response.data);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
+    return items;
+  }
+
+  async getMessage(id: number): Promise<Message> {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("Message", body.data) as Message;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async createMessage(request: MessageCreateRequest): Promise<Message> {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("MessageCreateRequest", request)),
+    });
+    switch (response.status) {
+      case 201: {
+        const body = await response.json();
+        return deserializeType("Message", body.data) as Message;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async unfurl(id: number, request: LinkPreviewsRequest): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("LinkPreviewsRequest", request)),
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async pinMessage(id: number): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/pin`, {
+      method: "POST",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async updateMessage(id: number, request: MessageUpdateRequest): Promise<Message> {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
+      method: "PUT",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("MessageUpdateRequest", request)),
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("Message", body.data) as Message;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async deleteMessage(id: number): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async unpinMessage(id: number): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/pin`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -1807,186 +2050,6 @@ export class ImportantMessagesServiceImpl extends ImportantMessagesService {
 
   async removeMessageFromImportant(id: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/important_messages/${id}`, {
-      method: "DELETE",
-      headers: this.headers,
-    });
-    switch (response.status) {
-      case 204:
-        return;
-      default:
-        throw await errorFromResponse(response);
-    }
-  }
-}
-
-export class MessagesService {
-  async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {
-    throw new Error("Messages.listChatMessages is not implemented");
-  }
-
-  async listChatMessagesAll(params: Omit<ListChatMessagesParams, 'cursor'>): Promise<Message[]> {
-    throw new Error("Messages.listChatMessagesAll is not implemented");
-  }
-
-  async getMessage(id: number): Promise<Message> {
-    throw new Error("Messages.getMessage is not implemented");
-  }
-
-  async createMessage(request: MessageCreateRequest): Promise<Message> {
-    throw new Error("Messages.createMessage is not implemented");
-  }
-
-  async unfurl(id: number, request: LinkPreviewsRequest): Promise<void> {
-    throw new Error("Messages.unfurl is not implemented");
-  }
-
-  async pinMessage(id: number): Promise<void> {
-    throw new Error("Messages.pinMessage is not implemented");
-  }
-
-  async updateMessage(id: number, request: MessageUpdateRequest): Promise<Message> {
-    throw new Error("Messages.updateMessage is not implemented");
-  }
-
-  async deleteMessage(id: number): Promise<void> {
-    throw new Error("Messages.deleteMessage is not implemented");
-  }
-
-  async unpinMessage(id: number): Promise<void> {
-    throw new Error("Messages.unpinMessage is not implemented");
-  }
-}
-
-export class MessagesServiceImpl extends MessagesService {
-  constructor(
-    private baseUrl: string,
-    private headers: Record<string, string>,
-  ) {
-    super();
-  }
-
-  async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {
-    const query = new URLSearchParams();
-    query.set("chat_id", String(params.chatId));
-    if (params?.sort !== undefined) query.set("sort", params.sort);
-    if (params?.order !== undefined) query.set("order", params.order);
-    if (params?.limit !== undefined) query.set("limit", String(params.limit));
-    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
-    const response = await fetchWithRetry(`${this.baseUrl}/messages?${query}`, {
-      headers: this.headers,
-    });
-    switch (response.status) {
-      case 200: {
-        const body = await response.json();
-        return deserialize(body) as ListChatMessagesResponse;
-      }
-      default:
-        throw await errorFromResponse(response);
-    }
-  }
-
-  async listChatMessagesAll(params: Omit<ListChatMessagesParams, 'cursor'>): Promise<Message[]> {
-    const items: Message[] = [];
-    let cursor: string | undefined;
-    let hasNext = true;
-    while (hasNext) {
-      const response = await this.listChatMessages({ ...params, cursor } as ListChatMessagesParams);
-      items.push(...response.data);
-      if (response.data.length === 0) break;
-      cursor = response.meta.paginate.nextPage;
-      hasNext = response.meta.paginate.hasNext ?? true;
-    }
-    return items;
-  }
-
-  async getMessage(id: number): Promise<Message> {
-    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
-      headers: this.headers,
-    });
-    switch (response.status) {
-      case 200: {
-        const body = await response.json();
-        return deserializeType("Message", body.data) as Message;
-      }
-      default:
-        throw await errorFromResponse(response);
-    }
-  }
-
-  async createMessage(request: MessageCreateRequest): Promise<Message> {
-    const response = await fetchWithRetry(`${this.baseUrl}/messages`, {
-      method: "POST",
-      headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serializeType("MessageCreateRequest", request)),
-    });
-    switch (response.status) {
-      case 201: {
-        const body = await response.json();
-        return deserializeType("Message", body.data) as Message;
-      }
-      default:
-        throw await errorFromResponse(response);
-    }
-  }
-
-  async unfurl(id: number, request: LinkPreviewsRequest): Promise<void> {
-    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
-      method: "POST",
-      headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serializeType("LinkPreviewsRequest", request)),
-    });
-    switch (response.status) {
-      case 204:
-        return;
-      default:
-        throw await errorFromResponse(response);
-    }
-  }
-
-  async pinMessage(id: number): Promise<void> {
-    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/pin`, {
-      method: "POST",
-      headers: this.headers,
-    });
-    switch (response.status) {
-      case 204:
-        return;
-      default:
-        throw await errorFromResponse(response);
-    }
-  }
-
-  async updateMessage(id: number, request: MessageUpdateRequest): Promise<Message> {
-    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
-      method: "PUT",
-      headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serializeType("MessageUpdateRequest", request)),
-    });
-    switch (response.status) {
-      case 200: {
-        const body = await response.json();
-        return deserializeType("Message", body.data) as Message;
-      }
-      default:
-        throw await errorFromResponse(response);
-    }
-  }
-
-  async deleteMessage(id: number): Promise<void> {
-    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
-      method: "DELETE",
-      headers: this.headers,
-    });
-    switch (response.status) {
-      case 204:
-        return;
-      default:
-        throw await errorFromResponse(response);
-    }
-  }
-
-  async unpinMessage(id: number): Promise<void> {
-    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/pin`, {
       method: "DELETE",
       headers: this.headers,
     });

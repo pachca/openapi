@@ -3539,6 +3539,206 @@ paths:
               $ref: '#/components/schemas/UpdateMemberRoleRequest'
       x-requirements:
         scope: chat_members:write
+  /chats/{id}/pinned_messages:
+    get:
+      operationId: PinnedMessageOperations_listPinnedMessages
+      description: >-
+        List pinned messages
+
+
+        Messages pinned in the header of a conversation, a channel, or a direct message, from the most recently pinned
+        to the earliest, as in the chat header in the interface. Messages are pinned and unpinned with the [Pin
+        message](POST /messages/{id}/pin) and [Unpin message](DELETE /messages/{id}/pin) methods.
+
+
+        Messages come in the same form as in the [List chat messages](GET /messages) method. A deleted message
+        disappears from the list. An archived chat returns its pinned messages too. Messages are not pinned in threads,
+        so for a thread the list is always empty.
+
+
+        Access is the same as to the chat feed: the chats the token owner belongs to, and the public chats of the
+        workspace. A multi-guest can open only the chats they belong to. The workspace owner does not get into a private
+        chat without membership. A private chat and an inaccessible thread respond `403`, while a chat of another
+        workspace and an unknown ID respond `404`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Chat ID (conversation, channel, or direct chat)
+          schema:
+            type: integer
+            format: int32
+            example: 334
+          example: 334
+        - name: limit
+          in: query
+          required: false
+          description: >-
+            Number of entities returned per request. An integer outside the allowed range is replaced with the nearest
+            bound.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            example: 25
+            default: 50
+          example: 25
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
+          schema:
+            type: string
+            example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                description: Response wrapper with data and pagination
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Messages
+      x-paginated: true
+      x-requirements:
+        scope: messages:read
+  /chats/{id}/read:
+    put:
+      operationId: ChatOperations_markChatRead
+      description: >-
+        Mark chat as read
+
+
+        Marks the chat read for the token owner up to its latest message at the time of the request, like reading it to
+        the end in the interface: messages that arrived after you fetched the history become read too. To keep newer
+        messages unread, call [Mark chat as unread](PUT /chats/{id}/unread) afterwards.
+
+
+        Resets the unread counter, the unread «@» mention mark and a manual "Unread" mark: the chat leaves the unread
+        chats and a thread leaves the unread threads, in an archived chat and with notifications off as well, without
+        changing either. A chat's threads are separate chats: mark each one by its `chat_id`.
+
+
+        The other members see their messages as read, and the token owner appears in the [List users who read the
+        message](GET /messages/{id}/read_member_ids) for every message up to the end of the chat. With a personal token
+        it looks as if the employee read the chat. With a bot token the chat is marked for the bot, and authors see
+        "Read" even if no employee opened the messages. Sending a message moves the read position too, but other
+        members' messages show "Read" only after this method.
+
+
+        The response has `last_read_message_id`, the read position after the call. In a chat without messages it is
+        `null`, and the method changes nothing. A repeated request changes nothing and does not send the read event
+        again.
+
+
+        Works in conversations, channels, direct chats and threads the token owner belongs to, and adds the owner
+        nowhere: a thread is passed by its `chat_id`. A public chat or an accessible thread the token owner is not in,
+        and a chat of another workspace respond `404`. A private chat the token owner is not in responds `403`, to the
+        workspace owner and admins as well. An inaccessible thread and a public chat a multi-guest is not in respond
+        `403` too. The method has its own request [limit](/api/limits).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Chat ID (conversation, channel, direct chat, or thread chat)
+          schema:
+            type: integer
+            format: int32
+            example: 334
+          example: 334
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ChatReadPosition'
+                description: Response wrapper with data
+              example:
+                data:
+                  last_read_message_id: 1194275
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Chats
+      x-requirements:
+        scope: chats:mark_read
   /chats/{id}/unarchive:
     put:
       operationId: ChatOperations_unarchiveChat
@@ -5706,6 +5906,12 @@ paths:
         ones, use the `limit` and `cursor` parameters.
 
 
+        To get the messages after a known one, pass its `id` in `after_message_id`: only newer messages come, oldest
+        first. Take the next pages by `meta.paginate.next_page` with `order=asc`. If there are no new messages, the
+        response is empty but still has `next_page`: poll the chat further with this cursor. The boundary message itself
+        may be deleted.
+
+
         Deleted messages do not make it into the list.
 
 
@@ -5768,6 +5974,20 @@ paths:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
           example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          explode: false
+        - name: after_message_id
+          in: query
+          required: false
+          description: >-
+            ID of the message to list messages after: messages with a greater `id` come, oldest first. Works with
+            `limit` and `cursor`. Only `asc` is allowed in `order`, and `page` and `per` are not allowed, otherwise the
+            method responds `400`. The message may be deleted: it serves only as a boundary.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            example: 194275
+          example: 194275
           explode: false
       responses:
         '200':
@@ -5921,7 +6141,9 @@ paths:
 
 
         Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in
-        the body leaves them as they were. Any edit removes the link previews, and they are not built again.
+        the body leaves them as they were. Link previews of links that stay in the text are kept, and previews of
+        removed links are dropped. Links added by the edit get no automatic preview, but a bot with the
+        `message_link_shared` event receives a `link_shared` webhook for them.
       parameters:
         - name: id
           in: path
@@ -11475,7 +11697,7 @@ components:
       description: Role allowed to edit the bot settings
       x-enum-descriptions:
         admin: Company administrators
-        chat_owners: Owners and admins of the conversations and channels the bot is in
+        chat_owners: Owners and admins of the non-archived conversations and channels the bot is in
     BotCreateRequest:
       type: object
       required:
@@ -11885,7 +12107,9 @@ components:
           example: true
         recreate_token:
           type: boolean
-          description: Issue, change and delete the bot's tokens and rotate the client secret
+          description: >-
+            Issue, change and delete the bot's tokens, change the main token's scopes (`webhook.scopes`) and rotate the
+            client secret
           example: true
         destroy:
           type: boolean
@@ -12434,7 +12658,9 @@ components:
                 token, passing scopes creates the main token, but its value does not come back: get one with [Bot token
                 rotation](POST /bots/{id}/recreate_token). Not every scope is available to a bot: some are allowed only
                 for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all`
-                cannot be assigned.
+                cannot be assigned. The scopes are changed only by the bot's creator, and a workspace administrator if
+                the bot's settings grant administrators edit access. For other employees a request with this field
+                responds `403`, even if the scopes stay the same, and applies nothing from the request.
               example:
                 - messages:create
               x-replaces-set: true
@@ -13088,6 +13314,20 @@ components:
           description: Webhook send date and time (UTC+0) in UNIX format
           example: 1747574400
       description: Outgoing webhook payload for chat members
+    ChatReadPosition:
+      type: object
+      required:
+        - last_read_message_id
+      properties:
+        last_read_message_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: >-
+            ID of the last read message. `null` if the chat has no messages. The chat's latest message counts even if it
+            was deleted, so this can be the ID of a deleted message that the message list does not return.
+          example: 1194275
+      description: The token owner's read position in the chat
     ChatSortField:
       type: string
       enum:
@@ -15106,6 +15346,7 @@ components:
         - chats:create
         - chats:update
         - chats:mark_unread
+        - chats:mark_read
         - chats:archive
         - chats:leave
         - chat_members:read
@@ -15182,6 +15423,12 @@ components:
           - multi_guest
           - bot
         chats_mark_unread:
+          - owner
+          - admin
+          - user
+          - multi_guest
+          - bot
+        chats_mark_read:
           - owner
           - admin
           - user
@@ -15464,6 +15711,7 @@ components:
         chats_create: Create new chats
         chats_update: Update chat settings
         chats_mark_unread: Mark own chats as unread
+        chats_mark_read: Mark own chats as read
         chats_archive: Archive and unarchive chats
         chats_leave: Leave chats
         chat_members_read: View chat members
@@ -17757,8 +18005,9 @@ components:
           description: >-
             Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file
             is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription.
-            With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A
-            transcription that takes too long also comes as `failed`, so the status can still change to `success`.
+            With `success` the text is in `transcript`, and an empty string there means the recording has no speech.
+            While the transcription runs the status is `pending`, and it can stay so for a long time if the
+            transcription does not finish. `failed` means the transcription did not succeed.
           example: success
       description: Voice message data
     VoiceTranscriptStatus:

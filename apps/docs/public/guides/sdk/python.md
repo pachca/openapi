@@ -100,6 +100,7 @@ client = PachcaClient.from_client(http)
 | `client.chats.update_chat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archive_chat()` | [Архивация чата](/api/chats/archive) |
 | `client.chats.update_chat_avatar()` | [Загрузка аватара чата](/api/chats/update-avatar) |
+| `client.chats.mark_chat_read()` | [Отметка чата прочитанным](/api/chats/mark-read) |
 | `client.chats.unarchive_chat()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.chats.mark_chat_unread()` | [Отметка чата непрочитанным](/api/chats/mark-unread) |
 | `client.chats.delete_chat_avatar()` | [Удаление аватара чата](/api/chats/remove-avatar) |
@@ -145,6 +146,7 @@ client = PachcaClient.from_client(http)
 | `client.messages.pin_message()` | [Закрепление сообщения](/api/messages/pin) |
 | `client.messages.list_chat_messages()` | [Список сообщений чата](/api/messages/list) |
 | `client.messages.get_message()` | [Информация о сообщении](/api/messages/get) |
+| `client.messages.list_pinned_messages()` | [Список закреплённых сообщений](/api/messages/list-pinned) |
 | `client.messages.update_message()` | [Редактирование сообщения](/api/messages/update) |
 | `client.messages.delete_message()` | [Удаление сообщения](/api/messages/delete) |
 | `client.messages.unpin_message()` | [Открепление сообщения](/api/messages/unpin) |

@@ -166,7 +166,7 @@ export enum AuditLoginGrantDevicePlatform {
 export enum BotCanEdit {
   /** Администраторы компании */
   Admin = "admin",
-  /** Владельцы и администраторы бесед и каналов, в которые добавлен бот */
+  /** Владельцы и администраторы неархивных бесед и каналов, в которые добавлен бот */
   ChatOwners = "chat_owners",
 }
 
@@ -521,6 +521,8 @@ export enum OAuthScope {
   ChatsUpdate = "chats:update",
   /** Отметка собственных чатов непрочитанными */
   ChatsMarkUnread = "chats:mark_unread",
+  /** Отметка собственных чатов прочитанными */
+  ChatsMarkRead = "chats:mark_read",
   /** Архивация и разархивация чатов */
   ChatsArchive = "chats:archive",
   /** Выход из чатов */
@@ -1591,6 +1593,10 @@ export interface ChatMemberWebhookPayload {
   webhookTimestamp: number;
 }
 
+export interface ChatReadPosition {
+  lastReadMessageId: number | null;
+}
+
 export interface ChatUpdateRequest {
   chat: {
     name?: string;
@@ -2479,6 +2485,11 @@ export interface ListMembersParams {
   cursor?: string;
 }
 
+export interface ListPinnedMessagesParams {
+  limit?: number;
+  cursor?: string;
+}
+
 export interface ListCompanyBotsParams {
   query?: string;
   limit?: number;
@@ -2529,6 +2540,7 @@ export interface ListChatMessagesParams {
   order?: SortOrder;
   limit?: number;
   cursor?: string;
+  afterMessageId?: number;
 }
 
 export interface RemoveReactionParams {
@@ -2636,6 +2648,11 @@ export interface ListChatsResponse {
 
 export interface ListMembersResponse {
   data: User[];
+  meta: PaginationMeta;
+}
+
+export interface ListPinnedMessagesResponse {
+  data: Message[];
   meta: PaginationMeta;
 }
 

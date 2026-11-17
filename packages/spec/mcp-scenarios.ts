@@ -996,6 +996,18 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     args: { must: { id: 199 } },
   },
   {
+    id: "method-chat-read",
+    prompt: "отметь «Платипус» прочитанным, я всё там видел",
+    accept: ["list_chats", "search_chats", "list_company_chats", "get_chat", "mark_chat_read"],
+    args: { must: { id: 199 } },
+  },
+  {
+    id: "method-chat-pinned",
+    prompt: "что закреплено в «Платипусе»?",
+    accept: ["list_chats", "search_chats", "list_company_chats", "get_chat", "list_pinned_messages"],
+    args: { must: { id: 199 } },
+  },
+  {
     id: "method-export-chats",
     prompt: "выгрузи переписку «Релизов» и «Платипуса» за март 2026 года",
     accept: ["list_chats", "search_chats", "list_company_chats", "request_export", "download_export"],

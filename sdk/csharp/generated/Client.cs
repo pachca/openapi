@@ -929,6 +929,11 @@ public class ChatsService
         throw new NotImplementedException("Chats.updateChatAvatar is not implemented");
     }
 
+    public virtual async System.Threading.Tasks.Task<ChatReadPosition> MarkChatReadAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.markChatRead is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task UnarchiveChatAsync(int id, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Chats.unarchiveChat is not implemented");
@@ -1187,6 +1192,21 @@ public sealed class ChatsServiceImpl : ChatsService
         {
             case 200:
                 return PachcaUtils.Deserialize<AvatarDataDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<ChatReadPosition> MarkChatReadAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/chats/{id}/read";
+        using var request = new HttpRequestMessage(HttpMethod.Put, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ChatReadPositionDataWrapper>(json).Data;
             default:
                 throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }
@@ -1468,6 +1488,316 @@ public sealed class MembersServiceImpl : MembersService
         CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}/members/{userId}";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+}
+
+public class MessagesService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListPinnedMessagesResponse> ListPinnedMessagesAsync(
+        int id,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.listPinnedMessages is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<Message>> ListPinnedMessagesAllAsync(
+        int id,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.listPinnedMessagesAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(
+        int chatId,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
+        int? limit = null,
+        string? cursor = null,
+        int? afterMessageId = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.listChatMessages is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<Message>> ListChatMessagesAllAsync(
+        int chatId,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
+        int? limit = null,
+        int? afterMessageId = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.listChatMessagesAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Message> GetMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.getMessage is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Message> CreateMessageAsync(MessageCreateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.createMessage is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task UnfurlAsync(
+        int id,
+        LinkPreviewsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.unfurl is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.pinMessage is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Message> UpdateMessageAsync(
+        int id,
+        MessageUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.updateMessage is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.deleteMessage is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task UnpinMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.unpinMessage is not implemented");
+    }
+}
+
+public sealed class MessagesServiceImpl : MessagesService
+{
+    private readonly string _baseUrl;
+    private readonly HttpClient _client;
+
+    internal MessagesServiceImpl(string baseUrl, HttpClient client)
+    {
+        _baseUrl = baseUrl;
+        _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task<ListPinnedMessagesResponse> ListPinnedMessagesAsync(
+        int id,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        var queryParts = new List<string>();
+        if (limit != null)
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
+        if (cursor != null)
+            queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
+        var url = $"{_baseUrl}/chats/{id}/pinned_messages" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListPinnedMessagesResponse>(json);
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<List<Message>> ListPinnedMessagesAllAsync(
+        int id,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        var items = new List<Message>();
+        string? cursor = null;
+        var hasNext = true;
+        while (hasNext)
+        {
+            var response = await ListPinnedMessagesAsync(id, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            items.AddRange(response.Data);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
+        return items;
+    }
+
+    public override async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(
+        int chatId,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
+        int? limit = null,
+        string? cursor = null,
+        int? afterMessageId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var queryParts = new List<string>();
+        queryParts.Add($"chat_id={Uri.EscapeDataString(chatId.ToString()!)}");
+        if (sort != null)
+            queryParts.Add($"sort={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sort.Value))}");
+        if (order != null)
+            queryParts.Add($"order={Uri.EscapeDataString(PachcaUtils.EnumToApiString(order.Value))}");
+        if (limit != null)
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
+        if (cursor != null)
+            queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
+        if (afterMessageId != null)
+            queryParts.Add($"after_message_id={Uri.EscapeDataString(afterMessageId.Value.ToString()!)}");
+        var url = $"{_baseUrl}/messages" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListChatMessagesResponse>(json);
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<List<Message>> ListChatMessagesAllAsync(
+        int chatId,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
+        int? limit = null,
+        int? afterMessageId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var items = new List<Message>();
+        string? cursor = null;
+        var hasNext = true;
+        while (hasNext)
+        {
+            var response = await ListChatMessagesAsync(chatId: chatId, sort: sort, order: order, limit: limit, cursor: cursor, afterMessageId: afterMessageId, cancellationToken: cancellationToken).ConfigureAwait(false);
+            items.AddRange(response.Data);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
+        return items;
+    }
+
+    public override async System.Threading.Tasks.Task<Message> GetMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/messages/{id}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<MessageDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<Message> CreateMessageAsync(MessageCreateRequest request, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/messages";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 201:
+                return PachcaUtils.Deserialize<MessageDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task UnfurlAsync(
+        int id,
+        LinkPreviewsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/messages/{id}/link_previews";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/messages/{id}/pin";
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<Message> UpdateMessageAsync(
+        int id,
+        MessageUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/messages/{id}";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<MessageDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task DeleteMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/messages/{id}";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task UnpinMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/messages/{id}/pin";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -2226,250 +2556,6 @@ public sealed class ImportantMessagesServiceImpl : ImportantMessagesService
     public override async System.Threading.Tasks.Task RemoveMessageFromImportantAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/important_messages/{id}";
-        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 204:
-                return;
-            default:
-                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
-        }
-    }
-}
-
-public class MessagesService
-{
-
-    public virtual async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(
-        int chatId,
-        MessageSortField? sort = null,
-        SortOrder? order = null,
-        int? limit = null,
-        string? cursor = null,
-        CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Messages.listChatMessages is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task<List<Message>> ListChatMessagesAllAsync(
-        int chatId,
-        MessageSortField? sort = null,
-        SortOrder? order = null,
-        int? limit = null,
-        CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Messages.listChatMessagesAll is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task<Message> GetMessageAsync(int id, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Messages.getMessage is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task<Message> CreateMessageAsync(MessageCreateRequest request, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Messages.createMessage is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task UnfurlAsync(
-        int id,
-        LinkPreviewsRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Messages.unfurl is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Messages.pinMessage is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task<Message> UpdateMessageAsync(
-        int id,
-        MessageUpdateRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Messages.updateMessage is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task DeleteMessageAsync(int id, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Messages.deleteMessage is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task UnpinMessageAsync(int id, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Messages.unpinMessage is not implemented");
-    }
-}
-
-public sealed class MessagesServiceImpl : MessagesService
-{
-    private readonly string _baseUrl;
-    private readonly HttpClient _client;
-
-    internal MessagesServiceImpl(string baseUrl, HttpClient client)
-    {
-        _baseUrl = baseUrl;
-        _client = client;
-    }
-
-    public override async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(
-        int chatId,
-        MessageSortField? sort = null,
-        SortOrder? order = null,
-        int? limit = null,
-        string? cursor = null,
-        CancellationToken cancellationToken = default)
-    {
-        var queryParts = new List<string>();
-        queryParts.Add($"chat_id={Uri.EscapeDataString(chatId.ToString()!)}");
-        if (sort != null)
-            queryParts.Add($"sort={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sort.Value))}");
-        if (order != null)
-            queryParts.Add($"order={Uri.EscapeDataString(PachcaUtils.EnumToApiString(order.Value))}");
-        if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
-        if (cursor != null)
-            queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
-        var url = $"{_baseUrl}/messages" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 200:
-                return PachcaUtils.Deserialize<ListChatMessagesResponse>(json);
-            default:
-                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
-        }
-    }
-
-    public override async System.Threading.Tasks.Task<List<Message>> ListChatMessagesAllAsync(
-        int chatId,
-        MessageSortField? sort = null,
-        SortOrder? order = null,
-        int? limit = null,
-        CancellationToken cancellationToken = default)
-    {
-        var items = new List<Message>();
-        string? cursor = null;
-        var hasNext = true;
-        while (hasNext)
-        {
-            var response = await ListChatMessagesAsync(chatId: chatId, sort: sort, order: order, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
-            items.AddRange(response.Data);
-            if (response.Data.Count == 0) break;
-            cursor = response.Meta.Paginate.NextPage;
-            hasNext = response.Meta.Paginate.HasNext ?? true;
-        }
-        return items;
-    }
-
-    public override async System.Threading.Tasks.Task<Message> GetMessageAsync(int id, CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/messages/{id}";
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 200:
-                return PachcaUtils.Deserialize<MessageDataWrapper>(json).Data;
-            default:
-                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
-        }
-    }
-
-    public override async System.Threading.Tasks.Task<Message> CreateMessageAsync(MessageCreateRequest request, CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/messages";
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
-        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 201:
-                return PachcaUtils.Deserialize<MessageDataWrapper>(json).Data;
-            default:
-                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
-        }
-    }
-
-    public override async System.Threading.Tasks.Task UnfurlAsync(
-        int id,
-        LinkPreviewsRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/messages/{id}/link_previews";
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
-        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 204:
-                return;
-            default:
-                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
-        }
-    }
-
-    public override async System.Threading.Tasks.Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/messages/{id}/pin";
-        using var request = new HttpRequestMessage(HttpMethod.Post, url);
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 204:
-                return;
-            default:
-                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
-        }
-    }
-
-    public override async System.Threading.Tasks.Task<Message> UpdateMessageAsync(
-        int id,
-        MessageUpdateRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/messages/{id}";
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
-        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 200:
-                return PachcaUtils.Deserialize<MessageDataWrapper>(json).Data;
-            default:
-                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
-        }
-    }
-
-    public override async System.Threading.Tasks.Task DeleteMessageAsync(int id, CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/messages/{id}";
-        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 204:
-                return;
-            default:
-                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
-        }
-    }
-
-    public override async System.Threading.Tasks.Task UnpinMessageAsync(int id, CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/messages/{id}/pin";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);

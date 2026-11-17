@@ -100,7 +100,7 @@ type BotCanEdit string
 
 const (
 	BotCanEditAdmin      BotCanEdit = "admin" // Администраторы компании
-	BotCanEditChatOwners BotCanEdit = "chat_owners" // Владельцы и администраторы бесед и каналов, в которые добавлен бот
+	BotCanEditChatOwners BotCanEdit = "chat_owners" // Владельцы и администраторы неархивных бесед и каналов, в которые добавлен бот
 )
 
 // BotEventName may hold a value this SDK does not list yet: a response keeps it as is.
@@ -338,6 +338,7 @@ const (
 	OAuthScopeChatsCreate            OAuthScope = "chats:create" // Создание новых чатов
 	OAuthScopeChatsUpdate            OAuthScope = "chats:update" // Изменение настроек чата
 	OAuthScopeChatsMarkUnread        OAuthScope = "chats:mark_unread" // Отметка собственных чатов непрочитанными
+	OAuthScopeChatsMarkRead          OAuthScope = "chats:mark_read" // Отметка собственных чатов прочитанными
 	OAuthScopeChatsArchive           OAuthScope = "chats:archive" // Архивация и разархивация чатов
 	OAuthScopeChatsLeave             OAuthScope = "chats:leave" // Выход из чатов
 	OAuthScopeChatMembersRead        OAuthScope = "chat_members:read" // Просмотр участников чата
@@ -1528,6 +1529,10 @@ type ChatMemberWebhookPayload struct {
 	CreatedAt        time.Time       `json:"created_at"`
 	WebhookTimestamp int32           `json:"webhook_timestamp"`
 	ThreadID         *int32          `json:"thread_id,omitempty"`
+}
+
+type ChatReadPosition struct {
+	LastReadMessageID *int32 `json:"last_read_message_id"`
 }
 
 type ChatUpdateRequestChat struct {
@@ -3571,6 +3576,11 @@ type ListMembersParams struct {
 	Cursor *string
 }
 
+type ListPinnedMessagesParams struct {
+	Limit  *int32
+	Cursor *string
+}
+
 type ListCompanyBotsParams struct {
 	Query  *string
 	Limit  *int32
@@ -3616,11 +3626,12 @@ type ListImportantMessagesParams struct {
 }
 
 type ListChatMessagesParams struct {
-	ChatID int32
-	Sort   *MessageSortField
-	Order  *SortOrder
-	Limit  *int32
-	Cursor *string
+	ChatID         int32
+	Sort           *MessageSortField
+	Order          *SortOrder
+	Limit          *int32
+	Cursor         *string
+	AfterMessageID *int32
 }
 
 type RemoveReactionParams struct {
@@ -3728,6 +3739,11 @@ type ListChatsResponse struct {
 
 type ListMembersResponse struct {
 	Data []User         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
+}
+
+type ListPinnedMessagesResponse struct {
+	Data []Message      `json:"data"`
 	Meta PaginationMeta `json:"meta"`
 }
 

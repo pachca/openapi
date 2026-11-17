@@ -138,6 +138,12 @@ hideTableOfContents: true
 
 <ModelSchema name="Chat" />
 
+## Позиция чтения
+
+- [Отметка чата прочитанным](PUT /chats/{id}/read)
+
+<ModelSchema name="ChatReadPosition" />
+
 ## Экспорт сообщений
 
 - [Экспорт сообщений](POST /chats/exports)
@@ -163,6 +169,7 @@ hideTableOfContents: true
 - [Информация о сообщении](GET /messages/{id})
 - [Список сообщений чата](GET /messages)
 - [Список важных сообщений](GET /important_messages)
+- [Список закреплённых сообщений](GET /chats/{id}/pinned_messages)
 - [Поиск сообщений](GET /search/messages)
 - [Список прочитавших сообщение](GET /messages/{id}/read_member_ids)
 - [Редактирование сообщения](PUT /messages/{id})

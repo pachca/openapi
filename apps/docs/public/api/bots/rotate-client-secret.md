@@ -87,7 +87,7 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bots/1738816/rotate_client_se
       - `url: string` (required) — Ссылка на изображение. Пример: `"https://files.example.com/attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png"`
   - `permissions: object` (required) — Что вы можете делать с этим ботом
     - `update_oauth_client: boolean` (required) — Менять авторизацию от имени сотрудника, страницу в витрине и имя бота. Пример: `true`
-    - `recreate_token: boolean` (required) — Выпускать, менять и удалять токены бота и обновлять секрет клиента. Пример: `true`
+    - `recreate_token: boolean` (required) — Выпускать, менять и удалять токены бота, менять скоупы основного токена (`webhook.scopes`) и обновлять секрет клиента. Пример: `true`
     - `destroy: boolean` (required) — Удалить бота. Пример: `true`
   - `client_secret: string` — Секрет клиента. Приходит один раз: при включении серверного клиента, при переходе на него и при ротации секрета. Пример: `"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA"`
 

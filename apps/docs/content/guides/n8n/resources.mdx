@@ -48,7 +48,7 @@ related:
 
 ## Message
 
-Сообщения: создание, получение, редактирование, удаление, закрепление и открепление.
+Сообщения: создание, получение, редактирование, удаление, закрепление, открепление и список закреплённых.
 
 | Операция | API |
 |----------|-----|
@@ -60,6 +60,7 @@ related:
 | Pin | [Закрепление сообщения](POST /messages/{id}/pin) |
 | Unpin | [Открепление сообщения](DELETE /messages/{id}/pin) |
 | Unfurl | [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews) |
+| Get Many Pinned Messages | [Список закреплённых сообщений](GET /chats/{id}/pinned_messages) |
 
 **Ключевые параметры Create:** **Entity Type** (Discussion, Thread или User), **Entity ID** (чат, тред или сотрудник), **Content** (текст, Markdown), **Button Layout** с кнопками, а в **Additional Fields** — **Files**, **Parent Message ID** и другие. Как задать кнопки — в разделе [Кнопки в сообщениях](/guides/n8n/advanced#knopki-v-soobscheniyah).
 
@@ -85,6 +86,7 @@ related:
 | Download Export | [Скачать архив экспорта](GET /chats/exports/{id}) |
 | Get Many Workspace Chats | [Список чатов пространства](GET /company/chats) |
 | Mark Unread | [Отметка чата непрочитанным](PUT /chats/{id}/unread) |
+| Mark Read | [Отметка чата прочитанным](PUT /chats/{id}/read) |
 | Update Avatar | [Загрузка аватара чата](PUT /chats/{id}/avatar) |
 | Delete Avatar | [Удаление аватара чата](DELETE /chats/{id}/avatar) |
 

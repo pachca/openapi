@@ -181,6 +181,10 @@
     "usage": "let image = Data()\nlet response = try await client.chats.updateChatAvatar(id: 334, image: image)",
     "output": "AvatarData(imageUrl: String)"
   },
+  "ChatOperations_markChatRead": {
+    "usage": "let response = try await client.chats.markChatRead(id: 334)",
+    "output": "ChatReadPosition(lastReadMessageId: Int?)"
+  },
   "ChatOperations_unarchiveChat": {
     "usage": "try await client.chats.unarchiveChat(id: 334)"
   },
@@ -223,6 +227,74 @@
   },
   "ChatMemberOperations_removeMember": {
     "usage": "try await client.members.removeMember(id: 334, userId: 186)"
+  },
+  "PinnedMessageOperations_listPinnedMessages": {
+    "usage": "let response = try await client.messages.listPinnedMessages(id: 334, limit: 25, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListPinnedMessagesResponse(data: [Message], meta: PaginationMeta)"
+  },
+  "ChatMessageOperations_listChatMessages": {
+    "usage": "let response = try await client.messages.listChatMessages(chatId: 198, sort: .id, order: .desc, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", afterMessageId: 194275)",
+    "output": "ListChatMessagesResponse(data: [Message], meta: PaginationMeta)",
+    "imports": [
+      "MessageSortField",
+      "SortOrder"
+    ]
+  },
+  "MessageOperations_getMessage": {
+    "usage": "let response = try await client.messages.getMessage(id: 194275)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)"
+  },
+  "MessageOperations_createMessage": {
+    "usage": "let request = MessageCreateRequest(message: MessageCreateRequestMessage(entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nlet response = try await client.messages.createMessage(request: request)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)",
+    "imports": [
+      "MessageCreateRequest",
+      "MessageCreateRequestMessage"
+    ],
+    "examples": {
+      "Минимальный запрос": {
+        "usage": "let request = MessageCreateRequest(message: MessageCreateRequestMessage(entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nlet response = try await client.messages.createMessage(request: request)",
+        "imports": [
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage"
+        ]
+      },
+      "Сообщение с кнопкой": {
+        "usage": "let request = MessageCreateRequest(\n    message: MessageCreateRequestMessage(\n        entityType: .discussion,\n        entityId: 334,\n        content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        buttons: [[Button(text: \"Подробнее\", url: \"https://example.com/details\")]]\n    )\n)\nlet response = try await client.messages.createMessage(request: request)",
+        "imports": [
+          "Button",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage",
+          "MessageEntityType"
+        ]
+      }
+    }
+  },
+  "LinkPreviewOperations_unfurl": {
+    "usage": "let request = LinkPreviewsRequest(\n    linkPreviews: [\"key\": LinkPreview(\n        title: \"Статья: Отправка файлов\",\n        description: \"Пример отправки файлов на удаленный сервер\",\n        imageUrl: \"https://example.com/img/landing.png\",\n        image: LinkPreviewImage(\n            key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name: \"files-to-server.jpg\",\n            size: 695604\n        )\n    )]\n)\ntry await client.messages.unfurl(id: 194275, request: request)",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
+  },
+  "MessageOperations_pinMessage": {
+    "usage": "try await client.messages.pinMessage(id: 194275)"
+  },
+  "MessageOperations_updateMessage": {
+    "usage": "let request = MessageUpdateRequest(message: MessageUpdateRequestMessage(content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\", buttons: [[Button(text: \"Подробнее\", url: \"https://example.com/details\")]]))\nlet response = try await client.messages.updateMessage(id: 194275, request: request)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)",
+    "imports": [
+      "Button",
+      "MessageUpdateRequest",
+      "MessageUpdateRequestMessage"
+    ]
+  },
+  "MessageOperations_deleteMessage": {
+    "usage": "try await client.messages.deleteMessage(id: 194275)"
+  },
+  "MessageOperations_unpinMessage": {
+    "usage": "try await client.messages.unpinMessage(id: 194275)"
   },
   "CompanyOperations_getCompany": {
     "usage": "let response = try await client.company.getCompany()",
@@ -344,70 +416,6 @@
   },
   "ImportantMessageOperations_removeMessageFromImportant": {
     "usage": "try await client.importantMessages.removeMessageFromImportant(id: 194275)"
-  },
-  "ChatMessageOperations_listChatMessages": {
-    "usage": "let response = try await client.messages.listChatMessages(chatId: 198, sort: .id, order: .desc, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListChatMessagesResponse(data: [Message], meta: PaginationMeta)",
-    "imports": [
-      "MessageSortField",
-      "SortOrder"
-    ]
-  },
-  "MessageOperations_getMessage": {
-    "usage": "let response = try await client.messages.getMessage(id: 194275)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)"
-  },
-  "MessageOperations_createMessage": {
-    "usage": "let request = MessageCreateRequest(message: MessageCreateRequestMessage(entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nlet response = try await client.messages.createMessage(request: request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)",
-    "imports": [
-      "MessageCreateRequest",
-      "MessageCreateRequestMessage"
-    ],
-    "examples": {
-      "Минимальный запрос": {
-        "usage": "let request = MessageCreateRequest(message: MessageCreateRequestMessage(entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nlet response = try await client.messages.createMessage(request: request)",
-        "imports": [
-          "MessageCreateRequest",
-          "MessageCreateRequestMessage"
-        ]
-      },
-      "Сообщение с кнопкой": {
-        "usage": "let request = MessageCreateRequest(\n    message: MessageCreateRequestMessage(\n        entityType: .discussion,\n        entityId: 334,\n        content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        buttons: [[Button(text: \"Подробнее\", url: \"https://example.com/details\")]]\n    )\n)\nlet response = try await client.messages.createMessage(request: request)",
-        "imports": [
-          "Button",
-          "MessageCreateRequest",
-          "MessageCreateRequestMessage",
-          "MessageEntityType"
-        ]
-      }
-    }
-  },
-  "LinkPreviewOperations_unfurl": {
-    "usage": "let request = LinkPreviewsRequest(\n    linkPreviews: [\"key\": LinkPreview(\n        title: \"Статья: Отправка файлов\",\n        description: \"Пример отправки файлов на удаленный сервер\",\n        imageUrl: \"https://example.com/img/landing.png\",\n        image: LinkPreviewImage(\n            key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name: \"files-to-server.jpg\",\n            size: 695604\n        )\n    )]\n)\ntry await client.messages.unfurl(id: 194275, request: request)",
-    "imports": [
-      "LinkPreview",
-      "LinkPreviewImage",
-      "LinkPreviewsRequest"
-    ]
-  },
-  "MessageOperations_pinMessage": {
-    "usage": "try await client.messages.pinMessage(id: 194275)"
-  },
-  "MessageOperations_updateMessage": {
-    "usage": "let request = MessageUpdateRequest(message: MessageUpdateRequestMessage(content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\", buttons: [[Button(text: \"Подробнее\", url: \"https://example.com/details\")]]))\nlet response = try await client.messages.updateMessage(id: 194275, request: request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?, important: Bool, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)",
-    "imports": [
-      "Button",
-      "MessageUpdateRequest",
-      "MessageUpdateRequestMessage"
-    ]
-  },
-  "MessageOperations_deleteMessage": {
-    "usage": "try await client.messages.deleteMessage(id: 194275)"
-  },
-  "MessageOperations_unpinMessage": {
-    "usage": "try await client.messages.unpinMessage(id: 194275)"
   },
   "ReactionOperations_listReactions": {
     "usage": "let response = try await client.reactions.listReactions(id: 194275, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",

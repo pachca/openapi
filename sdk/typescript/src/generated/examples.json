@@ -176,6 +176,10 @@
     "usage": "const image = new Blob([])\nconst response = await client.chats.updateChatAvatar(334, image)",
     "output": "AvatarData({ imageUrl: string })"
   },
+  "ChatOperations_markChatRead": {
+    "usage": "const response = await client.chats.markChatRead(334)",
+    "output": "ChatReadPosition({ lastReadMessageId: number | null })"
+  },
   "ChatOperations_unarchiveChat": {
     "usage": "await client.chats.unarchiveChat(334)"
   },
@@ -218,6 +222,69 @@
   },
   "ChatMemberOperations_removeMember": {
     "usage": "await client.members.removeMember(334, 186)"
+  },
+  "PinnedMessageOperations_listPinnedMessages": {
+    "usage": "const response = await client.messages.listPinnedMessages(334, { limit: 25, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
+    "output": "ListPinnedMessagesResponse({ data: Message[], meta: PaginationMeta })"
+  },
+  "ChatMessageOperations_listChatMessages": {
+    "usage": "const response = await client.messages.listChatMessages({\n  chatId: 198,\n  sort: MessageSortField.Id,\n  order: SortOrder.Desc,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n  afterMessageId: 194275\n})",
+    "output": "ListChatMessagesResponse({ data: Message[], meta: PaginationMeta })",
+    "imports": [
+      "MessageSortField",
+      "SortOrder"
+    ]
+  },
+  "MessageOperations_getMessage": {
+    "usage": "const response = await client.messages.getMessage(194275)",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null, transcriptStatus: VoiceTranscriptStatus | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean, source: MessageSource | null, application: MessageApplication({ id: number, name: string }) | null })"
+  },
+  "MessageOperations_createMessage": {
+    "usage": "const request: MessageCreateRequest = { message: { entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\" } }\nconst response = await client.messages.createMessage(request)",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null, transcriptStatus: VoiceTranscriptStatus | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean, source: MessageSource | null, application: MessageApplication({ id: number, name: string }) | null })",
+    "imports": [
+      "MessageCreateRequest"
+    ],
+    "examples": {
+      "Минимальный запрос": {
+        "usage": "const request: MessageCreateRequest = { message: { entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\" } }\nconst response = await client.messages.createMessage(request)",
+        "imports": [
+          "MessageCreateRequest"
+        ]
+      },
+      "Сообщение с кнопкой": {
+        "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    buttons: [[{ text: \"Подробнее\", url: \"https://example.com/details\" }]]\n  }\n}\nconst response = await client.messages.createMessage(request)",
+        "imports": [
+          "Button",
+          "MessageCreateRequest",
+          "MessageEntityType"
+        ]
+      }
+    }
+  },
+  "LinkPreviewOperations_unfurl": {
+    "usage": "const request: LinkPreviewsRequest = {\n  linkPreviews: { key: {\n    title: \"Статья: Отправка файлов\",\n    description: \"Пример отправки файлов на удаленный сервер\",\n    imageUrl: \"https://example.com/img/landing.png\",\n    image: {\n      key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n      name: \"files-to-server.jpg\",\n      size: 695604\n    }\n  } }\n}\nawait client.messages.unfurl(194275, request)",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewsRequest"
+    ]
+  },
+  "MessageOperations_pinMessage": {
+    "usage": "await client.messages.pinMessage(194275)"
+  },
+  "MessageOperations_updateMessage": {
+    "usage": "const request: MessageUpdateRequest = { message: { content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\", buttons: [[{ text: \"Подробнее\", url: \"https://example.com/details\" }]] } }\nconst response = await client.messages.updateMessage(194275, request)",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null, transcriptStatus: VoiceTranscriptStatus | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean, source: MessageSource | null, application: MessageApplication({ id: number, name: string }) | null })",
+    "imports": [
+      "Button",
+      "MessageUpdateRequest"
+    ]
+  },
+  "MessageOperations_deleteMessage": {
+    "usage": "await client.messages.deleteMessage(194275)"
+  },
+  "MessageOperations_unpinMessage": {
+    "usage": "await client.messages.unpinMessage(194275)"
   },
   "CompanyOperations_getCompany": {
     "usage": "const response = await client.company.getCompany()",
@@ -335,65 +402,6 @@
   },
   "ImportantMessageOperations_removeMessageFromImportant": {
     "usage": "await client.importantMessages.removeMessageFromImportant(194275)"
-  },
-  "ChatMessageOperations_listChatMessages": {
-    "usage": "const response = await client.messages.listChatMessages({\n  chatId: 198,\n  sort: MessageSortField.Id,\n  order: SortOrder.Desc,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
-    "output": "ListChatMessagesResponse({ data: Message[], meta: PaginationMeta })",
-    "imports": [
-      "MessageSortField",
-      "SortOrder"
-    ]
-  },
-  "MessageOperations_getMessage": {
-    "usage": "const response = await client.messages.getMessage(194275)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null, transcriptStatus: VoiceTranscriptStatus | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean, source: MessageSource | null, application: MessageApplication({ id: number, name: string }) | null })"
-  },
-  "MessageOperations_createMessage": {
-    "usage": "const request: MessageCreateRequest = { message: { entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\" } }\nconst response = await client.messages.createMessage(request)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null, transcriptStatus: VoiceTranscriptStatus | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean, source: MessageSource | null, application: MessageApplication({ id: number, name: string }) | null })",
-    "imports": [
-      "MessageCreateRequest"
-    ],
-    "examples": {
-      "Минимальный запрос": {
-        "usage": "const request: MessageCreateRequest = { message: { entityId: 334, content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\" } }\nconst response = await client.messages.createMessage(request)",
-        "imports": [
-          "MessageCreateRequest"
-        ]
-      },
-      "Сообщение с кнопкой": {
-        "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    buttons: [[{ text: \"Подробнее\", url: \"https://example.com/details\" }]]\n  }\n}\nconst response = await client.messages.createMessage(request)",
-        "imports": [
-          "Button",
-          "MessageCreateRequest",
-          "MessageEntityType"
-        ]
-      }
-    }
-  },
-  "LinkPreviewOperations_unfurl": {
-    "usage": "const request: LinkPreviewsRequest = {\n  linkPreviews: { key: {\n    title: \"Статья: Отправка файлов\",\n    description: \"Пример отправки файлов на удаленный сервер\",\n    imageUrl: \"https://example.com/img/landing.png\",\n    image: {\n      key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n      name: \"files-to-server.jpg\",\n      size: 695604\n    }\n  } }\n}\nawait client.messages.unfurl(194275, request)",
-    "imports": [
-      "LinkPreview",
-      "LinkPreviewsRequest"
-    ]
-  },
-  "MessageOperations_pinMessage": {
-    "usage": "await client.messages.pinMessage(194275)"
-  },
-  "MessageOperations_updateMessage": {
-    "usage": "const request: MessageUpdateRequest = { message: { content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\", buttons: [[{ text: \"Подробнее\", url: \"https://example.com/details\" }]] } }\nconst response = await client.messages.updateMessage(194275, request)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null, transcriptStatus: VoiceTranscriptStatus | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null, important: boolean, source: MessageSource | null, application: MessageApplication({ id: number, name: string }) | null })",
-    "imports": [
-      "Button",
-      "MessageUpdateRequest"
-    ]
-  },
-  "MessageOperations_deleteMessage": {
-    "usage": "await client.messages.deleteMessage(194275)"
-  },
-  "MessageOperations_unpinMessage": {
-    "usage": "await client.messages.unpinMessage(194275)"
   },
   "ReactionOperations_listReactions": {
     "usage": "const response = await client.reactions.listReactions(194275, { limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",

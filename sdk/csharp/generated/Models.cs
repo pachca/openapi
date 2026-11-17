@@ -286,7 +286,7 @@ public readonly struct BotCanEdit : IEquatable<BotCanEdit>
 
     /// <summary>Администраторы компании</summary>
     public static BotCanEdit Admin { get; } = new("admin");
-    /// <summary>Владельцы и администраторы бесед и каналов, в которые добавлен бот</summary>
+    /// <summary>Владельцы и администраторы неархивных бесед и каналов, в которые добавлен бот</summary>
     public static BotCanEdit ChatOwners { get; } = new("chat_owners");
 
     /// <summary>Every value this SDK version lists</summary>
@@ -1463,6 +1463,8 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope ChatsUpdate { get; } = new("chats:update");
     /// <summary>Отметка собственных чатов непрочитанными</summary>
     public static OAuthScope ChatsMarkUnread { get; } = new("chats:mark_unread");
+    /// <summary>Отметка собственных чатов прочитанными</summary>
+    public static OAuthScope ChatsMarkRead { get; } = new("chats:mark_read");
     /// <summary>Архивация и разархивация чатов</summary>
     public static OAuthScope ChatsArchive { get; } = new("chats:archive");
     /// <summary>Выход из чатов</summary>
@@ -1577,7 +1579,7 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope ImportantMessagesWrite { get; } = new("important_messages:write");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, CompanyRead, CompanyWrite, InviteLinksWrite, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, UploadsWrite, ViewsWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
+    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsMarkRead, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, CompanyRead, CompanyWrite, InviteLinksWrite, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, UploadsWrite, ViewsWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -4148,6 +4150,12 @@ public class ChatExport
     public int Id { get; set; } = default!;
 }
 
+public class ChatReadPosition
+{
+    [JsonPropertyName("last_read_message_id")]
+    public int? LastReadMessageId { get; set; }
+}
+
 public class ChatUpdateRequestChat
 {
     [JsonPropertyName("name")]
@@ -5392,6 +5400,14 @@ public class ListMembersResponse
     public PaginationMeta Meta { get; set; } = default!;
 }
 
+public class ListPinnedMessagesResponse
+{
+    [JsonPropertyName("data")]
+    public List<Message> Data { get; set; } = new();
+    [JsonPropertyName("meta")]
+    public PaginationMeta Meta { get; set; } = default!;
+}
+
 public class ListCompanyBotsResponse
 {
     [JsonPropertyName("data")]
@@ -5580,6 +5596,18 @@ public class ChatExportDataWrapper
     public ChatExport Data { get; set; } = default!;
 }
 
+public class ChatReadPositionDataWrapper
+{
+    [JsonPropertyName("data")]
+    public ChatReadPosition Data { get; set; } = default!;
+}
+
+public class MessageDataWrapper
+{
+    [JsonPropertyName("data")]
+    public Message Data { get; set; } = default!;
+}
+
 public class CompanyDataWrapper
 {
     [JsonPropertyName("data")]
@@ -5602,12 +5630,6 @@ public class GroupTagDataWrapper
 {
     [JsonPropertyName("data")]
     public GroupTag Data { get; set; } = default!;
-}
-
-public class MessageDataWrapper
-{
-    [JsonPropertyName("data")]
-    public Message Data { get; set; } = default!;
 }
 
 public class ThreadDataWrapper

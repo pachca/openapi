@@ -92,7 +92,7 @@ The same event can occasionally arrive twice. Keep a durable set of processed ke
 
 Build the key per type, as `getEventKey` on the [handler page](https://dev.pachca.com/guides/webhook/handler.md) does: `view`, `chat_member`, `company_member` and `video_call` payloads carry neither `id` nor `message_id`, and the edits, reactions and clicks of one message share it. Start the key with `type:event` and add:
 
-- `message`: `id`, plus `changed_at` for `update`. For `link_shared`: `message_id` and the `links` URLs (an edit sends the links again, and so does an `update` without an edit from section 6, unless a link preview was added).
+- `message`: `id`, plus `changed_at` for `update`. For `link_shared`: `message_id` and the `links` URLs (after an edit it comes only for links the edit added, so a link removed and pasted back by a later edit comes again; an edit without new links and an `update` without an edit from section 6 send no `link_shared`).
 - `reaction`: `message_id`, `user_id`, `code`, `created_at`.
 - `button`: `trigger_id` (new on every click).
 - `view`: `submit_id`.
@@ -102,7 +102,7 @@ Build the key per type, as `getEventKey` on the [handler page](https://dev.pachc
 
 Use the same key for webhook and history events: the webhook body carries no history `id`, and a retry after you deleted the record gets a new one. Leave `webhook_timestamp` out of the key, it changes on every attempt.
 
-Every attempt of one webhook delivery carries the same `Idempotency-Key` request header (a ULID), also when the retry was built anew, and every other delivery gets its own. It is not the history `id`. The header alone catches a retried webhook request, but keep the payload key for the rest: an `update` without an edit and a repeated `link_shared` are new deliveries with a new key, history and stream records carry no header, and button clicks and form submissions come without it.
+Every attempt of one webhook delivery carries the same `Idempotency-Key` request header (a ULID), also when the retry was built anew, and every other delivery gets its own. It is not the history `id`. The header alone catches a retried webhook request, but keep the payload key for the rest: an `update` without an edit and a `link_shared` for a link pasted back by a later edit are new deliveries with a new key, history and stream records carry no header, and button clicks and form submissions come without it.
 
 ## 6. Read the payload correctly
 

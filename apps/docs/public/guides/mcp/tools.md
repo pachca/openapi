@@ -81,6 +81,7 @@
 | `pachca_archive_chat` | [Архивация чата](/api/chats/archive) | Все | Опасное изменение |
 | `pachca_update_chat_avatar` | [Загрузка аватара чата](/api/chats/update-avatar) | Все | Опасное изменение |
 | `pachca_delete_chat_avatar` | [Удаление аватара чата](/api/chats/remove-avatar) | Все | Опасное изменение |
+| `pachca_mark_chat_read` | [Отметка чата прочитанным](/api/chats/mark-read) | Все | Опасное изменение |
 | `pachca_unarchive_chat` | [Разархивация чата](/api/chats/unarchive) | Все | Изменение |
 | `pachca_mark_chat_unread` | [Отметка чата непрочитанным](/api/chats/mark-unread) | Все | Изменение |
 | `pachca_list_company_chats` | [Список чатов пространства](/api/chats/list-company) | Владелец на «Корпорации» | Чтение |
@@ -95,6 +96,7 @@
 | `pachca_list_threads` | [Список тредов](/api/threads/list) | Все | Чтение |
 | `pachca_create_unattached_thread` | [Новый самостоятельный тред](/api/threads/create) | Все | Изменение |
 | `pachca_get_thread` | [Информация о треде](/api/threads/get) | Все | Чтение |
+| `pachca_list_pinned_messages` | [Список закреплённых сообщений](/api/messages/list-pinned) | Все | Чтение |
 | `pachca_list_chat_messages` | [Список сообщений чата](/api/messages/list) | Все | Чтение |
 | `pachca_send_message` | [Новое сообщение](/api/messages/create) | Все | Изменение |
 | `pachca_get_message` | [Информация о сообщении](/api/messages/get) | Все | Чтение |

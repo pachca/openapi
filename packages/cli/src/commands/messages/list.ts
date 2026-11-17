@@ -34,6 +34,9 @@ export default class MessagesList extends BaseCommand {
       options: ["asc","desc"],
       default: "desc",
     }),
+    'after-message-id': Flags.integer({
+      description: "Идентификатор сообщения, после которого нужны сообщения: придут сообщения с бо́льшим `id`, от старых к новым. Сочетается с `limit` и `cursor`. Из `order` допускается только `asc`, а `page` и `per` не допускаются, иначе метод отвечает `400`. Сообщение может быть удалено: оно служит только границей.",
+    }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',
     }),
@@ -88,6 +91,7 @@ export default class MessagesList extends BaseCommand {
         'chat_id': flags['chat-id'],
         sort: flags['sort'],
         order: flags['order'],
+        'after_message_id': flags['after-message-id'],
         limit: flags.limit,
           cursor: nextCursor,
         };
@@ -137,6 +141,7 @@ export default class MessagesList extends BaseCommand {
       'chat_id': flags['chat-id'],
       sort: flags['sort'],
       order: flags['order'],
+      'after_message_id': flags['after-message-id'],
       limit: flags.limit,
       cursor: flags.cursor,
       },

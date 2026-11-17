@@ -78,6 +78,7 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
 	if (ep.path === '/bots/{id}/tokens/{token_id}/reissue' && method === 'POST') return 'reissueToken';
 	if (ep.path === '/bots/{id}/rotate_client_secret' && method === 'POST') return 'rotateClientSecret';
 	if (ep.path === '/chats/{id}/unread' && method === 'PUT') return 'markUnread';
+	if (ep.path === '/chats/{id}/read' && method === 'PUT') return 'markRead';
 	if (ep.path === '/company/invite_link' && method === 'POST') return 'reissueInviteLink';
 
 	if (staticSegments.length > 1) {

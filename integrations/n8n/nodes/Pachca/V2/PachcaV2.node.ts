@@ -13,13 +13,13 @@ import { securityOperations, securityFields } from './SecurityDescription';
 import { botOperations, botFields } from './BotDescription';
 import { chatOperations, chatFields } from './ChatDescription';
 import { memberOperations, memberFields } from './MemberDescription';
+import { messageOperations, messageFields } from './MessageDescription';
 import { companyOperations, companyFields } from './CompanyDescription';
 import { customPropertyOperations, customPropertyFields } from './CustomPropertyDescription';
 import { fileOperations, fileFields } from './FileDescription';
 import { draftOperations, draftFields } from './DraftDescription';
 import { groupTagOperations, groupTagFields } from './GroupTagDescription';
 import { importantMessageOperations, importantMessageFields } from './ImportantMessageDescription';
-import { messageOperations, messageFields } from './MessageDescription';
 import { reactionOperations, reactionFields } from './ReactionDescription';
 import { readMemberOperations, readMemberFields } from './ReadMemberDescription';
 import { threadOperations, threadFields } from './ThreadDescription';
@@ -85,6 +85,8 @@ export class PachcaV2 implements INodeType {
 			...chatFields,
 			...memberOperations,
 			...memberFields,
+			...messageOperations,
+			...messageFields,
 			...companyOperations,
 			...companyFields,
 			...customPropertyOperations,
@@ -97,8 +99,6 @@ export class PachcaV2 implements INodeType {
 			...groupTagFields,
 			...importantMessageOperations,
 			...importantMessageFields,
-			...messageOperations,
-			...messageFields,
 			...reactionOperations,
 			...reactionFields,
 			...readMemberOperations,

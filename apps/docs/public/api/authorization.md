@@ -102,7 +102,7 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 
 Нажмите **Создать токен** — откроется диалог, в котором нужно задать название токена и выбрать разрешения (скоупы). Готовые наборы под типовые задачи, в том числе для агента, который читает и пишет сообщения, собраны в разделе [Наборы прав под типовые задачи](/guides/permissions#nabory-prav-pod-tipovye-zadachi).
 
-![Окно «Создание API токена»: поле названия, подсказка о минимальных разрешениях, поиск и группа «Чаты» со своей галочкой и правами chats:read, chats:create, chats:update, chats:mark_unread, chats:archive](/images/authorization/create_user_token_modal.webp)
+![Окно «Создание API токена»: поле названия, подсказка о минимальных разрешениях, поиск и группа «Чаты» со своей галочкой и правами chats:read, chats:create, chats:update, chats:mark_unread, chats:mark_read, chats:archive](/images/authorization/create_user_token_modal.webp)
 
 *Создание API токена*
 
@@ -187,6 +187,7 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 | `chats:create` | Создание новых чатов | Владелец, Администратор, Сотрудник, Бот |
 | `chats:update` | Изменение настроек чата | Все |
 | `chats:mark_unread` | Отметка собственных чатов непрочитанными | Все |
+| `chats:mark_read` | Отметка собственных чатов прочитанными | Все |
 | `chats:archive` | Архивация и разархивация чатов | Все |
 | `chats:leave` | Выход из чатов | Владелец, Администратор, Сотрудник, Бот |
 | `chat_members:read` | Просмотр участников чата | Все |

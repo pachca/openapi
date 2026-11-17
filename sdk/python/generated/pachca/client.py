@@ -59,6 +59,7 @@ from .models import (
     ExportRequest,
     ChatExport,
     ChatUpdateRequest,
+    ChatReadPosition,
     MarkChatUnreadRequest,
     ListMembersParams,
     ListMembersResponse,
@@ -66,6 +67,15 @@ from .models import (
     ChatMemberRoleFilter,
     AddMembersRequest,
     ChatMemberRole,
+    ListPinnedMessagesParams,
+    ListPinnedMessagesResponse,
+    Message,
+    ListChatMessagesParams,
+    ListChatMessagesResponse,
+    MessageSortField,
+    MessageCreateRequest,
+    LinkPreviewsRequest,
+    MessageUpdateRequest,
     Company,
     InviteLink,
     CompanyUpdateRequest,
@@ -91,13 +101,6 @@ from .models import (
     GroupTagRequest,
     ListImportantMessagesParams,
     ListImportantMessagesResponse,
-    Message,
-    ListChatMessagesParams,
-    ListChatMessagesResponse,
-    MessageSortField,
-    MessageCreateRequest,
-    LinkPreviewsRequest,
-    MessageUpdateRequest,
     ListReactionsParams,
     ListReactionsResponse,
     Reaction,
@@ -970,6 +973,12 @@ class ChatsService:
     ) -> AvatarData:
         raise NotImplementedError("Chats.updateChatAvatar is not implemented")
 
+    async def mark_chat_read(
+        self,
+        id: int,
+    ) -> ChatReadPosition:
+        raise NotImplementedError("Chats.markChatRead is not implemented")
+
     async def unarchive_chat(
         self,
         id: int,
@@ -1191,6 +1200,19 @@ class ChatsServiceImpl(ChatsService):
         match response.status_code:
             case 200:
                 return deserialize(AvatarData, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def mark_chat_read(
+        self,
+        id: int,
+    ) -> ChatReadPosition:
+        response = await self._client.put(
+            f"/chats/{id}/read",
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(ChatReadPosition, response.json()["data"])
             case _:
                 raise _error_from_response(response)
 
@@ -1421,6 +1443,266 @@ class MembersServiceImpl(MembersService):
     ) -> None:
         response = await self._client.delete(
             f"/chats/{id}/members/{user_id}",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case _:
+                raise _error_from_response(response)
+
+
+class MessagesService:
+    async def list_pinned_messages(
+        self,
+        id: int,
+        params: ListPinnedMessagesParams | None = None,
+    ) -> ListPinnedMessagesResponse:
+        raise NotImplementedError("Messages.listPinnedMessages is not implemented")
+
+    async def list_pinned_messages_all(
+        self,
+        id: int,
+        params: ListPinnedMessagesParams | None = None,
+    ) -> list[Message]:
+        raise NotImplementedError("Messages.listPinnedMessagesAll is not implemented")
+
+    async def list_chat_messages(
+        self,
+        params: ListChatMessagesParams,
+    ) -> ListChatMessagesResponse:
+        raise NotImplementedError("Messages.listChatMessages is not implemented")
+
+    async def list_chat_messages_all(
+        self,
+        params: ListChatMessagesParams,
+    ) -> list[Message]:
+        raise NotImplementedError("Messages.listChatMessagesAll is not implemented")
+
+    async def get_message(
+        self,
+        id: int,
+    ) -> Message:
+        raise NotImplementedError("Messages.getMessage is not implemented")
+
+    async def create_message(
+        self,
+        request: MessageCreateRequest,
+    ) -> Message:
+        raise NotImplementedError("Messages.createMessage is not implemented")
+
+    async def unfurl(
+        self,
+        id: int,
+        request: LinkPreviewsRequest,
+    ) -> None:
+        raise NotImplementedError("Messages.unfurl is not implemented")
+
+    async def pin_message(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Messages.pinMessage is not implemented")
+
+    async def update_message(
+        self,
+        id: int,
+        request: MessageUpdateRequest,
+    ) -> Message:
+        raise NotImplementedError("Messages.updateMessage is not implemented")
+
+    async def delete_message(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Messages.deleteMessage is not implemented")
+
+    async def unpin_message(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Messages.unpinMessage is not implemented")
+
+
+class MessagesServiceImpl(MessagesService):
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+
+    async def list_pinned_messages(
+        self,
+        id: int,
+        params: ListPinnedMessagesParams | None = None,
+    ) -> ListPinnedMessagesResponse:
+        query: dict[str, str] = {}
+        if params is not None and params.limit is not None:
+            query["limit"] = str(params.limit)
+        if params is not None and params.cursor is not None:
+            query["cursor"] = params.cursor
+        response = await self._client.get(
+            f"/chats/{id}/pinned_messages",
+            params=query,
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(ListPinnedMessagesResponse, response.json())
+            case _:
+                raise _error_from_response(response)
+
+    async def list_pinned_messages_all(
+        self,
+        id: int,
+        params: ListPinnedMessagesParams | None = None,
+    ) -> list[Message]:
+        items: list[Message] = []
+        cursor: str | None = None
+        has_next = True
+        while has_next:
+            if params is None:
+                params = ListPinnedMessagesParams()
+            params.cursor = cursor
+            response = await self.list_pinned_messages(id, params=params)
+            items.extend(response.data)
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
+        return items
+
+    async def list_chat_messages(
+        self,
+        params: ListChatMessagesParams,
+    ) -> ListChatMessagesResponse:
+        query: list[tuple[str, str]] = []
+        query.append(("chat_id", str(params.chat_id)))
+        if params is not None and params.sort is not None:
+            query.append(("sort", params.sort))
+        if params is not None and params.order is not None:
+            query.append(("order", params.order))
+        if params is not None and params.limit is not None:
+            query.append(("limit", str(params.limit)))
+        if params is not None and params.cursor is not None:
+            query.append(("cursor", params.cursor))
+        if params is not None and params.after_message_id is not None:
+            query.append(("after_message_id", str(params.after_message_id)))
+        response = await self._client.get(
+            "/messages",
+            params=query,
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(ListChatMessagesResponse, response.json())
+            case _:
+                raise _error_from_response(response)
+
+    async def list_chat_messages_all(
+        self,
+        params: ListChatMessagesParams,
+    ) -> list[Message]:
+        items: list[Message] = []
+        cursor: str | None = None
+        has_next = True
+        while has_next:
+            if params is None:
+                params = ListChatMessagesParams()
+            params.cursor = cursor
+            response = await self.list_chat_messages(params=params)
+            items.extend(response.data)
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
+        return items
+
+    async def get_message(
+        self,
+        id: int,
+    ) -> Message:
+        response = await self._client.get(
+            f"/messages/{id}",
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(Message, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def create_message(
+        self,
+        request: MessageCreateRequest,
+    ) -> Message:
+        response = await self._client.post(
+            "/messages",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 201:
+                return deserialize(Message, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def unfurl(
+        self,
+        id: int,
+        request: LinkPreviewsRequest,
+    ) -> None:
+        response = await self._client.post(
+            f"/messages/{id}/link_previews",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 204:
+                return
+            case _:
+                raise _error_from_response(response)
+
+    async def pin_message(
+        self,
+        id: int,
+    ) -> None:
+        response = await self._client.post(
+            f"/messages/{id}/pin",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case _:
+                raise _error_from_response(response)
+
+    async def update_message(
+        self,
+        id: int,
+        request: MessageUpdateRequest,
+    ) -> Message:
+        response = await self._client.put(
+            f"/messages/{id}",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(Message, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def delete_message(
+        self,
+        id: int,
+    ) -> None:
+        response = await self._client.delete(
+            f"/messages/{id}",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case _:
+                raise _error_from_response(response)
+
+    async def unpin_message(
+        self,
+        id: int,
+    ) -> None:
+        response = await self._client.delete(
+            f"/messages/{id}/pin",
         )
         match response.status_code:
             case 204:
@@ -2042,209 +2324,6 @@ class ImportantMessagesServiceImpl(ImportantMessagesService):
     ) -> None:
         response = await self._client.delete(
             f"/important_messages/{id}",
-        )
-        match response.status_code:
-            case 204:
-                return
-            case _:
-                raise _error_from_response(response)
-
-
-class MessagesService:
-    async def list_chat_messages(
-        self,
-        params: ListChatMessagesParams,
-    ) -> ListChatMessagesResponse:
-        raise NotImplementedError("Messages.listChatMessages is not implemented")
-
-    async def list_chat_messages_all(
-        self,
-        params: ListChatMessagesParams,
-    ) -> list[Message]:
-        raise NotImplementedError("Messages.listChatMessagesAll is not implemented")
-
-    async def get_message(
-        self,
-        id: int,
-    ) -> Message:
-        raise NotImplementedError("Messages.getMessage is not implemented")
-
-    async def create_message(
-        self,
-        request: MessageCreateRequest,
-    ) -> Message:
-        raise NotImplementedError("Messages.createMessage is not implemented")
-
-    async def unfurl(
-        self,
-        id: int,
-        request: LinkPreviewsRequest,
-    ) -> None:
-        raise NotImplementedError("Messages.unfurl is not implemented")
-
-    async def pin_message(
-        self,
-        id: int,
-    ) -> None:
-        raise NotImplementedError("Messages.pinMessage is not implemented")
-
-    async def update_message(
-        self,
-        id: int,
-        request: MessageUpdateRequest,
-    ) -> Message:
-        raise NotImplementedError("Messages.updateMessage is not implemented")
-
-    async def delete_message(
-        self,
-        id: int,
-    ) -> None:
-        raise NotImplementedError("Messages.deleteMessage is not implemented")
-
-    async def unpin_message(
-        self,
-        id: int,
-    ) -> None:
-        raise NotImplementedError("Messages.unpinMessage is not implemented")
-
-
-class MessagesServiceImpl(MessagesService):
-    def __init__(self, client: httpx.AsyncClient) -> None:
-        self._client = client
-
-    async def list_chat_messages(
-        self,
-        params: ListChatMessagesParams,
-    ) -> ListChatMessagesResponse:
-        query: list[tuple[str, str]] = []
-        query.append(("chat_id", str(params.chat_id)))
-        if params is not None and params.sort is not None:
-            query.append(("sort", params.sort))
-        if params is not None and params.order is not None:
-            query.append(("order", params.order))
-        if params is not None and params.limit is not None:
-            query.append(("limit", str(params.limit)))
-        if params is not None and params.cursor is not None:
-            query.append(("cursor", params.cursor))
-        response = await self._client.get(
-            "/messages",
-            params=query,
-        )
-        match response.status_code:
-            case 200:
-                return deserialize(ListChatMessagesResponse, response.json())
-            case _:
-                raise _error_from_response(response)
-
-    async def list_chat_messages_all(
-        self,
-        params: ListChatMessagesParams,
-    ) -> list[Message]:
-        items: list[Message] = []
-        cursor: str | None = None
-        has_next = True
-        while has_next:
-            if params is None:
-                params = ListChatMessagesParams()
-            params.cursor = cursor
-            response = await self.list_chat_messages(params=params)
-            items.extend(response.data)
-            if not response.data:
-                break
-            cursor = response.meta.paginate.next_page
-            reported_has_next = getattr(response.meta.paginate, "has_next", None)
-            has_next = True if reported_has_next is None else reported_has_next
-        return items
-
-    async def get_message(
-        self,
-        id: int,
-    ) -> Message:
-        response = await self._client.get(
-            f"/messages/{id}",
-        )
-        match response.status_code:
-            case 200:
-                return deserialize(Message, response.json()["data"])
-            case _:
-                raise _error_from_response(response)
-
-    async def create_message(
-        self,
-        request: MessageCreateRequest,
-    ) -> Message:
-        response = await self._client.post(
-            "/messages",
-            json=serialize(request),
-        )
-        match response.status_code:
-            case 201:
-                return deserialize(Message, response.json()["data"])
-            case _:
-                raise _error_from_response(response)
-
-    async def unfurl(
-        self,
-        id: int,
-        request: LinkPreviewsRequest,
-    ) -> None:
-        response = await self._client.post(
-            f"/messages/{id}/link_previews",
-            json=serialize(request),
-        )
-        match response.status_code:
-            case 204:
-                return
-            case _:
-                raise _error_from_response(response)
-
-    async def pin_message(
-        self,
-        id: int,
-    ) -> None:
-        response = await self._client.post(
-            f"/messages/{id}/pin",
-        )
-        match response.status_code:
-            case 204:
-                return
-            case _:
-                raise _error_from_response(response)
-
-    async def update_message(
-        self,
-        id: int,
-        request: MessageUpdateRequest,
-    ) -> Message:
-        response = await self._client.put(
-            f"/messages/{id}",
-            json=serialize(request),
-        )
-        match response.status_code:
-            case 200:
-                return deserialize(Message, response.json()["data"])
-            case _:
-                raise _error_from_response(response)
-
-    async def delete_message(
-        self,
-        id: int,
-    ) -> None:
-        response = await self._client.delete(
-            f"/messages/{id}",
-        )
-        match response.status_code:
-            case 204:
-                return
-            case _:
-                raise _error_from_response(response)
-
-    async def unpin_message(
-        self,
-        id: int,
-    ) -> None:
-        response = await self._client.delete(
-            f"/messages/{id}/pin",
         )
         match response.status_code:
             case 204:

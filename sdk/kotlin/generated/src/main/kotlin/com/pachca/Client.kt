@@ -722,6 +722,10 @@ interface ChatsService {
         throw NotImplementedError("Chats.updateChatAvatar is not implemented")
     }
 
+    suspend fun markChatRead(id: Int): ChatReadPosition {
+        throw NotImplementedError("Chats.markChatRead is not implemented")
+    }
+
     suspend fun unarchiveChat(id: Int) {
         throw NotImplementedError("Chats.unarchiveChat is not implemented")
     }
@@ -904,6 +908,14 @@ class ChatsServiceImpl internal constructor(
         }
     }
 
+    override suspend fun markChatRead(id: Int): ChatReadPosition {
+        val response = client.put("$baseUrl/chats/$id/read")
+        return when (response.status.value) {
+            200 -> response.body<ChatReadPositionDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
     override suspend fun unarchiveChat(id: Int) {
         val response = client.put("$baseUrl/chats/$id/unarchive")
         when (response.status.value) {
@@ -1078,6 +1090,217 @@ class MembersServiceImpl internal constructor(
 
     override suspend fun removeMember(id: Int, userId: Int) {
         val response = client.delete("$baseUrl/chats/$id/members/$userId")
+        when (response.status.value) {
+            204 -> return
+            else -> throw errorFromResponse(response)
+        }
+    }
+}
+
+interface MessagesService {
+    suspend fun listPinnedMessages(
+        id: Int,
+        limit: Int? = null,
+        cursor: String? = null,
+    ): ListPinnedMessagesResponse {
+        throw NotImplementedError("Messages.listPinnedMessages is not implemented")
+    }
+
+    suspend fun listPinnedMessagesAll(id: Int, limit: Int? = null): List<Message> {
+        throw NotImplementedError("Messages.listPinnedMessagesAll is not implemented")
+    }
+
+    suspend fun listChatMessages(
+        chatId: Int,
+        sort: MessageSortField? = null,
+        order: SortOrder? = null,
+        limit: Int? = null,
+        cursor: String? = null,
+        afterMessageId: Int? = null,
+    ): ListChatMessagesResponse {
+        throw NotImplementedError("Messages.listChatMessages is not implemented")
+    }
+
+    suspend fun listChatMessagesAll(
+        chatId: Int,
+        sort: MessageSortField? = null,
+        order: SortOrder? = null,
+        limit: Int? = null,
+        afterMessageId: Int? = null,
+    ): List<Message> {
+        throw NotImplementedError("Messages.listChatMessagesAll is not implemented")
+    }
+
+    suspend fun getMessage(id: Int): Message {
+        throw NotImplementedError("Messages.getMessage is not implemented")
+    }
+
+    suspend fun createMessage(request: MessageCreateRequest): Message {
+        throw NotImplementedError("Messages.createMessage is not implemented")
+    }
+
+    suspend fun unfurl(id: Int, request: LinkPreviewsRequest) {
+        throw NotImplementedError("Messages.unfurl is not implemented")
+    }
+
+    suspend fun pinMessage(id: Int) {
+        throw NotImplementedError("Messages.pinMessage is not implemented")
+    }
+
+    suspend fun updateMessage(id: Int, request: MessageUpdateRequest): Message {
+        throw NotImplementedError("Messages.updateMessage is not implemented")
+    }
+
+    suspend fun deleteMessage(id: Int) {
+        throw NotImplementedError("Messages.deleteMessage is not implemented")
+    }
+
+    suspend fun unpinMessage(id: Int) {
+        throw NotImplementedError("Messages.unpinMessage is not implemented")
+    }
+}
+
+class MessagesServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : MessagesService {
+    override suspend fun listPinnedMessages(
+        id: Int,
+        limit: Int?,
+        cursor: String?,
+    ): ListPinnedMessagesResponse {
+        val response = client.get("$baseUrl/chats/$id/pinned_messages") {
+            limit?.let { parameter("limit", it) }
+            cursor?.let { parameter("cursor", it) }
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun listPinnedMessagesAll(id: Int, limit: Int?): List<Message> {
+        val items = mutableListOf<Message>()
+        var cursor: String? = null
+        var hasNext = true
+        while (hasNext) {
+            val response = listPinnedMessages(id = id, limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
+        return items
+    }
+
+    override suspend fun listChatMessages(
+        chatId: Int,
+        sort: MessageSortField?,
+        order: SortOrder?,
+        limit: Int?,
+        cursor: String?,
+        afterMessageId: Int?,
+    ): ListChatMessagesResponse {
+        val response = client.get("$baseUrl/messages") {
+            parameter("chat_id", chatId)
+            sort?.let { parameter("sort", it.value) }
+            order?.let { parameter("order", it.value) }
+            limit?.let { parameter("limit", it) }
+            cursor?.let { parameter("cursor", it) }
+            afterMessageId?.let { parameter("after_message_id", it) }
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun listChatMessagesAll(
+        chatId: Int,
+        sort: MessageSortField?,
+        order: SortOrder?,
+        limit: Int?,
+        afterMessageId: Int?,
+    ): List<Message> {
+        val items = mutableListOf<Message>()
+        var cursor: String? = null
+        var hasNext = true
+        while (hasNext) {
+            val response = listChatMessages(
+                chatId = chatId,
+                sort = sort,
+                order = order,
+                limit = limit,
+                cursor = cursor,
+                afterMessageId = afterMessageId,
+            )
+            items.addAll(response.data)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
+        return items
+    }
+
+    override suspend fun getMessage(id: Int): Message {
+        val response = client.get("$baseUrl/messages/$id")
+        return when (response.status.value) {
+            200 -> response.body<MessageDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun createMessage(request: MessageCreateRequest): Message {
+        val response = client.post("$baseUrl/messages") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            201 -> response.body<MessageDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun unfurl(id: Int, request: LinkPreviewsRequest) {
+        val response = client.post("$baseUrl/messages/$id/link_previews") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        when (response.status.value) {
+            204 -> return
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun pinMessage(id: Int) {
+        val response = client.post("$baseUrl/messages/$id/pin")
+        when (response.status.value) {
+            204 -> return
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun updateMessage(id: Int, request: MessageUpdateRequest): Message {
+        val response = client.put("$baseUrl/messages/$id") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            200 -> response.body<MessageDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun deleteMessage(id: Int) {
+        val response = client.delete("$baseUrl/messages/$id")
+        when (response.status.value) {
+            204 -> return
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun unpinMessage(id: Int) {
+        val response = client.delete("$baseUrl/messages/$id/pin")
         when (response.status.value) {
             204 -> return
             else -> throw errorFromResponse(response)
@@ -1556,170 +1779,6 @@ class ImportantMessagesServiceImpl internal constructor(
 
     override suspend fun removeMessageFromImportant(id: Int) {
         val response = client.delete("$baseUrl/important_messages/$id")
-        when (response.status.value) {
-            204 -> return
-            else -> throw errorFromResponse(response)
-        }
-    }
-}
-
-interface MessagesService {
-    suspend fun listChatMessages(
-        chatId: Int,
-        sort: MessageSortField? = null,
-        order: SortOrder? = null,
-        limit: Int? = null,
-        cursor: String? = null,
-    ): ListChatMessagesResponse {
-        throw NotImplementedError("Messages.listChatMessages is not implemented")
-    }
-
-    suspend fun listChatMessagesAll(
-        chatId: Int,
-        sort: MessageSortField? = null,
-        order: SortOrder? = null,
-        limit: Int? = null,
-    ): List<Message> {
-        throw NotImplementedError("Messages.listChatMessagesAll is not implemented")
-    }
-
-    suspend fun getMessage(id: Int): Message {
-        throw NotImplementedError("Messages.getMessage is not implemented")
-    }
-
-    suspend fun createMessage(request: MessageCreateRequest): Message {
-        throw NotImplementedError("Messages.createMessage is not implemented")
-    }
-
-    suspend fun unfurl(id: Int, request: LinkPreviewsRequest) {
-        throw NotImplementedError("Messages.unfurl is not implemented")
-    }
-
-    suspend fun pinMessage(id: Int) {
-        throw NotImplementedError("Messages.pinMessage is not implemented")
-    }
-
-    suspend fun updateMessage(id: Int, request: MessageUpdateRequest): Message {
-        throw NotImplementedError("Messages.updateMessage is not implemented")
-    }
-
-    suspend fun deleteMessage(id: Int) {
-        throw NotImplementedError("Messages.deleteMessage is not implemented")
-    }
-
-    suspend fun unpinMessage(id: Int) {
-        throw NotImplementedError("Messages.unpinMessage is not implemented")
-    }
-}
-
-class MessagesServiceImpl internal constructor(
-    private val baseUrl: String,
-    private val client: HttpClient,
-) : MessagesService {
-    override suspend fun listChatMessages(
-        chatId: Int,
-        sort: MessageSortField?,
-        order: SortOrder?,
-        limit: Int?,
-        cursor: String?,
-    ): ListChatMessagesResponse {
-        val response = client.get("$baseUrl/messages") {
-            parameter("chat_id", chatId)
-            sort?.let { parameter("sort", it.value) }
-            order?.let { parameter("order", it.value) }
-            limit?.let { parameter("limit", it) }
-            cursor?.let { parameter("cursor", it) }
-        }
-        return when (response.status.value) {
-            200 -> response.body()
-            else -> throw errorFromResponse(response)
-        }
-    }
-
-    override suspend fun listChatMessagesAll(
-        chatId: Int,
-        sort: MessageSortField?,
-        order: SortOrder?,
-        limit: Int?,
-    ): List<Message> {
-        val items = mutableListOf<Message>()
-        var cursor: String? = null
-        var hasNext = true
-        while (hasNext) {
-            val response = listChatMessages(
-                chatId = chatId,
-                sort = sort,
-                order = order,
-                limit = limit,
-                cursor = cursor,
-            )
-            items.addAll(response.data)
-            if (response.data.isEmpty()) break
-            cursor = response.meta.paginate.nextPage
-            hasNext = response.meta.paginate.hasNext ?: true
-        }
-        return items
-    }
-
-    override suspend fun getMessage(id: Int): Message {
-        val response = client.get("$baseUrl/messages/$id")
-        return when (response.status.value) {
-            200 -> response.body<MessageDataWrapper>().data
-            else -> throw errorFromResponse(response)
-        }
-    }
-
-    override suspend fun createMessage(request: MessageCreateRequest): Message {
-        val response = client.post("$baseUrl/messages") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }
-        return when (response.status.value) {
-            201 -> response.body<MessageDataWrapper>().data
-            else -> throw errorFromResponse(response)
-        }
-    }
-
-    override suspend fun unfurl(id: Int, request: LinkPreviewsRequest) {
-        val response = client.post("$baseUrl/messages/$id/link_previews") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }
-        when (response.status.value) {
-            204 -> return
-            else -> throw errorFromResponse(response)
-        }
-    }
-
-    override suspend fun pinMessage(id: Int) {
-        val response = client.post("$baseUrl/messages/$id/pin")
-        when (response.status.value) {
-            204 -> return
-            else -> throw errorFromResponse(response)
-        }
-    }
-
-    override suspend fun updateMessage(id: Int, request: MessageUpdateRequest): Message {
-        val response = client.put("$baseUrl/messages/$id") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }
-        return when (response.status.value) {
-            200 -> response.body<MessageDataWrapper>().data
-            else -> throw errorFromResponse(response)
-        }
-    }
-
-    override suspend fun deleteMessage(id: Int) {
-        val response = client.delete("$baseUrl/messages/$id")
-        when (response.status.value) {
-            204 -> return
-            else -> throw errorFromResponse(response)
-        }
-    }
-
-    override suspend fun unpinMessage(id: Int) {
-        val response = client.delete("$baseUrl/messages/$id/pin")
         when (response.status.value) {
             204 -> return
             else -> throw errorFromResponse(response)

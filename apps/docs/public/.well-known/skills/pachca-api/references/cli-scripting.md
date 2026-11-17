@@ -16,7 +16,7 @@ Choose by situation:
 
 - **Employee at a terminal**: `pachca auth login` once (browser, one-hour token refreshed by itself). `--no-browser` prints the address and code on a machine without a display. Parallel CLI processes share one refresh.
 - **CI, scripts, bots**: a ready token (personal from **Интеграции > API**, or a bot token from the bot card). Put it in the CI secret store and pass it as `PACHCA_TOKEN`. Never commit it.
-- **Saving a ready token on a workstation**: pipe it so it stays out of shell history and the process list: `pbpaste | pachca auth login --token -` (or from a secret manager to stdin). Passing the value as an argument leaves a trace in both.
+- **Saving a ready token on a workstation**: pipe it so it stays out of shell history and the process list: `pbpaste | pachca auth login --token -` (or from a secret manager to stdin). Passing the value as an argument leaves a trace in both. A new bot token goes straight from the API into a profile, never shown: `pachca bots create-token <id> --name "CLI" --scopes '["profile:read",…]' -o csv -c token --no-header | pachca auth login --profile <name> --token -` (without `--scopes` the token has no scopes; `profile:read` lets the CLI show the bot's name).
 - **Personal and bot side by side**: separate profiles, for example `--profile bot-notify`; each profile has its own login.
 
 Storage: the token goes to the OS key store. Where there is none (headless machine, container), the CLI writes it in plain text to the config file and says so at login; `PACHCA_SECRET_STORE=file` or `--insecure-storage` forces that. Anyone with access to that account then has API access. For CI prefer `PACHCA_TOKEN` over a saved profile. `PACHCA_HOME` isolates the config directory (CI, tests, agents).

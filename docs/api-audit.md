@@ -709,13 +709,12 @@ grep -rniE "только через интерфейс|только в инте�
 
 ### Шаблоны-аналоги в TypeSpec
 
-| Тип операции                             | Пример-шаблон в typespec.tsp           |
-| ---------------------------------------- | -------------------------------------- |
-| CRUD (list, get, create, update, delete) | `UserOperations`, `GroupTagOperations` |
-| Список с page/per пагинацией             | `listChatMessages`, `listReadMembers`  |
-| Список с cursor пагинацией               | `listUsers`, `listChats`               |
-| Удаление (204 No Content)                | `deleteUser`, `deleteTag`              |
-| Вложенные ресурсы (/{id}/sub)            | `ChatMemberOperations`                 |
+| Тип операции                             | Пример-шаблон в typespec.tsp                                                    |
+| ---------------------------------------- | ------------------------------------------------------------------------------- |
+| CRUD (list, get, create, update, delete) | `UserOperations`, `GroupTagOperations`                                          |
+| Список с cursor пагинацией               | `listUsers`, `listChats`, `listChatMessages`, `listImportantMessages`           |
+| Удаление (204 No Content)                | `deleteUser`, `deleteTag`                                                       |
+| Вложенные ресурсы (/{id}/sub)            | `ChatMemberOperations` (`listMembers`), `listReadMembers`, `listPinnedMessages` |
 
 ### Модели ответов (response)
 

@@ -1149,6 +1149,7 @@ type ChatsService interface {
 	UpdateChat(ctx context.Context, id int32, request ChatUpdateRequest) (*Chat, error)
 	ArchiveChat(ctx context.Context, id int32) error
 	UpdateChatAvatar(ctx context.Context, id int32, image io.Reader) (*AvatarData, error)
+	MarkChatRead(ctx context.Context, id int32) (*ChatReadPosition, error)
 	UnarchiveChat(ctx context.Context, id int32) error
 	MarkChatUnread(ctx context.Context, id int32, request MarkChatUnreadRequest) error
 	DeleteChatAvatar(ctx context.Context, id int32) error
@@ -1198,6 +1199,10 @@ func (s *ChatsServiceStub) ArchiveChat(ctx context.Context, id int32) error {
 
 func (s *ChatsServiceStub) UpdateChatAvatar(ctx context.Context, id int32, image io.Reader) (*AvatarData, error) {
 	return nil, NotImplementedError{Method: "Chats.updateChatAvatar"}
+}
+
+func (s *ChatsServiceStub) MarkChatRead(ctx context.Context, id int32) (*ChatReadPosition, error) {
+	return nil, NotImplementedError{Method: "Chats.markChatRead"}
 }
 
 func (s *ChatsServiceStub) UnarchiveChat(ctx context.Context, id int32) error {
@@ -1551,6 +1556,30 @@ func (s *ChatsServiceImpl) UpdateChatAvatar(ctx context.Context, id int32, image
 	}
 }
 
+func (s *ChatsServiceImpl) MarkChatRead(ctx context.Context, id int32) (*ChatReadPosition, error) {
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/chats/%v/read", s.baseURL, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data ChatReadPosition `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
 func (s *ChatsServiceImpl) UnarchiveChat(ctx context.Context, id int32) error {
 	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/chats/%v/unarchive", s.baseURL, id), nil)
 	if err != nil {
@@ -1830,6 +1859,360 @@ func (s *MembersServiceImpl) LeaveChat(ctx context.Context, id int32) error {
 
 func (s *MembersServiceImpl) RemoveMember(ctx context.Context, id int32, userId int32) error {
 	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/chats/%v/members/%v", s.baseURL, id, userId), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	default:
+		return errorFromResponse(resp)
+	}
+}
+
+type MessagesService interface {
+	ListPinnedMessages(ctx context.Context, id int32, params *ListPinnedMessagesParams) (*ListPinnedMessagesResponse, error)
+	ListPinnedMessagesAll(ctx context.Context, id int32, params *ListPinnedMessagesParams) ([]Message, error)
+	ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error)
+	ListChatMessagesAll(ctx context.Context, params *ListChatMessagesParams) ([]Message, error)
+	GetMessage(ctx context.Context, id int32) (*Message, error)
+	CreateMessage(ctx context.Context, request MessageCreateRequest) (*Message, error)
+	Unfurl(ctx context.Context, id int32, request LinkPreviewsRequest) error
+	PinMessage(ctx context.Context, id int32) error
+	UpdateMessage(ctx context.Context, id int32, request MessageUpdateRequest) (*Message, error)
+	DeleteMessage(ctx context.Context, id int32) error
+	UnpinMessage(ctx context.Context, id int32) error
+}
+
+type MessagesServiceStub struct{}
+
+func (s *MessagesServiceStub) ListPinnedMessages(ctx context.Context, id int32, params *ListPinnedMessagesParams) (*ListPinnedMessagesResponse, error) {
+	return nil, NotImplementedError{Method: "Messages.listPinnedMessages"}
+}
+
+func (s *MessagesServiceStub) ListPinnedMessagesAll(ctx context.Context, id int32, params *ListPinnedMessagesParams) ([]Message, error) {
+	return nil, NotImplementedError{Method: "Messages.listPinnedMessagesAll"}
+}
+
+func (s *MessagesServiceStub) ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error) {
+	return nil, NotImplementedError{Method: "Messages.listChatMessages"}
+}
+
+func (s *MessagesServiceStub) ListChatMessagesAll(ctx context.Context, params *ListChatMessagesParams) ([]Message, error) {
+	return nil, NotImplementedError{Method: "Messages.listChatMessagesAll"}
+}
+
+func (s *MessagesServiceStub) GetMessage(ctx context.Context, id int32) (*Message, error) {
+	return nil, NotImplementedError{Method: "Messages.getMessage"}
+}
+
+func (s *MessagesServiceStub) CreateMessage(ctx context.Context, request MessageCreateRequest) (*Message, error) {
+	return nil, NotImplementedError{Method: "Messages.createMessage"}
+}
+
+func (s *MessagesServiceStub) Unfurl(ctx context.Context, id int32, request LinkPreviewsRequest) error {
+	return NotImplementedError{Method: "Messages.unfurl"}
+}
+
+func (s *MessagesServiceStub) PinMessage(ctx context.Context, id int32) error {
+	return NotImplementedError{Method: "Messages.pinMessage"}
+}
+
+func (s *MessagesServiceStub) UpdateMessage(ctx context.Context, id int32, request MessageUpdateRequest) (*Message, error) {
+	return nil, NotImplementedError{Method: "Messages.updateMessage"}
+}
+
+func (s *MessagesServiceStub) DeleteMessage(ctx context.Context, id int32) error {
+	return NotImplementedError{Method: "Messages.deleteMessage"}
+}
+
+func (s *MessagesServiceStub) UnpinMessage(ctx context.Context, id int32) error {
+	return NotImplementedError{Method: "Messages.unpinMessage"}
+}
+
+type MessagesServiceImpl struct {
+	baseURL string
+	client  *http.Client
+}
+
+func (s *MessagesServiceImpl) ListPinnedMessages(ctx context.Context, id int32, params *ListPinnedMessagesParams) (*ListPinnedMessagesResponse, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/chats/%v/pinned_messages", s.baseURL, id))
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	if params != nil && params.Limit != nil {
+		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
+	}
+	if params != nil && params.Cursor != nil {
+		q.Set("cursor", fmt.Sprintf("%v", *params.Cursor))
+	}
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListPinnedMessagesResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *MessagesServiceImpl) ListPinnedMessagesAll(ctx context.Context, id int32, params *ListPinnedMessagesParams) ([]Message, error) {
+	if params == nil {
+		params = &ListPinnedMessagesParams{}
+	}
+	var items []Message
+	var cursor *string
+	hasNext := true
+	for hasNext {
+		params.Cursor = cursor
+		result, err := s.ListPinnedMessages(ctx, id, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if len(result.Data) == 0 {
+			return items, nil
+		}
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
+	}
+	return items, nil
+}
+
+func (s *MessagesServiceImpl) ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/messages", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	q.Set("chat_id", fmt.Sprintf("%v", params.ChatID))
+	if params.Sort != nil {
+		q.Set("sort", string(*params.Sort))
+	}
+	if params.Order != nil {
+		q.Set("order", string(*params.Order))
+	}
+	if params.Limit != nil {
+		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
+	}
+	if params.Cursor != nil {
+		q.Set("cursor", fmt.Sprintf("%v", *params.Cursor))
+	}
+	if params.AfterMessageID != nil {
+		q.Set("after_message_id", fmt.Sprintf("%v", *params.AfterMessageID))
+	}
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListChatMessagesResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *MessagesServiceImpl) ListChatMessagesAll(ctx context.Context, params *ListChatMessagesParams) ([]Message, error) {
+	if params == nil {
+		params = &ListChatMessagesParams{}
+	}
+	var items []Message
+	var cursor *string
+	hasNext := true
+	for hasNext {
+		params.Cursor = cursor
+		result, err := s.ListChatMessages(ctx, *params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if len(result.Data) == 0 {
+			return items, nil
+		}
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
+	}
+	return items, nil
+}
+
+func (s *MessagesServiceImpl) GetMessage(ctx context.Context, id int32) (*Message, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/messages/%v", s.baseURL, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data Message `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *MessagesServiceImpl) CreateMessage(ctx context.Context, request MessageCreateRequest) (*Message, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/messages", s.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusCreated:
+		var result struct {
+			Data Message `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *MessagesServiceImpl) Unfurl(ctx context.Context, id int32, request LinkPreviewsRequest) error {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/messages/%v/link_previews", s.baseURL, id), bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	default:
+		return errorFromResponse(resp)
+	}
+}
+
+func (s *MessagesServiceImpl) PinMessage(ctx context.Context, id int32) error {
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/messages/%v/pin", s.baseURL, id), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	default:
+		return errorFromResponse(resp)
+	}
+}
+
+func (s *MessagesServiceImpl) UpdateMessage(ctx context.Context, id int32, request MessageUpdateRequest) (*Message, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/messages/%v", s.baseURL, id), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data Message `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *MessagesServiceImpl) DeleteMessage(ctx context.Context, id int32) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/messages/%v", s.baseURL, id), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	default:
+		return errorFromResponse(resp)
+	}
+}
+
+func (s *MessagesServiceImpl) UnpinMessage(ctx context.Context, id int32) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/messages/%v/pin", s.baseURL, id), nil)
 	if err != nil {
 		return err
 	}
@@ -2745,287 +3128,6 @@ func (s *ImportantMessagesServiceImpl) AddMessageToImportant(ctx context.Context
 
 func (s *ImportantMessagesServiceImpl) RemoveMessageFromImportant(ctx context.Context, id int32) error {
 	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/important_messages/%v", s.baseURL, id), nil)
-	if err != nil {
-		return err
-	}
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
-	default:
-		return errorFromResponse(resp)
-	}
-}
-
-type MessagesService interface {
-	ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error)
-	ListChatMessagesAll(ctx context.Context, params *ListChatMessagesParams) ([]Message, error)
-	GetMessage(ctx context.Context, id int32) (*Message, error)
-	CreateMessage(ctx context.Context, request MessageCreateRequest) (*Message, error)
-	Unfurl(ctx context.Context, id int32, request LinkPreviewsRequest) error
-	PinMessage(ctx context.Context, id int32) error
-	UpdateMessage(ctx context.Context, id int32, request MessageUpdateRequest) (*Message, error)
-	DeleteMessage(ctx context.Context, id int32) error
-	UnpinMessage(ctx context.Context, id int32) error
-}
-
-type MessagesServiceStub struct{}
-
-func (s *MessagesServiceStub) ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error) {
-	return nil, NotImplementedError{Method: "Messages.listChatMessages"}
-}
-
-func (s *MessagesServiceStub) ListChatMessagesAll(ctx context.Context, params *ListChatMessagesParams) ([]Message, error) {
-	return nil, NotImplementedError{Method: "Messages.listChatMessagesAll"}
-}
-
-func (s *MessagesServiceStub) GetMessage(ctx context.Context, id int32) (*Message, error) {
-	return nil, NotImplementedError{Method: "Messages.getMessage"}
-}
-
-func (s *MessagesServiceStub) CreateMessage(ctx context.Context, request MessageCreateRequest) (*Message, error) {
-	return nil, NotImplementedError{Method: "Messages.createMessage"}
-}
-
-func (s *MessagesServiceStub) Unfurl(ctx context.Context, id int32, request LinkPreviewsRequest) error {
-	return NotImplementedError{Method: "Messages.unfurl"}
-}
-
-func (s *MessagesServiceStub) PinMessage(ctx context.Context, id int32) error {
-	return NotImplementedError{Method: "Messages.pinMessage"}
-}
-
-func (s *MessagesServiceStub) UpdateMessage(ctx context.Context, id int32, request MessageUpdateRequest) (*Message, error) {
-	return nil, NotImplementedError{Method: "Messages.updateMessage"}
-}
-
-func (s *MessagesServiceStub) DeleteMessage(ctx context.Context, id int32) error {
-	return NotImplementedError{Method: "Messages.deleteMessage"}
-}
-
-func (s *MessagesServiceStub) UnpinMessage(ctx context.Context, id int32) error {
-	return NotImplementedError{Method: "Messages.unpinMessage"}
-}
-
-type MessagesServiceImpl struct {
-	baseURL string
-	client  *http.Client
-}
-
-func (s *MessagesServiceImpl) ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error) {
-	u, err := url.Parse(fmt.Sprintf("%s/messages", s.baseURL))
-	if err != nil {
-		return nil, err
-	}
-	q := u.Query()
-	q.Set("chat_id", fmt.Sprintf("%v", params.ChatID))
-	if params.Sort != nil {
-		q.Set("sort", string(*params.Sort))
-	}
-	if params.Order != nil {
-		q.Set("order", string(*params.Order))
-	}
-	if params.Limit != nil {
-		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
-	}
-	if params.Cursor != nil {
-		q.Set("cursor", fmt.Sprintf("%v", *params.Cursor))
-	}
-	u.RawQuery = q.Encode()
-	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusOK:
-		var result ListChatMessagesResponse
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			return nil, err
-		}
-		return &result, nil
-	default:
-		return nil, errorFromResponse(resp)
-	}
-}
-
-func (s *MessagesServiceImpl) ListChatMessagesAll(ctx context.Context, params *ListChatMessagesParams) ([]Message, error) {
-	if params == nil {
-		params = &ListChatMessagesParams{}
-	}
-	var items []Message
-	var cursor *string
-	hasNext := true
-	for hasNext {
-		params.Cursor = cursor
-		result, err := s.ListChatMessages(ctx, *params)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, result.Data...)
-		if len(result.Data) == 0 {
-			return items, nil
-		}
-		nextPage := result.Meta.Paginate.NextPage
-		cursor = &nextPage
-		if result.Meta.Paginate.HasNext != nil {
-			hasNext = *result.Meta.Paginate.HasNext
-		}
-	}
-	return items, nil
-}
-
-func (s *MessagesServiceImpl) GetMessage(ctx context.Context, id int32) (*Message, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/messages/%v", s.baseURL, id), nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusOK:
-		var result struct {
-			Data Message `json:"data"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			return nil, err
-		}
-		return &result.Data, nil
-	default:
-		return nil, errorFromResponse(resp)
-	}
-}
-
-func (s *MessagesServiceImpl) CreateMessage(ctx context.Context, request MessageCreateRequest) (*Message, error) {
-	body, err := json.Marshal(request)
-	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/messages", s.baseURL), bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusCreated:
-		var result struct {
-			Data Message `json:"data"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			return nil, err
-		}
-		return &result.Data, nil
-	default:
-		return nil, errorFromResponse(resp)
-	}
-}
-
-func (s *MessagesServiceImpl) Unfurl(ctx context.Context, id int32, request LinkPreviewsRequest) error {
-	body, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/messages/%v/link_previews", s.baseURL, id), bytes.NewReader(body))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
-	default:
-		return errorFromResponse(resp)
-	}
-}
-
-func (s *MessagesServiceImpl) PinMessage(ctx context.Context, id int32) error {
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/messages/%v/pin", s.baseURL, id), nil)
-	if err != nil {
-		return err
-	}
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
-	default:
-		return errorFromResponse(resp)
-	}
-}
-
-func (s *MessagesServiceImpl) UpdateMessage(ctx context.Context, id int32, request MessageUpdateRequest) (*Message, error) {
-	body, err := json.Marshal(request)
-	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/messages/%v", s.baseURL, id), bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusOK:
-		var result struct {
-			Data Message `json:"data"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			return nil, err
-		}
-		return &result.Data, nil
-	default:
-		return nil, errorFromResponse(resp)
-	}
-}
-
-func (s *MessagesServiceImpl) DeleteMessage(ctx context.Context, id int32) error {
-	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/messages/%v", s.baseURL, id), nil)
-	if err != nil {
-		return err
-	}
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
-	default:
-		return errorFromResponse(resp)
-	}
-}
-
-func (s *MessagesServiceImpl) UnpinMessage(ctx context.Context, id int32) error {
-	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/messages/%v/pin", s.baseURL, id), nil)
 	if err != nil {
 		return err
 	}

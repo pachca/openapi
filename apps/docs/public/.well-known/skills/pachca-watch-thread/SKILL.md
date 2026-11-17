@@ -66,6 +66,6 @@ The script also ends on its own with `## Watching stopped (<reason>)` and the er
 - `access`: the thread is out of reach, for example the user was removed from it and does not see it through its chat.
 - `error`: the CLI is missing or kept failing.
 
-Exit code `2` with nothing on stdout is a bad argument: fix the command and start it again. `## More than 50 new messages` means more new messages arrived than one check reads: read the thread with `pachca_list_chat_messages` before you reply.
+Exit code `2` with nothing on stdout is a bad argument: fix the command and start it again.
 
 The watcher sees new messages only: edits and deletions do not reach it. Every new message and every restart is a turn of yours with the whole conversation, so watching spends model usage while it runs, and it stops when this session or the computer does.

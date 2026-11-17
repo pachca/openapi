@@ -123,7 +123,7 @@ class BotCanEdit(OpenStrEnum):
     """Роль, которой разрешено редактировать настройки бота"""
 
     ADMIN = "admin"  # Администраторы компании
-    CHAT_OWNERS = "chat_owners"  # Владельцы и администраторы бесед и каналов, в которые добавлен бот
+    CHAT_OWNERS = "chat_owners"  # Владельцы и администраторы неархивных бесед и каналов, в которые добавлен бот
 
 
 class BotEventName(OpenStrEnum):
@@ -344,6 +344,7 @@ class OAuthScope(OpenStrEnum):
     CHATS_CREATE = "chats:create"  # Создание новых чатов
     CHATS_UPDATE = "chats:update"  # Изменение настроек чата
     CHATS_MARK_UNREAD = "chats:mark_unread"  # Отметка собственных чатов непрочитанными
+    CHATS_MARK_READ = "chats:mark_read"  # Отметка собственных чатов прочитанными
     CHATS_ARCHIVE = "chats:archive"  # Архивация и разархивация чатов
     CHATS_LEAVE = "chats:leave"  # Выход из чатов
     CHAT_MEMBERS_READ = "chat_members:read"  # Просмотр участников чата
@@ -1309,6 +1310,11 @@ class ChatMemberWebhookPayload:
     created_at: datetime
     webhook_timestamp: int
     thread_id: int | None = None
+
+
+@dataclass
+class ChatReadPosition:
+    last_read_message_id: int | None = None
 
 
 @dataclass
@@ -2343,6 +2349,12 @@ class ListMembersParams:
 
 
 @dataclass
+class ListPinnedMessagesParams:
+    limit: int | None = None
+    cursor: str | None = None
+
+
+@dataclass
 class ListCompanyBotsParams:
     query: str | None = None
     limit: int | None = None
@@ -2401,6 +2413,7 @@ class ListChatMessagesParams:
     order: SortOrder | None = None
     limit: int | None = None
     cursor: str | None = None
+    after_message_id: int | None = None
 
 
 @dataclass
@@ -2524,6 +2537,12 @@ class ListChatsResponse:
 @dataclass
 class ListMembersResponse:
     data: list[User]
+    meta: PaginationMeta
+
+
+@dataclass
+class ListPinnedMessagesResponse:
+    data: list[Message]
     meta: PaginationMeta
 
 

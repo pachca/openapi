@@ -377,7 +377,7 @@ public enum AuditLoginGrantDevicePlatform: Codable, Hashable, RawRepresentable, 
 public enum BotCanEdit: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Администраторы компании
     case admin
-    /// Владельцы и администраторы бесед и каналов, в которые добавлен бот
+    /// Владельцы и администраторы неархивных бесед и каналов, в которые добавлен бот
     case chatOwners
     /// A value this SDK version does not list yet
     case unknown(String)
@@ -1236,6 +1236,8 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case chatsUpdate
     /// Отметка собственных чатов непрочитанными
     case chatsMarkUnread
+    /// Отметка собственных чатов прочитанными
+    case chatsMarkRead
     /// Архивация и разархивация чатов
     case chatsArchive
     /// Выход из чатов
@@ -1352,7 +1354,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .companyRead, .companyWrite, .inviteLinksWrite, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .uploadsWrite, .viewsWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
+    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsMarkRead, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .companyRead, .companyWrite, .inviteLinksWrite, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .uploadsWrite, .viewsWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -1360,6 +1362,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case "chats:create": self = .chatsCreate
         case "chats:update": self = .chatsUpdate
         case "chats:mark_unread": self = .chatsMarkUnread
+        case "chats:mark_read": self = .chatsMarkRead
         case "chats:archive": self = .chatsArchive
         case "chats:leave": self = .chatsLeave
         case "chat_members:read": self = .chatMembersRead
@@ -1430,6 +1433,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case .chatsCreate: return "chats:create"
         case .chatsUpdate: return "chats:update"
         case .chatsMarkUnread: return "chats:mark_unread"
+        case .chatsMarkRead: return "chats:mark_read"
         case .chatsArchive: return "chats:archive"
         case .chatsLeave: return "chats:leave"
         case .chatMembersRead: return "chat_members:read"
@@ -4091,6 +4095,18 @@ public struct ChatMemberWebhookPayload: Codable {
         case userIds = "user_ids"
         case createdAt = "created_at"
         case webhookTimestamp = "webhook_timestamp"
+    }
+}
+
+public struct ChatReadPosition: Codable {
+    public let lastReadMessageId: Int?
+
+    public init(lastReadMessageId: Int? = nil) {
+        self.lastReadMessageId = lastReadMessageId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case lastReadMessageId = "last_read_message_id"
     }
 }
 
@@ -7005,6 +7021,16 @@ public struct ListMembersResponse: Codable {
     }
 }
 
+public struct ListPinnedMessagesResponse: Codable {
+    public let data: [Message]
+    public let meta: PaginationMeta
+
+    public init(data: [Message], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
+}
+
 public struct ListCompanyBotsResponse: Codable {
     public let data: [CompanyBotResponse]
     public let meta: PaginationMeta
@@ -7209,6 +7235,14 @@ struct ChatExportDataWrapper: Codable {
     let data: ChatExport
 }
 
+struct ChatReadPositionDataWrapper: Codable {
+    let data: ChatReadPosition
+}
+
+struct MessageDataWrapper: Codable {
+    let data: Message
+}
+
 struct CompanyDataWrapper: Codable {
     let data: Company
 }
@@ -7223,10 +7257,6 @@ struct DraftDataWrapper: Codable {
 
 struct GroupTagDataWrapper: Codable {
     let data: GroupTag
-}
-
-struct MessageDataWrapper: Codable {
-    let data: Message
 }
 
 struct ThreadDataWrapper: Codable {

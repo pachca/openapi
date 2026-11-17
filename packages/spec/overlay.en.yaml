@@ -667,6 +667,8 @@ actions:
 
         By default messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the `limit` and `cursor` parameters.
 
+        To get the messages after a known one, pass its `id` in `after_message_id`: only newer messages come, oldest first. Take the next pages by `meta.paginate.next_page` with `order=asc`. If there are no new messages, the response is empty but still has `next_page`: poll the chat further with this cursor. The boundary message itself may be deleted.
+
         Deleted messages do not make it into the list.
 
         The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent message hangs. This `chat_id` arrives in the `thread.chat_id` field of the parent message. The parent message is not part of the thread's feed: [Message info](GET /messages/{id}) returns it by the thread's `message_id`.
@@ -683,6 +685,28 @@ actions:
     update:
       description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/messages'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
+  - target: $.paths['/messages'].get.parameters[?(@.name=='after_message_id')]
+    update:
+      description: "ID of the message to list messages after: messages with a greater `id` come, oldest first. Works with `limit` and `cursor`. Only `asc` is allowed in `order`, and `page` and `per` are not allowed, otherwise the method responds `400`. The message may be deleted: it serves only as a boundary."
+  - target: $.paths['/chats/{id}/pinned_messages'].get
+    update:
+      description: |-
+        List pinned messages
+
+        Messages pinned in the header of a conversation, a channel, or a direct message, from the most recently pinned to the earliest, as in the chat header in the interface. Messages are pinned and unpinned with the [Pin message](POST /messages/{id}/pin) and [Unpin message](DELETE /messages/{id}/pin) methods.
+
+        Messages come in the same form as in the [List chat messages](GET /messages) method. A deleted message disappears from the list. An archived chat returns its pinned messages too. Messages are not pinned in threads, so for a thread the list is always empty.
+
+        Access is the same as to the chat feed: the chats the token owner belongs to, and the public chats of the workspace. A multi-guest can open only the chats they belong to. The workspace owner does not get into a private chat without membership. A private chat and an inaccessible thread respond `403`, while a chat of another workspace and an unknown ID respond `404`.
+  - target: $.paths['/chats/{id}/pinned_messages'].get.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID (conversation, channel, or direct chat)
+  - target: $.paths['/chats/{id}/pinned_messages'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of entities returned per request. An integer outside the allowed range is replaced with the nearest bound.
+  - target: $.paths['/chats/{id}/pinned_messages'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/messages/{id}'].get
@@ -707,7 +731,7 @@ actions:
 
         You can edit only your own messages, and only ordinary ones: for a system, a forwarded, a voice message and a sticker the method responds `403`. The same response comes for a deleted message and for a message in the feed of an archived chat. Comments in the threads of an archived chat are edited as usual. There are no restrictions on how long ago the message was sent.
 
-        Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.
+        Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Link previews of links that stay in the text are kept, and previews of removed links are dropped. Links added by the edit get no automatic preview, but a bot with the `message_link_shared` event receives a `link_shared` webhook for them.
   - target: $.paths['/messages/{id}'].put.parameters[?(@.name=='id')]
     update:
       description: Message ID
@@ -2263,7 +2287,7 @@ actions:
       description: Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the commands together with the `, ` separators (comma and space) must not exceed 255 characters.
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.scopes
     update:
-      description: "Scopes (permissions) of the bot's main token. If omitted, the scopes do not change. If the bot has no token, passing scopes creates the main token, but its value does not come back: get one with [Bot token rotation](POST /bots/{id}/recreate_token). Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
+      description: "Scopes (permissions) of the bot's main token. If omitted, the scopes do not change. If the bot has no token, passing scopes creates the main token, but its value does not come back: get one with [Bot token rotation](POST /bots/{id}/recreate_token). Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned. The scopes are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. For other employees a request with this field responds `403`, even if the scopes stay the same, and applies nothing from the request."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.template
     update:
       description: "Template for formatting the incoming webhook. The template is checked when the request changes `template`, `template_engine` or `kind`, so changing the template engine alone or turning on `kind: simple` checks the template already saved as well. A template with a syntax error for the `simple` source gets `400` on this field with the `invalid` code, and the request is not applied. The reason comes in `message`."
@@ -2369,7 +2393,7 @@ actions:
       description: Role allowed to edit the bot settings
       x-enum-descriptions:
         admin: Company administrators
-        chat_owners: Owners and admins of the conversations and channels the bot is in
+        chat_owners: Owners and admins of the non-archived conversations and channels the bot is in
   - target: $.components.schemas.BotCreateRequest
     update:
       description: Bot creation request
@@ -2607,7 +2631,7 @@ actions:
       description: Voice message transcription to text. `null` while the transcription is not ready or unavailable.
   - target: $.components.schemas.VoiceContent.properties.transcript_status
     update:
-      description: "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`."
+      description: "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.duration_ms
     update:
       description: "Duration in milliseconds: required for a voice message (`voice`), optional for a video (`video`), not saved for the other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422` and the `wrong_params` code."
@@ -3726,6 +3750,7 @@ actions:
         chats_create: Create new chats
         chats_update: Update chat settings
         chats_mark_unread: Mark own chats as unread
+        chats_mark_read: Mark own chats as read
         chats_archive: Archive and unarchive chats
         chats_leave: Leave chats
         chat_members_read: View chat members
@@ -5139,7 +5164,7 @@ actions:
       description: "Delete the bot"
   - target: $.components.schemas.BotPermissions.properties.recreate_token
     update:
-      description: "Issue, change and delete the bot's tokens and rotate the client secret"
+      description: "Issue, change and delete the bot's tokens, change the main token's scopes (`webhook.scopes`) and rotate the client secret"
   - target: $.components.schemas.BotPermissions.properties.update_oauth_client
     update:
       description: "Change authorization on behalf of an employee, the catalog page and the bot name"
@@ -5407,6 +5432,12 @@ actions:
   - target: $.components.schemas.MarkChatUnreadRequest.properties.message_id
     update:
       description: "ID of the message from which the chat becomes unread: this message and all messages after it. If omitted, the last message becomes unread."
+  - target: $.components.schemas.ChatReadPosition
+    update:
+      description: "The token owner's read position in the chat"
+  - target: $.components.schemas.ChatReadPosition.properties.last_read_message_id
+    update:
+      description: "ID of the last read message. `null` if the chat has no messages. The chat's latest message counts even if it was deleted, so this can be the ID of a deleted message that the message list does not return."
   - target: $.components.schemas.ImportantMessageRequest
     update:
       description: Request to add a message to important
@@ -5524,6 +5555,23 @@ actions:
 
         Works in conversations, channels, direct chats and threads the token owner belongs to: a thread is passed by its `chat_id`. A hidden direct chat appears in the list again. A public chat or an accessible thread the token owner is not in, a message from another chat, and a chat of another workspace respond `404`. A private chat and an inaccessible thread respond `403`.
   - target: "$.paths['/chats/{id}/unread'].put.parameters[?(@.name=='id')]"
+    update:
+      description: "Chat ID (conversation, channel, direct chat, or thread chat)"
+  - target: "$.paths['/chats/{id}/read'].put"
+    update:
+      description: |-
+        Mark chat as read
+
+        Marks the chat read for the token owner up to its latest message at the time of the request, like reading it to the end in the interface: messages that arrived after you fetched the history become read too. To keep newer messages unread, call [Mark chat as unread](PUT /chats/{id}/unread) afterwards.
+
+        Resets the unread counter, the unread «@» mention mark and a manual "Unread" mark: the chat leaves the unread chats and a thread leaves the unread threads, in an archived chat and with notifications off as well, without changing either. A chat's threads are separate chats: mark each one by its `chat_id`.
+
+        The other members see their messages as read, and the token owner appears in the [List users who read the message](GET /messages/{id}/read_member_ids) for every message up to the end of the chat. With a personal token it looks as if the employee read the chat. With a bot token the chat is marked for the bot, and authors see "Read" even if no employee opened the messages. Sending a message moves the read position too, but other members' messages show "Read" only after this method.
+
+        The response has `last_read_message_id`, the read position after the call. In a chat without messages it is `null`, and the method changes nothing. A repeated request changes nothing and does not send the read event again.
+
+        Works in conversations, channels, direct chats and threads the token owner belongs to, and adds the owner nowhere: a thread is passed by its `chat_id`. A public chat or an accessible thread the token owner is not in, and a chat of another workspace respond `404`. A private chat the token owner is not in responds `403`, to the workspace owner and admins as well. An inaccessible thread and a public chat a multi-guest is not in respond `403` too. The method has its own request [limit](/api/limits).
+  - target: "$.paths['/chats/{id}/read'].put.parameters[?(@.name=='id')]"
     update:
       description: "Chat ID (conversation, channel, direct chat, or thread chat)"
   - target: $.components.schemas.LinkSharedWebhookPayload.properties.entity_id

@@ -29,6 +29,7 @@
 - [Архивация чата](https://dev.pachca.com/api/chats/archive.md): PUT /chats/{id}/archive
 - [Загрузка аватара чата](https://dev.pachca.com/api/chats/update-avatar.md): PUT /chats/{id}/avatar
 - [Удаление аватара чата](https://dev.pachca.com/api/chats/remove-avatar.md): DELETE /chats/{id}/avatar
+- [Отметка чата прочитанным](https://dev.pachca.com/api/chats/mark-read.md): PUT /chats/{id}/read
 - [Разархивация чата](https://dev.pachca.com/api/chats/unarchive.md): PUT /chats/{id}/unarchive
 - [Отметка чата непрочитанным](https://dev.pachca.com/api/chats/mark-unread.md): PUT /chats/{id}/unread
 - [Список чатов пространства](https://dev.pachca.com/api/chats/list-company.md): GET /company/chats
@@ -83,6 +84,7 @@
 - [Информация о треде](https://dev.pachca.com/api/threads/get.md): GET /threads/{id}
 
 ## Сообщения
+- [Список закреплённых сообщений](https://dev.pachca.com/api/messages/list-pinned.md): GET /chats/{id}/pinned_messages
 - [Новое сообщение](https://dev.pachca.com/api/messages/create.md): POST /messages
 - [Список сообщений чата](https://dev.pachca.com/api/messages/list.md): GET /messages
 - [Информация о сообщении](https://dev.pachca.com/api/messages/get.md): GET /messages/{id}

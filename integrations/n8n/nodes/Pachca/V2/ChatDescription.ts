@@ -44,6 +44,11 @@ export const chatOperations: INodeProperties[] = [
 				action: 'Get many workspace chats',
 			},
 			{
+				name: 'Mark Read',
+				value: 'markRead',
+				action: 'Mark a chat as read',
+			},
+			{
 				name: 'Mark Unread',
 				value: 'markUnread',
 				action: 'Mark a chat as unread',
@@ -516,6 +521,37 @@ export const chatFields: INodeProperties[] = [
 			},
 		],
 		displayOptions: { show: { resource: ['chat'], operation: ['deleteAvatar'] } },
+	},
+	{
+		displayName: 'ID',
+		name: 'id',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		required: true,
+		description: 'Chat ID (conversation, channel, direct chat, or thread chat)',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: { searchListMethod: 'searchChats', searchable: true },
+			},
+			{
+				displayName: 'By ID',
+				name: 'id',
+				type: 'string',
+				placeholder: 'e.g. 334',
+			},
+			{
+				displayName: 'By URL',
+				name: 'url',
+				type: 'string',
+				placeholder: 'https://app.pachca.com/chats/12345',
+				extractValue: { type: 'regex', regex: 'https?://[^/]+/chats/(\\d+)' },
+				validation: [{ type: 'regex', properties: { regex: 'https?://[^/]+/chats/(\\d+)', errorMessage: 'Not a valid Pachca chat URL' } }],
+			},
+		],
+		displayOptions: { show: { resource: ['chat'], operation: ['markRead'] } },
 	},
 	{
 		displayName: 'ID',

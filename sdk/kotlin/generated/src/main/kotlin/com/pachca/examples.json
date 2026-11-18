@@ -188,6 +188,10 @@
     "usage": "val image = ByteArray(0)\nval response = client.chats.updateChatAvatar(id = 334, image = image)",
     "output": "AvatarData(imageUrl: String)"
   },
+  "ChatOperations_markChatRead": {
+    "usage": "val response = client.chats.markChatRead(id = 334)",
+    "output": "ChatReadPosition(lastReadMessageId: Int?)"
+  },
   "ChatOperations_unarchiveChat": {
     "usage": "client.chats.unarchiveChat(id = 334)"
   },
@@ -230,6 +234,74 @@
   },
   "ChatMemberOperations_removeMember": {
     "usage": "client.members.removeMember(id = 334, userId = 186)"
+  },
+  "PinnedMessageOperations_listPinnedMessages": {
+    "usage": "val response = client.messages.listPinnedMessages(id = 334, limit = 25, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListPinnedMessagesResponse(data: List<Message>, meta: PaginationMeta)"
+  },
+  "ChatMessageOperations_listChatMessages": {
+    "usage": "val response = client.messages.listChatMessages(chatId = 198, sort = MessageSortField.ID, order = SortOrder.DESC, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", afterMessageId = 194275)",
+    "output": "ListChatMessagesResponse(data: List<Message>, meta: PaginationMeta)",
+    "imports": [
+      "MessageSortField",
+      "SortOrder"
+    ]
+  },
+  "MessageOperations_getMessage": {
+    "usage": "val response = client.messages.getMessage(id = 194275)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)"
+  },
+  "MessageOperations_createMessage": {
+    "usage": "val request = MessageCreateRequest(message = MessageCreateRequestMessage(entityId = 334, content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nval response = client.messages.createMessage(request = request)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)",
+    "imports": [
+      "MessageCreateRequest",
+      "MessageCreateRequestMessage"
+    ],
+    "examples": {
+      "Минимальный запрос": {
+        "usage": "val request = MessageCreateRequest(message = MessageCreateRequestMessage(entityId = 334, content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nval response = client.messages.createMessage(request = request)",
+        "imports": [
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage"
+        ]
+      },
+      "Сообщение с кнопкой": {
+        "usage": "val request = MessageCreateRequest(\n    message = MessageCreateRequestMessage(\n        entityType = MessageEntityType.DISCUSSION,\n        entityId = 334,\n        content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        buttons = listOf(listOf(Button(text = \"Подробнее\", url = \"https://example.com/details\")))\n    )\n)\nval response = client.messages.createMessage(request = request)",
+        "imports": [
+          "Button",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage",
+          "MessageEntityType"
+        ]
+      }
+    }
+  },
+  "LinkPreviewOperations_unfurl": {
+    "usage": "val request = LinkPreviewsRequest(\n    linkPreviews = mapOf(\"key\" to LinkPreview(\n        title = \"Статья: Отправка файлов\",\n        description = \"Пример отправки файлов на удаленный сервер\",\n        imageUrl = \"https://example.com/img/landing.png\",\n        image = LinkPreviewImage(\n            key = \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/\\${filename}\",\n            name = \"files-to-server.jpg\",\n            size = 695604\n        )\n    ))\n)\nclient.messages.unfurl(id = 194275, request = request)",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
+  },
+  "MessageOperations_pinMessage": {
+    "usage": "client.messages.pinMessage(id = 194275)"
+  },
+  "MessageOperations_updateMessage": {
+    "usage": "val request = MessageUpdateRequest(message = MessageUpdateRequestMessage(content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\", buttons = listOf(listOf(Button(text = \"Подробнее\", url = \"https://example.com/details\")))))\nval response = client.messages.updateMessage(id = 194275, request = request)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)",
+    "imports": [
+      "Button",
+      "MessageUpdateRequest",
+      "MessageUpdateRequestMessage"
+    ]
+  },
+  "MessageOperations_deleteMessage": {
+    "usage": "client.messages.deleteMessage(id = 194275)"
+  },
+  "MessageOperations_unpinMessage": {
+    "usage": "client.messages.unpinMessage(id = 194275)"
   },
   "CompanyOperations_getCompany": {
     "usage": "val response = client.company.getCompany()",
@@ -351,70 +423,6 @@
   },
   "ImportantMessageOperations_removeMessageFromImportant": {
     "usage": "client.importantMessages.removeMessageFromImportant(id = 194275)"
-  },
-  "ChatMessageOperations_listChatMessages": {
-    "usage": "val response = client.messages.listChatMessages(chatId = 198, sort = MessageSortField.ID, order = SortOrder.DESC, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListChatMessagesResponse(data: List<Message>, meta: PaginationMeta)",
-    "imports": [
-      "MessageSortField",
-      "SortOrder"
-    ]
-  },
-  "MessageOperations_getMessage": {
-    "usage": "val response = client.messages.getMessage(id = 194275)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)"
-  },
-  "MessageOperations_createMessage": {
-    "usage": "val request = MessageCreateRequest(message = MessageCreateRequestMessage(entityId = 334, content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nval response = client.messages.createMessage(request = request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)",
-    "imports": [
-      "MessageCreateRequest",
-      "MessageCreateRequestMessage"
-    ],
-    "examples": {
-      "Минимальный запрос": {
-        "usage": "val request = MessageCreateRequest(message = MessageCreateRequestMessage(entityId = 334, content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"))\nval response = client.messages.createMessage(request = request)",
-        "imports": [
-          "MessageCreateRequest",
-          "MessageCreateRequestMessage"
-        ]
-      },
-      "Сообщение с кнопкой": {
-        "usage": "val request = MessageCreateRequest(\n    message = MessageCreateRequestMessage(\n        entityType = MessageEntityType.DISCUSSION,\n        entityId = 334,\n        content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        buttons = listOf(listOf(Button(text = \"Подробнее\", url = \"https://example.com/details\")))\n    )\n)\nval response = client.messages.createMessage(request = request)",
-        "imports": [
-          "Button",
-          "MessageCreateRequest",
-          "MessageCreateRequestMessage",
-          "MessageEntityType"
-        ]
-      }
-    }
-  },
-  "LinkPreviewOperations_unfurl": {
-    "usage": "val request = LinkPreviewsRequest(\n    linkPreviews = mapOf(\"key\" to LinkPreview(\n        title = \"Статья: Отправка файлов\",\n        description = \"Пример отправки файлов на удаленный сервер\",\n        imageUrl = \"https://example.com/img/landing.png\",\n        image = LinkPreviewImage(\n            key = \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/\\${filename}\",\n            name = \"files-to-server.jpg\",\n            size = 695604\n        )\n    ))\n)\nclient.messages.unfurl(id = 194275, request = request)",
-    "imports": [
-      "LinkPreview",
-      "LinkPreviewImage",
-      "LinkPreviewsRequest"
-    ]
-  },
-  "MessageOperations_pinMessage": {
-    "usage": "client.messages.pinMessage(id = 194275)"
-  },
-  "MessageOperations_updateMessage": {
-    "usage": "val request = MessageUpdateRequest(message = MessageUpdateRequestMessage(content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\", buttons = listOf(listOf(Button(text = \"Подробнее\", url = \"https://example.com/details\")))))\nval response = client.messages.updateMessage(id = 194275, request = request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?, transcriptStatus: VoiceTranscriptStatus?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?, important: Boolean, source: MessageSource?, application: MessageApplication(id: Int, name: String)?)",
-    "imports": [
-      "Button",
-      "MessageUpdateRequest",
-      "MessageUpdateRequestMessage"
-    ]
-  },
-  "MessageOperations_deleteMessage": {
-    "usage": "client.messages.deleteMessage(id = 194275)"
-  },
-  "MessageOperations_unpinMessage": {
-    "usage": "client.messages.unpinMessage(id = 194275)"
   },
   "ReactionOperations_listReactions": {
     "usage": "val response = client.reactions.listReactions(id = 194275, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",

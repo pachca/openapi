@@ -1,0 +1,103 @@
+// Auto-generated from openapi.yaml — DO NOT EDIT
+import { Args, Flags } from '@oclif/core';
+import { BaseCommand } from '../../base-command.js';
+
+export default class MessagesListPinned extends BaseCommand {
+  static override summary = "Список закреплённых сообщений";
+  static override description = "Сообщения, закреплённые в шапке беседы, канала или личной переписки, от последних закреплённых к ранним, как в шапке чата в интерфейсе. Закрепляют и открепляют методами Закрепление сообщения и Открепление сообщения.\n\nПолное описание: pachca api GET /chats/{id}/pinned_messages --docs";
+  static scope = "messages:read";
+  static apiMethod = "GET";
+  static apiPath = "/chats/{id}/pinned_messages";
+  static defaultColumns = ["id","content","created_at","entity_type","entity_id"];
+
+  static override args = {
+    id: Args.integer({
+      description: "Идентификатор чата (беседы, канала или личного чата) (pachca messages list)",
+      required: true,
+    }),
+  };
+
+  static override flags = {
+    ...BaseCommand.baseFlags,
+    limit: Flags.integer({
+      description: 'Количество результатов на страницу',
+    }),
+    cursor: Flags.string({
+      description: 'Курсор для следующей страницы',
+    }),
+    all: Flags.boolean({
+      description: 'Загрузить все страницы автоматически',
+      default: false,
+    }),
+  };
+
+  async run(): Promise<void> {
+    const { args, flags } = await this.parse(MessagesListPinned);
+    this.parsedFlags = flags;
+
+    if (flags.all) {
+      // Auto-pagination
+      const allData: unknown[] = [];
+      let nextCursor: string | undefined = undefined;
+      let pages = 0;
+      const seenCursors = new Set<string>();
+      let total: unknown;
+
+      while (pages < 500) {
+        const query: Record<string, string | number | boolean | string[] | undefined> = {
+        limit: flags.limit,
+          cursor: nextCursor,
+        };
+        const response = await this.apiRequest({ method: 'GET', path: `/chats/${args.id}/pinned_messages`, query });
+        const body = response.data as Record<string, unknown>;
+        const items = body.data as unknown[];
+        if (items) allData.push(...items);
+        const meta = body.meta as Record<string, unknown> | undefined;
+        const paginate = meta?.paginate as Record<string, unknown> | undefined;
+        nextCursor = paginate?.next_page as string | undefined;
+        pages++;
+        // Условие конца: has_next === false, а в ответе без has_next — пустой data
+        const hasNext = paginate?.has_next;
+        if (typeof hasNext === 'boolean') {
+          if (!hasNext) break;
+        } else if (!items || items.length === 0) {
+          break;
+        }
+
+        if (process.stderr.isTTY) {
+          // total лежит в meta у методов поиска. Берём его с первой страницы: при поиске сообщений по дате следующие страницы считают только остаток
+          total ??= meta?.total;
+          const progress = total ? `${allData.length} / ${total}` : String(allData.length);
+          process.stderr.write(`\r  Загружено: ${progress}...`);
+        }
+
+        if (!nextCursor) break;
+        if (seenCursors.has(nextCursor)) {
+          process.stderr.write('\n⚠ Обнаружен цикл пагинации, остановка.\n');
+          break;
+        }
+        seenCursors.add(nextCursor);
+      }
+
+      if (pages >= 500) {
+        process.stderr.write('\n⚠ Достигнут лимит 500 страниц.\n');
+      }
+      if (process.stderr.isTTY) process.stderr.write('\n');
+      this.output(allData);
+      return;
+    }
+
+    const { data } = await this.apiRequest({
+      method: 'GET',
+      path: `/chats/${args.id}/pinned_messages`,
+      query: {
+      limit: flags.limit,
+      cursor: flags.cursor,
+      },
+    });
+
+    const responseBody = (data ?? {}) as Record<string, unknown>;
+    const items = responseBody.data ?? responseBody;
+    this.output(items);
+  }
+}

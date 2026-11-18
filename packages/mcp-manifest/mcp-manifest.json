@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "1e9da61da380dc58"
+    "digest": "88120e569aedf8fc"
   },
   "server": {
     "name": "pachca",
@@ -1039,7 +1039,7 @@
                     "description": "Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.",
                     "items": {
                       "type": "string",
-                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the conversations and channels the bot is in."
+                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the non-archived conversations and channels the bot is in."
                     }
                   },
                   "who_can_add": {
@@ -1243,7 +1243,7 @@
                     "description": "Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.",
                     "items": {
                       "type": "string",
-                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the conversations and channels the bot is in."
+                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the non-archived conversations and channels the bot is in."
                     }
                   },
                   "who_can_add": {
@@ -1485,7 +1485,7 @@
                       "description": "Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.",
                       "items": {
                         "type": "string",
-                        "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the conversations and channels the bot is in."
+                        "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the non-archived conversations and channels the bot is in."
                       }
                     },
                     "who_can_add": {
@@ -1621,7 +1621,7 @@
                     },
                     "recreate_token": {
                       "type": "boolean",
-                      "description": "Issue, change and delete the bot's tokens and rotate the client secret"
+                      "description": "Issue, change and delete the bot's tokens, change the main token's scopes (`webhook.scopes`) and rotate the client secret"
                     },
                     "destroy": {
                       "type": "boolean",
@@ -1885,7 +1885,7 @@
             ],
             "items": {
               "type": "string",
-              "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the conversations and channels the bot is in.",
+              "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the non-archived conversations and channels the bot is in.",
               "enum": [
                 "admin",
                 "chat_owners"
@@ -2254,7 +2254,7 @@
                     "description": "Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.",
                     "items": {
                       "type": "string",
-                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the conversations and channels the bot is in."
+                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the non-archived conversations and channels the bot is in."
                     }
                   },
                   "who_can_add": {
@@ -2390,7 +2390,7 @@
                   },
                   "recreate_token": {
                     "type": "boolean",
-                    "description": "Issue, change and delete the bot's tokens and rotate the client secret"
+                    "description": "Issue, change and delete the bot's tokens, change the main token's scopes (`webhook.scopes`) and rotate the client secret"
                   },
                   "destroy": {
                     "type": "boolean",
@@ -2625,7 +2625,7 @@
                     "description": "Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.",
                     "items": {
                       "type": "string",
-                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the conversations and channels the bot is in."
+                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the non-archived conversations and channels the bot is in."
                     }
                   },
                   "who_can_add": {
@@ -2761,7 +2761,7 @@
                   },
                   "recreate_token": {
                     "type": "boolean",
-                    "description": "Issue, change and delete the bot's tokens and rotate the client secret"
+                    "description": "Issue, change and delete the bot's tokens, change the main token's scopes (`webhook.scopes`) and rotate the client secret"
                   },
                   "destroy": {
                     "type": "boolean",
@@ -2911,7 +2911,7 @@
           },
           "scopes": {
             "type": "array",
-            "description": "Scopes (permissions) of the bot's main token. If omitted, the scopes do not change. If the bot has no token, passing scopes creates the main token, but its value does not come back: get one with `recreate_bot_token`. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned.",
+            "description": "Scopes (permissions) of the bot's main token. If omitted, the scopes do not change. If the bot has no token, passing scopes creates the main token, but its value does not come back: get one with `recreate_bot_token`. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned. The scopes are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. For other employees a request with this field responds `403`, even if the scopes stay the same, and applies nothing from the request.",
             "examples": [
               [
                 "messages:create"
@@ -2991,7 +2991,7 @@
             ],
             "items": {
               "type": "string",
-              "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the conversations and channels the bot is in.",
+              "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the non-archived conversations and channels the bot is in.",
               "enum": [
                 "admin",
                 "chat_owners"
@@ -3365,7 +3365,7 @@
                     "description": "Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.",
                     "items": {
                       "type": "string",
-                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the conversations and channels the bot is in."
+                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the non-archived conversations and channels the bot is in."
                     }
                   },
                   "who_can_add": {
@@ -3501,7 +3501,7 @@
                   },
                   "recreate_token": {
                     "type": "boolean",
-                    "description": "Issue, change and delete the bot's tokens and rotate the client secret"
+                    "description": "Issue, change and delete the bot's tokens, change the main token's scopes (`webhook.scopes`) and rotate the client secret"
                   },
                   "destroy": {
                     "type": "boolean",
@@ -3887,7 +3887,7 @@
                     "description": "Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.",
                     "items": {
                       "type": "string",
-                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the conversations and channels the bot is in."
+                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the non-archived conversations and channels the bot is in."
                     }
                   },
                   "who_can_add": {
@@ -4023,7 +4023,7 @@
                   },
                   "recreate_token": {
                     "type": "boolean",
-                    "description": "Issue, change and delete the bot's tokens and rotate the client secret"
+                    "description": "Issue, change and delete the bot's tokens, change the main token's scopes (`webhook.scopes`) and rotate the client secret"
                   },
                   "destroy": {
                     "type": "boolean",
@@ -4242,7 +4242,7 @@
                     "description": "Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.",
                     "items": {
                       "type": "string",
-                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the conversations and channels the bot is in."
+                      "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the non-archived conversations and channels the bot is in."
                     }
                   },
                   "who_can_add": {
@@ -4378,7 +4378,7 @@
                   },
                   "recreate_token": {
                     "type": "boolean",
-                    "description": "Issue, change and delete the bot's tokens and rotate the client secret"
+                    "description": "Issue, change and delete the bot's tokens, change the main token's scopes (`webhook.scopes`) and rotate the client secret"
                   },
                   "destroy": {
                     "type": "boolean",
@@ -7070,6 +7070,497 @@
       "untrusted": []
     },
     {
+      "name": "pachca_list_pinned_messages",
+      "title": "List pinned messages",
+      "operation": "GET /chats/{id}/pinned_messages",
+      "kind": "read",
+      "scope": "messages:read",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin",
+        "user",
+        "multi_guest",
+        "bot"
+      ],
+      "bot_token_only": false,
+      "description": "List pinned messages. Messages pinned in the header of a conversation, a channel, or a direct message, from the most recently pinned to the earliest, as in the chat header in the interface. Messages are pinned and unpinned with the `pin_message` and `unpin_message` methods. Messages come in the same form as in the `list_chat_messages` method. A deleted message disappears from the list. An archived chat returns its pinned messages too. Messages are not pinned in threads, so for a thread the list is always empty. Access is the same as to the chat feed: the chats the token owner belongs to, and the public chats of the workspace. A multi-guest can open only the chats they belong to. The workspace owner does not get into a private chat without membership. A private chat and an inaccessible thread respond `403`, while a chat of another workspace and an unknown ID respond `404`.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Chat ID (conversation, channel, or direct chat)",
+            "format": "int32",
+            "examples": [
+              334
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Number of entities returned per request. An integer outside the allowed range is replaced with the nearest bound.",
+            "default": 50,
+            "maximum": 50,
+            "minimum": 1,
+            "format": "int32",
+            "examples": [
+              25
+            ]
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
+            "examples": [
+              "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+            ]
+          },
+          "view": {
+            "type": "string",
+            "enum": [
+              "compact",
+              "full"
+            ],
+            "default": "compact",
+            "description": "Detail per record. compact carries only id, chat_id, entity_type, entity_id, content, user_id, created_at, changed_at, parent_message_id, url, thread.id, thread.chat_id, root_chat_id, deleted_at, files.id, files.name, files.file_type, files.url, forwarding.author_id, forwarding.original_created_at, display_name, voice_content.transcript, source, application.id and application.name; full returns every field of the record. Ask for full when you need a field compact does not carry."
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "id* (integer), limit (integer), cursor (string), view (compact | full)",
+      "request": {
+        "arguments": {
+          "id": {
+            "in": "path"
+          },
+          "limit": {
+            "in": "query"
+          },
+          "cursor": {
+            "in": "query"
+          },
+          "view": {
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Message"
+            }
+          }
+        }
+      },
+      "entity": "Message",
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data and pagination",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Message",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "Message ID"
+                },
+                "entity_type": {
+                  "type": "string",
+                  "description": "Entity type the message belongs to. Values: discussion — Conversation or channel; thread — Thread; user — User."
+                },
+                "entity_id": {
+                  "type": "integer",
+                  "description": "ID of the entity the message belongs to (chat/channel, thread, or user)"
+                },
+                "chat_id": {
+                  "type": "integer",
+                  "description": "ID of the chat containing the message"
+                },
+                "root_chat_id": {
+                  "type": "integer",
+                  "description": "Root chat ID. For a message in a thread — the ID of the chat that holds the thread's parent message. A standalone thread has no parent message, and its `root_chat_id` equals `chat_id`, as on regular messages. A thread message is recognised by `entity_type: \"thread\"`."
+                },
+                "content": {
+                  "type": "string",
+                  "description": "Message text. An empty string if there is no text: for example, in a message of attachments only or in a sticker. The sticker itself is not returned by the API, such a message comes with an empty `files`, and a sticker cannot be sent through the API."
+                },
+                "user_id": {
+                  "type": "integer",
+                  "description": "ID of the user who created the message"
+                },
+                "created_at": {
+                  "type": "string",
+                  "description": "Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format",
+                  "format": "date-time"
+                },
+                "url": {
+                  "type": "string",
+                  "description": "Direct link to the message"
+                },
+                "files": {
+                  "type": "array",
+                  "description": "Attached files",
+                  "items": {
+                    "type": "object",
+                    "description": "File",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "description": "File ID"
+                      },
+                      "key": {
+                        "type": "string",
+                        "description": "File path"
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "File name with extension"
+                      },
+                      "file_type": {
+                        "type": "string",
+                        "description": "File type. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file."
+                      },
+                      "url": {
+                        "type": "string",
+                        "description": "File download link. Usually it leads straight to the storage and is valid for up to 7 days, and the remaining time may be shorter — if such a link returns `403`, fetch the message again to get a fresh one. If the workspace has encryption enabled or a secure perimeter set, the link leads to `download_file`: such a file has to be fetched with an `Authorization` header, and the token needs the `files:read` scope."
+                      },
+                      "width": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ],
+                        "description": "Image width in pixels. `null` for files that are not images, and if the size was not supplied at upload time."
+                      },
+                      "height": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ],
+                        "description": "Image height in pixels. `null` for files that are not images, and if the size was not supplied at upload time."
+                      },
+                      "duration_ms": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ],
+                        "description": "Duration in milliseconds for a voice message and a video file. `null` for the other files and if the duration was not supplied at upload time."
+                      }
+                    }
+                  }
+                },
+                "voice_content": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "description": "Voice message data. Filled only for voice messages (file `file_type` is `voice`), otherwise `null`.",
+                  "properties": {
+                    "duration_ms": {
+                      "type": "integer",
+                      "description": "Voice message duration in milliseconds"
+                    },
+                    "waveform": {
+                      "type": "string",
+                      "description": "Waveform (amplitudes) for visualizing the voice message"
+                    },
+                    "transcript": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Voice message transcription to text. `null` while the transcription is not ready or unavailable."
+                    },
+                    "transcript_status": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
+                    }
+                  }
+                },
+                "buttons": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "description": "Array of rows, each represented as an array of buttons. `null` if the `buttons` field was not passed when sending, and for a deleted message. Empty `buttons` sent with a message or an edit come back as `[]`: a message without buttons is recognized by both `null` and an empty array.",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "description": "Button",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "description": "Text displayed on the button"
+                        },
+                        "url": {
+                          "type": "string",
+                          "description": "URL that will be opened when the button is clicked. A button must have exactly one of `url` and `data`."
+                        },
+                        "data": {
+                          "type": "string",
+                          "description": "Data that will be sent in the outgoing webhook when the button is clicked. A button must have exactly one of `url` and `data`."
+                        }
+                      }
+                    }
+                  }
+                },
+                "thread": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "description": "Thread created for this message. `null` if no thread was created, and for messages that are themselves inside a thread.",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "Thread ID. To write to the thread, pass it in `entity_id` of the `send_message` method with `entity_type: \"thread\"`."
+                    },
+                    "chat_id": {
+                      "type": "integer",
+                      "description": "Thread chat ID. It is used to read the thread's messages with the `list_chat_messages` method."
+                    }
+                  }
+                },
+                "forwarding": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "description": "Forwarded message information. `null` if the message is not a forwarded one.",
+                  "properties": {
+                    "original_message_id": {
+                      "type": "integer",
+                      "description": "Original message ID"
+                    },
+                    "original_chat_id": {
+                      "type": "integer",
+                      "description": "ID of the chat containing the original message"
+                    },
+                    "author_id": {
+                      "type": "integer",
+                      "description": "ID of the user who created the original message"
+                    },
+                    "original_created_at": {
+                      "type": "string",
+                      "description": "Original message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format",
+                      "format": "date-time"
+                    },
+                    "original_thread_id": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "ID of the thread containing the original message"
+                    },
+                    "original_thread_message_id": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "ID of the message that the thread containing the original message was created for. `null` if the original message was not in a thread, or the thread was created without being linked to a message."
+                    },
+                    "original_thread_parent_chat_id": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "ID of the chat of the message that the thread containing the original message was created for. `null` if the original message was not in a thread, or the thread was created without being linked to a message."
+                    }
+                  }
+                },
+                "parent_message_id": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "ID of the message being replied to. `null` if the message is not a reply to another message."
+                },
+                "display_avatar_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Message sender avatar URL. The field is present only on messages from bots; it is absent from the response for messages from employees. `null` if the bot did not override the value when sending."
+                },
+                "display_name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Message sender full name. The field is present only on messages from bots; it is absent from the response for messages from employees. `null` if the bot did not override the value when sending."
+                },
+                "changed_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Set when the message is created and usually differs from `created_at` by a fraction of a second or more: `created_at` always has zero fractional seconds. `null` for messages sent before this field was introduced.",
+                  "format": "date-time"
+                },
+                "deleted_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Message deletion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` for messages that are not deleted. Deleted messages are not returned in the message list.",
+                  "format": "date-time"
+                },
+                "important": {
+                  "type": "boolean",
+                  "description": "The message is in the token owner's «Important» section. Always `false` for a bot token."
+                },
+                "source": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "What the message was sent through with an employee's token, as in the «Sent via …» badge on the avatar. `null` for a message sent from the Pachca app, a draft included, for bots' messages, for a scheduled message that went out on schedule, and for messages sent before the badge appeared. Learn more in \"How messages look\" (https://dev.pachca.com/api/authorization#kak-vyglyadyat-soobscheniya). Values: application — Through a program the employee gave access to: Pachca CLI, an MCP client, or a bot with authorization on behalf of an employee; personal_token — With the employee's personal token."
+                },
+                "application": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "description": "The program the message was sent through, with `source: \"application\"`. `null` in other cases.",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "Program ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Program name, as in the «Sent via …» tooltip on the avatar: «Pachca CLI», the name of an MCP client, or the bot's name. Older messages also come with the current name. An MCP client sets the name itself in the document it publishes on its own domain, so a program is recognized by `id`."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "description": "Pagination metadata",
+            "properties": {
+              "paginate": {
+                "type": "object",
+                "description": "Helper information",
+                "properties": {
+                  "next_page": {
+                    "type": "string",
+                    "description": "Next page pagination cursor"
+                  },
+                  "prev_page": {
+                    "type": "string",
+                    "description": "Previous page pagination cursor. Used for polling new records \"above\" the list"
+                  },
+                  "has_next": {
+                    "type": "boolean",
+                    "description": "Whether more data exists on the next page. `false` on the last page"
+                  },
+                  "has_prev": {
+                    "type": "boolean",
+                    "description": "Whether more data exists on the previous page. `false` on the first request without a cursor"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "untrusted": [
+        "data[].content",
+        "data[].files[].key",
+        "data[].files[].name",
+        "data[].files[].url",
+        "data[].voice_content.waveform",
+        "data[].voice_content.transcript",
+        "data[].buttons[][].text",
+        "data[].buttons[][].url",
+        "data[].buttons[][].data",
+        "data[].display_avatar_url",
+        "data[].display_name",
+        "data[].application.name"
+      ]
+    },
+    {
+      "name": "pachca_mark_chat_read",
+      "title": "Mark chat as read",
+      "operation": "PUT /chats/{id}/read",
+      "kind": "write",
+      "scope": "chats:mark_read",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin",
+        "user",
+        "multi_guest",
+        "bot"
+      ],
+      "bot_token_only": false,
+      "description": "Mark chat as read. Marks the chat read for the token owner up to its latest message at the time of the request, like reading it to the end in the interface: messages that arrived after you fetched the history become read too. To keep newer messages unread, call `mark_chat_unread` afterwards. Resets the unread counter, the unread «@» mention mark and a manual \"Unread\" mark: the chat leaves the unread chats and a thread leaves the unread threads, in an archived chat and with notifications off as well, without changing either. A chat's threads are separate chats: mark each one by its `chat_id`. The other members see their messages as read, and the token owner appears in the `list_message_readers` for every message up to the end of the chat. With a personal token it looks as if the employee read the chat. With a bot token the chat is marked for the bot, and authors see \"Read\" even if no employee opened the messages. Sending a message moves the read position too, but other members' messages show \"Read\" only after this method. The response has `last_read_message_id`, the read position after the call. In a chat without messages it is `null`, and the method changes nothing. A repeated request changes nothing and does not send the read event again. Works in conversations, channels, direct chats and threads the token owner belongs to, and adds the owner nowhere: a thread is passed by its `chat_id`. A public chat or an accessible thread the token owner is not in, and a chat of another workspace respond `404`. A private chat the token owner is not in responds `403`, to the workspace owner and admins as well. An inaccessible thread and a public chat a multi-guest is not in respond `403` too. The method has its own request \"limit\" (https://dev.pachca.com/api/limits).",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Chat ID (conversation, channel, direct chat, or thread chat)",
+            "format": "int32",
+            "examples": [
+              334
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "id* (integer)",
+      "request": {
+        "arguments": {
+          "id": {
+            "in": "path"
+          }
+        }
+      },
+      "entity": "ChatReadPosition",
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "The token owner's read position in the chat",
+            "properties": {
+              "last_read_message_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "ID of the last read message. `null` if the chat has no messages. The chat's latest message counts even if it was deleted, so this can be the ID of a deleted message that the message list does not return."
+              }
+            }
+          }
+        }
+      },
+      "untrusted": []
+    },
+    {
       "name": "pachca_unarchive_chat",
       "title": "Unarchive chat",
       "operation": "PUT /chats/{id}/unarchive",
@@ -7628,7 +8119,7 @@
                       "description": "Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.",
                       "items": {
                         "type": "string",
-                        "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the conversations and channels the bot is in."
+                        "description": "Role allowed to edit the bot settings. Values: admin — Company administrators; chat_owners — Owners and admins of the non-archived conversations and channels the bot is in."
                       }
                     },
                     "who_can_add": {
@@ -8275,7 +8766,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
+                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                     }
                   }
                 },
@@ -8806,7 +9297,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -9056,7 +9547,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -9540,7 +10031,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -10698,7 +11189,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
+                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                     }
                   }
                 },
@@ -11020,7 +11511,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "List chat messages. The message feed of a conversation, a channel, a thread, or a direct message — by the `chat_id` of the chat in question. By default messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the `limit` and `cursor` parameters. Deleted messages do not make it into the list. The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent message hangs. This `chat_id` arrives in the `thread.chat_id` field of the parent message. The parent message is not part of the thread's feed: `get_message` returns it by the thread's `message_id`.",
+      "description": "List chat messages. The message feed of a conversation, a channel, a thread, or a direct message — by the `chat_id` of the chat in question. By default messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the `limit` and `cursor` parameters. To get the messages after a known one, pass its `id` in `after_message_id`: only newer messages come, oldest first. Take the next pages by `meta.paginate.next_page` with `order=asc`. If there are no new messages, the response is empty but still has `next_page`: poll the chat further with this cursor. The boundary message itself may be deleted. Deleted messages do not make it into the list. The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent message hangs. This `chat_id` arrives in the `thread.chat_id` field of the parent message. The parent message is not part of the thread's feed: `get_message` returns it by the thread's `message_id`.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -11073,6 +11564,15 @@
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
           },
+          "after_message_id": {
+            "type": "integer",
+            "description": "ID of the message to list messages after: messages with a greater `id` come, oldest first. Works with `limit` and `cursor`. Only `asc` is allowed in `order`, and `page` and `per` are not allowed, otherwise the method responds `400`. The message may be deleted: it serves only as a boundary.",
+            "minimum": 1,
+            "format": "int32",
+            "examples": [
+              194275
+            ]
+          },
           "view": {
             "type": "string",
             "enum": [
@@ -11088,7 +11588,7 @@
         ],
         "additionalProperties": false
       },
-      "signature": "chat_id* (integer), sort (id), order (asc | desc), limit (integer), cursor (string), view (compact | full)",
+      "signature": "chat_id* (integer), sort (id), order (asc | desc), limit (integer), cursor (string), after_message_id (integer), view (compact | full)",
       "request": {
         "arguments": {
           "chat_id": {
@@ -11104,6 +11604,9 @@
             "in": "query"
           },
           "cursor": {
+            "in": "query"
+          },
+          "after_message_id": {
             "in": "query"
           },
           "view": {
@@ -11241,7 +11744,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
+                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                     }
                   }
                 },
@@ -11881,7 +12384,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -12232,7 +12735,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -12427,7 +12930,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Edit message. Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the `list_message_readers` method. The text follows the same formatting rules as in the `send_message` method. You can edit only your own messages, and only ordinary ones: for a system, a forwarded, a voice message and a sticker the method responds `403`. The same response comes for a deleted message and for a message in the feed of an archived chat. Comments in the threads of an archived chat are edited as usual. There are no restrictions on how long ago the message was sent. Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.",
+      "description": "Edit message. Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark, but an edit sends no notification and does not make the message unread: whoever has already read it will not notice the change. Who has read it is shown by the `list_message_readers` method. The text follows the same formatting rules as in the `send_message` method. You can edit only your own messages, and only ordinary ones: for a system, a forwarded, a voice message and a sticker the method responds `403`. The same response comes for a deleted message and for a message in the feed of an archived chat. Comments in the threads of an archived chat are edited as usual. There are no restrictions on how long ago the message was sent. Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Link previews of links that stay in the text are kept, and previews of removed links are dropped. Links added by the edit get no automatic preview, but a bot with the `message_link_shared` event receives a `link_shared` webhook for them.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -12781,7 +13284,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
+                    "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                   }
                 }
               },
@@ -13801,7 +14304,7 @@
                 "description": "List of token scopes",
                 "items": {
                   "type": "string",
-                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark own chats as unread; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; company:read — View workspace information and its settings; company:write — Change the workspace name and main settings; invite_links:write — Get and reissue the workspace invite link; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; tasks:read — View reminders; tasks:create — Create reminders; tasks:update — Update reminder; tasks:delete — Delete reminder; files:read — Download files; uploads:write — Get file upload data; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it."
+                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark own chats as unread; chats:mark_read — Mark own chats as read; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; company:read — View workspace information and its settings; company:write — Change the workspace name and main settings; invite_links:write — Get and reissue the workspace invite link; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; tasks:read — View reminders; tasks:create — Create reminders; tasks:update — Update reminder; tasks:delete — Delete reminder; files:read — Download files; uploads:write — Get file upload data; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it."
                 }
               },
               "created_at": {
@@ -15016,7 +15519,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. A transcription that takes too long also comes as `failed`, so the status can still change to `success`. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
+                      "description": "Transcription status. `null` if no transcription was requested: it is turned off in the workspace, the file is encrypted, this is a draft, or the message was sent before this field appeared and has no transcription. With `success` the text is in `transcript`, and an empty string there means the recording has no speech. While the transcription runs the status is `pending`, and it can stay so for a long time if the transcription does not finish. `failed` means the transcription did not succeed. Values: pending — Transcription requested and not ready yet; failed — Transcription failed; success — Transcription is ready."
                     }
                   }
                 },
@@ -20049,6 +20552,8 @@
         "pachca_add_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_list_pinned_messages",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",
@@ -20149,6 +20654,8 @@
         "pachca_add_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_list_pinned_messages",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",
@@ -20247,6 +20754,8 @@
         "pachca_add_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_list_pinned_messages",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",
@@ -20345,6 +20854,8 @@
         "pachca_add_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_list_pinned_messages",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",
@@ -20411,6 +20922,8 @@
         "pachca_list_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_list_pinned_messages",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",
@@ -20482,6 +20995,8 @@
         "pachca_add_members",
         "pachca_update_member_role",
         "pachca_remove_member",
+        "pachca_list_pinned_messages",
+        "pachca_mark_chat_read",
         "pachca_unarchive_chat",
         "pachca_mark_chat_unread",
         "pachca_get_company",

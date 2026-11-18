@@ -29,6 +29,11 @@ export const messageOperations: INodeProperties[] = [
 				action: 'Get many messages',
 			},
 			{
+				name: 'Get Many Pinned Messages',
+				value: 'getAllPinnedMessages',
+				action: 'Get many pinned messages',
+			},
+			{
 				name: 'Pin',
 				value: 'pin',
 				action: 'Pin a message',
@@ -54,6 +59,40 @@ export const messageOperations: INodeProperties[] = [
 ];
 
 export const messageFields: INodeProperties[] = [
+	{
+		displayName: 'ID',
+		name: 'id',
+		type: 'number',
+		required: true,
+		default: 0,
+		displayOptions: { show: { resource: ['message'], operation: ['getAllPinnedMessages'] } },
+		description: 'Chat ID (conversation, channel, or direct chat)',
+	},
+	{
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
+		description: 'Whether to return all results or only up to a given limit',
+		displayOptions: { show: { resource: ['message'], operation: ['getAllPinnedMessages'] } },
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
+		type: 'number',
+		default: 50,
+		description: 'Max number of results to return',
+		typeOptions: { minValue: 1, maxValue: 50 },
+		displayOptions: { show: { resource: ['message'], operation: ['getAllPinnedMessages'], returnAll: [false] } },
+	},
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: true,
+		description: 'Whether to return a simplified version of the response instead of all fields',
+		displayOptions: { show: { resource: ['message'], operation: ['getAllPinnedMessages'] } },
+	},
 	{
 		displayName: 'Entity Type',
 		name: 'entityType',
@@ -372,6 +411,15 @@ export const messageFields: INodeProperties[] = [
 { name: 'Descending', value: 'desc' }],
 		default: "desc",
 		description: 'Sort direction by ID: `asc` returns messages oldest first, `desc` newest first. The cursor does not keep the direction: pass `order` on requests with `cursor` too.',
+		displayOptions: { show: { resource: ['message'], operation: ['getAll'] } },
+	},
+	{
+		displayName: 'After Message ID',
+		name: 'afterMessageId',
+		type: 'number',
+		default: 0,
+		description: 'ID of the message to list messages after: messages with a greater ID come, oldest first. Works with `limit` and `cursor`. Only `asc` is allowed in `order`, and `page` and `per` are not allowed, otherwise the method responds `400`. The message may be deleted: it serves only as a boundary.',
+		placeholder: '194275',
 		displayOptions: { show: { resource: ['message'], operation: ['getAll'] } },
 	},
 	{

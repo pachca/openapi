@@ -58,6 +58,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca chats get` | `GET` Информация о чате |
 | `pachca chats list` | `GET` Список чатов |
 | `pachca chats list-company` | `GET` Список чатов пространства |
+| `pachca chats mark-read` | `PUT` Отметка чата прочитанным |
 | `pachca chats mark-unread` | `PUT` Отметка чата непрочитанным |
 | `pachca chats remove-avatar` | `DELETE` Удаление аватара чата |
 | `pachca chats request-export` | `POST` Экспорт сообщений |
@@ -103,6 +104,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca messages delete` | `DELETE` Удаление сообщения |
 | `pachca messages get` | `GET` Информация о сообщении |
 | `pachca messages list` | `GET` Список сообщений чата |
+| `pachca messages list-pinned` | `GET` Список закреплённых сообщений |
 | `pachca messages pin` | `POST` Закрепление сообщения |
 | `pachca messages unfurl` | `POST` Unfurl (разворачивание ссылок) |
 | `pachca messages unpin` | `DELETE` Открепление сообщения |

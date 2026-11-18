@@ -1,5 +1,26 @@
 [
   {
+    "version": "2026.11.5",
+    "date": "18 ноября 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "messages list-pinned",
+        "description": "Новая команда — список закреплённых сообщений чата, от последних закреплённых к ранним"
+      },
+      {
+        "type": "+",
+        "command": "chats mark-read",
+        "description": "Новая команда — отметка чата прочитанным для владельца токена"
+      },
+      {
+        "type": "+",
+        "command": "messages list",
+        "description": "Флаг `--after-message-id` вместе с `--order asc` отдаёт сообщения после известного, от старых к новым"
+      }
+    ]
+  },
+  {
     "version": "2026.11.4",
     "date": "14 ноября 2026",
     "changes": [

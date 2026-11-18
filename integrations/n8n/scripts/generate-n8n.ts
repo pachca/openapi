@@ -181,6 +181,9 @@ const PREFERRED_DEFAULT_OPS: Record<string, string> = {
   groupTag: 'getAll',
   user: 'getAll',
   member: 'getAll',
+  // GET /chats/{id}/pinned_messages sorts before /messages and would become operations[0];
+  // n8n does not store a default, so saved Message nodes would silently switch away from Create.
+  message: 'create',
   // Without this, `bot` falls back to operations[0] — which is
   // POST /bot/recreate_token, an irreversible rotation of the caller's own
   // token. A landing operation must never be destructive.
@@ -569,13 +572,14 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
   // Ответ на отправку формы: без пина POST даёт "addSubmitResponse" и читается как создание.
   if (ep.path === '/views/{view_id}/submit_response' && method === 'POST') return 'submitResponse';
   // Токены и секрет бота: без пина вышли бы "addTokens", "removeTokens", "addReissue"
-  // и "addRotateClientSecret", а отметка чата непрочитанным — "updateUnread".
+  // и "addRotateClientSecret", а отметка чата непрочитанным и прочитанным — "updateUnread" и "updateRead".
   if (ep.path === '/bots/{id}/tokens' && method === 'POST') return 'createToken';
   if (ep.path === '/bots/{id}/tokens/{token_id}' && method === 'PUT') return 'updateToken';
   if (ep.path === '/bots/{id}/tokens/{token_id}' && method === 'DELETE') return 'deleteToken';
   if (ep.path === '/bots/{id}/tokens/{token_id}/reissue' && method === 'POST') return 'reissueToken';
   if (ep.path === '/bots/{id}/rotate_client_secret' && method === 'POST') return 'rotateClientSecret';
   if (ep.path === '/chats/{id}/unread' && method === 'PUT') return 'markUnread';
+  if (ep.path === '/chats/{id}/read' && method === 'PUT') return 'markRead';
   // Перевыпуск ссылки-приглашения: без пина POST даёт "addInviteLink" и читается как вторая ссылка,
   // хотя прежняя перестаёт работать.
   if (ep.path === '/company/invite_link' && method === 'POST') return 'reissueInviteLink';
@@ -650,7 +654,7 @@ function operationDisplayName(op: string): string {
     createStandalone: 'Create Standalone',
     getAllCompanyChats: 'Get Many Workspace Chats', getAllCompanyBots: 'Get Many Workspace Bots',
     createToken: 'Create Token', updateToken: 'Update Token', deleteToken: 'Delete Token',
-    reissueToken: 'Reissue Token', rotateClientSecret: 'Rotate Client Secret', markUnread: 'Mark Unread',
+    reissueToken: 'Reissue Token', rotateClientSecret: 'Rotate Client Secret', markUnread: 'Mark Unread', markRead: 'Mark Read',
     getInviteLink: 'Get Invite Link', reissueInviteLink: 'Reissue Invite Link',
   };
   if (MAP[op]) return MAP[op];
@@ -727,6 +731,8 @@ function actionLabel(op: string, resourceName: string, resource?: string): strin
     getScopes: 'Get bot scope catalog',
     rotateClientSecret: 'Rotate bot client secret',
     markUnread: 'Mark a chat as unread',
+    markRead: 'Mark a chat as read',
+    getAllPinnedMessages: 'Get many pinned messages',
     getInviteLink: 'Get the workspace invite link',
     reissueInviteLink: 'Reissue the workspace invite link',
   };

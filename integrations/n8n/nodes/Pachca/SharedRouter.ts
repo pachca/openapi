@@ -359,6 +359,11 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/chats/{id}/avatar',
 			pathParams: [{ api: 'id', n8n: 'id', locator: true }],
 		},
+		markRead: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/chats/{id}/read',
+			pathParams: [{ api: 'id', n8n: 'id', locator: true }],
+		},
 		unarchive: {
 			method: 'PUT' as IHttpRequestMethods,
 			path: '/chats/{id}/unarchive',
@@ -459,6 +464,89 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			bodyMap: [
 				{ api: 'role', n8n: 'role' },
 			],
+		},
+	},
+	message: {
+		getAllPinnedMessages: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/chats/{id}/pinned_messages',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+			paginated: true,
+		},
+		create: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/messages',
+			wrapperKey: 'message',
+			siblingFields: ['link_preview'],
+			special: 'messageButtons',
+			bodyMap: [
+				{ api: 'entity_type', n8n: 'entityType' },
+				{ api: 'entity_id', n8n: 'entityId', locator: true },
+			],
+			optionalBodyMap: [
+				{ api: 'content', n8n: 'content' },
+				{ api: 'files', n8n: 'files', subKey: 'file' },
+				{ api: 'parent_message_id', n8n: 'parentMessageId' },
+				{ api: 'display_avatar_url', n8n: 'displayAvatarUrl' },
+				{ api: 'display_name', n8n: 'displayName' },
+				{ api: 'skip_invite_mentions', n8n: 'skipInviteMentions' },
+				{ api: 'link_preview', n8n: 'linkPreview' },
+			],
+		},
+		getAll: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/messages',
+			paginated: true,
+			queryMap: [{ api: 'chat_id', n8n: 'chatId', locator: true, required: true }, { api: 'sort', n8n: 'sort' }, { api: 'order', n8n: 'order' }, { api: 'after_message_id', n8n: 'afterMessageId' }],
+		},
+		get: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/messages/{id}',
+			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
+		},
+		update: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/messages/{id}',
+			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
+			wrapperKey: 'message',
+			special: 'messageButtons',
+			optionalBodyMap: [
+				{ api: 'content', n8n: 'content' },
+				{ api: 'files', n8n: 'files', subKey: 'file' },
+				{ api: 'display_avatar_url', n8n: 'displayAvatarUrl' },
+				{ api: 'display_name', n8n: 'displayName' },
+			],
+		},
+		delete: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/messages/{id}',
+			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
+		},
+		unfurl: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/messages/{id}/link_previews',
+			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
+			bodyMap: [
+				{ api: 'link_previews', n8n: 'linkPreviews', isJson: true },
+			],
+		},
+		pin: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/messages/{id}/pin',
+			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
+		},
+		unpin: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/messages/{id}/pin',
+			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
+		},
+		getReadMembers: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/messages/{messageId}/read_member_ids',
+			pathParams: [{ api: 'messageId', n8n: 'messageId' }],
+			paginated: true,
+			v1Collection: 'readMembersOptions',
+			optionalQueryMap: [{ api: 'per', n8n: 'readMembersPer' }, { api: 'page', n8n: 'readMembersPage' }],
 		},
 	},
 	company: {
@@ -620,83 +708,6 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'DELETE' as IHttpRequestMethods,
 			path: '/important_messages/{id}',
 			pathParams: [{ api: 'id', n8n: 'id' }],
-		},
-	},
-	message: {
-		create: {
-			method: 'POST' as IHttpRequestMethods,
-			path: '/messages',
-			wrapperKey: 'message',
-			siblingFields: ['link_preview'],
-			special: 'messageButtons',
-			bodyMap: [
-				{ api: 'entity_type', n8n: 'entityType' },
-				{ api: 'entity_id', n8n: 'entityId', locator: true },
-			],
-			optionalBodyMap: [
-				{ api: 'content', n8n: 'content' },
-				{ api: 'files', n8n: 'files', subKey: 'file' },
-				{ api: 'parent_message_id', n8n: 'parentMessageId' },
-				{ api: 'display_avatar_url', n8n: 'displayAvatarUrl' },
-				{ api: 'display_name', n8n: 'displayName' },
-				{ api: 'skip_invite_mentions', n8n: 'skipInviteMentions' },
-				{ api: 'link_preview', n8n: 'linkPreview' },
-			],
-		},
-		getAll: {
-			method: 'GET' as IHttpRequestMethods,
-			path: '/messages',
-			paginated: true,
-			queryMap: [{ api: 'chat_id', n8n: 'chatId', locator: true, required: true }, { api: 'sort', n8n: 'sort' }, { api: 'order', n8n: 'order' }],
-		},
-		get: {
-			method: 'GET' as IHttpRequestMethods,
-			path: '/messages/{id}',
-			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
-		},
-		update: {
-			method: 'PUT' as IHttpRequestMethods,
-			path: '/messages/{id}',
-			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
-			wrapperKey: 'message',
-			special: 'messageButtons',
-			optionalBodyMap: [
-				{ api: 'content', n8n: 'content' },
-				{ api: 'files', n8n: 'files', subKey: 'file' },
-				{ api: 'display_avatar_url', n8n: 'displayAvatarUrl' },
-				{ api: 'display_name', n8n: 'displayName' },
-			],
-		},
-		delete: {
-			method: 'DELETE' as IHttpRequestMethods,
-			path: '/messages/{id}',
-			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
-		},
-		unfurl: {
-			method: 'POST' as IHttpRequestMethods,
-			path: '/messages/{id}/link_previews',
-			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
-			bodyMap: [
-				{ api: 'link_previews', n8n: 'linkPreviews', isJson: true },
-			],
-		},
-		pin: {
-			method: 'POST' as IHttpRequestMethods,
-			path: '/messages/{id}/pin',
-			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
-		},
-		unpin: {
-			method: 'DELETE' as IHttpRequestMethods,
-			path: '/messages/{id}/pin',
-			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
-		},
-		getReadMembers: {
-			method: 'GET' as IHttpRequestMethods,
-			path: '/messages/{messageId}/read_member_ids',
-			pathParams: [{ api: 'messageId', n8n: 'messageId' }],
-			paginated: true,
-			v1Collection: 'readMembersOptions',
-			optionalQueryMap: [{ api: 'per', n8n: 'readMembersPer' }, { api: 'page', n8n: 'readMembersPage' }],
 		},
 	},
 	reaction: {

@@ -360,6 +360,30 @@
           }
         },
         {
+          "name": "Отметка чата прочитанным",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chats/:id/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chats",
+                ":id",
+                "read"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "Разархивация чата",
           "request": {
             "method": "PUT",
@@ -1416,6 +1440,30 @@
     {
       "name": "Messages",
       "item": [
+        {
+          "name": "Список закреплённых сообщений",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chats/:id/pinned_messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chats",
+                ":id",
+                "pinned_messages"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
         {
           "name": "Новое сообщение",
           "request": {

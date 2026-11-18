@@ -335,8 +335,8 @@ mcp-publisher publish
 - Не вписывать произвольную версию: gate требует точный следующий шаг от
   `latest` dist-tag в npm. Кривую/перепрыгнутую версию он отклонит.
 - Не менять код пакета без записи в changelog (и наоборот) — сборка упадёт.
-- Не добавлять MCP-манифест в `releases.json`: он на портал не выходит, его
-  история — в `packages/mcp-manifest/CHANGELOG.md`.
+- Не добавлять в `releases.json` запись о пакете `@pachca/mcp-manifest`: на
+  портал выходит сервер, запись с product `mcp` (см. начало файла).
 - Не редактировать `packages/cli/CHANGELOG.md` руками — он генерируется из
   `changelog.json` при сборке CLI.
 - `@pachca/generator` `1.1.3/1.1.4` и `@pachca/cli` `2026.5.5` — артефакты

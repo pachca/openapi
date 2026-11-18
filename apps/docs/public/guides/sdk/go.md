@@ -93,6 +93,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Chats.UpdateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChat()` | [Архивация чата](/api/chats/archive) |
 | `client.Chats.UpdateChatAvatar()` | [Загрузка аватара чата](/api/chats/update-avatar) |
+| `client.Chats.MarkChatRead()` | [Отметка чата прочитанным](/api/chats/mark-read) |
 | `client.Chats.UnarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.Chats.MarkChatUnread()` | [Отметка чата непрочитанным](/api/chats/mark-unread) |
 | `client.Chats.DeleteChatAvatar()` | [Удаление аватара чата](/api/chats/remove-avatar) |
@@ -138,6 +139,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Messages.PinMessage()` | [Закрепление сообщения](/api/messages/pin) |
 | `client.Messages.ListChatMessages()` | [Список сообщений чата](/api/messages/list) |
 | `client.Messages.GetMessage()` | [Информация о сообщении](/api/messages/get) |
+| `client.Messages.ListPinnedMessages()` | [Список закреплённых сообщений](/api/messages/list-pinned) |
 | `client.Messages.UpdateMessage()` | [Редактирование сообщения](/api/messages/update) |
 | `client.Messages.DeleteMessage()` | [Удаление сообщения](/api/messages/delete) |
 | `client.Messages.UnpinMessage()` | [Открепление сообщения](/api/messages/unpin) |

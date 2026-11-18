@@ -136,8 +136,8 @@ npx -y @pachca/cli users list             # one-off run without installing, toke
   Claude Code), wait for them, then check with `pachca auth status`. Never ask for a token in the conversation. The
   user saves a ready token in their own terminal (next bullet) or puts `PACHCA_TOKEN` in the environment the agent
   starts from. CI and unattended agents take `PACHCA_TOKEN` from their secrets and add `--no-input`.
-- Pass a copied token through stdin, not as an argument: `pbpaste | pachca auth login --token -`. An argument
-  stays in shell history and in the process list.
+- Pass a copied token through stdin, not as an argument, which stays in shell history and the process list:
+  `pbpaste | pachca auth login --token -`. A new bot token goes from `bots create-token` straight into a profile, never shown (→ pachca-bots).
 - Token sources in order: `--token`, `--profile`, `PACHCA_TOKEN`, `PACHCA_PROFILE`, the active profile. A
   forgotten `PACHCA_TOKEN` silently wins over `PACHCA_PROFILE` and the active profile; name the profile with
   `--profile` to be sure which workspace a command hits.

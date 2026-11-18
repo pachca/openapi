@@ -536,7 +536,7 @@ export const botFields: INodeProperties[] = [
 				name: 'scopes',
 				type: 'string',
 				default: "",
-				description: 'Scopes (permissions) of the bot\'s main token. If omitted, the scopes do not change. If the bot has no token, passing scopes creates the main token, but its value does not come back: get one with [Bot token rotation](POST /bots/{ID}/recreate_token). Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned.',
+				description: 'Scopes (permissions) of the bot\'s main token. If omitted, the scopes do not change. If the bot has no token, passing scopes creates the main token, but its value does not come back: get one with [Bot token rotation](POST /bots/{ID}/recreate_token). Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned. The scopes are changed only by the bot\'s creator, and a workspace administrator if the bot\'s settings grant administrators edit access. For other employees a request with this field responds `403`, even if the scopes stay the same, and applies nothing from the request.',
 				placeholder: 'messages:create',
 			},
 			{

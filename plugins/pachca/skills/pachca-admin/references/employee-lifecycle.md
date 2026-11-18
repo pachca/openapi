@@ -181,7 +181,7 @@ Order of work:
    without `admin` in `can_edit` has nobody who can reissue its tokens or
    delete it with `pachca_delete_bot`. The Owner or an Administrator can still
    stop it through the employee methods with the bot's id:
-   `pachca_update_user` with `suspended: true` (reversible) or
+   `pachca_update_user` with `suspended: true` (reversible: its tokens answer `403` `access_denied`, its incoming webhook answers `403`, and its outgoing webhook creates no events, not even in the event history; missed events never arrive after the bot is restored) or
    `pachca_delete_user` (final: like `pachca_delete_bot`, it revokes all of the
    bot's tokens). Before deleting, ask and offer the suspension.
 6. Suspend or delete (`pachca_update_user` with `suspended`, or

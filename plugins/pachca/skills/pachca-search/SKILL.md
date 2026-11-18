@@ -52,13 +52,18 @@ its feed.
 | Threads that moved       | `pachca_list_threads` (`pachca threads list`)                       | Threads you are in, or whose parent chat you are in, standalone ones included, by last message time                                                                                                                           | Threads of public chats you have not joined; titles or text (a thread has neither)                                                                                                                                               |
 | Reminders                | `pachca_list_tasks` (`pachca tasks list`)                           | Every reminder of the active chats you are in, other employees' included, plus unbound reminders you created or are assigned to; with `chat_ids`, every reminder of those chats. "My reminders": `performer_ids` with your id | Text search and a due-date filter. The list is oldest first: read every page, match `content` and filter `due_at` yourself                                                                                                       |
 | Your «Важное»            | `pachca_list_important_messages` (`pachca important-messages list`) | Messages you marked as important, newest mark first, from any chat, chats you left included. Only an employee's token                                                                                                         | Other employees' marks. A bot token has no «Важное»                                                                                                                                                                              |
+| Pinned in a chat         | `pachca_list_pinned_messages` (`pachca messages list-pinned`)       | Messages pinned in the chat header, most recently pinned first, for any chat you can read, archived included                                                                                                                  | Pins in a thread: threads have none                                                                                                                                                                                              |
 
 Do not promise what does not exist:
 
 - There is no way to list unread messages or read an unread counter.
-  `pachca_mark_chat_unread` only sets the mark. "What's new since I last
-  looked" becomes a time window: ask for it or take the obvious one (today,
-  since yesterday evening) and say which you took.
+  `pachca_mark_chat_unread` only sets the mark, and `pachca_mark_chat_read`
+  marks the whole chat read for you (others then see their messages read), so
+  do it only when asked. "What's new since I last looked" becomes a time
+  window: ask for it or take the obvious one (today, since yesterday evening)
+  and say which you took. What came after a message you already know is
+  `pachca_list_chat_messages` with that message's id in `after_message_id`
+  and `order: "asc"`.
 - Message search does not reach public conversations and channels you have
   not joined. Read such a chat's feed by its `chat_id` instead (find the id
   with `pachca_search_chats` or `pachca_list_chats` with

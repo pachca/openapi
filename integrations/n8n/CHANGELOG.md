@@ -2,6 +2,14 @@
 
 # Changelog
 
+## 2.2.9 (2026-11-18)
+
+### Features
+
+- Message > Get Many Pinned Messages: the pinned messages of a chat, from the most recently pinned to the earliest
+- Chat > Mark Read: marks a chat as read for the token owner
+- Message > Get Many: `After Message ID` returns the messages after a known one, oldest first
+
 ## 2.2.8 (2026-11-14)
 
 ### Bug Fixes

@@ -803,6 +803,10 @@ open class ChatsService {
         throw pachcaNotImplemented("Chats.updateChatAvatar")
     }
 
+    open func markChatRead(id: Int) async throws -> ChatReadPosition {
+        throw pachcaNotImplemented("Chats.markChatRead")
+    }
+
     open func unarchiveChat(id: Int) async throws -> Void {
         throw pachcaNotImplemented("Chats.unarchiveChat")
     }
@@ -1022,6 +1026,20 @@ public final class ChatsServiceImpl: ChatsService {
         }
     }
 
+    public override func markChatRead(id: Int) async throws -> ChatReadPosition {
+        var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/read")!)
+        request.httpMethod = "PUT"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ChatReadPositionDataWrapper.self, from: data).data
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
     public override func unarchiveChat(id: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/unarchive")!)
         request.httpMethod = "PUT"
@@ -1226,6 +1244,238 @@ public final class MembersServiceImpl: MembersService {
 
     public override func removeMember(id: Int, userId: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/members/\(userId)")!)
+        request.httpMethod = "DELETE"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+}
+
+open class MessagesService {
+    public init() {}
+
+    open func listPinnedMessages(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> ListPinnedMessagesResponse {
+        throw pachcaNotImplemented("Messages.listPinnedMessages")
+    }
+
+    open func listPinnedMessagesAll(id: Int, limit: Int? = nil) async throws -> [Message] {
+        throw pachcaNotImplemented("Messages.listPinnedMessagesAll")
+    }
+
+    open func listChatMessages(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil, cursor: String? = nil, afterMessageId: Int? = nil) async throws -> ListChatMessagesResponse {
+        throw pachcaNotImplemented("Messages.listChatMessages")
+    }
+
+    open func listChatMessagesAll(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil, afterMessageId: Int? = nil) async throws -> [Message] {
+        throw pachcaNotImplemented("Messages.listChatMessagesAll")
+    }
+
+    open func getMessage(id: Int) async throws -> Message {
+        throw pachcaNotImplemented("Messages.getMessage")
+    }
+
+    open func createMessage(request body: MessageCreateRequest) async throws -> Message {
+        throw pachcaNotImplemented("Messages.createMessage")
+    }
+
+    open func unfurl(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
+        throw pachcaNotImplemented("Messages.unfurl")
+    }
+
+    open func pinMessage(id: Int) async throws -> Void {
+        throw pachcaNotImplemented("Messages.pinMessage")
+    }
+
+    open func updateMessage(id: Int, request body: MessageUpdateRequest) async throws -> Message {
+        throw pachcaNotImplemented("Messages.updateMessage")
+    }
+
+    open func deleteMessage(id: Int) async throws -> Void {
+        throw pachcaNotImplemented("Messages.deleteMessage")
+    }
+
+    open func unpinMessage(id: Int) async throws -> Void {
+        throw pachcaNotImplemented("Messages.unpinMessage")
+    }
+}
+
+public final class MessagesServiceImpl: MessagesService {
+    let baseURL: String
+    let headers: [String: String]
+    let session: URLSession
+
+    init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        self.baseURL = baseURL
+        self.headers = headers
+        self.session = session
+        super.init()
+    }
+
+    public override func listPinnedMessages(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> ListPinnedMessagesResponse {
+        var components = URLComponents(string: "\(baseURL)/chats/\(id)/pinned_messages")!
+        var queryItems: [URLQueryItem] = []
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ListPinnedMessagesResponse.self, from: data)
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
+    public override func listPinnedMessagesAll(id: Int, limit: Int? = nil) async throws -> [Message] {
+        var items: [Message] = []
+        var cursor: String? = nil
+        var hasNext = true
+        while hasNext {
+            let response = try await listPinnedMessages(id: id, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
+        return items
+    }
+
+    public override func listChatMessages(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil, cursor: String? = nil, afterMessageId: Int? = nil) async throws -> ListChatMessagesResponse {
+        var components = URLComponents(string: "\(baseURL)/messages")!
+        var queryItems: [URLQueryItem] = []
+        queryItems.append(URLQueryItem(name: "chat_id", value: String(chatId)))
+        if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
+        if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
+        if let afterMessageId { queryItems.append(URLQueryItem(name: "after_message_id", value: String(afterMessageId))) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ListChatMessagesResponse.self, from: data)
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
+    public override func listChatMessagesAll(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil, afterMessageId: Int? = nil) async throws -> [Message] {
+        var items: [Message] = []
+        var cursor: String? = nil
+        var hasNext = true
+        while hasNext {
+            let response = try await listChatMessages(chatId: chatId, sort: sort, order: order, limit: limit, cursor: cursor, afterMessageId: afterMessageId)
+            items.append(contentsOf: response.data)
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
+        return items
+    }
+
+    public override func getMessage(id: Int) async throws -> Message {
+        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)")!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(MessageDataWrapper.self, from: data).data
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
+    public override func createMessage(request body: MessageCreateRequest) async throws -> Message {
+        var request = URLRequest(url: URL(string: "\(baseURL)/messages")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 201:
+            return try deserialize(MessageDataWrapper.self, from: data).data
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
+    public override func unfurl(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/link_previews")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
+    public override func pinMessage(id: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/pin")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
+    public override func updateMessage(id: Int, request body: MessageUpdateRequest) async throws -> Message {
+        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)")!)
+        request.httpMethod = "PUT"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(MessageDataWrapper.self, from: data).data
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
+    public override func deleteMessage(id: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)")!)
+        request.httpMethod = "DELETE"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
+    public override func unpinMessage(id: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/pin")!)
         request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
@@ -1853,197 +2103,6 @@ public final class ImportantMessagesServiceImpl: ImportantMessagesService {
 
     public override func removeMessageFromImportant(id: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/important_messages/\(id)")!)
-        request.httpMethod = "DELETE"
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 204:
-            return
-        default:
-            throw pachcaErrorFromResponse(statusCode, data)
-        }
-    }
-}
-
-open class MessagesService {
-    public init() {}
-
-    open func listChatMessages(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListChatMessagesResponse {
-        throw pachcaNotImplemented("Messages.listChatMessages")
-    }
-
-    open func listChatMessagesAll(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil) async throws -> [Message] {
-        throw pachcaNotImplemented("Messages.listChatMessagesAll")
-    }
-
-    open func getMessage(id: Int) async throws -> Message {
-        throw pachcaNotImplemented("Messages.getMessage")
-    }
-
-    open func createMessage(request body: MessageCreateRequest) async throws -> Message {
-        throw pachcaNotImplemented("Messages.createMessage")
-    }
-
-    open func unfurl(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
-        throw pachcaNotImplemented("Messages.unfurl")
-    }
-
-    open func pinMessage(id: Int) async throws -> Void {
-        throw pachcaNotImplemented("Messages.pinMessage")
-    }
-
-    open func updateMessage(id: Int, request body: MessageUpdateRequest) async throws -> Message {
-        throw pachcaNotImplemented("Messages.updateMessage")
-    }
-
-    open func deleteMessage(id: Int) async throws -> Void {
-        throw pachcaNotImplemented("Messages.deleteMessage")
-    }
-
-    open func unpinMessage(id: Int) async throws -> Void {
-        throw pachcaNotImplemented("Messages.unpinMessage")
-    }
-}
-
-public final class MessagesServiceImpl: MessagesService {
-    let baseURL: String
-    let headers: [String: String]
-    let session: URLSession
-
-    init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        self.baseURL = baseURL
-        self.headers = headers
-        self.session = session
-        super.init()
-    }
-
-    public override func listChatMessages(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListChatMessagesResponse {
-        var components = URLComponents(string: "\(baseURL)/messages")!
-        var queryItems: [URLQueryItem] = []
-        queryItems.append(URLQueryItem(name: "chat_id", value: String(chatId)))
-        if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
-        if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
-        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
-        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
-        if !queryItems.isEmpty { components.queryItems = queryItems }
-        var request = URLRequest(url: components.url!)
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 200:
-            return try deserialize(ListChatMessagesResponse.self, from: data)
-        default:
-            throw pachcaErrorFromResponse(statusCode, data)
-        }
-    }
-
-    public override func listChatMessagesAll(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil) async throws -> [Message] {
-        var items: [Message] = []
-        var cursor: String? = nil
-        var hasNext = true
-        while hasNext {
-            let response = try await listChatMessages(chatId: chatId, sort: sort, order: order, limit: limit, cursor: cursor)
-            items.append(contentsOf: response.data)
-            if response.data.isEmpty { break }
-            cursor = response.meta.paginate.nextPage
-            hasNext = response.meta.paginate.hasNext ?? true
-        }
-        return items
-    }
-
-    public override func getMessage(id: Int) async throws -> Message {
-        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)")!)
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 200:
-            return try deserialize(MessageDataWrapper.self, from: data).data
-        default:
-            throw pachcaErrorFromResponse(statusCode, data)
-        }
-    }
-
-    public override func createMessage(request body: MessageCreateRequest) async throws -> Message {
-        var request = URLRequest(url: URL(string: "\(baseURL)/messages")!)
-        request.httpMethod = "POST"
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try serialize(body)
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 201:
-            return try deserialize(MessageDataWrapper.self, from: data).data
-        default:
-            throw pachcaErrorFromResponse(statusCode, data)
-        }
-    }
-
-    public override func unfurl(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
-        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/link_previews")!)
-        request.httpMethod = "POST"
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try serialize(body)
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 204:
-            return
-        default:
-            throw pachcaErrorFromResponse(statusCode, data)
-        }
-    }
-
-    public override func pinMessage(id: Int) async throws -> Void {
-        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/pin")!)
-        request.httpMethod = "POST"
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 204:
-            return
-        default:
-            throw pachcaErrorFromResponse(statusCode, data)
-        }
-    }
-
-    public override func updateMessage(id: Int, request body: MessageUpdateRequest) async throws -> Message {
-        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)")!)
-        request.httpMethod = "PUT"
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try serialize(body)
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 200:
-            return try deserialize(MessageDataWrapper.self, from: data).data
-        default:
-            throw pachcaErrorFromResponse(statusCode, data)
-        }
-    }
-
-    public override func deleteMessage(id: Int) async throws -> Void {
-        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)")!)
-        request.httpMethod = "DELETE"
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 204:
-            return
-        default:
-            throw pachcaErrorFromResponse(statusCode, data)
-        }
-    }
-
-    public override func unpinMessage(id: Int) async throws -> Void {
-        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/pin")!)
         request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)

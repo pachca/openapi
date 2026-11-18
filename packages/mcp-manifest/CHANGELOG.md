@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.10.0 (2026-11-18)
+
+Tools for pinned messages and for marking a chat as read, a new scope, an argument for new messages, and texts about bot scopes, link previews after an edit and the transcription status. schema_version stays 1.2.0.
+
+- Tool `pachca_list_pinned_messages`: the pinned messages of a chat, from the most recently pinned to the earliest. For a thread the list is empty.
+- Tool `pachca_mark_chat_read`: marks a chat as read for the token owner and returns `last_read_message_id`. It needs the new `chats:mark_read` scope and does not add the token owner to a chat or a thread.
+- `pachca_list_chat_messages` takes `after_message_id`: only newer messages come, oldest first, and an empty response still carries the cursor to poll further.
+- `pachca_update_bot`: `scopes` are changed only by the bot's creator and a workspace administrator, and for anyone else a request with this argument answers `403` and applies nothing. `chat_owners` in `can_edit` covers only non-archived conversations and channels.
+- `pachca_update_message` keeps the previews of links that stay in the text, and for links added by the edit a bot with the `message_link_shared` event gets a `link_shared` webhook.
+- `transcript_status` stays `pending` while a transcription has not finished, and `failed` means it did not succeed.
+
 ## 1.9.0 (2026-11-14)
 
 Texts, refusals and one argument example: making an employee a guest, an empty outgoing webhook URL, bots and their tokens, the event history, forms, drafts, exports, the audit log and archived chats. schema_version stays 1.2.0.

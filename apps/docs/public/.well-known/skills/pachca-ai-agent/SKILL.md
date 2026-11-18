@@ -98,10 +98,10 @@ too, only if it was added.
 - **Conversation or channel** — added as a member: gets the chat and all its threads.
 - **Thread** — called by an `@` mention in the thread, or added as a thread
   member: sees the thread and its parent message, not the chat history. A
-  mention brings in only a public bot, and only when an employee (not a guest)
-  writes it with «Добавить @упоминаемых в тред» on under the input box. A
-  non-public bot is not added by a mention, even by its creator or an admin, and
-  a new bot is non-public. Make the agent public, or have someone allowed under
+  mention brings in a public bot, only when an employee (not a guest) writes it
+  with «Добавить @упоминаемых в тред» on under the input box. A non-public bot
+  outside the parent chat is not added by a mention, even by its creator or an
+  admin, and a new bot is non-public. Make the agent public, or have someone allowed under
   «Кто может добавлять бота в чаты» add it as a thread member
   (`pachca_add_members`, `pachca members add`, with the thread's `chat_id`).
   With «Использовать сквозные треды» off in the workspace settings, a mention
@@ -235,7 +235,8 @@ employee sees how long the agent has been working. The timer runs up to 5 minute
   message mode and membership → `pachca-bots`.
 - Waiting for a "mentions only" mode — it does not exist; pick «Любые сообщения».
 - Testing mentions with a new bot: it is non-public, and a mention does not
-  bring a non-public bot into a thread. Make it public or add it as a member.
+  bring a non-public bot outside the parent chat into a thread. Make it public
+  or add it as a member.
 - Reading thread history by `thread.message_chat_id` (the parent chat). Use the
   event's `chat_id`: a bot called only into the thread cannot see the parent chat.
 - Fetching the parent of a standalone thread: there `thread.message_id` is `null`

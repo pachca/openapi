@@ -287,7 +287,7 @@ value class BotCanEdit(val value: String) {
     companion object {
         /** Администраторы компании */
         val ADMIN = BotCanEdit("admin")
-        /** Владельцы и администраторы бесед и каналов, в которые добавлен бот */
+        /** Владельцы и администраторы неархивных бесед и каналов, в которые добавлен бот */
         val CHAT_OWNERS = BotCanEdit("chat_owners")
 
         /** Every value this SDK version lists */
@@ -907,6 +907,8 @@ value class OAuthScope(val value: String) {
         val CHATS_UPDATE = OAuthScope("chats:update")
         /** Отметка собственных чатов непрочитанными */
         val CHATS_MARK_UNREAD = OAuthScope("chats:mark_unread")
+        /** Отметка собственных чатов прочитанными */
+        val CHATS_MARK_READ = OAuthScope("chats:mark_read")
         /** Архивация и разархивация чатов */
         val CHATS_ARCHIVE = OAuthScope("chats:archive")
         /** Выход из чатов */
@@ -1021,12 +1023,12 @@ value class OAuthScope(val value: String) {
         val IMPORTANT_MESSAGES_WRITE = OAuthScope("important_messages:write")
 
         /** Every value this SDK version lists */
-        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, COMPANY_READ, COMPANY_WRITE, INVITE_LINKS_WRITE, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE, IMPORTANT_MESSAGES_READ, IMPORTANT_MESSAGES_WRITE)
+        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_MARK_READ, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, COMPANY_READ, COMPANY_WRITE, INVITE_LINKS_WRITE, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE, IMPORTANT_MESSAGES_READ, IMPORTANT_MESSAGES_WRITE)
 
         /** The same values as an array, like `values()` of an enum class */
         fun values(): Array<OAuthScope> = entries.toTypedArray()
 
-        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "company:read" to "COMPANY_READ", "company:write" to "COMPANY_WRITE", "invite_links:write" to "INVITE_LINKS_WRITE", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE", "important_messages:read" to "IMPORTANT_MESSAGES_READ", "important_messages:write" to "IMPORTANT_MESSAGES_WRITE")
+        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:mark_read" to "CHATS_MARK_READ", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "company:read" to "COMPANY_READ", "company:write" to "COMPANY_WRITE", "invite_links:write" to "INVITE_LINKS_WRITE", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE", "important_messages:read" to "IMPORTANT_MESSAGES_READ", "important_messages:write" to "IMPORTANT_MESSAGES_WRITE")
 
         fun valueOf(name: String): OAuthScope =
             entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No OAuthScope constant $name")
@@ -2638,6 +2640,11 @@ data class ChatExport(
 )
 
 @Serializable
+data class ChatReadPosition(
+    @SerialName("last_read_message_id") val lastReadMessageId: Int? = null,
+)
+
+@Serializable
 data class ChatUpdateRequestChat(
     val name: String? = null,
     val public: Boolean? = null,
@@ -3485,6 +3492,12 @@ data class ListMembersResponse(
 )
 
 @Serializable
+data class ListPinnedMessagesResponse(
+    val data: List<Message>,
+    val meta: PaginationMeta,
+)
+
+@Serializable
 data class ListCompanyBotsResponse(
     val data: List<CompanyBotResponse>,
     val meta: PaginationMeta,
@@ -3613,6 +3626,12 @@ data class ChatDataWrapper(val data: Chat)
 data class ChatExportDataWrapper(val data: ChatExport)
 
 @Serializable
+data class ChatReadPositionDataWrapper(val data: ChatReadPosition)
+
+@Serializable
+data class MessageDataWrapper(val data: Message)
+
+@Serializable
 data class CompanyDataWrapper(val data: Company)
 
 @Serializable
@@ -3623,9 +3642,6 @@ data class DraftDataWrapper(val data: Draft)
 
 @Serializable
 data class GroupTagDataWrapper(val data: GroupTag)
-
-@Serializable
-data class MessageDataWrapper(val data: Message)
 
 @Serializable
 data class ThreadDataWrapper(val data: Thread)

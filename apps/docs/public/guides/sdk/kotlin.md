@@ -30,7 +30,7 @@ dependencyResolutionManagement {
 
 ```kotlin
 dependencies {
-    implementation("com.github.pachca:openapi:1.10.0")
+    implementation("com.github.pachca:openapi:1.10.1")
 }
 ```
 
@@ -109,6 +109,7 @@ client.close()
 | `client.chats.updateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archiveChat()` | [Архивация чата](/api/chats/archive) |
 | `client.chats.updateChatAvatar()` | [Загрузка аватара чата](/api/chats/update-avatar) |
+| `client.chats.markChatRead()` | [Отметка чата прочитанным](/api/chats/mark-read) |
 | `client.chats.unarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.chats.markChatUnread()` | [Отметка чата непрочитанным](/api/chats/mark-unread) |
 | `client.chats.deleteChatAvatar()` | [Удаление аватара чата](/api/chats/remove-avatar) |
@@ -154,6 +155,7 @@ client.close()
 | `client.messages.pinMessage()` | [Закрепление сообщения](/api/messages/pin) |
 | `client.messages.listChatMessages()` | [Список сообщений чата](/api/messages/list) |
 | `client.messages.getMessage()` | [Информация о сообщении](/api/messages/get) |
+| `client.messages.listPinnedMessages()` | [Список закреплённых сообщений](/api/messages/list-pinned) |
 | `client.messages.updateMessage()` | [Редактирование сообщения](/api/messages/update) |
 | `client.messages.deleteMessage()` | [Удаление сообщения](/api/messages/delete) |
 | `client.messages.unpinMessage()` | [Открепление сообщения](/api/messages/unpin) |

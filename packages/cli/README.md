@@ -106,6 +106,7 @@ pachca auth switch bot-notify
 | `pachca chats archive` | Архивация чата |
 | `pachca chats update-avatar` | Загрузка аватара чата |
 | `pachca chats remove-avatar` | Удаление аватара чата |
+| `pachca chats mark-read` | Отметка чата прочитанным |
 | `pachca chats unarchive` | Разархивация чата |
 | `pachca chats mark-unread` | Отметка чата непрочитанным |
 | `pachca chats list-company` | Список чатов пространства |
@@ -121,6 +122,20 @@ pachca auth switch bot-notify
 | `pachca members add` | Добавление участников |
 | `pachca members remove` | Исключение участника |
 | `pachca members update` | Редактирование роли участника |
+
+### messages
+
+| Команда | Описание |
+|---------|---------|
+| `pachca messages list-pinned` | Список закреплённых сообщений |
+| `pachca messages create` | Новое сообщение |
+| `pachca messages list` | Список сообщений чата |
+| `pachca messages get` | Информация о сообщении |
+| `pachca messages update` | Редактирование сообщения |
+| `pachca messages delete` | Удаление сообщения |
+| `pachca messages unfurl` | Unfurl (разворачивание ссылок) |
+| `pachca messages pin` | Закрепление сообщения |
+| `pachca messages unpin` | Открепление сообщения |
 
 ### company
 
@@ -173,19 +188,6 @@ pachca auth switch bot-notify
 | `pachca important-messages list` | Список важных сообщений |
 | `pachca important-messages create` | Добавление сообщения в важные |
 | `pachca important-messages delete` | Удаление сообщения из важных |
-
-### messages
-
-| Команда | Описание |
-|---------|---------|
-| `pachca messages create` | Новое сообщение |
-| `pachca messages list` | Список сообщений чата |
-| `pachca messages get` | Информация о сообщении |
-| `pachca messages update` | Редактирование сообщения |
-| `pachca messages delete` | Удаление сообщения |
-| `pachca messages unfurl` | Unfurl (разворачивание ссылок) |
-| `pachca messages pin` | Закрепление сообщения |
-| `pachca messages unpin` | Открепление сообщения |
 
 ### reactions
 

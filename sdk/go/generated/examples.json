@@ -196,6 +196,10 @@
     "usage": "response, err := client.Chats.UpdateChatAvatar(ctx, int32(334), bytes.NewReader(nil))",
     "output": "AvatarData{ImageURL: string}"
   },
+  "ChatOperations_markChatRead": {
+    "usage": "response, err := client.Chats.MarkChatRead(ctx, int32(334))",
+    "output": "ChatReadPosition{LastReadMessageID: *int32}"
+  },
   "ChatOperations_unarchiveChat": {
     "usage": "client.Chats.UnarchiveChat(ctx, int32(334))"
   },
@@ -239,6 +243,78 @@
   },
   "ChatMemberOperations_removeMember": {
     "usage": "client.Members.RemoveMember(ctx, int32(334), int32(186))"
+  },
+  "PinnedMessageOperations_listPinnedMessages": {
+    "usage": "params := &pachca.ListPinnedMessagesParams{\n\tLimit: pachca.Ptr(int32(25)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Messages.ListPinnedMessages(ctx, int32(334), params)",
+    "output": "ListPinnedMessagesResponse{Data: []Message, Meta: PaginationMeta}",
+    "imports": [
+      "ListPinnedMessagesParams"
+    ]
+  },
+  "ChatMessageOperations_listChatMessages": {
+    "usage": "params := pachca.ListChatMessagesParams{\n\tChatID: int32(198),\n\tSort: pachca.Ptr(pachca.MessageSortFieldID),\n\tOrder: pachca.Ptr(pachca.SortOrderDesc),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n\tAfterMessageID: pachca.Ptr(int32(194275)),\n}\nresponse, err := client.Messages.ListChatMessages(ctx, params)",
+    "output": "ListChatMessagesResponse{Data: []Message, Meta: PaginationMeta}",
+    "imports": [
+      "ListChatMessagesParams",
+      "MessageSortField",
+      "SortOrder"
+    ]
+  },
+  "MessageOperations_getMessage": {
+    "usage": "response, err := client.Messages.GetMessage(ctx, int32(194275))",
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: time.Time, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string, TranscriptStatus: *VoiceTranscriptStatus}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: time.Time, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool, Source: *MessageSource, Application: *MessageApplication{ID: int32, Name: string}}"
+  },
+  "MessageOperations_createMessage": {
+    "usage": "request := pachca.MessageCreateRequest{\n\tMessage: pachca.MessageCreateRequestMessage{\n\t\tEntityID: int32(334),\n\t\tContent: pachca.Ptr(\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"),\n\t},\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: time.Time, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string, TranscriptStatus: *VoiceTranscriptStatus}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: time.Time, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool, Source: *MessageSource, Application: *MessageApplication{ID: int32, Name: string}}",
+    "imports": [
+      "MessageCreateRequest",
+      "MessageCreateRequestMessage"
+    ],
+    "examples": {
+      "Минимальный запрос": {
+        "usage": "request := pachca.MessageCreateRequest{\n\tMessage: pachca.MessageCreateRequestMessage{\n\t\tEntityID: int32(334),\n\t\tContent: pachca.Ptr(\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"),\n\t},\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
+        "imports": [
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage"
+        ]
+      },
+      "Сообщение с кнопкой": {
+        "usage": "request := pachca.MessageCreateRequest{\n\tMessage: pachca.MessageCreateRequestMessage{\n\t\tEntityType: pachca.Ptr(pachca.MessageEntityTypeDiscussion),\n\t\tEntityID: int32(334),\n\t\tContent: pachca.Ptr(\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"),\n\t\tButtons: [][]pachca.Button{[]pachca.Button{pachca.Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: pachca.Ptr(\"https://example.com/details\"),\n\t\t}}},\n\t},\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
+        "imports": [
+          "Button",
+          "MessageCreateRequest",
+          "MessageCreateRequestMessage",
+          "MessageEntityType"
+        ]
+      }
+    }
+  },
+  "LinkPreviewOperations_unfurl": {
+    "usage": "request := pachca.LinkPreviewsRequest{\n\tLinkPreviews: map[string]pachca.LinkPreview{\"key\": pachca.LinkPreview{\n\t\tTitle: \"Статья: Отправка файлов\",\n\t\tDescription: \"Пример отправки файлов на удаленный сервер\",\n\t\tImageURL: pachca.Ptr(\"https://example.com/img/landing.png\"),\n\t\tImage: pachca.Ptr(pachca.LinkPreviewImage{\n\t\t\tKey: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n\t\t\tName: \"files-to-server.jpg\",\n\t\t\tSize: pachca.Ptr(int32(695604)),\n\t\t}),\n\t}},\n}\nclient.Messages.Unfurl(ctx, int32(194275), request)",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
+  },
+  "MessageOperations_pinMessage": {
+    "usage": "client.Messages.PinMessage(ctx, int32(194275))"
+  },
+  "MessageOperations_updateMessage": {
+    "usage": "request := pachca.MessageUpdateRequest{\n\tMessage: pachca.MessageUpdateRequestMessage{\n\t\tContent: pachca.Ptr(\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\"),\n\t\tButtons: [][]pachca.Button{[]pachca.Button{pachca.Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: pachca.Ptr(\"https://example.com/details\"),\n\t\t}}},\n\t},\n}\nresponse, err := client.Messages.UpdateMessage(ctx, int32(194275), request)",
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: time.Time, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string, TranscriptStatus: *VoiceTranscriptStatus}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: time.Time, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool, Source: *MessageSource, Application: *MessageApplication{ID: int32, Name: string}}",
+    "imports": [
+      "Button",
+      "MessageUpdateRequest",
+      "MessageUpdateRequestMessage"
+    ]
+  },
+  "MessageOperations_deleteMessage": {
+    "usage": "client.Messages.DeleteMessage(ctx, int32(194275))"
+  },
+  "MessageOperations_unpinMessage": {
+    "usage": "client.Messages.UnpinMessage(ctx, int32(194275))"
   },
   "CompanyOperations_getCompany": {
     "usage": "response, err := client.Company.GetCompany(ctx)",
@@ -372,71 +448,6 @@
   },
   "ImportantMessageOperations_removeMessageFromImportant": {
     "usage": "client.ImportantMessages.RemoveMessageFromImportant(ctx, int32(194275))"
-  },
-  "ChatMessageOperations_listChatMessages": {
-    "usage": "params := pachca.ListChatMessagesParams{\n\tChatID: int32(198),\n\tSort: pachca.Ptr(pachca.MessageSortFieldID),\n\tOrder: pachca.Ptr(pachca.SortOrderDesc),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Messages.ListChatMessages(ctx, params)",
-    "output": "ListChatMessagesResponse{Data: []Message, Meta: PaginationMeta}",
-    "imports": [
-      "ListChatMessagesParams",
-      "MessageSortField",
-      "SortOrder"
-    ]
-  },
-  "MessageOperations_getMessage": {
-    "usage": "response, err := client.Messages.GetMessage(ctx, int32(194275))",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: time.Time, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string, TranscriptStatus: *VoiceTranscriptStatus}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: time.Time, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool, Source: *MessageSource, Application: *MessageApplication{ID: int32, Name: string}}"
-  },
-  "MessageOperations_createMessage": {
-    "usage": "request := pachca.MessageCreateRequest{\n\tMessage: pachca.MessageCreateRequestMessage{\n\t\tEntityID: int32(334),\n\t\tContent: pachca.Ptr(\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"),\n\t},\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: time.Time, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string, TranscriptStatus: *VoiceTranscriptStatus}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: time.Time, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool, Source: *MessageSource, Application: *MessageApplication{ID: int32, Name: string}}",
-    "imports": [
-      "MessageCreateRequest",
-      "MessageCreateRequestMessage"
-    ],
-    "examples": {
-      "Минимальный запрос": {
-        "usage": "request := pachca.MessageCreateRequest{\n\tMessage: pachca.MessageCreateRequestMessage{\n\t\tEntityID: int32(334),\n\t\tContent: pachca.Ptr(\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"),\n\t},\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
-        "imports": [
-          "MessageCreateRequest",
-          "MessageCreateRequestMessage"
-        ]
-      },
-      "Сообщение с кнопкой": {
-        "usage": "request := pachca.MessageCreateRequest{\n\tMessage: pachca.MessageCreateRequestMessage{\n\t\tEntityType: pachca.Ptr(pachca.MessageEntityTypeDiscussion),\n\t\tEntityID: int32(334),\n\t\tContent: pachca.Ptr(\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"),\n\t\tButtons: [][]pachca.Button{[]pachca.Button{pachca.Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: pachca.Ptr(\"https://example.com/details\"),\n\t\t}}},\n\t},\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
-        "imports": [
-          "Button",
-          "MessageCreateRequest",
-          "MessageCreateRequestMessage",
-          "MessageEntityType"
-        ]
-      }
-    }
-  },
-  "LinkPreviewOperations_unfurl": {
-    "usage": "request := pachca.LinkPreviewsRequest{\n\tLinkPreviews: map[string]pachca.LinkPreview{\"key\": pachca.LinkPreview{\n\t\tTitle: \"Статья: Отправка файлов\",\n\t\tDescription: \"Пример отправки файлов на удаленный сервер\",\n\t\tImageURL: pachca.Ptr(\"https://example.com/img/landing.png\"),\n\t\tImage: pachca.Ptr(pachca.LinkPreviewImage{\n\t\t\tKey: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n\t\t\tName: \"files-to-server.jpg\",\n\t\t\tSize: pachca.Ptr(int32(695604)),\n\t\t}),\n\t}},\n}\nclient.Messages.Unfurl(ctx, int32(194275), request)",
-    "imports": [
-      "LinkPreview",
-      "LinkPreviewImage",
-      "LinkPreviewsRequest"
-    ]
-  },
-  "MessageOperations_pinMessage": {
-    "usage": "client.Messages.PinMessage(ctx, int32(194275))"
-  },
-  "MessageOperations_updateMessage": {
-    "usage": "request := pachca.MessageUpdateRequest{\n\tMessage: pachca.MessageUpdateRequestMessage{\n\t\tContent: pachca.Ptr(\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\"),\n\t\tButtons: [][]pachca.Button{[]pachca.Button{pachca.Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: pachca.Ptr(\"https://example.com/details\"),\n\t\t}}},\n\t},\n}\nresponse, err := client.Messages.UpdateMessage(ctx, int32(194275), request)",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: time.Time, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string, TranscriptStatus: *VoiceTranscriptStatus}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: time.Time, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string, Important: bool, Source: *MessageSource, Application: *MessageApplication{ID: int32, Name: string}}",
-    "imports": [
-      "Button",
-      "MessageUpdateRequest",
-      "MessageUpdateRequestMessage"
-    ]
-  },
-  "MessageOperations_deleteMessage": {
-    "usage": "client.Messages.DeleteMessage(ctx, int32(194275))"
-  },
-  "MessageOperations_unpinMessage": {
-    "usage": "client.Messages.UnpinMessage(ctx, int32(194275))"
   },
   "ReactionOperations_listReactions": {
     "usage": "params := &pachca.ListReactionsParams{\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Reactions.ListReactions(ctx, int32(194275), params)",

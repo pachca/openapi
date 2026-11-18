@@ -15,8 +15,9 @@
 //   Files: <name> (file <id>) <url>
 //   Link: <url>
 // The text of each message sits in a tag with a random suffix, so nothing in it can pass
-// for the markup around it. "## More than 50 new messages after <id>" means one check
-// could not read them all, and "## Watching stopped" ends the script.
+// for the markup around it. More than 50 new messages come as several blocks in a row,
+// except with a CLI older than 2026.11.5: then "## More than 50 new messages after <id>"
+// means one check could not read them all. "## Watching stopped" ends the script.
 // Everything else goes to stderr and wakes no one. Exit codes: 0 after --once, 1 access
 // or repeated errors, 2 bad arguments, 3 sign-in or rights.
 
@@ -93,6 +94,16 @@ function stopReason(res) {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// CLI 2026.11.5 and later list only the messages after a given one. An older CLI reads
+// the last page instead, which can miss messages when more than one page arrives at once.
+function supportsAfter() {
+  return new Promise((resolve) => {
+    execFile('pachca', ['messages', 'list', '--help'], { timeout: 60_000, shell: WINDOWS }, (err, stdout) =>
+      resolve(!err && String(stdout).includes('--after-message-id'))
+    );
+  });
+}
 
 // Runs a CLI call, retrying transient failures. Returns the result, or a stop line.
 async function call(args, interval) {
@@ -175,29 +186,36 @@ async function main() {
     self = me.res.data.id;
   }
 
+  const afterFlag = await supportsAfter();
   let after = opts.after;
   for (;;) {
-    const r = await call(['messages', 'list', String(opts.chat), '--limit', String(PAGE)], opts.interval);
+    // With a starting point, ask only for what came after it, oldest first.
+    const args = ['messages', 'list', String(opts.chat), '--limit', String(PAGE)];
+    if (after !== undefined && afterFlag) args.push('--after-message-id', String(after), '--order', 'asc');
+    const r = await call(args, opts.interval);
     if (r.stop) {
       emit(r.stop);
       return r.code;
     }
     const page = Array.isArray(r.res.data) ? r.res.data : [];
     const newest = page.reduce((m, msg) => Math.max(m, msg.id), after ?? 0);
+    let full = false;
     if (after !== undefined) {
       const fresh = page.filter((m) => m.id > after).sort((a, b) => a.id - b.id);
       const shown = fresh.filter((m) => self === null || m.user_id !== self);
       const blocks = [];
-      if (fresh.length === PAGE) blocks.push(`## More than ${PAGE} new messages after ${after}\nRead the chat itself for the ones before these.`);
+      if (!afterFlag && fresh.length === PAGE) blocks.push(`## More than ${PAGE} new messages after ${after}\nRead the chat itself for the ones before these.`);
       if (shown.length) blocks.push(`## New messages in chat ${opts.chat}`);
       for (const m of shown) blocks.push(await toBlock(m));
       // One write per check, so the program that wakes the agent gets the batch as one event.
       if (blocks.length) emit(blocks.join('\n\n'));
       if (opts.once && shown.length > 0) return 0;
+      // A full page means more are waiting: fetch the next one right away.
+      full = afterFlag && fresh.length === PAGE;
     }
     // The first check without --after only sets the starting point.
     after = newest;
-    await sleep(opts.interval * 1000);
+    if (!full) await sleep(opts.interval * 1000);
   }
 }
 

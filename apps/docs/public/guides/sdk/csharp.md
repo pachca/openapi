@@ -81,6 +81,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Chats.UpdateChatAsync()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChatAsync()` | [Архивация чата](/api/chats/archive) |
 | `client.Chats.UpdateChatAvatarAsync()` | [Загрузка аватара чата](/api/chats/update-avatar) |
+| `client.Chats.MarkChatReadAsync()` | [Отметка чата прочитанным](/api/chats/mark-read) |
 | `client.Chats.UnarchiveChatAsync()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.Chats.MarkChatUnreadAsync()` | [Отметка чата непрочитанным](/api/chats/mark-unread) |
 | `client.Chats.DeleteChatAvatarAsync()` | [Удаление аватара чата](/api/chats/remove-avatar) |
@@ -126,6 +127,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Messages.PinMessageAsync()` | [Закрепление сообщения](/api/messages/pin) |
 | `client.Messages.ListChatMessagesAsync()` | [Список сообщений чата](/api/messages/list) |
 | `client.Messages.GetMessageAsync()` | [Информация о сообщении](/api/messages/get) |
+| `client.Messages.ListPinnedMessagesAsync()` | [Список закреплённых сообщений](/api/messages/list-pinned) |
 | `client.Messages.UpdateMessageAsync()` | [Редактирование сообщения](/api/messages/update) |
 | `client.Messages.DeleteMessageAsync()` | [Удаление сообщения](/api/messages/delete) |
 | `client.Messages.UnpinMessageAsync()` | [Открепление сообщения](/api/messages/unpin) |

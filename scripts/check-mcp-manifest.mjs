@@ -110,6 +110,18 @@ if (!/^\d+\.\d+\.\d+$/.test(String(manifest.schema_version))) {
   problems.push(`schema_version "${manifest.schema_version}" is not X.Y.Z`);
 }
 
+// The catalog entry for the server (server.json at the repo root) carries the manifest's
+// version: a manifest release bumps it in the same PR, and it is published to the MCP
+// Registry after the package (docs/releases.md, «MCP Registry»).
+const packageVersion = readJson(path.join(PKG_DIR, 'package.json')).version;
+const serverJsonVersion = readJson(path.join(ROOT, 'server.json')).version;
+if (serverJsonVersion !== packageVersion) {
+  problems.push(
+    `server.json: version "${serverJsonVersion}" differs from packages/mcp-manifest/package.json "${packageVersion}"; ` +
+      'a manifest release bumps server.json in the same PR'
+  );
+}
+
 // 2. The versioning rule against the `latest` release on npm.
 function npm(args) {
   try {

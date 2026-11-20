@@ -99,6 +99,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Chats.DeleteChatAvatar()` | [Удаление аватара чата](/api/chats/remove-avatar) |
 | `client.Profile.GetProfile()` | [Свой профиль](/api/profile/get) |
 | `client.Profile.GetStatus()` | [Свой статус](/api/profile/get-status) |
+| `client.Profile.UpdateProfile()` | [Редактирование своего профиля](/api/profile/update) |
 | `client.Profile.UpdateProfileAvatar()` | [Загрузка своего аватара](/api/profile/update-avatar) |
 | `client.Profile.UpdateStatus()` | [Новый свой статус](/api/profile/update-status) |
 | `client.Profile.DeleteProfileAvatar()` | [Удаление своего аватара](/api/profile/delete-avatar) |

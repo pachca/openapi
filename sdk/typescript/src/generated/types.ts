@@ -577,6 +577,8 @@ export enum OAuthScope {
   BotSelfWrite = "bot_self:write",
   /** Просмотр информации о своем профиле */
   ProfileRead = "profile:read",
+  /** Изменение информации о своем профиле */
+  ProfileWrite = "profile:write",
   /** Просмотр статуса профиля */
   ProfileStatusRead = "profile_status:read",
   /** Изменение и удаление статуса профиля */
@@ -869,6 +871,8 @@ export enum ValidationErrorCode {
   WebhookUrlUnresolved = "webhook_url_unresolved",
   /** Адрес вебхука ведёт во внутреннюю или зарезервированную сеть */
   WebhookUrlForbidden = "webhook_url_forbidden",
+  /** Поле заполняется из SSO или нужно для входа через SSO, через API его не изменить (пояснения вы получите в поле message) */
+  BlockedBySso = "blocked_by_sso",
   /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
   Forbidden = "forbidden",
   /** Доступ запрещён (недостаточно прав) */
@@ -2004,6 +2008,24 @@ export interface PaginationMeta {
     prevPage?: string;
     hasNext?: boolean;
     hasPrev?: boolean;
+  };
+}
+
+export interface ProfileUpdateRequestCustomProperty {
+  id: number;
+  value: string;
+}
+
+export interface ProfileUpdateRequest {
+  user: {
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    nickname?: string;
+    department?: string;
+    title?: string;
+    timeZone?: string;
+    customProperties?: ProfileUpdateRequestCustomProperty[];
   };
 }
 

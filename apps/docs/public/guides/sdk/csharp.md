@@ -87,6 +87,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Chats.DeleteChatAvatarAsync()` | [Удаление аватара чата](/api/chats/remove-avatar) |
 | `client.Profile.GetProfileAsync()` | [Свой профиль](/api/profile/get) |
 | `client.Profile.GetStatusAsync()` | [Свой статус](/api/profile/get-status) |
+| `client.Profile.UpdateProfileAsync()` | [Редактирование своего профиля](/api/profile/update) |
 | `client.Profile.UpdateProfileAvatarAsync()` | [Загрузка своего аватара](/api/profile/update-avatar) |
 | `client.Profile.UpdateStatusAsync()` | [Новый свой статус](/api/profile/update-status) |
 | `client.Profile.DeleteProfileAvatarAsync()` | [Удаление своего аватара](/api/profile/delete-avatar) |

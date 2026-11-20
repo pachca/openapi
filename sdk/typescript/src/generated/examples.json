@@ -462,6 +462,14 @@
     "usage": "const response = await client.profile.getStatus()",
     "output": "UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })"
   },
+  "ProfileOperations_updateProfile": {
+    "usage": "const request: ProfileUpdateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Отдел разработки\",\n    title: \"Старший разработчик\",\n    timeZone: \"Europe/Moscow\",\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  }\n}\nconst response = await client.profile.updateProfile(request)",
+    "output": "User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })",
+    "imports": [
+      "ProfileUpdateRequest",
+      "ProfileUpdateRequestCustomProperty"
+    ]
+  },
   "ProfileAvatarOperations_updateProfileAvatar": {
     "usage": "const image = new Blob([])\nconst response = await client.profile.updateProfileAvatar(image)",
     "output": "AvatarData({ imageUrl: string })"

@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 2.2.10 (2026-11-20)
+
+### Features
+
+- Profile > Update: changes your own profile (name, nickname, phone, department, title, time zone and custom properties)
+
 ## 2.2.9 (2026-11-18)
 
 ### Features

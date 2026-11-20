@@ -124,6 +124,7 @@
 
 - [Новый сотрудник](/api/users/create)
 - [Свой профиль](/api/profile/get)
+- [Редактирование своего профиля](/api/profile/update)
 - [Информация о сотруднике](/api/users/get)
 - [Список сотрудников](/api/users/list)
 - [Список сотрудников тега](/api/group-tags/list-users)

@@ -47,6 +47,7 @@
 |------------|-----------|---------------|----------|
 | `pachca_get_token_info` | [Информация о токене](/api/oauth/token-info) | Все | Чтение |
 | `pachca_get_my_card` | [Свой профиль](/api/profile/get) | Все | Чтение |
+| `pachca_update_my_card` | [Редактирование своего профиля](/api/profile/update) | Все, кроме бота | Опасное изменение |
 | `pachca_update_my_avatar` | [Загрузка своего аватара](/api/profile/update-avatar) | Все | Опасное изменение |
 | `pachca_delete_my_avatar` | [Удаление своего аватара](/api/profile/delete-avatar) | Все | Опасное изменение |
 | `pachca_get_my_status` | [Свой статус](/api/profile/get-status) | Все | Чтение |

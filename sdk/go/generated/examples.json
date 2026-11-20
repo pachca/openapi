@@ -520,6 +520,15 @@
     "usage": "response, err := client.Profile.GetStatus(ctx)",
     "output": "UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}"
   },
+  "ProfileOperations_updateProfile": {
+    "usage": "request := pachca.ProfileUpdateRequest{\n\tUser: pachca.ProfileUpdateRequestUser{\n\t\tFirstName: pachca.Ptr(\"Олег\"),\n\t\tLastName: pachca.Ptr(\"Петров\"),\n\t\tPhoneNumber: pachca.Ptr(\"+79001234567\"),\n\t\tNickname: pachca.Ptr(\"olegpetrov\"),\n\t\tDepartment: pachca.Ptr(\"Отдел разработки\"),\n\t\tTitle: pachca.Ptr(\"Старший разработчик\"),\n\t\tTimeZone: pachca.Ptr(\"Europe/Moscow\"),\n\t\tCustomProperties: []pachca.ProfileUpdateRequestCustomProperty{pachca.ProfileUpdateRequestCustomProperty{\n\t\t\tID: int32(1678),\n\t\t\tValue: \"Санкт-Петербург\",\n\t\t}},\n\t},\n}\nresponse, err := client.Profile.UpdateProfile(ctx, request)",
+    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: time.Time, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}",
+    "imports": [
+      "ProfileUpdateRequest",
+      "ProfileUpdateRequestCustomProperty",
+      "ProfileUpdateRequestUser"
+    ]
+  },
   "ProfileAvatarOperations_updateProfileAvatar": {
     "usage": "response, err := client.Profile.UpdateProfileAvatar(ctx, bytes.NewReader(nil))",
     "output": "AvatarData{ImageURL: string}"

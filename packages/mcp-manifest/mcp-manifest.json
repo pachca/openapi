@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "88120e569aedf8fc"
+    "digest": "605edeba2d525257"
   },
   "server": {
     "name": "pachca",
@@ -14304,7 +14304,7 @@
                 "description": "List of token scopes",
                 "items": {
                   "type": "string",
-                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark own chats as unread; chats:mark_read — Mark own chats as read; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; company:read — View workspace information and its settings; company:write — Change the workspace name and main settings; invite_links:write — Get and reissue the workspace invite link; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; tasks:read — View reminders; tasks:create — Create reminders; tasks:update — Update reminder; tasks:delete — Delete reminder; files:read — Download files; uploads:write — Get file upload data; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it."
+                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark own chats as unread; chats:mark_read — Mark own chats as read; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile:write — Edit own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; company:read — View workspace information and its settings; company:write — Change the workspace name and main settings; invite_links:write — Get and reissue the workspace invite link; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; tasks:read — View reminders; tasks:create — Create reminders; tasks:update — Update reminder; tasks:delete — Delete reminder; files:read — Download files; uploads:write — Get file upload data; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it."
                 }
               },
               "created_at": {
@@ -14366,7 +14366,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Own profile. The profile of the token owner. For a bot token this is the bot's own profile. The time zone from here is needed by anyone who turns human deadlines into dates: \"by 15:00\" and \"by Friday\" are counted in the employee's time zone, not in UTC. An empty value means the workspace time zone. Someone else's profile is returned by `get_user`. Your own avatar is set by `update_my_avatar` and removed by `delete_my_avatar`.\n\nUse it when:\n- Anything about you beyond what your instructions and every footer already carry: the name, the id, the kind of token and the role.",
+      "description": "Own profile. The profile of the token owner. For a bot token this is the bot's own profile. The time zone from here is needed by anyone who turns human deadlines into dates: \"by 15:00\" and \"by Friday\" are counted in the employee's time zone, not in UTC. An empty value means the workspace time zone. Someone else's profile is returned by `get_user`. Your own profile is changed by `update_my_card`. Your own avatar is set by `update_my_avatar` and removed by `delete_my_avatar`.\n\nUse it when:\n- Anything about you beyond what your instructions and every footer already carry: the name, the id, the kind of token and the role.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -14381,6 +14381,369 @@
       "signature": "no arguments",
       "request": {
         "arguments": {}
+      },
+      "entity": "User",
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Employee",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "User ID"
+              },
+              "first_name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "First name. Returns `null` until an invited employee completes registration (`invite_status` of `sent`)."
+              },
+              "last_name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Last name. If not filled in, `null` or an empty string is returned."
+              },
+              "nickname": {
+                "type": "string",
+                "description": "Username"
+              },
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Email. In someone else's card it comes as `null` if the caller has no right to see personal data: the workspace owner and an administrator always have it, an employee and a bot only when showing personal data is enabled in the workspace, and a guest or a multi-guest never. In your own card the field always comes."
+              },
+              "phone_number": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Phone number. In someone else's card it comes as `null` if the caller has no right to see personal data: the workspace owner and an administrator always have it, an employee and a bot only when showing personal data is enabled in the workspace, and a guest or a multi-guest never. In your own card the field always comes."
+              },
+              "department": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Department. If not specified, `null` or an empty string is returned."
+              },
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Job title. If not specified, `null` or an empty string is returned."
+              },
+              "role": {
+                "type": "string",
+                "description": "Access level. Values: admin — Administrator; user — Employee; multi_guest — Multi-guest; guest — Guest."
+              },
+              "suspended": {
+                "type": "boolean",
+                "description": "Whether the user is deactivated"
+              },
+              "invite_status": {
+                "type": "string",
+                "description": "Invitation status. Values: confirmed — Confirmed; sent — Sent."
+              },
+              "inviter_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "ID of the employee who invited this user. Returns `null` if the user signed up themselves or if the inviter has been deleted."
+              },
+              "list_tags": {
+                "type": "array",
+                "description": "Array of tags assigned to the employee. For a multi-guest it comes empty in someone else's card.",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "custom_properties": {
+                "type": "array",
+                "description": "Employee custom properties",
+                "items": {
+                  "type": "object",
+                  "description": "Custom property",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "Property ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Property name"
+                    },
+                    "data_type": {
+                      "type": "string",
+                      "description": "Property type. Values: string — String value; number — Number value; date — Date; link — Link."
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Value. Returns `null` if the property is not filled in. A number is an integer passed as a string, such as `\"42\"`, a date is in ISO 8601 format."
+                    }
+                  }
+                }
+              },
+              "user_status": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "Status. `null` if the employee has no status set.",
+                "properties": {
+                  "emoji": {
+                    "type": "string",
+                    "description": "Status emoji character"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Status text"
+                  },
+                  "expires_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if no expiration is set — such a status is not cleared automatically.",
+                    "format": "date-time"
+                  },
+                  "is_away": {
+                    "type": "boolean",
+                    "description": "Whether to enable \"Away\" mode"
+                  },
+                  "away_message": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "description": "\"Away\" mode message. Displayed in the user profile, as well as when sending a direct message or mentioning them in a chat. `null` if the text is not set.",
+                    "properties": {
+                      "text": {
+                        "type": "string",
+                        "description": "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
+                      }
+                    }
+                  }
+                }
+              },
+              "bot": {
+                "type": "boolean",
+                "description": "Whether this is a bot"
+              },
+              "sso": {
+                "type": "boolean",
+                "description": "Whether the user uses SSO"
+              },
+              "created_at": {
+                "type": "string",
+                "description": "Creation date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format",
+                "format": "date-time"
+              },
+              "last_activity_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca or has not signed in since their email was changed — in that case `invite_status` returns `sent`.",
+                "format": "date-time"
+              },
+              "time_zone": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "User time zone. `null` if the employee has not set a personal time zone — the company time zone applies then."
+              },
+              "image_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "User avatar download URL. `null` if no avatar is uploaded."
+              }
+            }
+          }
+        }
+      },
+      "untrusted": [
+        "data.first_name",
+        "data.last_name",
+        "data.nickname",
+        "data.email",
+        "data.phone_number",
+        "data.department",
+        "data.title",
+        "data.list_tags[]",
+        "data.custom_properties[].name",
+        "data.custom_properties[].value",
+        "data.user_status.emoji",
+        "data.user_status.title",
+        "data.user_status.away_message.text",
+        "data.time_zone",
+        "data.image_url"
+      ]
+    },
+    {
+      "name": "pachca_update_my_card",
+      "title": "Edit own profile",
+      "operation": "PUT /profile",
+      "kind": "write",
+      "scope": "profile:write",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin",
+        "user",
+        "multi_guest"
+      ],
+      "bot_token_only": false,
+      "description": "Edit own profile. Changes the token owner's profile: only the fields passed are overwritten. The method is available to any employee and multi-guest, and it does not need the `users:update` scope. Custom property IDs are returned by `list_custom_fields`. The request is applied as a whole: if any field fails validation, nothing changes, and the `422` response lists all the errors. Email, role, tags, and suspension are changed by an administrator with `update_user`: here they get `422` with the `not_applicable` code, as does any other unknown field. For an employee who signs in through SSO, some fields are filled in from SSO. Changing them responds `422` with the `blocked_by_sso` code. The same code comes on `time_zone` when time zone auto-detection is locked by the SSO settings, and on the custom property by which SSO finds the employee's profile. A bot token does not call this method: a bot's name and nickname are changed by `update_bot`. The response carries the profile, as in `get_my_card`.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "description": "First name",
+            "maxLength": 255,
+            "examples": [
+              "Oleg"
+            ]
+          },
+          "last_name": {
+            "type": "string",
+            "description": "Last name",
+            "maxLength": 255,
+            "examples": [
+              "Petrov"
+            ]
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "Phone number",
+            "maxLength": 255,
+            "examples": [
+              "+79001234567"
+            ]
+          },
+          "nickname": {
+            "type": "string",
+            "description": "Username: Latin and Cyrillic letters, digits, `_`, `-`, and `.`. The nicknames `here` and `all` are reserved. A nickname taken by another employee, case-insensitively, responds with an error with the `already_exists` code, for an employee with `sso: true` too.",
+            "maxLength": 255,
+            "examples": [
+              "olegpetrov"
+            ]
+          },
+          "department": {
+            "type": "string",
+            "description": "Department",
+            "maxLength": 255,
+            "examples": [
+              "Engineering"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "Job title",
+            "maxLength": 255,
+            "examples": [
+              "Senior Developer"
+            ]
+          },
+          "time_zone": {
+            "type": "string",
+            "description": "Time zone: an IANA identifier such as `Europe/Moscow`, otherwise the response is `422` with the `invalid` code. A time zone that is set turns off its auto-detection by device.",
+            "examples": [
+              "Europe/Moscow"
+            ]
+          },
+          "custom_properties": {
+            "type": "array",
+            "description": "Custom properties to set. Each property is given once. Properties of the \"File\" and \"Multiple choice\" types cannot be changed through the API: the response is `422` with the `not_applicable` code. An unknown `id` responds with the `not_found` code. Which property failed validation is told by the error's `payload.id`.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "Property ID",
+                  "format": "int32",
+                  "examples": [
+                    1678
+                  ]
+                },
+                "value": {
+                  "type": "string",
+                  "description": "Value to set. A number is passed as a whole number, such as `\"3\"`, and a date in the YYYY-MM-DD format with a year no earlier than 1583, otherwise the response is `422` on the `custom_properties.value` field with the `invalid` code. An empty string clears the property.",
+                  "maxLength": 768,
+                  "examples": [
+                    "Saint Petersburg"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "signature": "first_name (string), last_name (string), phone_number (string), nickname (string), department (string), title (string), time_zone (string), custom_properties [{id* (integer), value* (string)}]",
+      "request": {
+        "media_type": "application/json",
+        "arguments": {
+          "first_name": {
+            "in": "body",
+            "at": "user.first_name"
+          },
+          "last_name": {
+            "in": "body",
+            "at": "user.last_name"
+          },
+          "phone_number": {
+            "in": "body",
+            "at": "user.phone_number"
+          },
+          "nickname": {
+            "in": "body",
+            "at": "user.nickname"
+          },
+          "department": {
+            "in": "body",
+            "at": "user.department"
+          },
+          "title": {
+            "in": "body",
+            "at": "user.title"
+          },
+          "time_zone": {
+            "in": "body",
+            "at": "user.time_zone"
+          },
+          "custom_properties": {
+            "in": "body",
+            "at": "user.custom_properties"
+          }
+        }
       },
       "entity": "User",
       "outputSchema": {
@@ -18577,7 +18940,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "Edit employee. Changes the employee's profile: only the fields you pass are overwritten. Custom property IDs are returned by `list_custom_fields`. The request is applied as a whole: if any field fails validation, for example the new `email` is already taken, nothing changes. Changing the email sends letters to the old and the new address. In a free workspace they count towards the same daily limit as invitations from `create_user`, and beyond it the response is `422` with the `daily_invites_limit` code. The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not exist in the workspace yet creates a new tag together with the assignment. `suspended: true` suspends the employee: they lose access but remain in chats, tags, and reminders, while `suspended: false` brings them back. An employee is removed for good by `delete_user`. The workspace owner can be edited only by themselves, and their role can be changed only to administrator, otherwise the response is `403`. An unknown role value is silently ignored by the method: the response is successful and the role stays as it was. For a bot the method changes only the name (`first_name`), nickname, tags and `suspended`, and skips the other fields in the request. Which nickname and which tags a bot can be given is said at the `nickname` and `list_tags` fields. If the bot's settings changed during the request, the `422` response comes with the `bot_changed_concurrently` code: retry the request. The employee's avatar is set and removed by separate methods, `update_user_avatar` and `delete_user_avatar`.",
+      "description": "Edit employee. Changes the employee's profile: only the fields you pass are overwritten. Custom property IDs are returned by `list_custom_fields`. The request is applied as a whole: if any field fails validation, for example the new `email` is already taken, nothing changes. Changing the email sends letters to the old and the new address. In a free workspace they count towards the same daily limit as invitations from `create_user`, and beyond it the response is `422` with the `daily_invites_limit` code. The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not exist in the workspace yet creates a new tag together with the assignment. `suspended: true` suspends the employee: they lose access but remain in chats, tags, and reminders, while `suspended: false` brings them back. An employee is removed for good by `delete_user`. The workspace owner can be edited only by themselves, and their role can be changed only to administrator, otherwise the response is `403`. An unknown role value is silently ignored by the method: the response is successful and the role stays as it was. For a bot the method changes only the name (`first_name`), nickname, tags and `suspended`, and skips the other fields in the request. Which nickname and which tags a bot can be given is said at the `nickname` and `list_tags` fields. If the bot's settings changed during the request, the `422` response comes with the `bot_changed_concurrently` code: retry the request. The employee's avatar is set and removed by separate methods, `update_user_avatar` and `delete_user_avatar`. Your own profile without the `users:update` scope is changed by `update_my_card`.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -20592,6 +20955,7 @@
         "pachca_create_thread",
         "pachca_get_token_info",
         "pachca_get_my_card",
+        "pachca_update_my_card",
         "pachca_update_my_avatar",
         "pachca_delete_my_avatar",
         "pachca_get_my_status",
@@ -20692,6 +21056,7 @@
         "pachca_create_thread",
         "pachca_get_token_info",
         "pachca_get_my_card",
+        "pachca_update_my_card",
         "pachca_update_my_avatar",
         "pachca_delete_my_avatar",
         "pachca_get_my_status",
@@ -20792,6 +21157,7 @@
         "pachca_create_thread",
         "pachca_get_token_info",
         "pachca_get_my_card",
+        "pachca_update_my_card",
         "pachca_update_my_avatar",
         "pachca_delete_my_avatar",
         "pachca_get_my_status",
@@ -20886,6 +21252,7 @@
         "pachca_create_thread",
         "pachca_get_token_info",
         "pachca_get_my_card",
+        "pachca_update_my_card",
         "pachca_update_my_avatar",
         "pachca_delete_my_avatar",
         "pachca_get_my_status",
@@ -20953,6 +21320,7 @@
         "pachca_create_thread",
         "pachca_get_token_info",
         "pachca_get_my_card",
+        "pachca_update_my_card",
         "pachca_update_my_avatar",
         "pachca_delete_my_avatar",
         "pachca_get_my_status",

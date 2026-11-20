@@ -1292,6 +1292,8 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case botSelfWrite
     /// Просмотр информации о своем профиле
     case profileRead
+    /// Изменение информации о своем профиле
+    case profileWrite
     /// Просмотр статуса профиля
     case profileStatusRead
     /// Изменение и удаление статуса профиля
@@ -1354,7 +1356,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsMarkRead, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .companyRead, .companyWrite, .inviteLinksWrite, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .uploadsWrite, .viewsWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
+    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsMarkRead, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileWrite, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .companyRead, .companyWrite, .inviteLinksWrite, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .uploadsWrite, .viewsWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -1390,6 +1392,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case "bot_self:webhook:write": self = .botSelfWebhookWrite
         case "bot_self:write": self = .botSelfWrite
         case "profile:read": self = .profileRead
+        case "profile:write": self = .profileWrite
         case "profile_status:read": self = .profileStatusRead
         case "profile_status:write": self = .profileStatusWrite
         case "profile_avatar:write": self = .profileAvatarWrite
@@ -1461,6 +1464,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case .botSelfWebhookWrite: return "bot_self:webhook:write"
         case .botSelfWrite: return "bot_self:write"
         case .profileRead: return "profile:read"
+        case .profileWrite: return "profile:write"
         case .profileStatusRead: return "profile_status:read"
         case .profileStatusWrite: return "profile_status:write"
         case .profileAvatarWrite: return "profile_avatar:write"
@@ -1888,6 +1892,8 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
     case webhookUrlUnresolved
     /// Адрес вебхука ведёт во внутреннюю или зарезервированную сеть
     case webhookUrlForbidden
+    /// Поле заполняется из SSO или нужно для входа через SSO, через API его не изменить (пояснения вы получите в поле message)
+    case blockedBySso
     /// Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     case forbidden
     /// Доступ запрещён (недостаточно прав)
@@ -1924,7 +1930,7 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [ValidationErrorCode] = [.blank, .tooLong, .invalid, .inclusion, .exclusion, .taken, .wrongEmoji, .notFound, .alreadyExists, .personalChat, .displayedError, .notAuthorized, .invalidDateRange, .invalidWebhookUrl, .rateLimit, .licensesLimit, .userLimit, .uniqueLimit, .generalLimit, .unhandled, .triggerNotFound, .triggerExpired, .required, .`in`, .notApplicable, .selfUpdate, .ownerProtected, .alreadyAssigned, .nextSendAtInvalid, .scheduleInvalid, .scheduleEndDateInvalid, .scheduledMessagesLimit, .draftTypeChangeForbidden, .confidentialDownloadDenied, .decryptionFailed, .botAddDenied, .singleChatBotOccupied, .singleChatBotTagDenied, .restrictedBotTagDenied, .botChangedConcurrently, .timeout, .dailyInvitesLimit, .webhookUrlInvalid, .webhookUrlUnresolved, .webhookUrlForbidden, .forbidden, .permissionDenied, .accessDenied, .wrongParams, .paymentRequired, .minLength, .maxLength, .useOfSystemWords, .exportFileNotFound, .cannotKickOwner, .pinFailed, .messageDeleted, .threadMessage, .viewNotFound, .submitExpired, .serviceUnavailable]
+    public static let allCases: [ValidationErrorCode] = [.blank, .tooLong, .invalid, .inclusion, .exclusion, .taken, .wrongEmoji, .notFound, .alreadyExists, .personalChat, .displayedError, .notAuthorized, .invalidDateRange, .invalidWebhookUrl, .rateLimit, .licensesLimit, .userLimit, .uniqueLimit, .generalLimit, .unhandled, .triggerNotFound, .triggerExpired, .required, .`in`, .notApplicable, .selfUpdate, .ownerProtected, .alreadyAssigned, .nextSendAtInvalid, .scheduleInvalid, .scheduleEndDateInvalid, .scheduledMessagesLimit, .draftTypeChangeForbidden, .confidentialDownloadDenied, .decryptionFailed, .botAddDenied, .singleChatBotOccupied, .singleChatBotTagDenied, .restrictedBotTagDenied, .botChangedConcurrently, .timeout, .dailyInvitesLimit, .webhookUrlInvalid, .webhookUrlUnresolved, .webhookUrlForbidden, .blockedBySso, .forbidden, .permissionDenied, .accessDenied, .wrongParams, .paymentRequired, .minLength, .maxLength, .useOfSystemWords, .exportFileNotFound, .cannotKickOwner, .pinFailed, .messageDeleted, .threadMessage, .viewNotFound, .submitExpired, .serviceUnavailable]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -1973,6 +1979,7 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
         case "webhook_url_invalid": self = .webhookUrlInvalid
         case "webhook_url_unresolved": self = .webhookUrlUnresolved
         case "webhook_url_forbidden": self = .webhookUrlForbidden
+        case "blocked_by_sso": self = .blockedBySso
         case "forbidden": self = .forbidden
         case "permission_denied": self = .permissionDenied
         case "access_denied": self = .accessDenied
@@ -2044,6 +2051,7 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
         case .webhookUrlInvalid: return "webhook_url_invalid"
         case .webhookUrlUnresolved: return "webhook_url_unresolved"
         case .webhookUrlForbidden: return "webhook_url_forbidden"
+        case .blockedBySso: return "blocked_by_sso"
         case .forbidden: return "forbidden"
         case .permissionDenied: return "permission_denied"
         case .accessDenied: return "access_denied"
@@ -5425,6 +5433,57 @@ public struct PaginationMeta: Codable {
 
     public init(paginate: PaginationMetaPaginate) {
         self.paginate = paginate
+    }
+}
+
+public struct ProfileUpdateRequestCustomProperty: Codable {
+    public let id: Int
+    public let value: String
+
+    public init(id: Int, value: String) {
+        self.id = id
+        self.value = value
+    }
+}
+
+public struct ProfileUpdateRequestUser: Codable {
+    public let firstName: String?
+    public let lastName: String?
+    public let phoneNumber: String?
+    public let nickname: String?
+    public let department: String?
+    public let title: String?
+    public let timeZone: String?
+    public let customProperties: [ProfileUpdateRequestCustomProperty]?
+
+    public init(firstName: String? = nil, lastName: String? = nil, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, timeZone: String? = nil, customProperties: [ProfileUpdateRequestCustomProperty]? = nil) {
+        self.firstName = firstName
+        self.lastName = lastName
+        self.phoneNumber = phoneNumber
+        self.nickname = nickname
+        self.department = department
+        self.title = title
+        self.timeZone = timeZone
+        self.customProperties = customProperties
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case firstName = "first_name"
+        case lastName = "last_name"
+        case phoneNumber = "phone_number"
+        case nickname
+        case department
+        case title
+        case timeZone = "time_zone"
+        case customProperties = "custom_properties"
+    }
+}
+
+public struct ProfileUpdateRequest: Codable {
+    public let user: ProfileUpdateRequestUser
+
+    public init(user: ProfileUpdateRequestUser) {
+        self.user = user
     }
 }
 

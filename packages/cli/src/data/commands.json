@@ -2621,6 +2621,64 @@
         "flags": []
       },
       {
+        "command": "pachca profile update",
+        "summary": "Редактирование своего профиля",
+        "method": "PUT",
+        "path": "/profile",
+        "scope": "profile:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "first-name",
+            "type": "option",
+            "required": false,
+            "description": "Имя (макс. 255 символов)"
+          },
+          {
+            "name": "last-name",
+            "type": "option",
+            "required": false,
+            "description": "Фамилия (макс. 255 символов)"
+          },
+          {
+            "name": "phone-number",
+            "type": "option",
+            "required": false,
+            "description": "Телефон (макс. 255 символов)"
+          },
+          {
+            "name": "nickname",
+            "type": "option",
+            "required": false,
+            "description": "Имя пользователя: латинские и кириллические буквы, цифры, `_`, `-` и `.`. Ники `here` и `all` зарезервированы. Ник, занятый другим сотрудником без учёта регистра, отвечает ошибкой с кодом `already_exists`, в том числе у сотрудника с `sso: true`. (макс. 255 символов)"
+          },
+          {
+            "name": "department",
+            "type": "option",
+            "required": false,
+            "description": "Департамент (макс. 255 символов)"
+          },
+          {
+            "name": "title",
+            "type": "option",
+            "required": false,
+            "description": "Должность (макс. 255 символов)"
+          },
+          {
+            "name": "time-zone",
+            "type": "option",
+            "required": false,
+            "description": "Часовой пояс: идентификатор IANA, например `Europe/Moscow`, иначе ответ `422` с кодом `invalid`. Заданный пояс выключает его автоопределение по устройству."
+          },
+          {
+            "name": "custom-properties",
+            "type": "option",
+            "required": false,
+            "description": "Задаваемые дополнительные поля. Каждое поле указывается один раз. Поля типов «Файл» и «Множественный выбор» через API не меняются: ответ `422` с кодом `not_applicable`. Неизвестный `id` отвечает кодом `not_found`. Какое поле не прошло проверку, говорит `payload.id` ошибки."
+          }
+        ]
+      },
+      {
         "command": "pachca profile update-avatar",
         "summary": "Загрузка своего аватара",
         "method": "PUT",

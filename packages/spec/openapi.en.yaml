@@ -7189,8 +7189,8 @@ paths:
         Someone else's profile is returned by [Employee info](GET /users/{id}).
 
 
-        Your own avatar is set by [Upload own avatar](PUT /profile/avatar) and removed by [Delete own avatar](DELETE
-        /profile/avatar).
+        Your own profile is changed by [Edit own profile](PUT /profile). Your own avatar is set by [Upload own
+        avatar](PUT /profile/avatar) and removed by [Delete own avatar](DELETE /profile/avatar).
       parameters: []
       responses:
         '200':
@@ -7223,6 +7223,87 @@ paths:
         - Profile
       x-requirements:
         scope: profile:read
+    put:
+      operationId: ProfileOperations_updateProfile
+      description: >-
+        Edit own profile
+
+
+        Changes the token owner's profile: only the fields passed are overwritten. The method is available to any
+        employee and multi-guest, and it does not need the `users:update` scope. Custom property IDs are returned by
+        [List custom properties](GET /custom_properties).
+
+
+        The request is applied as a whole: if any field fails validation, nothing changes, and the `422` response lists
+        all the errors. Email, role, tags, and suspension are changed by an administrator with [Edit employee](PUT
+        /users/{id}): here they get `422` with the `not_applicable` code, as does any other unknown field.
+
+
+        For an employee who signs in through SSO, some fields are filled in from SSO. Changing them responds `422` with
+        the `blocked_by_sso` code. The same code comes on `time_zone` when time zone auto-detection is locked by the SSO
+        settings, and on the custom property by which SSO finds the employee's profile.
+
+
+        A bot token does not call this method: a bot's name and nickname are changed by [Edit bot](PUT /bots/{id}).
+
+
+        The response carries the profile, as in [Own profile](GET /profile).
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+                description: Response wrapper with data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      x-requirements:
+        scope: profile:write
   /profile/avatar:
     put:
       operationId: ProfileAvatarOperations_updateProfileAvatar
@@ -9206,7 +9287,8 @@ paths:
 
 
         The employee's avatar is set and removed by separate methods, [Upload employee avatar](PUT
-        /users/{user_id}/avatar) and [Delete employee avatar](DELETE /users/{user_id}/avatar).
+        /users/{user_id}/avatar) and [Delete employee avatar](DELETE /users/{user_id}/avatar). Your own profile without
+        the `users:update` scope is changed by [Edit own profile](PUT /profile).
       parameters:
         - name: id
           in: path
@@ -15374,6 +15456,7 @@ components:
         - bot_self:webhook:write
         - bot_self:write
         - profile:read
+        - profile:write
         - profile_status:read
         - profile_status:write
         - profile_avatar:write
@@ -15568,6 +15651,11 @@ components:
           - user
           - multi_guest
           - bot
+        profile_write:
+          - owner
+          - admin
+          - user
+          - multi_guest
         profile_status_read:
           - owner
           - admin
@@ -15740,6 +15828,7 @@ components:
         bot_self_webhook_write: Self-manage own webhook URL
         bot_self_write: Self-manage own settings
         profile_read: View own profile information
+        profile_write: Edit own profile information
         profile_status_read: View profile status
         profile_status_write: Update and delete profile status
         profile_avatar_write: Update and delete profile avatar
@@ -15962,6 +16051,83 @@ components:
             - next_page
           description: Helper information
       description: Pagination metadata
+    ProfileUpdateRequest:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          type: object
+          properties:
+            first_name:
+              type: string
+              maxLength: 255
+              description: First name
+              example: Oleg
+            last_name:
+              type: string
+              maxLength: 255
+              description: Last name
+              example: Petrov
+            phone_number:
+              type: string
+              maxLength: 255
+              description: Phone number
+              example: '+79001234567'
+            nickname:
+              type: string
+              maxLength: 255
+              description: >-
+                Username: Latin and Cyrillic letters, digits, `_`, `-`, and `.`. The nicknames `here` and `all` are
+                reserved. A nickname taken by another employee, case-insensitively, responds with an error with the
+                `already_exists` code, for an employee with `sso: true` too.
+              example: olegpetrov
+            department:
+              type: string
+              maxLength: 255
+              description: Department
+              example: Engineering
+            title:
+              type: string
+              maxLength: 255
+              description: Job title
+              example: Senior Developer
+            time_zone:
+              type: string
+              description: >-
+                Time zone: an IANA identifier such as `Europe/Moscow`, otherwise the response is `422` with the
+                `invalid` code. A time zone that is set turns off its auto-detection by device.
+              example: Europe/Moscow
+            custom_properties:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int32
+                    description: Property ID
+                    example: 1678
+                  value:
+                    type: string
+                    maxLength: 768
+                    description: >-
+                      Value to set. A number is passed as a whole number, such as `"3"`, and a date in the YYYY-MM-DD
+                      format with a year no earlier than 1583, otherwise the response is `422` on the
+                      `custom_properties.value` field with the `invalid` code. An empty string clears the property.
+                    example: Saint Petersburg
+                required:
+                  - id
+                  - value
+              description: >-
+                Custom properties to set. Each property is given once. Properties of the "File" and "Multiple choice"
+                types cannot be changed through the API: the response is `422` with the `not_applicable` code. An
+                unknown `id` responds with the `not_found` code. Which property failed validation is told by the error's
+                `payload.id`.
+          description: >-
+            The fields of your own profile to change. All fields are optional: an empty object changes nothing. Any
+            other field responds `422` with the `not_applicable` code.
+      description: Own profile update request
     Reaction:
       type: object
       required:
@@ -17147,6 +17313,7 @@ components:
         - webhook_url_invalid
         - webhook_url_unresolved
         - webhook_url_forbidden
+        - blocked_by_sso
         - forbidden
         - permission_denied
         - access_denied
@@ -17236,6 +17403,9 @@ components:
         webhook_url_invalid: The webhook address has to be a URL with the `http` or `https` protocol and a host name
         webhook_url_unresolved: The IP address of the domain in the webhook address could not be determined
         webhook_url_forbidden: The webhook address points to an internal or reserved network
+        blocked_by_sso: >-
+          The field is filled in from SSO or is needed for signing in through SSO, and the API cannot change it (details
+          come in the message field)
     VideoCallEventType:
       type: string
       enum:

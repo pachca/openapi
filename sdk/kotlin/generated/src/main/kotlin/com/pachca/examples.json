@@ -483,6 +483,15 @@
     "usage": "val response = client.profile.getStatus()",
     "output": "UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)"
   },
+  "ProfileOperations_updateProfile": {
+    "usage": "val request = ProfileUpdateRequest(\n    user = ProfileUpdateRequestUser(\n        firstName = \"Олег\",\n        lastName = \"Петров\",\n        phoneNumber = \"+79001234567\",\n        nickname = \"olegpetrov\",\n        department = \"Отдел разработки\",\n        title = \"Старший разработчик\",\n        timeZone = \"Europe/Moscow\",\n        customProperties = listOf(ProfileUpdateRequestCustomProperty(id = 1678, value = \"Санкт-Петербург\"))\n    )\n)\nval response = client.profile.updateProfile(request = request)",
+    "output": "User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)",
+    "imports": [
+      "ProfileUpdateRequest",
+      "ProfileUpdateRequestCustomProperty",
+      "ProfileUpdateRequestUser"
+    ]
+  },
   "ProfileAvatarOperations_updateProfileAvatar": {
     "usage": "val image = ByteArray(0)\nval response = client.profile.updateProfileAvatar(image = image)",
     "output": "AvatarData(imageUrl: String)"

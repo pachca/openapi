@@ -36,6 +36,7 @@
 
 ## Профиль и статус
 - [Свой профиль](https://dev.pachca.com/api/profile/get.md): GET /profile
+- [Редактирование своего профиля](https://dev.pachca.com/api/profile/update.md): PUT /profile
 - [Загрузка своего аватара](https://dev.pachca.com/api/profile/update-avatar.md): PUT /profile/avatar
 - [Удаление своего аватара](https://dev.pachca.com/api/profile/delete-avatar.md): DELETE /profile/avatar
 - [Свой статус](https://dev.pachca.com/api/profile/get-status.md): GET /profile/status

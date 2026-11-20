@@ -87,7 +87,7 @@
     {
       "name": "pachca_get_my_card",
       "title": "Own profile",
-      "description": "Own profile. The profile of the token owner. For a bot token this is the bot's own profile. The time zone from here is needed by anyone who turns human deadlines into dates: \"by 15:00\" and \"by Friday\" are counted in the employee's time zone, not in UTC. An empty value means the workspace time zone. Someone else's profile is returned by `get_user`. Your own avatar is set by `update_my_avatar` and removed by `delete_my_avatar`.\n\nUse it when:\n- Anything about you beyond what your instructions and every footer already carry: the name, the id, the kind of token and the role.",
+      "description": "Own profile. The profile of the token owner. For a bot token this is the bot's own profile. The time zone from here is needed by anyone who turns human deadlines into dates: \"by 15:00\" and \"by Friday\" are counted in the employee's time zone, not in UTC. An empty value means the workspace time zone. Someone else's profile is returned by `get_user`. Your own profile is changed by `update_my_card`. Your own avatar is set by `update_my_avatar` and removed by `delete_my_avatar`.\n\nUse it when:\n- Anything about you beyond what your instructions and every footer already carry: the name, the id, the kind of token and the role.",
       "inputSchema": {
         "type": "object",
         "properties": {},

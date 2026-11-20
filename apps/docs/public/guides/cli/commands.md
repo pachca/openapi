@@ -114,6 +114,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca profile delete-status` | `DELETE` Удаление своего статуса |
 | `pachca profile get` | `GET` Свой профиль |
 | `pachca profile get-status` | `GET` Свой статус |
+| `pachca profile update` | `PUT` Редактирование своего профиля |
 | `pachca profile update-avatar` | `PUT` Загрузка своего аватара |
 | `pachca profile update-status` | `PUT` Новый свой статус |
 | `pachca reactions add` | `POST` Добавление реакции |

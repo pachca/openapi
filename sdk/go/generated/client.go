@@ -3646,6 +3646,7 @@ func (s *OAuthServiceImpl) ExchangeToken(ctx context.Context, request OAuthToken
 type ProfileService interface {
 	GetProfile(ctx context.Context) (*User, error)
 	GetStatus(ctx context.Context) (*UserStatus, error)
+	UpdateProfile(ctx context.Context, request ProfileUpdateRequest) (*User, error)
 	UpdateProfileAvatar(ctx context.Context, image io.Reader) (*AvatarData, error)
 	UpdateStatus(ctx context.Context, request StatusUpdateRequest) (*UserStatus, error)
 	DeleteProfileAvatar(ctx context.Context) error
@@ -3661,6 +3662,10 @@ func (s *ProfileServiceStub) GetProfile(ctx context.Context) (*User, error) {
 
 func (s *ProfileServiceStub) GetStatus(ctx context.Context) (*UserStatus, error) {
 	return nil, NotImplementedError{Method: "Profile.getStatus"}
+}
+
+func (s *ProfileServiceStub) UpdateProfile(ctx context.Context, request ProfileUpdateRequest) (*User, error) {
+	return nil, NotImplementedError{Method: "Profile.updateProfile"}
 }
 
 func (s *ProfileServiceStub) UpdateProfileAvatar(ctx context.Context, image io.Reader) (*AvatarData, error) {
@@ -3726,6 +3731,35 @@ func (s *ProfileServiceImpl) GetStatus(ctx context.Context) (*UserStatus, error)
 	case http.StatusOK:
 		var result struct {
 			Data UserStatus `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *ProfileServiceImpl) UpdateProfile(ctx context.Context, request ProfileUpdateRequest) (*User, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/profile", s.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data User `json:"data"`
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err

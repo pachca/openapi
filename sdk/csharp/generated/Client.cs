@@ -3016,6 +3016,11 @@ public class ProfileService
         throw new NotImplementedException("Profile.getStatus is not implemented");
     }
 
+    public virtual async System.Threading.Tasks.Task<User> UpdateProfileAsync(ProfileUpdateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Profile.updateProfile is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<AvatarData> UpdateProfileAvatarAsync(byte[] image, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Profile.updateProfileAvatar is not implemented");
@@ -3078,6 +3083,22 @@ public sealed class ProfileServiceImpl : ProfileService
         {
             case 200:
                 return PachcaUtils.Deserialize<UserStatusDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<User> UpdateProfileAsync(ProfileUpdateRequest request, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/profile";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<UserDataWrapper>(json).Data;
             default:
                 throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
         }

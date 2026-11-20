@@ -366,6 +366,7 @@ const (
 	OAuthScopeBotSelfWebhookWrite    OAuthScope = "bot_self:webhook:write" // Самостоятельное управление адресом вебхука бота
 	OAuthScopeBotSelfWrite           OAuthScope = "bot_self:write" // Самостоятельное управление настройками бота
 	OAuthScopeProfileRead            OAuthScope = "profile:read" // Просмотр информации о своем профиле
+	OAuthScopeProfileWrite           OAuthScope = "profile:write" // Изменение информации о своем профиле
 	OAuthScopeProfileStatusRead      OAuthScope = "profile_status:read" // Просмотр статуса профиля
 	OAuthScopeProfileStatusWrite     OAuthScope = "profile_status:write" // Изменение и удаление статуса профиля
 	OAuthScopeProfileAvatarWrite     OAuthScope = "profile_avatar:write" // Изменение и удаление аватара профиля
@@ -542,6 +543,7 @@ const (
 	ValidationErrorCodeWebhookURLInvalid          ValidationErrorCode = "webhook_url_invalid" // Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста
 	ValidationErrorCodeWebhookURLUnresolved       ValidationErrorCode = "webhook_url_unresolved" // Не удалось определить IP-адрес домена из адреса вебхука
 	ValidationErrorCodeWebhookURLForbidden        ValidationErrorCode = "webhook_url_forbidden" // Адрес вебхука ведёт во внутреннюю или зарезервированную сеть
+	ValidationErrorCodeBlockedBySso               ValidationErrorCode = "blocked_by_sso" // Поле заполняется из SSO или нужно для входа через SSO, через API его не изменить (пояснения вы получите в поле message)
 	ValidationErrorCodeForbidden                  ValidationErrorCode = "forbidden" // Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
 	ValidationErrorCodePermissionDenied           ValidationErrorCode = "permission_denied" // Доступ запрещён (недостаточно прав)
 	ValidationErrorCodeAccessDenied               ValidationErrorCode = "access_denied" // Доступ запрещён
@@ -2158,6 +2160,44 @@ type PaginationMetaPaginate struct {
 
 type PaginationMeta struct {
 	Paginate PaginationMetaPaginate `json:"paginate"`
+}
+
+type ProfileUpdateRequestCustomProperty struct {
+	ID    int32  `json:"id"`
+	Value string `json:"value"`
+}
+
+type ProfileUpdateRequestUser struct {
+	FirstName        *string                              `json:"first_name,omitempty"`
+	LastName         *string                              `json:"last_name,omitempty"`
+	PhoneNumber      *string                              `json:"phone_number,omitempty"`
+	Nickname         *string                              `json:"nickname,omitempty"`
+	Department       *string                              `json:"department,omitempty"`
+	Title            *string                              `json:"title,omitempty"`
+	TimeZone         *string                              `json:"time_zone,omitempty"`
+	CustomProperties []ProfileUpdateRequestCustomProperty `json:"custom_properties,omitempty"`
+}
+
+func (m ProfileUpdateRequestUser) MarshalJSON() ([]byte, error) {
+	type Alias ProfileUpdateRequestUser
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.CustomProperties != nil {
+		if raw["custom_properties"], err = json.Marshal(m.CustomProperties); err != nil {
+			return nil, err
+		}
+	}
+	return json.Marshal(raw)
+}
+
+type ProfileUpdateRequest struct {
+	User ProfileUpdateRequestUser `json:"user"`
 }
 
 type Reaction struct {

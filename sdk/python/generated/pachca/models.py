@@ -372,6 +372,7 @@ class OAuthScope(OpenStrEnum):
     BOT_SELF_WEBHOOK_WRITE = "bot_self:webhook:write"  # Самостоятельное управление адресом вебхука бота
     BOT_SELF_WRITE = "bot_self:write"  # Самостоятельное управление настройками бота
     PROFILE_READ = "profile:read"  # Просмотр информации о своем профиле
+    PROFILE_WRITE = "profile:write"  # Изменение информации о своем профиле
     PROFILE_STATUS_READ = "profile_status:read"  # Просмотр статуса профиля
     PROFILE_STATUS_WRITE = "profile_status:write"  # Изменение и удаление статуса профиля
     PROFILE_AVATAR_WRITE = "profile_avatar:write"  # Изменение и удаление аватара профиля
@@ -542,6 +543,7 @@ class ValidationErrorCode(OpenStrEnum):
     WEBHOOK_URL_INVALID = "webhook_url_invalid"  # Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста
     WEBHOOK_URL_UNRESOLVED = "webhook_url_unresolved"  # Не удалось определить IP-адрес домена из адреса вебхука
     WEBHOOK_URL_FORBIDDEN = "webhook_url_forbidden"  # Адрес вебхука ведёт во внутреннюю или зарезервированную сеть
+    BLOCKED_BY_SSO = "blocked_by_sso"  # Поле заполняется из SSO или нужно для входа через SSO, через API его не изменить (пояснения вы получите в поле message)
     FORBIDDEN = "forbidden"  # Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     PERMISSION_DENIED = "permission_denied"  # Доступ запрещён (недостаточно прав)
     ACCESS_DENIED = "access_denied"  # Доступ запрещён
@@ -1800,6 +1802,29 @@ class PaginationMetaPaginate:
 @dataclass
 class PaginationMeta:
     paginate: PaginationMetaPaginate
+
+
+@dataclass
+class ProfileUpdateRequestCustomProperty:
+    id: int
+    value: str
+
+
+@dataclass
+class ProfileUpdateRequestUser:
+    first_name: str | None = None
+    last_name: str | None = None
+    phone_number: str | None = None
+    nickname: str | None = None
+    department: str | None = None
+    title: str | None = None
+    time_zone: str | None = None
+    custom_properties: list[ProfileUpdateRequestCustomProperty] | None = None
+
+
+@dataclass
+class ProfileUpdateRequest:
+    user: ProfileUpdateRequestUser
 
 
 @dataclass

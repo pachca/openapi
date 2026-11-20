@@ -106,6 +106,7 @@ client = PachcaClient.from_client(http)
 | `client.chats.delete_chat_avatar()` | [Удаление аватара чата](/api/chats/remove-avatar) |
 | `client.profile.get_profile()` | [Свой профиль](/api/profile/get) |
 | `client.profile.get_status()` | [Свой статус](/api/profile/get-status) |
+| `client.profile.update_profile()` | [Редактирование своего профиля](/api/profile/update) |
 | `client.profile.update_profile_avatar()` | [Загрузка своего аватара](/api/profile/update-avatar) |
 | `client.profile.update_status()` | [Новый свой статус](/api/profile/update-status) |
 | `client.profile.delete_profile_avatar()` | [Удаление своего аватара](/api/profile/delete-avatar) |

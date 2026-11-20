@@ -536,6 +536,7 @@ enum ChatSubtype {
   webhook_url_invalid: "Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста",
   webhook_url_unresolved: "Не удалось определить IP-адрес домена из адреса вебхука",
   webhook_url_forbidden: "Адрес вебхука ведёт во внутреннюю или зарезервированную сеть",
+  blocked_by_sso: "Поле заполняется из SSO или нужно для входа через SSO, через API его не изменить (пояснения вы получите в поле message)",
 })
 enum ValidationErrorCode {
   @doc("Обязательное поле (не может быть пустым)")
@@ -672,6 +673,9 @@ enum ValidationErrorCode {
 
   @doc("Адрес вебхука ведёт во внутреннюю или зарезервированную сеть")
   webhook_url_forbidden: "webhook_url_forbidden",
+
+  @doc("Поле заполняется из SSO или нужно для входа через SSO, через API его не изменить (пояснения вы получите в поле message)")
+  blocked_by_sso: "blocked_by_sso",
 
   @doc("Недостаточно прав для выполнения действия (пояснения вы получите в поле message)")
   forbidden: "forbidden",
@@ -1899,6 +1903,7 @@ model InviteLink {
   bot_self_webhook_write: "Самостоятельное управление адресом вебхука бота",
   bot_self_write: "Самостоятельное управление настройками бота",
   profile_read: "Просмотр информации о своем профиле",
+  profile_write: "Изменение информации о своем профиле",
   profile_status_read: "Просмотр статуса профиля",
   profile_status_write: "Изменение и удаление статуса профиля",
   profile_avatar_write: "Изменение и удаление аватара профиля",
@@ -1962,6 +1967,7 @@ model InviteLink {
   bot_self_webhook_write: #["bot"],
   bot_self_write: #["bot"],
   profile_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  profile_write: #["owner", "admin", "user", "multi_guest"],
   profile_status_read: #["owner", "admin", "user", "multi_guest", "bot"],
   profile_status_write: #["owner", "admin", "user", "multi_guest", "bot"],
   profile_avatar_write: #["owner", "admin", "user", "multi_guest", "bot"],
@@ -2087,6 +2093,9 @@ enum OAuthScope {
 
   @doc("Просмотр информации о своем профиле")
   profile_read: "profile:read",
+
+  @doc("Изменение информации о своем профиле")
+  profile_write: "profile:write",
 
   @doc("Просмотр статуса профиля")
   profile_status_read: "profile_status:read",
@@ -2569,6 +2578,58 @@ model UserUpdateRequest {
       id: int32;
       
       @doc("Устанавливаемое значение. Число передают целым и цифрами, например `\"3\"`, а дату — в формате YYYY-MM-DD: другая запись может сохраниться искажённой и без ошибки, например `\"2,5\"` станет 25. Пустая строка очищает поле.")
+      @maxLength(768)
+      @example("Санкт-Петербург")
+      value: string;
+    }[];
+  };
+}
+
+@doc("Запрос на редактирование своего профиля")
+model ProfileUpdateRequest {
+  @doc("Поля своей карточки, которые нужно изменить. Все поля необязательные: пустой объект ничего не меняет. Любое другое поле отвечает `422` с кодом `not_applicable`.")
+  user: {
+    @doc("Имя")
+    @maxLength(255)
+    @example("Олег")
+    first_name?: string;
+
+    @doc("Фамилия")
+    @maxLength(255)
+    @example("Петров")
+    last_name?: string;
+
+    @doc("Телефон")
+    @maxLength(255)
+    @example("+79001234567")
+    phone_number?: string;
+
+    @doc("Имя пользователя: латинские и кириллические буквы, цифры, `_`, `-` и `.`. Ники `here` и `all` зарезервированы. Ник, занятый другим сотрудником без учёта регистра, отвечает ошибкой с кодом `already_exists`, в том числе у сотрудника с `sso: true`.")
+    @maxLength(255)
+    @example("olegpetrov")
+    nickname?: string;
+
+    @doc("Департамент")
+    @maxLength(255)
+    @example("Отдел разработки")
+    department?: string;
+
+    @doc("Должность")
+    @maxLength(255)
+    @example("Старший разработчик")
+    title?: string;
+
+    @doc("Часовой пояс: идентификатор IANA, например `Europe/Moscow`, иначе ответ `422` с кодом `invalid`. Заданный пояс выключает его автоопределение по устройству.")
+    @example("Europe/Moscow")
+    time_zone?: string;
+
+    @doc("Задаваемые дополнительные поля. Каждое поле указывается один раз. Поля типов «Файл» и «Множественный выбор» через API не меняются: ответ `422` с кодом `not_applicable`. Неизвестный `id` отвечает кодом `not_found`. Какое поле не прошло проверку, говорит `payload.id` ошибки.")
+    custom_properties?: {
+      @doc("Идентификатор поля")
+      @example(1678)
+      id: int32;
+
+      @doc("Устанавливаемое значение. Число передают целым, например `\"3\"`, а дату — в формате YYYY-MM-DD с годом не раньше 1583, иначе ответ `422` на поле `custom_properties.value` с кодом `invalid`. Пустая строка очищает поле.")
       @maxLength(768)
       @example("Санкт-Петербург")
       value: string;
@@ -5859,7 +5920,7 @@ interface ProfileOperations {
 
 Чужую карточку отдаёт [Информация о сотруднике](GET /users/{id}).
 
-Свой аватар ставит [Загрузка своего аватара](PUT /profile/avatar), а убирает [Удаление своего аватара](DELETE /profile/avatar).
+Свою карточку меняет [Редактирование своего профиля](PUT /profile). Свой аватар ставит [Загрузка своего аватара](PUT /profile/avatar), а убирает [Удаление своего аватара](DELETE /profile/avatar).
 """)
   @get
   getProfile(): {
@@ -5871,6 +5932,43 @@ interface ProfileOperations {
   } | {
     @statusCode _: 403;
     @body body: ForbiddenError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "profile:write",
+  })
+  @doc("""
+Редактирование своего профиля
+
+Меняет карточку владельца токена: перезаписываются только переданные поля. Метод доступен любому сотруднику и мульти-гостю, право `users:update` для него не нужно. Идентификаторы дополнительных полей отдаёт [Список дополнительных полей](GET /custom_properties).
+
+Запрос применяется целиком: если какое-то поле не прошло проверку, не меняется ничего, а ответ `422` перечисляет все ошибки. Почту, роль, теги и приостановку меняет администратор методом [Редактирование сотрудника](PUT /users/{id}): здесь на них ответ `422` с кодом `not_applicable`, как и на любое другое незнакомое поле.
+
+У сотрудника, который входит через SSO, часть полей заполняется из SSO. Их правка отвечает `422` с кодом `blocked_by_sso`. Тот же код приходит на `time_zone`, когда автоопределение пояса закреплено настройками SSO, и на дополнительное поле, по которому SSO находит профиль сотрудника.
+
+Бот-токен этот метод не вызывает: имя и ник бота меняет [Редактирование бота](PUT /bots/{id}).
+
+В ответе карточка, как у метода [Свой профиль](GET /profile).
+""")
+  @put
+  updateProfile(@body request: ProfileUpdateRequest): {
+    @statusCode _: 200;
+    @body body: DataResponse<User>;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
   };
   
   @extension("x-requirements", #{
@@ -6321,7 +6419,7 @@ interface UserOperations {
 
 У бота метод меняет только имя (`first_name`), ник, теги и `suspended`, остальные поля в запросе пропускает. Какой ник и какие теги можно дать боту, сказано у полей `nickname` и `list_tags`. Если настройки бота поменялись во время запроса, ответ `422` приходит с кодом `bot_changed_concurrently`: повторите запрос.
 
-Аватар сотрудника ставят и убирают отдельные методы [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar) и [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar).
+Аватар сотрудника ставят и убирают отдельные методы [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar) и [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar). Свою карточку без права `users:update` меняет [Редактирование своего профиля](PUT /profile).
 """)
   @put
   updateUser(

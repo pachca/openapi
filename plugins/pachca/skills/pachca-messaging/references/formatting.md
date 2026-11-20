@@ -31,7 +31,7 @@ To show a picture, attach it as a file (see [files.md](files.md)) instead of usi
 - Tables: the `|` characters stay in the text.
 - Quotes: the text stays, the leading `>` disappears.
 
-Shape a message without them: short paragraphs and line breaks, with a bold lead-in per point when a message has several separate points (a short message needs none). If the structure matters, attach a `.md` file.
+Shape a message without them: short plain paragraphs and line breaks, numbered «1.», «2.» as ordinary text when a message has several separate points. If the structure matters, attach a `.md` file.
 
 Some constructs are swallowed instead of shown:
 

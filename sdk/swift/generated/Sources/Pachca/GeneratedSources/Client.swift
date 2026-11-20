@@ -2469,6 +2469,10 @@ open class ProfileService {
         throw pachcaNotImplemented("Profile.getStatus")
     }
 
+    open func updateProfile(request body: ProfileUpdateRequest) async throws -> User {
+        throw pachcaNotImplemented("Profile.updateProfile")
+    }
+
     open func updateProfileAvatar(image: Data) async throws -> AvatarData {
         throw pachcaNotImplemented("Profile.updateProfileAvatar")
     }
@@ -2523,6 +2527,22 @@ public final class ProfileServiceImpl: ProfileService {
         switch statusCode {
         case 200:
             return try deserialize(UserStatusDataWrapper.self, from: data).data
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
+    }
+
+    public override func updateProfile(request body: ProfileUpdateRequest) async throws -> User {
+        var request = URLRequest(url: URL(string: "\(baseURL)/profile")!)
+        request.httpMethod = "PUT"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(UserDataWrapper.self, from: data).data
         default:
             throw pachcaErrorFromResponse(statusCode, data)
         }

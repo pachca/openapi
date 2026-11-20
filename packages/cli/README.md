@@ -223,6 +223,7 @@ pachca auth switch bot-notify
 | Команда | Описание |
 |---------|---------|
 | `pachca profile get` | Свой профиль |
+| `pachca profile update` | Редактирование своего профиля |
 | `pachca profile update-avatar` | Загрузка своего аватара |
 | `pachca profile delete-avatar` | Удаление своего аватара |
 | `pachca profile get-status` | Свой статус |

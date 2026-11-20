@@ -52,7 +52,7 @@ Agent doing this with tools: creating a bot or token returns a secret shown once
 
 - Issue one token per service, each with its own name and the minimum scopes; revoke one without touching the others. Scopes are per token; edits apply at once, no reissue.
 - Scopes decide which methods work, not what data is visible: the bot still sees only open conversations and channels and its own chats.
-- Bot-only scopes: `bot_self:webhook:write` (the bot sets its own outgoing webhook URL) and `bot_self:write` (the bot rotates its own token). The main token of a bot created by API without `webhook.scopes` gets a default set without these and without `user_status:read` — grant them explicitly. With `oauth_client.scopes` in the same create call and no `webhook.scopes`, the main token gets the consent-screen scopes instead: pass `webhook.scopes` too.
+- Bot-only scopes: `bot_self:webhook:write` (the bot sets its own outgoing webhook URL) and `bot_self:write` (the bot rotates its own token). The main token of a bot created by API without `webhook.scopes` gets a default set without these and without `user_status:read` — grant them explicitly. `oauth_client.scopes` is what the bot asks employees for on the consent screen and does not affect the main token.
 - `pachca_get_bot_scopes` (`pachca bots list-scopes`) lists what can be granted; `pachca_get_token_info` (`pachca oauth token-info`) shows what the current token has.
 - Bot tokens never expire: they live until reissued, deleted or the bot is deleted.
 - Managing a bot's tokens through the API needs a personal token with `bots:read` and `bots:write`. An owner or admin of a chat with the bot who may edit it never sees its tokens.

@@ -778,6 +778,21 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/profile',
 		},
+		update: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/profile',
+			wrapperKey: 'user',
+			optionalBodyMap: [
+				{ api: 'first_name', n8n: 'firstName' },
+				{ api: 'last_name', n8n: 'lastName' },
+				{ api: 'phone_number', n8n: 'phoneNumber' },
+				{ api: 'nickname', n8n: 'nickname' },
+				{ api: 'department', n8n: 'department' },
+				{ api: 'title', n8n: 'title' },
+				{ api: 'time_zone', n8n: 'timeZone' },
+				{ api: 'custom_properties', n8n: 'customProperties', subKey: 'property' },
+			],
+		},
 		updateAvatar: {
 			method: 'PUT' as IHttpRequestMethods,
 			path: '/profile/avatar',

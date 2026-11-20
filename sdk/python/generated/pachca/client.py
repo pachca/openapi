@@ -116,6 +116,7 @@ from .models import (
     OAuthTokenRequest,
     OAuthToken,
     UserStatus,
+    ProfileUpdateRequest,
     StatusUpdateRequest,
     SearchChatsParams,
     SearchChatsResponse,
@@ -2692,6 +2693,12 @@ class ProfileService:
         self) -> UserStatus:
         raise NotImplementedError("Profile.getStatus is not implemented")
 
+    async def update_profile(
+        self,
+        request: ProfileUpdateRequest,
+    ) -> User:
+        raise NotImplementedError("Profile.updateProfile is not implemented")
+
     async def update_profile_avatar(
         self,
         image: bytes,
@@ -2740,6 +2747,20 @@ class ProfileServiceImpl(ProfileService):
         match response.status_code:
             case 200:
                 return deserialize(UserStatus, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def update_profile(
+        self,
+        request: ProfileUpdateRequest,
+    ) -> User:
+        response = await self._client.put(
+            "/profile",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(User, response.json()["data"])
             case _:
                 raise _error_from_response(response)
 

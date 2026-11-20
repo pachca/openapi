@@ -766,6 +766,14 @@ const TOOL_BY_KEY = new Map<OperationKey, string>();
  */
 const SPEC_VOCABULARY = new Set<string>();
 
+/**
+ * The field names among them (`properties`). A tool whose name is also a
+ * field's — `list_tags`, the tool and the employee field — cannot be told apart
+ * in prose, so `linksAsTools` gives such a tool its served name at once and
+ * `servedNames` leaves the bare word to the field. Filled with the vocabulary.
+ */
+const SPEC_FIELDS = new Set<string>();
+
 /** Walk a spec document and remember every name a description may legitimately use. */
 function collectVocabulary(doc: YamlNode): void {
   const walk = (node: any, depth = 0): void => {
@@ -775,7 +783,12 @@ function collectVocabulary(doc: YamlNode): void {
       return;
     }
     for (const [k, v] of Object.entries<any>(node)) {
-      if (k === 'properties' && v && typeof v === 'object') for (const name of Object.keys(v)) SPEC_VOCABULARY.add(name);
+      if (k === 'properties' && v && typeof v === 'object') {
+        for (const name of Object.keys(v)) {
+          SPEC_VOCABULARY.add(name);
+          SPEC_FIELDS.add(name);
+        }
+      }
       if (k === 'x-enum-descriptions' && v && typeof v === 'object') for (const name of Object.keys(v)) SPEC_VOCABULARY.add(name);
       if (k === 'enum' && Array.isArray(v)) for (const value of v) if (typeof value === 'string') SPEC_VOCABULARY.add(value);
       if (k === 'name' && typeof v === 'string') SPEC_VOCABULARY.add(v);
@@ -2279,7 +2292,8 @@ function linksAsTools(text: string): string {
       // tool while one stands (`STANDALONE_STEPS`): that is where its key comes from.
       const key = `${method} ${path}` as OperationKey;
       const tool = TOOL_BY_KEY.get(key) ?? (UPLOAD_STEPS.includes(key) ? uploadToolName() : null);
-      return tool ? `\`${tool}\`` : label;
+      if (!tool) return label;
+      return SPEC_FIELDS.has(tool) ? `\`${TOOL_PREFIX}${tool}\`` : `\`${tool}\``;
     })
     // A guide is a page on the site. The title stays in quotes to say what the page
     // is, and the address follows it: the model cannot open it, but the person it
@@ -2291,6 +2305,57 @@ function linksAsTools(text: string): string {
       const where = /^https?:/.test(now) ? now : `${SERVER_INFO.website_url}${now}${anchor ?? ''}`;
       return `"${label}" (${where})`;
     });
+}
+
+/**
+ * The served name of every tool a description names by its bare name: a link
+ * the spec made (`linksAsTools`), the upload tool, or written prose. The model is
+ * listed `pachca_send_message`, and prose that says `send_message` sends it
+ * looking for a tool it does not have. Inside the build every name stays bare —
+ * the checks read the spec's words and the written prose by those — so the
+ * served name goes into the words only on the way out, as it goes onto the
+ * tools, and the length a client keeps is measured on the words as served. A
+ * name that is also a field's stays bare here: there the prose names the field.
+ */
+function servedNames(toolNames: string[], fields: Set<string>): (text: string) => string {
+  const names = toolNames.filter((name) => !fields.has(name)).sort((a, b) => b.length - a.length);
+  if (!names.length) return (text) => text;
+  // Not inside an address or a path: `…/send_message` stays as it is.
+  const bare = new RegExp(`(?<![\\w/.:-])(${names.join('|')})(?!\\w)`, 'g');
+  return (text) => text.replace(bare, `${TOOL_PREFIX}$1`);
+}
+
+/** Field names of every schema under `root`, the tools' arguments and answers among them. */
+function schemaFields(root: unknown): Set<string> {
+  const fields = new Set<string>(SPEC_FIELDS);
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) node.forEach(walk);
+    else if (node && typeof node === 'object') {
+      for (const [key, value] of Object.entries(node)) {
+        if (key === 'properties' && value && typeof value === 'object' && !Array.isArray(value)) {
+          for (const field of Object.keys(value)) fields.add(field);
+        }
+        walk(value);
+      }
+    }
+  };
+  walk(root);
+  return fields;
+}
+
+/** Every description string under `root`, as served. */
+function serveDescriptions(root: unknown, serve: (text: string) => string): void {
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) node.forEach(walk);
+    else if (node && typeof node === 'object') {
+      const record = node as Record<string, unknown>;
+      for (const [key, value] of Object.entries(record)) {
+        if (key === 'description' && typeof value === 'string') record[key] = serve(value);
+        else walk(value);
+      }
+    }
+  };
+  walk(root);
 }
 
 /** The title line of an operation, for a client to show instead of the name. */
@@ -3746,10 +3811,15 @@ function build(): void {
         `past ${INSTRUCTIONS_LIMIT} — a client that keeps ${CLIENT_TEXT_LIMIT} would lose their end: move the rule to the tools it is about`,
     );
   }
+  const serve = servedNames(
+    tools.map((t) => t.name),
+    schemaFields(tools.map((t) => [t.inputSchema, t.outputSchema])),
+  );
   for (const tool of [...tools, ...SERVICE_TOOLS]) {
-    if (tool.description.length > CLIENT_TEXT_LIMIT) {
+    const length = serve(tool.description).length;
+    if (length > CLIENT_TEXT_LIMIT) {
       problems.push(
-        `${tool.name}: the description runs to ${tool.description.length} characters, and a client keeps ${CLIENT_TEXT_LIMIT} — ` +
+        `${tool.name}: the description runs to ${length} characters as served, and a client keeps ${CLIENT_TEXT_LIMIT} — ` +
           'move what belongs to one argument into that argument in the spec',
       );
     }
@@ -4152,10 +4222,14 @@ function build(): void {
   // The digest is of what the manifest says, whichever input it came from — the
   // spec, its translation, the rules or the prose — so equal digests mean equal
   // manifests, and a cache keyed by it never serves an old one.
-  const { schema_version, ...rest } = content;
+  // The words go out with the served names (`servedNames`), on a copy: the
+  // tools the build keeps for its log stay as the checks read them.
+  const written = structuredClone(content);
+  serveDescriptions(written, servedNames(tools.map((t) => t.name), schemaFields(written)));
+  const { schema_version, ...rest } = written;
   const manifest = {
     schema_version,
-    generated_from: { digest: crypto.createHash('sha256').update(JSON.stringify(content)).digest('hex').slice(0, 16) },
+    generated_from: { digest: crypto.createHash('sha256').update(JSON.stringify(written)).digest('hex').slice(0, 16) },
     ...rest,
   };
 

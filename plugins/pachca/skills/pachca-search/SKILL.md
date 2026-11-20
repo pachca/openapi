@@ -107,7 +107,8 @@ Do not promise what does not exist:
 - "Retell this thread", «что поправить по треду», «в чём проблема по
   треду», a pasted link: read the feed, do not search it. The retelling,
   the account of a problem and the list of remarks:
-  [references/threads.md](references/threads.md).
+  [references/threads.md](references/threads.md). «Изучи <ссылка на тред>»
+  usually ends in a reply to that thread: write it by pachca-messaging.
 - "Who is in this chat": `pachca_list_members` (`pachca members list`) with
   the chat's id in `id`: a chat record's `id`, or the `chat_id` of a message
   or a thread. A thread has its own list, separate from the parent chat's.

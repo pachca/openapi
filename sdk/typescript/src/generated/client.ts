@@ -89,6 +89,7 @@ import {
   OAuthTokenRequest,
   OAuthToken,
   UserStatus,
+  ProfileUpdateRequest,
   StatusUpdateRequest,
   SearchChatsParams,
   SearchChatsResponse,
@@ -2390,6 +2391,10 @@ export class ProfileService {
     throw new Error("Profile.getStatus is not implemented");
   }
 
+  async updateProfile(request: ProfileUpdateRequest): Promise<User> {
+    throw new Error("Profile.updateProfile is not implemented");
+  }
+
   async updateProfileAvatar(image: Blob): Promise<AvatarData> {
     throw new Error("Profile.updateProfileAvatar is not implemented");
   }
@@ -2441,6 +2446,22 @@ export class ProfileServiceImpl extends ProfileService {
       case 200: {
         const body = await response.json();
         return deserializeType("UserStatus", body.data) as UserStatus;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async updateProfile(request: ProfileUpdateRequest): Promise<User> {
+    const response = await fetchWithRetry(`${this.baseUrl}/profile`, {
+      method: "PUT",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("ProfileUpdateRequest", request)),
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("User", body.data) as User;
       }
       default:
         throw await errorFromResponse(response);

@@ -314,7 +314,7 @@ export const botFields: INodeProperties[] = [
 				name: 'scopes',
 				type: 'string',
 				default: "",
-				description: 'Scopes (permissions) of the bot\'s main token. Without this field the main token gets the default set, which lacks `bot_self:webhook:write`, `bot_self:write` and `user_status:read`: pass them explicitly. With `oauth_client` carrying its own `scopes` in the same request, the main token without this field gets those scopes instead, so pass `scopes` alongside `oauth_client`. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned.',
+				description: 'Scopes (permissions) of the bot\'s main token. Without this field the main token gets the default set, which lacks `bot_self:webhook:write`, `bot_self:write` and `user_status:read`: pass them explicitly. The scopes the bot requests from employees in `oauth_client` do not affect the main token. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned.',
 				placeholder: 'messages:create',
 			},
 			{

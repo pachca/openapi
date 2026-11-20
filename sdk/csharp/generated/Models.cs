@@ -1519,6 +1519,8 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope BotSelfWrite { get; } = new("bot_self:write");
     /// <summary>Просмотр информации о своем профиле</summary>
     public static OAuthScope ProfileRead { get; } = new("profile:read");
+    /// <summary>Изменение информации о своем профиле</summary>
+    public static OAuthScope ProfileWrite { get; } = new("profile:write");
     /// <summary>Просмотр статуса профиля</summary>
     public static OAuthScope ProfileStatusRead { get; } = new("profile_status:read");
     /// <summary>Изменение и удаление статуса профиля</summary>
@@ -1579,7 +1581,7 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope ImportantMessagesWrite { get; } = new("important_messages:write");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsMarkRead, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, CompanyRead, CompanyWrite, InviteLinksWrite, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, UploadsWrite, ViewsWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
+    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsMarkRead, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileWrite, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, CompanyRead, CompanyWrite, InviteLinksWrite, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, UploadsWrite, ViewsWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -2199,6 +2201,8 @@ public readonly struct ValidationErrorCode : IEquatable<ValidationErrorCode>
     public static ValidationErrorCode WebhookUrlUnresolved { get; } = new("webhook_url_unresolved");
     /// <summary>Адрес вебхука ведёт во внутреннюю или зарезервированную сеть</summary>
     public static ValidationErrorCode WebhookUrlForbidden { get; } = new("webhook_url_forbidden");
+    /// <summary>Поле заполняется из SSO или нужно для входа через SSO, через API его не изменить (пояснения вы получите в поле message)</summary>
+    public static ValidationErrorCode BlockedBySso { get; } = new("blocked_by_sso");
     /// <summary>Недостаточно прав для выполнения действия (пояснения вы получите в поле message)</summary>
     public static ValidationErrorCode Forbidden { get; } = new("forbidden");
     /// <summary>Доступ запрещён (недостаточно прав)</summary>
@@ -2233,7 +2237,7 @@ public readonly struct ValidationErrorCode : IEquatable<ValidationErrorCode>
     public static ValidationErrorCode ServiceUnavailable { get; } = new("service_unavailable");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<ValidationErrorCode> Values { get; } = Array.AsReadOnly(new[] { Blank, TooLong, Invalid, Inclusion, Exclusion, Taken, WrongEmoji, NotFound, AlreadyExists, PersonalChat, DisplayedError, NotAuthorized, InvalidDateRange, InvalidWebhookUrl, RateLimit, LicensesLimit, UserLimit, UniqueLimit, GeneralLimit, Unhandled, TriggerNotFound, TriggerExpired, Required, In, NotApplicable, SelfUpdate, OwnerProtected, AlreadyAssigned, NextSendAtInvalid, ScheduleInvalid, ScheduleEndDateInvalid, ScheduledMessagesLimit, DraftTypeChangeForbidden, ConfidentialDownloadDenied, DecryptionFailed, BotAddDenied, SingleChatBotOccupied, SingleChatBotTagDenied, RestrictedBotTagDenied, BotChangedConcurrently, Timeout, DailyInvitesLimit, WebhookUrlInvalid, WebhookUrlUnresolved, WebhookUrlForbidden, Forbidden, PermissionDenied, AccessDenied, WrongParams, PaymentRequired, MinLength, MaxLength, UseOfSystemWords, ExportFileNotFound, CannotKickOwner, PinFailed, MessageDeleted, ThreadMessage, ViewNotFound, SubmitExpired, ServiceUnavailable });
+    public static IReadOnlyList<ValidationErrorCode> Values { get; } = Array.AsReadOnly(new[] { Blank, TooLong, Invalid, Inclusion, Exclusion, Taken, WrongEmoji, NotFound, AlreadyExists, PersonalChat, DisplayedError, NotAuthorized, InvalidDateRange, InvalidWebhookUrl, RateLimit, LicensesLimit, UserLimit, UniqueLimit, GeneralLimit, Unhandled, TriggerNotFound, TriggerExpired, Required, In, NotApplicable, SelfUpdate, OwnerProtected, AlreadyAssigned, NextSendAtInvalid, ScheduleInvalid, ScheduleEndDateInvalid, ScheduledMessagesLimit, DraftTypeChangeForbidden, ConfidentialDownloadDenied, DecryptionFailed, BotAddDenied, SingleChatBotOccupied, SingleChatBotTagDenied, RestrictedBotTagDenied, BotChangedConcurrently, Timeout, DailyInvitesLimit, WebhookUrlInvalid, WebhookUrlUnresolved, WebhookUrlForbidden, BlockedBySso, Forbidden, PermissionDenied, AccessDenied, WrongParams, PaymentRequired, MinLength, MaxLength, UseOfSystemWords, ExportFileNotFound, CannotKickOwner, PinFailed, MessageDeleted, ThreadMessage, ViewNotFound, SubmitExpired, ServiceUnavailable });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -4828,6 +4832,40 @@ public class PaginationMeta
 {
     [JsonPropertyName("paginate")]
     public PaginationMetaPaginate Paginate { get; set; } = default!;
+}
+
+public class ProfileUpdateRequestCustomProperty
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
+    [JsonPropertyName("value")]
+    public string Value { get; set; } = default!;
+}
+
+public class ProfileUpdateRequestUser
+{
+    [JsonPropertyName("first_name")]
+    public string? FirstName { get; set; }
+    [JsonPropertyName("last_name")]
+    public string? LastName { get; set; }
+    [JsonPropertyName("phone_number")]
+    public string? PhoneNumber { get; set; }
+    [JsonPropertyName("nickname")]
+    public string? Nickname { get; set; }
+    [JsonPropertyName("department")]
+    public string? Department { get; set; }
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
+    [JsonPropertyName("time_zone")]
+    public string? TimeZone { get; set; }
+    [JsonPropertyName("custom_properties")]
+    public List<ProfileUpdateRequestCustomProperty>? CustomProperties { get; set; }
+}
+
+public class ProfileUpdateRequest
+{
+    [JsonPropertyName("user")]
+    public ProfileUpdateRequestUser User { get; set; } = default!;
 }
 
 public class Reaction

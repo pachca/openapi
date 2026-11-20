@@ -150,6 +150,7 @@ export const NAME_OVERRIDES: Record<OperationKey, string> = {
   'PUT /profile/status': 'update_my_status',
   'DELETE /profile/status': 'delete_my_status',
   'GET /profile': 'get_my_card',
+  'PUT /profile': 'update_my_card',
   'PUT /profile/avatar': 'update_my_avatar',
   'DELETE /profile/avatar': 'delete_my_avatar',
   // "Read members" of a message are the people who read it, not its members.

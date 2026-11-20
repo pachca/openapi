@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.11.0 (2026-11-22)
+
+A tool for editing your own profile, a new scope and a new error code, texts about the bot's main token, and tool names in descriptions as the tools are served. schema_version stays 1.2.0.
+
+- Tool `pachca_update_my_card`: changes the token owner's name, nickname, phone, department, title, time zone and custom properties. It needs the new `profile:write` scope, which a bot token does not have. Email, role, tags and suspension stay with `pachca_update_user`.
+- The `422` refusal carries the `blocked_by_sso` code for a field filled in from SSO or needed for signing in through SSO.
+- `pachca_create_bot`: the scopes the bot requests from employees in `oauth_client` do not affect the main token. `pachca_recreate_bot_token` gives a bot without tokens a main token with the default set of scopes.
+- Descriptions name other tools as they are served, with the `pachca_` prefix: `pachca_reissue_bot_token`, not `reissue_bot_token`.
+
 ## 1.10.0 (2026-11-18)
 
 Tools for pinned messages and for marking a chat as read, a new scope, an argument for new messages, and texts about bot scopes, link previews after an edit and the transcription status. schema_version stays 1.2.0.

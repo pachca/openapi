@@ -75,6 +75,7 @@
   "threads:add": "Новый тред",
   "oauth:token-info": "Информация о токене",
   "profile:get": "Свой профиль",
+  "profile:update": "Редактирование своего профиля",
   "profile:update-avatar": "Загрузка своего аватара",
   "profile:delete-avatar": "Удаление своего аватара",
   "profile:get-status": "Свой статус",

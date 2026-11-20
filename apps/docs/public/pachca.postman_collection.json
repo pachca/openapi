@@ -484,6 +484,36 @@
           }
         },
         {
+          "name": "Редактирование своего профиля",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"phone_number\": \"+79001234567\",\n    \"nickname\": \"olegpetrov\",\n    \"department\": \"Отдел разработки\",\n    \"title\": \"Старший разработчик\",\n    \"time_zone\": \"Europe/Moscow\",\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
           "name": "Загрузка своего аватара",
           "request": {
             "method": "PUT",

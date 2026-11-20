@@ -1,6 +1,77 @@
 [
   {
     "product": "sdk",
+    "version": "1.10.2",
+    "date": "2026-11-22",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Метод `Редактирование своего профиля` (`PUT /profile`), модель `ProfileUpdateRequest`, значение `profile:write` в `OAuthScope` и код `blocked_by_sso` в `ValidationErrorCode`"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.11.6",
+    "date": "2026-11-22",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca profile update` — правка своего профиля: имя, ник, телефон, департамент, должность, часовой пояс и дополнительные поля"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.2.10",
+    "date": "2026-11-22",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`Profile`: новая операция `Update` — правка своего профиля"
+      }
+    ]
+  },
+  {
+    "product": "mcp",
+    "version": "1.11.0",
+    "date": "2026-11-22",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca_update_my_card` меняет свою карточку: имя, ник, телефон, департамент, должность, часовой пояс и дополнительные поля. Для него нужно право `profile:write`, у бот-токена его нет."
+      },
+      {
+        "type": "~",
+        "description": "`pachca_create_bot`: права, которые бот запрашивает у сотрудников в `oauth_client`, на основной токен не влияют. `pachca_recreate_bot_token` у бота без токенов выпускает основной токен с набором прав по умолчанию."
+      },
+      {
+        "type": "~",
+        "description": "В описаниях соседние инструменты названы так, как их видит агент, с префиксом `pachca_`: `pachca_reissue_bot_token`, а не `reissue_bot_token`"
+      }
+    ]
+  },
+  {
+    "product": "plugin",
+    "version": "1.0.17",
+    "date": "2026-11-22",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca-admin`: сотрудник меняет свою карточку сам, без прав администратора"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-messaging`: сообщение из нескольких пунктов пишется простыми абзацами с номерами, без жирных заголовков и меток, словами того, что видит читатель. По этим правилам пишется и черновик, который сотрудник сначала хочет увидеть в разговоре."
+      },
+      {
+        "type": "~",
+        "description": "`pachca-bots`: права, которые бот запрашивает у сотрудников в `oauth_client.scopes`, на основной токен не влияют"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
     "version": "1.10.1",
     "date": "2026-11-18",
     "changes": [

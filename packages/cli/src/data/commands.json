@@ -203,7 +203,7 @@
             "name": "scopes",
             "type": "option",
             "required": false,
-            "description": "Скоупы (права доступа) основного токена бота. Без поля основной токен получает набор по умолчанию, в котором нет `bot_self:webhook:write`, `bot_self:write` и `user_status:read`: их передают явно. Если в том же запросе передан `oauth_client` со своими `scopes`, основной токен без этого поля получает права из них, поэтому вместе с `oauth_client` передавайте и `scopes`. Боту доступны не все скоупы: часть из них разрешена только пользовательским ролям, и попытка назначить такой скоуп возвращает `400`. Служебные значения `bot` и `all` назначать нельзя."
+            "description": "Скоупы (права доступа) основного токена бота. Без поля основной токен получает набор по умолчанию, в котором нет `bot_self:webhook:write`, `bot_self:write` и `user_status:read`: их передают явно. Права, которые бот запрашивает у сотрудников в `oauth_client`, на основной токен не влияют. Боту доступны не все скоупы: часть из них разрешена только пользовательским ролям, и попытка назначить такой скоуп возвращает `400`. Служебные значения `bot` и `all` назначать нельзя."
           },
           {
             "name": "template",
@@ -2619,6 +2619,64 @@
         "scope": "profile_status:read",
         "plan": null,
         "flags": []
+      },
+      {
+        "command": "pachca profile update",
+        "summary": "Редактирование своего профиля",
+        "method": "PUT",
+        "path": "/profile",
+        "scope": "profile:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "first-name",
+            "type": "option",
+            "required": false,
+            "description": "Имя (макс. 255 символов)"
+          },
+          {
+            "name": "last-name",
+            "type": "option",
+            "required": false,
+            "description": "Фамилия (макс. 255 символов)"
+          },
+          {
+            "name": "phone-number",
+            "type": "option",
+            "required": false,
+            "description": "Телефон (макс. 255 символов)"
+          },
+          {
+            "name": "nickname",
+            "type": "option",
+            "required": false,
+            "description": "Имя пользователя: латинские и кириллические буквы, цифры, `_`, `-` и `.`. Ники `here` и `all` зарезервированы. Ник, занятый другим сотрудником без учёта регистра, отвечает ошибкой с кодом `already_exists`, в том числе у сотрудника с `sso: true`. (макс. 255 символов)"
+          },
+          {
+            "name": "department",
+            "type": "option",
+            "required": false,
+            "description": "Департамент (макс. 255 символов)"
+          },
+          {
+            "name": "title",
+            "type": "option",
+            "required": false,
+            "description": "Должность (макс. 255 символов)"
+          },
+          {
+            "name": "time-zone",
+            "type": "option",
+            "required": false,
+            "description": "Часовой пояс: идентификатор IANA, например `Europe/Moscow`, иначе ответ `422` с кодом `invalid`. Заданный пояс выключает его автоопределение по устройству."
+          },
+          {
+            "name": "custom-properties",
+            "type": "option",
+            "required": false,
+            "description": "Задаваемые дополнительные поля. Каждое поле указывается один раз. Поля типов «Файл» и «Множественный выбор» через API не меняются: ответ `422` с кодом `not_applicable`. Неизвестный `id` отвечает кодом `not_found`. Какое поле не прошло проверку, говорит `payload.id` ошибки."
+          }
+        ]
       },
       {
         "command": "pachca profile update-avatar",

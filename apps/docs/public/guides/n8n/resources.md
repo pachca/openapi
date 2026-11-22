@@ -188,11 +188,12 @@
 
 ## Profile
 
-Профиль текущего пользователя: информация, статус, аватар.
+Профиль текущего пользователя: информация, правка, статус, аватар.
 
 | Операция | API |
 |----------|-----|
 | Get | [Свой профиль](/api/profile/get) |
+| Update | [Редактирование своего профиля](/api/profile/update) |
 | Update Avatar | [Загрузка своего аватара](/api/profile/update-avatar) |
 | Delete Avatar | [Удаление своего аватара](/api/profile/delete-avatar) |
 | Get Status | [Свой статус](/api/profile/get-status) |

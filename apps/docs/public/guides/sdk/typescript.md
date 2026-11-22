@@ -83,6 +83,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.chats.deleteChatAvatar()` | [Удаление аватара чата](/api/chats/remove-avatar) |
 | `client.profile.getProfile()` | [Свой профиль](/api/profile/get) |
 | `client.profile.getStatus()` | [Свой статус](/api/profile/get-status) |
+| `client.profile.updateProfile()` | [Редактирование своего профиля](/api/profile/update) |
 | `client.profile.updateProfileAvatar()` | [Загрузка своего аватара](/api/profile/update-avatar) |
 | `client.profile.updateStatus()` | [Новый свой статус](/api/profile/update-status) |
 | `client.profile.deleteProfileAvatar()` | [Удаление своего аватара](/api/profile/delete-avatar) |

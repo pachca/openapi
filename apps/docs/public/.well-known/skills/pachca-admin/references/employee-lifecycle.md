@@ -112,6 +112,21 @@ tell the person that a lasting change has to be made in the identity provider.
 On Corporation the rewrite shows in the audit log as `user_updated` with
 `context: sso_login`.
 
+## Edit your own card
+
+An employee or a multi-guest changes their own name, nickname, phone,
+department, title, time zone and custom fields with `pachca_update_my_card`
+(CLI `pachca profile update`), without `users:update`. It needs
+`profile:write`, which only a personal token or the CLI sign-in has: a bot
+renames itself with `pachca_update_bot`.
+
+- Email, role, tags and suspension are the admin's: they answer `422`
+  `not_applicable` here, like any unknown field. Use `pachca_update_user`.
+- A field SSO fills in answers `422` `blocked_by_sso`. So does `time_zone`
+  when SSO locks auto-detection.
+- `time_zone` takes an IANA id such as `Europe/Moscow` and turns
+  auto-detection off. Nothing changes if any field fails.
+
 ## Set someone else's status (vacation, away)
 
 Tool `pachca_update_user_status`, CLI `pachca users update-status`. Owner and

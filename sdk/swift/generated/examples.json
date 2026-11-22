@@ -476,6 +476,15 @@
     "usage": "let response = try await client.profile.getStatus()",
     "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)"
   },
+  "ProfileOperations_updateProfile": {
+    "usage": "let request = ProfileUpdateRequest(\n    user: ProfileUpdateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Отдел разработки\",\n        title: \"Старший разработчик\",\n        timeZone: \"Europe/Moscow\",\n        customProperties: [ProfileUpdateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    )\n)\nlet response = try await client.profile.updateProfile(request: request)",
+    "output": "User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)",
+    "imports": [
+      "ProfileUpdateRequest",
+      "ProfileUpdateRequestCustomProperty",
+      "ProfileUpdateRequestUser"
+    ]
+  },
   "ProfileAvatarOperations_updateProfileAvatar": {
     "usage": "let image = Data()\nlet response = try await client.profile.updateProfileAvatar(image: image)",
     "output": "AvatarData(imageUrl: String)"

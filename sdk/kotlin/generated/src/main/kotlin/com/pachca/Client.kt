@@ -2078,6 +2078,10 @@ interface ProfileService {
         throw NotImplementedError("Profile.getStatus is not implemented")
     }
 
+    suspend fun updateProfile(request: ProfileUpdateRequest): User {
+        throw NotImplementedError("Profile.updateProfile is not implemented")
+    }
+
     suspend fun updateProfileAvatar(image: ByteArray): AvatarData {
         throw NotImplementedError("Profile.updateProfileAvatar is not implemented")
     }
@@ -2115,6 +2119,17 @@ class ProfileServiceImpl internal constructor(
         val response = client.get("$baseUrl/profile/status")
         return when (response.status.value) {
             200 -> response.body<UserStatusDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun updateProfile(request: ProfileUpdateRequest): User {
+        val response = client.put("$baseUrl/profile") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            200 -> response.body<UserDataWrapper>().data
             else -> throw errorFromResponse(response)
         }
     }

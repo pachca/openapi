@@ -128,7 +128,7 @@ PACHCA_TOKEN=$PACHCA_BOT_TOKEN PACHCA_SIGNING_SECRET=$PACHCA_SIGNING_SECRET \
 
 Если бот должен отвечать на сообщения, передайте `trigger_on: "all_messages"` или перечислите команды в `commands`: без них бот о новых сообщениях не узнает. Подробнее — в разделе [Сообщения](/guides/webhook/events#soobscheniya).
 
-В том же запросе можно включить авторизацию от имени сотрудника объектом `oauth_client` — подробнее в разделе [Настройка авторизации](/guides/oauth/setup#cherez-api). Тогда передайте и `scopes`: без них основной токен получит права из `oauth_client.scopes`, подробнее в разделе [Токены через API](/guides/bots/tokens#tokeny-cherez-api).
+В том же запросе можно включить авторизацию от имени сотрудника объектом `oauth_client` — подробнее в разделе [Настройка авторизации](/guides/oauth/setup#cherez-api). Права в `oauth_client.scopes` бот запрашивает у сотрудников, на основной токен они не влияют. Права токена задаёт `scopes` в объекте `webhook`, подробнее в разделе [Токены через API](/guides/bots/tokens#tokeny-cherez-api).
 
 
   ### Шаг 2. Сохраните access_token

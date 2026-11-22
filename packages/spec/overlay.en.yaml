@@ -47,7 +47,7 @@ actions:
 
         Changes a bot's settings: only the fields you pass are overwritten.
 
-        Commands, scopes, events, link unfurling domains, and edit roles are replaced by the passed list as a whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by [Edit bot token](PUT /bots/{id}/tokens/{token_id}).
+        Commands, scopes, events, link unfurling domains, and edit roles are replaced by the passed list as a whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take effect on it right away, with no reissue. The scopes of an additional token are changed by [Edit bot token](PUT /bots/{id}/tokens/{token_id}).
 
         When `oauth_client` makes the client server-side, its secret comes in `client_secret` once. The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow). The catalog page is set by `promo` while authorization is enabled.
 
@@ -903,7 +903,7 @@ actions:
       description: |-
         New thread
 
-        Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. If a topic rather than a message needs discussing, start a thread with the [New unattached thread](POST /threads) method.
+        Creates a thread under a message — a place to discuss it without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. If a topic rather than a message needs discussing, start a thread with the [New unattached thread](POST /threads) method.
 
         A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either.
 
@@ -956,7 +956,21 @@ actions:
 
         Someone else's profile is returned by [Employee info](GET /users/{id}).
 
-        Your own avatar is set by [Upload own avatar](PUT /profile/avatar) and removed by [Delete own avatar](DELETE /profile/avatar).
+        Your own profile is changed by [Edit own profile](PUT /profile). Your own avatar is set by [Upload own avatar](PUT /profile/avatar) and removed by [Delete own avatar](DELETE /profile/avatar).
+  - target: $.paths['/profile'].put
+    update:
+      description: |-
+        Edit own profile
+
+        Changes the token owner's profile: only the fields passed are overwritten. The method is available to any employee and multi-guest, and it does not need the `users:update` scope. Custom property IDs are returned by [List custom properties](GET /custom_properties).
+
+        The request is applied as a whole: if any field fails validation, nothing changes, and the `422` response lists all the errors. Email, role, tags, and suspension are changed by an administrator with [Edit employee](PUT /users/{id}): here they get `422` with the `not_applicable` code, as does any other unknown field.
+
+        For an employee who signs in through SSO, some fields are filled in from SSO. Changing them responds `422` with the `blocked_by_sso` code. The same code comes on `time_zone` when time zone auto-detection is locked by the SSO settings, and on the custom property by which SSO finds the employee's profile.
+
+        A bot token does not call this method: a bot's name and nickname are changed by [Edit bot](PUT /bots/{id}).
+
+        The response carries the profile, as in [Own profile](GET /profile).
   - target: $.paths['/profile/status'].get
     update:
       description: "Own status\n\nThe status of the token owner: the emoji, the title, the expiry, and away mode.\n\nIf no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side."
@@ -1267,7 +1281,7 @@ actions:
       description: |-
         New employee
 
-        Creates an employee in the workspace and sends them an invitation by email. Available to the workspace owner and an administrator; the method is not available to a bot.
+        Creates an employee in the workspace and sends them an invitation by email. Available to the workspace owner and an administrator, not to a bot.
 
         If an employee with this email address already exists in the workspace, the response is `409`. A nickname that is already taken is not treated as an error: random characters are silently appended to it, and the response comes back with the modified one.
 
@@ -1343,7 +1357,7 @@ actions:
 
         For a bot the method changes only the name (`first_name`), nickname, tags and `suspended`, and skips the other fields in the request. Which nickname and which tags a bot can be given is said at the `nickname` and `list_tags` fields. If the bot's settings changed during the request, the `422` response comes with the `bot_changed_concurrently` code: retry the request.
 
-        The employee's avatar is set and removed by separate methods, [Upload employee avatar](PUT /users/{user_id}/avatar) and [Delete employee avatar](DELETE /users/{user_id}/avatar).
+        The employee's avatar is set and removed by separate methods, [Upload employee avatar](PUT /users/{user_id}/avatar) and [Delete employee avatar](DELETE /users/{user_id}/avatar). Your own profile without the `users:update` scope is changed by [Edit own profile](PUT /profile).
   - target: $.paths['/users/{id}'].put.parameters[?(@.name=='id')]
     update:
       description: User ID
@@ -2420,7 +2434,7 @@ actions:
       description: Bot commands (trigger words) it reacts to when trigger_on = commands. A message event reaches the bot when the first word of the text matches one of the commands exactly, case included. A command can also be set without a leading slash. The combined length of the commands together with the `, ` separators (comma and space) must not exceed 255 characters.
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.scopes
     update:
-      description: "Scopes (permissions) of the bot's main token. Without this field the main token gets the default set, which lacks `bot_self:webhook:write`, `bot_self:write` and `user_status:read`: pass them explicitly. With `oauth_client` carrying its own `scopes` in the same request, the main token without this field gets those scopes instead, so pass `scopes` alongside `oauth_client`. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
+      description: "Scopes (permissions) of the bot's main token. Without this field the main token gets the default set, which lacks `bot_self:webhook:write`, `bot_self:write` and `user_status:read`: pass them explicitly. The scopes the bot requests from employees in `oauth_client` do not affect the main token. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.template
     update:
       description: "Template for formatting the incoming webhook. A template with a syntax error for the `simple` source, an empty bot with `kind: simple` included, gets `400` on this field with the `invalid` code, and the bot is not created. The reason comes in `message`."
@@ -2586,7 +2600,7 @@ actions:
 
         The bot's main token is reissued — the one without a name, or the oldest one if there is none. The previous token is deleted, and the new one is created with a new ID and no name. [Reissue bot token](POST /bots/{id}/tokens/{token_id}/reissue) keeps the token's name and ID and changes only the value: use it for an additional token and for a main token with a name.
 
-        The new token is returned in the response only once — save it right away. Its permissions are the same: the scopes are carried over from the previous token. In `webhook` the response carries the incoming webhook address `url`, the signing secret `secret_token`, and the body of the last request to the incoming webhook `last_request_body`.
+        The new token is returned in the response only once — save it right away. Its permissions are the same: the scopes are carried over from the previous token. If the bot has no token, the new main token gets the default set of scopes. In `webhook` the response carries the incoming webhook address `url`, the signing secret `secret_token`, and the body of the last request to the incoming webhook `last_request_body`.
 
         Rotation is available to the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. The owner of a chat the bot belongs to cannot rotate the token, even when the rest of the bot's settings are open to them. When creating integrations is limited to administrators, an employee without that role gets `403` from this method, for their own bots too.
   - target: $.paths['/bots/{id}/recreate_token'].post.parameters[?(@.name=='id')]
@@ -3779,6 +3793,7 @@ actions:
         bot_self_webhook_write: Self-manage own webhook URL
         bot_self_write: Self-manage own settings
         profile_read: View own profile information
+        profile_write: Edit own profile information
         profile_status_read: View profile status
         profile_status_write: Update and delete profile status
         profile_avatar_write: Update and delete profile avatar
@@ -4389,6 +4404,42 @@ actions:
   - target: $.components.schemas.UserStatus.properties.away_message.properties.text
     update:
       description: "Message text: plain text without formatting, an employee mention is shown as `@` followed by the first and last name."
+  - target: $.components.schemas.ProfileUpdateRequest
+    update:
+      description: "Own profile update request"
+  - target: $.components.schemas.ProfileUpdateRequest.properties.user
+    update:
+      description: "The fields of your own profile to change. All fields are optional: an empty object changes nothing. Any other field responds `422` with the `not_applicable` code."
+  - target: $.components.schemas.ProfileUpdateRequest.properties.user.properties.first_name
+    update:
+      description: "First name"
+  - target: $.components.schemas.ProfileUpdateRequest.properties.user.properties.last_name
+    update:
+      description: "Last name"
+  - target: $.components.schemas.ProfileUpdateRequest.properties.user.properties.phone_number
+    update:
+      description: "Phone number"
+  - target: $.components.schemas.ProfileUpdateRequest.properties.user.properties.nickname
+    update:
+      description: "Username: Latin and Cyrillic letters, digits, `_`, `-`, and `.`. The nicknames `here` and `all` are reserved. A nickname taken by another employee, case-insensitively, responds with an error with the `already_exists` code, for an employee with `sso: true` too."
+  - target: $.components.schemas.ProfileUpdateRequest.properties.user.properties.department
+    update:
+      description: "Department"
+  - target: $.components.schemas.ProfileUpdateRequest.properties.user.properties.title
+    update:
+      description: "Job title"
+  - target: $.components.schemas.ProfileUpdateRequest.properties.user.properties.time_zone
+    update:
+      description: "Time zone: an IANA identifier such as `Europe/Moscow`, otherwise the response is `422` with the `invalid` code. A time zone that is set turns off its auto-detection by device."
+  - target: $.components.schemas.ProfileUpdateRequest.properties.user.properties.custom_properties
+    update:
+      description: "Custom properties to set. Each property is given once. Properties of the \"File\" and \"Multiple choice\" types cannot be changed through the API: the response is `422` with the `not_applicable` code. An unknown `id` responds with the `not_found` code. Which property failed validation is told by the error's `payload.id`."
+  - target: $.components.schemas.ProfileUpdateRequest.properties.user.properties.custom_properties.items.properties.id
+    update:
+      description: "Property ID"
+  - target: $.components.schemas.ProfileUpdateRequest.properties.user.properties.custom_properties.items.properties.value
+    update:
+      description: "Value to set. A number is passed as a whole number, such as `\"3\"`, and a date in the YYYY-MM-DD format with a year no earlier than 1583, otherwise the response is `422` on the `custom_properties.value` field with the `invalid` code. An empty string clears the property."
   - target: $.components.schemas.UserUpdateRequest
     update:
       description: Employee update request
@@ -4509,6 +4560,7 @@ actions:
         webhook_url_invalid: The webhook address has to be a URL with the `http` or `https` protocol and a host name
         webhook_url_unresolved: The IP address of the domain in the webhook address could not be determined
         webhook_url_forbidden: The webhook address points to an internal or reserved network
+        blocked_by_sso: "The field is filled in from SSO or is needed for signing in through SSO, and the API cannot change it (details come in the message field)"
   - target: $.components.schemas.ViewBlock
     update:
       description: View block for forms (base model, use specific block types)

@@ -62,6 +62,14 @@ const jsonLd = {
         name: 'Пачка',
         alternateName: ['Pachca'],
         url: 'https://pachca.com',
+        description:
+          'Корпоративный мессенджер с открытым API, ботами и MCP-сервером для ИИ-агентов.',
+        contactPoint: {
+          '@type': 'ContactPoint',
+          contactType: 'technical support',
+          url: 'https://pachca.com/contacts',
+          availableLanguage: ['Russian', 'English'],
+        },
         sameAs: ['https://github.com/pachca', 'https://www.npmjs.com/org/pachca'],
         logo: {
           '@type': 'ImageObject',

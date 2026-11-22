@@ -24,6 +24,11 @@ const rules: Rule[] = [
   // Allowed: enables Gemini / Google AI grounding & citation of these
   // docs; does NOT affect Google Search ranking.
   { userAgent: 'Google-Extended', ...ALLOW_DOCS },
+  // Yandex robots that decide whether a page may appear in Алиса AI answers
+  // (Yandex Webmaster help, «Как формируются ответы Алисы AI»). Named the same
+  // way as the other AI bots so the intent does not hinge on the `*` group.
+  { userAgent: 'YandexAdditional', ...ALLOW_DOCS },
+  { userAgent: 'YandexAdditionalBot', ...ALLOW_DOCS },
   // `/internal/og` must stay crawlable: it is the og:image / twitter:image for
   // every page, and Twitterbot, Slackbot, LinkedInBot and facebookexternalhit
   // all honour robots.txt — disallowing it stripped the preview from every

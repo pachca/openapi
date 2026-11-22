@@ -57,6 +57,21 @@ const redirects: Redirect[] = [
   { source: '/mcp', destination: '/guides/mcp/overview', permanent: false },
   { source: '/mcp.md', destination: '/guides/mcp/overview.md', permanent: false },
 
+  // Файлы discovery, у которых один дом на другом адресе. Агенты и сканеры
+  // ищут их у сайта документации, поэтому отсюда ведём туда, где они живут:
+  // метаданные OAuth — у сервера авторизации api.pachca.com (issuer), общий
+  // каталог ИИ-интерфейсов с API и MCP — на pachca.com. Так же поступает pachca.com.
+  {
+    source: '/.well-known/oauth-authorization-server',
+    destination: 'https://api.pachca.com/.well-known/oauth-authorization-server',
+    permanent: true,
+  },
+  {
+    source: '/.well-known/ai-catalog.json',
+    destination: 'https://pachca.com/.well-known/ai-catalog.json',
+    permanent: true,
+  },
+
   // ===== Корни разделов → стартовые страницы (иначе 404) =====
   { source: '/api', destination: '/api/authorization', permanent: false },
   { source: '/guides', destination: '/guides/quickstart', permanent: false },

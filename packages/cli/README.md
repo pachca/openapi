@@ -128,6 +128,7 @@ pachca auth switch bot-notify
 | Команда | Описание |
 |---------|---------|
 | `pachca messages list-pinned` | Список закреплённых сообщений |
+| `pachca messages get-history` | История сообщения |
 | `pachca messages create` | Новое сообщение |
 | `pachca messages list` | Список сообщений чата |
 | `pachca messages get` | Информация о сообщении |

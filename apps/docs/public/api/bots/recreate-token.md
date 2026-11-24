@@ -82,7 +82,7 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bots/1738816/recreate_token" 
     - `redirect_uris: array of string` (required) — Адреса возврата после согласия. Пример: `["https://example.com/oauth/callback"]`
     - `scopes: array of string` (required) — Права, которые бот запрашивает у сотрудника на экране согласия. Пример: `["messages:read","messages:create"]`
   - `promo: object` (required) — Страница бота в витрине. `null`, если авторизация у бота выключена.
-    - `description: string` (required, nullable) — Описание бота. `null`, если не задано. Пример: `"Собирает сводку по задачам Jira и присылает её в чат"`
+    - `description: string` (required, nullable) — Описание бота в Markdown. `null`, если не задано. Пример: `"Собирает сводку по задачам Jira и присылает её в чат"`
     - `published: boolean` (required) — Опубликован ли бот в витрине. Пример: `true`
     - `promo_images: array of object` (required) — Скриншоты страницы бота
       - `key: string` (required) — Ключ изображения. Пример: `"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png"`

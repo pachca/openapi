@@ -76,6 +76,7 @@ class AuditEventKey(OpenStrEnum):
     AUDIT_EVENTS_ACCESSED = "audit_events_accessed"  # Доступ к журналам аудита получен
     COMPANY_CHATS_ACCESSED = "company_chats_accessed"  # Получен список всех чатов пространства
     COMPANY_BOTS_ACCESSED = "company_bots_accessed"  # Получен список всех ботов пространства
+    COMPANY_MESSAGES_ACCESSED = "company_messages_accessed"  # Получена история сообщения
     DLP_VIOLATION_DETECTED = "dlp_violation_detected"  # Срабатывание правила DLP-системы
     SEARCH_USERS_API = "search_users_api"  # Поиск сотрудников через API
     SEARCH_CHATS_API = "search_chats_api"  # Поиск чатов через API
@@ -306,6 +307,24 @@ class MessageEntityType(OpenStrEnum):
     USER = "user"  # Пользователь
 
 
+class MessageHistoryAction(OpenStrEnum):
+    """Что произошло с состоянием сообщения"""
+
+    EDITED = "edited"  # Сообщение отредактировали
+    DELETED = "deleted"  # Сообщение удалили
+    CURRENT = "current"  # Текущее состояние сообщения
+    UNKNOWN = "unknown"  # Старая запись, по которой не определить, правка это или удаление
+
+
+class MessageHistorySource(OpenStrEnum):
+    """Кто изменил сообщение"""
+
+    EMPLOYEE = "employee"  # Сотрудник
+    BOT = "bot"  # Бот
+    DLP = "dlp"  # Правило DLP заменило текст
+    SYSTEM = "system"  # Сама Пачка, например когда прикрепляет к сообщению картинку по ссылке
+
+
 class MessageSearchSort(StrEnum):
     """Сортировка результатов поиска сообщений"""
 
@@ -322,6 +341,14 @@ class MessageSource(OpenStrEnum):
 
     APPLICATION = "application"  # Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника
     PERSONAL_TOKEN = "personal_token"  # Персональным токеном сотрудника
+
+
+class MessageTextUnavailableReason(OpenStrEnum):
+    """Почему текст состояния не пришёл"""
+
+    PERSONAL_CHAT_RULE = "personal_chat_rule"  # Сообщение из личной переписки, а выгрузка личных переписок в пространстве выключена
+    NO_KEY_SNAPSHOT = "no_key_snapshot"  # Старое зашифрованное состояние, для которого не сохранился ключ
+    DECRYPT_FAILED = "decrypt_failed"  # Текст не удалось расшифровать
 
 
 class OAuthErrorCode(OpenStrEnum):
@@ -386,6 +413,7 @@ class OAuthScope(OpenStrEnum):
     AUDIT_EVENTS_READ = "audit_events:read"  # Просмотр журнала аудита
     COMPANY_CHATS_READ = "company_chats:read"  # Просмотр списка всех чатов пространства
     COMPANY_BOTS_READ = "company_bots:read"  # Просмотр списка всех ботов пространства
+    COMPANY_MESSAGES_READ = "company_messages:read"  # Просмотр истории сообщений пространства
     TASKS_READ = "tasks:read"  # Просмотр напоминаний
     TASKS_CREATE = "tasks:create"  # Создание напоминаний
     TASKS_UPDATE = "tasks:update"  # Изменение напоминания
@@ -828,6 +856,11 @@ class AuditDetailsMessage:
     source: str
     thread_chat_id: int | None = None
     message_version_id: int | None = None
+
+
+@dataclass
+class AuditDetailsMessageId:
+    message_id: int
 
 
 @dataclass
@@ -1688,6 +1721,52 @@ class MessageCreateRequest:
 
 
 @dataclass
+class MessageHistoryFile:
+    id: int | None = None
+    name: str | None = None
+    file_type: FileType | None = None
+    size: int | None = None
+
+
+@dataclass
+class MessageHistoryMessage:
+    id: int
+    chat_id: int
+    user_id: int
+    created_at: datetime
+    thread_chat_id: int | None = None
+    author_id: int | None = None
+    deleted_at: datetime | None = None
+
+
+@dataclass
+class MessageHistoryMeta:
+    history_is_partial: bool
+    truncated: bool
+
+
+@dataclass
+class MessageHistoryResponse:
+    message: MessageHistoryMessage
+    data: list[MessageHistoryState]
+    meta: MessageHistoryMeta
+
+
+@dataclass
+class MessageHistoryState:
+    action: MessageHistoryAction
+    dlp_masked: bool
+    files: list[MessageHistoryFile]
+    version_id: int | None = None
+    editor_id: int | None = None
+    changed_at: datetime | None = None
+    source: MessageHistorySource | None = None
+    text: str | None = None
+    text_unavailable_reason: MessageTextUnavailableReason | None = None
+    content: str | None = None
+
+
+@dataclass
 class MessageUpdateRequestFile:
     key: str
     name: str
@@ -2318,7 +2397,7 @@ class UpdateUserAvatarRequest:
     image: bytes
 
 
-AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsMessage, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked, AuditDetailsDeviceAuthorizationApproved, AuditDetailsDeviceAuthorizationDenied, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled, AuditDetailsToken, AuditDetailsBotTokenUpdated, AuditDetailsUserLoginQr, AuditDetailsLoginGrantCreated, AuditDetailsLoginGrantApproved, AuditDetailsLoginGrantDenied]
+AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsMessageId, AuditDetailsMessage, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked, AuditDetailsDeviceAuthorizationApproved, AuditDetailsDeviceAuthorizationDenied, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled, AuditDetailsToken, AuditDetailsBotTokenUpdated, AuditDetailsUserLoginQr, AuditDetailsLoginGrantCreated, AuditDetailsLoginGrantApproved, AuditDetailsLoginGrantDenied]
 
 
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]
@@ -2581,6 +2660,11 @@ class ListCompanyBotsResponse:
 class ListCompanyChatsResponse:
     data: list[Chat]
     meta: PaginationMeta
+
+
+@dataclass
+class GetMessageHistoryResponse:
+    data: list[MessageHistoryState]
 
 
 @dataclass

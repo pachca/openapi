@@ -765,6 +765,7 @@ enum ValidationErrorCode {
   audit_events_accessed: "Доступ к журналам аудита получен",
   company_chats_accessed: "Получен список всех чатов пространства",
   company_bots_accessed: "Получен список всех ботов пространства",
+  company_messages_accessed: "Получена история сообщения",
   dlp_violation_detected: "Срабатывание правила DLP-системы",
   search_users_api: "Поиск сотрудников через API",
   search_chats_api: "Поиск чатов через API",
@@ -902,6 +903,9 @@ enum AuditEventKey {
 
   @doc("Получен список всех ботов пространства")
   company_bots_accessed: "company_bots_accessed",
+
+  @doc("Получена история сообщения")
+  company_messages_accessed: "company_messages_accessed",
 
   @doc("Срабатывание правила DLP-системы")
   dlp_violation_detected: "dlp_violation_detected",
@@ -1917,6 +1921,7 @@ model InviteLink {
   audit_events_read: "Просмотр журнала аудита",
   company_chats_read: "Просмотр списка всех чатов пространства",
   company_bots_read: "Просмотр списка всех ботов пространства",
+  company_messages_read: "Просмотр истории сообщений пространства",
   tasks_read: "Просмотр напоминаний",
   tasks_create: "Создание напоминаний",
   tasks_update: "Изменение напоминания",
@@ -1981,6 +1986,7 @@ model InviteLink {
   audit_events_read: #["owner"],
   company_chats_read: #["owner"],
   company_bots_read: #["owner"],
+  company_messages_read: #["owner"],
   tasks_read: #["owner", "admin", "user", "multi_guest", "bot"],
   tasks_create: #["owner", "admin", "user", "multi_guest", "bot"],
   tasks_update: #["owner", "admin", "user", "multi_guest", "bot"],
@@ -2135,6 +2141,9 @@ enum OAuthScope {
 
   @doc("Просмотр списка всех ботов пространства")
   company_bots_read: "company_bots:read",
+
+  @doc("Просмотр истории сообщений пространства")
+  company_messages_read: "company_messages:read",
 
   @doc("Просмотр напоминаний")
   tasks_read: "tasks:read",
@@ -4009,7 +4018,7 @@ model BotOAuthClient {
 
 @doc("Страница бота в витрине")
 model BotPromoRequest {
-  @doc("Описание: чем бот занимается и зачем его подключать. Без описания бота нельзя опубликовать.")
+  @doc("Описание: чем бот занимается и зачем его подключать, в Markdown. Без описания бота нельзя опубликовать. Витрина показывает жирный, курсив, зачёркнутый текст, ссылки, списки, цитаты и код. Если в описании есть заголовок, таблица, картинка, чек-лист, горизонтальная линия или определение ссылки вида `[1]: https://example.com`, витрина показывает всё описание обычным текстом с символами разметки.")
   @example("Собирает сводку по задачам Jira и присылает её в чат")
   description?: string;
 
@@ -4037,7 +4046,7 @@ model BotPromoImage {
 
 @doc("Страница бота в витрине")
 model BotPromo {
-  @doc("Описание бота. `null`, если не задано.")
+  @doc("Описание бота в Markdown. `null`, если не задано.")
   @example("Собирает сводку по задачам Jira и присылает её в чат")
   description: string | null;
 
@@ -4527,6 +4536,12 @@ model AuditDetailsTagChat {
   tag_name: string;
 }
 
+@doc("При: company_messages_accessed")
+model AuditDetailsMessageId {
+  @doc("Идентификатор сообщения, историю которого запросили")
+  message_id: int32;
+}
+
 @doc("При: tag_removed_from_chat")
 model AuditDetailsChatId {
   @doc("Идентификатор чата")
@@ -4539,10 +4554,10 @@ model AuditDetailsMessage {
   chat_id: int32;
   @doc("Идентификатор чата треда. Есть только у сообщений в тредах.")
   thread_chat_id?: int32;
-  @doc("Кто изменил сообщение: `employee` — сотрудник, `bot` — бот, `dlp` — правило DLP заменило текст (актор — автор сообщения), `system` — сама Пачка, например когда прикрепляет к сообщению картинку по ссылке. У message_deleted приходит `employee` или `bot`.")
+  @doc("Кто изменил сообщение: `employee` — сотрудник, `bot` — бот, `dlp` — правило DLP заменило текст (актор — отправитель сообщения), `system` — сама Пачка, например когда прикрепляет к сообщению картинку по ссылке. У message_deleted приходит `employee` или `bot`.")
   source: string;
-  @doc("Идентификатор версии сообщения: снимка его текста и файлов до правки или на момент удаления. После DLP текст в снимке скрыт. Нет, если правка не затронула текст и файлы или удалённое сообщение было пустым.")
-  message_version_id?: int32;
+  @doc("Идентификатор версии сообщения: снимка его текста и файлов до правки или на момент удаления. После DLP текст в снимке скрыт. Нет, если правка не затронула текст и файлы или удалённое сообщение было пустым. Совпадает с `version_id` состояния в [истории сообщения](GET /company/messages/{id}/history).")
+  message_version_id?: int64;
 }
 
 @doc("При: access_token_created, access_token_updated, access_token_destroy в записях до 7 октября 2026 года")
@@ -4984,6 +4999,7 @@ union AuditEventDetailsUnion {
   AuditDetailsChatPermission,
   AuditDetailsTagChat,
   AuditDetailsChatId,
+  AuditDetailsMessageId,
   AuditDetailsMessage,
   AuditDetailsTokenScopes,
   AuditDetailsKms,
@@ -10936,6 +10952,267 @@ interface CompanyBotOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 402;
+    @body body: ApiError;
+  };
+}
+
+@doc("Что произошло с состоянием сообщения")
+@extension("x-enum-descriptions", #{
+  edited: "Сообщение отредактировали",
+  deleted: "Сообщение удалили",
+  current: "Текущее состояние сообщения",
+  `unknown`: "Старая запись, по которой не определить, правка это или удаление",
+})
+enum MessageHistoryAction {
+  @doc("Сообщение отредактировали")
+  edited: "edited",
+
+  @doc("Сообщение удалили")
+  deleted: "deleted",
+
+  @doc("Текущее состояние сообщения")
+  current: "current",
+
+  @doc("Старая запись, по которой не определить, правка это или удаление")
+  `unknown`: "unknown",
+}
+
+@doc("Кто изменил сообщение")
+@extension("x-enum-descriptions", #{
+  employee: "Сотрудник",
+  bot: "Бот",
+  dlp: "Правило DLP заменило текст",
+  system: "Сама Пачка, например когда прикрепляет к сообщению картинку по ссылке",
+})
+enum MessageHistorySource {
+  @doc("Сотрудник")
+  employee: "employee",
+
+  @doc("Бот")
+  bot: "bot",
+
+  @doc("Правило DLP заменило текст")
+  dlp: "dlp",
+
+  @doc("Сама Пачка, например когда прикрепляет к сообщению картинку по ссылке")
+  system: "system",
+}
+
+@doc("Почему текст состояния не пришёл")
+@extension("x-enum-descriptions", #{
+  personal_chat_rule: "Сообщение из личной переписки, а выгрузка личных переписок в пространстве выключена",
+  no_key_snapshot: "Старое зашифрованное состояние, для которого не сохранился ключ",
+  decrypt_failed: "Текст не удалось расшифровать",
+})
+enum MessageTextUnavailableReason {
+  @doc("Сообщение из личной переписки, а выгрузка личных переписок в пространстве выключена")
+  personal_chat_rule: "personal_chat_rule",
+
+  @doc("Старое зашифрованное состояние, для которого не сохранился ключ")
+  no_key_snapshot: "no_key_snapshot",
+
+  @doc("Текст не удалось расшифровать")
+  decrypt_failed: "decrypt_failed",
+}
+
+@doc("Сообщение, историю которого запросили. Текста в нём нет: текст приходит в состояниях.")
+model MessageHistoryMessage {
+  @doc("Идентификатор сообщения")
+  @example(194275)
+  id: int32;
+
+  @doc("Идентификатор чата сообщения. У сообщения в треде это чат сообщения-родителя треда, а у самостоятельного треда чат самого треда.")
+  @example(334)
+  chat_id: int32;
+
+  @doc("Идентификатор чата треда. `null`, если сообщение не в треде.")
+  @example(null)
+  thread_chat_id: int32 | null;
+
+  @doc("Идентификатор отправителя. У пересланного сообщения это тот, кто его переслал.")
+  @example(12)
+  user_id: int32;
+
+  @doc("Идентификатор автора исходного сообщения, если сообщение переслали. `null` у сообщения, которое не пересылали.")
+  @example(null)
+  author_id: int32 | null;
+
+  @doc("Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @example(utcDateTime.fromISO("2026-11-24T09:15:00.000Z"))
+  created_at: utcDateTime;
+
+  @doc("Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если сообщение не удалено.")
+  @example(null)
+  deleted_at: utcDateTime | null;
+}
+
+@doc("Файл в состоянии сообщения. Ссылки на скачивание нет. В старых записях часть полей может отсутствовать или прийти `null`.")
+model MessageHistoryFile {
+  @doc("Идентификатор файла")
+  @example(3560)
+  id?: int32 | null;
+
+  @doc("Название файла с расширением")
+  @example("report.pdf")
+  name?: string | null;
+
+  @doc("Тип файла")
+  @example(FileType.file)
+  file_type?: FileType | null;
+
+  @doc("Размер файла в байтах")
+  @example(48213)
+  size?: int64 | null;
+}
+
+@doc("Состояние сообщения: текст и файлы до изменения, которое его закончило, и само это изменение")
+model MessageHistoryState {
+  @doc("Идентификатор изменения, которым закончилось состояние. Совпадает с `message_version_id` событий `message_updated` и `message_deleted` в [журнале аудита](GET /audit_events). `null` у текущего состояния.")
+  @example(81234)
+  version_id: int64 | null;
+
+  @doc("Идентификатор сотрудника или бота, который внёс изменение. У изменений правила DLP и самой Пачки это отправитель сообщения. `null` у текущего состояния.")
+  @example(12)
+  editor_id: int32 | null;
+
+  @doc("Дата и время изменения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У текущего состояния это время последнего изменения сообщения, у давно не менявшегося сообщения может прийти `null`.")
+  @example(utcDateTime.fromISO("2026-11-24T09:20:00.000Z"))
+  changed_at: utcDateTime | null;
+
+  @doc("Чем закончилось состояние")
+  @example(MessageHistoryAction.edited)
+  action: MessageHistoryAction;
+
+  @doc("Кто внёс изменение. `null` у текущего состояния и в старых записях.")
+  @example(MessageHistorySource.employee)
+  source: MessageHistorySource | null;
+
+  @doc("Текст скрыт правилом DLP: вместо него приходит `***`, прежний текст не восстанавливается.")
+  @example(false)
+  dlp_masked: boolean;
+
+  @doc("Текст без форматирования, если сообщение хранит текст в таком виде. `null`, если такого текста нет или его не удалось получить.")
+  @example(null)
+  text: string | null;
+
+  @doc("Почему не пришёл текст в `text` или `content`. `null`, если текст пришёл или его в состоянии нет. В личной переписке при выключенной выгрузке личных переписок приходит `personal_chat_rule` у каждого состояния, даже без текста.")
+  @example(null)
+  text_unavailable_reason: MessageTextUnavailableReason | null;
+
+  @doc("Текст в Markdown, если сообщение хранит текст в таком виде. Пустая строка или `null`, если текст хранится в `text`, текста в состоянии нет или его не удалось получить.")
+  @example("Релиз переносим на четверг")
+  content: string | null;
+
+  @doc("Файлы сообщения в этом состоянии")
+  files: MessageHistoryFile[];
+}
+
+@doc("Полнота истории")
+model MessageHistoryMeta {
+  @doc("Ранние состояния известны не полностью: сообщение создано до 22 апреля 2026 года, удалено до 15 августа 2026 года, удалено без снимка на момент удаления или изменения его файлов нельзя восстановить однозначно.")
+  @example(false)
+  history_is_partial: boolean;
+
+  @doc("Изменений больше 50: в историю вошли только 50 последних.")
+  @example(false)
+  truncated: boolean;
+}
+
+@doc("История сообщения")
+model MessageHistoryResponse {
+  @doc("Сообщение, историю которого запросили")
+  message: MessageHistoryMessage;
+
+  @doc("Состояния сообщения от самого раннего к последнему. В историю входят 50 последних изменений. У удалённого сообщения без сохранённых состояний массив пустой, у сообщения, которое не меняли, в нём одно текущее состояние.")
+  data: MessageHistoryState[];
+
+  @doc("Полнота истории")
+  meta: MessageHistoryMeta;
+}
+
+@route("/company/messages/{id}/history")
+@tag("Messages")
+interface CompanyMessageOperations {
+  @extension("x-requirements", #{
+    scope: "company_messages:read",
+    plan: "corporation",
+  })
+  @doc("""
+История сообщения
+
+Сохранённые состояния сообщения от раннего к последнему: текст и файлы до каждой правки текста или файлов и на момент удаления, кто и когда их изменил. В историю входят 50 последних изменений. Сообщение может быть из любого чата пространства, включая закрытые чаты, где вы не состоите, личные переписки и треды. Удалённое сообщение тоже отдаётся.
+
+Каждое состояние в `data`, кроме текущего, заканчивается правкой или удалением. Последнее состояние живого сообщения текущее (`action: current`), а удалённого — снимок на момент удаления (`action: deleted`), если снимок сохранился. `version_id` совпадает с `message_version_id` событий `message_updated` и `message_deleted` в [журнале аудита событий](GET /audit_events): так от записи журнала переходят к тексту до правки или удаления.
+
+Текст личных переписок и тредов в них приходит, только если поле `export_personal_chats` метода [Информация о пространстве](GET /company) равно `true`. Иначе `text` и `content` у их состояний — `null` с причиной `personal_chat_rule`, а файлы, авторы и время изменений приходят.
+
+Метод доступен владельцу пространства. Каждый успешный запрос записывается в [журнал аудита событий](/guides/audit-events) с типом `company_messages_accessed`. Сообщение другого пространства отвечает `404`, как несуществующее. Если сервис временно недоступен, метод отвечает `503` с кодом `service_unavailable`.
+""")
+  @get
+  @opExample(#{
+    parameters: #{ id: 194275 },
+    returnType: #{
+      _: 200,
+      body: #{
+        message: #{
+          id: 194275,
+          chat_id: 334,
+          thread_chat_id: null,
+          user_id: 12,
+          author_id: null,
+          created_at: utcDateTime.fromISO("2026-11-24T09:15:00.000Z"),
+          deleted_at: null,
+        },
+        data: #[
+          #{
+            version_id: 81234,
+            editor_id: 12,
+            changed_at: utcDateTime.fromISO("2026-11-24T09:20:00.000Z"),
+            action: MessageHistoryAction.edited,
+            source: MessageHistorySource.employee,
+            dlp_masked: false,
+            text: null,
+            text_unavailable_reason: null,
+            content: "Релиз в среду",
+            files: #[],
+          },
+          #{
+            version_id: null,
+            editor_id: null,
+            changed_at: utcDateTime.fromISO("2026-11-24T09:20:00.000Z"),
+            action: MessageHistoryAction.current,
+            source: null,
+            dlp_masked: false,
+            text: null,
+            text_unavailable_reason: null,
+            content: "Релиз переносим на четверг",
+            files: #[#{ id: 3560, name: "report.pdf", file_type: FileType.file, size: 48213 }],
+          },
+        ],
+        meta: #{ history_is_partial: false, truncated: false },
+      },
+    },
+  })
+  getMessageHistory(
+    @doc("Идентификатор сообщения")
+    @path id: int32
+  ): {
+    @statusCode _: 200;
+    @body body: MessageHistoryResponse;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 503;
     @body body: ApiError;
   };
 }

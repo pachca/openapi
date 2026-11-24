@@ -30,7 +30,8 @@ finds exactly one match.
 - Who has API access and who may create it (the access settings); revoking
   employees' access.
 - The workspace name and settings; the invite link.
-- Audit log, message export, DLP rules, IP allowlist and encryption (Corporation).
+- Audit log, message history (the former text of an edited or deleted message), message export,
+  DLP rules, IP allowlist and encryption (Corporation).
 
 Not here: sending messages (pachca-messaging), reading who is in a tag or chat
 and other searches (pachca-search), creating bots and managing their own tokens
@@ -45,31 +46,33 @@ open methods; they never widen visibility. Check before planning:
 1. Role: read the own profile (`pachca_get_my_card`, CLI `pachca profile get`).
    `role` is `admin`, `user`, `multi_guest` or `guest`.
 2. Scopes: `pachca_get_token_info` (CLI `pachca oauth token-info`).
-3. Plan: audit log, export, workspace inventory, DLP and data protection need
+3. Plan: audit log, message history, export, workspace inventory, DLP and data protection need
    the «Корпорация» plan. The workspace info (`pachca_get_company`, CLI
    `pachca company get`) names the plan in `plan`, always in Russian, for
    example «Корпорация». Without that, say you are unsure and ask.
 
-| Role               | `role` value           | Admin powers                                                                                                                                                               |
-| ------------------ | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Owner              | `admin`                | Everything an Administrator has, plus members of any chat. On Corporation also export, audit log, all chats and bots of the workspace, DLP, the Security screen. Only one. |
-| Administrator      | `admin`                | Employees, tags, workspace settings                                                                                                                                        |
-| Employee           | `user`                 | None                                                                                                                                                                       |
-| Multi-guest, Guest | `multi_guest`, `guest` | None; a guest cannot use the API at all                                                                                                                                    |
+| Role               | `role` value           | Admin powers                                                                                                                                                                                |
+| ------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Owner              | `admin`                | Everything an Administrator has, plus members of any chat. On Corporation also export, audit log, message history, all chats and bots of the workspace, DLP, the Security screen. Only one. |
+| Administrator      | `admin`                | Employees, tags, workspace settings                                                                                                                                                         |
+| Employee           | `user`                 | None                                                                                                                                                                                        |
+| Multi-guest, Guest | `multi_guest`, `guest` | None; a guest cannot use the API at all                                                                                                                                                     |
 
 The Owner is **not** distinguishable by `role` in API responses: the profile
 shows `admin`. Over MCP you do not need to ask: the server instructions name
 you as «Name (id), token kind, role», and that role is `owner` for the Owner.
 On Corporation the tool list gives it away too: only the Owner gets
 `pachca_get_audit_events`, `pachca_request_export`, `pachca_download_export`,
-`pachca_list_company_chats` and `pachca_list_company_bots`. Over the CLI or
+`pachca_list_company_chats`, `pachca_list_company_bots` and
+`pachca_get_message_history`. Over the CLI or
 REST, compare your own `id` with `owner_id` in the workspace info. If the token
 cannot read it, ask the person whether they are the Owner instead of guessing. Do not
 probe owner-only methods "to see": each call to the audit log or the workspace
 inventory is itself written to the audit log.
 
 Owner-only scopes (Corporation): `chat_exports:read`, `chat_exports:write`,
-`audit_events:read`, `company_chats:read`, `company_bots:read`.
+`audit_events:read`, `company_chats:read`, `company_bots:read`,
+`company_messages:read`.
 Owner and Administrator: `users:create`, `users:update`, `users:delete`,
 `user_status:write`, `user_avatar:write`, `group_tags:write`, `company:write`,
 `invite_links:write`. A bot token cannot create, edit or delete employees,
@@ -245,8 +248,8 @@ under Integrations > API. `pachca_get_company` shows them in
 change only in the web interface: `pachca_update_company` ignores them. Tell
 the person where to click.
 
-**Security and compliance** (Owner, Corporation): audit log, export, DLP rules,
-IP allowlist and encryption. Procedures and warnings are in
+**Security and compliance** (Owner, Corporation): audit log, message history,
+export, DLP rules, IP allowlist and encryption. Procedures and warnings are in
 [references/security-compliance.md](references/security-compliance.md).
 
 ## Pitfalls
@@ -266,8 +269,8 @@ IP allowlist and encryption. Procedures and warnings are in
   they are `null` unless the workspace allows showing personal data
   (`show_personal_data` in `pachca_get_company`); Owner and Administrators
   always see them.
-- Inventory has its own strict rate limit, shared by the chats and bots lists
-  and reading the invite link
+- Inventory has its own strict rate limit, shared by the chats and bots lists,
+  reading the invite link and message history
   ([limits](https://dev.pachca.com/api/limits.md)): spread a large walk over
   time.
 

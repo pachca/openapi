@@ -90,6 +90,8 @@ public readonly struct AuditEventKey : IEquatable<AuditEventKey>
     public static AuditEventKey CompanyChatsAccessed { get; } = new("company_chats_accessed");
     /// <summary>Получен список всех ботов пространства</summary>
     public static AuditEventKey CompanyBotsAccessed { get; } = new("company_bots_accessed");
+    /// <summary>Получена история сообщения</summary>
+    public static AuditEventKey CompanyMessagesAccessed { get; } = new("company_messages_accessed");
     /// <summary>Срабатывание правила DLP-системы</summary>
     public static AuditEventKey DlpViolationDetected { get; } = new("dlp_violation_detected");
     /// <summary>Поиск сотрудников через API</summary>
@@ -142,7 +144,7 @@ public readonly struct AuditEventKey : IEquatable<AuditEventKey>
     public static AuditEventKey ExchangeDisabled { get; } = new("exchange_disabled");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<AuditEventKey> Values { get; } = Array.AsReadOnly(new[] { UserLogin, UserLogout, User2faFail, User2faSuccess, User2faDisabled, LoginGrantCreated, LoginGrantApproved, LoginGrantDenied, UserCreated, UserDeleted, UserRoleChanged, UserUpdated, TagCreated, TagDeleted, UserAddedToTag, UserRemovedFromTag, ChatCreated, ChatRenamed, ChatPermissionChanged, UserChatJoin, UserChatLeave, TagAddedToChat, TagRemovedFromChat, MessageUpdated, MessageDeleted, MessageCreated, ReactionCreated, ReactionDeleted, ThreadCreated, AccessTokenCreated, AccessTokenUpdated, AccessTokenDestroy, KmsEncrypt, KmsDecrypt, AuditEventsAccessed, CompanyChatsAccessed, CompanyBotsAccessed, DlpViolationDetected, SearchUsersApi, SearchChatsApi, SearchMessagesApi, BotScopesUpdated, BotWebhookSettingsUpdated, BotTokenRecreated, BotDeleted, BotOauthClientUpdated, BotOauthClientDisabled, BotOauthClientSecretRotated, BotOauthClientSecretIssued, BotTokenCreated, BotTokenUpdated, BotTokenReissued, BotTokenDeleted, OauthAuthorizationGranted, OauthAuthorizationRevoked, OauthTokenRevoked, OauthDeviceAuthorizationApproved, OauthDeviceAuthorizationDenied, VideoCallStarted, VideoCallFinished, VideoCallRecordingReady, ExchangeDisabled });
+    public static IReadOnlyList<AuditEventKey> Values { get; } = Array.AsReadOnly(new[] { UserLogin, UserLogout, User2faFail, User2faSuccess, User2faDisabled, LoginGrantCreated, LoginGrantApproved, LoginGrantDenied, UserCreated, UserDeleted, UserRoleChanged, UserUpdated, TagCreated, TagDeleted, UserAddedToTag, UserRemovedFromTag, ChatCreated, ChatRenamed, ChatPermissionChanged, UserChatJoin, UserChatLeave, TagAddedToChat, TagRemovedFromChat, MessageUpdated, MessageDeleted, MessageCreated, ReactionCreated, ReactionDeleted, ThreadCreated, AccessTokenCreated, AccessTokenUpdated, AccessTokenDestroy, KmsEncrypt, KmsDecrypt, AuditEventsAccessed, CompanyChatsAccessed, CompanyBotsAccessed, CompanyMessagesAccessed, DlpViolationDetected, SearchUsersApi, SearchChatsApi, SearchMessagesApi, BotScopesUpdated, BotWebhookSettingsUpdated, BotTokenRecreated, BotDeleted, BotOauthClientUpdated, BotOauthClientDisabled, BotOauthClientSecretRotated, BotOauthClientSecretIssued, BotTokenCreated, BotTokenUpdated, BotTokenReissued, BotTokenDeleted, OauthAuthorizationGranted, OauthAuthorizationRevoked, OauthTokenRevoked, OauthDeviceAuthorizationApproved, OauthDeviceAuthorizationDenied, VideoCallStarted, VideoCallFinished, VideoCallRecordingReady, ExchangeDisabled });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -1274,6 +1276,110 @@ internal class MessageEntityTypeConverter : JsonConverter<MessageEntityType>
         writer.WriteStringValue(value.Value);
 }
 
+/// <summary>Что произошло с состоянием сообщения</summary>
+[JsonConverter(typeof(MessageHistoryActionConverter))]
+public readonly struct MessageHistoryAction : IEquatable<MessageHistoryAction>
+{
+    private readonly string? _value;
+
+    public MessageHistoryAction(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Сообщение отредактировали</summary>
+    public static MessageHistoryAction Edited { get; } = new("edited");
+    /// <summary>Сообщение удалили</summary>
+    public static MessageHistoryAction Deleted { get; } = new("deleted");
+    /// <summary>Текущее состояние сообщения</summary>
+    public static MessageHistoryAction Current { get; } = new("current");
+    /// <summary>Старая запись, по которой не определить, правка это или удаление</summary>
+    public static MessageHistoryAction Unknown { get; } = new("unknown");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<MessageHistoryAction> Values { get; } = Array.AsReadOnly(new[] { Edited, Deleted, Current, Unknown });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(MessageHistoryAction left, MessageHistoryAction right) => left.Equals(right);
+    public static bool operator !=(MessageHistoryAction left, MessageHistoryAction right) => !left.Equals(right);
+    public static implicit operator MessageHistoryAction(string value) => new(value);
+    public bool Equals(MessageHistoryAction other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is MessageHistoryAction other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class MessageHistoryActionConverter : JsonConverter<MessageHistoryAction>
+{
+    public override MessageHistoryAction Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, MessageHistoryAction value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
+/// <summary>Кто изменил сообщение</summary>
+[JsonConverter(typeof(MessageHistorySourceConverter))]
+public readonly struct MessageHistorySource : IEquatable<MessageHistorySource>
+{
+    private readonly string? _value;
+
+    public MessageHistorySource(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Сотрудник</summary>
+    public static MessageHistorySource Employee { get; } = new("employee");
+    /// <summary>Бот</summary>
+    public static MessageHistorySource Bot { get; } = new("bot");
+    /// <summary>Правило DLP заменило текст</summary>
+    public static MessageHistorySource Dlp { get; } = new("dlp");
+    /// <summary>Сама Пачка, например когда прикрепляет к сообщению картинку по ссылке</summary>
+    public static MessageHistorySource System { get; } = new("system");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<MessageHistorySource> Values { get; } = Array.AsReadOnly(new[] { Employee, Bot, Dlp, System });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(MessageHistorySource left, MessageHistorySource right) => left.Equals(right);
+    public static bool operator !=(MessageHistorySource left, MessageHistorySource right) => !left.Equals(right);
+    public static implicit operator MessageHistorySource(string value) => new(value);
+    public bool Equals(MessageHistorySource other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is MessageHistorySource other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class MessageHistorySourceConverter : JsonConverter<MessageHistorySource>
+{
+    public override MessageHistorySource Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, MessageHistorySource value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
 /// <summary>Сортировка результатов поиска сообщений</summary>
 [JsonConverter(typeof(MessageSearchSortConverter))]
 public enum MessageSearchSort
@@ -1384,6 +1490,56 @@ internal class MessageSourceConverter : JsonConverter<MessageSource>
         new(reader.GetString() ?? "");
 
     public override void Write(Utf8JsonWriter writer, MessageSource value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
+/// <summary>Почему текст состояния не пришёл</summary>
+[JsonConverter(typeof(MessageTextUnavailableReasonConverter))]
+public readonly struct MessageTextUnavailableReason : IEquatable<MessageTextUnavailableReason>
+{
+    private readonly string? _value;
+
+    public MessageTextUnavailableReason(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Сообщение из личной переписки, а выгрузка личных переписок в пространстве выключена</summary>
+    public static MessageTextUnavailableReason PersonalChatRule { get; } = new("personal_chat_rule");
+    /// <summary>Старое зашифрованное состояние, для которого не сохранился ключ</summary>
+    public static MessageTextUnavailableReason NoKeySnapshot { get; } = new("no_key_snapshot");
+    /// <summary>Текст не удалось расшифровать</summary>
+    public static MessageTextUnavailableReason DecryptFailed { get; } = new("decrypt_failed");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<MessageTextUnavailableReason> Values { get; } = Array.AsReadOnly(new[] { PersonalChatRule, NoKeySnapshot, DecryptFailed });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(MessageTextUnavailableReason left, MessageTextUnavailableReason right) => left.Equals(right);
+    public static bool operator !=(MessageTextUnavailableReason left, MessageTextUnavailableReason right) => !left.Equals(right);
+    public static implicit operator MessageTextUnavailableReason(string value) => new(value);
+    public bool Equals(MessageTextUnavailableReason other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is MessageTextUnavailableReason other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class MessageTextUnavailableReasonConverter : JsonConverter<MessageTextUnavailableReason>
+{
+    public override MessageTextUnavailableReason Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, MessageTextUnavailableReason value, JsonSerializerOptions options) =>
         writer.WriteStringValue(value.Value);
 }
 
@@ -1547,6 +1703,8 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope CompanyChatsRead { get; } = new("company_chats:read");
     /// <summary>Просмотр списка всех ботов пространства</summary>
     public static OAuthScope CompanyBotsRead { get; } = new("company_bots:read");
+    /// <summary>Просмотр истории сообщений пространства</summary>
+    public static OAuthScope CompanyMessagesRead { get; } = new("company_messages:read");
     /// <summary>Просмотр напоминаний</summary>
     public static OAuthScope TasksRead { get; } = new("tasks:read");
     /// <summary>Создание напоминаний</summary>
@@ -1581,7 +1739,7 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope ImportantMessagesWrite { get; } = new("important_messages:write");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsMarkRead, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileWrite, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, CompanyRead, CompanyWrite, InviteLinksWrite, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, UploadsWrite, ViewsWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
+    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsMarkRead, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileWrite, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, CompanyRead, CompanyWrite, InviteLinksWrite, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, CompanyMessagesRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, UploadsWrite, ViewsWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -2443,6 +2601,7 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         (typeof(AuditDetailsChatPermission), new HashSet<string> { "public_access" }),
         (typeof(AuditDetailsTagChat), new HashSet<string> { "chat_id", "tag_name" }),
         (typeof(AuditDetailsChatId), new HashSet<string> { "chat_id" }),
+        (typeof(AuditDetailsMessageId), new HashSet<string> { "message_id" }),
         (typeof(AuditDetailsMessage), new HashSet<string> { "chat_id", "thread_chat_id", "source", "message_version_id" }),
         (typeof(AuditDetailsTokenScopes), new HashSet<string> { "scopes" }),
         (typeof(AuditDetailsKms), new HashSet<string> { "chat_id", "message_id", "reason" }),
@@ -2583,6 +2742,12 @@ public class AuditDetailsChatId : AuditEventDetailsUnion
     public int ChatId { get; set; } = default!;
 }
 
+public class AuditDetailsMessageId : AuditEventDetailsUnion
+{
+    [JsonPropertyName("message_id")]
+    public int MessageId { get; set; } = default!;
+}
+
 public class AuditDetailsMessage : AuditEventDetailsUnion
 {
     [JsonPropertyName("chat_id")]
@@ -2592,7 +2757,7 @@ public class AuditDetailsMessage : AuditEventDetailsUnion
     [JsonPropertyName("source")]
     public string Source { get; set; } = default!;
     [JsonPropertyName("message_version_id")]
-    public int? MessageVersionId { get; set; }
+    public long? MessageVersionId { get; set; }
 }
 
 public class AuditDetailsTokenScopes : AuditEventDetailsUnion
@@ -3414,6 +3579,7 @@ internal static class UnionRequiredKeys
         ["AuditDetailsChatPermission"] = (new[] { "public_access" }, Array.Empty<(string, string)>()),
         ["AuditDetailsTagChat"] = (new[] { "chat_id", "tag_name" }, Array.Empty<(string, string)>()),
         ["AuditDetailsChatId"] = (new[] { "chat_id" }, Array.Empty<(string, string)>()),
+        ["AuditDetailsMessageId"] = (new[] { "message_id" }, Array.Empty<(string, string)>()),
         ["AuditDetailsMessage"] = (new[] { "chat_id", "source" }, Array.Empty<(string, string)>()),
         ["AuditDetailsTokenScopes"] = (new[] { "scopes" }, Array.Empty<(string, string)>()),
         ["AuditDetailsKms"] = (new[] { "chat_id", "message_id", "reason" }, Array.Empty<(string, string)>()),
@@ -4692,6 +4858,78 @@ public class MessageCreateRequest
     public bool? LinkPreview { get; set; }
 }
 
+public class MessageHistoryFile
+{
+    [JsonPropertyName("id")]
+    public int? Id { get; set; }
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+    [JsonPropertyName("file_type")]
+    public FileType? FileType { get; set; }
+    [JsonPropertyName("size")]
+    public long? Size { get; set; }
+}
+
+public class MessageHistoryMessage
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
+    [JsonPropertyName("chat_id")]
+    public int ChatId { get; set; } = default!;
+    [JsonPropertyName("thread_chat_id")]
+    public int? ThreadChatId { get; set; }
+    [JsonPropertyName("user_id")]
+    public int UserId { get; set; } = default!;
+    [JsonPropertyName("author_id")]
+    public int? AuthorId { get; set; }
+    [JsonPropertyName("created_at")]
+    public DateTimeOffset CreatedAt { get; set; } = default!;
+    [JsonPropertyName("deleted_at")]
+    public DateTimeOffset? DeletedAt { get; set; }
+}
+
+public class MessageHistoryMeta
+{
+    [JsonPropertyName("history_is_partial")]
+    public bool HistoryIsPartial { get; set; } = default!;
+    [JsonPropertyName("truncated")]
+    public bool Truncated { get; set; } = default!;
+}
+
+public class MessageHistoryResponse
+{
+    [JsonPropertyName("message")]
+    public MessageHistoryMessage Message { get; set; } = default!;
+    [JsonPropertyName("data")]
+    public List<MessageHistoryState> Data { get; set; } = default!;
+    [JsonPropertyName("meta")]
+    public MessageHistoryMeta Meta { get; set; } = default!;
+}
+
+public class MessageHistoryState
+{
+    [JsonPropertyName("version_id")]
+    public long? VersionId { get; set; }
+    [JsonPropertyName("editor_id")]
+    public int? EditorId { get; set; }
+    [JsonPropertyName("changed_at")]
+    public DateTimeOffset? ChangedAt { get; set; }
+    [JsonPropertyName("action")]
+    public MessageHistoryAction Action { get; set; } = default!;
+    [JsonPropertyName("source")]
+    public MessageHistorySource? Source { get; set; }
+    [JsonPropertyName("dlp_masked")]
+    public bool DlpMasked { get; set; } = default!;
+    [JsonPropertyName("text")]
+    public string? Text { get; set; }
+    [JsonPropertyName("text_unavailable_reason")]
+    public MessageTextUnavailableReason? TextUnavailableReason { get; set; }
+    [JsonPropertyName("content")]
+    public string? Content { get; set; }
+    [JsonPropertyName("files")]
+    public List<MessageHistoryFile> Files { get; set; } = default!;
+}
+
 public class MessageUpdateRequestFile
 {
     [JsonPropertyName("key")]
@@ -5460,6 +5698,12 @@ public class ListCompanyChatsResponse
     public List<Chat> Data { get; set; } = new();
     [JsonPropertyName("meta")]
     public PaginationMeta Meta { get; set; } = default!;
+}
+
+public class GetMessageHistoryResponse
+{
+    [JsonPropertyName("data")]
+    public List<MessageHistoryState> Data { get; set; } = new();
 }
 
 public class ListPropertiesResponse

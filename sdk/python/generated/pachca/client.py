@@ -70,6 +70,7 @@ from .models import (
     ListPinnedMessagesParams,
     ListPinnedMessagesResponse,
     Message,
+    GetMessageHistoryResponse,
     ListChatMessagesParams,
     ListChatMessagesResponse,
     MessageSortField,
@@ -1467,6 +1468,12 @@ class MessagesService:
     ) -> list[Message]:
         raise NotImplementedError("Messages.listPinnedMessagesAll is not implemented")
 
+    async def get_message_history(
+        self,
+        id: int,
+    ) -> GetMessageHistoryResponse:
+        raise NotImplementedError("Messages.getMessageHistory is not implemented")
+
     async def list_chat_messages(
         self,
         params: ListChatMessagesParams,
@@ -1568,6 +1575,19 @@ class MessagesServiceImpl(MessagesService):
             reported_has_next = getattr(response.meta.paginate, "has_next", None)
             has_next = True if reported_has_next is None else reported_has_next
         return items
+
+    async def get_message_history(
+        self,
+        id: int,
+    ) -> GetMessageHistoryResponse:
+        response = await self._client.get(
+            f"/company/messages/{id}/history",
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(GetMessageHistoryResponse, response.json())
+            case _:
+                raise _error_from_response(response)
 
     async def list_chat_messages(
         self,

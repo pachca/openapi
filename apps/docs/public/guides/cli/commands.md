@@ -103,6 +103,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca messages create` | `POST` Новое сообщение |
 | `pachca messages delete` | `DELETE` Удаление сообщения |
 | `pachca messages get` | `GET` Информация о сообщении |
+| `pachca messages get-history` | `GET` История сообщения |
 | `pachca messages list` | `GET` Список сообщений чата |
 | `pachca messages list-pinned` | `GET` Список закреплённых сообщений |
 | `pachca messages pin` | `POST` Закрепление сообщения |

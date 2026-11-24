@@ -569,6 +569,8 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
   // "getAllChats"/"getAllBots" и путались бы с обычным "getAll" того же ресурса.
   if (ep.path === '/company/chats' && method === 'GET') return 'getAllCompanyChats';
   if (ep.path === '/company/bots' && method === 'GET') return 'getAllCompanyBots';
+  // История сообщения владельца: без пина путь /company/messages/{id}/history дал бы безликое имя.
+  if (ep.path === '/company/messages/{id}/history' && method === 'GET') return 'getHistory';
   // Ответ на отправку формы: без пина POST даёт "addSubmitResponse" и читается как создание.
   if (ep.path === '/views/{view_id}/submit_response' && method === 'POST') return 'submitResponse';
   // Токены и секрет бота: без пина вышли бы "addTokens", "removeTokens", "addReissue"
@@ -653,6 +655,7 @@ function operationDisplayName(op: string): string {
     requestExport: 'Request Export', downloadExport: 'Download Export', unfurl: 'Unfurl',
     createStandalone: 'Create Standalone',
     getAllCompanyChats: 'Get Many Workspace Chats', getAllCompanyBots: 'Get Many Workspace Bots',
+    getHistory: 'Get History',
     createToken: 'Create Token', updateToken: 'Update Token', deleteToken: 'Delete Token',
     reissueToken: 'Reissue Token', rotateClientSecret: 'Rotate Client Secret', markUnread: 'Mark Unread', markRead: 'Mark Read',
     getInviteLink: 'Get Invite Link', reissueInviteLink: 'Reissue Invite Link',
@@ -722,6 +725,7 @@ function actionLabel(op: string, resourceName: string, resource?: string): strin
     downloadExport: 'Download a chat export',
     getAllCompanyChats: 'Get many workspace chats',
     getAllCompanyBots: 'Get many workspace bots',
+    getHistory: 'Get message history',
     submitResponse: 'Respond to a form submission',
     getAllTokens: 'Get many bot tokens',
     createToken: 'Create a bot token',
@@ -3120,9 +3124,12 @@ function buildRouteEntry(resource: string, op: OperationInfo): string {
   if (hasPagination) parts.push('paginated: true');
   // Скачивание архива отдаёт ссылку, а не { data }.
   if (resource === 'chat' && v2Op === 'downloadExport') parts.push('noDataWrapper: true');
+  // История сообщения: сообщение, его состояния и признаки полноты истории приходят одним элементом, как в ответе.
+  const wholeBody = resource === 'message' && v2Op === 'getHistory';
+  if (wholeBody) parts.push('noDataWrapper: true');
 
   // Поля meta ответа без пагинации (`not_found_member_ids` у нового чата) уходят в элемент вывода рядом с data
-  const metaFields = hasPagination ? [] : responseMetaFields(endpoint);
+  const metaFields = hasPagination || wholeBody ? [] : responseMetaFields(endpoint);
   if (metaFields.length) parts.push(`metaFields: [${metaFields.map(f => `'${f}'`).join(', ')}]`);
 
   // Заголовок с единственным допустимым значением (`Prefer: return=representation`)

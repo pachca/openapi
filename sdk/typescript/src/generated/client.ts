@@ -48,6 +48,7 @@ import {
   ListPinnedMessagesParams,
   ListPinnedMessagesResponse,
   Message,
+  GetMessageHistoryResponse,
   ListChatMessagesParams,
   ListChatMessagesResponse,
   MessageCreateRequest,
@@ -1273,6 +1274,10 @@ export class MessagesService {
     throw new Error("Messages.listPinnedMessagesAll is not implemented");
   }
 
+  async getMessageHistory(id: number): Promise<GetMessageHistoryResponse> {
+    throw new Error("Messages.getMessageHistory is not implemented");
+  }
+
   async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {
     throw new Error("Messages.listChatMessages is not implemented");
   }
@@ -1348,6 +1353,20 @@ export class MessagesServiceImpl extends MessagesService {
       hasNext = response.meta.paginate.hasNext ?? true;
     }
     return items;
+  }
+
+  async getMessageHistory(id: number): Promise<GetMessageHistoryResponse> {
+    const response = await fetchWithRetry(`${this.baseUrl}/company/messages/${id}/history`, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserialize(body) as GetMessageHistoryResponse;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
   }
 
   async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {

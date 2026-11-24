@@ -78,6 +78,8 @@ public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, Ex
     case companyChatsAccessed
     /// Получен список всех ботов пространства
     case companyBotsAccessed
+    /// Получена история сообщения
+    case companyMessagesAccessed
     /// Срабатывание правила DLP-системы
     case dlpViolationDetected
     /// Поиск сотрудников через API
@@ -132,7 +134,7 @@ public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, Ex
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [AuditEventKey] = [.userLogin, .userLogout, .user2faFail, .user2faSuccess, .user2faDisabled, .loginGrantCreated, .loginGrantApproved, .loginGrantDenied, .userCreated, .userDeleted, .userRoleChanged, .userUpdated, .tagCreated, .tagDeleted, .userAddedToTag, .userRemovedFromTag, .chatCreated, .chatRenamed, .chatPermissionChanged, .userChatJoin, .userChatLeave, .tagAddedToChat, .tagRemovedFromChat, .messageUpdated, .messageDeleted, .messageCreated, .reactionCreated, .reactionDeleted, .threadCreated, .accessTokenCreated, .accessTokenUpdated, .accessTokenDestroy, .kmsEncrypt, .kmsDecrypt, .auditEventsAccessed, .companyChatsAccessed, .companyBotsAccessed, .dlpViolationDetected, .searchUsersApi, .searchChatsApi, .searchMessagesApi, .botScopesUpdated, .botWebhookSettingsUpdated, .botTokenRecreated, .botDeleted, .botOauthClientUpdated, .botOauthClientDisabled, .botOauthClientSecretRotated, .botOauthClientSecretIssued, .botTokenCreated, .botTokenUpdated, .botTokenReissued, .botTokenDeleted, .oauthAuthorizationGranted, .oauthAuthorizationRevoked, .oauthTokenRevoked, .oauthDeviceAuthorizationApproved, .oauthDeviceAuthorizationDenied, .videoCallStarted, .videoCallFinished, .videoCallRecordingReady, .exchangeDisabled]
+    public static let allCases: [AuditEventKey] = [.userLogin, .userLogout, .user2faFail, .user2faSuccess, .user2faDisabled, .loginGrantCreated, .loginGrantApproved, .loginGrantDenied, .userCreated, .userDeleted, .userRoleChanged, .userUpdated, .tagCreated, .tagDeleted, .userAddedToTag, .userRemovedFromTag, .chatCreated, .chatRenamed, .chatPermissionChanged, .userChatJoin, .userChatLeave, .tagAddedToChat, .tagRemovedFromChat, .messageUpdated, .messageDeleted, .messageCreated, .reactionCreated, .reactionDeleted, .threadCreated, .accessTokenCreated, .accessTokenUpdated, .accessTokenDestroy, .kmsEncrypt, .kmsDecrypt, .auditEventsAccessed, .companyChatsAccessed, .companyBotsAccessed, .companyMessagesAccessed, .dlpViolationDetected, .searchUsersApi, .searchChatsApi, .searchMessagesApi, .botScopesUpdated, .botWebhookSettingsUpdated, .botTokenRecreated, .botDeleted, .botOauthClientUpdated, .botOauthClientDisabled, .botOauthClientSecretRotated, .botOauthClientSecretIssued, .botTokenCreated, .botTokenUpdated, .botTokenReissued, .botTokenDeleted, .oauthAuthorizationGranted, .oauthAuthorizationRevoked, .oauthTokenRevoked, .oauthDeviceAuthorizationApproved, .oauthDeviceAuthorizationDenied, .videoCallStarted, .videoCallFinished, .videoCallRecordingReady, .exchangeDisabled]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -173,6 +175,7 @@ public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, Ex
         case "audit_events_accessed": self = .auditEventsAccessed
         case "company_chats_accessed": self = .companyChatsAccessed
         case "company_bots_accessed": self = .companyBotsAccessed
+        case "company_messages_accessed": self = .companyMessagesAccessed
         case "dlp_violation_detected": self = .dlpViolationDetected
         case "search_users_api": self = .searchUsersApi
         case "search_chats_api": self = .searchChatsApi
@@ -245,6 +248,7 @@ public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, Ex
         case .auditEventsAccessed: return "audit_events_accessed"
         case .companyChatsAccessed: return "company_chats_accessed"
         case .companyBotsAccessed: return "company_bots_accessed"
+        case .companyMessagesAccessed: return "company_messages_accessed"
         case .dlpViolationDetected: return "dlp_violation_detected"
         case .searchUsersApi: return "search_users_api"
         case .searchChatsApi: return "search_chats_api"
@@ -1109,6 +1113,104 @@ public enum MessageEntityType: Codable, Hashable, RawRepresentable, CaseIterable
     }
 }
 
+public enum MessageHistoryAction: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Сообщение отредактировали
+    case edited
+    /// Сообщение удалили
+    case deleted
+    /// Текущее состояние сообщения
+    case current
+    /// Старая запись, по которой не определить, правка это или удаление
+    case unknown
+    /// A value this SDK version does not list yet
+    case unknownValue(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [MessageHistoryAction] = [.edited, .deleted, .current, .unknown]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "edited": self = .edited
+        case "deleted": self = .deleted
+        case "current": self = .current
+        case "unknown": self = .unknown
+        default: self = .unknownValue(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .edited: return "edited"
+        case .deleted: return "deleted"
+        case .current: return "current"
+        case .unknown: return "unknown"
+        case .unknownValue(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
+public enum MessageHistorySource: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Сотрудник
+    case employee
+    /// Бот
+    case bot
+    /// Правило DLP заменило текст
+    case dlp
+    /// Сама Пачка, например когда прикрепляет к сообщению картинку по ссылке
+    case system
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [MessageHistorySource] = [.employee, .bot, .dlp, .system]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "employee": self = .employee
+        case "bot": self = .bot
+        case "dlp": self = .dlp
+        case "system": self = .system
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .employee: return "employee"
+        case .bot: return "bot"
+        case .dlp: return "dlp"
+        case .system: return "system"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
 public enum MessageSearchSort: String, Codable, CaseIterable {
     /// По дате создания (хронология)
     case createdAt = "created_at"
@@ -1148,6 +1250,51 @@ public enum MessageSource: Codable, Hashable, RawRepresentable, CaseIterable, Ex
         switch self {
         case .application: return "application"
         case .personalToken: return "personal_token"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
+public enum MessageTextUnavailableReason: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Сообщение из личной переписки, а выгрузка личных переписок в пространстве выключена
+    case personalChatRule
+    /// Старое зашифрованное состояние, для которого не сохранился ключ
+    case noKeySnapshot
+    /// Текст не удалось расшифровать
+    case decryptFailed
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [MessageTextUnavailableReason] = [.personalChatRule, .noKeySnapshot, .decryptFailed]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "personal_chat_rule": self = .personalChatRule
+        case "no_key_snapshot": self = .noKeySnapshot
+        case "decrypt_failed": self = .decryptFailed
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .personalChatRule: return "personal_chat_rule"
+        case .noKeySnapshot: return "no_key_snapshot"
+        case .decryptFailed: return "decrypt_failed"
         case .unknown(let value): return value
         }
     }
@@ -1320,6 +1467,8 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case companyChatsRead
     /// Просмотр списка всех ботов пространства
     case companyBotsRead
+    /// Просмотр истории сообщений пространства
+    case companyMessagesRead
     /// Просмотр напоминаний
     case tasksRead
     /// Создание напоминаний
@@ -1356,7 +1505,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsMarkRead, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileWrite, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .companyRead, .companyWrite, .inviteLinksWrite, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .uploadsWrite, .viewsWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
+    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsMarkRead, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileWrite, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .companyRead, .companyWrite, .inviteLinksWrite, .auditEventsRead, .companyChatsRead, .companyBotsRead, .companyMessagesRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .uploadsWrite, .viewsWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -1406,6 +1555,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case "audit_events:read": self = .auditEventsRead
         case "company_chats:read": self = .companyChatsRead
         case "company_bots:read": self = .companyBotsRead
+        case "company_messages:read": self = .companyMessagesRead
         case "tasks:read": self = .tasksRead
         case "tasks:create": self = .tasksCreate
         case "tasks:update": self = .tasksUpdate
@@ -1478,6 +1628,7 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case .auditEventsRead: return "audit_events:read"
         case .companyChatsRead: return "company_chats:read"
         case .companyBotsRead: return "company_bots:read"
+        case .companyMessagesRead: return "company_messages:read"
         case .tasksRead: return "tasks:read"
         case .tasksCreate: return "tasks:create"
         case .tasksUpdate: return "tasks:update"
@@ -2819,9 +2970,9 @@ public struct AuditDetailsMessage: Codable {
     public let chatId: Int
     public let threadChatId: Int?
     public let source: String
-    public let messageVersionId: Int?
+    public let messageVersionId: Int64?
 
-    public init(chatId: Int, threadChatId: Int? = nil, source: String, messageVersionId: Int? = nil) {
+    public init(chatId: Int, threadChatId: Int? = nil, source: String, messageVersionId: Int64? = nil) {
         self.chatId = chatId
         self.threadChatId = threadChatId
         self.source = source
@@ -2833,6 +2984,18 @@ public struct AuditDetailsMessage: Codable {
         case threadChatId = "thread_chat_id"
         case source
         case messageVersionId = "message_version_id"
+    }
+}
+
+public struct AuditDetailsMessageId: Codable {
+    public let messageId: Int
+
+    public init(messageId: Int) {
+        self.messageId = messageId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case messageId = "message_id"
     }
 }
 
@@ -5143,6 +5306,123 @@ public struct MessageCreateRequest: Codable {
     }
 }
 
+public struct MessageHistoryFile: Codable {
+    public let id: Int?
+    public let name: String?
+    public let fileType: FileType?
+    public let size: Int64?
+
+    public init(id: Int? = nil, name: String? = nil, fileType: FileType? = nil, size: Int64? = nil) {
+        self.id = id
+        self.name = name
+        self.fileType = fileType
+        self.size = size
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case fileType = "file_type"
+        case size
+    }
+}
+
+public struct MessageHistoryMessage: Codable {
+    public let id: Int
+    public let chatId: Int
+    public let threadChatId: Int?
+    public let userId: Int
+    public let authorId: Int?
+    public let createdAt: String
+    public let deletedAt: String?
+
+    public init(id: Int, chatId: Int, threadChatId: Int? = nil, userId: Int, authorId: Int? = nil, createdAt: String, deletedAt: String? = nil) {
+        self.id = id
+        self.chatId = chatId
+        self.threadChatId = threadChatId
+        self.userId = userId
+        self.authorId = authorId
+        self.createdAt = createdAt
+        self.deletedAt = deletedAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case chatId = "chat_id"
+        case threadChatId = "thread_chat_id"
+        case userId = "user_id"
+        case authorId = "author_id"
+        case createdAt = "created_at"
+        case deletedAt = "deleted_at"
+    }
+}
+
+public struct MessageHistoryMeta: Codable {
+    public let historyIsPartial: Bool
+    public let truncated: Bool
+
+    public init(historyIsPartial: Bool, truncated: Bool) {
+        self.historyIsPartial = historyIsPartial
+        self.truncated = truncated
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case historyIsPartial = "history_is_partial"
+        case truncated
+    }
+}
+
+public struct MessageHistoryResponse: Codable {
+    public let message: MessageHistoryMessage
+    public let data: [MessageHistoryState]
+    public let meta: MessageHistoryMeta
+
+    public init(message: MessageHistoryMessage, data: [MessageHistoryState], meta: MessageHistoryMeta) {
+        self.message = message
+        self.data = data
+        self.meta = meta
+    }
+}
+
+public struct MessageHistoryState: Codable {
+    public let versionId: Int64?
+    public let editorId: Int?
+    public let changedAt: String?
+    public let action: MessageHistoryAction
+    public let source: MessageHistorySource?
+    public let dlpMasked: Bool
+    public let text: String?
+    public let textUnavailableReason: MessageTextUnavailableReason?
+    public let content: String?
+    public let files: [MessageHistoryFile]
+
+    public init(versionId: Int64? = nil, editorId: Int? = nil, changedAt: String? = nil, action: MessageHistoryAction, source: MessageHistorySource? = nil, dlpMasked: Bool, text: String? = nil, textUnavailableReason: MessageTextUnavailableReason? = nil, content: String? = nil, files: [MessageHistoryFile]) {
+        self.versionId = versionId
+        self.editorId = editorId
+        self.changedAt = changedAt
+        self.action = action
+        self.source = source
+        self.dlpMasked = dlpMasked
+        self.text = text
+        self.textUnavailableReason = textUnavailableReason
+        self.content = content
+        self.files = files
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case versionId = "version_id"
+        case editorId = "editor_id"
+        case changedAt = "changed_at"
+        case action
+        case source
+        case dlpMasked = "dlp_masked"
+        case text
+        case textUnavailableReason = "text_unavailable_reason"
+        case content
+        case files
+    }
+}
+
 public struct MessageUpdateRequestFile: Codable {
     public let key: String
     public let name: String
@@ -6673,6 +6953,7 @@ public enum AuditEventDetailsUnion: Codable {
     case auditDetailsChatPermission(AuditDetailsChatPermission)
     case auditDetailsTagChat(AuditDetailsTagChat)
     case auditDetailsChatId(AuditDetailsChatId)
+    case auditDetailsMessageId(AuditDetailsMessageId)
     case auditDetailsMessage(AuditDetailsMessage)
     case auditDetailsTokenScopes(AuditDetailsTokenScopes)
     case auditDetailsKms(AuditDetailsKms)
@@ -6719,6 +7000,7 @@ public enum AuditEventDetailsUnion: Codable {
             (["public_access"], { .auditDetailsChatPermission(try AuditDetailsChatPermission(from: $0)) }),
             (["chat_id", "tag_name"], { .auditDetailsTagChat(try AuditDetailsTagChat(from: $0)) }),
             (["chat_id"], { .auditDetailsChatId(try AuditDetailsChatId(from: $0)) }),
+            (["message_id"], { .auditDetailsMessageId(try AuditDetailsMessageId(from: $0)) }),
             (["chat_id", "thread_chat_id", "source", "message_version_id"], { .auditDetailsMessage(try AuditDetailsMessage(from: $0)) }),
             (["scopes"], { .auditDetailsTokenScopes(try AuditDetailsTokenScopes(from: $0)) }),
             (["chat_id", "message_id", "reason"], { .auditDetailsKms(try AuditDetailsKms(from: $0)) }),
@@ -6787,6 +7069,8 @@ public enum AuditEventDetailsUnion: Codable {
         case .auditDetailsTagChat(let value):
             try value.encode(to: encoder)
         case .auditDetailsChatId(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsMessageId(let value):
             try value.encode(to: encoder)
         case .auditDetailsMessage(let value):
             try value.encode(to: encoder)
@@ -7107,6 +7391,14 @@ public struct ListCompanyChatsResponse: Codable {
     public init(data: [Chat], meta: PaginationMeta) {
         self.data = data
         self.meta = meta
+    }
+}
+
+public struct GetMessageHistoryResponse: Codable {
+    public let data: [MessageHistoryState]
+
+    public init(data: [MessageHistoryState]) {
+        self.data = data
     }
 }
 

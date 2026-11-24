@@ -43,6 +43,7 @@
   "chats:list-company": "Список чатов пространства",
   "company:get-invite-link": "Ссылка-приглашение",
   "company:reissue-invite-link": "Перевыпуск ссылки-приглашения",
+  "messages:get-history": "История сообщения",
   "custom-properties:list": "Список дополнительных полей",
   "files:direct-url": "Загрузка файла",
   "drafts:create": "Новый черновик",

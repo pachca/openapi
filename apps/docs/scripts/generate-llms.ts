@@ -159,7 +159,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     '`401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.\n';
   content +=
     '- **Идемпотентность:** запросы не идемпотентны — дедуплицируй на клиенте. ' +
-    'Вебхук Пачка отправляет повторно, только если к серверу не удалось подключиться. ' +
+    'Вебхук Пачка отправляет повторно, если к серверу не удалось подключиться или доставка на адрес стояла на паузе после пяти ошибок подряд. ' +
     'Если сервер ответил ошибкой или не уложился в срок, повтора нет: включи историю событий и ' +
     'забирай пропущенное через `GET /webhooks/events`. Изредка событие приходит дважды, поэтому ' +
     'обработчик делай идемпотентным, а ключ события собирай из его полей без `webhook_timestamp`. ' +
@@ -263,7 +263,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content +=
     '| Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
   content +=
-    '| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.10.2")`, репозиторий `maven("https://jitpack.io")` |\n';
+    '| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.11.0")`, репозиторий `maven("https://jitpack.io")` |\n';
   content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n';
   content += '| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |\n\n';
   content += 'Конвенции:\n';
@@ -436,7 +436,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
  * it in the root llms.txt: the long SEO descriptions would take a third of the
  * file. The section indexes (/guides/llms.txt, /api/llms.txt) keep the full text.
  */
-const ROOT_DESCRIPTION_MAX_CHARS = 140;
+const ROOT_DESCRIPTION_MAX_CHARS = 135;
 /** Words a cut must not end on: «…и…», «…для…», «…о том…» read as a broken phrase. */
 const DANGLING_WORDS =
   /\s+(и|или|а|в|во|с|со|на|для|от|по|при|без|под|через|к|о|об|из|за|до|его|её|их|том|что|как|чем)$/u;
@@ -659,7 +659,7 @@ function generateLibraryRules(): string {
 | TypeScript | \`@pachca/sdk\` | \`npm install @pachca/sdk\` |
 | Python | \`pachca-sdk\` | \`pip install pachca-sdk\` |
 | Go | \`github.com/pachca/openapi/sdk/go/generated\` | \`go get github.com/pachca/openapi/sdk/go/generated\` |
-| Kotlin | \`com.github.pachca:openapi\` | \`implementation("com.github.pachca:openapi:1.10.2")\`, repository \`maven("https://jitpack.io")\` |
+| Kotlin | \`com.github.pachca:openapi\` | \`implementation("com.github.pachca:openapi:1.11.0")\`, repository \`maven("https://jitpack.io")\` |
 | Swift | \`PachcaSDK\` | SPM: \`https://github.com/pachca/openapi\` |
 | C# | \`Pachca.Sdk\` | \`dotnet add package Pachca.Sdk\` |
 

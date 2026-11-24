@@ -245,6 +245,17 @@ export abstract class BaseCommand extends Command {
   }
 
   /**
+   * Warn about a flag from the response `meta` that is `true` (e.g. `truncated`).
+   *
+   * Like warnMetaList, the notice goes to stderr and stdout keeps only `data`.
+   */
+  protected warnMetaFlag(meta: unknown, field: string, message: string, hint: string): void {
+    const value = meta && typeof meta === 'object' ? (meta as Record<string, unknown>)[field] : undefined;
+    if (value !== true) return;
+    process.stderr.write(`⚠ ${message}.\n  ${hint}\n`);
+  }
+
+  /**
    * Output a success message to stderr.
    */
   protected success(message: string): void {

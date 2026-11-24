@@ -158,7 +158,8 @@ an Administrator that tag brings them in as chat Admin.
   large walk over time.
 - Contents of closed chats the token is not in come only through the message
   export (`pachca_request_export`, CLI `pachca chats request-export`, Owner on
-  Corporation). Members read a closed chat's messages as usual
+  Corporation), or one message at a time through its history
+  (`pachca_get_message_history`, Owner on Corporation). Members read a closed chat's messages as usual
   (`pachca_list_chat_messages`).
 
 ## Read more

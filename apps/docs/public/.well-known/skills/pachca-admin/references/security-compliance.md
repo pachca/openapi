@@ -40,7 +40,7 @@ prefix and send one request per key:
 | Suspicious logins                         | `user_login`, `user_2fa_fail`, `user_2fa_disabled`, `login_grant_denied` (`details.reason`)                                                                 |
 | Who changed someone's role                | `user_role_changed` (`details` has old role, new role, initiator)                                                                                           |
 | Chat access settings changed              | `chat_permission_changed` (`details.public_access`)                                                                                                         |
-| Who deleted or edited messages            | `message_deleted`, `message_updated` (`details.chat_id`, `details.source`, see below)                                                                       |
+| Who deleted or edited messages            | `message_deleted`, `message_updated` (`details.chat_id`, `details.source`, see below); the former text: [message history](#message-history)                 |
 | Chat membership changes                   | `user_chat_join` (`inviter_id`), `user_chat_leave` (`initiator_id`)                                                                                         |
 | Tag changes                               | `tag_*`, `user_added_to_tag`, `user_removed_from_tag`                                                                                                       |
 | Who issued, changed or revoked API access | `access_token_*`, `bot_token_*`, `bot_oauth_client_*`, `bot_scopes_updated`, `oauth_authorization_*`, `oauth_device_authorization_*`, `oauth_token_revoked` |
@@ -89,14 +89,47 @@ Traps when reading records:
   message in a thread, the chat of the thread's parent message, or the thread
   itself when it has none), `thread_chat_id` for a message in a thread, and
   `source`: `employee`, `bot`, `dlp` (a DLP rule replaced the text, the actor
-  is the author) or `system` (Pachca itself, for example when it attaches an
+  is the sender) or `system` (Pachca itself, for example when it attaches an
   image fetched by its link). A deletion has only `employee` or `bot`.
   Records up to 7 November 2026 inclusive may have empty `details`.
+  `details.message_version_id` leads to the text in the
+  [message history](#message-history).
 - Code exchange and token refresh leave no records; the consent does.
 - Changes to the IP allowlist, encryption settings and DLP rules are not
   logged, and neither are tag renames.
 
 Full event list and `details` fields: [audit log guide](https://dev.pachca.com/guides/audit-events.md).
+
+## Message history
+
+Tool `pachca_get_message_history`, CLI `pachca messages get-history`, scope
+`company_messages:read`, Owner on Corporation.
+
+It returns the saved states of one message from any chat of the workspace,
+deleted messages included: the text and files before each edit of the text or
+files and at the moment of deletion, who made each change (`editor_id`,
+`source`) and when.
+
+- From the log to the text: take `entity_id` of a `message_updated` or
+  `message_deleted` record, get that message's history and find the state
+  whose `version_id` equals the record's `details.message_version_id`. That
+  state holds the text and files before the edit or at the deletion; what came
+  after the edit is the next state.
+- The text of direct chats and their threads comes only when the workspace
+  exports direct chats (`export_personal_chats` in the workspace info).
+  Otherwise `text` and `content` are `null` and `text_unavailable_reason` is
+  `personal_chat_rule`, while files, authors and times still come.
+- Text replaced by DLP is not restored: the state carries `***` and
+  `dlp_masked: true`.
+- The response holds at most the last 50 changes and the current state:
+  `meta.truncated: true` means older changes exist but are left out, and
+  `meta.history_is_partial` means the early states are not fully known. Say so
+  in the answer instead of presenting the history as complete.
+- Each successful call is written to the audit log as `company_messages_accessed` and
+  counts toward the strict workspace inventory rate limit
+  ([limits](https://dev.pachca.com/api/limits.md)): agree on the period first
+  and spread a long walk over time.
+- A message of another workspace answers `404`, like a missing one.
 
 ## Message export
 

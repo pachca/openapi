@@ -86,6 +86,7 @@
 
 ## Сообщения
 - [Список закреплённых сообщений](https://dev.pachca.com/api/messages/list-pinned.md): GET /chats/{id}/pinned_messages
+- [История сообщения](https://dev.pachca.com/api/messages/get-history.md): GET /company/messages/{id}/history
 - [Новое сообщение](https://dev.pachca.com/api/messages/create.md): POST /messages
 - [Список сообщений чата](https://dev.pachca.com/api/messages/list.md): GET /messages
 - [Информация о сообщении](https://dev.pachca.com/api/messages/get.md): GET /messages/{id}

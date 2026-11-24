@@ -2342,6 +2342,22 @@
         "flags": []
       },
       {
+        "command": "pachca messages get-history",
+        "summary": "История сообщения",
+        "method": "GET",
+        "path": "/company/messages/{id}/history",
+        "scope": "company_messages:read",
+        "plan": "corporation",
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения (pachca messages list)"
+          }
+        ],
+        "flags": []
+      },
+      {
         "command": "pachca messages list",
         "summary": "Список сообщений чата",
         "method": "GET",
@@ -3186,6 +3202,7 @@
               "audit_events_accessed",
               "company_chats_accessed",
               "company_bots_accessed",
+              "company_messages_accessed",
               "dlp_violation_detected",
               "search_users_api",
               "search_chats_api",

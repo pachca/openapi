@@ -70,6 +70,9 @@ const RU_TO_EN: Record<string, string> = {
 	'Заказ от {{ client }} на сумму {{ amount }} ₽': 'Order from {{ client }} for {{ amount }} ₽',
 	'{"client": "ООО Ромашка", "amount": 15000}': '{"client": "Acme Corp", "amount": 15000}',
 	'Привет, посмотри пожалуйста последний отчёт': 'Hi, please take a look at the latest report',
+	// Message history example
+	'Релиз в среду': 'Release on Wednesday',
+	'Релиз переносим на четверг': 'Moving the release to Thursday',
 	// Bot tokens, catalog page and scope catalog examples
 	'Сервер уведомлений': 'Notification server',
 	'Собирает сводку по задачам и присылает её в чат': 'Collects a summary of tasks and sends it to the chat',

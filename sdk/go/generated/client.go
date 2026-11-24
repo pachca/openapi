@@ -1878,6 +1878,7 @@ func (s *MembersServiceImpl) RemoveMember(ctx context.Context, id int32, userId 
 type MessagesService interface {
 	ListPinnedMessages(ctx context.Context, id int32, params *ListPinnedMessagesParams) (*ListPinnedMessagesResponse, error)
 	ListPinnedMessagesAll(ctx context.Context, id int32, params *ListPinnedMessagesParams) ([]Message, error)
+	GetMessageHistory(ctx context.Context, id int32) (*GetMessageHistoryResponse, error)
 	ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error)
 	ListChatMessagesAll(ctx context.Context, params *ListChatMessagesParams) ([]Message, error)
 	GetMessage(ctx context.Context, id int32) (*Message, error)
@@ -1897,6 +1898,10 @@ func (s *MessagesServiceStub) ListPinnedMessages(ctx context.Context, id int32, 
 
 func (s *MessagesServiceStub) ListPinnedMessagesAll(ctx context.Context, id int32, params *ListPinnedMessagesParams) ([]Message, error) {
 	return nil, NotImplementedError{Method: "Messages.listPinnedMessagesAll"}
+}
+
+func (s *MessagesServiceStub) GetMessageHistory(ctx context.Context, id int32) (*GetMessageHistoryResponse, error) {
+	return nil, NotImplementedError{Method: "Messages.getMessageHistory"}
 }
 
 func (s *MessagesServiceStub) ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error) {
@@ -1998,6 +2003,28 @@ func (s *MessagesServiceImpl) ListPinnedMessagesAll(ctx context.Context, id int3
 		}
 	}
 	return items, nil
+}
+
+func (s *MessagesServiceImpl) GetMessageHistory(ctx context.Context, id int32) (*GetMessageHistoryResponse, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/company/messages/%v/history", s.baseURL, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result GetMessageHistoryResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
 }
 
 func (s *MessagesServiceImpl) ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error) {

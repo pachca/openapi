@@ -232,6 +232,10 @@
     "usage": "let response = try await client.messages.listPinnedMessages(id: 334, limit: 25, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "ListPinnedMessagesResponse(data: [Message], meta: PaginationMeta)"
   },
+  "CompanyMessageOperations_getMessageHistory": {
+    "usage": "let response = try await client.messages.getMessageHistory(id: 194275)",
+    "output": "GetMessageHistoryResponse(data: [MessageHistoryState])"
+  },
   "ChatMessageOperations_listChatMessages": {
     "usage": "let response = try await client.messages.listChatMessages(chatId: 198, sort: .id, order: .desc, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", afterMessageId: 194275)",
     "output": "ListChatMessagesResponse(data: [Message], meta: PaginationMeta)",

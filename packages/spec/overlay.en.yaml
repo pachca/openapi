@@ -102,6 +102,37 @@ actions:
   - target: $.paths['/company/bots'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/company/messages/{id}/history'].get
+    update:
+      description: >-
+        Get message history
+
+
+        The saved states of a message from the earliest to the latest: the text and files before every edit of the
+        text or files and at the moment of deletion, and who changed them and when. The history holds the last 50
+        changes. The message can come from any chat of the workspace, including private chats you are not a member of,
+        direct chats and threads. A deleted message is returned too.
+
+
+        Every state in `data` except the current one ends with an edit or a deletion. The last state of a live message
+        is the current one (`action: current`), and of a deleted one the snapshot at the moment of deletion (`action:
+        deleted`), if the snapshot was kept. `version_id` matches `message_version_id` of the `message_updated` and
+        `message_deleted` events in the [audit log](GET /audit_events): this is how you go from a log entry to the text
+        before the edit or deletion.
+
+
+        The text of direct chats and their threads comes only if the `export_personal_chats` field of the [Workspace
+        info](GET /company) method is `true`. Otherwise `text` and `content` of their states are `null` with the
+        `personal_chat_rule` reason, while files, authors and change times come.
+
+
+        The method is available to the workspace owner. Every successful request is written to the [audit
+        log](/guides/audit-events) with the `company_messages_accessed` key. A message of another workspace responds
+        `404`, like a nonexistent one. If the service is temporarily unavailable, the method responds `503` with the
+        `service_unavailable` code.
+  - target: $.paths['/company/messages/{id}/history'].get.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
   - target: $.paths['/bots/{id}'].delete
     update:
       description: |-
@@ -1649,6 +1680,12 @@ actions:
   - target: $.components.schemas.AuditDetailsChatId.properties.chat_id
     update:
       description: Chat ID
+  - target: $.components.schemas.AuditDetailsMessageId
+    update:
+      description: 'For: company_messages_accessed'
+  - target: $.components.schemas.AuditDetailsMessageId.properties.message_id
+    update:
+      description: ID of the message whose history was requested
   - target: $.components.schemas.AuditDetailsMessage
     update:
       description: 'For: message_updated, message_deleted'
@@ -1660,10 +1697,10 @@ actions:
       description: Thread chat ID. Present only for messages in threads.
   - target: $.components.schemas.AuditDetailsMessage.properties.source
     update:
-      description: "Who changed the message: `employee` — an employee, `bot` — a bot, `dlp` — a DLP rule replaced the text (the actor is the message author), `system` — Pachca itself, for example when it attaches an image from a link to a message. For message_deleted it is `employee` or `bot`."
+      description: "Who changed the message: `employee` — an employee, `bot` — a bot, `dlp` — a DLP rule replaced the text (the actor is the message sender), `system` — Pachca itself, for example when it attaches an image from a link to a message. For message_deleted it is `employee` or `bot`."
   - target: $.components.schemas.AuditDetailsMessage.properties.message_version_id
     update:
-      description: "ID of the message version: a snapshot of its text and files before the edit or at the moment of deletion. After DLP the text in the snapshot is hidden. Absent if the edit did not touch the text and files, or the deleted message was empty."
+      description: "ID of the message version: a snapshot of its text and files before the edit or at the moment of deletion. After DLP the text in the snapshot is hidden. Absent if the edit did not touch the text and files, or the deleted message was empty. Matches `version_id` of the state in the [message history](GET /company/messages/{id}/history)."
   - target: $.components.schemas.AuditDetailsChatPermission
     update:
       description: 'For: chat_permission_changed'
@@ -2133,6 +2170,7 @@ actions:
         audit_events_accessed: Audit logs accessed
         company_chats_accessed: Workspace-wide chat list accessed
         company_bots_accessed: Workspace-wide bot list accessed
+        company_messages_accessed: Message history accessed
         dlp_violation_detected: DLP rule violation detected
         search_users_api: Employee search via API
         search_chats_api: Chat search via API
@@ -3215,6 +3253,122 @@ actions:
         audio: Audio file
         voice: Voice message
         video: Video file
+  - target: $.components.schemas.MessageHistoryAction
+    update:
+      description: What happened to the message state
+      x-enum-descriptions:
+        edited: The message was edited
+        deleted: The message was deleted
+        current: The current state of the message
+        unknown: An old record that does not tell whether it was an edit or a deletion
+  - target: $.components.schemas.MessageHistorySource
+    update:
+      description: Who changed the message
+      x-enum-descriptions:
+        employee: An employee
+        bot: A bot
+        dlp: A DLP rule replaced the text
+        system: Pachca itself, for example when it attaches an image from a link to a message
+  - target: $.components.schemas.MessageTextUnavailableReason
+    update:
+      description: Why the text of the state did not come
+      x-enum-descriptions:
+        personal_chat_rule: The message is from a direct chat, and exporting direct chats is off in the workspace
+        no_key_snapshot: An old encrypted state whose key was not kept
+        decrypt_failed: The text could not be decrypted
+  - target: $.components.schemas.MessageHistoryMessage
+    update:
+      description: "The message whose history was requested. It carries no text: the text comes in the states."
+  - target: $.components.schemas.MessageHistoryMessage.properties.id
+    update:
+      description: Message ID
+  - target: $.components.schemas.MessageHistoryMessage.properties.chat_id
+    update:
+      description: The message's chat ID. For a message in a thread it is the chat of the thread's parent message, and for a standalone thread the chat of the thread itself.
+  - target: $.components.schemas.MessageHistoryMessage.properties.thread_chat_id
+    update:
+      description: The thread's chat ID. `null` if the message is not in a thread.
+  - target: $.components.schemas.MessageHistoryMessage.properties.user_id
+    update:
+      description: The sender's ID. For a forwarded message it is whoever forwarded it.
+  - target: $.components.schemas.MessageHistoryMessage.properties.author_id
+    update:
+      description: The ID of the original message's author if the message was forwarded. `null` for a message that was not forwarded.
+  - target: $.components.schemas.MessageHistoryMessage.properties.created_at
+    update:
+      description: Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.MessageHistoryMessage.properties.deleted_at
+    update:
+      description: Message deletion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the message is not deleted.
+  - target: $.components.schemas.MessageHistoryFile
+    update:
+      description: A file in a message state. There is no download link. In old records some of the fields may be missing or come as `null`.
+  - target: $.components.schemas.MessageHistoryFile.properties.id
+    update:
+      description: File ID
+  - target: $.components.schemas.MessageHistoryFile.properties.name
+    update:
+      description: File name with extension
+  - target: $.components.schemas.MessageHistoryFile.properties.file_type
+    update:
+      description: File type
+  - target: $.components.schemas.MessageHistoryFile.properties.size
+    update:
+      description: File size in bytes
+  - target: $.components.schemas.MessageHistoryState
+    update:
+      description: "A message state: the text and files before the change that ended it, and that change itself"
+  - target: $.components.schemas.MessageHistoryState.properties.version_id
+    update:
+      description: The ID of the change that ended the state. Matches `message_version_id` of the `message_updated` and `message_deleted` events in the [audit log](GET /audit_events). `null` for the current state.
+  - target: $.components.schemas.MessageHistoryState.properties.editor_id
+    update:
+      description: The ID of the employee or bot that made the change. For changes by a DLP rule and by Pachca itself it is the message sender. `null` for the current state.
+  - target: $.components.schemas.MessageHistoryState.properties.changed_at
+    update:
+      description: Change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For the current state it is the time of the message's last change, and for a message unchanged for a long time it may be `null`.
+  - target: $.components.schemas.MessageHistoryState.properties.action
+    update:
+      description: What ended the state
+  - target: $.components.schemas.MessageHistoryState.properties.source
+    update:
+      description: Who made the change. `null` for the current state and in old records.
+  - target: $.components.schemas.MessageHistoryState.properties.dlp_masked
+    update:
+      description: "The text is hidden by a DLP rule: `***` comes instead, and the former text is not restored."
+  - target: $.components.schemas.MessageHistoryState.properties.text
+    update:
+      description: Text without formatting, if the message keeps its text this way. `null` if there is no such text or it could not be obtained.
+  - target: $.components.schemas.MessageHistoryState.properties.text_unavailable_reason
+    update:
+      description: Why no text came in `text` or `content`. `null` if the text came or the state has none. In a direct chat with exporting direct chats off it is `personal_chat_rule` for every state, even one without text.
+  - target: $.components.schemas.MessageHistoryState.properties.content
+    update:
+      description: Text in Markdown, if the message keeps its text this way. An empty string or `null` if the text is kept in `text`, the state has no text, or it could not be obtained.
+  - target: $.components.schemas.MessageHistoryState.properties.files
+    update:
+      description: The message's files in this state
+  - target: $.components.schemas.MessageHistoryMeta
+    update:
+      description: History completeness
+  - target: $.components.schemas.MessageHistoryMeta.properties.history_is_partial
+    update:
+      description: "Early states are not fully known: the message was created before April 22, 2026, deleted before August 15, 2026, deleted without a snapshot at the moment of deletion, or the changes of its files cannot be restored unambiguously."
+  - target: $.components.schemas.MessageHistoryMeta.properties.truncated
+    update:
+      description: "There are more than 50 changes: only the last 50 made it into the history."
+  - target: $.components.schemas.MessageHistoryResponse
+    update:
+      description: Message history
+  - target: $.components.schemas.MessageHistoryResponse.properties.message
+    update:
+      description: The message whose history was requested
+  - target: $.components.schemas.MessageHistoryResponse.properties.data
+    update:
+      description: Message states from the earliest to the latest. The history holds the last 50 changes. For a deleted message without saved states the array is empty, and for a message that was never changed it holds one current state.
+  - target: $.components.schemas.MessageHistoryResponse.properties.meta
+    update:
+      description: History completeness
   - target: $.components.schemas.VoiceTranscriptStatus
     update:
       description: Voice message transcription status
@@ -3807,6 +3961,7 @@ actions:
         audit_events_read: View audit log
         company_chats_read: View the list of all workspace chats
         company_bots_read: View the list of all workspace bots
+        company_messages_read: View the message history of the workspace
         tasks_read: View reminders
         tasks_create: Create reminders
         tasks_update: Update reminder
@@ -5225,7 +5380,7 @@ actions:
       description: "The bot's catalog page"
   - target: $.components.schemas.BotPromo.properties.description
     update:
-      description: "Bot description. `null` if not set."
+      description: "Bot description in Markdown. `null` if not set."
   - target: $.components.schemas.BotPromo.properties.promo_images
     update:
       description: "Screenshots for the bot's page"
@@ -5246,7 +5401,7 @@ actions:
       description: "The bot's catalog page"
   - target: $.components.schemas.BotPromoRequest.properties.description
     update:
-      description: "Description: what the bot does and why to connect it. A bot cannot be published without a description."
+      description: "Description: what the bot does and why to connect it, in Markdown. A bot cannot be published without a description. The catalog shows bold, italic and strikethrough text, links, lists, quotes and code. If the description has a heading, a table, an image, a checklist, a horizontal rule or a link reference definition such as `[1]: https://example.com`, the catalog shows the whole description as plain text with the markup characters."
   - target: $.components.schemas.BotPromoRequest.properties.promo_images
     update:
       description: "Screenshots for the bot's page, up to 5: keys of uploaded images (`key` from [Get signature, key and other parameters](POST /uploads)). The list is replaced as a whole, the order is kept."

@@ -2,6 +2,13 @@
 
 # Changelog
 
+## 2.2.11 (2026-11-25)
+
+### Features
+
+- Message > Get History: the history of a message for the workspace owner, as one item with the message, its states and whether the history is complete
+- Security: the Company Messages Accessed event filter
+
 ## 2.2.10 (2026-11-22)
 
 ### Features

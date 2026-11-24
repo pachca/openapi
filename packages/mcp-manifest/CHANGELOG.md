@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.0 (2026-11-25)
+
+A tool for the history of a message, a new scope and audit event, and the bot's catalog description in Markdown. schema_version stays 1.2.0.
+
+- Tool `pachca_get_message_history`: for the workspace owner on the Corporation plan, the saved states of a message (the current one and up to the last 50 changes) from any chat of the workspace, deleted messages included: the text and files before each edit and at the moment of deletion, and who changed them and when. It needs the new `company_messages:read` scope, which only the owner has. Each successful call is written to the audit log as `company_messages_accessed`.
+- `pachca_get_audit_events`: the `company_messages_accessed` event, and `message_version_id` of `message_updated` and `message_deleted` matches `version_id` of the state in the message history.
+- `pachca_update_bot`, `pachca_create_bot`: `promo.description` is Markdown; with a heading, a table, an image, a checklist, a horizontal rule or a link reference definition the catalog shows it as plain text.
+
 ## 1.11.0 (2026-11-22)
 
 A tool for editing your own profile, a new scope and a new error code, texts about the bot's main token, and tool names in descriptions as the tools are served. schema_version stays 1.2.0.

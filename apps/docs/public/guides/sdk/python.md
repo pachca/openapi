@@ -148,6 +148,7 @@ client = PachcaClient.from_client(http)
 | `client.messages.list_chat_messages()` | [Список сообщений чата](/api/messages/list) |
 | `client.messages.get_message()` | [Информация о сообщении](/api/messages/get) |
 | `client.messages.list_pinned_messages()` | [Список закреплённых сообщений](/api/messages/list-pinned) |
+| `client.messages.get_message_history()` | [История сообщения](/api/messages/get-history) |
 | `client.messages.update_message()` | [Редактирование сообщения](/api/messages/update) |
 | `client.messages.delete_message()` | [Удаление сообщения](/api/messages/delete) |
 | `client.messages.unpin_message()` | [Открепление сообщения](/api/messages/unpin) |

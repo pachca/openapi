@@ -24,6 +24,8 @@ const OPERATION_OVERRIDES: Record<string, string> = {
   // Инвентаризация пространства: без пина слаг совпал бы со списками своих чатов и ботов.
   'GET /company/chats': '/api/chats/list-company',
   'GET /company/bots': '/api/bots/list-company',
+  // История сообщения владельца: без пина слаг выводился бы из последнего сегмента пути.
+  'GET /company/messages/{id}/history': '/api/messages/get-history',
   // Ответ на отправку формы: без пина POST даёт префикс add, и команда читается как создание.
   'POST /views/{view_id}/submit_response': '/api/views/submit-response',
   // Токены, каталог прав и секрет клиента бота: вложенные пути под /bots/{id} дали бы безликие слаги.

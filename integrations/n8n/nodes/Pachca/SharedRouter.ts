@@ -473,6 +473,12 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			pathParams: [{ api: 'id', n8n: 'id' }],
 			paginated: true,
 		},
+		getHistory: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/company/messages/{id}/history',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+			noDataWrapper: true,
+		},
 		create: {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/messages',

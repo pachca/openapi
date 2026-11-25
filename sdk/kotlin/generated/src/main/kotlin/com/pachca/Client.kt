@@ -1110,6 +1110,10 @@ interface MessagesService {
         throw NotImplementedError("Messages.listPinnedMessagesAll is not implemented")
     }
 
+    suspend fun getMessageHistory(id: Int): GetMessageHistoryResponse {
+        throw NotImplementedError("Messages.getMessageHistory is not implemented")
+    }
+
     suspend fun listChatMessages(
         chatId: Int,
         sort: MessageSortField? = null,
@@ -1191,6 +1195,14 @@ class MessagesServiceImpl internal constructor(
             hasNext = response.meta.paginate.hasNext ?: true
         }
         return items
+    }
+
+    override suspend fun getMessageHistory(id: Int): GetMessageHistoryResponse {
+        val response = client.get("$baseUrl/company/messages/$id/history")
+        return when (response.status.value) {
+            200 -> response.body()
+            else -> throw errorFromResponse(response)
+        }
     }
 
     override suspend fun listChatMessages(

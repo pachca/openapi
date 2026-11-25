@@ -141,6 +141,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Messages.ListChatMessages()` | [Список сообщений чата](/api/messages/list) |
 | `client.Messages.GetMessage()` | [Информация о сообщении](/api/messages/get) |
 | `client.Messages.ListPinnedMessages()` | [Список закреплённых сообщений](/api/messages/list-pinned) |
+| `client.Messages.GetMessageHistory()` | [История сообщения](/api/messages/get-history) |
 | `client.Messages.UpdateMessage()` | [Редактирование сообщения](/api/messages/update) |
 | `client.Messages.DeleteMessage()` | [Удаление сообщения](/api/messages/delete) |
 | `client.Messages.UnpinMessage()` | [Открепление сообщения](/api/messages/unpin) |

@@ -4361,6 +4361,125 @@ paths:
         - Company
       x-requirements:
         scope: invite_links:write
+  /company/messages/{id}/history:
+    get:
+      operationId: CompanyMessageOperations_getMessageHistory
+      description: >-
+        Get message history
+
+
+        The saved states of a message from the earliest to the latest: the text and files before every edit of the text
+        or files and at the moment of deletion, and who changed them and when. The history holds the last 50 changes.
+        The message can come from any chat of the workspace, including private chats you are not a member of, direct
+        chats and threads. A deleted message is returned too.
+
+
+        Every state in `data` except the current one ends with an edit or a deletion. The last state of a live message
+        is the current one (`action: current`), and of a deleted one the snapshot at the moment of deletion (`action:
+        deleted`), if the snapshot was kept. `version_id` matches `message_version_id` of the `message_updated` and
+        `message_deleted` events in the [audit log](GET /audit_events): this is how you go from a log entry to the text
+        before the edit or deletion.
+
+
+        The text of direct chats and their threads comes only if the `export_personal_chats` field of the [Workspace
+        info](GET /company) method is `true`. Otherwise `text` and `content` of their states are `null` with the
+        `personal_chat_rule` reason, while files, authors and change times come.
+
+
+        The method is available to the workspace owner. Every successful request is written to the [audit
+        log](/guides/audit-events) with the `company_messages_accessed` key. A message of another workspace responds
+        `404`, like a nonexistent one. If the service is temporarily unavailable, the method responds `503` with the
+        `service_unavailable` code.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Message ID
+          schema:
+            type: integer
+            format: int32
+          example: 194275
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageHistoryResponse'
+              example:
+                message:
+                  id: 194275
+                  chat_id: 334
+                  thread_chat_id: null
+                  user_id: 12
+                  author_id: null
+                  created_at: '2026-11-24T09:15:00.000Z'
+                  deleted_at: null
+                data:
+                  - version_id: 81234
+                    editor_id: 12
+                    changed_at: '2026-11-24T09:20:00.000Z'
+                    action: edited
+                    source: employee
+                    dlp_masked: false
+                    text: null
+                    text_unavailable_reason: null
+                    content: Release on Wednesday
+                    files: []
+                  - version_id: null
+                    editor_id: null
+                    changed_at: '2026-11-24T09:20:00.000Z'
+                    action: current
+                    source: null
+                    dlp_masked: false
+                    text: null
+                    text_unavailable_reason: null
+                    content: Moving the release to Thursday
+                    files:
+                      - id: 3560
+                        name: report.pdf
+                        file_type: file
+                        size: 48213
+                meta:
+                  history_is_partial: false
+                  truncated: false
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Messages
+      x-requirements:
+        scope: company_messages:read
+        plan: corporation
   /custom_properties:
     get:
       operationId: CommonOperations_listProperties
@@ -11037,16 +11156,27 @@ components:
           type: string
           description: >-
             Who changed the message: `employee` — an employee, `bot` — a bot, `dlp` — a DLP rule replaced the text (the
-            actor is the message author), `system` — Pachca itself, for example when it attaches an image from a link to
+            actor is the message sender), `system` — Pachca itself, for example when it attaches an image from a link to
             a message. For message_deleted it is `employee` or `bot`.
         message_version_id:
           type: integer
-          format: int32
+          format: int64
           description: >-
             ID of the message version: a snapshot of its text and files before the edit or at the moment of deletion.
             After DLP the text in the snapshot is hidden. Absent if the edit did not touch the text and files, or the
-            deleted message was empty.
+            deleted message was empty. Matches `version_id` of the state in the [message history](GET
+            /company/messages/{id}/history).
       description: 'For: message_updated, message_deleted'
+    AuditDetailsMessageId:
+      type: object
+      required:
+        - message_id
+      properties:
+        message_id:
+          type: integer
+          format: int32
+          description: ID of the message whose history was requested
+      description: 'For: company_messages_accessed'
     AuditDetailsOAuthAuthorizationGranted:
       type: object
       required:
@@ -11485,6 +11615,7 @@ components:
         - $ref: '#/components/schemas/AuditDetailsChatPermission'
         - $ref: '#/components/schemas/AuditDetailsTagChat'
         - $ref: '#/components/schemas/AuditDetailsChatId'
+        - $ref: '#/components/schemas/AuditDetailsMessageId'
         - $ref: '#/components/schemas/AuditDetailsMessage'
         - $ref: '#/components/schemas/AuditDetailsTokenScopes'
         - $ref: '#/components/schemas/AuditDetailsKms'
@@ -11550,6 +11681,7 @@ components:
         - audit_events_accessed
         - company_chats_accessed
         - company_bots_accessed
+        - company_messages_accessed
         - dlp_violation_detected
         - search_users_api
         - search_chats_api
@@ -11616,6 +11748,7 @@ components:
         audit_events_accessed: Audit logs accessed
         company_chats_accessed: Workspace-wide chat list accessed
         company_bots_accessed: Workspace-wide bot list accessed
+        company_messages_accessed: Message history accessed
         dlp_violation_detected: DLP rule violation detected
         search_users_api: Employee search via API
         search_chats_api: Chat search via API
@@ -12207,7 +12340,7 @@ components:
         description:
           type: string
           nullable: true
-          description: Bot description. `null` if not set.
+          description: Bot description in Markdown. `null` if not set.
           example: Collects a summary of Jira tasks and sends it to the chat
         published:
           type: boolean
@@ -12239,7 +12372,12 @@ components:
       properties:
         description:
           type: string
-          description: 'Description: what the bot does and why to connect it. A bot cannot be published without a description.'
+          description: >-
+            Description: what the bot does and why to connect it, in Markdown. A bot cannot be published without a
+            description. The catalog shows bold, italic and strikethrough text, links, lists, quotes and code. If the
+            description has a heading, a table, an image, a checklist, a horizontal rule or a link reference definition
+            such as `[1]: https://example.com`, the catalog shows the whole description as plain text with the markup
+            characters.
           example: Collects a summary of Jira tasks and sends it to the chat
         published:
           type: boolean
@@ -15103,6 +15241,240 @@ components:
         discussion: Conversation or channel
         thread: Thread
         user: User
+    MessageHistoryAction:
+      type: string
+      enum:
+        - edited
+        - deleted
+        - current
+        - unknown
+      description: What happened to the message state
+      x-enum-descriptions:
+        edited: The message was edited
+        deleted: The message was deleted
+        current: The current state of the message
+        unknown: An old record that does not tell whether it was an edit or a deletion
+    MessageHistoryFile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          nullable: true
+          description: File ID
+          example: 3560
+        name:
+          type: string
+          nullable: true
+          description: File name with extension
+          example: report.pdf
+        file_type:
+          allOf:
+            - $ref: '#/components/schemas/FileType'
+          nullable: true
+          description: File type
+          example: file
+        size:
+          type: integer
+          format: int64
+          nullable: true
+          description: File size in bytes
+          example: 48213
+      description: >-
+        A file in a message state. There is no download link. In old records some of the fields may be missing or come
+        as `null`.
+    MessageHistoryMessage:
+      type: object
+      required:
+        - id
+        - chat_id
+        - thread_chat_id
+        - user_id
+        - author_id
+        - created_at
+        - deleted_at
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Message ID
+          example: 194275
+        chat_id:
+          type: integer
+          format: int32
+          description: >-
+            The message's chat ID. For a message in a thread it is the chat of the thread's parent message, and for a
+            standalone thread the chat of the thread itself.
+          example: 334
+        thread_chat_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: The thread's chat ID. `null` if the message is not in a thread.
+          example: null
+        user_id:
+          type: integer
+          format: int32
+          description: The sender's ID. For a forwarded message it is whoever forwarded it.
+          example: 12
+        author_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: >-
+            The ID of the original message's author if the message was forwarded. `null` for a message that was not
+            forwarded.
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          description: Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          example: '2026-11-24T09:15:00.000Z'
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Message deletion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the message
+            is not deleted.
+          example: null
+      description: 'The message whose history was requested. It carries no text: the text comes in the states.'
+    MessageHistoryMeta:
+      type: object
+      required:
+        - history_is_partial
+        - truncated
+      properties:
+        history_is_partial:
+          type: boolean
+          description: >-
+            Early states are not fully known: the message was created before April 22, 2026, deleted before August 15,
+            2026, deleted without a snapshot at the moment of deletion, or the changes of its files cannot be restored
+            unambiguously.
+          example: false
+        truncated:
+          type: boolean
+          description: 'There are more than 50 changes: only the last 50 made it into the history.'
+          example: false
+      description: History completeness
+    MessageHistoryResponse:
+      type: object
+      required:
+        - message
+        - data
+        - meta
+      properties:
+        message:
+          allOf:
+            - $ref: '#/components/schemas/MessageHistoryMessage'
+          description: The message whose history was requested
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageHistoryState'
+          description: >-
+            Message states from the earliest to the latest. The history holds the last 50 changes. For a deleted message
+            without saved states the array is empty, and for a message that was never changed it holds one current
+            state.
+        meta:
+          allOf:
+            - $ref: '#/components/schemas/MessageHistoryMeta'
+          description: History completeness
+      description: Message history
+    MessageHistorySource:
+      type: string
+      enum:
+        - employee
+        - bot
+        - dlp
+        - system
+      description: Who changed the message
+      x-enum-descriptions:
+        employee: An employee
+        bot: A bot
+        dlp: A DLP rule replaced the text
+        system: Pachca itself, for example when it attaches an image from a link to a message
+    MessageHistoryState:
+      type: object
+      required:
+        - version_id
+        - editor_id
+        - changed_at
+        - action
+        - source
+        - dlp_masked
+        - text
+        - text_unavailable_reason
+        - content
+        - files
+      properties:
+        version_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: >-
+            The ID of the change that ended the state. Matches `message_version_id` of the `message_updated` and
+            `message_deleted` events in the [audit log](GET /audit_events). `null` for the current state.
+          example: 81234
+        editor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: >-
+            The ID of the employee or bot that made the change. For changes by a DLP rule and by Pachca itself it is the
+            message sender. `null` for the current state.
+          example: 12
+        changed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For the current state it is the
+            time of the message's last change, and for a message unchanged for a long time it may be `null`.
+          example: '2026-11-24T09:20:00.000Z'
+        action:
+          allOf:
+            - $ref: '#/components/schemas/MessageHistoryAction'
+          description: What ended the state
+          example: edited
+        source:
+          allOf:
+            - $ref: '#/components/schemas/MessageHistorySource'
+          nullable: true
+          description: Who made the change. `null` for the current state and in old records.
+          example: employee
+        dlp_masked:
+          type: boolean
+          description: 'The text is hidden by a DLP rule: `***` comes instead, and the former text is not restored.'
+          example: false
+        text:
+          type: string
+          nullable: true
+          description: >-
+            Text without formatting, if the message keeps its text this way. `null` if there is no such text or it could
+            not be obtained.
+          example: null
+        text_unavailable_reason:
+          allOf:
+            - $ref: '#/components/schemas/MessageTextUnavailableReason'
+          nullable: true
+          description: >-
+            Why no text came in `text` or `content`. `null` if the text came or the state has none. In a direct chat
+            with exporting direct chats off it is `personal_chat_rule` for every state, even one without text.
+          example: null
+        content:
+          type: string
+          nullable: true
+          description: >-
+            Text in Markdown, if the message keeps its text this way. An empty string or `null` if the text is kept in
+            `text`, the state has no text, or it could not be obtained.
+          example: Moving the release to Thursday
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageHistoryFile'
+          description: The message's files in this state
+      description: 'A message state: the text and files before the change that ended it, and that change itself'
     MessageSearchSort:
       type: string
       enum:
@@ -15130,6 +15502,17 @@ components:
           Through a program the employee gave access to: Pachca CLI, an MCP client, or a bot with authorization on
           behalf of an employee
         personal_token: With the employee's personal token
+    MessageTextUnavailableReason:
+      type: string
+      enum:
+        - personal_chat_rule
+        - no_key_snapshot
+        - decrypt_failed
+      description: Why the text of the state did not come
+      x-enum-descriptions:
+        personal_chat_rule: The message is from a direct chat, and exporting direct chats is off in the workspace
+        no_key_snapshot: An old encrypted state whose key was not kept
+        decrypt_failed: The text could not be decrypted
     MessageUpdateRequest:
       type: object
       required:
@@ -15469,6 +15852,7 @@ components:
         - audit_events:read
         - company_chats:read
         - company_bots:read
+        - company_messages:read
         - tasks:read
         - tasks:create
         - tasks:update
@@ -15709,6 +16093,8 @@ components:
           - owner
         company_bots_read:
           - owner
+        company_messages_read:
+          - owner
         tasks_read:
           - owner
           - admin
@@ -15841,6 +16227,7 @@ components:
         audit_events_read: View audit log
         company_chats_read: View the list of all workspace chats
         company_bots_read: View the list of all workspace bots
+        company_messages_read: View the message history of the workspace
         tasks_read: View reminders
         tasks_create: Create reminders
         tasks_update: Update reminder

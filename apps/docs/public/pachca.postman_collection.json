@@ -1495,6 +1495,31 @@
           }
         },
         {
+          "name": "История сообщения",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company/messages/:id/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "company",
+                "messages",
+                ":id",
+                "history"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "Новое сообщение",
           "request": {
             "method": "POST",

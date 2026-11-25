@@ -364,9 +364,19 @@ const META_NOTICES: Record<string, { message: string; hint: string }> = {
     message: 'Не удалось подключить теги',
     hint: 'Таких тегов нет в пространстве.',
   },
+  'GET /company/messages/{id}/history meta.history_is_partial': {
+    message: 'История неполная',
+    hint: 'Ранние состояния сообщения известны не полностью: оно создано до 22 апреля 2026 года, удалено до 15 августа 2026 года или изменения его файлов нельзя восстановить однозначно.',
+  },
+  'GET /company/messages/{id}/history meta.truncated': {
+    message: 'История обрезана',
+    hint: 'Изменений больше 50, в ответ вошли только 50 последних.',
+  },
 };
 
-function responseMetaNotices(endpoint: Endpoint): { field: string; message: string; hint: string }[] {
+function responseMetaNotices(
+  endpoint: Endpoint,
+): { field: string; kind: 'list' | 'flag'; message: string; hint: string }[] {
   const okResponse = endpoint.responses['200'] || endpoint.responses['201'] || endpoint.responses['202'];
   const schema = okResponse?.content?.['application/json']?.schema;
   if (!schema) return [];
@@ -379,10 +389,12 @@ function responseMetaNotices(endpoint: Endpoint): { field: string; message: stri
     if (!notice) {
       throw new Error(`${endpoint.method} ${endpoint.path}: ответ несёт meta.${field} — добавьте предупреждение в META_NOTICES с ключом «${endpoint.method} ${endpoint.path} meta.${field}»`);
     }
-    if (getSchemaType(fieldSchema) !== 'array') {
-      throw new Error(`${endpoint.method} ${endpoint.path}: meta.${field} не массив — предупреждение печатает только списки`);
+    // Список печатается со значениями, флаг — когда он `true`.
+    const type = getSchemaType(fieldSchema);
+    if (type !== 'array' && type !== 'boolean') {
+      throw new Error(`${endpoint.method} ${endpoint.path}: meta.${field} не массив и не флаг — предупреждение печатает только списки и флаги`);
     }
-    return { field, ...notice };
+    return { field, kind: type === 'array' ? 'list' : 'flag', ...notice };
   });
 }
 
@@ -1015,7 +1027,8 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`    const result = responseBody.data ?? responseBody;`);
     runBodyLines.push(`    this.output(result);`);
     for (const n of responseMetaNotices(p.endpoint)) {
-      runBodyLines.push(`    this.warnMetaList(responseBody.meta, ${JSON.stringify(n.field)}, ${JSON.stringify(n.message)}, ${JSON.stringify(n.hint)});`);
+      const warn = n.kind === 'list' ? 'warnMetaList' : 'warnMetaFlag';
+      runBodyLines.push(`    this.${warn}(responseBody.meta, ${JSON.stringify(n.field)}, ${JSON.stringify(n.message)}, ${JSON.stringify(n.hint)});`);
     }
   }
 

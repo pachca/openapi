@@ -1521,6 +1521,11 @@ public class MessagesService
         throw new NotImplementedException("Messages.listPinnedMessagesAll is not implemented");
     }
 
+    public virtual async System.Threading.Tasks.Task<GetMessageHistoryResponse> GetMessageHistoryAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.getMessageHistory is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(
         int chatId,
         MessageSortField? sort = null,
@@ -1638,6 +1643,21 @@ public sealed class MessagesServiceImpl : MessagesService
             hasNext = response.Meta.Paginate.HasNext ?? true;
         }
         return items;
+    }
+
+    public override async System.Threading.Tasks.Task<GetMessageHistoryResponse> GetMessageHistoryAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/company/messages/{id}/history";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<GetMessageHistoryResponse>(json);
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
     }
 
     public override async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(

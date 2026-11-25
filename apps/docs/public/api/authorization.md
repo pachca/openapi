@@ -229,6 +229,7 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 | `audit_events:read` | Просмотр журнала аудита | Владелец |
 | `company_chats:read` | Просмотр списка всех чатов пространства | Владелец |
 | `company_bots:read` | Просмотр списка всех ботов пространства | Владелец |
+| `company_messages:read` | Просмотр истории сообщений пространства | Владелец |
 | `tasks:read` | Просмотр напоминаний | Все |
 | `tasks:create` | Создание напоминаний | Все |
 | `tasks:update` | Изменение напоминания | Все |

@@ -98,6 +98,7 @@
 | `pachca_create_unattached_thread` | [Новый самостоятельный тред](/api/threads/create) | Все | Изменение |
 | `pachca_get_thread` | [Информация о треде](/api/threads/get) | Все | Чтение |
 | `pachca_list_pinned_messages` | [Список закреплённых сообщений](/api/messages/list-pinned) | Все | Чтение |
+| `pachca_get_message_history` | [История сообщения](/api/messages/get-history) | Владелец на «Корпорации» | Чтение |
 | `pachca_list_chat_messages` | [Список сообщений чата](/api/messages/list) | Все | Чтение |
 | `pachca_send_message` | [Новое сообщение](/api/messages/create) | Все | Изменение |
 | `pachca_get_message` | [Информация о сообщении](/api/messages/get) | Все | Чтение |

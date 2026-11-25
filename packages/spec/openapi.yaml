@@ -3894,6 +3894,109 @@ paths:
         - Company
       x-requirements:
         scope: invite_links:write
+  /company/messages/{id}/history:
+    get:
+      operationId: CompanyMessageOperations_getMessageHistory
+      description: |-
+        История сообщения
+
+        Сохранённые состояния сообщения от раннего к последнему: текст и файлы до каждой правки текста или файлов и на момент удаления, кто и когда их изменил. В историю входят 50 последних изменений. Сообщение может быть из любого чата пространства, включая закрытые чаты, где вы не состоите, личные переписки и треды. Удалённое сообщение тоже отдаётся.
+
+        Каждое состояние в `data`, кроме текущего, заканчивается правкой или удалением. Последнее состояние живого сообщения текущее (`action: current`), а удалённого — снимок на момент удаления (`action: deleted`), если снимок сохранился. `version_id` совпадает с `message_version_id` событий `message_updated` и `message_deleted` в [журнале аудита событий](GET /audit_events): так от записи журнала переходят к тексту до правки или удаления.
+
+        Текст личных переписок и тредов в них приходит, только если поле `export_personal_chats` метода [Информация о пространстве](GET /company) равно `true`. Иначе `text` и `content` у их состояний — `null` с причиной `personal_chat_rule`, а файлы, авторы и время изменений приходят.
+
+        Метод доступен владельцу пространства. Каждый успешный запрос записывается в [журнал аудита событий](/guides/audit-events) с типом `company_messages_accessed`. Сообщение другого пространства отвечает `404`, как несуществующее. Если сервис временно недоступен, метод отвечает `503` с кодом `service_unavailable`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор сообщения
+          schema:
+            type: integer
+            format: int32
+          example: 194275
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageHistoryResponse'
+              example:
+                message:
+                  id: 194275
+                  chat_id: 334
+                  thread_chat_id: null
+                  user_id: 12
+                  author_id: null
+                  created_at: '2026-11-24T09:15:00.000Z'
+                  deleted_at: null
+                data:
+                  - version_id: 81234
+                    editor_id: 12
+                    changed_at: '2026-11-24T09:20:00.000Z'
+                    action: edited
+                    source: employee
+                    dlp_masked: false
+                    text: null
+                    text_unavailable_reason: null
+                    content: Релиз в среду
+                    files: []
+                  - version_id: null
+                    editor_id: null
+                    changed_at: '2026-11-24T09:20:00.000Z'
+                    action: current
+                    source: null
+                    dlp_masked: false
+                    text: null
+                    text_unavailable_reason: null
+                    content: Релиз переносим на четверг
+                    files:
+                      - id: 3560
+                        name: report.pdf
+                        file_type: file
+                        size: 48213
+                meta:
+                  history_is_partial: false
+                  truncated: false
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Messages
+      x-requirements:
+        scope: company_messages:read
+        plan: corporation
   /custom_properties:
     get:
       operationId: CommonOperations_listProperties
@@ -9826,12 +9929,22 @@ components:
           description: Идентификатор чата треда. Есть только у сообщений в тредах.
         source:
           type: string
-          description: 'Кто изменил сообщение: `employee` — сотрудник, `bot` — бот, `dlp` — правило DLP заменило текст (актор — автор сообщения), `system` — сама Пачка, например когда прикрепляет к сообщению картинку по ссылке. У message_deleted приходит `employee` или `bot`.'
+          description: 'Кто изменил сообщение: `employee` — сотрудник, `bot` — бот, `dlp` — правило DLP заменило текст (актор — отправитель сообщения), `system` — сама Пачка, например когда прикрепляет к сообщению картинку по ссылке. У message_deleted приходит `employee` или `bot`.'
         message_version_id:
           type: integer
-          format: int32
-          description: 'Идентификатор версии сообщения: снимка его текста и файлов до правки или на момент удаления. После DLP текст в снимке скрыт. Нет, если правка не затронула текст и файлы или удалённое сообщение было пустым.'
+          format: int64
+          description: 'Идентификатор версии сообщения: снимка его текста и файлов до правки или на момент удаления. После DLP текст в снимке скрыт. Нет, если правка не затронула текст и файлы или удалённое сообщение было пустым. Совпадает с `version_id` состояния в [истории сообщения](GET /company/messages/{id}/history).'
       description: 'При: message_updated, message_deleted'
+    AuditDetailsMessageId:
+      type: object
+      required:
+        - message_id
+      properties:
+        message_id:
+          type: integer
+          format: int32
+          description: Идентификатор сообщения, историю которого запросили
+      description: 'При: company_messages_accessed'
     AuditDetailsOAuthAuthorizationGranted:
       type: object
       required:
@@ -10241,6 +10354,7 @@ components:
         - $ref: '#/components/schemas/AuditDetailsChatPermission'
         - $ref: '#/components/schemas/AuditDetailsTagChat'
         - $ref: '#/components/schemas/AuditDetailsChatId'
+        - $ref: '#/components/schemas/AuditDetailsMessageId'
         - $ref: '#/components/schemas/AuditDetailsMessage'
         - $ref: '#/components/schemas/AuditDetailsTokenScopes'
         - $ref: '#/components/schemas/AuditDetailsKms'
@@ -10306,6 +10420,7 @@ components:
         - audit_events_accessed
         - company_chats_accessed
         - company_bots_accessed
+        - company_messages_accessed
         - dlp_violation_detected
         - search_users_api
         - search_chats_api
@@ -10370,6 +10485,7 @@ components:
         audit_events_accessed: Доступ к журналам аудита получен
         company_chats_accessed: Получен список всех чатов пространства
         company_bots_accessed: Получен список всех ботов пространства
+        company_messages_accessed: Получена история сообщения
         dlp_violation_detected: Срабатывание правила DLP-системы
         search_users_api: Поиск сотрудников через API
         search_chats_api: Поиск чатов через API
@@ -10882,7 +10998,7 @@ components:
         description:
           type: string
           nullable: true
-          description: Описание бота. `null`, если не задано.
+          description: Описание бота в Markdown. `null`, если не задано.
           example: Собирает сводку по задачам Jira и присылает её в чат
         published:
           type: boolean
@@ -10914,7 +11030,7 @@ components:
       properties:
         description:
           type: string
-          description: 'Описание: чем бот занимается и зачем его подключать. Без описания бота нельзя опубликовать.'
+          description: 'Описание: чем бот занимается и зачем его подключать, в Markdown. Без описания бота нельзя опубликовать. Витрина показывает жирный, курсив, зачёркнутый текст, ссылки, списки, цитаты и код. Если в описании есть заголовок, таблица, картинка, чек-лист, горизонтальная линия или определение ссылки вида `[1]: https://example.com`, витрина показывает всё описание обычным текстом с символами разметки.'
           example: Собирает сводку по задачам Jira и присылает её в чат
         published:
           type: boolean
@@ -13440,6 +13556,214 @@ components:
         discussion: Беседа или канал
         thread: Тред
         user: Пользователь
+    MessageHistoryAction:
+      type: string
+      enum:
+        - edited
+        - deleted
+        - current
+        - unknown
+      description: Что произошло с состоянием сообщения
+      x-enum-descriptions:
+        edited: Сообщение отредактировали
+        deleted: Сообщение удалили
+        current: Текущее состояние сообщения
+        unknown: Старая запись, по которой не определить, правка это или удаление
+    MessageHistoryFile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор файла
+          example: 3560
+        name:
+          type: string
+          nullable: true
+          description: Название файла с расширением
+          example: report.pdf
+        file_type:
+          allOf:
+            - $ref: '#/components/schemas/FileType'
+          nullable: true
+          description: Тип файла
+          example: file
+        size:
+          type: integer
+          format: int64
+          nullable: true
+          description: Размер файла в байтах
+          example: 48213
+      description: Файл в состоянии сообщения. Ссылки на скачивание нет. В старых записях часть полей может отсутствовать или прийти `null`.
+    MessageHistoryMessage:
+      type: object
+      required:
+        - id
+        - chat_id
+        - thread_chat_id
+        - user_id
+        - author_id
+        - created_at
+        - deleted_at
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор сообщения
+          example: 194275
+        chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор чата сообщения. У сообщения в треде это чат сообщения-родителя треда, а у самостоятельного треда чат самого треда.
+          example: 334
+        thread_chat_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор чата треда. `null`, если сообщение не в треде.
+          example: null
+        user_id:
+          type: integer
+          format: int32
+          description: Идентификатор отправителя. У пересланного сообщения это тот, кто его переслал.
+          example: 12
+        author_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор автора исходного сообщения, если сообщение переслали. `null` у сообщения, которое не пересылали.
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          description: Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+          example: '2026-11-24T09:15:00.000Z'
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если сообщение не удалено.
+          example: null
+      description: 'Сообщение, историю которого запросили. Текста в нём нет: текст приходит в состояниях.'
+    MessageHistoryMeta:
+      type: object
+      required:
+        - history_is_partial
+        - truncated
+      properties:
+        history_is_partial:
+          type: boolean
+          description: 'Ранние состояния известны не полностью: сообщение создано до 22 апреля 2026 года, удалено до 15 августа 2026 года, удалено без снимка на момент удаления или изменения его файлов нельзя восстановить однозначно.'
+          example: false
+        truncated:
+          type: boolean
+          description: 'Изменений больше 50: в историю вошли только 50 последних.'
+          example: false
+      description: Полнота истории
+    MessageHistoryResponse:
+      type: object
+      required:
+        - message
+        - data
+        - meta
+      properties:
+        message:
+          allOf:
+            - $ref: '#/components/schemas/MessageHistoryMessage'
+          description: Сообщение, историю которого запросили
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageHistoryState'
+          description: Состояния сообщения от самого раннего к последнему. В историю входят 50 последних изменений. У удалённого сообщения без сохранённых состояний массив пустой, у сообщения, которое не меняли, в нём одно текущее состояние.
+        meta:
+          allOf:
+            - $ref: '#/components/schemas/MessageHistoryMeta'
+          description: Полнота истории
+      description: История сообщения
+    MessageHistorySource:
+      type: string
+      enum:
+        - employee
+        - bot
+        - dlp
+        - system
+      description: Кто изменил сообщение
+      x-enum-descriptions:
+        employee: Сотрудник
+        bot: Бот
+        dlp: Правило DLP заменило текст
+        system: Сама Пачка, например когда прикрепляет к сообщению картинку по ссылке
+    MessageHistoryState:
+      type: object
+      required:
+        - version_id
+        - editor_id
+        - changed_at
+        - action
+        - source
+        - dlp_masked
+        - text
+        - text_unavailable_reason
+        - content
+        - files
+      properties:
+        version_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: Идентификатор изменения, которым закончилось состояние. Совпадает с `message_version_id` событий `message_updated` и `message_deleted` в [журнале аудита](GET /audit_events). `null` у текущего состояния.
+          example: 81234
+        editor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор сотрудника или бота, который внёс изменение. У изменений правила DLP и самой Пачки это отправитель сообщения. `null` у текущего состояния.
+          example: 12
+        changed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата и время изменения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У текущего состояния это время последнего изменения сообщения, у давно не менявшегося сообщения может прийти `null`.
+          example: '2026-11-24T09:20:00.000Z'
+        action:
+          allOf:
+            - $ref: '#/components/schemas/MessageHistoryAction'
+          description: Чем закончилось состояние
+          example: edited
+        source:
+          allOf:
+            - $ref: '#/components/schemas/MessageHistorySource'
+          nullable: true
+          description: Кто внёс изменение. `null` у текущего состояния и в старых записях.
+          example: employee
+        dlp_masked:
+          type: boolean
+          description: 'Текст скрыт правилом DLP: вместо него приходит `***`, прежний текст не восстанавливается.'
+          example: false
+        text:
+          type: string
+          nullable: true
+          description: Текст без форматирования, если сообщение хранит текст в таком виде. `null`, если такого текста нет или его не удалось получить.
+          example: null
+        text_unavailable_reason:
+          allOf:
+            - $ref: '#/components/schemas/MessageTextUnavailableReason'
+          nullable: true
+          description: Почему не пришёл текст в `text` или `content`. `null`, если текст пришёл или его в состоянии нет. В личной переписке при выключенной выгрузке личных переписок приходит `personal_chat_rule` у каждого состояния, даже без текста.
+          example: null
+        content:
+          type: string
+          nullable: true
+          description: Текст в Markdown, если сообщение хранит текст в таком виде. Пустая строка или `null`, если текст хранится в `text`, текста в состоянии нет или его не удалось получить.
+          example: Релиз переносим на четверг
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageHistoryFile'
+          description: Файлы сообщения в этом состоянии
+      description: 'Состояние сообщения: текст и файлы до изменения, которое его закончило, и само это изменение'
     MessageSearchSort:
       type: string
       enum:
@@ -13465,6 +13789,17 @@ components:
       x-enum-descriptions:
         application: 'Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника'
         personal_token: Персональным токеном сотрудника
+    MessageTextUnavailableReason:
+      type: string
+      enum:
+        - personal_chat_rule
+        - no_key_snapshot
+        - decrypt_failed
+      description: Почему текст состояния не пришёл
+      x-enum-descriptions:
+        personal_chat_rule: Сообщение из личной переписки, а выгрузка личных переписок в пространстве выключена
+        no_key_snapshot: Старое зашифрованное состояние, для которого не сохранился ключ
+        decrypt_failed: Текст не удалось расшифровать
     MessageUpdateRequest:
       type: object
       required:
@@ -13764,6 +14099,7 @@ components:
         - audit_events:read
         - company_chats:read
         - company_bots:read
+        - company_messages:read
         - tasks:read
         - tasks:create
         - tasks:update
@@ -14004,6 +14340,8 @@ components:
           - owner
         company_bots_read:
           - owner
+        company_messages_read:
+          - owner
         tasks_read:
           - owner
           - admin
@@ -14136,6 +14474,7 @@ components:
         audit_events_read: Просмотр журнала аудита
         company_chats_read: Просмотр списка всех чатов пространства
         company_bots_read: Просмотр списка всех ботов пространства
+        company_messages_read: Просмотр истории сообщений пространства
         tasks_read: Просмотр напоминаний
         tasks_create: Создание напоминаний
         tasks_update: Изменение напоминания

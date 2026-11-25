@@ -73,6 +73,9 @@ Do not promise what does not exist:
   (the usual case for a bot called into a thread). Take their `chat_id`
   from `pachca_list_threads` and pass it in `chat_ids` in a separate call
   (`chat_ids` limits the search to those chats), or read the thread's feed.
+- Search and feeds carry only the current text: not what an edited message
+  said before, nor the text of a deleted one. The Owner on Corporation gets
+  both from the message history (pachca-admin).
 
 ## Choose the right search
 

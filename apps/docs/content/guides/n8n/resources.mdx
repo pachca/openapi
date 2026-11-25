@@ -48,7 +48,7 @@ related:
 
 ## Message
 
-Сообщения: создание, получение, редактирование, удаление, закрепление, открепление и список закреплённых.
+Сообщения: создание, получение, редактирование, удаление, закрепление, открепление, список закреплённых и история сообщения.
 
 | Операция | API |
 |----------|-----|
@@ -61,6 +61,7 @@ related:
 | Unpin | [Открепление сообщения](DELETE /messages/{id}/pin) |
 | Unfurl | [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews) |
 | Get Many Pinned Messages | [Список закреплённых сообщений](GET /chats/{id}/pinned_messages) |
+| Get History | [История сообщения](GET /company/messages/{id}/history) |
 
 **Ключевые параметры Create:** **Entity Type** (Discussion, Thread или User), **Entity ID** (чат, тред или сотрудник), **Content** (текст, Markdown), **Button Layout** с кнопками, а в **Additional Fields** — **Files**, **Parent Message ID** и другие. Как задать кнопки — в разделе [Кнопки в сообщениях](/guides/n8n/advanced#knopki-v-soobscheniyah).
 

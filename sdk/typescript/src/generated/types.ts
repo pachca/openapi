@@ -78,6 +78,8 @@ export enum AuditEventKey {
   CompanyChatsAccessed = "company_chats_accessed",
   /** Получен список всех ботов пространства */
   CompanyBotsAccessed = "company_bots_accessed",
+  /** Получена история сообщения */
+  CompanyMessagesAccessed = "company_messages_accessed",
   /** Срабатывание правила DLP-системы */
   DlpViolationDetected = "dlp_violation_detected",
   /** Поиск сотрудников через API */
@@ -458,6 +460,38 @@ export enum MessageEntityType {
   User = "user",
 }
 
+/**
+ * Что произошло с состоянием сообщения
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum MessageHistoryAction {
+  /** Сообщение отредактировали */
+  Edited = "edited",
+  /** Сообщение удалили */
+  Deleted = "deleted",
+  /** Текущее состояние сообщения */
+  Current = "current",
+  /** Старая запись, по которой не определить, правка это или удаление */
+  Unknown = "unknown",
+}
+
+/**
+ * Кто изменил сообщение
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum MessageHistorySource {
+  /** Сотрудник */
+  Employee = "employee",
+  /** Бот */
+  Bot = "bot",
+  /** Правило DLP заменило текст */
+  Dlp = "dlp",
+  /** Сама Пачка, например когда прикрепляет к сообщению картинку по ссылке */
+  System = "system",
+}
+
 /** Сортировка результатов поиска сообщений */
 export enum MessageSearchSort {
   /** По дате создания (хронология) */
@@ -481,6 +515,20 @@ export enum MessageSource {
   Application = "application",
   /** Персональным токеном сотрудника */
   PersonalToken = "personal_token",
+}
+
+/**
+ * Почему текст состояния не пришёл
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum MessageTextUnavailableReason {
+  /** Сообщение из личной переписки, а выгрузка личных переписок в пространстве выключена */
+  PersonalChatRule = "personal_chat_rule",
+  /** Старое зашифрованное состояние, для которого не сохранился ключ */
+  NoKeySnapshot = "no_key_snapshot",
+  /** Текст не удалось расшифровать */
+  DecryptFailed = "decrypt_failed",
 }
 
 /**
@@ -605,6 +653,8 @@ export enum OAuthScope {
   CompanyChatsRead = "company_chats:read",
   /** Просмотр списка всех ботов пространства */
   CompanyBotsRead = "company_bots:read",
+  /** Просмотр истории сообщений пространства */
+  CompanyMessagesRead = "company_messages:read",
   /** Просмотр напоминаний */
   TasksRead = "tasks:read",
   /** Создание напоминаний */
@@ -1164,6 +1214,10 @@ export interface AuditDetailsMessage {
   threadChatId?: number;
   source: string;
   messageVersionId?: number;
+}
+
+export interface AuditDetailsMessageId {
+  messageId: number;
 }
 
 export interface AuditDetailsOAuthAuthorizationGranted {
@@ -1911,6 +1965,47 @@ export interface MessageCreateRequest {
   linkPreview?: boolean;
 }
 
+export interface MessageHistoryFile {
+  id?: number | null;
+  name?: string | null;
+  fileType?: FileType | null;
+  size?: number | null;
+}
+
+export interface MessageHistoryMessage {
+  id: number;
+  chatId: number;
+  threadChatId: number | null;
+  userId: number;
+  authorId: number | null;
+  createdAt: string;
+  deletedAt: string | null;
+}
+
+export interface MessageHistoryMeta {
+  historyIsPartial: boolean;
+  truncated: boolean;
+}
+
+export interface MessageHistoryResponse {
+  message: MessageHistoryMessage;
+  data: MessageHistoryState[];
+  meta: MessageHistoryMeta;
+}
+
+export interface MessageHistoryState {
+  versionId: number | null;
+  editorId: number | null;
+  changedAt: string | null;
+  action: MessageHistoryAction;
+  source: MessageHistorySource | null;
+  dlpMasked: boolean;
+  text: string | null;
+  textUnavailableReason: MessageTextUnavailableReason | null;
+  content: string | null;
+  files: MessageHistoryFile[];
+}
+
 export interface MessageUpdateRequestFile {
   key: string;
   name: string;
@@ -2460,7 +2555,7 @@ export interface UpdateUserAvatarRequest {
   image: Blob;
 }
 
-export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsMessage | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsBotOAuthClient | AuditDetailsOAuthAuthorizationGranted | AuditDetailsOAuthAuthorizationRevoked | AuditDetailsDeviceAuthorizationApproved | AuditDetailsDeviceAuthorizationDenied | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording | AuditDetailsBotOAuthClientSecretRotated | AuditDetailsBotOAuthClientDisabled | AuditDetailsToken | AuditDetailsBotTokenUpdated | AuditDetailsUserLoginQr | AuditDetailsLoginGrantCreated | AuditDetailsLoginGrantApproved | AuditDetailsLoginGrantDenied;
+export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsMessageId | AuditDetailsMessage | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsBotOAuthClient | AuditDetailsOAuthAuthorizationGranted | AuditDetailsOAuthAuthorizationRevoked | AuditDetailsDeviceAuthorizationApproved | AuditDetailsDeviceAuthorizationDenied | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording | AuditDetailsBotOAuthClientSecretRotated | AuditDetailsBotOAuthClientDisabled | AuditDetailsToken | AuditDetailsBotTokenUpdated | AuditDetailsUserLoginQr | AuditDetailsLoginGrantCreated | AuditDetailsLoginGrantApproved | AuditDetailsLoginGrantDenied;
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 
@@ -2686,6 +2781,10 @@ export interface ListCompanyBotsResponse {
 export interface ListCompanyChatsResponse {
   data: Chat[];
   meta: PaginationMeta;
+}
+
+export interface GetMessageHistoryResponse {
+  data: MessageHistoryState[];
 }
 
 export interface ListPropertiesResponse {

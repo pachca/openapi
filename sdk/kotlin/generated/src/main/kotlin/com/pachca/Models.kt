@@ -148,6 +148,8 @@ value class AuditEventKey(val value: String) {
         val COMPANY_CHATS_ACCESSED = AuditEventKey("company_chats_accessed")
         /** Получен список всех ботов пространства */
         val COMPANY_BOTS_ACCESSED = AuditEventKey("company_bots_accessed")
+        /** Получена история сообщения */
+        val COMPANY_MESSAGES_ACCESSED = AuditEventKey("company_messages_accessed")
         /** Срабатывание правила DLP-системы */
         val DLP_VIOLATION_DETECTED = AuditEventKey("dlp_violation_detected")
         /** Поиск сотрудников через API */
@@ -200,12 +202,12 @@ value class AuditEventKey(val value: String) {
         val EXCHANGE_DISABLED = AuditEventKey("exchange_disabled")
 
         /** Every value this SDK version lists */
-        val entries: List<AuditEventKey> = listOf(USER_LOGIN, USER_LOGOUT, USER_2FA_FAIL, USER_2FA_SUCCESS, USER_2FA_DISABLED, LOGIN_GRANT_CREATED, LOGIN_GRANT_APPROVED, LOGIN_GRANT_DENIED, USER_CREATED, USER_DELETED, USER_ROLE_CHANGED, USER_UPDATED, TAG_CREATED, TAG_DELETED, USER_ADDED_TO_TAG, USER_REMOVED_FROM_TAG, CHAT_CREATED, CHAT_RENAMED, CHAT_PERMISSION_CHANGED, USER_CHAT_JOIN, USER_CHAT_LEAVE, TAG_ADDED_TO_CHAT, TAG_REMOVED_FROM_CHAT, MESSAGE_UPDATED, MESSAGE_DELETED, MESSAGE_CREATED, REACTION_CREATED, REACTION_DELETED, THREAD_CREATED, ACCESS_TOKEN_CREATED, ACCESS_TOKEN_UPDATED, ACCESS_TOKEN_DESTROY, KMS_ENCRYPT, KMS_DECRYPT, AUDIT_EVENTS_ACCESSED, COMPANY_CHATS_ACCESSED, COMPANY_BOTS_ACCESSED, DLP_VIOLATION_DETECTED, SEARCH_USERS_API, SEARCH_CHATS_API, SEARCH_MESSAGES_API, BOT_SCOPES_UPDATED, BOT_WEBHOOK_SETTINGS_UPDATED, BOT_TOKEN_RECREATED, BOT_DELETED, BOT_OAUTH_CLIENT_UPDATED, BOT_OAUTH_CLIENT_DISABLED, BOT_OAUTH_CLIENT_SECRET_ROTATED, BOT_OAUTH_CLIENT_SECRET_ISSUED, BOT_TOKEN_CREATED, BOT_TOKEN_UPDATED, BOT_TOKEN_REISSUED, BOT_TOKEN_DELETED, OAUTH_AUTHORIZATION_GRANTED, OAUTH_AUTHORIZATION_REVOKED, OAUTH_TOKEN_REVOKED, OAUTH_DEVICE_AUTHORIZATION_APPROVED, OAUTH_DEVICE_AUTHORIZATION_DENIED, VIDEO_CALL_STARTED, VIDEO_CALL_FINISHED, VIDEO_CALL_RECORDING_READY, EXCHANGE_DISABLED)
+        val entries: List<AuditEventKey> = listOf(USER_LOGIN, USER_LOGOUT, USER_2FA_FAIL, USER_2FA_SUCCESS, USER_2FA_DISABLED, LOGIN_GRANT_CREATED, LOGIN_GRANT_APPROVED, LOGIN_GRANT_DENIED, USER_CREATED, USER_DELETED, USER_ROLE_CHANGED, USER_UPDATED, TAG_CREATED, TAG_DELETED, USER_ADDED_TO_TAG, USER_REMOVED_FROM_TAG, CHAT_CREATED, CHAT_RENAMED, CHAT_PERMISSION_CHANGED, USER_CHAT_JOIN, USER_CHAT_LEAVE, TAG_ADDED_TO_CHAT, TAG_REMOVED_FROM_CHAT, MESSAGE_UPDATED, MESSAGE_DELETED, MESSAGE_CREATED, REACTION_CREATED, REACTION_DELETED, THREAD_CREATED, ACCESS_TOKEN_CREATED, ACCESS_TOKEN_UPDATED, ACCESS_TOKEN_DESTROY, KMS_ENCRYPT, KMS_DECRYPT, AUDIT_EVENTS_ACCESSED, COMPANY_CHATS_ACCESSED, COMPANY_BOTS_ACCESSED, COMPANY_MESSAGES_ACCESSED, DLP_VIOLATION_DETECTED, SEARCH_USERS_API, SEARCH_CHATS_API, SEARCH_MESSAGES_API, BOT_SCOPES_UPDATED, BOT_WEBHOOK_SETTINGS_UPDATED, BOT_TOKEN_RECREATED, BOT_DELETED, BOT_OAUTH_CLIENT_UPDATED, BOT_OAUTH_CLIENT_DISABLED, BOT_OAUTH_CLIENT_SECRET_ROTATED, BOT_OAUTH_CLIENT_SECRET_ISSUED, BOT_TOKEN_CREATED, BOT_TOKEN_UPDATED, BOT_TOKEN_REISSUED, BOT_TOKEN_DELETED, OAUTH_AUTHORIZATION_GRANTED, OAUTH_AUTHORIZATION_REVOKED, OAUTH_TOKEN_REVOKED, OAUTH_DEVICE_AUTHORIZATION_APPROVED, OAUTH_DEVICE_AUTHORIZATION_DENIED, VIDEO_CALL_STARTED, VIDEO_CALL_FINISHED, VIDEO_CALL_RECORDING_READY, EXCHANGE_DISABLED)
 
         /** The same values as an array, like `values()` of an enum class */
         fun values(): Array<AuditEventKey> = entries.toTypedArray()
 
-        private val knownNames: Map<String, String> = mapOf("user_login" to "USER_LOGIN", "user_logout" to "USER_LOGOUT", "user_2fa_fail" to "USER_2FA_FAIL", "user_2fa_success" to "USER_2FA_SUCCESS", "user_2fa_disabled" to "USER_2FA_DISABLED", "login_grant_created" to "LOGIN_GRANT_CREATED", "login_grant_approved" to "LOGIN_GRANT_APPROVED", "login_grant_denied" to "LOGIN_GRANT_DENIED", "user_created" to "USER_CREATED", "user_deleted" to "USER_DELETED", "user_role_changed" to "USER_ROLE_CHANGED", "user_updated" to "USER_UPDATED", "tag_created" to "TAG_CREATED", "tag_deleted" to "TAG_DELETED", "user_added_to_tag" to "USER_ADDED_TO_TAG", "user_removed_from_tag" to "USER_REMOVED_FROM_TAG", "chat_created" to "CHAT_CREATED", "chat_renamed" to "CHAT_RENAMED", "chat_permission_changed" to "CHAT_PERMISSION_CHANGED", "user_chat_join" to "USER_CHAT_JOIN", "user_chat_leave" to "USER_CHAT_LEAVE", "tag_added_to_chat" to "TAG_ADDED_TO_CHAT", "tag_removed_from_chat" to "TAG_REMOVED_FROM_CHAT", "message_updated" to "MESSAGE_UPDATED", "message_deleted" to "MESSAGE_DELETED", "message_created" to "MESSAGE_CREATED", "reaction_created" to "REACTION_CREATED", "reaction_deleted" to "REACTION_DELETED", "thread_created" to "THREAD_CREATED", "access_token_created" to "ACCESS_TOKEN_CREATED", "access_token_updated" to "ACCESS_TOKEN_UPDATED", "access_token_destroy" to "ACCESS_TOKEN_DESTROY", "kms_encrypt" to "KMS_ENCRYPT", "kms_decrypt" to "KMS_DECRYPT", "audit_events_accessed" to "AUDIT_EVENTS_ACCESSED", "company_chats_accessed" to "COMPANY_CHATS_ACCESSED", "company_bots_accessed" to "COMPANY_BOTS_ACCESSED", "dlp_violation_detected" to "DLP_VIOLATION_DETECTED", "search_users_api" to "SEARCH_USERS_API", "search_chats_api" to "SEARCH_CHATS_API", "search_messages_api" to "SEARCH_MESSAGES_API", "bot_scopes_updated" to "BOT_SCOPES_UPDATED", "bot_webhook_settings_updated" to "BOT_WEBHOOK_SETTINGS_UPDATED", "bot_token_recreated" to "BOT_TOKEN_RECREATED", "bot_deleted" to "BOT_DELETED", "bot_oauth_client_updated" to "BOT_OAUTH_CLIENT_UPDATED", "bot_oauth_client_disabled" to "BOT_OAUTH_CLIENT_DISABLED", "bot_oauth_client_secret_rotated" to "BOT_OAUTH_CLIENT_SECRET_ROTATED", "bot_oauth_client_secret_issued" to "BOT_OAUTH_CLIENT_SECRET_ISSUED", "bot_token_created" to "BOT_TOKEN_CREATED", "bot_token_updated" to "BOT_TOKEN_UPDATED", "bot_token_reissued" to "BOT_TOKEN_REISSUED", "bot_token_deleted" to "BOT_TOKEN_DELETED", "oauth_authorization_granted" to "OAUTH_AUTHORIZATION_GRANTED", "oauth_authorization_revoked" to "OAUTH_AUTHORIZATION_REVOKED", "oauth_token_revoked" to "OAUTH_TOKEN_REVOKED", "oauth_device_authorization_approved" to "OAUTH_DEVICE_AUTHORIZATION_APPROVED", "oauth_device_authorization_denied" to "OAUTH_DEVICE_AUTHORIZATION_DENIED", "video_call_started" to "VIDEO_CALL_STARTED", "video_call_finished" to "VIDEO_CALL_FINISHED", "video_call_recording_ready" to "VIDEO_CALL_RECORDING_READY", "exchange_disabled" to "EXCHANGE_DISABLED")
+        private val knownNames: Map<String, String> = mapOf("user_login" to "USER_LOGIN", "user_logout" to "USER_LOGOUT", "user_2fa_fail" to "USER_2FA_FAIL", "user_2fa_success" to "USER_2FA_SUCCESS", "user_2fa_disabled" to "USER_2FA_DISABLED", "login_grant_created" to "LOGIN_GRANT_CREATED", "login_grant_approved" to "LOGIN_GRANT_APPROVED", "login_grant_denied" to "LOGIN_GRANT_DENIED", "user_created" to "USER_CREATED", "user_deleted" to "USER_DELETED", "user_role_changed" to "USER_ROLE_CHANGED", "user_updated" to "USER_UPDATED", "tag_created" to "TAG_CREATED", "tag_deleted" to "TAG_DELETED", "user_added_to_tag" to "USER_ADDED_TO_TAG", "user_removed_from_tag" to "USER_REMOVED_FROM_TAG", "chat_created" to "CHAT_CREATED", "chat_renamed" to "CHAT_RENAMED", "chat_permission_changed" to "CHAT_PERMISSION_CHANGED", "user_chat_join" to "USER_CHAT_JOIN", "user_chat_leave" to "USER_CHAT_LEAVE", "tag_added_to_chat" to "TAG_ADDED_TO_CHAT", "tag_removed_from_chat" to "TAG_REMOVED_FROM_CHAT", "message_updated" to "MESSAGE_UPDATED", "message_deleted" to "MESSAGE_DELETED", "message_created" to "MESSAGE_CREATED", "reaction_created" to "REACTION_CREATED", "reaction_deleted" to "REACTION_DELETED", "thread_created" to "THREAD_CREATED", "access_token_created" to "ACCESS_TOKEN_CREATED", "access_token_updated" to "ACCESS_TOKEN_UPDATED", "access_token_destroy" to "ACCESS_TOKEN_DESTROY", "kms_encrypt" to "KMS_ENCRYPT", "kms_decrypt" to "KMS_DECRYPT", "audit_events_accessed" to "AUDIT_EVENTS_ACCESSED", "company_chats_accessed" to "COMPANY_CHATS_ACCESSED", "company_bots_accessed" to "COMPANY_BOTS_ACCESSED", "company_messages_accessed" to "COMPANY_MESSAGES_ACCESSED", "dlp_violation_detected" to "DLP_VIOLATION_DETECTED", "search_users_api" to "SEARCH_USERS_API", "search_chats_api" to "SEARCH_CHATS_API", "search_messages_api" to "SEARCH_MESSAGES_API", "bot_scopes_updated" to "BOT_SCOPES_UPDATED", "bot_webhook_settings_updated" to "BOT_WEBHOOK_SETTINGS_UPDATED", "bot_token_recreated" to "BOT_TOKEN_RECREATED", "bot_deleted" to "BOT_DELETED", "bot_oauth_client_updated" to "BOT_OAUTH_CLIENT_UPDATED", "bot_oauth_client_disabled" to "BOT_OAUTH_CLIENT_DISABLED", "bot_oauth_client_secret_rotated" to "BOT_OAUTH_CLIENT_SECRET_ROTATED", "bot_oauth_client_secret_issued" to "BOT_OAUTH_CLIENT_SECRET_ISSUED", "bot_token_created" to "BOT_TOKEN_CREATED", "bot_token_updated" to "BOT_TOKEN_UPDATED", "bot_token_reissued" to "BOT_TOKEN_REISSUED", "bot_token_deleted" to "BOT_TOKEN_DELETED", "oauth_authorization_granted" to "OAUTH_AUTHORIZATION_GRANTED", "oauth_authorization_revoked" to "OAUTH_AUTHORIZATION_REVOKED", "oauth_token_revoked" to "OAUTH_TOKEN_REVOKED", "oauth_device_authorization_approved" to "OAUTH_DEVICE_AUTHORIZATION_APPROVED", "oauth_device_authorization_denied" to "OAUTH_DEVICE_AUTHORIZATION_DENIED", "video_call_started" to "VIDEO_CALL_STARTED", "video_call_finished" to "VIDEO_CALL_FINISHED", "video_call_recording_ready" to "VIDEO_CALL_RECORDING_READY", "exchange_disabled" to "EXCHANGE_DISABLED")
 
         fun valueOf(name: String): AuditEventKey =
             entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No AuditEventKey constant $name")
@@ -803,6 +805,72 @@ value class MessageEntityType(val value: String) {
     }
 }
 
+/** Что произошло с состоянием сообщения */
+@Serializable
+@JvmInline
+value class MessageHistoryAction(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Сообщение отредактировали */
+        val EDITED = MessageHistoryAction("edited")
+        /** Сообщение удалили */
+        val DELETED = MessageHistoryAction("deleted")
+        /** Текущее состояние сообщения */
+        val CURRENT = MessageHistoryAction("current")
+        /** Старая запись, по которой не определить, правка это или удаление */
+        val UNKNOWN = MessageHistoryAction("unknown")
+
+        /** Every value this SDK version lists */
+        val entries: List<MessageHistoryAction> = listOf(EDITED, DELETED, CURRENT, UNKNOWN)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<MessageHistoryAction> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("edited" to "EDITED", "deleted" to "DELETED", "current" to "CURRENT", "unknown" to "UNKNOWN")
+
+        fun valueOf(name: String): MessageHistoryAction =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No MessageHistoryAction constant $name")
+    }
+}
+
+/** Кто изменил сообщение */
+@Serializable
+@JvmInline
+value class MessageHistorySource(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Сотрудник */
+        val EMPLOYEE = MessageHistorySource("employee")
+        /** Бот */
+        val BOT = MessageHistorySource("bot")
+        /** Правило DLP заменило текст */
+        val DLP = MessageHistorySource("dlp")
+        /** Сама Пачка, например когда прикрепляет к сообщению картинку по ссылке */
+        val SYSTEM = MessageHistorySource("system")
+
+        /** Every value this SDK version lists */
+        val entries: List<MessageHistorySource> = listOf(EMPLOYEE, BOT, DLP, SYSTEM)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<MessageHistorySource> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("employee" to "EMPLOYEE", "bot" to "BOT", "dlp" to "DLP", "system" to "SYSTEM")
+
+        fun valueOf(name: String): MessageHistorySource =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No MessageHistorySource constant $name")
+    }
+}
+
 /** Сортировка результатов поиска сообщений */
 @Serializable
 enum class MessageSearchSort(val value: String) {
@@ -844,6 +912,37 @@ value class MessageSource(val value: String) {
 
         fun valueOf(name: String): MessageSource =
             entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No MessageSource constant $name")
+    }
+}
+
+/** Почему текст состояния не пришёл */
+@Serializable
+@JvmInline
+value class MessageTextUnavailableReason(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Сообщение из личной переписки, а выгрузка личных переписок в пространстве выключена */
+        val PERSONAL_CHAT_RULE = MessageTextUnavailableReason("personal_chat_rule")
+        /** Старое зашифрованное состояние, для которого не сохранился ключ */
+        val NO_KEY_SNAPSHOT = MessageTextUnavailableReason("no_key_snapshot")
+        /** Текст не удалось расшифровать */
+        val DECRYPT_FAILED = MessageTextUnavailableReason("decrypt_failed")
+
+        /** Every value this SDK version lists */
+        val entries: List<MessageTextUnavailableReason> = listOf(PERSONAL_CHAT_RULE, NO_KEY_SNAPSHOT, DECRYPT_FAILED)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<MessageTextUnavailableReason> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("personal_chat_rule" to "PERSONAL_CHAT_RULE", "no_key_snapshot" to "NO_KEY_SNAPSHOT", "decrypt_failed" to "DECRYPT_FAILED")
+
+        fun valueOf(name: String): MessageTextUnavailableReason =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No MessageTextUnavailableReason constant $name")
     }
 }
 
@@ -991,6 +1090,8 @@ value class OAuthScope(val value: String) {
         val COMPANY_CHATS_READ = OAuthScope("company_chats:read")
         /** Просмотр списка всех ботов пространства */
         val COMPANY_BOTS_READ = OAuthScope("company_bots:read")
+        /** Просмотр истории сообщений пространства */
+        val COMPANY_MESSAGES_READ = OAuthScope("company_messages:read")
         /** Просмотр напоминаний */
         val TASKS_READ = OAuthScope("tasks:read")
         /** Создание напоминаний */
@@ -1025,12 +1126,12 @@ value class OAuthScope(val value: String) {
         val IMPORTANT_MESSAGES_WRITE = OAuthScope("important_messages:write")
 
         /** Every value this SDK version lists */
-        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_MARK_READ, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_WRITE, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, COMPANY_READ, COMPANY_WRITE, INVITE_LINKS_WRITE, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE, IMPORTANT_MESSAGES_READ, IMPORTANT_MESSAGES_WRITE)
+        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_MARK_READ, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_WRITE, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, COMPANY_READ, COMPANY_WRITE, INVITE_LINKS_WRITE, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, COMPANY_MESSAGES_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE, IMPORTANT_MESSAGES_READ, IMPORTANT_MESSAGES_WRITE)
 
         /** The same values as an array, like `values()` of an enum class */
         fun values(): Array<OAuthScope> = entries.toTypedArray()
 
-        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:mark_read" to "CHATS_MARK_READ", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile:write" to "PROFILE_WRITE", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "company:read" to "COMPANY_READ", "company:write" to "COMPANY_WRITE", "invite_links:write" to "INVITE_LINKS_WRITE", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE", "important_messages:read" to "IMPORTANT_MESSAGES_READ", "important_messages:write" to "IMPORTANT_MESSAGES_WRITE")
+        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:mark_read" to "CHATS_MARK_READ", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile:write" to "PROFILE_WRITE", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "company:read" to "COMPANY_READ", "company:write" to "COMPANY_WRITE", "invite_links:write" to "INVITE_LINKS_WRITE", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "company_messages:read" to "COMPANY_MESSAGES_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE", "important_messages:read" to "IMPORTANT_MESSAGES_READ", "important_messages:write" to "IMPORTANT_MESSAGES_WRITE")
 
         fun valueOf(name: String): OAuthScope =
             entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No OAuthScope constant $name")
@@ -1526,6 +1627,7 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
         setOf("public_access") to { json, element -> json.decodeFromJsonElement(AuditDetailsChatPermission.serializer(), element) },
         setOf("chat_id", "tag_name") to { json, element -> json.decodeFromJsonElement(AuditDetailsTagChat.serializer(), element) },
         setOf("chat_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsChatId.serializer(), element) },
+        setOf("message_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsMessageId.serializer(), element) },
         setOf("chat_id", "thread_chat_id", "source", "message_version_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsMessage.serializer(), element) },
         setOf("scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsTokenScopes.serializer(), element) },
         setOf("chat_id", "message_id", "reason") to { json, element -> json.decodeFromJsonElement(AuditDetailsKms.serializer(), element) },
@@ -1565,6 +1667,7 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
             is AuditDetailsChatPermission -> jsonEncoder.encodeSerializableValue(AuditDetailsChatPermission.serializer(), value)
             is AuditDetailsTagChat -> jsonEncoder.encodeSerializableValue(AuditDetailsTagChat.serializer(), value)
             is AuditDetailsChatId -> jsonEncoder.encodeSerializableValue(AuditDetailsChatId.serializer(), value)
+            is AuditDetailsMessageId -> jsonEncoder.encodeSerializableValue(AuditDetailsMessageId.serializer(), value)
             is AuditDetailsMessage -> jsonEncoder.encodeSerializableValue(AuditDetailsMessage.serializer(), value)
             is AuditDetailsTokenScopes -> jsonEncoder.encodeSerializableValue(AuditDetailsTokenScopes.serializer(), value)
             is AuditDetailsKms -> jsonEncoder.encodeSerializableValue(AuditDetailsKms.serializer(), value)
@@ -1669,11 +1772,16 @@ data class AuditDetailsChatId(
 ) : AuditEventDetailsUnion
 
 @Serializable
+data class AuditDetailsMessageId(
+    @SerialName("message_id") val messageId: Int,
+) : AuditEventDetailsUnion
+
+@Serializable
 data class AuditDetailsMessage(
     @SerialName("chat_id") val chatId: Int,
     @SerialName("thread_chat_id") val threadChatId: Int? = null,
     val source: String,
-    @SerialName("message_version_id") val messageVersionId: Int? = null,
+    @SerialName("message_version_id") val messageVersionId: Long? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -3011,6 +3119,52 @@ data class MessageCreateRequest(
 )
 
 @Serializable
+data class MessageHistoryFile(
+    val id: Int? = null,
+    val name: String? = null,
+    @SerialName("file_type") val fileType: FileType? = null,
+    val size: Long? = null,
+)
+
+@Serializable
+data class MessageHistoryMessage(
+    val id: Int,
+    @SerialName("chat_id") val chatId: Int,
+    @SerialName("thread_chat_id") val threadChatId: Int? = null,
+    @SerialName("user_id") val userId: Int,
+    @SerialName("author_id") val authorId: Int? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("deleted_at") val deletedAt: OffsetDateTime? = null,
+)
+
+@Serializable
+data class MessageHistoryMeta(
+    @SerialName("history_is_partial") val historyIsPartial: Boolean,
+    val truncated: Boolean,
+)
+
+@Serializable
+data class MessageHistoryResponse(
+    val message: MessageHistoryMessage,
+    val data: List<MessageHistoryState>,
+    val meta: MessageHistoryMeta,
+)
+
+@Serializable
+data class MessageHistoryState(
+    @SerialName("version_id") val versionId: Long? = null,
+    @SerialName("editor_id") val editorId: Int? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("changed_at") val changedAt: OffsetDateTime? = null,
+    val action: MessageHistoryAction,
+    val source: MessageHistorySource? = null,
+    @SerialName("dlp_masked") val dlpMasked: Boolean,
+    val text: String? = null,
+    @SerialName("text_unavailable_reason") val textUnavailableReason: MessageTextUnavailableReason? = null,
+    val content: String? = null,
+    val files: List<MessageHistoryFile>,
+)
+
+@Serializable
 data class MessageUpdateRequestFile(
     val key: String,
     val name: String,
@@ -3534,6 +3688,11 @@ data class ListCompanyBotsResponse(
 data class ListCompanyChatsResponse(
     val data: List<Chat>,
     val meta: PaginationMeta,
+)
+
+@Serializable
+data class GetMessageHistoryResponse(
+    val data: List<MessageHistoryState>,
 )
 
 @Serializable

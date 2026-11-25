@@ -251,6 +251,10 @@
       "ListPinnedMessagesParams"
     ]
   },
+  "CompanyMessageOperations_getMessageHistory": {
+    "usage": "response = await client.messages.get_message_history(id=194275)",
+    "output": "GetMessageHistoryResponse(data: list[MessageHistoryState])"
+  },
   "ChatMessageOperations_listChatMessages": {
     "usage": "params = ListChatMessagesParams(\n    chat_id=198,\n    sort=MessageSortField.ID,\n    order=SortOrder.DESC,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n    after_message_id=194275\n)\nresponse = await client.messages.list_chat_messages(params=params)",
     "output": "ListChatMessagesResponse(data: list[Message], meta: PaginationMeta)",

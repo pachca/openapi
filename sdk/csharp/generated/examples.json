@@ -235,6 +235,10 @@
     "usage": "var response = await client.Messages.ListPinnedMessagesAsync(334, 25, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
     "output": "ListPinnedMessagesResponse(Data: List<Message>, Meta: PaginationMeta)"
   },
+  "CompanyMessageOperations_getMessageHistory": {
+    "usage": "var response = await client.Messages.GetMessageHistoryAsync(194275);",
+    "output": "GetMessageHistoryResponse(Data: List<MessageHistoryState>)"
+  },
   "ChatMessageOperations_listChatMessages": {
     "usage": "var response = await client.Messages.ListChatMessagesAsync(198, MessageSortField.Id, SortOrder.Desc, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", 194275);",
     "output": "ListChatMessagesResponse(Data: List<Message>, Meta: PaginationMeta)",

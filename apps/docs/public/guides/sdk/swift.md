@@ -140,6 +140,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.messages.listChatMessages()` | [Список сообщений чата](/api/messages/list) |
 | `client.messages.getMessage()` | [Информация о сообщении](/api/messages/get) |
 | `client.messages.listPinnedMessages()` | [Список закреплённых сообщений](/api/messages/list-pinned) |
+| `client.messages.getMessageHistory()` | [История сообщения](/api/messages/get-history) |
 | `client.messages.updateMessage()` | [Редактирование сообщения](/api/messages/update) |
 | `client.messages.deleteMessage()` | [Удаление сообщения](/api/messages/delete) |
 | `client.messages.unpinMessage()` | [Открепление сообщения](/api/messages/unpin) |

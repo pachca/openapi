@@ -129,6 +129,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Messages.ListChatMessagesAsync()` | [Список сообщений чата](/api/messages/list) |
 | `client.Messages.GetMessageAsync()` | [Информация о сообщении](/api/messages/get) |
 | `client.Messages.ListPinnedMessagesAsync()` | [Список закреплённых сообщений](/api/messages/list-pinned) |
+| `client.Messages.GetMessageHistoryAsync()` | [История сообщения](/api/messages/get-history) |
 | `client.Messages.UpdateMessageAsync()` | [Редактирование сообщения](/api/messages/update) |
 | `client.Messages.DeleteMessageAsync()` | [Удаление сообщения](/api/messages/delete) |
 | `client.Messages.UnpinMessageAsync()` | [Открепление сообщения](/api/messages/unpin) |

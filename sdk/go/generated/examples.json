@@ -251,6 +251,10 @@
       "ListPinnedMessagesParams"
     ]
   },
+  "CompanyMessageOperations_getMessageHistory": {
+    "usage": "response, err := client.Messages.GetMessageHistory(ctx, int32(194275))",
+    "output": "GetMessageHistoryResponse{Data: []MessageHistoryState}"
+  },
   "ChatMessageOperations_listChatMessages": {
     "usage": "params := pachca.ListChatMessagesParams{\n\tChatID: int32(198),\n\tSort: pachca.Ptr(pachca.MessageSortFieldID),\n\tOrder: pachca.Ptr(pachca.SortOrderDesc),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n\tAfterMessageID: pachca.Ptr(int32(194275)),\n}\nresponse, err := client.Messages.ListChatMessages(ctx, params)",
     "output": "ListChatMessagesResponse{Data: []Message, Meta: PaginationMeta}",

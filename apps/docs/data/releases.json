@@ -1,6 +1,97 @@
 [
   {
     "product": "sdk",
+    "version": "1.11.0",
+    "date": "2026-11-25",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Метод `История сообщения` (`GET /company/messages/{id}/history`), модели `MessageHistoryResponse`, `MessageHistoryMessage`, `MessageHistoryState`, `MessageHistoryFile`, `MessageHistoryMeta` и перечисления `MessageHistoryAction`, `MessageHistorySource`, `MessageTextUnavailableReason`"
+      },
+      {
+        "type": "+",
+        "description": "Значение `company_messages:read` в `OAuthScope`, `company_messages_accessed` в `AuditEventKey` и модель деталей `AuditDetailsMessageId`"
+      },
+      {
+        "type": "~",
+        "description": "`message_version_id` в `AuditDetailsMessage` стал 64-битным целым, как идентификатор версии в истории сообщения"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.11.7",
+    "date": "2026-11-25",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca messages get-history` — история сообщения для владельца пространства: текст и файлы до каждой правки и на момент удаления. Если история неполная или в неё вошли только 50 последних изменений, команда предупреждает об этом."
+      },
+      {
+        "type": "~",
+        "description": "`pachca security list`: фильтр `--event-key` принимает `company_messages_accessed`"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.2.11",
+    "date": "2026-11-25",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`Message`: новая операция `Get History` — история сообщения для владельца пространства одним элементом: сообщение, его состояния и признаки полноты"
+      },
+      {
+        "type": "+",
+        "description": "`Security`: фильтр по событию `Company Messages Accessed`"
+      }
+    ]
+  },
+  {
+    "product": "mcp",
+    "version": "1.12.0",
+    "date": "2026-11-25",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca_get_message_history` отдаёт владельцу пространства на тарифе «Корпорация» историю сообщения: текст и файлы до каждой правки и на момент удаления. Для него нужно право `company_messages:read`."
+      },
+      {
+        "type": "~",
+        "description": "`pachca_get_audit_events`: событие `company_messages_accessed`, а `message_version_id` у `message_updated` и `message_deleted` ведёт к состоянию в истории сообщения"
+      },
+      {
+        "type": "~",
+        "description": "`pachca_create_bot` и `pachca_update_bot`: описание на витрине в `promo.description` передают в Markdown"
+      }
+    ]
+  },
+  {
+    "product": "plugin",
+    "version": "1.0.18",
+    "date": "2026-11-25",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca-admin`: история сообщения — прежний текст и файлы правленого или удалённого сообщения по записи журнала аудита"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-bots`: после пяти ошибок доставки подряд за минуту Пачка на 30 секунд ставит доставку на адрес вебхука на паузу, событие из паузы приходит позже, а нажатие кнопки не доходит"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-oauth`: право `company_messages:read` есть только у владельца, поэтому бот OAuth историю сообщения не читает"
+      },
+      {
+        "type": "~",
+        "description": "`pachca-search`: прежнего текста правленого сообщения и текста удалённого поиск не находит, их отдаёт история сообщения владельцу"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
     "version": "1.10.2",
     "date": "2026-11-22",
     "changes": [

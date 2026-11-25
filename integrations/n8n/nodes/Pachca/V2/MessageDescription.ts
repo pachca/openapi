@@ -24,6 +24,11 @@ export const messageOperations: INodeProperties[] = [
 				action: 'Get a message',
 			},
 			{
+				name: 'Get History',
+				value: 'getHistory',
+				action: 'Get message history',
+			},
+			{
 				name: 'Get Many',
 				value: 'getAll',
 				action: 'Get many messages',
@@ -92,6 +97,30 @@ export const messageFields: INodeProperties[] = [
 		default: true,
 		description: 'Whether to return a simplified version of the response instead of all fields',
 		displayOptions: { show: { resource: ['message'], operation: ['getAllPinnedMessages'] } },
+	},
+	{
+		displayName: 'ID',
+		name: 'id',
+		type: 'number',
+		required: true,
+		default: 0,
+		displayOptions: { show: { resource: ['message'], operation: ['getHistory'] } },
+		description: 'Message ID',
+	},
+	{
+		displayName: 'Requires owner role and the "Corporation" plan',
+		name: 'messageGetHistoryNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: { show: { resource: ['message'], operation: ['getHistory'] } },
+	},
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: true,
+		description: 'Whether to return a simplified version of the response instead of all fields',
+		displayOptions: { show: { resource: ['message'], operation: ['getHistory'] } },
 	},
 	{
 		displayName: 'Entity Type',

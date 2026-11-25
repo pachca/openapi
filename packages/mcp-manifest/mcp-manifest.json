@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "4064bb947b8a7e70"
+    "digest": "3fe3d67aa6645fc1"
   },
   "server": {
     "name": "pachca",
@@ -274,7 +274,7 @@
           },
           "event_key": {
             "type": "string",
-            "description": "Filter by specific event type. Values: user_login — User logged in successfully; user_logout — User logged out; user_2fa_fail — Failed two-factor authentication attempt; user_2fa_success — Successful two-factor authentication; user_2fa_disabled — Two-factor authentication disabled for the employee; login_grant_created — QR code issued for signing in to the mobile app; login_grant_approved — Employee confirmed a QR code sign-in; login_grant_denied — QR code sign-in rejected; user_created — New user account created; user_deleted — User account deleted; user_role_changed — User role changed; user_updated — User data updated; tag_created — New tag created; tag_deleted — Tag deleted; user_added_to_tag — User added to tag; user_removed_from_tag — User removed from tag; chat_created — New chat created; chat_renamed — Chat renamed; chat_permission_changed — Chat access permissions changed; user_chat_join — User joined the chat; user_chat_leave — Member removed from the chat or made a guest. Leaving on one's own is not logged, and dropping out with a tag is logged as `user_removed_from_tag` or `tag_removed_from_chat`.; tag_added_to_chat — Tag added to chat; tag_removed_from_chat — Tag removed from chat; message_updated — Message edited; message_deleted — Message deleted; message_created — Message created; reaction_created — Reaction added; reaction_deleted — Reaction removed; thread_created — Thread created; access_token_created — New access token created; access_token_updated — Access token updated; access_token_destroy — Access token deleted; kms_encrypt — Data encrypted; kms_decrypt — Data decrypted; audit_events_accessed — Audit logs accessed; company_chats_accessed — Workspace-wide chat list accessed; company_bots_accessed — Workspace-wide bot list accessed; dlp_violation_detected — DLP rule violation detected; search_users_api — Employee search via API; search_chats_api — Chat search via API; search_messages_api — Message search via API; bot_scopes_updated — Bot token scopes changed; bot_webhook_settings_updated — Bot outgoing webhook settings changed; bot_token_recreated — Bot token recreated (rotation); bot_deleted — Bot deleted; bot_oauth_client_updated — Bot OAuth client settings changed; bot_oauth_client_disabled — Authorization on behalf of an employee disabled for the bot; bot_oauth_client_secret_rotated — Bot OAuth client secret rotated; bot_oauth_client_secret_issued — Bot OAuth client secret issued; bot_token_created — Bot token issued; bot_token_updated — Bot token name or scopes changed; bot_token_reissued — Additional bot token reissued; bot_token_deleted — Bot token deleted; oauth_authorization_granted — User granted an OAuth client access to their data; oauth_authorization_revoked — An OAuth client's access to user data was revoked; oauth_token_revoked — An OAuth client revoked a token issued to it; oauth_device_authorization_approved — Employee confirmed an app sign-in from a device; oauth_device_authorization_denied — Employee rejected an app sign-in from a device; video_call_started — Video call started; video_call_finished — Video call finished; video_call_recording_ready — Video call recording ready; exchange_disabled — Exchange integration disabled.",
+            "description": "Filter by specific event type. Values: user_login — User logged in successfully; user_logout — User logged out; user_2fa_fail — Failed two-factor authentication attempt; user_2fa_success — Successful two-factor authentication; user_2fa_disabled — Two-factor authentication disabled for the employee; login_grant_created — QR code issued for signing in to the mobile app; login_grant_approved — Employee confirmed a QR code sign-in; login_grant_denied — QR code sign-in rejected; user_created — New user account created; user_deleted — User account deleted; user_role_changed — User role changed; user_updated — User data updated; tag_created — New tag created; tag_deleted — Tag deleted; user_added_to_tag — User added to tag; user_removed_from_tag — User removed from tag; chat_created — New chat created; chat_renamed — Chat renamed; chat_permission_changed — Chat access permissions changed; user_chat_join — User joined the chat; user_chat_leave — Member removed from the chat or made a guest. Leaving on one's own is not logged, and dropping out with a tag is logged as `user_removed_from_tag` or `tag_removed_from_chat`.; tag_added_to_chat — Tag added to chat; tag_removed_from_chat — Tag removed from chat; message_updated — Message edited; message_deleted — Message deleted; message_created — Message created; reaction_created — Reaction added; reaction_deleted — Reaction removed; thread_created — Thread created; access_token_created — New access token created; access_token_updated — Access token updated; access_token_destroy — Access token deleted; kms_encrypt — Data encrypted; kms_decrypt — Data decrypted; audit_events_accessed — Audit logs accessed; company_chats_accessed — Workspace-wide chat list accessed; company_bots_accessed — Workspace-wide bot list accessed; company_messages_accessed — Message history accessed; dlp_violation_detected — DLP rule violation detected; search_users_api — Employee search via API; search_chats_api — Chat search via API; search_messages_api — Message search via API; bot_scopes_updated — Bot token scopes changed; bot_webhook_settings_updated — Bot outgoing webhook settings changed; bot_token_recreated — Bot token recreated (rotation); bot_deleted — Bot deleted; bot_oauth_client_updated — Bot OAuth client settings changed; bot_oauth_client_disabled — Authorization on behalf of an employee disabled for the bot; bot_oauth_client_secret_rotated — Bot OAuth client secret rotated; bot_oauth_client_secret_issued — Bot OAuth client secret issued; bot_token_created — Bot token issued; bot_token_updated — Bot token name or scopes changed; bot_token_reissued — Additional bot token reissued; bot_token_deleted — Bot token deleted; oauth_authorization_granted — User granted an OAuth client access to their data; oauth_authorization_revoked — An OAuth client's access to user data was revoked; oauth_token_revoked — An OAuth client revoked a token issued to it; oauth_device_authorization_approved — Employee confirmed an app sign-in from a device; oauth_device_authorization_denied — Employee rejected an app sign-in from a device; video_call_started — Video call started; video_call_finished — Video call finished; video_call_recording_ready — Video call recording ready; exchange_disabled — Exchange integration disabled.",
             "enum": [
               "user_login",
               "user_logout",
@@ -313,6 +313,7 @@
               "audit_events_accessed",
               "company_chats_accessed",
               "company_bots_accessed",
+              "company_messages_accessed",
               "dlp_violation_detected",
               "search_users_api",
               "search_chats_api",
@@ -398,7 +399,7 @@
         },
         "additionalProperties": false
       },
-      "signature": "start_time (string), end_time (string), event_key (user_login | user_logout | user_2fa_fail | user_2fa_success | user_2fa_disabled | login_grant_created | login_grant_approved | login_grant_denied | user_created | user_deleted | user_role_changed | user_updated | tag_created | tag_deleted | user_added_to_tag | user_removed_from_tag | chat_created | chat_renamed | chat_permission_changed | user_chat_join | user_chat_leave | tag_added_to_chat | tag_removed_from_chat | message_updated | message_deleted | message_created | reaction_created | reaction_deleted | thread_created | access_token_created | access_token_updated | access_token_destroy | kms_encrypt | kms_decrypt | audit_events_accessed | company_chats_accessed | company_bots_accessed | dlp_violation_detected | search_users_api | search_chats_api | search_messages_api | bot_scopes_updated | bot_webhook_settings_updated | bot_token_recreated | bot_deleted | bot_oauth_client_updated | bot_oauth_client_disabled | bot_oauth_client_secret_rotated | bot_oauth_client_secret_issued | bot_token_created | bot_token_updated | bot_token_reissued | bot_token_deleted | oauth_authorization_granted | oauth_authorization_revoked | oauth_token_revoked | oauth_device_authorization_approved | oauth_device_authorization_denied | video_call_started | video_call_finished | video_call_recording_ready | exchange_disabled), actor_id (string), actor_type (string), entity_id (string), entity_type (string), limit (integer), cursor (string), view (compact | full)",
+      "signature": "start_time (string), end_time (string), event_key (user_login | user_logout | user_2fa_fail | user_2fa_success | user_2fa_disabled | login_grant_created | login_grant_approved | login_grant_denied | user_created | user_deleted | user_role_changed | user_updated | tag_created | tag_deleted | user_added_to_tag | user_removed_from_tag | chat_created | chat_renamed | chat_permission_changed | user_chat_join | user_chat_leave | tag_added_to_chat | tag_removed_from_chat | message_updated | message_deleted | message_created | reaction_created | reaction_deleted | thread_created | access_token_created | access_token_updated | access_token_destroy | kms_encrypt | kms_decrypt | audit_events_accessed | company_chats_accessed | company_bots_accessed | company_messages_accessed | dlp_violation_detected | search_users_api | search_chats_api | search_messages_api | bot_scopes_updated | bot_webhook_settings_updated | bot_token_recreated | bot_deleted | bot_oauth_client_updated | bot_oauth_client_disabled | bot_oauth_client_secret_rotated | bot_oauth_client_secret_issued | bot_token_created | bot_token_updated | bot_token_reissued | bot_token_deleted | oauth_authorization_granted | oauth_authorization_revoked | oauth_token_revoked | oauth_device_authorization_approved | oauth_device_authorization_denied | video_call_started | video_call_finished | video_call_recording_ready | exchange_disabled), actor_id (string), actor_type (string), entity_id (string), entity_type (string), limit (integer), cursor (string), view (compact | full)",
       "request": {
         "arguments": {
           "start_time": {
@@ -459,7 +460,7 @@
                 },
                 "event_key": {
                   "type": "string",
-                  "description": "Event type key. Values: user_login — User logged in successfully; user_logout — User logged out; user_2fa_fail — Failed two-factor authentication attempt; user_2fa_success — Successful two-factor authentication; user_2fa_disabled — Two-factor authentication disabled for the employee; login_grant_created — QR code issued for signing in to the mobile app; login_grant_approved — Employee confirmed a QR code sign-in; login_grant_denied — QR code sign-in rejected; user_created — New user account created; user_deleted — User account deleted; user_role_changed — User role changed; user_updated — User data updated; tag_created — New tag created; tag_deleted — Tag deleted; user_added_to_tag — User added to tag; user_removed_from_tag — User removed from tag; chat_created — New chat created; chat_renamed — Chat renamed; chat_permission_changed — Chat access permissions changed; user_chat_join — User joined the chat; user_chat_leave — Member removed from the chat or made a guest. Leaving on one's own is not logged, and dropping out with a tag is logged as `user_removed_from_tag` or `tag_removed_from_chat`.; tag_added_to_chat — Tag added to chat; tag_removed_from_chat — Tag removed from chat; message_updated — Message edited; message_deleted — Message deleted; message_created — Message created; reaction_created — Reaction added; reaction_deleted — Reaction removed; thread_created — Thread created; access_token_created — New access token created; access_token_updated — Access token updated; access_token_destroy — Access token deleted; kms_encrypt — Data encrypted; kms_decrypt — Data decrypted; audit_events_accessed — Audit logs accessed; company_chats_accessed — Workspace-wide chat list accessed; company_bots_accessed — Workspace-wide bot list accessed; dlp_violation_detected — DLP rule violation detected; search_users_api — Employee search via API; search_chats_api — Chat search via API; search_messages_api — Message search via API; bot_scopes_updated — Bot token scopes changed; bot_webhook_settings_updated — Bot outgoing webhook settings changed; bot_token_recreated — Bot token recreated (rotation); bot_deleted — Bot deleted; bot_oauth_client_updated — Bot OAuth client settings changed; bot_oauth_client_disabled — Authorization on behalf of an employee disabled for the bot; bot_oauth_client_secret_rotated — Bot OAuth client secret rotated; bot_oauth_client_secret_issued — Bot OAuth client secret issued; bot_token_created — Bot token issued; bot_token_updated — Bot token name or scopes changed; bot_token_reissued — Additional bot token reissued; bot_token_deleted — Bot token deleted; oauth_authorization_granted — User granted an OAuth client access to their data; oauth_authorization_revoked — An OAuth client's access to user data was revoked; oauth_token_revoked — An OAuth client revoked a token issued to it; oauth_device_authorization_approved — Employee confirmed an app sign-in from a device; oauth_device_authorization_denied — Employee rejected an app sign-in from a device; video_call_started — Video call started; video_call_finished — Video call finished; video_call_recording_ready — Video call recording ready; exchange_disabled — Exchange integration disabled."
+                  "description": "Event type key. Values: user_login — User logged in successfully; user_logout — User logged out; user_2fa_fail — Failed two-factor authentication attempt; user_2fa_success — Successful two-factor authentication; user_2fa_disabled — Two-factor authentication disabled for the employee; login_grant_created — QR code issued for signing in to the mobile app; login_grant_approved — Employee confirmed a QR code sign-in; login_grant_denied — QR code sign-in rejected; user_created — New user account created; user_deleted — User account deleted; user_role_changed — User role changed; user_updated — User data updated; tag_created — New tag created; tag_deleted — Tag deleted; user_added_to_tag — User added to tag; user_removed_from_tag — User removed from tag; chat_created — New chat created; chat_renamed — Chat renamed; chat_permission_changed — Chat access permissions changed; user_chat_join — User joined the chat; user_chat_leave — Member removed from the chat or made a guest. Leaving on one's own is not logged, and dropping out with a tag is logged as `user_removed_from_tag` or `tag_removed_from_chat`.; tag_added_to_chat — Tag added to chat; tag_removed_from_chat — Tag removed from chat; message_updated — Message edited; message_deleted — Message deleted; message_created — Message created; reaction_created — Reaction added; reaction_deleted — Reaction removed; thread_created — Thread created; access_token_created — New access token created; access_token_updated — Access token updated; access_token_destroy — Access token deleted; kms_encrypt — Data encrypted; kms_decrypt — Data decrypted; audit_events_accessed — Audit logs accessed; company_chats_accessed — Workspace-wide chat list accessed; company_bots_accessed — Workspace-wide bot list accessed; company_messages_accessed — Message history accessed; dlp_violation_detected — DLP rule violation detected; search_users_api — Employee search via API; search_chats_api — Chat search via API; search_messages_api — Message search via API; bot_scopes_updated — Bot token scopes changed; bot_webhook_settings_updated — Bot outgoing webhook settings changed; bot_token_recreated — Bot token recreated (rotation); bot_deleted — Bot deleted; bot_oauth_client_updated — Bot OAuth client settings changed; bot_oauth_client_disabled — Authorization on behalf of an employee disabled for the bot; bot_oauth_client_secret_rotated — Bot OAuth client secret rotated; bot_oauth_client_secret_issued — Bot OAuth client secret issued; bot_token_created — Bot token issued; bot_token_updated — Bot token name or scopes changed; bot_token_reissued — Additional bot token reissued; bot_token_deleted — Bot token deleted; oauth_authorization_granted — User granted an OAuth client access to their data; oauth_authorization_revoked — An OAuth client's access to user data was revoked; oauth_token_revoked — An OAuth client revoked a token issued to it; oauth_device_authorization_approved — Employee confirmed an app sign-in from a device; oauth_device_authorization_denied — Employee rejected an app sign-in from a device; video_call_started — Video call started; video_call_finished — Video call finished; video_call_recording_ready — Video call recording ready; exchange_disabled — Exchange integration disabled."
                 },
                 "entity_id": {
                   "type": "string",
@@ -479,7 +480,7 @@
                 },
                 "details": {
                   "type": "object",
-                  "description": "Additional event details. Structure depends on the event_key value — see event_key field value descriptions. For events without details, an empty object is returned. One of — AuditDetailsEmpty; AuditDetailsUserUpdated: changed_attrs, context; AuditDetailsRoleChanged: new_company_role, previous_company_role, initiator_id; AuditDetailsTagName: name; AuditDetailsInitiator: initiator_id; AuditDetailsInviter: inviter_id; AuditDetailsChatRenamed: old_name, new_name; AuditDetailsChatPermission: public_access; AuditDetailsTagChat: chat_id, tag_name; AuditDetailsChatId: chat_id; AuditDetailsMessage: chat_id, thread_chat_id, source, message_version_id; AuditDetailsTokenScopes: scopes; AuditDetailsKms: chat_id, message_id, reason; AuditDetailsDlp: dlp_rule_id, dlp_rule_name, message_id, chat_id, user_id, action_message, conditions_matched; AuditDetailsSearch: search_type, query_present, cursor_present, limit, filters; AuditDetailsBot: bot_id, actor_id, webhook_id, application_id, access_token_id, access_token_preview, scopes, name; AuditDetailsBotScopes: bot_id, actor_id, added_scopes, removed_scopes, bot_name, webhook_id, previous_scopes, new_scopes; AuditDetailsBotWebhookSettings: bot_id, actor_id, changes, bot_name, webhook_id, access_token_id, access_token_preview, application_id; AuditDetailsBotOAuthClient: bot_id, actor_id, client_id, changes, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsOAuthAuthorizationGranted: client_id, scopes, application_id, application_name, bot_id, bot_name, authorization_grant_id; AuditDetailsOAuthAuthorizationRevoked: client_id, revoked_tokens_count, user_id, application_id, application_name, bot_id, bot_name; AuditDetailsDeviceAuthorizationApproved: client_id, scopes, device_name, application_id, application_name, device_grant_id, token_kind; AuditDetailsDeviceAuthorizationDenied: client_id, scopes, device_name, application_id, device_grant_id, token_kind; AuditDetailsVideoCallStarted: chat_id, started_message_id; AuditDetailsVideoCallFinished: chat_id, started_message_id, duration, max_members_count; AuditDetailsVideoCallRecording: chat_id, started_message_id, recording_id, file_id, duration, size; AuditDetailsBotOAuthClientSecretRotated: bot_id, actor_id, client_id, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsBotOAuthClientDisabled: bot_id, actor_id, client_id, deleted_access_tokens_count, deleted_access_grants_count, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsToken: token_kind, token_name, resource_owner_id, scopes, access_token_id, access_token_preview, application_id, application_name, client_id, bot_id, bot_name, device_name, actor_id, webhook_id, user_id, source, reason; AuditDetailsBotTokenUpdated: token_kind, token_name, resource_owner_id, current_scopes, bot_id, actor_id, access_token_id, access_token_preview, application_id, application_name, client_id, bot_name, webhook_id, name, scopes; AuditDetailsUserLoginQr: method, login_grant_id; AuditDetailsLoginGrantCreated: login_grant_id; AuditDetailsLoginGrantApproved: login_grant_id, device; AuditDetailsLoginGrantDenied: login_grant_id, device, reason.",
+                  "description": "Additional event details. Structure depends on the event_key value — see event_key field value descriptions. For events without details, an empty object is returned. One of — AuditDetailsEmpty; AuditDetailsUserUpdated: changed_attrs, context; AuditDetailsRoleChanged: new_company_role, previous_company_role, initiator_id; AuditDetailsTagName: name; AuditDetailsInitiator: initiator_id; AuditDetailsInviter: inviter_id; AuditDetailsChatRenamed: old_name, new_name; AuditDetailsChatPermission: public_access; AuditDetailsTagChat: chat_id, tag_name; AuditDetailsChatId: chat_id; AuditDetailsMessageId: message_id; AuditDetailsMessage: chat_id, thread_chat_id, source, message_version_id; AuditDetailsTokenScopes: scopes; AuditDetailsKms: chat_id, message_id, reason; AuditDetailsDlp: dlp_rule_id, dlp_rule_name, message_id, chat_id, user_id, action_message, conditions_matched; AuditDetailsSearch: search_type, query_present, cursor_present, limit, filters; AuditDetailsBot: bot_id, actor_id, webhook_id, application_id, access_token_id, access_token_preview, scopes, name; AuditDetailsBotScopes: bot_id, actor_id, added_scopes, removed_scopes, bot_name, webhook_id, previous_scopes, new_scopes; AuditDetailsBotWebhookSettings: bot_id, actor_id, changes, bot_name, webhook_id, access_token_id, access_token_preview, application_id; AuditDetailsBotOAuthClient: bot_id, actor_id, client_id, changes, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsOAuthAuthorizationGranted: client_id, scopes, application_id, application_name, bot_id, bot_name, authorization_grant_id; AuditDetailsOAuthAuthorizationRevoked: client_id, revoked_tokens_count, user_id, application_id, application_name, bot_id, bot_name; AuditDetailsDeviceAuthorizationApproved: client_id, scopes, device_name, application_id, application_name, device_grant_id, token_kind; AuditDetailsDeviceAuthorizationDenied: client_id, scopes, device_name, application_id, device_grant_id, token_kind; AuditDetailsVideoCallStarted: chat_id, started_message_id; AuditDetailsVideoCallFinished: chat_id, started_message_id, duration, max_members_count; AuditDetailsVideoCallRecording: chat_id, started_message_id, recording_id, file_id, duration, size; AuditDetailsBotOAuthClientSecretRotated: bot_id, actor_id, client_id, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsBotOAuthClientDisabled: bot_id, actor_id, client_id, deleted_access_tokens_count, deleted_access_grants_count, application_id, application_name, bot_name, webhook_id, scopes, access_token_id, access_token_preview; AuditDetailsToken: token_kind, token_name, resource_owner_id, scopes, access_token_id, access_token_preview, application_id, application_name, client_id, bot_id, bot_name, device_name, actor_id, webhook_id, user_id, source, reason; AuditDetailsBotTokenUpdated: token_kind, token_name, resource_owner_id, current_scopes, bot_id, actor_id, access_token_id, access_token_preview, application_id, application_name, client_id, bot_name, webhook_id, name, scopes; AuditDetailsUserLoginQr: method, login_grant_id; AuditDetailsLoginGrantCreated: login_grant_id; AuditDetailsLoginGrantApproved: login_grant_id, device; AuditDetailsLoginGrantDenied: login_grant_id, device, reason.",
                   "properties": {
                     "changed_attrs": {
                       "type": "array",
@@ -545,17 +546,21 @@
                       "type": "string",
                       "description": "Tag name"
                     },
+                    "message_id": {
+                      "type": "integer",
+                      "description": "AuditDetailsMessageId: ID of the message whose history was requested. AuditDetailsKms and AuditDetailsDlp: Message ID."
+                    },
                     "thread_chat_id": {
                       "type": "integer",
                       "description": "Thread chat ID. Present only for messages in threads."
                     },
                     "source": {
                       "type": "string",
-                      "description": "AuditDetailsMessage: Who changed the message: `employee` — an employee, `bot` — a bot, `dlp` — a DLP rule replaced the text (the actor is the message author), `system` — Pachca itself, for example when it attaches an image from a link to a message. For message_deleted it is `employee` or `bot`. AuditDetailsToken: Revocation source: `oauth_client` — the application revoked the token itself. Present only for oauth_token_revoked."
+                      "description": "AuditDetailsMessage: Who changed the message: `employee` — an employee, `bot` — a bot, `dlp` — a DLP rule replaced the text (the actor is the message sender), `system` — Pachca itself, for example when it attaches an image from a link to a message. For message_deleted it is `employee` or `bot`. AuditDetailsToken: Revocation source: `oauth_client` — the application revoked the token itself. Present only for oauth_token_revoked."
                     },
                     "message_version_id": {
                       "type": "integer",
-                      "description": "ID of the message version: a snapshot of its text and files before the edit or at the moment of deletion. After DLP the text in the snapshot is hidden. Absent if the edit did not touch the text and files, or the deleted message was empty."
+                      "description": "ID of the message version: a snapshot of its text and files before the edit or at the moment of deletion. After DLP the text in the snapshot is hidden. Absent if the edit did not touch the text and files, or the deleted message was empty. Matches `version_id` of the state in the `pachca_get_message_history`."
                     },
                     "scopes": {
                       "type": [
@@ -582,10 +587,6 @@
                           }
                         }
                       }
-                    },
-                    "message_id": {
-                      "type": "integer",
-                      "description": "Message ID"
                     },
                     "reason": {
                       "type": "string",
@@ -1585,7 +1586,7 @@
                         "string",
                         "null"
                       ],
-                      "description": "Bot description. `null` if not set."
+                      "description": "Bot description in Markdown. `null` if not set."
                     },
                     "published": {
                       "type": "boolean",
@@ -1970,7 +1971,7 @@
             "properties": {
               "description": {
                 "type": "string",
-                "description": "Description: what the bot does and why to connect it. A bot cannot be published without a description.",
+                "description": "Description: what the bot does and why to connect it, in Markdown. A bot cannot be published without a description. The catalog shows bold, italic and strikethrough text, links, lists, quotes and code. If the description has a heading, a table, an image, a checklist, a horizontal rule or a link reference definition such as `[1]: https://example.com`, the catalog shows the whole description as plain text with the markup characters.",
                 "examples": [
                   "Collects a summary of Jira tasks and sends it to the chat"
                 ]
@@ -2354,7 +2355,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Bot description. `null` if not set."
+                    "description": "Bot description in Markdown. `null` if not set."
                   },
                   "published": {
                     "type": "boolean",
@@ -2725,7 +2726,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Bot description. `null` if not set."
+                    "description": "Bot description in Markdown. `null` if not set."
                   },
                   "published": {
                     "type": "boolean",
@@ -3082,7 +3083,7 @@
             "properties": {
               "description": {
                 "type": "string",
-                "description": "Description: what the bot does and why to connect it. A bot cannot be published without a description.",
+                "description": "Description: what the bot does and why to connect it, in Markdown. A bot cannot be published without a description. The catalog shows bold, italic and strikethrough text, links, lists, quotes and code. If the description has a heading, a table, an image, a checklist, a horizontal rule or a link reference definition such as `[1]: https://example.com`, the catalog shows the whole description as plain text with the markup characters.",
                 "examples": [
                   "Collects a summary of Jira tasks and sends it to the chat"
                 ]
@@ -3465,7 +3466,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Bot description. `null` if not set."
+                    "description": "Bot description in Markdown. `null` if not set."
                   },
                   "published": {
                     "type": "boolean",
@@ -3987,7 +3988,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Bot description. `null` if not set."
+                    "description": "Bot description in Markdown. `null` if not set."
                   },
                   "published": {
                     "type": "boolean",
@@ -4342,7 +4343,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Bot description. `null` if not set."
+                    "description": "Bot description in Markdown. `null` if not set."
                   },
                   "published": {
                     "type": "boolean",
@@ -8469,6 +8470,224 @@
         }
       },
       "untrusted": []
+    },
+    {
+      "name": "pachca_get_message_history",
+      "title": "Get message history",
+      "operation": "GET /company/messages/{id}/history",
+      "kind": "read",
+      "scope": "company_messages:read",
+      "plan": "corporation",
+      "roles": [
+        "owner"
+      ],
+      "bot_token_only": false,
+      "description": "Get message history. The saved states of a message from the earliest to the latest: the text and files before every edit of the text or files and at the moment of deletion, and who changed them and when. The history holds the last 50 changes. The message can come from any chat of the workspace, including private chats you are not a member of, direct chats and threads. A deleted message is returned too. Every state in `data` except the current one ends with an edit or a deletion. The last state of a live message is the current one (`action: current`), and of a deleted one the snapshot at the moment of deletion (`action: deleted`), if the snapshot was kept. `version_id` matches `message_version_id` of the `message_updated` and `message_deleted` events in the `pachca_get_audit_events`: this is how you go from a log entry to the text before the edit or deletion. The text of direct chats and their threads comes only if the `export_personal_chats` field of the `pachca_get_company` method is `true`. Otherwise `text` and `content` of their states are `null` with the `personal_chat_rule` reason, while files, authors and change times come. The method is available to the workspace owner. Every successful request is written to the \"audit log\" (https://dev.pachca.com/guides/audit-events) with the `company_messages_accessed` key. A message of another workspace responds `404`, like a nonexistent one. If the service is temporarily unavailable, the method responds `503` with the `service_unavailable` code.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Message ID",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "id* (integer)",
+      "request": {
+        "arguments": {
+          "id": {
+            "in": "path"
+          }
+        }
+      },
+      "entity": "MessageHistoryResponse",
+      "outputSchema": {
+        "type": "object",
+        "description": "Message history",
+        "properties": {
+          "message": {
+            "type": "object",
+            "description": "The message whose history was requested",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "Message ID"
+              },
+              "chat_id": {
+                "type": "integer",
+                "description": "The message's chat ID. For a message in a thread it is the chat of the thread's parent message, and for a standalone thread the chat of the thread itself."
+              },
+              "thread_chat_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "The thread's chat ID. `null` if the message is not in a thread."
+              },
+              "user_id": {
+                "type": "integer",
+                "description": "The sender's ID. For a forwarded message it is whoever forwarded it."
+              },
+              "author_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "The ID of the original message's author if the message was forwarded. `null` for a message that was not forwarded."
+              },
+              "created_at": {
+                "type": "string",
+                "description": "Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format",
+                "format": "date-time"
+              },
+              "deleted_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Message deletion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the message is not deleted.",
+                "format": "date-time"
+              }
+            }
+          },
+          "data": {
+            "type": "array",
+            "description": "Message states from the earliest to the latest. The history holds the last 50 changes. For a deleted message without saved states the array is empty, and for a message that was never changed it holds one current state.",
+            "items": {
+              "type": "object",
+              "description": "A message state: the text and files before the change that ended it, and that change itself",
+              "properties": {
+                "version_id": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "The ID of the change that ended the state. Matches `message_version_id` of the `message_updated` and `message_deleted` events in the `pachca_get_audit_events`. `null` for the current state."
+                },
+                "editor_id": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "The ID of the employee or bot that made the change. For changes by a DLP rule and by Pachca itself it is the message sender. `null` for the current state."
+                },
+                "changed_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For the current state it is the time of the message's last change, and for a message unchanged for a long time it may be `null`.",
+                  "format": "date-time"
+                },
+                "action": {
+                  "type": "string",
+                  "description": "What ended the state. Values: edited — The message was edited; deleted — The message was deleted; current — The current state of the message; unknown — An old record that does not tell whether it was an edit or a deletion."
+                },
+                "source": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Who made the change. `null` for the current state and in old records. Values: employee — An employee; bot — A bot; dlp — A DLP rule replaced the text; system — Pachca itself, for example when it attaches an image from a link to a message."
+                },
+                "dlp_masked": {
+                  "type": "boolean",
+                  "description": "The text is hidden by a DLP rule: `***` comes instead, and the former text is not restored."
+                },
+                "text": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Text without formatting, if the message keeps its text this way. `null` if there is no such text or it could not be obtained."
+                },
+                "text_unavailable_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Why no text came in `text` or `content`. `null` if the text came or the state has none. In a direct chat with exporting direct chats off it is `personal_chat_rule` for every state, even one without text. Values: personal_chat_rule — The message is from a direct chat, and exporting direct chats is off in the workspace; no_key_snapshot — An old encrypted state whose key was not kept; decrypt_failed — The text could not be decrypted."
+                },
+                "content": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Text in Markdown, if the message keeps its text this way. An empty string or `null` if the text is kept in `text`, the state has no text, or it could not be obtained."
+                },
+                "files": {
+                  "type": "array",
+                  "description": "The message's files in this state",
+                  "items": {
+                    "type": "object",
+                    "description": "A file in a message state. There is no download link. In old records some of the fields may be missing or come as `null`.",
+                    "properties": {
+                      "id": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ],
+                        "description": "File ID"
+                      },
+                      "name": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "File name with extension"
+                      },
+                      "file_type": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "File type. Values: file — Regular file; image — Image; audio — Audio file; voice — Voice message; video — Video file."
+                      },
+                      "size": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ],
+                        "description": "File size in bytes"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "description": "History completeness",
+            "properties": {
+              "history_is_partial": {
+                "type": "boolean",
+                "description": "Early states are not fully known: the message was created before April 22, 2026, deleted before August 15, 2026, deleted without a snapshot at the moment of deletion, or the changes of its files cannot be restored unambiguously."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "There are more than 50 changes: only the last 50 made it into the history."
+              }
+            }
+          }
+        }
+      },
+      "untrusted": [
+        "data[].text",
+        "data[].content",
+        "data[].files[].name"
+      ]
     },
     {
       "name": "pachca_list_custom_fields",
@@ -14304,7 +14523,7 @@
                 "description": "List of token scopes",
                 "items": {
                   "type": "string",
-                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark own chats as unread; chats:mark_read — Mark own chats as read; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile:write — Edit own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; company:read — View workspace information and its settings; company:write — Change the workspace name and main settings; invite_links:write — Get and reissue the workspace invite link; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; tasks:read — View reminders; tasks:create — Create reminders; tasks:update — Update reminder; tasks:delete — Delete reminder; files:read — Download files; uploads:write — Get file upload data; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it."
+                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark own chats as unread; chats:mark_read — Mark own chats as read; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile:write — Edit own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; company:read — View workspace information and its settings; company:write — Change the workspace name and main settings; invite_links:write — Get and reissue the workspace invite link; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; company_messages:read — View the message history of the workspace; tasks:read — View reminders; tasks:create — Create reminders; tasks:update — Update reminder; tasks:delete — Delete reminder; files:read — Download files; uploads:write — Get file upload data; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it."
                 }
               },
               "created_at": {
@@ -20925,6 +21144,7 @@
         "pachca_list_company_chats",
         "pachca_get_invite_link",
         "pachca_reissue_invite_link",
+        "pachca_get_message_history",
         "pachca_list_custom_fields",
         "pachca_list_drafts",
         "pachca_create_draft",

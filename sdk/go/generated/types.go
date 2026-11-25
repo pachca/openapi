@@ -50,6 +50,7 @@ const (
 	AuditEventKeyAuditEventsAccessed              AuditEventKey = "audit_events_accessed" // Доступ к журналам аудита получен
 	AuditEventKeyCompanyChatsAccessed             AuditEventKey = "company_chats_accessed" // Получен список всех чатов пространства
 	AuditEventKeyCompanyBotsAccessed              AuditEventKey = "company_bots_accessed" // Получен список всех ботов пространства
+	AuditEventKeyCompanyMessagesAccessed          AuditEventKey = "company_messages_accessed" // Получена история сообщения
 	AuditEventKeyDlpViolationDetected             AuditEventKey = "dlp_violation_detected" // Срабатывание правила DLP-системы
 	AuditEventKeySearchUsersApi                   AuditEventKey = "search_users_api" // Поиск сотрудников через API
 	AuditEventKeySearchChatsApi                   AuditEventKey = "search_chats_api" // Поиск чатов через API
@@ -295,6 +296,26 @@ const (
 	MessageEntityTypeUser       MessageEntityType = "user" // Пользователь
 )
 
+// MessageHistoryAction may hold a value this SDK does not list yet: a response keeps it as is.
+type MessageHistoryAction string
+
+const (
+	MessageHistoryActionEdited  MessageHistoryAction = "edited" // Сообщение отредактировали
+	MessageHistoryActionDeleted MessageHistoryAction = "deleted" // Сообщение удалили
+	MessageHistoryActionCurrent MessageHistoryAction = "current" // Текущее состояние сообщения
+	MessageHistoryActionUnknown MessageHistoryAction = "unknown" // Старая запись, по которой не определить, правка это или удаление
+)
+
+// MessageHistorySource may hold a value this SDK does not list yet: a response keeps it as is.
+type MessageHistorySource string
+
+const (
+	MessageHistorySourceEmployee MessageHistorySource = "employee" // Сотрудник
+	MessageHistorySourceBot      MessageHistorySource = "bot" // Бот
+	MessageHistorySourceDlp      MessageHistorySource = "dlp" // Правило DLP заменило текст
+	MessageHistorySourceSystem   MessageHistorySource = "system" // Сама Пачка, например когда прикрепляет к сообщению картинку по ссылке
+)
+
 type MessageSearchSort string
 
 const (
@@ -314,6 +335,15 @@ type MessageSource string
 const (
 	MessageSourceApplication   MessageSource = "application" // Через программу, которой сотрудник выдал доступ: Pachca CLI, клиент MCP или бота с авторизацией от имени сотрудника
 	MessageSourcePersonalToken MessageSource = "personal_token" // Персональным токеном сотрудника
+)
+
+// MessageTextUnavailableReason may hold a value this SDK does not list yet: a response keeps it as is.
+type MessageTextUnavailableReason string
+
+const (
+	MessageTextUnavailableReasonPersonalChatRule MessageTextUnavailableReason = "personal_chat_rule" // Сообщение из личной переписки, а выгрузка личных переписок в пространстве выключена
+	MessageTextUnavailableReasonNoKeySnapshot    MessageTextUnavailableReason = "no_key_snapshot" // Старое зашифрованное состояние, для которого не сохранился ключ
+	MessageTextUnavailableReasonDecryptFailed    MessageTextUnavailableReason = "decrypt_failed" // Текст не удалось расшифровать
 )
 
 // OAuthErrorCode may hold a value this SDK does not list yet: a response keeps it as is.
@@ -380,6 +410,7 @@ const (
 	OAuthScopeAuditEventsRead        OAuthScope = "audit_events:read" // Просмотр журнала аудита
 	OAuthScopeCompanyChatsRead       OAuthScope = "company_chats:read" // Просмотр списка всех чатов пространства
 	OAuthScopeCompanyBotsRead        OAuthScope = "company_bots:read" // Просмотр списка всех ботов пространства
+	OAuthScopeCompanyMessagesRead    OAuthScope = "company_messages:read" // Просмотр истории сообщений пространства
 	OAuthScopeTasksRead              OAuthScope = "tasks:read" // Просмотр напоминаний
 	OAuthScopeTasksCreate            OAuthScope = "tasks:create" // Создание напоминаний
 	OAuthScopeTasksUpdate            OAuthScope = "tasks:update" // Изменение напоминания
@@ -871,7 +902,11 @@ type AuditDetailsMessage struct {
 	ChatID           int32  `json:"chat_id"`
 	Source           string `json:"source"`
 	ThreadChatID     *int32 `json:"thread_chat_id,omitempty"`
-	MessageVersionID *int32 `json:"message_version_id,omitempty"`
+	MessageVersionID *int64 `json:"message_version_id,omitempty"`
+}
+
+type AuditDetailsMessageId struct {
+	MessageID int32 `json:"message_id"`
 }
 
 type AuditDetailsOAuthAuthorizationGranted struct {
@@ -2031,6 +2066,47 @@ type MessageCreateRequest struct {
 	LinkPreview *bool                       `json:"link_preview,omitempty"`
 }
 
+type MessageHistoryFile struct {
+	ID       *int32    `json:"id,omitempty"`
+	Name     *string   `json:"name,omitempty"`
+	FileType *FileType `json:"file_type,omitempty"`
+	Size     *int64    `json:"size,omitempty"`
+}
+
+type MessageHistoryMessage struct {
+	ID           int32     `json:"id"`
+	ChatID       int32     `json:"chat_id"`
+	UserID       int32     `json:"user_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	ThreadChatID *int32    `json:"thread_chat_id"`
+	AuthorID     *int32    `json:"author_id"`
+	DeletedAt    *string   `json:"deleted_at"`
+}
+
+type MessageHistoryMeta struct {
+	HistoryIsPartial bool `json:"history_is_partial"`
+	Truncated        bool `json:"truncated"`
+}
+
+type MessageHistoryResponse struct {
+	Message MessageHistoryMessage `json:"message"`
+	Data    []MessageHistoryState `json:"data"`
+	Meta    MessageHistoryMeta    `json:"meta"`
+}
+
+type MessageHistoryState struct {
+	Action                MessageHistoryAction          `json:"action"`
+	DlpMasked             bool                          `json:"dlp_masked"`
+	Files                 []MessageHistoryFile          `json:"files"`
+	VersionID             *int64                        `json:"version_id"`
+	EditorID              *int32                        `json:"editor_id"`
+	ChangedAt             *string                       `json:"changed_at"`
+	Source                *MessageHistorySource         `json:"source"`
+	Text                  *string                       `json:"text"`
+	TextUnavailableReason *MessageTextUnavailableReason `json:"text_unavailable_reason"`
+	Content               *string                       `json:"content"`
+}
+
 type MessageUpdateRequestFile struct {
 	Key        string    `json:"key"`
 	Name       string    `json:"name"`
@@ -2846,6 +2922,7 @@ var requiredShapes = map[string]requiredShape{
 	"AuditDetailsChatPermission":              {keys: []string{"public_access"}},
 	"AuditDetailsTagChat":                     {keys: []string{"chat_id", "tag_name"}},
 	"AuditDetailsChatId":                      {keys: []string{"chat_id"}},
+	"AuditDetailsMessageId":                   {keys: []string{"message_id"}},
 	"AuditDetailsMessage":                     {keys: []string{"chat_id", "source"}},
 	"AuditDetailsTokenScopes":                 {keys: []string{"scopes"}},
 	"AuditDetailsKms":                         {keys: []string{"chat_id", "message_id", "reason"}},
@@ -2959,6 +3036,7 @@ type AuditEventDetailsUnion struct {
 	AuditDetailsChatPermission              *AuditDetailsChatPermission
 	AuditDetailsTagChat                     *AuditDetailsTagChat
 	AuditDetailsChatId                      *AuditDetailsChatId
+	AuditDetailsMessageId                   *AuditDetailsMessageId
 	AuditDetailsMessage                     *AuditDetailsMessage
 	AuditDetailsTokenScopes                 *AuditDetailsTokenScopes
 	AuditDetailsKms                         *AuditDetailsKms
@@ -2997,6 +3075,7 @@ var auditEventDetailsUnionShapes = []unionMemberShape{
 	{name: "AuditDetailsChatPermission", keys: map[string]struct{}{"public_access": {}}},
 	{name: "AuditDetailsTagChat", keys: map[string]struct{}{"chat_id": {}, "tag_name": {}}},
 	{name: "AuditDetailsChatId", keys: map[string]struct{}{"chat_id": {}}},
+	{name: "AuditDetailsMessageId", keys: map[string]struct{}{"message_id": {}}},
 	{name: "AuditDetailsMessage", keys: map[string]struct{}{"chat_id": {}, "thread_chat_id": {}, "source": {}, "message_version_id": {}}},
 	{name: "AuditDetailsTokenScopes", keys: map[string]struct{}{"scopes": {}}},
 	{name: "AuditDetailsKms", keys: map[string]struct{}{"chat_id": {}, "message_id": {}, "reason": {}}},
@@ -3098,144 +3177,150 @@ func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
 				return nil
 			}
 		case i == 10:
+			v := &AuditDetailsMessageId{}
+			if err = json.Unmarshal(data, v); err == nil {
+				u.AuditDetailsMessageId = v
+				return nil
+			}
+		case i == 11:
 			v := &AuditDetailsMessage{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsMessage = v
 				return nil
 			}
-		case i == 11:
+		case i == 12:
 			v := &AuditDetailsTokenScopes{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsTokenScopes = v
 				return nil
 			}
-		case i == 12:
+		case i == 13:
 			v := &AuditDetailsKms{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsKms = v
 				return nil
 			}
-		case i == 13:
+		case i == 14:
 			v := &AuditDetailsDlp{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsDlp = v
 				return nil
 			}
-		case i == 14:
+		case i == 15:
 			v := &AuditDetailsSearch{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsSearch = v
 				return nil
 			}
-		case i == 15:
+		case i == 16:
 			v := &AuditDetailsBot{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBot = v
 				return nil
 			}
-		case i == 16:
+		case i == 17:
 			v := &AuditDetailsBotScopes{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotScopes = v
 				return nil
 			}
-		case i == 17:
+		case i == 18:
 			v := &AuditDetailsBotWebhookSettings{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotWebhookSettings = v
 				return nil
 			}
-		case i == 18:
+		case i == 19:
 			v := &AuditDetailsBotOAuthClient{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotOAuthClient = v
 				return nil
 			}
-		case i == 19:
+		case i == 20:
 			v := &AuditDetailsOAuthAuthorizationGranted{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsOAuthAuthorizationGranted = v
 				return nil
 			}
-		case i == 20:
+		case i == 21:
 			v := &AuditDetailsOAuthAuthorizationRevoked{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsOAuthAuthorizationRevoked = v
 				return nil
 			}
-		case i == 21:
+		case i == 22:
 			v := &AuditDetailsDeviceAuthorizationApproved{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsDeviceAuthorizationApproved = v
 				return nil
 			}
-		case i == 22:
+		case i == 23:
 			v := &AuditDetailsDeviceAuthorizationDenied{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsDeviceAuthorizationDenied = v
 				return nil
 			}
-		case i == 23:
+		case i == 24:
 			v := &AuditDetailsVideoCallStarted{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsVideoCallStarted = v
 				return nil
 			}
-		case i == 24:
+		case i == 25:
 			v := &AuditDetailsVideoCallFinished{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsVideoCallFinished = v
 				return nil
 			}
-		case i == 25:
+		case i == 26:
 			v := &AuditDetailsVideoCallRecording{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsVideoCallRecording = v
 				return nil
 			}
-		case i == 26:
+		case i == 27:
 			v := &AuditDetailsBotOAuthClientSecretRotated{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotOAuthClientSecretRotated = v
 				return nil
 			}
-		case i == 27:
+		case i == 28:
 			v := &AuditDetailsBotOAuthClientDisabled{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotOAuthClientDisabled = v
 				return nil
 			}
-		case i == 28:
+		case i == 29:
 			v := &AuditDetailsToken{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsToken = v
 				return nil
 			}
-		case i == 29:
+		case i == 30:
 			v := &AuditDetailsBotTokenUpdated{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsBotTokenUpdated = v
 				return nil
 			}
-		case i == 30:
+		case i == 31:
 			v := &AuditDetailsUserLoginQr{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsUserLoginQr = v
 				return nil
 			}
-		case i == 31:
+		case i == 32:
 			v := &AuditDetailsLoginGrantCreated{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsLoginGrantCreated = v
 				return nil
 			}
-		case i == 32:
+		case i == 33:
 			v := &AuditDetailsLoginGrantApproved{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsLoginGrantApproved = v
 				return nil
 			}
-		case i == 33:
+		case i == 34:
 			v := &AuditDetailsLoginGrantDenied{}
 			if err = json.Unmarshal(data, v); err == nil {
 				u.AuditDetailsLoginGrantDenied = v
@@ -3279,6 +3364,9 @@ func (u AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {
 	}
 	if u.AuditDetailsChatId != nil {
 		return json.Marshal(u.AuditDetailsChatId)
+	}
+	if u.AuditDetailsMessageId != nil {
+		return json.Marshal(u.AuditDetailsMessageId)
 	}
 	if u.AuditDetailsMessage != nil {
 		return json.Marshal(u.AuditDetailsMessage)
@@ -3795,6 +3883,10 @@ type ListCompanyBotsResponse struct {
 type ListCompanyChatsResponse struct {
 	Data []Chat         `json:"data"`
 	Meta PaginationMeta `json:"meta"`
+}
+
+type GetMessageHistoryResponse struct {
+	Data []MessageHistoryState `json:"data"`
 }
 
 type ListPropertiesResponse struct {

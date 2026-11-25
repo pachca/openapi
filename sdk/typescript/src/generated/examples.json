@@ -227,6 +227,10 @@
     "usage": "const response = await client.messages.listPinnedMessages(334, { limit: 25, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
     "output": "ListPinnedMessagesResponse({ data: Message[], meta: PaginationMeta })"
   },
+  "CompanyMessageOperations_getMessageHistory": {
+    "usage": "const response = await client.messages.getMessageHistory(194275)",
+    "output": "GetMessageHistoryResponse({ data: MessageHistoryState[] })"
+  },
   "ChatMessageOperations_listChatMessages": {
     "usage": "const response = await client.messages.listChatMessages({\n  chatId: 198,\n  sort: MessageSortField.Id,\n  order: SortOrder.Desc,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n  afterMessageId: 194275\n})",
     "output": "ListChatMessagesResponse({ data: Message[], meta: PaginationMeta })",

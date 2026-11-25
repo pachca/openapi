@@ -1268,6 +1268,10 @@ open class MessagesService {
         throw pachcaNotImplemented("Messages.listPinnedMessagesAll")
     }
 
+    open func getMessageHistory(id: Int) async throws -> GetMessageHistoryResponse {
+        throw pachcaNotImplemented("Messages.getMessageHistory")
+    }
+
     open func listChatMessages(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil, cursor: String? = nil, afterMessageId: Int? = nil) async throws -> ListChatMessagesResponse {
         throw pachcaNotImplemented("Messages.listChatMessages")
     }
@@ -1347,6 +1351,19 @@ public final class MessagesServiceImpl: MessagesService {
             hasNext = response.meta.paginate.hasNext ?? true
         }
         return items
+    }
+
+    public override func getMessageHistory(id: Int) async throws -> GetMessageHistoryResponse {
+        var request = URLRequest(url: URL(string: "\(baseURL)/company/messages/\(id)/history")!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(GetMessageHistoryResponse.self, from: data)
+        default:
+            throw pachcaErrorFromResponse(statusCode, data)
+        }
     }
 
     public override func listChatMessages(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil, cursor: String? = nil, afterMessageId: Int? = nil) async throws -> ListChatMessagesResponse {

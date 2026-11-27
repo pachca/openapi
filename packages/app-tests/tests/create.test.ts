@@ -1,4 +1,3 @@
-// npm create @pachca/app: папка с package.json на SDK своей версии, шаблон из установленного SDK, проверка проходит.
 import { check } from '@pachca/app-sdk/build';
 import { create, packageManager, VERSION } from '@pachca/create-app';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -11,7 +10,6 @@ const installed: string[] = [];
 
 beforeAll(async () => {
   rmSync(dir, { recursive: true, force: true });
-  // зависимости уже стоят в node_modules пакета тестов: установка только отмечается
   await create(dir, { name: 'Заметки команды', install: (d) => void installed.push(d), log: () => {} });
 });
 

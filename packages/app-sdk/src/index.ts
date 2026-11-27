@@ -1,5 +1,3 @@
-// Типы клиентского SDK. Сам SDK подставляет платформа первым скриптом документа, приложение пользуется `window.pachca`
-// (или просто `pachca`), а этот модуль только описывает его. `_generated/api.ts` подключает его сам.
 import type { FileId, FunctionRef, Id, UploadSession } from "./server.js";
 
 export type { FileId, FunctionRef, Id, UploadSession };

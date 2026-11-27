@@ -1,5 +1,3 @@
-// Новые фикстуры контракта со стороны SDK: диалект JSON Schema из v, состав ctx, сессия загрузки файла. Платформа сверяет с
-// ними свою сторону (validate.js и Go, fnwrapper, ответ generateUploadUrl).
 import { test } from 'vitest';
 import ctxFixture from '../contract/ctx.json' with { type: 'json' };
 import dialect from '../contract/dialect.json' with { type: 'json' };

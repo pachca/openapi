@@ -1,5 +1,3 @@
-// src/generated из packages/spec/openapi.yaml: типы ctx.pachca (pachca.ts), таблица методов платформы (ops.json) и скоупы
-// с ролями для проверки манифеста (scopes.json). Платформа берёт ops.json из установленного пакета.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { generatePachca, scopes, type Spec } from './openapi.ts';

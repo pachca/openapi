@@ -1,4 +1,3 @@
-// Сборка приложения со всеми видами функций, фронтом и файлами: то, что получает платформа.
 import { PROTOCOL } from '@pachca/app-sdk';
 import { artifact, build, SDK_VERSION } from '@pachca/app-sdk/build';
 import { readdirSync, readFileSync } from 'node:fs';

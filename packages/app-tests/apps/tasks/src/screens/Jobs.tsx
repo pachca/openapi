@@ -2,11 +2,10 @@ import { useState } from "react";
 import { useJob, useMutation, useQuery } from "@pachca/app-react";
 import { api } from "../../_generated/api";
 
-/** Задание (job): клиент запускает его сам, платформа выполняет не больше одного раза, статус живой. */
 export function JobsScreen() {
   const send = useJob(api.tasks.sendJob);
   const later = useMutation(api.tasks.sendJobLater);
-  const all = useQuery(api.tasks.jobs); // своя функция автора видит _scheduled всех пользователей
+  const all = useQuery(api.tasks.jobs);
   const [text, setText] = useState("Письмо клиенту");
   const [mode, setMode] = useState("ok");
 

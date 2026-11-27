@@ -1,6 +1,3 @@
-// React-хуки приложений Пачки. Тонкий слой над `window.pachca`, который платформа подставляет первым скриптом документа:
-// соединение, порядок мутаций, повторы и оптимистичные слои живут там, здесь только состояние React. React берётся из
-// приложения (peerDependencies), поэтому пакет лежит в бандле приложения, а не подставляется платформой.
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type {
   FunctionError,
@@ -15,7 +12,6 @@ import { jobsApi } from "@pachca/app-sdk/api";
 
 export type { FunctionError, FunctionRef, JobId, JobState, JobStatus, OptimisticStore };
 
-// `pachca` берётся при вызове, а не при импорте: так модуль можно импортировать где угодно, а тесты подставляют свой.
 const client = (): Pachca => {
   const p = (globalThis as { pachca?: Pachca }).pachca;
   if (!p) throw new Error("window.pachca нет: приложение открыто не через платформу Пачки или без Vite-плагина @pachca/app-sdk/vite");
@@ -51,7 +47,6 @@ export function useQuery<F extends AnyRef<"query">>(
   const skip = args === "skip";
   const key = skip ? null : keyOf(ref._name, args);
   const [state, setState] = useState<{ key: string | null; value?: unknown; error?: FunctionError }>({ key: null });
-  // аргументы в зависимостях по ключу: новый литерал `{ id }` на каждый рендер не пересоздаёт подписку
   const argsRef = useRef(args);
   argsRef.current = args;
   useEffect(() => {
@@ -146,7 +141,6 @@ function view<R>(status: JobStatus<R> | null | undefined, error?: JobError): Job
   };
 }
 
-// Статус задания по номеру и признак, что первый ответ пришёл: `null` после него значит чужое или несуществующее задание.
 function useJobLive<R>(id: JobId<R> | undefined | null) {
   const [state, setState] = useState<{ id?: number; status?: JobStatus<R> | null; error?: JobError }>({});
   useEffect(() => {
@@ -180,7 +174,6 @@ export interface UseJobOptions {
 }
 
 const STORE_PREFIX = "pachca:job:";
-// localStorage может не быть или он бросает (запрет хранилища в браузере): тогда хук просто не помнит задание.
 const stored = {
   get(key: string | null): number | undefined {
     if (key === null) return undefined;
@@ -197,7 +190,6 @@ const stored = {
       if (id == null) globalThis.localStorage?.removeItem(STORE_PREFIX + key);
       else globalThis.localStorage?.setItem(STORE_PREFIX + key, String(id));
     } catch {
-      // хранилище недоступно: задание работает, просто не переживёт перезагрузку
     }
   },
 };
@@ -222,12 +214,10 @@ export function useJob<F extends AnyRef<"job">>(ref: F, options?: UseJobOptions)
   };
   const [state, setRun] = useState<Run>(() => restore(0));
   const counter = useRef(0);
-  // смена ключа это другое задание: подхватываем то, что помнится под новым
   const run = state.key === key ? state : restore(++counter.current);
   if (run !== state) setRun(run);
   const live = useJobLive<R>(run.id);
 
-  // подхваченный номер оказался чужим (другой пользователь в этом браузере) или задание удалено: забываем его
   useEffect(() => {
     if (!run.restored || !live.missing) return;
     stored.set(key, undefined);
@@ -262,14 +252,13 @@ export function useJob<F extends AnyRef<"job">>(ref: F, options?: UseJobOptions)
     ? { state: "starting", result: undefined, error: undefined, isRunning: true }
     : run.error
       ? view<R>(null, run.error)
-      : // номер уже есть, а первый статус ещё не пришёл: задание поставлено и ждёт
+      :
         run.id != null && live.view.state === undefined && !live.missing
         ? { state: "pending", result: undefined, error: undefined, isRunning: true }
         : live.view;
   return { ...status, id: run.id, start: start as ReactJob<F>["start"], cancel, reset };
 }
 
-// ---- окружение Пачки
 
 export type Theme = "light" | "dark";
 

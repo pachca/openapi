@@ -2,7 +2,6 @@ import { AppError, v, type Id } from "@pachca/app-sdk/server";
 import { api, internal } from "../_generated/api";
 import { action, internalAction, internalMutation, job, mutation, pachcaEvent, query, webhook } from "../_generated/server";
 
-/** Задачи текущего пользователя, новые сверху. У задачи с картинкой `imageUrl`: подписанный адрес файла, живёт 10–20 минут. */
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -28,12 +27,10 @@ export const add = mutation({
   handler: async (ctx, args) => {
     if (!ctx.actor) throw new Error("нужен пользователь");
     if (args.text.length < 1 || args.text.length > 200) throw new AppError("текст от 1 до 200 символов", { code: "bad_text", status: 400 });
-    // image: платформа сама проверит, что файл загружен этим пользователем и принадлежит этому приложению
     return ctx.db.insert("tasks", { text: args.text, done: false, owner: ctx.actor.id, note: args.note, image: args.image });
   },
 });
 
-/** Свои правила загрузки: только картинки до 5 МБ. Без этой функции фронт открывает сессию встроенной (любой файл в пределах лимитов платформы). */
 export const uploadUrl = action({
   args: { filename: v.string(), size: v.number(), contentType: v.string() },
   handler: (ctx, args) => {
@@ -43,7 +40,6 @@ export const uploadUrl = action({
   },
 });
 
-/** Удаляет задачу вместе с картинкой: место в квоте освобождается сразу. */
 export const remove = mutation({
   args: { id: v.id("tasks") },
   handler: async (ctx, args) => {
@@ -54,7 +50,6 @@ export const remove = mutation({
   },
 });
 
-/** Что известно о картинке задачи. */
 export const imageInfo = query({
   args: { id: v.id("tasks") },
   handler: async (ctx, args) => {
@@ -75,7 +70,6 @@ export const toggle = mutation({
   },
 });
 
-/** Для проверки транзакций: записывает и падает, запись должна откатиться. */
 export const addThenFail = mutation({
   args: { text: v.string() },
   handler: async (ctx, args) => {
@@ -84,7 +78,6 @@ export const addThenFail = mutation({
   },
 });
 
-/** Для проверки ожидаемого отказа: 409 с кодом приложения, а не 500. */
 export const taken = mutation({
   args: { text: v.string() },
   handler: async (ctx, args) => {
@@ -98,18 +91,14 @@ export const whoami = action({
   handler: (ctx) => ({ id: ctx.actor?.id ?? null, app: ctx.app }),
 });
 
-// ---- планировщик (ctx.scheduler): напоминание о задаче ставится мутацией, выполняет его платформа
 
-/** Внутренняя функция: клиент её вызвать не может, только планировщик и другие функции. */
 export const markReminded = internalMutation({
   args: { id: v.id("tasks") },
   handler: async (ctx, args) => {
-    // в задании пользователя нет (ctx.actor равен null): note не содержит id, иначе актёр просочился бы в задание
     await ctx.db.patch("tasks", args.id, { note: ctx.actor ? `reminded:${ctx.actor.id}` : "reminded" });
   },
 });
 
-/** Напоминание через действие: оно не пишет в базу напрямую, а зовёт внутреннюю мутацию. */
 export const remindViaAction = internalAction({
   args: { id: v.id("tasks") },
   handler: async (ctx, args): Promise<void> => {
@@ -117,8 +106,6 @@ export const remindViaAction = internalAction({
   },
 });
 
-/** Ставит напоминание. Возвращает id задания. Обработчик, который зовёт `internal.*`, нужно типизировать по возвращаемому значению:
- *  иначе TypeScript не выведет тип из-за круговой ссылки через `_generated/api`. */
 export const remind = mutation({
   args: { id: v.id("tasks"), afterMs: v.number(), viaAction: v.optional(v.boolean()) },
   returns: v.id("_scheduled"),
@@ -126,7 +113,6 @@ export const remind = mutation({
     ctx.scheduler.runAfter(args.afterMs, args.viaAction ? internal.tasks.remindViaAction : internal.tasks.markReminded, { id: args.id }),
 });
 
-/** По расписанию от имени пользователя действовать нельзя: в типах ctx.pachca.user нет, а обход типов падает понятной ошибкой. */
 export const callAsUser = internalAction({
   args: {},
   handler: async (ctx): Promise<void> => {
@@ -144,7 +130,6 @@ export const cancelReminder = mutation({
   handler: (ctx, args) => ctx.scheduler.cancel(args.job),
 });
 
-/** Откат мутации откатывает и постановку задания. */
 export const remindThenFail = mutation({
   args: { id: v.id("tasks") },
   handler: async (ctx, args): Promise<void> => {
@@ -153,7 +138,6 @@ export const remindThenFail = mutation({
   },
 });
 
-/** Состояние заданий читается обычным живым запросом. */
 export const jobs = query({
   args: {},
   handler: async (ctx) => {
@@ -162,9 +146,7 @@ export const jobs = query({
   },
 });
 
-// ---- задание (job): внешний вызов со статусом. Клиент запускает его сам и следит встроенным запросом `_jobs.get`
 
-/** «Отправка письма»: в сеть не ходит, режим `mode` задаёт исход, `ms` растягивает выполнение. */
 export const sendJob = job({
   args: { text: v.string(), mode: v.optional(v.string()), ms: v.optional(v.number()) },
   returns: v.object({ text: v.string(), noActor: v.boolean() }),
@@ -176,24 +158,20 @@ export const sendJob = job({
   },
 });
 
-/** Задание с бэка: на фронте оно выглядит так же, как запущенное клиентом. */
 export const sendJobLater = mutation({
   args: { text: v.string(), afterMs: v.number() },
   handler: (ctx, args): Promise<Id<"_scheduled">> => ctx.scheduler.runAfter(args.afterMs, api.tasks.sendJob, { text: args.text }),
 });
 
-// ---- вебхук внешнего сервиса (manifest.webhooks.orders): платформа проверила подпись и адрес, обработчик идёт без пользователя
 
-/** Пишет задачу от имени вебхука. Внутренняя: клиент её вызвать не может. */
 export const addFromHook = internalMutation({
   args: { text: v.string() },
   handler: async (ctx, args) => {
-    if (ctx.actor) throw new Error("в вебхуке не должно быть пользователя"); // ctx.actor равен null
+    if (ctx.actor) throw new Error("в вебхуке не должно быть пользователя");
     await ctx.db.insert("tasks", { text: args.text, done: false, owner: "hook" });
   },
 });
 
-/** POST /_hooks/orders с телом {"text": "..."}: заказ превращается в задачу. */
 export const orders = webhook({
   handler: async (ctx, req): Promise<void> => {
     const order = JSON.parse(req.body) as { text?: string };
@@ -202,24 +180,18 @@ export const orders = webhook({
   },
 });
 
-/** POST /_hooks/signed: только подпись, с любого адреса. */
 export const signed = webhook({
   handler: async (ctx, req): Promise<void> => {
     await ctx.runMutation(internal.tasks.addFromHook, { text: `signed:${req.body}` });
   },
 });
 
-/** POST /_hooks/alerts: только список адресов, без подписи. */
 export const alerts = webhook({
   handler: async (ctx, req): Promise<void> => {
     await ctx.runMutation(internal.tasks.addFromHook, { text: `alert:${req.body}` });
   },
 });
 
-/**
- * POST /_hooks/crm: тело проверяет платформа (при неверном 400 без запуска обработчика), повтор узнаётся по X-Event-Id.
- * Проверочный запрос подключения {"type":"url_verification","challenge":"…"} получает эхо сразу, до очереди.
- */
 export const crm = webhook({
   body: v.object({ order_id: v.string(), status: v.string() }),
   verify: (req) => {
@@ -234,7 +206,6 @@ export const crm = webhook({
   },
 });
 
-/** POST /_hooks/billing: идентификатор события в теле (`event.id`). */
 export const billing = webhook({
   body: v.object({ event: v.object({ id: v.string() }), amount: v.number() }),
   handler: async (ctx, req): Promise<void> => {
@@ -242,16 +213,13 @@ export const billing = webhook({
   },
 });
 
-// ---- события Пачки (manifest.pachca.events): платформа проверила подлинность, повтор отброшен, пользователя нет
 
-/** Новое сообщение в чате с ботом: событие типизировано по схеме Пачки. */
 export const onMessage = pachcaEvent("message.new", {
   handler: async (ctx, event): Promise<void> => {
     await ctx.runMutation(internal.tasks.addFromHook, { text: `msg:${event.chat_id}:${event.content}` });
   },
 });
 
-/** Нажатие кнопки под сообщением бота. */
 export const onClick = pachcaEvent("button.click", {
   handler: async (ctx, event): Promise<void> => {
     await ctx.runMutation(internal.tasks.addFromHook, { text: `click:${event.data}` });

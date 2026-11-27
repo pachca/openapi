@@ -1,5 +1,3 @@
-// Ссылки на функции приложения: api.<модуль>.<функция>. Безопасно импортировать и на сервере (для runQuery и
-// runMutation внутри действий), и на фронте: модуль не трогает window.
 import type { ApiFromModules, FunctionRef, InternalFromModules } from "./server.js";
 
 import type { JobsApi } from "./index.js";

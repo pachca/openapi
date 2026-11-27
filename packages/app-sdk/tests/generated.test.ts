@@ -1,4 +1,3 @@
-// src/generated совпадает со спецификацией: типы ctx.pachca, таблица методов платформы и скоупы из одного openapi.yaml.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { parse } from 'yaml';

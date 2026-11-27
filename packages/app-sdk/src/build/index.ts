@@ -1,7 +1,3 @@
-// Сборка приложения: типы `_generated`, проверка (`tsc`, скоупы, хосты, импорты для workerd) и артефакт в `dist`,
-// который загружается на платформу. Этим пользуется `pachca-app` и тесты платформы.
-//
-//   import { build, check } from '@pachca/app-sdk/build';
 import { build as esbuild, type BuildOptions as EsbuildOptions } from 'esbuild';
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
@@ -18,13 +14,11 @@ export { scaffold } from './template.js';
 
 const require = createRequire(import.meta.url);
 
-/** Версия SDK, которой собрано приложение (`manifest.sdk`): по ней платформа решает, можно ли загрузить сборку. */
 export const SDK_VERSION: string = (require('../../package.json') as { version: string }).version;
 
 const KINDS = ['query', 'mutation', 'action', 'internalQuery', 'internalMutation', 'internalAction', 'webhook', 'pachcaEvent', 'job'] as const;
 const EXPORT_RE = new RegExp(`^export const (\\w+)\\s*=\\s*(${KINDS.join('|')})\\(`, 'gm');
 
-/** Ошибка сборки с текстом для человека. */
 export class BuildError extends Error {
   override name = 'BuildError';
 }
@@ -35,7 +29,6 @@ export interface Found {
   kind: string;
 }
 
-/** Функции приложения: именованные экспорты `export const имя = query(…)` в `server/<модуль>.ts`. */
 function scan(dir: string): Found[] {
   const serverDir = join(dir, 'server');
   if (!existsSync(serverDir)) return [];
@@ -50,7 +43,6 @@ function scan(dir: string): Found[] {
 
 const HEADER = '// Сгенерировано @pachca/app-sdk. Не править.\n';
 
-/** Пишет `_generated/{server,api,entry}.ts` по функциям из `server/`. check и build делают это сами. */
 export function generate(dir: string): Found[] {
   const found = scan(dir);
   const out = join(dir, '_generated');
@@ -92,20 +84,14 @@ ${found.map((f) => `  "${f.module}.${f.name}": ${f.module}.${f.name},\n`).join('
 }
 
 export interface CheckOptions {
-  /** Режим сборки: переменные из `.env.<mode>` (как у Vite). По умолчанию `production`. */
   mode?: string;
 }
 
 export interface CheckResult {
   ok: boolean;
-  /** Что не так, по строке на проблему; вывод `tsc` одной строкой с переводами. */
   problems: string[];
 }
 
-/**
- * Типы (`tsc` по tsconfig приложения), скоупы манифеста по API Пачки, хосты `browser` и импорты, которых нет в workerd.
- * Ничего не печатает: что показать, решает вызывающий.
- */
 export async function check(dir: string, options: CheckOptions = {}): Promise<CheckResult> {
   dir = resolve(dir);
   generate(dir);
@@ -125,9 +111,7 @@ export async function check(dir: string, options: CheckOptions = {}): Promise<Ch
 }
 
 export interface BuildOptions extends CheckOptions {
-  /** Не запускать check (его уже прогнали). */
   skipCheck?: boolean;
-  /** Предупреждения Vite и esbuild. По умолчанию stderr. */
   log?: (message: string) => void;
 }
 
@@ -135,7 +119,6 @@ export interface BuildResult {
   functions: number;
   tables: number;
   mode: string;
-  /** Папка сборки (`<dir>/dist`). */
   dist: string;
 }
 
@@ -144,10 +127,6 @@ type ManifestShape = { db?: boolean; pachca?: { bot?: string[]; user?: string[] 
 type Def = { kind: string; args: FieldsDef; returns?: Described; body?: Described; verify?: unknown; event?: string };
 type FunctionInfo = { kind: string; args?: JsonSchema; returns?: JsonSchema; body?: JsonSchema; verify?: true; event?: string };
 
-/**
- * Собирает `dist`: `app.js` (функции одним модулем для workerd), `functions.json`, `schema.json`, `manifest.json` (с `protocol`
- * и `sdk`) и `static/` (фронт через Vite из `index.html` или `public/` как есть).
- */
 export async function build(dir: string, options: BuildOptions = {}): Promise<BuildResult> {
   dir = resolve(dir);
   const mode = options.mode ?? 'production';
@@ -169,12 +148,10 @@ export async function build(dir: string, options: BuildOptions = {}): Promise<Bu
   if (problems.length) throw new BuildError(problems.join('\n'));
 
   try {
-    // функции: имена, виды, описание аргументов и результата (проверяет платформа)
     const entry = await nodeBundle(dir, join(dir, '_generated/entry.ts'), join(tmp, 'entry.mjs'), define);
     const functions: Record<string, FunctionInfo> = {};
     for (const [name, def] of Object.entries(entry.functions as Record<string, Def>)) {
       if (!(KINDS as readonly string[]).includes(def.kind)) throw new BuildError(`${name}: неизвестный вид функции ${def.kind}`);
-      // вебхук и событие Пачки получают запрос от платформы, а не от клиента: проверять аргументы нечего
       const fromPlatform = def.kind === 'webhook' || def.kind === 'pachcaEvent';
       functions[name] = {
         kind: def.kind,
@@ -202,7 +179,6 @@ export async function build(dir: string, options: BuildOptions = {}): Promise<Bu
     }
     writeJson(join(dist, 'schema.json'), { tables });
 
-    // protocol решает, работает ли сборка (окно перехода протокола), sdk решает, можно ли её загрузить сейчас
     const mf = (await nodeBundle(dir, join(dir, 'manifest.ts'), join(tmp, 'manifest.mjs'), define)).default as ManifestShape;
     const manifest: ManifestShape = { ...mf, protocol: PROTOCOL, sdk: SDK_VERSION };
     if (Object.keys(tables).length > 0) {
@@ -226,7 +202,6 @@ export async function build(dir: string, options: BuildOptions = {}): Promise<Bu
   }
 }
 
-/** Сервер одним ES-модулем для workerd. */
 function serverBundle(dir: string, define: Record<string, string>, problems: string[]): EsbuildOptions {
   return {
     entryPoints: [join(dir, '_generated/entry.ts')], bundle: true, format: 'esm', platform: 'neutral', target: 'es2022',
@@ -240,7 +215,6 @@ const bundleError = (e: unknown) =>
     .map((m) => (m.location ? `${m.location.file}:${m.location.line}: ${m.text}` : m.text))
     .join('\n') || String(e);
 
-/** Модуль приложения (манифест, схема, функции) для чтения описаний в Node. */
 async function nodeBundle(dir: string, entry: string, outfile: string, define: Record<string, string>) {
   await esbuild({
     entryPoints: [entry], outfile, bundle: true, format: 'esm', platform: 'node', target: 'es2022',
@@ -251,20 +225,12 @@ async function nodeBundle(dir: string, entry: string, outfile: string, define: R
   return import(`${pathToFileURL(outfile).href}?t=${Date.now()}`);
 }
 
-/**
- * Переменные режима как у Vite: `.env`, `.env.local`, `.env.[mode]`, `.env.[mode].local`, в код попадают только `VITE_*`.
- * Сервер получает тот же `import.meta.env`, что и фронт, значения вписываются в сборку.
- */
 async function envDefine(dir: string, mode: string): Promise<Record<string, string>> {
   const { loadEnv } = await import('vite');
   const env = { ...loadEnv(mode, dir, 'VITE_'), MODE: mode, DEV: false, PROD: true, BASE_URL: '/', SSR: false };
   return { 'import.meta.env': JSON.stringify(env) };
 }
 
-/**
- * Фронт собирает Vite из `index.html` в корне приложения (с `vite.config.*` приложения, если он есть). Папку сборки и base
- * задаёт сборка: платформа отдаёт статику с корня хоста приложения.
- */
 async function buildFront(dir: string, outDir: string, mode: string, log: (m: string) => void): Promise<void> {
   const { build: vite } = await import('vite');
   const configFile = ['vite.config.ts', 'vite.config.mts', 'vite.config.js', 'vite.config.mjs'].map((f) => join(dir, f)).find((f) => existsSync(f));
@@ -280,7 +246,6 @@ async function buildFront(dir: string, outDir: string, mode: string, log: (m: st
       rolldownOptions: { onwarn: (w, warn) => void (w.code !== 'MODULE_LEVEL_DIRECTIVE' && warn(w)) },
     },
   });
-  // строгий CSP платформы (script-src 'self') не пустит inline-скрипт: лучше отказ сборки, чем белый экран в Пачке
   const html = readFileSync(join(outDir, 'index.html'), 'utf8');
   for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
     if (!/\bsrc\s*=/.test(m[1]!) && m[2]!.trim()) throw new BuildError('index.html: inline-скрипт заблокирует CSP платформы, перенесите код в модуль (src/…)');
@@ -299,7 +264,6 @@ const walk = (base: string, dir = base): string[] =>
     return statSync(p).isDirectory() ? walk(base, p) : [relative(base, p).split('\\').join('/')];
   });
 
-/** Артефакт сборки для загрузки: то, что лежит в `dist` после build. Статика в base64 по относительному пути. */
 export interface Artifact {
   code: string;
   manifest: Record<string, unknown>;
@@ -320,12 +284,10 @@ export function artifact(dir: string): Artifact {
   };
 }
 
-// Что не входит в исходники: зависимости и то, что собирается само, состояние папки и локальные файлы (*.local, как у Vite)
 const SOURCE_SKIP_DIRS = new Set(['node_modules', 'dist', '_generated', '.git']);
 const SOURCE_MAX_BYTES = 5 << 20;
 const isAppState = (f: string) => /^\.pachca-app(\..+)?\.json$/.test(f);
 
-/** Исходники папки приложения по относительному пути (base64): платформа хранит их с версией и отдаёт через pull. */
 export function sources(dir: string): Record<string, string> {
   dir = resolve(dir);
   const out: Record<string, string> = {};

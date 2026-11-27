@@ -1,5 +1,3 @@
-// Новое приложение: папка с package.json на SDK той же версии, что этот пакет (релиз у них один), зависимости и шаблон
-// из установленного @pachca/app-sdk. Дальше в папке работает `npx pachca-app`.
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -8,18 +6,14 @@ import { pathToFileURL } from 'node:url';
 
 const require = createRequire(import.meta.url);
 
-/** Версия этого пакета: `@pachca/app-sdk` и `@pachca/app-react` ставятся ровно её. */
 export const VERSION: string = (require('../package.json') as { version: string }).version;
 
 export interface CreateOptions {
-  /** Название приложения в Пачке; по умолчанию имя папки. */
   name?: string;
-  /** Установка зависимостей в готовую папку; по умолчанию менеджер, которым запущен `create`. */
   install?: (dir: string) => void;
   log?: (line: string) => void;
 }
 
-/** Имя пакета npm из имени папки. */
 const slug = (s: string) =>
   s
     .toLowerCase()
@@ -48,7 +42,6 @@ export async function create(target: string, options: CreateOptions = {}): Promi
     name: slug(basename(dir)),
     private: true,
     type: 'module',
-    // название приложения для первого `npx pachca-app ship`; дальше оно живёт в Пачке (`npx pachca-app edit --name`)
     pachca: { name },
     dependencies: {
       '@pachca/app-sdk': VERSION,
@@ -67,7 +60,6 @@ export async function create(target: string, options: CreateOptions = {}): Promi
   writeFileSync(join(dir, 'package.json'), `${JSON.stringify(pkg, null, 2)}\n`);
   log(`Зависимости @pachca/app-sdk ${VERSION}…`);
   (options.install ?? defaultInstall)(dir);
-  // шаблон и код его копирования берутся из SDK, установленного в папку: версия шаблона всегда равна версии SDK
   const build = createRequire(join(dir, 'package.json')).resolve('@pachca/app-sdk/build');
   const { scaffold } = (await import(pathToFileURL(build).href)) as { scaffold: (dir: string, o: { name: string }) => void };
   scaffold(dir, { name });

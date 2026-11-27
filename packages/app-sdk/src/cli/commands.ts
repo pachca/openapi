@@ -1,4 +1,3 @@
-// Команды pachca-app. Папка приложения это текущая папка, режим (`--mode`) выбирает приложение из .pachca-app.json.
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { artifact, build, check, sources } from '../build/index.js';
@@ -11,7 +10,6 @@ export interface Target {
   app?: string;
 }
 
-/** Проверка без сборки: типы, скоупы, хосты, импорты. */
 export async function runCheck(io: Io, mode: string): Promise<boolean> {
   const c = colors(io);
   const r = await check(io.cwd, { mode });
@@ -28,14 +26,12 @@ export async function runBuild(io: Io, mode: string): Promise<void> {
   io.err(`  ${colors(io).green('✔')} Сборка ${relative(io.cwd, r.dist) || r.dist}: ${r.functions} функций, ${r.tables} таблиц, режим ${r.mode}\n`);
 }
 
-/** Название нового приложения: `--name`, `pachca.name` из package.json или имя папки. */
 function appName(dir: string, flag?: string): string {
   if (flag) return flag;
   try {
     const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as { pachca?: { name?: string } };
     if (pkg.pachca?.name) return pkg.pachca.name;
   } catch {
-    // без package.json название это имя папки
   }
   return basename(dir);
 }
@@ -46,7 +42,6 @@ export interface ShipOptions extends Target {
   force: boolean;
 }
 
-/** Проверка, сборка, создание приложения (первый раз в этом режиме) и загрузка версии. */
 export async function ship(io: Io, a: Api, opts: ShipOptions): Promise<string | undefined> {
   const c = colors(io);
   const dir = io.cwd;
@@ -93,15 +88,9 @@ const conflictText = (app: string, base: number, current?: number) =>
   `Скачайте текущую версию в новую папку (npx pachca-app pull ../<папка> --app ${app}), перенесите туда свои изменения и загрузите оттуда. ` +
   'Загрузить поверх (--force) можно только по решению человека: чужие изменения пропадут';
 
-// Платформа не принимает версию SDK этой папки: одна команда обновления, дальше тот же ship.
 const sdkText = (message: string, command?: string) =>
   command ? `${message}\n\n  ${command}\n  npx pachca-app ship` : message;
 
-/**
- * Загружает `dist` с исходниками папки, версия сразу становится текущей. Изменились права, хосты или события: загрузка
- * без подтверждения ничего не меняет, человека спрашиваем в терминале, программе нужен --approve-consent-screen.
- * `undefined`, если подтверждения нет.
- */
 async function upload(io: Io, a: Api, app: string, opts: ShipOptions): Promise<Released | undefined> {
   const c = colors(io);
   const dir = io.cwd;
@@ -136,7 +125,6 @@ async function upload(io: Io, a: Api, app: string, opts: ShipOptions): Promise<R
   return released;
 }
 
-/** Исходники текущей версии в новую папку; папка запоминает номер, от которого сделана. */
 export async function pull(io: Io, a: Api, into: string, app: string, mode: string): Promise<void> {
   const dir = resolve(io.cwd, into);
   if (existsSync(dir) && readdirSync(dir).length) throw new CliError(`Папка ${into} не пустая, скачайте в новую`);
@@ -155,7 +143,6 @@ export async function pull(io: Io, a: Api, into: string, app: string, mode: stri
 
 const KIND_LABEL: Record<string, string> = { function: 'функция', fetch: 'сеть', pachca: 'Пачка', webhook: 'вебхук', csp: 'фронт', platform: 'платформа' };
 
-/** Журнал приложения; `follow` дописывает новые записи, пока команду не остановят. */
 export async function logs(io: Io, a: Api, t: Target, opts: { n: number; follow: boolean }): Promise<void> {
   const c = colors(io);
   const app = appOf(io.cwd, a.url, t);
@@ -183,7 +170,6 @@ export async function logs(io: Io, a: Api, t: Target, opts: { n: number; follow:
 
 const SECRET_NAME = /^[A-Z][A-Z0-9_]{0,63}$/;
 
-/** Ключи подключений (`manifest.secrets`) и секреты подписи вебхуков. Значение вводит человек, оно нигде не показывается. */
 export async function secret(io: Io, a: Api, t: Target, sub: string | undefined, name: string | undefined): Promise<void> {
   const app = appOf(io.cwd, a.url, t);
   const base = `/apps/${encodeURIComponent(app)}/secrets`;
@@ -208,7 +194,6 @@ export async function secret(io: Io, a: Api, t: Target, sub: string | undefined,
 
 const VISIBILITIES = ['private', 'link', 'public'];
 
-/** Название, иконка и доступ без новой версии. */
 export async function edit(io: Io, a: Api, t: Target, patch: { name?: string; icon?: string; visibility?: string }): Promise<void> {
   if (patch.name === undefined && patch.icon === undefined && patch.visibility === undefined) {
     throw new CliError('edit: укажите --name, --icon или --visibility', 2);
@@ -221,10 +206,6 @@ export async function edit(io: Io, a: Api, t: Target, patch: { name?: string; ic
   io.err(`  ${[r.icon, r.name].filter(Boolean).join(' ')}, доступ ${r.visibility}\n`);
 }
 
-/**
- * Удаляет приложение с версиями, базой, файлами, секретами и ботом. Необратимо, поэтому только человек в терминале:
- * он вводит id приложения. Без терминала (агент, CI) команда ничего не удаляет и говорит, кому её запустить.
- */
 export async function remove(io: Io, a: Api, t: Target): Promise<void> {
   const app = appOf(io.cwd, a.url, t);
   const mode = t.mode === 'production' ? '' : ` --mode ${t.mode}`;

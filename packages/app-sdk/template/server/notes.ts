@@ -1,7 +1,6 @@
 import { AppError, v } from "@pachca/app-sdk/server";
 import { job, mutation, query } from "../_generated/server";
 
-/** Заметки текущего пользователя, новые сверху. */
 export const list = query({
   args: {},
   handler: (ctx) =>
@@ -12,7 +11,6 @@ export const list = query({
       .collect(),
 });
 
-/** Одна заметка; чужая и несуществующая неотличимы (null). */
 export const get = query({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
@@ -34,16 +32,11 @@ export const remove = mutation({
   args: { id: v.id("notes") },
   handler: async (ctx, args) => {
     const note = await ctx.db.get("notes", args.id);
-    if (!note || note.owner !== ctx.actor?.id) throw new AppError("заметка не найдена", { status: 404 }); // ожидаемый отказ: клиенту 404, не 500
+    if (!note || note.owner !== ctx.actor?.id) throw new AppError("заметка не найдена", { status: 404 });
     await ctx.db.delete("notes", args.id);
   },
 });
 
-/**
- * Задание: внешний вызов, который нельзя повторять (письмо, платёж, запись в CRM). Фронт запускает его `useJob` и видит
- * живой статус. В настоящем приложении здесь `ctx.fetch` на хост из `manifest.fetch`; ключ сервиса объявляется в
- * `manifest.secrets`, и платформа сама добавляет его в запрос. В заготовке вызов только имитируется. Пользователя в задании нет (`ctx.actor` равен null): всё нужное приходит в аргументах.
- */
 export const send = job({
   args: { text: v.string() },
   returns: v.object({ words: v.number() }),

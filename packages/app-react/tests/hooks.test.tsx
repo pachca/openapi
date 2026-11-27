@@ -1,4 +1,3 @@
-// Хуки @pachca/app-react поверх поддельного window.pachca: что подписывается, что приходит в React и куда уходят ошибки.
 import assert from "node:assert/strict";
 import { expect, test } from "vitest";
 import { Component, act, type ReactNode } from "react";
@@ -141,7 +140,7 @@ test("useQuery: ошибка запроса уходит в Error Boundary", asy
     return <p>{String(v)}</p>;
   }
   const orig = console.error;
-  console.error = () => {}; // React печатает пойманную ошибку
+  console.error = () => {};
   try {
     const r = await render(
       <Boundary>
@@ -308,7 +307,6 @@ test("useJob: номер задания переживает перезагру�
   assert.equal(localStorage.getItem("pachca:job:mail.send"), "77");
   await r.unmount();
 
-  // перезагрузка iframe: новый хук сам подхватывает задание и показывает результат
   r = await render(<App />);
   assert.equal(job.id, 77);
   assert.equal(job.state, "pending", "до первого статуса подхваченное задание ждёт");
@@ -321,7 +319,6 @@ test("useJob: номер задания переживает перезагру�
   assert.equal(localStorage.getItem("pachca:job:mail.send"), null);
   await r.unmount();
 
-  // чужой номер (другой пользователь в том же браузере): статус null, хук забывает его
   localStorage.setItem("pachca:job:mail.send", "13");
   r = await render(<App />);
   assert.equal(job.id, 13);
@@ -382,7 +379,7 @@ test("usePachca: тема из data-pachca-theme и её смена на лет�
   assert.equal(r.el.textContent, "dark");
   await act(async () => {
     document.documentElement.setAttribute("data-pachca-theme", "light");
-    await new Promise((res) => setTimeout(res, 0)); // MutationObserver срабатывает микрозадачей
+    await new Promise((res) => setTimeout(res, 0));
   });
   assert.equal(r.el.textContent, "light");
   await r.unmount();

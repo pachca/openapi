@@ -1,4 +1,3 @@
-// Часть контракта, которую выполняет код из пакета: имена ссылок, AppError, PachcaError.
 import { test } from 'vitest';
 import { anyApi, jobsApi } from '../src/api.ts';
 import { AppError, PachcaError } from '../src/server.ts';

@@ -1,5 +1,3 @@
-// Эталонная сборка: её артефакт лежит в @pachca/app-sdk/contract/build.json, и платформа проверяет, что принимает и выполняет
-// его. Изменение артефакта значит, что собранные приложения получают другой формат.
 import { artifact, build, SDK_VERSION } from '@pachca/app-sdk/build';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';

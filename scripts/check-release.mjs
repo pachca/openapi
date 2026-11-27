@@ -139,7 +139,6 @@ function npmUnreachable(error) {
   return true;
 }
 
-/** The `next` dist-tag, or null when the package has none. */
 function nextTag() {
   try {
     const tags = JSON.parse(

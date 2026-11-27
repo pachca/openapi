@@ -1,4 +1,3 @@
-// Шаблон из @pachca/app-sdk проходит check и собирается: так начинается каждое новое приложение.
 import { build, check, scaffold } from '@pachca/app-sdk/build';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';

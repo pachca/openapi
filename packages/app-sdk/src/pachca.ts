@@ -1,5 +1,3 @@
-// Типы ctx.pachca: методы API Пачки (`PachcaApi` из `@pachca/app-sdk/pachca`) и скоупы манифеста. Сами методы даёт платформа
-// по таблице `@pachca/app-sdk/ops.json`, она же проверяет скоуп каждого вызова: в бандле приложения клиента нет.
 
 import type { FileId } from "./server.js";
 

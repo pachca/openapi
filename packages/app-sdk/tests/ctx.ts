@@ -1,5 +1,3 @@
-// Состав ctx по типам SDK. Записи исчерпывающие: недостающий ключ или лишний не компилируются, поэтому список ниже всегда
-// равен типам, а тест сверяет его с contract/ctx.json.
 import type {
   Actor, ActionCtx, AppInfo, BackgroundCtx, DbReader, DbWriter, FilesReader, FilesWriter, MutationCtx, QueryCtx, Scheduler, Schema,
   UploadSession,
@@ -24,7 +22,6 @@ export const ctx = {
   actor: keys<Actor>({ id: true, role: true }),
 };
 
-/** Поля сессии загрузки и способы загрузки по типам SDK. */
 export const upload = {
   session: keys<UploadSession>({ presignedUpload: true, strategy: true, uploadUrl: true, uploadUuid: true }),
   presigned: keys<NonNullable<UploadSession['presignedUpload']>>({ completeUrl: true, expiresAt: true, headers: true, method: true, proxyS3Url: true, url: true }),

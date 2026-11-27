@@ -36,7 +36,6 @@ const TAG_TO_RESOURCE: Record<string, string> = {
 	'Company': 'company',
 };
 
-/** Sections without an n8n resource (mirrored from generate-n8n.ts). */
 const SKIPPED_TAGS = new Set(['Apps']);
 
 function tagToResource(tag: string): string {

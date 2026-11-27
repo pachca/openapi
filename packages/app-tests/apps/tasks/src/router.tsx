@@ -2,7 +2,6 @@ import { createRootRoute, createRoute, createRouter, Link, Outlet } from "@tanst
 import { TasksScreen } from "./screens/Tasks";
 import { JobsScreen } from "./screens/Jobs";
 
-// Экраны меняет только роутер: переход на свой адрес мимо него Пачка отменит, документ в iframe один.
 const root = createRootRoute({
   component: () => (
     <main>

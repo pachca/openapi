@@ -1,4 +1,3 @@
-// Проверка типов (tsc в test и typecheck): ссылки заданий и хуки. Ошибка компиляции здесь значит дыру в типах.
 import type { FunctionRef, JobId, JobStatus, Pachca } from "@pachca/app-sdk";
 import type { JobsApi } from "@pachca/app-sdk/api";
 import { useAction, useJob, useMutation, useQuery } from "../src/index.ts";
@@ -14,7 +13,6 @@ type Eq<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 
 const is = <T extends true>(_: T) => {};
 
 export function types() {
-  // pachca.mutation принимает задание, результат это номер задания с типом результата
   const id = p.mutation(send, { to: "a" });
   is<Eq<typeof id, Promise<JobId<{ id: string }>>>>(true);
   is<Eq<ReturnType<typeof p.mutation<"mutation", { text: string }, number>>, Promise<number>>>(true);

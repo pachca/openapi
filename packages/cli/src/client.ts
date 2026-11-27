@@ -411,7 +411,6 @@ function createApiError(
         request_id: requestId,
         ...(e.key ? { field: e.key } : {}),
         ...(e.code ? { validation_code: e.code } : {}),
-        // what the code needs to act on, e.g. the current version at `version_conflict`
         ...(e.payload !== undefined && e.payload !== null ? { payload: e.payload } : {}),
       });
     }

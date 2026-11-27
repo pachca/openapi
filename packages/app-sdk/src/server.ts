@@ -2,8 +2,6 @@ import type { PachcaEvents, PachcaEventType } from "./events.js";
 
 export type * from "./events.js";
 
-// Серверная часть SDK: типы схемы, функций и контекста. Реализацию ctx (db, fetch, pachca) даёт платформа,
-// здесь только описание того, что приложению доступно, поэтому ошибки видны на `check`, до загрузки.
 
 import type { PachcaSides } from "./pachca.js";
 export {
@@ -19,7 +17,6 @@ export {
   type PachcaUploadedFile,
 } from "./pachca.js";
 
-// ---- v: один язык описания данных для аргументов, результатов и схемы таблиц
 
 /** Фрагмент JSON Schema (подмножество). Описание это данные: проверяет их платформа, кода проверки в бандле нет. */
 export type JsonSchema = { readonly type: "string" | "number" | "boolean" | "integer" | "array" | "object"; readonly [key: string]: unknown };
@@ -83,7 +80,6 @@ export type Infer<F extends FieldsDef> = Flatten<
 /** Идентификатор файла приложения (uuid сессии загрузки). */
 export type FileId = string & { readonly __file: true };
 
-// ---- схема
 
 /** Поля документа без служебных `_id` и `_creationTime`. */
 export type DocFields<F extends FieldsDef> = Infer<F>;
@@ -149,7 +145,6 @@ export type Doc<S extends Schema, N extends TableName<S>> = Flatten<
   { _id: Id<N>; _creationTime: number } & DocFields<FieldsOf<S, N>>
 >;
 
-// ---- чтение и запись
 
 export interface IndexRange<D, K extends readonly string[]> {
   eq<F extends K[number] & keyof D>(field: F, value: D[F]): IndexRange<D, K>;
@@ -184,7 +179,6 @@ export interface Actor {
   readonly role: "owner" | "admin" | "user" | "multi_guest" | "guest";
 }
 
-// ---- ошибки приложения
 
 /** Ожидаемый отказ функции (не найдено, уже занято, нельзя): клиент получает код 4xx с `code` и `message`, а в журнале
  *  приложения это не «Internal Server Error». Любая другая брошенная ошибка остаётся 500. Мутация откатывается в обоих случаях. */
@@ -202,7 +196,6 @@ export class AppError extends Error {
   }
 }
 
-// ---- функции
 
 export type FunctionKind = "query" | "mutation" | "action" | "internalQuery" | "internalMutation" | "internalAction" | "webhook" | "pachcaEvent" | "job";
 
@@ -486,7 +479,6 @@ export function createFunctions<S extends Schema, P extends PachcaSides<any, any
   };
 }
 
-// ---- ссылки на функции для фронта
 
 export interface FunctionRef<K extends FunctionKind, A, R> {
   readonly _kind: K;
@@ -518,7 +510,6 @@ export type InternalFromModules<M> = {
   [Mod in keyof M]: { [Fn in keyof M[Mod] as InternalRefOf<M[Mod][Fn]> extends never ? never : Fn]: InternalRefOf<M[Mod][Fn]> };
 };
 
-// ---- манифест
 
 /** Место ключа подключения: заголовок (с префиксом, например `"Bearer "`) или параметр адреса. */
 export type SecretPlace =

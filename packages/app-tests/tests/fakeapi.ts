@@ -1,5 +1,3 @@
-// Раздел /apps API Пачки в памяти: столько, сколько нужно pachca-app. Права, хосты и события сравниваются по манифесту
-// без `protocol` и `sdk`, как это делает платформа: изменились без `approve` значит consent_required.
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 
@@ -23,7 +21,6 @@ export interface FakeApi {
   apps: Map<string, FakeApp>;
   requests: Request[];
   logs: { time: string; kind: string; text: string; allowed: boolean; reason?: string }[];
-  /** Версия SDK, которую принимает платформа: другая получает sdk_outdated. Пусто: любая. */
   sdk?: string;
   close(): Promise<void>;
 }

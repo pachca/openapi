@@ -1,5 +1,3 @@
-// Импорты, которых нет в рантайме приложений. Код функций выполняет workerd без модулей Node (`node:*`, `fs`, `path`…):
-// такая сборка упала бы только на платформе, поэтому check и build отказывают сразу и говорят, какой файл виноват.
 import { builtinModules } from 'node:module';
 import { relative } from 'node:path';
 import type { Plugin } from 'esbuild';
@@ -7,7 +5,6 @@ import type { Plugin } from 'esbuild';
 const NODE = new Set(builtinModules);
 const SKIP = Symbol('workerd-imports');
 
-/** Плагин esbuild: собирает недоступные импорты в `problems` и помечает их внешними, чтобы сборка дошла до конца. */
 export function workerdImports(dir: string, problems: string[]): Plugin {
   return {
     name: 'workerd-imports',
@@ -20,7 +17,6 @@ export function workerdImports(dir: string, problems: string[]): Plugin {
           return { path: args.path, external: true };
         }
         if (!NODE.has(args.path)) return undefined;
-        // одноимённый пакет из npm (`events`, `buffer`) годится: он попадёт в сборку
         const r = await b.resolve(args.path, { resolveDir: args.resolveDir, kind: args.kind, importer: args.importer, pluginData: { skip: SKIP } });
         if (r.errors.length === 0) return r;
         problems.push(importProblem(from, args.path));

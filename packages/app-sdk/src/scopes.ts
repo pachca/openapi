@@ -1,5 +1,3 @@
-// Скоупы манифеста против API Пачки (src/generated/scopes.json из packages/spec/openapi.yaml): неизвестный скоуп или скоуп,
-// который стороне не выдаётся, это ошибка check, до загрузки.
 import known from './generated/scopes.json' with { type: 'json' };
 
 const roles: Readonly<Record<string, readonly string[] | null>> = known;

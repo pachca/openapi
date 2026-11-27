@@ -1,4 +1,3 @@
-// Разбор команды и флагов pachca-app. Возвращает код выхода: 0 готово, 1 ошибка, 2 неверный вызов.
 import { parseArgs } from 'node:util';
 import { BuildError, SDK_VERSION } from '../build/index.js';
 import { ApiError, call, resolveApi, SETUP } from './api.js';
@@ -85,7 +84,6 @@ async function dispatch(argv: string[], io: Io): Promise<number> {
       await runBuild(io, mode);
       return 0;
     case 'ship': {
-      // вход и права проверяются до сборки: без них сборка была бы зря
       const a = await resolveApi(io, auth);
       await call(io, a, 'GET', '/apps');
       return (await ship(io, a, { ...t, name: f.name, approve: Boolean(f['approve-consent-screen']), force: Boolean(f.force) })) ? 0 : 1;

@@ -1,6 +1,5 @@
 import { defineManifest } from "@pachca/app-sdk/server";
 
-// Эталонная сборка: каждое поле манифеста, которое читает платформа.
 export default defineManifest({
   description: "Эталонная сборка контракта",
   fetch: ["api.example.com"],

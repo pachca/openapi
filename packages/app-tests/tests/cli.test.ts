@@ -1,6 +1,3 @@
-// Бинарь pachca-app на копии apps/tasks против поддельного API Пачки: загрузка, подтверждение прав, конфликт версий,
-// режимы, pull, журнал, секреты, правка, удаление и вход. Запускается настоящий dist/cli/bin.js без терминала, а в API
-// он ходит через настоящий CLI Пачки из репозитория (`pachca api`) с профилем во временной папке.
 import { execFile } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -50,7 +47,6 @@ beforeAll(async () => {
   for (const d of ['cli-home', 'cli-pulled', 'cli-bin', 'cli-empty-path', 'cli-nobody']) rmSync(tmp(d), { recursive: true, force: true });
   mkdirSync(join(home, 'pachca'), { recursive: true });
   mkdirSync(tmp('cli-empty-path'));
-  // вход CLI Пачки: профиль с готовым токеном, как после `pachca auth login --token`
   writeFileSync(join(home, 'pachca', 'config.toml'), `active_profile = "admin"\n\n[profiles.admin]\ntype = "user"\ntoken = "${TOKEN}"\nuser = "Админ"\n`);
   mkdirSync(binDir);
   writeFileSync(join(binDir, 'pachca'), `#!/bin/sh\nexec "${process.execPath}" "${pachcaCli}" "$@"\n`);

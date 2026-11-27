@@ -8,8 +8,6 @@ export function NoteScreen() {
   const noteId = Number(id) as Id<"notes">;
   const note = useQuery(api.notes.get, { id: noteId });
   const remove = useMutation(api.notes.remove);
-  // Задание: внешний вызов, который нельзя повторять. Платформа выполнит его не больше одного раза,
-  // статус живой: starting, pending, running, success или failed
   const send = useJob(api.notes.send);
   const navigate = useNavigate();
 

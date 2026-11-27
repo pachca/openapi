@@ -476,9 +476,6 @@ function getFieldDescription(fieldName: string, fallback: string | undefined, en
     ?? fallback;
 }
 
-// ============================================================================
-// Sections that get no n8n resource. Custom apps are built and uploaded by the
-// `pachca-app` tool from an app folder, which a workflow has no use for.
 const SKIPPED_TAGS = new Set(['Apps']);
 
 // TAG → RESOURCE MAPPING

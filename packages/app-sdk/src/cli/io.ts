@@ -1,28 +1,19 @@
-// Всё, чем команды касаются внешнего мира: папка, переменные окружения, терминал, сеть, запуск программ.
-// Тесты подменяют это целиком и проверяют команды без процесса, терминала и сети.
 import { spawn, spawnSync } from 'node:child_process';
 
 export interface RunResult {
   status: number | null;
   stdout: string;
-  /** Программы нет (`ENOENT`). */
   missing: boolean;
 }
 
 export interface Io {
   cwd: string;
   env: Record<string, string | undefined>;
-  /** Человек за терминалом: можно спросить и показать анимацию. */
   tty: boolean;
-  /** Служебный вывод и ошибки. */
   err(text: string): void;
-  /** Результат для программ (id приложения, токен). */
   out(text: string): void;
-  /** Строка от человека; `hidden` без эха. Без терминала читает строку из stdin. */
   ask(prompt: string, options?: { hidden?: boolean }): Promise<string>;
-  /** Запуск программы: `capture` забирает stdout, иначе вывод идёт в терминал. */
   run(command: string, args: string[], options?: { capture?: boolean; cwd?: string; env?: Record<string, string> }): RunResult;
-  /** Программа с выводом для разбора: stdout и stderr забираются, `input` уходит в stdin. Не блокирует анимацию шага. */
   exec(command: string, args: string[], options?: { input?: string; env?: Record<string, string> }): Promise<ExecResult>;
   fetch: typeof fetch;
   sleep(ms: number): Promise<void>;
@@ -32,11 +23,9 @@ export interface ExecResult {
   status: number | null;
   stdout: string;
   stderr: string;
-  /** Программы нет (`ENOENT`). */
   missing: boolean;
 }
 
-/** Настоящий процесс. */
 export function nodeIo(): Io {
   return {
     cwd: process.cwd(),
@@ -114,12 +103,10 @@ function askLine(prompt: string, options: { hidden?: boolean } = {}): Promise<st
 
 const paint = (io: Io, code: number) => (t: string) => (io.tty && !io.env.NO_COLOR ? `\x1b[${code}m${t}\x1b[0m` : t);
 
-/** Цвета только для человека за терминалом. */
 export function colors(io: Io) {
   return { dim: paint(io, 2), green: paint(io, 32), red: paint(io, 31), cyan: paint(io, 36), bold: paint(io, 1) };
 }
 
-/** Ошибка команды с текстом для человека и кодом выхода (2 это неверный вызов). */
 export class CliError extends Error {
   constructor(
     message: string,
@@ -131,7 +118,6 @@ export class CliError extends Error {
 
 const FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
-/** Шаг с итогом в одну строку. Вывод внутри шага (`log`) показывается, только если шаг упал. */
 export async function step<T>(io: Io, label: string, fn: (log: (m: string) => void) => T | Promise<T>, detail?: (r: T) => string): Promise<T> {
   const c = colors(io);
   const pad = label.padEnd(14);
@@ -153,7 +139,6 @@ export async function step<T>(io: Io, label: string, fn: (log: (m: string) => vo
   }
 }
 
-/** Да или нет от человека; без терминала всегда нет. */
 export async function confirm(io: Io, question: string, byDefault = false): Promise<boolean> {
   if (!io.tty) return false;
   const answer = (await io.ask(question)).trim();

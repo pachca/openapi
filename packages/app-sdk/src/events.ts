@@ -1,6 +1,3 @@
-// События Пачки, которые получает приложение (`manifest.pachca.events`, обработчик `pachcaEvent`). Формы совпадают с телом
-// вебхука бота в API Пачки (схемы MessageWebhookPayload, ButtonWebhookPayload, ViewSubmitWebhookPayload в packages/spec).
-// Платформа проверяет подлинность и повтор, обработчик получает уже готовое событие.
 
 /** Источник сообщения и приложение, из которого оно отправлено (если не человеком из клиента). */
 export interface PachcaEventApplication {

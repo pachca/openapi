@@ -1,6 +1,5 @@
 import { defineSchema, defineTable, v } from "@pachca/app-sdk/server";
 
-// Каждый вид поля таблицы и составной индекс.
 export default defineSchema({
   lists: defineTable({ title: v.string(), owner: v.string() }).index("by_owner", ["owner"]),
   items: defineTable({

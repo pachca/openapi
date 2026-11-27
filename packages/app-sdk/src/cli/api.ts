@@ -1,17 +1,13 @@
-// Раздел «Кастомные приложения» API Пачки (`/apps`) через CLI Пачки: `pachca api <МЕТОД> <путь>`. Вход, профили, токен
-// из PACHCA_TOKEN и его обновление остаются у CLI, pachca-app токенов не видит и не хранит.
 import { compareVersions } from './update.js';
 import { CliError, type Io } from './io.js';
 
 export const DEFAULT_API = 'https://api.pachca.com/api/shared/v1';
 
-/** Первая версия CLI, которая отдаёт `payload` ошибки: без него не разобрать version_conflict и consent_required. */
 export const MIN_CLI = '2026.11.8';
 
 const INSTALL = 'npm install -g @pachca/cli';
 const LOGIN = 'pachca auth login';
 
-/** Как ходить в API: адрес Пачки (по нему же выбирается файл состояния папки) и профиль CLI. */
 export interface Api {
   url: string;
   profile?: string;
@@ -23,7 +19,6 @@ export type Released = { version: number; hash: string; items: Item[]; migration
 export type LogEntry = { time: string; kind: string; text: string; allowed: boolean; reason?: string };
 export type Source = { version: number; files: Record<string, string> };
 
-/** Отказ API: `code` и `payload` из тела ошибки (`version_conflict`, `consent_required`). */
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -35,7 +30,6 @@ export class ApiError extends Error {
   }
 }
 
-/** Как поставить CLI Пачки и войти: печатается везде, где без него не обойтись. */
 export const SETUP = [
   'Команды pachca-app работают через CLI Пачки и его вход:',
   `  ${INSTALL}`,
@@ -43,12 +37,10 @@ export const SETUP = [
   'Без браузера (агент, CI) CLI берёт токен из PACHCA_TOKEN: токен со скоупами apps:read и apps:write.',
 ].join('\n');
 
-/** Проверяет, что CLI Пачки установлен и не старее MIN_CLI. Адрес Пачки как у CLI: PACHCA_API_URL. */
 export async function resolveApi(io: Io, flags: { profile?: string }): Promise<Api> {
   const r = await io.exec('pachca', ['--version']);
   if (r.missing) throw new CliError(`CLI Пачки не установлен.\n${SETUP}`);
   const version = r.stdout.match(/(\d{4}\.\d{1,2}\.\d+(?:-[\w.]+)?|\d+\.\d+\.\d+)/)?.[1];
-  // 0.0.0 это CLI из репозитория, без номера релиза
   if (version && version !== '0.0.0' && compareVersions(version, MIN_CLI) < 0) {
     throw new CliError(`CLI Пачки ${version} устарел, нужен ${MIN_CLI} или новее: pachca upgrade (или ${INSTALL})`);
   }
@@ -57,7 +49,6 @@ export async function resolveApi(io: Io, flags: { profile?: string }): Promise<A
 
 type CliErrorBody = { error?: string; code?: number | null; type?: string; message?: string; validation_code?: string; payload?: unknown; hint?: string };
 
-/** Запрос к API Пачки через `pachca api`; ответ `{ data }` приходит как `data`, пустой как `undefined`. */
 export async function call<T>(io: Io, a: Api, method: string, path: string, body?: unknown): Promise<T> {
   const [route, search = ''] = path.split('?', 2);
   const query = [...new URLSearchParams(search)].flatMap(([k, v]) => ['--query', `${k}=${v}`]);
@@ -74,14 +65,12 @@ export async function call<T>(io: Io, a: Api, method: string, path: string, body
   return (parsed && typeof parsed === 'object' && 'data' in parsed ? parsed.data : parsed) as T;
 }
 
-/** Ошибка CLI (последняя строка JSON в stderr) с подсказкой, если дело во входе или правах. */
 function toError(method: string, path: string, stderr: string): Error {
   const line = stderr.trim().split('\n').reverse().find((l) => l.startsWith('{'));
   let e: CliErrorBody = {};
   try {
     e = line ? (JSON.parse(line) as CliErrorBody) : {};
   } catch {
-    // не JSON: показываем как есть
   }
   const text = e.error ?? (stderr.trim().slice(0, 300) || 'CLI Пачки завершился с ошибкой');
   const status = typeof e.code === 'number' ? e.code : 0;

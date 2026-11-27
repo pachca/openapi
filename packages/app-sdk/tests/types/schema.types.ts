@@ -1,5 +1,3 @@
-// Проверка типов v.ref: файл не исполняется, его компилирует `tsc` в `test` и `typecheck`.
-// Строка с `@ts-expect-error` падает, если ошибки типов там больше нет.
 import { defineSchema, defineTable, v, type DbWriter, type Doc, type Id } from "../../src/server.ts";
 
 const schema = defineSchema({
@@ -13,7 +11,6 @@ declare const task: Task;
 declare const projectId: Id<"projects">;
 declare const taskId: Id<"tasks">;
 
-// тип v.ref совпадает с v.id: значения взаимозаменяемы, смена вида поля не трогает код
 export const same: Id<"projects"> = task.project;
 export const legacy: Task["project"] = task.legacy;
 export const parent: Id<"tasks"> | undefined = task.parent;
@@ -22,7 +19,6 @@ export const ok: Pick<Task, "project" | "legacy"> = { project: projectId, legacy
 export const wrongTable: Task["project"] = taskId;
 // @ts-expect-error число не id
 export const plainNumber: Task["project"] = 5;
-// схема v.ref отличается от v.id только пометкой x-ref
 export const refSchema: { type: string; "x-table"?: unknown; "x-ref"?: unknown } = v.ref("projects").schema;
 
 declare const db: DbWriter<S>;

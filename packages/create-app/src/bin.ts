@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// npm create @pachca/app@latest <папка> -- --name "Название"
 import { spawnSync } from 'node:child_process';
 import { relative } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -28,7 +27,6 @@ ${cliSetup()}
   process.exit(1);
 }
 
-/** Загрузка идёт через вход CLI Пачки: если его нет, сначала показать, как поставить CLI и войти. */
 function cliSetup(): string {
   const opts = { encoding: 'utf8' as const, stdio: ['ignore', 'pipe', 'pipe'] as ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32' };
   const installed = !spawnSync('pachca', ['--version'], opts).error;

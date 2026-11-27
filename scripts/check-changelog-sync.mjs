@@ -80,10 +80,6 @@ const PACKAGES = [
     sourceChangelogs: [],
   },
   {
-    // @pachca/app-sdk, @pachca/app-react and @pachca/create-app go out as one
-    // release under one CalVer number (a beta is `YYYY.M.N-beta.K`): a change in
-    // any of them needs an entry with product `apps`. Their package.json files
-    // keep 0.0.0, the publish workflow stamps the version from releases.json.
     product: 'apps',
     label: 'apps',
     dirs: ['packages/app-sdk', 'packages/app-react', 'packages/create-app'],

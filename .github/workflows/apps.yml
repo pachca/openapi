@@ -1,8 +1,5 @@
 name: Apps SDK
 
-# @pachca/app-sdk, @pachca/app-react and @pachca/create-app: one release, one
-# CalVer number from releases.json (product `apps`), three publishes. A beta
-# (`YYYY.M.N-beta.K`) goes out under the `next` dist-tag.
 
 on:
   push:
@@ -24,9 +21,6 @@ on:
       - "packages/app-tests/**"
       - "packages/spec/openapi.yaml"
       - ".github/workflows/apps.yml"
-  # Makes the first publish (after scripts/npm-bootstrap.mjs and the trusted
-  # publisher, see docs/releases.md) and finishes a release whose publish failed.
-  # check-release still decides whether to publish, and only main publishes.
   workflow_dispatch:
 
 concurrency:
@@ -51,8 +45,6 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Types, `v`, contract fixtures, hooks, then the real apps: build, check,
-      # template, create-app and the pachca-app binary against a fake API.
       - name: Test the packages
         run: bunx turbo run test --filter=@pachca/app-sdk --filter=@pachca/app-react --filter=@pachca/app-tests
 
@@ -68,7 +60,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.20.2
-      # The version of all three comes from releases.json; npm is asked about the SDK.
       - name: Check apps release
         id: check
         run: node scripts/check-release.mjs --product apps --npm @pachca/app-sdk --version-rule calver --allow-prerelease >> "$GITHUB_OUTPUT"
@@ -135,9 +126,6 @@ jobs:
       - name: Build
         run: bunx turbo run build --filter=@pachca/app-sdk --filter=@pachca/app-react --filter=@pachca/create-app
 
-      # SDK first: app-react and create-app point at it. Each publish is
-      # idempotent, so a rerun finishes a release that broke halfway.
-      # Authenticated via OIDC (trusted publisher), provenance is attached automatically.
       - name: Publish to npm (idempotent)
         env:
           VERSION: ${{ needs.check-release.outputs.version }}

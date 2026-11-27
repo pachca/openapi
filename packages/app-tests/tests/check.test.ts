@@ -1,4 +1,3 @@
-// check ловит ошибки до загрузки: типы, скоупы, хосты, импорты, которых нет в workerd. Каждый случай на испорченной копии.
 import { build, check } from '@pachca/app-sdk/build';
 import { rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -9,7 +8,6 @@ const TASKS = 'server/tasks.ts';
 const SCREEN = 'src/screens/Tasks.tsx';
 const JOBS = 'src/screens/Jobs.tsx';
 
-// [что ломаем, файл, было, стало, часть сообщения (необязательно)]
 const cases: [string, string, string, string, string?][] = [
   ['неверный тип аргумента', SCREEN, 'await add({ text, image });', 'await add({ text: 42, image });'],
   ['лишнее поле документа', TASKS, 'owner: ctx.actor.id, note: args.note', 'owner: ctx.actor.id, nope: 1'],

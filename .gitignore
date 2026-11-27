@@ -10,7 +10,6 @@ out/
 # Production
 build/
 dist/
-# исходники сборки приложений, а не результат
 !packages/app-sdk/src/build/
 
 # Gradle

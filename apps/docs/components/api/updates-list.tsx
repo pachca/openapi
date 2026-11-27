@@ -57,7 +57,6 @@ const PRODUCT_LINKS: Record<ReleaseProduct, (v: string) => string> = {
   sdk: () => '/guides/sdk/overview',
   generator: (v) => `https://www.npmjs.com/package/@pachca/generator/v/${v}`,
   n8n: (v) => `https://www.npmjs.com/package/n8n-nodes-pachca/v/${v}`,
-  // Three packages under one number: the badge leads to the SDK, the other two are released with it.
   apps: (v) => `https://www.npmjs.com/package/@pachca/app-sdk/v/${v}`,
 };
 

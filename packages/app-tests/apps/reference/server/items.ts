@@ -2,7 +2,6 @@ import { AppError, v } from "@pachca/app-sdk/server";
 import { internal } from "../_generated/api";
 import { action, internalAction, internalMutation, internalQuery, job, mutation, pachcaEvent, query, webhook } from "../_generated/server";
 
-// Эталонная сборка: каждый вид функции и каждый вид описания в аргументах, результатах и теле вебхука.
 
 export const list = query({
   args: { list: v.id("lists"), done: v.optional(v.boolean()) },

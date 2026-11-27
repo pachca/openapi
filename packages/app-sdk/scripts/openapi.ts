@@ -1,5 +1,3 @@
-// Типы ctx.pachca, таблица методов платформы и скоупы из спецификации API Пачки (packages/spec/openapi.yaml).
-// Результат коммитится в src/generated, его сверяет check-generated-sync.
 
 export type Schema = {
   $ref?: string;
@@ -34,15 +32,11 @@ export type Spec = {
 
 const SPEC = "packages/spec/openapi.yaml";
 
-/** Правила регистра совпадают с рантаймом платформы. */
 export const toCamel = (k: string) => k.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
 const toSnake = (k: string) => k.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
 
-// Управление приложениями (`apps:*`) это инструмент автора, а не данные Пачки: приложению эти скоупы не выдаются,
-// поэтому их методов нет в ctx.pachca, а манифест с ними check отклоняет как неизвестный скоуп
 const notForApps = (scope: string) => scope.startsWith("apps:");
 
-/** Скоупы API Пачки и роли, которым каждый доступен (bot это бот), `null` если роли не указаны. */
 export function scopes(spec: Spec): Record<string, string[] | null> {
   const s = spec.components.schemas.OAuthScope;
   if (!s?.enum) throw new Error(`${SPEC}: нет списка скоупов OAuthScope`);
@@ -61,7 +55,6 @@ const doc = (text: string | undefined, indent: string) => {
 };
 
 class Gen {
-  /** Имена свойств, которые уходят в Пачку: их обратный перевод из camelCase должен дать исходное имя. */
   outgoing = new Set<string>();
   private spec: Spec;
   constructor(spec: Spec) {
@@ -111,7 +104,6 @@ class Gen {
     return "unknown";
   }
 
-  /** Свойства схемы, которая уходит в Пачку (тело запроса), с обходом ссылок. */
   collect(s: Schema | undefined, seen: Set<string>): void {
     if (!s) return;
     if (s.$ref) {
@@ -128,7 +120,6 @@ class Gen {
     if (typeof s.additionalProperties === "object") this.collect(s.additionalProperties, seen);
   }
 
-  /** Пути словарей с произвольными ключами (`a.b`, элементы массивов прозрачны): их ключи рантайм не переводит. */
   records(s: Schema | undefined, path: string, out: Set<string>, seen: string[] = []): void {
     if (!s) return;
     if (s.$ref) {
@@ -153,34 +144,21 @@ const METHOD = (operationId: string) => {
   return parts.length > 1 ? parts.slice(1).join("_") : parts[0]!;
 };
 const json = (c: Record<string, unknown> | undefined) => !c || Object.keys(c).every((k) => k === "application/json");
-/** Ответ это тело файла (`format: binary`), а не JSON. */
 const binary = (c: Record<string, { schema: Schema }> | undefined) =>
   !!c && Object.keys(c).length > 0 && Object.entries(c).every(([k, v]) => k !== "application/json" && v.schema?.type === "string" && v.schema.format === "binary");
 
-/**
- * Строка таблицы методов платформы (`ops.json`): по ней прокси проверяет скоуп каждого вызова, а рантайм
- * собирает запрос и переводит регистр полей. Ключ `раздел.метод`, как в типах.
- */
 export interface PachcaOpRow {
   method: string;
   path: string;
   scope: string;
-  /**
-   * data: ответ `{ data }` отдаётся как `data`; full: весь ответ (списки с `meta`); none: ответа нет; binary: тело файла,
-   * платформа отдаёт его потоком (`PachcaDownload`).
-   */
   unwrap: "data" | "full" | "none" | "binary";
   botOnly?: boolean;
-  /** Пути словарей в теле и ответе: их ключи (адреса, имена полей формы) регистр не меняют. */
   bodyRecords?: string[];
   resultRecords?: string[];
-  /** Параметры-массивы запроса, которые уходят как `name[]=…`. */
   queryArrays?: string[];
-  /** Тело уходит формой multipart/form-data, в этих полях содержимое файла (`PachcaFileInput`). */
   multipart?: string[];
 }
 
-/** Исходник `src/generated/pachca.ts` (типы моделей и `PachcaApi` для ctx.pachca) и таблица методов для платформы. */
 export function generatePachca(spec: Spec): { source: string; ops: Record<string, PachcaOpRow> } {
   const g = new Gen(spec);
   const sections = new Map<string, string[]>();
@@ -189,14 +167,12 @@ export function generatePachca(spec: Spec): { source: string; ops: Record<string
     for (const [verb, op] of Object.entries(ops)) {
       if (!["get", "post", "put", "patch", "delete"].includes(verb)) continue;
       const scope = op["x-requirements"]?.scope;
-      // без скоупа это OAuth и прямая загрузка в хранилище Пачки
       if (!scope || notForApps(scope)) continue;
       const okCode = Object.keys(op.responses ?? {}).find((c) => /^2\d\d$/.test(c));
       const okContent = okCode ? op.responses![okCode]!.content : undefined;
       const binaryResult = binary(okContent);
       const form = op.requestBody?.content?.["multipart/form-data"]?.schema;
       if ((!json(op.requestBody?.content) && !form) || (!json(okContent) && !binaryResult)) continue;
-      // Параметры загрузки (POST /uploads) приложению не нужны: файл в Пачку загружает платформа (uploadFile)
       if (op.tags?.[0] === "Files" && !binaryResult) continue;
 
       const section = SECTION(op.tags?.[0] ?? "Common");
@@ -216,7 +192,6 @@ export function generatePachca(spec: Spec): { source: string; ops: Record<string
       if (queryArgs) args.push(`    query${queryArgs.required ? "" : "?"}: ${queryArgs.text};`);
       const body = op.requestBody?.content?.["application/json"]?.schema ?? form;
       if (body) args.push(`    body${op.requestBody?.required ? "" : "?"}: ${g.type(body, "    ", true)};`);
-      // поля формы с содержимым файла: значение это файл приложения или байты, форму собирает платформа
       const multipart = form ? Object.entries(g.resolve(form).properties ?? {}).filter(([, v]) => v.type === "string" && v.format === "binary").map(([k]) => k) : [];
 
       let unwrap: PachcaOpRow["unwrap"] = "none";

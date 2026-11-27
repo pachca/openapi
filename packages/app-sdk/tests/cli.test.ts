@@ -1,4 +1,3 @@
-// pachca-app без процесса: запросы через CLI Пачки, проверка свежести SDK, удаление. Терминал, сеть и программы подменены.
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

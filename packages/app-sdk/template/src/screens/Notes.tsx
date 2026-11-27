@@ -4,9 +4,7 @@ import { isFunctionError, useMutation, useQuery } from "@pachca/app-react";
 import { api } from "../../_generated/api";
 
 export function NotesScreen() {
-  // Живой запрос: undefined, пока грузится, дальше обновляется сам при каждом изменении данных
   const notes = useQuery(api.notes.list);
-  // Оптимистичное обновление: заметка видна сразу, сервер подтвердит или откатит
   const add = useMutation(api.notes.add).withOptimisticUpdate((store, { text }) => {
     const list = store.getQuery(api.notes.list, {});
     if (list) store.setQuery(api.notes.list, {}, [{ _id: -Date.now(), _creationTime: Date.now(), text, owner: "" } as (typeof list)[number], ...list]);
@@ -15,7 +13,7 @@ export function NotesScreen() {
   const [error, setError] = useState("");
 
   const submit = async (e: FormEvent) => {
-    e.preventDefault(); // <form action> запрещён CSP: форму обрабатывает код
+    e.preventDefault();
     setError("");
     try {
       await add({ text });

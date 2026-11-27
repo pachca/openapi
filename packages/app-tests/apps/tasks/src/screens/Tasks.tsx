@@ -3,11 +3,9 @@ import { isFunctionError, useMutation, useQuery } from "@pachca/app-react";
 import { api } from "../../_generated/api";
 
 export function TasksScreen() {
-  // rows типизированы из схемы: text, done, owner, note?, _id, _creationTime
   const tasks = useQuery(api.tasks.list);
   const stats = useQuery(api.tasks.stats);
   const add = useMutation(api.tasks.add);
-  // галочка ставится сразу, сервер подтвердит или откатит
   const toggle = useMutation(api.tasks.toggle).withOptimisticUpdate((store, { id }) => {
     const list = store.getQuery(api.tasks.list, {});
     if (list) store.setQuery(api.tasks.list, {}, list.map((t) => (t._id === id ? { ...t, done: !t.done } : t)));
@@ -21,14 +19,12 @@ export function TasksScreen() {
     e.preventDefault();
     setError("");
     try {
-      // сначала файл (сессия по правилам приложения, uuid на выходе), потом мутация с uuid
       const file = picker.current?.files?.[0];
       const image = file ? await pachca.files.upload(file, { createSession: api.tasks.uploadUrl, onProgress: setProgress }) : undefined;
       await add({ text, image });
       setText("");
       if (picker.current) picker.current.value = "";
     } catch (err) {
-      // AppError сервера: e.code (bad_text) и e.message
       setError(isFunctionError(err) ? `${err.message} (${err.code})` : String(err));
     } finally {
       setProgress(null);

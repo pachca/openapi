@@ -1,4 +1,3 @@
-// Разбор manifest.browser совпадает с платформой: оба читают contract/browser-hosts.json.
 import assert from "node:assert/strict";
 import { test } from "vitest";
 import { readFileSync } from "node:fs";

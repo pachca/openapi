@@ -33,7 +33,6 @@ const SITE_URL = 'https://dev.pachca.com';
 const ROOT_UPDATES = 5;
 /** The root llms.txt must fit an agent's read: AFDocs warns above 50 000 characters. */
 const LLMS_TXT_MAX_CHARS = 50_000;
-/** Sections in beta: not announced in the root llms.txt, their methods stay in /api/llms.txt and the docs. */
 const ROOT_HIDDEN_TAGS = new Set(['Apps']);
 
 function groupByTag(endpoints: Endpoint[]) {

@@ -1,0 +1,15 @@
+{
+  "query": ["actor", "app", "db", "files"],
+  "mutation": ["actor", "app", "db", "files", "scheduler"],
+  "action": ["actor", "app", "fetch", "files", "pachca", "runMutation", "runQuery", "scheduler"],
+  "background": ["actor", "app", "fetch", "files", "pachca", "runMutation", "runQuery", "scheduler"],
+  "action.pachca": ["bot", "user"],
+  "background.pachca": ["bot"],
+  "db.reader": ["get", "query"],
+  "db.writer": ["delete", "get", "insert", "patch", "query"],
+  "files.reader": ["metadata", "url"],
+  "files.writer": ["delete", "generateUploadUrl", "metadata", "url"],
+  "scheduler": ["cancel", "runAfter", "runAt"],
+  "app": ["id", "url"],
+  "actor": ["id", "role"]
+}

@@ -1,7 +1,7 @@
 {
   "name": "@pachca/app-sdk",
   "version": "0.0.0",
-  "description": "SDK приложений Пачки: типы window.pachca и ctx, описание схемы и функций, ссылки на функции",
+  "description": "SDK приложений Пачки: типы window.pachca и ctx, описание схемы и функций, ссылки на функции, сборка и шаблон",
   "type": "module",
   "exports": {
     ".": {
@@ -16,6 +16,10 @@
       "types": "./dist/api.d.ts",
       "default": "./dist/api.js"
     },
+    "./build": {
+      "types": "./dist/build/index.d.ts",
+      "default": "./dist/build/index.js"
+    },
     "./pachca": {
       "types": "./dist/generated/pachca.d.ts",
       "default": "./dist/generated/pachca.js"
@@ -26,7 +30,8 @@
   },
   "files": [
     "dist",
-    "contract"
+    "contract",
+    "template"
   ],
   "engines": {
     "node": ">=20.19"
@@ -37,9 +42,13 @@
     "typecheck": "tsc --noEmit",
     "test": "tsc --noEmit && vitest run"
   },
+  "dependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  },
   "devDependencies": {
     "@types/node": "^22.14.0",
-    "typescript": "^7.0.2",
     "vitest": "^3.1.1",
     "yaml": "^2.9.1"
   },

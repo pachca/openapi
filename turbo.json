@@ -408,6 +408,20 @@
       ],
       "cache": true
     },
+    "@pachca/app-tests#test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "apps/**",
+        "tests/**",
+        "vitest.config.ts",
+        "tsconfig.json",
+        "!apps/*/_generated/**",
+        "!apps/*/dist/**"
+      ],
+      "cache": true
+    },
     "n8n-nodes-pachca#test": {
       "dependsOn": [
         "^build",

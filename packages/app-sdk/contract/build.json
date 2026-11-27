@@ -1,0 +1,374 @@
+{
+  "manifest": {
+    "description": "Эталонная сборка контракта",
+    "fetch": [
+      "api.example.com"
+    ],
+    "browser": [
+      "*.tiles.example.com"
+    ],
+    "secrets": {
+      "API_KEY": {
+        "host": "api.example.com",
+        "header": "Authorization",
+        "prefix": "Bearer "
+      }
+    },
+    "pachca": {
+      "bot": [
+        "messages:create"
+      ],
+      "user": [
+        "chats:read"
+      ],
+      "events": [
+        "message.new"
+      ]
+    },
+    "webhooks": {
+      "orders": {
+        "signature": {
+          "header": "X-Signature",
+          "secret": "ORDERS_SECRET"
+        },
+        "id": {
+          "header": "X-Event-Id"
+        }
+      },
+      "alerts": {
+        "allow": [
+          "10.0.0.0/8"
+        ]
+      }
+    },
+    "protocol": 3,
+    "db": true
+  },
+  "schema": {
+    "tables": {
+      "lists": {
+        "document": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "owner": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "owner"
+          ],
+          "additionalProperties": false
+        },
+        "indexes": {
+          "by_owner": [
+            "owner"
+          ]
+        }
+      },
+      "items": {
+        "document": {
+          "type": "object",
+          "properties": {
+            "list": {
+              "type": "integer",
+              "minimum": 1,
+              "x-table": "lists",
+              "x-ref": true
+            },
+            "prev": {
+              "type": "integer",
+              "minimum": 1,
+              "x-table": "items"
+            },
+            "text": {
+              "type": "string"
+            },
+            "rank": {
+              "type": "number"
+            },
+            "done": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": "string",
+              "format": "uuid",
+              "x-file": true
+            }
+          },
+          "required": [
+            "list",
+            "text",
+            "rank",
+            "done"
+          ],
+          "additionalProperties": false
+        },
+        "indexes": {
+          "by_list": [
+            "list",
+            "done"
+          ],
+          "by_rank": [
+            "rank"
+          ]
+        }
+      },
+      "_scheduled": {
+        "document": {
+          "type": "object",
+          "properties": {
+            "fn": {
+              "type": "string"
+            },
+            "args": {
+              "type": "string"
+            },
+            "actor": {
+              "type": "string"
+            },
+            "runAt": {
+              "type": "number"
+            },
+            "state": {
+              "type": "string"
+            },
+            "result": {
+              "type": "string"
+            },
+            "error": {
+              "type": "string"
+            },
+            "errorCode": {
+              "type": "string"
+            },
+            "finishedAt": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "fn",
+            "args",
+            "actor",
+            "runAt",
+            "state"
+          ],
+          "additionalProperties": false
+        },
+        "indexes": {
+          "by_state": [
+            "state",
+            "runAt"
+          ]
+        }
+      }
+    }
+  },
+  "functions": {
+    "items.list": {
+      "kind": "query",
+      "args": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "integer",
+            "minimum": 1,
+            "x-table": "lists"
+          },
+          "done": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "list"
+        ],
+        "additionalProperties": false
+      },
+      "returns": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "rank": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "text",
+            "rank"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "items.add": {
+      "kind": "mutation",
+      "args": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "integer",
+            "minimum": 1,
+            "x-table": "lists",
+            "x-ref": true
+          },
+          "text": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string",
+            "format": "uuid",
+            "x-file": true
+          }
+        },
+        "required": [
+          "list",
+          "text"
+        ],
+        "additionalProperties": false
+      },
+      "returns": {
+        "type": "integer",
+        "minimum": 1,
+        "x-table": "items"
+      }
+    },
+    "items.search": {
+      "kind": "action",
+      "args": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "q"
+        ],
+        "additionalProperties": false
+      },
+      "returns": {
+        "type": "number"
+      }
+    },
+    "items.count": {
+      "kind": "internalQuery",
+      "args": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    "items.mark": {
+      "kind": "internalMutation",
+      "args": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "items.tick": {
+      "kind": "internalAction",
+      "args": {
+        "type": "object",
+        "properties": {
+          "n": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "n"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "items.send": {
+      "kind": "job",
+      "args": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "to",
+          "tags"
+        ],
+        "additionalProperties": false
+      },
+      "returns": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "items.orders": {
+      "kind": "webhook",
+      "body": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id"
+            ],
+            "additionalProperties": false
+          },
+          "amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "order",
+          "amount"
+        ],
+        "additionalProperties": false
+      },
+      "verify": true
+    },
+    "items.alerts": {
+      "kind": "webhook"
+    },
+    "items.onMessage": {
+      "kind": "pachcaEvent",
+      "event": "message.new"
+    }
+  },
+  "code": "var make = (schema, optional) => ({ schema, optional });\nvar objectSchema = (fields) => ({\n  type: \"object\",\n  properties: Object.fromEntries(Object.entries(fields).map(([k, f]) => [k, f.schema])),\n  required: Object.entries(fields).filter(([, f]) => !f.optional).map(([k]) => k),\n  additionalProperties: false\n});\nvar v = {\n  string: () => make({ type: \"string\" }, false),\n  number: () => make({ type: \"number\" }, false),\n  boolean: () => make({ type: \"boolean\" }, false),\n  /**\n   * Загруженный файл (внутри строка uuid). В таблице поле принимает только файл этого приложения, загруженный и\n   * подтверждённый этим же пользователем (`ctx.actor`). Показать: `ctx.files.url(id)`, загрузить: `pachca.files.upload`.\n   */\n  file: () => make({ type: \"string\", format: \"uuid\", \"x-file\": true }, false),\n  /** Ссылка на документ таблицы. Что документ существует, не проверяется: для этого `v.ref`. */\n  id: (table) => make({ type: \"integer\", minimum: 1, \"x-table\": table }, false),\n  /**\n   * Проверяемая ссылка на документ таблицы (тип как у `v.id`). В поле таблицы `insert` и `patch` отклоняются кодом\n   * `ref_missing` (422), если документа нет, а `delete` документа, на который ссылаются, кодом `ref_in_use` (409).\n   * Загрузка версии проверяет существующие ссылки, как остальные данные. В аргументах и результатах это `v.id`.\n   */\n  ref: (table) => make({ type: \"integer\", minimum: 1, \"x-table\": table, \"x-ref\": true }, false),\n  /** Объект с заданными полями, лишних полей быть не может. */\n  object: (fields) => make(objectSchema(fields), false),\n  /** Массив значений одного типа. */\n  array: (items) => make({ type: \"array\", items: items.schema }, false),\n  /** Поле можно не передавать (null не принимается). */\n  optional: (inner) => make(inner.schema, true)\n};\nfunction defineTable(fields) {\n  const make2 = (indexes) => ({\n    _fields: fields,\n    _indexes: indexes,\n    index: (name, cols) => make2({ ...indexes, [name]: cols })\n  });\n  return make2({});\n}\nvar scheduledTable = defineTable({\n  fn: v.string(),\n  args: v.string(),\n  actor: v.string(),\n  runAt: v.number(),\n  state: v.string(),\n  result: v.optional(v.string()),\n  error: v.optional(v.string()),\n  errorCode: v.optional(v.string()),\n  finishedAt: v.optional(v.number())\n}).index(\"by_state\", [\"state\", \"runAt\"]);\nvar AppError = class extends Error {\n  /** Признак для платформы: приложение и SDK собираются в разные бандлы, `instanceof` между ними не работает. */\n  isAppError = true;\n  code;\n  status;\n  constructor(message, options = {}) {\n    super(message);\n    this.name = \"AppError\";\n    this.code = options.code ?? \"app_error\";\n    this.status = options.status !== void 0 && options.status >= 400 && options.status < 500 ? options.status : 400;\n  }\n};\nfunction createFunctions() {\n  const build = (kind) => (def) => ({ kind, ...def });\n  return {\n    query: build(\"query\"),\n    mutation: build(\"mutation\"),\n    action: build(\"action\"),\n    internalQuery: build(\"internalQuery\"),\n    internalMutation: build(\"internalMutation\"),\n    /** Вызывает только планировщик, поэтому пользователя нет: в Пачку пишет бот. */\n    internalAction: build(\"internalAction\"),\n    /**\n     * Внешний вызов, который что-то меняет (письмо, платёж, запись в CRM). Обработчик выполняется как действие, то есть с\n     * `ctx.fetch`, `ctx.runQuery` и `ctx.runMutation`, но без пользователя: `ctx.actor` пуст. Напрямую его не вызвать: клиент\n     * запускает задание и сразу получает его номер, а платформа ставит задание в планировщик по гарантиям мутации (по порядку\n     * сессии и ровно один раз). Статус, результат и ошибку клиент читает встроенным запросом; `AppError` доходит с кодом и текстом,\n     * непредвиденная ошибка с общим кодом `job_failed`. Выполняется не больше одного раза, автоповторов нет.\n     * Результат хранится в `_scheduled.result` (JSON, до 1 МБ).\n     */\n    job: build(\"job\"),\n    /**\n     * Обработчик вебхука: имя экспорта должно совпадать с ключом в `manifest.webhooks`. Выполняется как действие, но без\n     * пользователя: `ctx.actor` пуст, `ctx.pachca.user` нет, пишите в базу через `ctx.runMutation`, в чат через\n     * `ctx.pachca.bot`. Платформа принимает запрос сразу, а обработчик ставит в очередь: событие приходит не больше одного\n     * раза для одного идентификатора, но упавший обработчик не повторяется.\n     */\n    webhook: ((def) => ({ kind: \"webhook\", args: {}, ...def })),\n    /**\n     * Обработчик события Пачки: тип должен быть в `manifest.pachca.events`, на каждый тип одна функция. Событие типизировано по\n     * схеме Пачки. Выполняется как действие без пользователя (`ctx.actor` пуст): пишите в базу через `ctx.runMutation`, отвечайте\n     * в чат через `ctx.pachca.bot`. Платформа проверяет подлинность события и отбрасывает повторную доставку, а упавший обработчик\n     * не повторяется. События от бота самого приложения не приходят.\n     */\n    pachcaEvent: ((event, def) => ({ kind: \"pachcaEvent\", args: {}, event, ...def }))\n  };\n}\n\nvar anyApi = (function path(parts) {\n  return new Proxy(/* @__PURE__ */ Object.create(null), {\n    get: (_, prop) => prop === \"_name\" ? parts.join(\".\") : typeof prop === \"string\" ? path([...parts, prop]) : void 0\n  });\n})([]);\nvar jobsApi = anyApi._jobs;\n\nvar internal = anyApi;\n\nvar { query, mutation, action, internalQuery, internalMutation, internalAction, webhook, pachcaEvent, job } = createFunctions();\n\nvar list = query({\n  args: { list: v.id(\"lists\"), done: v.optional(v.boolean()) },\n  returns: v.array(v.object({ text: v.string(), rank: v.number() })),\n  handler: async (ctx, args) => {\n    const items = await ctx.db.query(\"items\").withIndex(\"by_list\", (q) => q.eq(\"list\", args.list).eq(\"done\", args.done ?? false)).collect();\n    return items.map((i) => ({ text: i.text, rank: i.rank }));\n  }\n});\nvar add = mutation({\n  args: { list: v.ref(\"lists\"), text: v.string(), image: v.optional(v.file()) },\n  returns: v.id(\"items\"),\n  handler: async (ctx, args) => {\n    if (!ctx.actor) throw new AppError(\"\\u043D\\u0443\\u0436\\u0435\\u043D \\u043F\\u043E\\u043B\\u044C\\u0437\\u043E\\u0432\\u0430\\u0442\\u0435\\u043B\\u044C\", { status: 401, code: \"auth\" });\n    return ctx.db.insert(\"items\", { list: args.list, text: args.text, rank: Date.now(), done: false, image: args.image });\n  }\n});\nvar search = action({\n  args: { q: v.string() },\n  returns: v.number(),\n  handler: async (ctx, args) => {\n    const r = await ctx.fetch(`https://api.example.com/search?q=${encodeURIComponent(args.q)}`);\n    return r.status;\n  }\n});\nvar count = internalQuery({\n  args: {},\n  handler: async (ctx) => (await ctx.db.query(\"items\").collect()).length\n});\nvar mark = internalMutation({\n  args: { text: v.string() },\n  handler: async (ctx, args) => {\n    const list2 = await ctx.db.insert(\"lists\", { title: \"hooks\", owner: \"hook\" });\n    await ctx.db.insert(\"items\", { list: list2, text: args.text, rank: 0, done: false });\n  }\n});\nvar tick = internalAction({\n  args: { n: v.number() },\n  handler: async (ctx, args) => {\n    await ctx.runMutation(internal.items.mark, { text: `tick ${args.n}` });\n  }\n});\nvar send = job({\n  args: { to: v.string(), tags: v.array(v.string()) },\n  returns: v.object({ id: v.string() }),\n  handler: async (ctx, args) => {\n    const r = await ctx.fetch(\"https://api.example.com/send\", { method: \"POST\", body: JSON.stringify(args) });\n    if (!r.ok) throw new AppError(\"\\u043D\\u0435 \\u043E\\u0442\\u043F\\u0440\\u0430\\u0432\\u043B\\u0435\\u043D\\u043E\", { code: \"send_failed\" });\n    return { id: String(r.status) };\n  }\n});\nvar orders = webhook({\n  body: v.object({ order: v.object({ id: v.string() }), amount: v.number() }),\n  verify: (req) => req.method === \"GET\" ? { status: 200, body: \"ok\" } : void 0,\n  handler: async (ctx, req) => {\n    await ctx.runMutation(internal.items.mark, { text: req.body.order.id });\n  }\n});\nvar alerts = webhook({\n  handler: async (ctx, req) => {\n    await ctx.runMutation(internal.items.mark, { text: req.body });\n  }\n});\nvar onMessage = pachcaEvent(\"message.new\", {\n  handler: async (ctx, event) => {\n    await ctx.pachca.bot.messages.createMessage({ body: { message: { entityId: event.chat_id, content: \"ok\" } } });\n  }\n});\n\nvar functions = {\n  \"items.list\": list,\n  \"items.add\": add,\n  \"items.search\": search,\n  \"items.count\": count,\n  \"items.mark\": mark,\n  \"items.tick\": tick,\n  \"items.send\": send,\n  \"items.orders\": orders,\n  \"items.alerts\": alerts,\n  \"items.onMessage\": onMessage\n};\nexport {\n  functions\n};\n",
+  "static": {
+    "index.html": "PCFkb2N0eXBlIGh0bWw+CjxodG1sIGxhbmc9InJ1Ij4KICA8aGVhZD48bWV0YSBjaGFyc2V0PSJ1dGYtOCIgLz48dGl0bGU+0K3RgtCw0LvQvtC90L3QsNGPINGB0LHQvtGA0LrQsDwvdGl0bGU+PC9oZWFkPgogIDxib2R5PjxwPtCt0YLQsNC70L7QvdC90LDRjyDRgdCx0L7RgNC60LAg0LrQvtC90YLRgNCw0LrRgtCwOiDQsdC10Lcg0LjQvdGC0LXRgNGE0LXQudGB0LAuPC9wPjwvYm9keT4KPC9odG1sPgo="
+  }
+}

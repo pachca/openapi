@@ -1,5 +1,21 @@
 [
   {
+    "version": "2026.11.8",
+    "date": "27 ноября 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "auth token",
+        "description": "Новая команда — печатает токен профиля для другой программы, обновив его, если срок подходит к концу. Так `npx pachca-app` берёт вход CLI"
+      },
+      {
+        "type": "+",
+        "command": "apps list",
+        "description": "Новый раздел `apps` (бета) — кастомные приложения пространства: `list`, `get`, `create`, `update`, `delete`, `list-logs`, `get-source`, `create-version` и секреты `list-secrets`, `set-secret`, `delete-secret`"
+      }
+    ]
+  },
+  {
     "version": "2026.11.7",
     "date": "25 ноября 2026",
     "changes": [

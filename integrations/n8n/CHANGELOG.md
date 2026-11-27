@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 2.2.12 (2026-11-27)
+
+### Improvements
+
+- The Custom Apps section of the API gets no resource: apps are created and uploaded with `npx pachca-app` from the app folder. The operations of the node did not change
+
 ## 2.2.11 (2026-11-25)
 
 ### Features

@@ -11,6 +11,7 @@
   "devDependencies": {
     "@pachca/app-react": "workspace:*",
     "@pachca/app-sdk": "workspace:*",
+    "@pachca/create-app": "workspace:*",
     "@tanstack/react-router": "^1.170.46",
     "@types/node": "^22.14.0",
     "@types/react": "^19.3.0",

@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "SDK приложений Пачки: типы window.pachca и ctx, описание схемы и функций, ссылки на функции, сборка и шаблон",
   "type": "module",
+  "bin": {
+    "pachca-app": "./dist/cli/bin.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

@@ -21,6 +21,7 @@ const PRODUCT_LABELS: Record<ReleaseProduct, string> = {
   sdk: 'SDK-библиотеки',
   generator: 'SDK-генератор',
   n8n: 'n8n',
+  apps: 'SDK приложений',
 };
 
 // Canonical order of release cards within a single date. Don't rely on JSON
@@ -32,6 +33,7 @@ const PRODUCT_ORDER: Record<ReleaseProduct, number> = {
   cli: 3,
   sdk: 4,
   generator: 5,
+  apps: 6,
 };
 
 const PRODUCT_COLORS: Record<ReleaseProduct, string> = {
@@ -41,6 +43,7 @@ const PRODUCT_COLORS: Record<ReleaseProduct, string> = {
   sdk: 'bg-method-post/10 text-method-post',
   generator: 'bg-method-post/10 text-method-post',
   n8n: 'bg-primary/10 text-primary',
+  apps: 'bg-method-post/10 text-method-post',
 };
 
 // Where the badge of a release card leads: the docs page of the product, or
@@ -54,6 +57,8 @@ const PRODUCT_LINKS: Record<ReleaseProduct, (v: string) => string> = {
   sdk: () => '/guides/sdk/overview',
   generator: (v) => `https://www.npmjs.com/package/@pachca/generator/v/${v}`,
   n8n: (v) => `https://www.npmjs.com/package/n8n-nodes-pachca/v/${v}`,
+  // Three packages under one number: the badge leads to the SDK, the other two are released with it.
+  apps: (v) => `https://www.npmjs.com/package/@pachca/app-sdk/v/${v}`,
 };
 
 const CHANGE_TYPE_ICONS: Record<string, { icon: string; color: string }> = {

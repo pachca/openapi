@@ -14,6 +14,7 @@ export const PRODUCT_TITLES: Record<ParsedRelease['product'], string> = {
   sdk: 'SDK-библиотеки',
   generator: 'SDK-генератор',
   n8n: 'n8n Node',
+  apps: 'SDK приложений',
 };
 
 export const CHANGE_TYPE_PREFIX: Record<string, string> = {

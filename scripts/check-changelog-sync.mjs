@@ -80,6 +80,17 @@ const PACKAGES = [
     sourceChangelogs: [],
   },
   {
+    // @pachca/app-sdk, @pachca/app-react and @pachca/create-app go out as one
+    // release under one CalVer number (a beta is `YYYY.M.N-beta.K`): a change in
+    // any of them needs an entry with product `apps`. Their package.json files
+    // keep 0.0.0, the publish workflow stamps the version from releases.json.
+    product: 'apps',
+    label: 'apps',
+    dirs: ['packages/app-sdk', 'packages/app-react', 'packages/create-app'],
+    ownChangelogs: [],
+    sourceChangelogs: [],
+  },
+  {
     // The plugin is not published to a registry: hosts read it from this
     // repository. Its version is set by the docs build (one patch above the one
     // in main once the plugin files change) and recorded in plugin-version.json,
@@ -131,7 +142,7 @@ function ownChangelogVersion(versionSource) {
     if (versionSource.type === 'record') {
       return JSON.parse(content).version ?? null;
     }
-    const m = content.match(/^##\s+(\d+\.\d+\.\d+|\d{4}\.\d{1,2}\.\d+)\b/m);
+    const m = content.match(/^##\s+(\d+\.\d+\.\d+|\d{4}\.\d{1,2}\.\d+(?:-beta\.\d+)?)\b/m);
     return m ? m[1] : null;
   } catch {
     return null;
@@ -257,7 +268,7 @@ function showFile(ref, file) {
 /** Every `## X.Y.Z` heading of a markdown changelog, top first. */
 function changelogVersions(text) {
   if (!text) return [];
-  return [...text.matchAll(/^##\s+(\d+\.\d+\.\d+|\d{4}\.\d{1,2}\.\d+)\b/gm)].map((m) => m[1]);
+  return [...text.matchAll(/^##\s+(\d+\.\d+\.\d+|\d{4}\.\d{1,2}\.\d+(?:-beta\.\d+)?)\b/gm)].map((m) => m[1]);
 }
 
 /** Whether a package.json differs between base and HEAD in `version` alone. */

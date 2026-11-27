@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.13.0 (2026-11-27)
+
+Tools for custom apps (beta), two new scopes and two new error codes. schema_version stays 1.2.0.
+
+- Tools `pachca_list_apps`, `pachca_get_app`, `pachca_create_app`, `pachca_update_app`, `pachca_delete_app`, `pachca_list_app_logs`, `pachca_list_app_secrets`, `pachca_set_app_secret` and `pachca_delete_app_secret`: custom apps of the workspace for the owner and administrators. They need the new `apps:read` and `apps:write` scopes. Uploading a version and the source of an app are no tools: `npx pachca-app` does that from the app folder.
+- The `502` refusal: the service behind the method did not answer and nothing was changed.
+- The `409` refusal carries the `version_conflict` and `consent_required` codes.
+
 ## 1.12.0 (2026-11-25)
 
 A tool for the history of a message, a new scope and audit event, and the bot's catalog description in Markdown. schema_version stays 1.2.0.

@@ -19,8 +19,8 @@ test('название подставлено, .gitignore на месте', () =
   expect(existsSync(join(dir, 'AGENTS.md'))).toBe(true);
 });
 
-test('в непустую папку не копирует', () => {
-  expect(() => scaffold(dir, { name: 'x' })).toThrow('не пустая');
+test('файлы шаблона не перезаписывает', () => {
+  expect(() => scaffold(dir, { name: 'x' })).toThrow('уже есть');
 });
 
 test('check проходит', async () => {

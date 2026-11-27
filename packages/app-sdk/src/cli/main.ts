@@ -19,7 +19,7 @@ const HELP = `pachca-app ${SDK_VERSION}: команды разработки п�
   logs [-n 50] [-f]         журнал приложения на платформе
   secret set|list|rm NAME   секреты приложения, значение вводится скрыто
   edit [--name] [--icon] [--visibility private|link|public]
-  delete --confirm <id>     удалить приложение целиком, необратимо
+  delete                    удалить приложение целиком, необратимо (только человек в терминале)
   login | logout            сохранить или удалить готовый токен
 
   --mode <режим>            сборка с .env.<режим> и отдельное приложение этого режима (по умолчанию production)
@@ -36,7 +36,6 @@ const OPTIONS = {
   name: { type: 'string' },
   icon: { type: 'string' },
   visibility: { type: 'string' },
-  confirm: { type: 'string' },
   token: { type: 'string' },
   api: { type: 'string' },
   profile: { type: 'string' },
@@ -113,7 +112,7 @@ async function dispatch(argv: string[], io: Io): Promise<number> {
       await edit(io, await resolveApi(io, auth), t, { name: f.name, icon: f.icon, visibility: f.visibility });
       return 0;
     case 'delete':
-      await remove(io, await resolveApi(io, auth), t, f.confirm);
+      await remove(io, await resolveApi(io, auth), t);
       return 0;
     case 'login':
       await login(io, auth);

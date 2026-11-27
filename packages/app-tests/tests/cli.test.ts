@@ -158,13 +158,14 @@ describe('команды приложения папки', () => {
     expect((await run(['edit', '--visibility', 'all'])).code).toBe(2);
   });
 
-  test('delete: только с --confirm <id>, после удаления папка его забывает', async () => {
+  test('delete без терминала ничего не удаляет и просит человека', async () => {
     const state = stateOf(dir);
-    expect((await run(['delete', '--mode', 'staging', '--confirm', 'other'])).code).toBe(2);
+    const r = await run(['delete', '--mode', 'staging']);
+    expect(r.code).toBe(1);
+    expect(r.stderr).toContain('подтверждает человек в своём терминале: npx pachca-app delete --mode staging');
     expect(api.apps.has(state.staging!.id)).toBe(true);
-    expect((await run(['delete', '--mode', 'staging', '--confirm', state.staging!.id])).code).toBe(0);
-    expect(api.apps.has(state.staging!.id)).toBe(false);
-    expect(Object.keys(stateOf(dir))).toEqual(['production']);
+    expect(api.requests.some((q) => q.method === 'DELETE' && !q.path.includes('/secrets/'))).toBe(false);
+    expect((await run(['delete', '--confirm', state.production!.id])).code).toBe(2);
   });
 
   test('папка без загрузки: команда объясняет, что сначала ship', async () => {

@@ -33,8 +33,8 @@ const SITE_URL = 'https://dev.pachca.com';
 const ROOT_UPDATES = 5;
 /** The root llms.txt must fit an agent's read: AFDocs warns above 50 000 characters. */
 const LLMS_TXT_MAX_CHARS = 50_000;
-/** Sections in beta: the root llms.txt points at their methods in /api/llms.txt instead of listing them. */
-const ROOT_SECTION_INDEX_TAGS = new Set(['Apps']);
+/** Sections in beta: not announced in the root llms.txt, their methods stay in /api/llms.txt and the docs. */
+const ROOT_HIDDEN_TAGS = new Set(['Apps']);
 
 function groupByTag(endpoints: Endpoint[]) {
   const grouped = new Map<string, Endpoint[]>();
@@ -400,11 +400,8 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
 
   for (const tag of sortedTags) {
     const endpoints = grouped.get(tag)!;
+    if (ROOT_HIDDEN_TAGS.has(tag)) continue;
     content += `## ${TAG_TRANSLATIONS[tag] || tag}\n`;
-    if (ROOT_SECTION_INDEX_TAGS.has(tag)) {
-      content += `- Раздел в бете, ${endpoints.length} методов: [/api/llms.txt](${SITE_URL}/api/llms.txt)\n\n`;
-      continue;
-    }
     for (const endpoint of endpoints) {
       const title = generateTitle(endpoint);
       const url = generateUrlFromOperation(endpoint);

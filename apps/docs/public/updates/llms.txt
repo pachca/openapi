@@ -4,7 +4,6 @@
 
 [Родительский индекс](https://dev.pachca.com/llms.txt)
 
-- [27 ноября 2026 — Кастомные приложения (бета)](https://dev.pachca.com/updates/2026-11-27.md)
 - [25 ноября 2026 — История сообщения](https://dev.pachca.com/updates/2026-11-25.md)
 - [22 ноября 2026 — Правка своего профиля](https://dev.pachca.com/updates/2026-11-22.md)
 - [18 ноября 2026 — Закреплённые сообщения и отметка чата прочитанным](https://dev.pachca.com/updates/2026-11-18.md)

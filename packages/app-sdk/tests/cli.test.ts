@@ -4,6 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { resolveApi } from '../src/cli/auth.ts';
+import { DEFAULT_API } from '../src/cli/api.ts';
+import { remove } from '../src/cli/commands.ts';
 import { CliError, type Io, type RunResult } from '../src/cli/io.ts';
 import { compareVersions, ensureLatest, installCommand } from '../src/cli/update.ts';
 
@@ -150,5 +152,28 @@ describe('свежесть SDK', () => {
     expect(installCommand(dir, ['a@1'])).toEqual(['npm', ['install', 'a@1']]);
     writeFileSync(join(dir, 'pnpm-lock.yaml'), '');
     expect(installCommand(dir, ['a@1'])).toEqual(['pnpm', ['add', 'a@1']]);
+  });
+});
+
+describe('удаление', () => {
+  const app = 'k3x9q2m7a1bz';
+  const setup = (answers: string[]) => {
+    const deleted: string[] = [];
+    const f = fakeIo({ tty: true, answers, fetch: (u) => (deleted.push(u), new Response(null, { status: 204 })) });
+    writeFileSync(join(f.dir, '.pachca-app.json'), JSON.stringify({ production: { id: app, version: 3 } }));
+    return { ...f, deleted, a: { url: DEFAULT_API, token: 't', source: 'saved' as const } };
+  };
+
+  test('человек вводит id приложения: удалено, папка его забыла', async () => {
+    const { io, dir, deleted, a } = setup([app]);
+    await remove(io, a, { mode: 'production' });
+    expect(deleted).toEqual([`${DEFAULT_API}/apps/${app}`]);
+    expect(JSON.parse(readFileSync(join(dir, '.pachca-app.json'), 'utf8'))).toEqual({});
+  });
+
+  test('другой ответ отменяет удаление', async () => {
+    const { io, deleted, a } = setup(['y']);
+    await expect(remove(io, a, { mode: 'production' })).rejects.toThrow('отменено');
+    expect(deleted).toEqual([]);
   });
 });

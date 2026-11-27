@@ -216,10 +216,23 @@ export async function edit(io: Io, a: Api, t: Target, patch: { name?: string; ic
   io.err(`  ${[r.icon, r.name].filter(Boolean).join(' ')}, доступ ${r.visibility}\n`);
 }
 
-/** Удаляет приложение с версиями, базой, секретами и ботом. Необратимо, поэтому `--confirm <id>`. */
-export async function remove(io: Io, a: Api, t: Target, confirmId?: string): Promise<void> {
+/**
+ * Удаляет приложение с версиями, базой, файлами, секретами и ботом. Необратимо, поэтому только человек в терминале:
+ * он вводит id приложения. Без терминала (агент, CI) команда ничего не удаляет и говорит, кому её запустить.
+ */
+export async function remove(io: Io, a: Api, t: Target): Promise<void> {
   const app = appOf(io.cwd, a.url, t);
-  if (confirmId !== app) throw new CliError(`Удаление необратимо: версии, база, файлы, секреты и бот приложения. Повторите с --confirm ${app}`, 2);
+  const mode = t.mode === 'production' ? '' : ` --mode ${t.mode}`;
+  if (!io.tty) {
+    throw new CliError(
+      `Удаление приложения ${app} необратимо, его подтверждает человек в своём терминале: npx pachca-app delete${mode}. ` +
+        'Агент эту команду не выполняет, а только предлагает',
+    );
+  }
+  const c = colors(io);
+  io.err(`\n  ${c.red('!')} Удалить приложение ${c.bold(app)} целиком: версии, базу, файлы, секреты и бота. Вернуть нельзя.\n`);
+  const typed = (await io.ask(`  Чтобы удалить, введите id приложения: `)).trim();
+  if (typed !== app) throw new CliError('Удаление отменено: id не совпал');
   await call(io, a, 'DELETE', `/apps/${encodeURIComponent(app)}`);
   forget(io.cwd, a.url, app);
   io.err(`  Приложение ${app} удалено\n`);

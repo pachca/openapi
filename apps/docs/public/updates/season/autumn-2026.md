@@ -2,6 +2,52 @@
 
 # 🍁 Осень 2026
 
+### Кастомные приложения (бета)
+
+_27 ноября 2026_
+
+Появился раздел API «Кастомные приложения»: владелец и администраторы пространства создают приложения, загружают их версии, смотрят журнал и задают секреты. Для методов нужны новые права `apps:read` и `apps:write`. Раздел доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+Приложение пишут в папке с пакетом `@pachca/app-sdk`: новое создаёт `npm create @pachca/app@latest <папка>`, а проверяет, собирает и загружает его команда `npx pachca-app ship`. Вход команда берёт у CLI Пачки, новой командой `pachca auth token`.
+
+Были добавлены новые методы:
+
+- [Список приложений](/api/apps/list)
+- [Новое приложение](/api/apps/create)
+- [Информация о приложении](/api/apps/get)
+- [Редактирование приложения](/api/apps/update)
+- [Удаление приложения](/api/apps/delete)
+- [Загрузка версии](/api/apps/create-version)
+- [Исходники приложения](/api/apps/get-source)
+- [Журнал приложения](/api/apps/list-logs)
+- [Список секретов приложения](/api/apps/list-secrets)
+- [Задание секрета приложения](/api/apps/set-secret)
+- [Удаление секрета приложения](/api/apps/delete-secret)
+
+### SDK приложений v2026.11.0
+
+- `@pachca/app-sdk`: типы и описание схемы, функций и манифеста приложения Пачки, сборка (`@pachca/app-sdk/build`), шаблон и команды разработки `npx pachca-app`: `check`, `build`, `ship`, `pull`, `logs`, `secret`, `edit`, `delete`, `login`. Вход берётся у `pachca auth token`, если CLI Пачки установлен
+- `@pachca/app-react`: хуки `useQuery`, `useMutation`, `useAction`, `useJob` и `usePachca` для фронта приложения
+- `@pachca/create-app`: новое приложение командой `npm create @pachca/app@latest <папка>`
+
+### CLI v2026.11.8
+
+- `pachca auth token` печатает токен профиля для другой программы, обновив его, если срок подходит к концу. Так `npx pachca-app` берёт вход CLI
+- Раздел `pachca apps` (бета): кастомные приложения пространства, их журнал, исходники, секреты и загрузка версии
+
+### SDK-библиотеки v1.11.1
+
+- Методы раздела «Кастомные приложения» (`/apps`, бета), модели `App`, `AppRelease`, `AppSource`, `AppLogEntry`, `AppPermissionItem` с запросами и перечисления `AppVisibility`, `AppPermissionKind`, `AppLogKind`
+- Значения `apps:read` и `apps:write` в `OAuthScope`, `version_conflict` и `consent_required` в `ValidationErrorCode`
+
+### MCP-инструменты v1.13.0
+
+- Инструменты кастомных приложений для владельца и администраторов (бета): `pachca_list_apps`, `pachca_get_app`, `pachca_create_app`, `pachca_update_app`, `pachca_delete_app`, `pachca_list_app_logs` и секреты приложения. Для них нужны права `apps:read` и `apps:write`. Загрузку версии и исходники инструменты не отдают: это делает `npx pachca-app`
+
+### n8n Node v2.2.12
+
+- Раздел API «Кастомные приложения» в ноду не входит: приложения создаются и загружаются командой `npx pachca-app` из папки приложения. Операции ноды не изменились
+
 ### История сообщения
 
 _25 ноября 2026_

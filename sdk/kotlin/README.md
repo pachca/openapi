@@ -22,7 +22,7 @@ dependencyResolutionManagement {
 
 // build.gradle.kts
 dependencies {
-    implementation("com.github.pachca:openapi:1.11.0")
+    implementation("com.github.pachca:openapi:1.11.1")
 }
 ```
 

@@ -124,6 +124,340 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.base.RoundTrip(req)
 }
 
+type AppsService interface {
+	ListApps(ctx context.Context) (*ListAppsResponse, error)
+	GetApp(ctx context.Context, id string) (*App, error)
+	ListAppLogs(ctx context.Context, id string, params *ListAppLogsParams) (*ListAppLogsResponse, error)
+	ListAppSecrets(ctx context.Context, id string) (*ListAppSecretsResponse, error)
+	GetAppSource(ctx context.Context, id string) (*AppSource, error)
+	CreateApp(ctx context.Context, request AppCreateRequest) (*App, error)
+	CreateAppVersion(ctx context.Context, id string, request AppVersionRequest) (*AppRelease, error)
+	UpdateApp(ctx context.Context, id string, request AppUpdateRequest) (*App, error)
+	SetAppSecret(ctx context.Context, id string, name string, value string) error
+	DeleteApp(ctx context.Context, id string) error
+	DeleteAppSecret(ctx context.Context, id string, name string) error
+}
+
+type AppsServiceStub struct{}
+
+func (s *AppsServiceStub) ListApps(ctx context.Context) (*ListAppsResponse, error) {
+	return nil, NotImplementedError{Method: "Apps.listApps"}
+}
+
+func (s *AppsServiceStub) GetApp(ctx context.Context, id string) (*App, error) {
+	return nil, NotImplementedError{Method: "Apps.getApp"}
+}
+
+func (s *AppsServiceStub) ListAppLogs(ctx context.Context, id string, params *ListAppLogsParams) (*ListAppLogsResponse, error) {
+	return nil, NotImplementedError{Method: "Apps.listAppLogs"}
+}
+
+func (s *AppsServiceStub) ListAppSecrets(ctx context.Context, id string) (*ListAppSecretsResponse, error) {
+	return nil, NotImplementedError{Method: "Apps.listAppSecrets"}
+}
+
+func (s *AppsServiceStub) GetAppSource(ctx context.Context, id string) (*AppSource, error) {
+	return nil, NotImplementedError{Method: "Apps.getAppSource"}
+}
+
+func (s *AppsServiceStub) CreateApp(ctx context.Context, request AppCreateRequest) (*App, error) {
+	return nil, NotImplementedError{Method: "Apps.createApp"}
+}
+
+func (s *AppsServiceStub) CreateAppVersion(ctx context.Context, id string, request AppVersionRequest) (*AppRelease, error) {
+	return nil, NotImplementedError{Method: "Apps.createAppVersion"}
+}
+
+func (s *AppsServiceStub) UpdateApp(ctx context.Context, id string, request AppUpdateRequest) (*App, error) {
+	return nil, NotImplementedError{Method: "Apps.updateApp"}
+}
+
+func (s *AppsServiceStub) SetAppSecret(ctx context.Context, id string, name string, value string) error {
+	return NotImplementedError{Method: "Apps.setAppSecret"}
+}
+
+func (s *AppsServiceStub) DeleteApp(ctx context.Context, id string) error {
+	return NotImplementedError{Method: "Apps.deleteApp"}
+}
+
+func (s *AppsServiceStub) DeleteAppSecret(ctx context.Context, id string, name string) error {
+	return NotImplementedError{Method: "Apps.deleteAppSecret"}
+}
+
+type AppsServiceImpl struct {
+	baseURL string
+	client  *http.Client
+}
+
+func (s *AppsServiceImpl) ListApps(ctx context.Context) (*ListAppsResponse, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/apps", s.baseURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListAppsResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *AppsServiceImpl) GetApp(ctx context.Context, id string) (*App, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/apps/%v", s.baseURL, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data App `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *AppsServiceImpl) ListAppLogs(ctx context.Context, id string, params *ListAppLogsParams) (*ListAppLogsResponse, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/apps/%v/logs", s.baseURL, id))
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	if params != nil && params.N != nil {
+		q.Set("n", fmt.Sprintf("%v", *params.N))
+	}
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListAppLogsResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *AppsServiceImpl) ListAppSecrets(ctx context.Context, id string) (*ListAppSecretsResponse, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/apps/%v/secrets", s.baseURL, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListAppSecretsResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *AppsServiceImpl) GetAppSource(ctx context.Context, id string) (*AppSource, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/apps/%v/source", s.baseURL, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data AppSource `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *AppsServiceImpl) CreateApp(ctx context.Context, request AppCreateRequest) (*App, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/apps", s.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusCreated:
+		var result struct {
+			Data App `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *AppsServiceImpl) CreateAppVersion(ctx context.Context, id string, request AppVersionRequest) (*AppRelease, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/apps/%v/versions", s.baseURL, id), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data AppRelease `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *AppsServiceImpl) UpdateApp(ctx context.Context, id string, request AppUpdateRequest) (*App, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/apps/%v", s.baseURL, id), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data App `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	default:
+		return nil, errorFromResponse(resp)
+	}
+}
+
+func (s *AppsServiceImpl) SetAppSecret(ctx context.Context, id string, name string, value string) error {
+	body, err := json.Marshal(map[string]any{"value": value})
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/apps/%v/secrets/%v", s.baseURL, id, name), bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	default:
+		return errorFromResponse(resp)
+	}
+}
+
+func (s *AppsServiceImpl) DeleteApp(ctx context.Context, id string) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/apps/%v", s.baseURL, id), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	default:
+		return errorFromResponse(resp)
+	}
+}
+
+func (s *AppsServiceImpl) DeleteAppSecret(ctx context.Context, id string, name string) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/apps/%v/secrets/%v", s.baseURL, id, name), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	default:
+		return errorFromResponse(resp)
+	}
+}
+
 type SecurityService interface {
 	GetAuditEvents(ctx context.Context, params *GetAuditEventsParams) (*GetAuditEventsResponse, error)
 	GetAuditEventsAll(ctx context.Context, params *GetAuditEventsParams) ([]AuditEvent, error)
@@ -5082,6 +5416,7 @@ func (s *LinkPreviewsServiceImpl) CreateLinkPreviews(ctx context.Context, id int
 }
 
 type PachcaClient struct {
+	Apps              AppsService
 	Bots              BotsService
 	Chats             ChatsService
 	Common            CommonService
@@ -5108,6 +5443,7 @@ type PachcaClient struct {
 
 type clientConfig struct {
 	baseURL string
+	apps AppsService
 	bots BotsService
 	chats ChatsService
 	common CommonService
@@ -5135,6 +5471,7 @@ type clientConfig struct {
 type ClientOption func(*clientConfig)
 
 type stubClientConfig struct {
+	apps AppsService
 	bots BotsService
 	chats ChatsService
 	common CommonService
@@ -5165,6 +5502,10 @@ const PachcaAPIURL = "https://api.pachca.com/api/shared/v1"
 
 func WithBaseURL(baseURL string) ClientOption {
 	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithApps(service AppsService) ClientOption {
+	return func(cfg *clientConfig) { cfg.apps = service }
 }
 
 func WithBots(service BotsService) ClientOption {
@@ -5253,6 +5594,10 @@ func WithUsers(service UsersService) ClientOption {
 
 func WithViews(service ViewsService) ClientOption {
 	return func(cfg *clientConfig) { cfg.views = service }
+}
+
+func WithStubApps(service AppsService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.apps = service }
 }
 
 func WithStubBots(service BotsService) StubClientOption {
@@ -5354,6 +5699,10 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 			return http.ErrUseLastResponse
 		},
 	}
+	var apps AppsService = &AppsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.apps != nil {
+		apps = cfg.apps
+	}
 	var bots BotsService = &BotsServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.bots != nil {
 		bots = cfg.bots
@@ -5443,6 +5792,7 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 		views = cfg.views
 	}
 	return &PachcaClient{
+		Apps             : apps,
 		Bots             : bots,
 		Chats            : chats,
 		Common           : common,
@@ -5473,6 +5823,10 @@ func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...Client
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+	var apps AppsService = &AppsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.apps != nil {
+		apps = cfg.apps
+	}
 	var bots BotsService = &BotsServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.bots != nil {
 		bots = cfg.bots
@@ -5562,6 +5916,7 @@ func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...Client
 		views = cfg.views
 	}
 	return &PachcaClient{
+		Apps             : apps,
 		Bots             : bots,
 		Chats            : chats,
 		Common           : common,
@@ -5591,6 +5946,10 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	cfg := stubClientConfig{}
 	for _, opt := range opts {
 		opt(&cfg)
+	}
+	var apps AppsService = &AppsServiceStub{}
+	if cfg.apps != nil {
+		apps = cfg.apps
 	}
 	var bots BotsService = &BotsServiceStub{}
 	if cfg.bots != nil {
@@ -5681,6 +6040,7 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 		views = cfg.views
 	}
 	return &PachcaClient{
+		Apps             : apps,
 		Bots             : bots,
 		Chats            : chats,
 		Common           : common,

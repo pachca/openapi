@@ -14,12 +14,22 @@ from urllib.parse import urlencode
 import httpx
 
 from .models import (
-    GetAuditEventsParams,
-    GetAuditEventsResponse,
-    AuditEvent,
+    ListAppsResponse,
     OAuthError,
     OAuthErrorCode,
     ApiError,
+    App,
+    ListAppLogsParams,
+    ListAppLogsResponse,
+    ListAppSecretsResponse,
+    AppSource,
+    AppCreateRequest,
+    AppVersionRequest,
+    AppRelease,
+    AppUpdateRequest,
+    GetAuditEventsParams,
+    GetAuditEventsResponse,
+    AuditEvent,
     AuditEventKey,
     ListBotsParams,
     ListBotsResponse,
@@ -216,6 +226,238 @@ def build_authorize_url(
         "code_challenge_method": "S256",
     })
     return f"{authorize_url}?{query}"
+
+class AppsService:
+    async def list_apps(
+        self) -> ListAppsResponse:
+        raise NotImplementedError("Apps.listApps is not implemented")
+
+    async def get_app(
+        self,
+        id: str,
+    ) -> App:
+        raise NotImplementedError("Apps.getApp is not implemented")
+
+    async def list_app_logs(
+        self,
+        id: str,
+        params: ListAppLogsParams | None = None,
+    ) -> ListAppLogsResponse:
+        raise NotImplementedError("Apps.listAppLogs is not implemented")
+
+    async def list_app_secrets(
+        self,
+        id: str,
+    ) -> ListAppSecretsResponse:
+        raise NotImplementedError("Apps.listAppSecrets is not implemented")
+
+    async def get_app_source(
+        self,
+        id: str,
+    ) -> AppSource:
+        raise NotImplementedError("Apps.getAppSource is not implemented")
+
+    async def create_app(
+        self,
+        request: AppCreateRequest,
+    ) -> App:
+        raise NotImplementedError("Apps.createApp is not implemented")
+
+    async def create_app_version(
+        self,
+        id: str,
+        request: AppVersionRequest,
+    ) -> AppRelease:
+        raise NotImplementedError("Apps.createAppVersion is not implemented")
+
+    async def update_app(
+        self,
+        id: str,
+        request: AppUpdateRequest,
+    ) -> App:
+        raise NotImplementedError("Apps.updateApp is not implemented")
+
+    async def set_app_secret(
+        self,
+        id: str,
+        name: str,
+        value: str,
+    ) -> None:
+        raise NotImplementedError("Apps.setAppSecret is not implemented")
+
+    async def delete_app(
+        self,
+        id: str,
+    ) -> None:
+        raise NotImplementedError("Apps.deleteApp is not implemented")
+
+    async def delete_app_secret(
+        self,
+        id: str,
+        name: str,
+    ) -> None:
+        raise NotImplementedError("Apps.deleteAppSecret is not implemented")
+
+
+class AppsServiceImpl(AppsService):
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+
+    async def list_apps(
+        self) -> ListAppsResponse:
+        response = await self._client.get(
+            "/apps",
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(ListAppsResponse, response.json())
+            case _:
+                raise _error_from_response(response)
+
+    async def get_app(
+        self,
+        id: str,
+    ) -> App:
+        response = await self._client.get(
+            f"/apps/{id}",
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(App, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def list_app_logs(
+        self,
+        id: str,
+        params: ListAppLogsParams | None = None,
+    ) -> ListAppLogsResponse:
+        query: dict[str, str] = {}
+        if params is not None and params.n is not None:
+            query["n"] = str(params.n)
+        response = await self._client.get(
+            f"/apps/{id}/logs",
+            params=query,
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(ListAppLogsResponse, response.json())
+            case _:
+                raise _error_from_response(response)
+
+    async def list_app_secrets(
+        self,
+        id: str,
+    ) -> ListAppSecretsResponse:
+        response = await self._client.get(
+            f"/apps/{id}/secrets",
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(ListAppSecretsResponse, response.json())
+            case _:
+                raise _error_from_response(response)
+
+    async def get_app_source(
+        self,
+        id: str,
+    ) -> AppSource:
+        response = await self._client.get(
+            f"/apps/{id}/source",
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(AppSource, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def create_app(
+        self,
+        request: AppCreateRequest,
+    ) -> App:
+        response = await self._client.post(
+            "/apps",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 201:
+                return deserialize(App, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def create_app_version(
+        self,
+        id: str,
+        request: AppVersionRequest,
+    ) -> AppRelease:
+        response = await self._client.post(
+            f"/apps/{id}/versions",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(AppRelease, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def update_app(
+        self,
+        id: str,
+        request: AppUpdateRequest,
+    ) -> App:
+        response = await self._client.put(
+            f"/apps/{id}",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 200:
+                return deserialize(App, response.json()["data"])
+            case _:
+                raise _error_from_response(response)
+
+    async def set_app_secret(
+        self,
+        id: str,
+        name: str,
+        value: str,
+    ) -> None:
+        response = await self._client.put(
+            f"/apps/{id}/secrets/{name}",
+            json={"value": value},
+        )
+        match response.status_code:
+            case 204:
+                return
+            case _:
+                raise _error_from_response(response)
+
+    async def delete_app(
+        self,
+        id: str,
+    ) -> None:
+        response = await self._client.delete(
+            f"/apps/{id}",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case _:
+                raise _error_from_response(response)
+
+    async def delete_app_secret(
+        self,
+        id: str,
+        name: str,
+    ) -> None:
+        response = await self._client.delete(
+            f"/apps/{id}/secrets/{name}",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case _:
+                raise _error_from_response(response)
+
 
 class SecurityService:
     async def get_audit_events(
@@ -3654,12 +3896,13 @@ PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, company: CompanyService | None = None, custom_properties: CustomPropertiesService | None = None, drafts: DraftsService | None = None, files: FilesService | None = None, group_tags: GroupTagsService | None = None, important_messages: ImportantMessagesService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, oauth: OAuthService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, apps: AppsService | None = None, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, company: CompanyService | None = None, custom_properties: CustomPropertiesService | None = None, drafts: DraftsService | None = None, files: FilesService | None = None, group_tags: GroupTagsService | None = None, important_messages: ImportantMessagesService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, oauth: OAuthService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
+        self.apps: AppsService = apps or AppsServiceImpl(self._client)
         self.bots: BotsService = bots or BotsServiceImpl(self._client)
         self.chats: ChatsService = chats or ChatsServiceImpl(self._client)
         self.common: CommonService = common or CommonServiceImpl(self._client)
@@ -3690,6 +3933,7 @@ class PachcaClient:
     def from_client(
         cls,
         client: httpx.AsyncClient,
+        apps: AppsService | None = None,
         bots: BotsService | None = None,
         chats: ChatsService | None = None,
         common: CommonService | None = None,
@@ -3715,6 +3959,7 @@ class PachcaClient:
     ) -> "PachcaClient":
         self = cls.__new__(cls)
         self._client = client
+        self.apps: AppsService = apps or AppsServiceImpl(client)
         self.bots: BotsService = bots or BotsServiceImpl(client)
         self.chats: ChatsService = chats or ChatsServiceImpl(client)
         self.common: CommonService = common or CommonServiceImpl(client)
@@ -3742,6 +3987,7 @@ class PachcaClient:
     @classmethod
     def stub(
         cls,
+        apps: AppsService | None = None,
         bots: BotsService | None = None,
         chats: ChatsService | None = None,
         common: CommonService | None = None,
@@ -3767,6 +4013,7 @@ class PachcaClient:
     ) -> "PachcaClient":
         self = cls.__new__(cls)
         self._client = None
+        self.apps = apps or AppsService()
         self.bots = bots or BotsService()
         self.chats = chats or ChatsService()
         self.common = common or CommonService()

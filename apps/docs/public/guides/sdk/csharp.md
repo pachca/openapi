@@ -177,6 +177,17 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.DeleteWebhookEventAsync()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.Bots.DeleteBotTokenAsync()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |
+| `client.Apps.CreateAppAsync()` | [Новое приложение](/api/apps/create) |
+| `client.Apps.CreateAppVersionAsync()` | [Загрузка версии](/api/apps/create-version) |
+| `client.Apps.ListAppsAsync()` | [Список приложений](/api/apps/list) |
+| `client.Apps.GetAppAsync()` | [Информация о приложении](/api/apps/get) |
+| `client.Apps.ListAppLogsAsync()` | [Журнал приложения](/api/apps/list-logs) |
+| `client.Apps.ListAppSecretsAsync()` | [Список секретов приложения](/api/apps/list-secrets) |
+| `client.Apps.GetAppSourceAsync()` | [Исходники приложения](/api/apps/get-source) |
+| `client.Apps.UpdateAppAsync()` | [Редактирование приложения](/api/apps/update) |
+| `client.Apps.SetAppSecretAsync()` | [Задание секрета приложения](/api/apps/set-secret) |
+| `client.Apps.DeleteAppAsync()` | [Удаление приложения](/api/apps/delete) |
+| `client.Apps.DeleteAppSecretAsync()` | [Удаление секрета приложения](/api/apps/delete-secret) |
 | `client.CustomProperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFileAsync()` | [Загрузка файла](/api/files/direct-url) |
 | `client.Files.GetUploadParamsAsync()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |

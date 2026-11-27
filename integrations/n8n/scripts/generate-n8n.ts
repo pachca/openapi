@@ -504,6 +504,7 @@ function tagToResource(tag: string): string {
     'Drafts': 'draft',
     'Important messages': 'importantMessage',
     'Company': 'company',
+    'Apps': 'app',
   };
   if (MAP[tag]) return MAP[tag];
   // Fallback for an unmapped tag. Must produce a valid camelCase identifier:
@@ -527,7 +528,7 @@ function resourceDisplayName(resource: string): string {
     profile: 'Profile', customProperty: 'Custom Property', task: 'Reminder',
     bot: 'Bot', file: 'File', form: 'Form', readMember: 'Read Member',
     oauth: 'OAuth', search: 'Search', security: 'Security', draft: 'Draft',
-    importantMessage: 'Important Message',
+    importantMessage: 'Important Message', app: 'Custom App',
     // Пространство в API зовётся company, а в продукте и английской доке — workspace:
     // значение ресурса идёт по пути, название — по продукту, как task → Reminder.
     company: 'Workspace',

@@ -2906,6 +2906,322 @@
       ]
     },
     {
+      "name": "Apps",
+      "item": [
+        {
+          "name": "Список приложений",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apps",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apps"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Новое приложение",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/apps",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apps"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Заметки\",\n  \"id\": \"k3x9q2m7a1bz\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Информация о приложении",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apps/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apps",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Редактирование приложения",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/apps/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apps",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Заметки команды\",\n  \"icon\": \"🗒️\",\n  \"visibility\": \"link\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Удаление приложения",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apps/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apps",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Журнал приложения",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apps/:id/logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apps",
+                ":id",
+                "logs"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Список секретов приложения",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apps/:id/secrets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apps",
+                ":id",
+                "secrets"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Задание секрета приложения",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/apps/:id/secrets/:name",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apps",
+                ":id",
+                "secrets",
+                ":name"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"sk_live_51Hx\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Удаление секрета приложения",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apps/:id/secrets/:name",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apps",
+                ":id",
+                "secrets",
+                ":name"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Исходники приложения",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apps/:id/source",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apps",
+                ":id",
+                "source"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Загрузка версии",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/apps/:id/versions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apps",
+                ":id",
+                "versions"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"export default {};\",\n  \"manifest\": {\n    \"protocol\": 3,\n    \"sdk\": \"2026.12.0\"\n  },\n  \"schema\": {\n    \"tables\": {}\n  },\n  \"functions\": {},\n  \"static\": {\n    \"index.html\": \"PCFkb2N0eXBlIGh0bWw+\"\n  },\n  \"source\": {\n    \"schema.ts\": \"aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0=\"\n  },\n  \"base_version\": 2,\n  \"approve\": false,\n  \"force\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Custom Properties",
       "item": [
         {

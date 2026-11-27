@@ -3,6 +3,157 @@ import Foundation
 import FoundationNetworking
 #endif
 
+public enum AppLogKind: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Вызов функции приложения закончился ошибкой
+    case function
+    /// Запрос функции во внешнюю сеть
+    case fetch
+    /// Запрос к API Пачки
+    case pachca
+    /// Вызов вебхука приложения
+    case webhook
+    /// Фронт приложения нарушил ограничения браузера
+    case csp
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [AppLogKind] = [.function, .fetch, .pachca, .webhook, .csp]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "function": self = .function
+        case "fetch": self = .fetch
+        case "pachca": self = .pachca
+        case "webhook": self = .webhook
+        case "csp": self = .csp
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .function: return "function"
+        case .fetch: return "fetch"
+        case .pachca: return "pachca"
+        case .webhook: return "webhook"
+        case .csp: return "csp"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
+public enum AppPermissionKind: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Право бота приложения
+    case bot
+    /// Право от имени пользователя
+    case user
+    /// Событие Пачки, на которое подписан бот
+    case event
+    /// Сеть: хост запросов, хост фронта, вебхук или ключ внешнего сервиса
+    case net
+    /// Предупреждение, например об опасной комбинации прав
+    case warn
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [AppPermissionKind] = [.bot, .user, .event, .net, .warn]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "bot": self = .bot
+        case "user": self = .user
+        case "event": self = .event
+        case "net": self = .net
+        case "warn": self = .warn
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .bot: return "bot"
+        case .user: return "user"
+        case .event: return "event"
+        case .net: return "net"
+        case .warn: return "warn"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
+public enum AppVisibility: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Только автор приложения
+    case `private`
+    /// Любой сотрудник пространства по ссылке, в обзоре приложений его нет
+    case link
+    /// Любой сотрудник пространства по ссылке и в обзоре приложений
+    case `public`
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [AppVisibility] = [.`private`, .link, .`public`]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "private": self = .`private`
+        case "link": self = .link
+        case "public": self = .`public`
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .`private`: return "private"
+        case .link: return "link"
+        case .`public`: return "public"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
 public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Пользователь успешно вошел в систему
     case userLogin
@@ -1501,11 +1652,15 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
     case importantMessagesRead
     /// Добавление сообщений в важные и удаление из важных
     case importantMessagesWrite
+    /// Просмотр кастомных приложений, их журнала, исходников и имён секретов
+    case appsRead
+    /// Создание, загрузка версий, изменение и удаление кастомных приложений и их секретов
+    case appsWrite
     /// A value this SDK version does not list yet
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsMarkRead, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileWrite, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .companyRead, .companyWrite, .inviteLinksWrite, .auditEventsRead, .companyChatsRead, .companyBotsRead, .companyMessagesRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .uploadsWrite, .viewsWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite]
+    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsMarkRead, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileWrite, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .companyRead, .companyWrite, .inviteLinksWrite, .auditEventsRead, .companyChatsRead, .companyBotsRead, .companyMessagesRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .uploadsWrite, .viewsWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite, .importantMessagesRead, .importantMessagesWrite, .appsRead, .appsWrite]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -1572,6 +1727,8 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case "drafts:write": self = .draftsWrite
         case "important_messages:read": self = .importantMessagesRead
         case "important_messages:write": self = .importantMessagesWrite
+        case "apps:read": self = .appsRead
+        case "apps:write": self = .appsWrite
         default: self = .unknown(rawValue)
         }
     }
@@ -1645,6 +1802,8 @@ public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, Expre
         case .draftsWrite: return "drafts:write"
         case .importantMessagesRead: return "important_messages:read"
         case .importantMessagesWrite: return "important_messages:write"
+        case .appsRead: return "apps:read"
+        case .appsWrite: return "apps:write"
         case .unknown(let value): return value
         }
     }
@@ -2077,11 +2236,15 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
     case submitExpired
     /// Сервис временно недоступен, повторите запрос
     case serviceUnavailable
+    /// Текущая версия приложения не та, от которой сделана загрузка
+    case versionConflict
+    /// Права, хосты или события приложения изменились, а загрузка не подтверждает их
+    case consentRequired
     /// A value this SDK version does not list yet
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [ValidationErrorCode] = [.blank, .tooLong, .invalid, .inclusion, .exclusion, .taken, .wrongEmoji, .notFound, .alreadyExists, .personalChat, .displayedError, .notAuthorized, .invalidDateRange, .invalidWebhookUrl, .rateLimit, .licensesLimit, .userLimit, .uniqueLimit, .generalLimit, .unhandled, .triggerNotFound, .triggerExpired, .required, .`in`, .notApplicable, .selfUpdate, .ownerProtected, .alreadyAssigned, .nextSendAtInvalid, .scheduleInvalid, .scheduleEndDateInvalid, .scheduledMessagesLimit, .draftTypeChangeForbidden, .confidentialDownloadDenied, .decryptionFailed, .botAddDenied, .singleChatBotOccupied, .singleChatBotTagDenied, .restrictedBotTagDenied, .botChangedConcurrently, .timeout, .dailyInvitesLimit, .webhookUrlInvalid, .webhookUrlUnresolved, .webhookUrlForbidden, .blockedBySso, .forbidden, .permissionDenied, .accessDenied, .wrongParams, .paymentRequired, .minLength, .maxLength, .useOfSystemWords, .exportFileNotFound, .cannotKickOwner, .pinFailed, .messageDeleted, .threadMessage, .viewNotFound, .submitExpired, .serviceUnavailable]
+    public static let allCases: [ValidationErrorCode] = [.blank, .tooLong, .invalid, .inclusion, .exclusion, .taken, .wrongEmoji, .notFound, .alreadyExists, .personalChat, .displayedError, .notAuthorized, .invalidDateRange, .invalidWebhookUrl, .rateLimit, .licensesLimit, .userLimit, .uniqueLimit, .generalLimit, .unhandled, .triggerNotFound, .triggerExpired, .required, .`in`, .notApplicable, .selfUpdate, .ownerProtected, .alreadyAssigned, .nextSendAtInvalid, .scheduleInvalid, .scheduleEndDateInvalid, .scheduledMessagesLimit, .draftTypeChangeForbidden, .confidentialDownloadDenied, .decryptionFailed, .botAddDenied, .singleChatBotOccupied, .singleChatBotTagDenied, .restrictedBotTagDenied, .botChangedConcurrently, .timeout, .dailyInvitesLimit, .webhookUrlInvalid, .webhookUrlUnresolved, .webhookUrlForbidden, .blockedBySso, .forbidden, .permissionDenied, .accessDenied, .wrongParams, .paymentRequired, .minLength, .maxLength, .useOfSystemWords, .exportFileNotFound, .cannotKickOwner, .pinFailed, .messageDeleted, .threadMessage, .viewNotFound, .submitExpired, .serviceUnavailable, .versionConflict, .consentRequired]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -2147,6 +2310,8 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
         case "view_not_found": self = .viewNotFound
         case "submit_expired": self = .submitExpired
         case "service_unavailable": self = .serviceUnavailable
+        case "version_conflict": self = .versionConflict
+        case "consent_required": self = .consentRequired
         default: self = .unknown(rawValue)
         }
     }
@@ -2219,6 +2384,8 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
         case .viewNotFound: return "view_not_found"
         case .submitExpired: return "submit_expired"
         case .serviceUnavailable: return "service_unavailable"
+        case .versionConflict: return "version_conflict"
+        case .consentRequired: return "consent_required"
         case .unknown(let value): return value
         }
     }
@@ -2468,6 +2635,169 @@ public struct ApiErrorItem: Codable {
         self.message = message
         self.code = code
         self.payload = payload
+    }
+}
+
+public struct App: Codable {
+    public let id: String
+    public let name: String
+    public let icon: String?
+    public let botId: Int64?
+    public let avatarUrl: String?
+    public let visibility: AppVisibility
+    public let createdById: Int64?
+    public let version: Int
+    public let publishedHash: String?
+    public let createdAt: String
+
+    public init(id: String, name: String, icon: String? = nil, botId: Int64? = nil, avatarUrl: String? = nil, visibility: AppVisibility, createdById: Int64? = nil, version: Int, publishedHash: String? = nil, createdAt: String) {
+        self.id = id
+        self.name = name
+        self.icon = icon
+        self.botId = botId
+        self.avatarUrl = avatarUrl
+        self.visibility = visibility
+        self.createdById = createdById
+        self.version = version
+        self.publishedHash = publishedHash
+        self.createdAt = createdAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case icon
+        case botId = "bot_id"
+        case avatarUrl = "avatar_url"
+        case visibility
+        case createdById = "created_by_id"
+        case version
+        case publishedHash = "published_hash"
+        case createdAt = "created_at"
+    }
+}
+
+public struct AppCreateRequest: Codable {
+    public let name: String
+    public let id: String?
+
+    public init(name: String, id: String? = nil) {
+        self.name = name
+        self.id = id
+    }
+}
+
+public struct AppLogEntry: Codable {
+    public let time: String
+    public let kind: AppLogKind
+    public let text: String
+    public let allowed: Bool
+    public let reason: String?
+
+    public init(time: String, kind: AppLogKind, text: String, allowed: Bool, reason: String? = nil) {
+        self.time = time
+        self.kind = kind
+        self.text = text
+        self.allowed = allowed
+        self.reason = reason
+    }
+}
+
+public struct AppPermissionItem: Codable {
+    public let kind: AppPermissionKind
+    public let text: String
+    public let scope: String?
+    public let new: Bool?
+    public let removed: Bool?
+
+    public init(kind: AppPermissionKind, text: String, scope: String? = nil, new: Bool? = nil, removed: Bool? = nil) {
+        self.kind = kind
+        self.text = text
+        self.scope = scope
+        self.new = new
+        self.removed = removed
+    }
+}
+
+public struct AppRelease: Codable {
+    public let version: Int
+    public let hash: String
+    public let items: [AppPermissionItem]
+    public let migrations: [String]
+    public let warnings: [String]
+
+    public init(version: Int, hash: String, items: [AppPermissionItem], migrations: [String], warnings: [String]) {
+        self.version = version
+        self.hash = hash
+        self.items = items
+        self.migrations = migrations
+        self.warnings = warnings
+    }
+}
+
+public struct AppSecretRequest: Codable {
+    public let value: String
+
+    public init(value: String) {
+        self.value = value
+    }
+}
+
+public struct AppSource: Codable {
+    public let version: Int
+    public let files: [String: String]
+
+    public init(version: Int, files: [String: String]) {
+        self.version = version
+        self.files = files
+    }
+}
+
+public struct AppUpdateRequest: Codable {
+    public let name: String?
+    public let icon: String?
+    public let visibility: AppVisibility?
+
+    public init(name: String? = nil, icon: String? = nil, visibility: AppVisibility? = nil) {
+        self.name = name
+        self.icon = icon
+        self.visibility = visibility
+    }
+}
+
+public struct AppVersionRequest: Codable {
+    public let code: String
+    public let manifest: [String: AnyCodable]
+    public let schema: [String: AnyCodable]
+    public let functions: [String: AnyCodable]
+    public let `static`: [String: String]
+    public let source: [String: String]?
+    public let baseVersion: Int
+    public let approve: Bool?
+    public let force: Bool?
+
+    public init(code: String, manifest: [String: AnyCodable], schema: [String: AnyCodable], functions: [String: AnyCodable], `static`: [String: String], source: [String: String]? = nil, baseVersion: Int, approve: Bool? = nil, force: Bool? = nil) {
+        self.code = code
+        self.manifest = manifest
+        self.schema = schema
+        self.functions = functions
+        self.`static` = `static`
+        self.source = source
+        self.baseVersion = baseVersion
+        self.approve = approve
+        self.force = force
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case code
+        case manifest
+        case schema
+        case functions
+        case `static` = "static"
+        case source
+        case baseVersion = "base_version"
+        case approve
+        case force
     }
 }
 
@@ -7304,6 +7634,30 @@ public enum AuditDetailsBotScopesValue: Codable {
     }
 }
 
+public struct ListAppsResponse: Codable {
+    public let data: [App]
+
+    public init(data: [App]) {
+        self.data = data
+    }
+}
+
+public struct ListAppLogsResponse: Codable {
+    public let data: [AppLogEntry]
+
+    public init(data: [AppLogEntry]) {
+        self.data = data
+    }
+}
+
+public struct ListAppSecretsResponse: Codable {
+    public let data: [String]
+
+    public init(data: [String]) {
+        self.data = data
+    }
+}
+
 public struct GetAuditEventsResponse: Codable {
     public let data: [AuditEvent]
     public let meta: PaginationMeta
@@ -7548,6 +7902,18 @@ public struct GetWebhookEventsResponse: Codable {
         self.data = data
         self.meta = meta
     }
+}
+
+struct AppDataWrapper: Codable {
+    let data: App
+}
+
+struct AppSourceDataWrapper: Codable {
+    let data: AppSource
+}
+
+struct AppReleaseDataWrapper: Codable {
+    let data: AppRelease
 }
 
 struct BotResponseDataWrapper: Codable {

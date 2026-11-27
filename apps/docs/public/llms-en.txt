@@ -1320,6 +1320,54 @@ Parameters: id
 What has been happening in the workspace: sign-ins and sign-outs, changes of roles and settings, actions on chats, employees, and bots. The records are read-only — they cannot be changed or deleted either through the API or from the interface. The method is available to the workspace owner on the "Corporation" plan; other employees receive `403`. Accessing the audit log is itself written to the audit log — as the `audit_events_accessed` event. Events come from newest to oldest and are selected with filters: the period by `start_time` and `end_time`, the kind of event by `event_key`, and the actor by `actor_id` and `actor_type`. Without filters the method returns all events of the workspace page by page.
 Parameters: start_time?, end_time?, event_key?, actor_id?, actor_type?, entity_id?, entity_type?, limit?, cursor?
 
+## Apps
+
+### GET /api/shared/v1/apps
+Custom apps of the workspace in the order they were created, in one list without pagination. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+
+### POST /api/shared/v1/apps
+Creates an app with no versions and its bot with no scopes. The code is uploaded by [Upload version](/api/apps/create-version), usually with the `npx pachca-app ship` command from the app folder. A custom `id` that is not 12 characters `[0-9a-z]` or is already taken responds `400` with the `taken` or `invalid` code, and nothing is created. If the apps platform did not respond, the method responds `502`, and neither the bot nor the app remains. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+Body: { name*, id }
+
+### GET /api/shared/v1/apps/{id}
+An app of the workspace by its ID. An app of another workspace responds `404`. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+Parameters: id
+
+### PUT /api/shared/v1/apps/{id}
+Changes the name, the icon and the access without a new version. The name changes for the app's bot too. An empty name responds `422` with the `blank` code, an icon longer than 16 characters or with spaces responds `422` with the `invalid` code. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+Parameters: id
+Body: { name, icon, visibility }
+
+### DELETE /api/shared/v1/apps/{id}
+Deletes the app entirely and irreversibly: its versions, database, files, secrets and the app's bot. If the apps platform did not respond, the method responds `502`, nothing is deleted, and the request can be repeated. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+Parameters: id
+
+### GET /api/shared/v1/apps/{id}/logs
+What the app did on the platform: function errors, requests to the network and to the Pachca API, webhook calls, violations of the frontend restrictions. It shows what the platform allowed and what it blocked. Newest records first. The log is kept in the platform's memory, the last 200 records. After the platform restarts it is empty. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+Parameters: id, n?
+
+### GET /api/shared/v1/apps/{id}/secrets
+Names of the app's secrets that are set: keys of external services and webhook signature secrets. Values are not returned. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+Parameters: id
+
+### PUT /api/shared/v1/apps/{id}/secrets/{name}
+Creates or replaces a secret. The app manifest declares the secret: the platform adds an external service key to the function requests to its host by itself, and checks webhook calls with a signature secret. The app code does not see the values. A name not of `[A-Z][A-Z0-9_]`, longer than 64 characters, or a value larger than 4 KB responds `422` with the `invalid` code. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+Parameters: id, name
+Body: { value* }
+
+### DELETE /api/shared/v1/apps/{id}/secrets/{name}
+Deletes a secret. Deleting a secret that does not exist is not an error. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+Parameters: id, name
+
+### GET /api/shared/v1/apps/{id}/source
+The source of the current version, uploaded with it. The `npx pachca-app pull` command restores the app folder from it. An app with no versions responds `404`. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+Parameters: id
+
+### POST /api/shared/v1/apps/{id}/versions
+Uploads a build of the app, and it becomes the current version right away. The build and the request are made by the `npx pachca-app ship` command from the app folder (the `@pachca/app-sdk` package). The apps platform checks the build, the SDK version, changes of scopes and the database schema against the existing data. The app's bot gets the scopes and the event subscription from the version manifest. A `409` response uploads nothing. The `version_conflict` code: the current version is not `base_version`, the app was uploaded from another folder, the number of the current version is in `payload.version`. The `consent_required` code: scopes, hosts or events changed and `approve` is not passed, the list of changes is in `payload.items`. The `invalid` code with `409` and `422`: the platform rejected the build or the schema change, the reason is in `message`. A body larger than 32 MB responds `413` with the `too_long` code. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+Parameters: id
+Body: { code*, manifest*, schema*, functions*, static*, source, base_version*, approve, force }
+
 ## Custom Properties
 
 ### GET /api/shared/v1/custom_properties

@@ -5,6 +5,60 @@
       "PachcaClient"
     ]
   },
+  "AppOperations_listApps": {
+    "usage": "response, err := client.Apps.ListApps(ctx)",
+    "output": "ListAppsResponse{Data: []App}"
+  },
+  "AppOperations_getApp": {
+    "usage": "response, err := client.Apps.GetApp(ctx, \"k3x9q2m7a1bz\")",
+    "output": "App{ID: string, Name: string, Icon: *string, BotID: *int64, AvatarURL: *string, Visibility: AppVisibility, CreatedByID: *int64, Version: int32, PublishedHash: *string, CreatedAt: time.Time}"
+  },
+  "AppOperations_listAppLogs": {
+    "usage": "params := &pachca.ListAppLogsParams{\n\tN: pachca.Ptr(int32(50)),\n}\nresponse, err := client.Apps.ListAppLogs(ctx, \"k3x9q2m7a1bz\", params)",
+    "output": "ListAppLogsResponse{Data: []AppLogEntry}",
+    "imports": [
+      "ListAppLogsParams"
+    ]
+  },
+  "AppOperations_listAppSecrets": {
+    "usage": "response, err := client.Apps.ListAppSecrets(ctx, \"k3x9q2m7a1bz\")",
+    "output": "ListAppSecretsResponse{Data: []string}"
+  },
+  "AppOperations_getAppSource": {
+    "usage": "response, err := client.Apps.GetAppSource(ctx, \"k3x9q2m7a1bz\")",
+    "output": "AppSource{Version: int32, Files: map[string]string}"
+  },
+  "AppOperations_createApp": {
+    "usage": "request := pachca.AppCreateRequest{\n\tName: \"Заметки\",\n\tID: pachca.Ptr(\"k3x9q2m7a1bz\"),\n}\nresponse, err := client.Apps.CreateApp(ctx, request)",
+    "output": "App{ID: string, Name: string, Icon: *string, BotID: *int64, AvatarURL: *string, Visibility: AppVisibility, CreatedByID: *int64, Version: int32, PublishedHash: *string, CreatedAt: time.Time}",
+    "imports": [
+      "AppCreateRequest"
+    ]
+  },
+  "AppOperations_createAppVersion": {
+    "usage": "request := pachca.AppVersionRequest{\n\tCode: \"export default {};\",\n\tManifest: map[string]any{\"key\": map[string]any{}},\n\tSchema: map[string]any{\"key\": map[string]any{}},\n\tFunctions: map[string]any{\"key\": map[string]any{}},\n\tStatic: map[string]string{\"key\": \"example\"},\n\tSource: map[string]string{\"key\": \"example\"},\n\tBaseVersion: int32(2),\n\tApprove: pachca.Ptr(false),\n\tForce: pachca.Ptr(false),\n}\nresponse, err := client.Apps.CreateAppVersion(ctx, \"k3x9q2m7a1bz\", request)",
+    "output": "AppRelease{Version: int32, Hash: string, Items: []AppPermissionItem{Kind: AppPermissionKind, Text: string, Scope: *string, New: *bool, Removed: *bool}, Migrations: []string, Warnings: []string}",
+    "imports": [
+      "AppVersionRequest"
+    ]
+  },
+  "AppOperations_updateApp": {
+    "usage": "request := pachca.AppUpdateRequest{\n\tName: pachca.Ptr(\"Заметки команды\"),\n\tIcon: pachca.Ptr(\"🗒️\"),\n\tVisibility: pachca.Ptr(pachca.AppVisibilityLink),\n}\nresponse, err := client.Apps.UpdateApp(ctx, \"k3x9q2m7a1bz\", request)",
+    "output": "App{ID: string, Name: string, Icon: *string, BotID: *int64, AvatarURL: *string, Visibility: AppVisibility, CreatedByID: *int64, Version: int32, PublishedHash: *string, CreatedAt: time.Time}",
+    "imports": [
+      "AppUpdateRequest",
+      "AppVisibility"
+    ]
+  },
+  "AppOperations_setAppSecret": {
+    "usage": "client.Apps.SetAppSecret(ctx, \"k3x9q2m7a1bz\", \"API_KEY\", \"sk_live_51Hx\")"
+  },
+  "AppOperations_deleteApp": {
+    "usage": "client.Apps.DeleteApp(ctx, \"k3x9q2m7a1bz\")"
+  },
+  "AppOperations_deleteAppSecret": {
+    "usage": "client.Apps.DeleteAppSecret(ctx, \"k3x9q2m7a1bz\", \"API_KEY\")"
+  },
   "SecurityOperations_getAuditEvents": {
     "usage": "params := &pachca.GetAuditEventsParams{\n\tStartTime: pachca.Ptr(time.Date(2025, 5, 1, 9, 11, 0, 0, time.UTC)),\n\tEndTime: pachca.Ptr(time.Date(2025, 5, 2, 9, 11, 0, 0, time.UTC)),\n\tEventKey: pachca.Ptr(pachca.AuditEventKeyUserLogin),\n\tActorID: pachca.Ptr(\"98765\"),\n\tActorType: pachca.Ptr(\"User\"),\n\tEntityID: pachca.Ptr(\"98765\"),\n\tEntityType: pachca.Ptr(\"User\"),\n\tLimit: pachca.Ptr(int32(1)),\n\tCursor: pachca.Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Security.GetAuditEvents(ctx, params)",
     "output": "GetAuditEventsResponse{Data: []AuditEvent, Meta: PaginationMeta}",

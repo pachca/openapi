@@ -63,6 +63,107 @@ internal open class NullFieldsSerializer<T>(
     }
 }
 
+/** Вид записи журнала приложения */
+@Serializable
+@JvmInline
+value class AppLogKind(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Вызов функции приложения закончился ошибкой */
+        val FUNCTION = AppLogKind("function")
+        /** Запрос функции во внешнюю сеть */
+        val FETCH = AppLogKind("fetch")
+        /** Запрос к API Пачки */
+        val PACHCA = AppLogKind("pachca")
+        /** Вызов вебхука приложения */
+        val WEBHOOK = AppLogKind("webhook")
+        /** Фронт приложения нарушил ограничения браузера */
+        val CSP = AppLogKind("csp")
+
+        /** Every value this SDK version lists */
+        val entries: List<AppLogKind> = listOf(FUNCTION, FETCH, PACHCA, WEBHOOK, CSP)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<AppLogKind> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("function" to "FUNCTION", "fetch" to "FETCH", "pachca" to "PACHCA", "webhook" to "WEBHOOK", "csp" to "CSP")
+
+        fun valueOf(name: String): AppLogKind =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No AppLogKind constant $name")
+    }
+}
+
+/** Вид записи в списке прав приложения */
+@Serializable
+@JvmInline
+value class AppPermissionKind(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Право бота приложения */
+        val BOT = AppPermissionKind("bot")
+        /** Право от имени пользователя */
+        val USER = AppPermissionKind("user")
+        /** Событие Пачки, на которое подписан бот */
+        val EVENT = AppPermissionKind("event")
+        /** Сеть: хост запросов, хост фронта, вебхук или ключ внешнего сервиса */
+        val NET = AppPermissionKind("net")
+        /** Предупреждение, например об опасной комбинации прав */
+        val WARN = AppPermissionKind("warn")
+
+        /** Every value this SDK version lists */
+        val entries: List<AppPermissionKind> = listOf(BOT, USER, EVENT, NET, WARN)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<AppPermissionKind> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("bot" to "BOT", "user" to "USER", "event" to "EVENT", "net" to "NET", "warn" to "WARN")
+
+        fun valueOf(name: String): AppPermissionKind =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No AppPermissionKind constant $name")
+    }
+}
+
+/** Кто может открыть приложение */
+@Serializable
+@JvmInline
+value class AppVisibility(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Только автор приложения */
+        val PRIVATE = AppVisibility("private")
+        /** Любой сотрудник пространства по ссылке, в обзоре приложений его нет */
+        val LINK = AppVisibility("link")
+        /** Любой сотрудник пространства по ссылке и в обзоре приложений */
+        val PUBLIC = AppVisibility("public")
+
+        /** Every value this SDK version lists */
+        val entries: List<AppVisibility> = listOf(PRIVATE, LINK, PUBLIC)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<AppVisibility> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("private" to "PRIVATE", "link" to "LINK", "public" to "PUBLIC")
+
+        fun valueOf(name: String): AppVisibility =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No AppVisibility constant $name")
+    }
+}
+
 /** Тип аудит-события */
 @Serializable
 @JvmInline
@@ -1124,14 +1225,18 @@ value class OAuthScope(val value: String) {
         val IMPORTANT_MESSAGES_READ = OAuthScope("important_messages:read")
         /** Добавление сообщений в важные и удаление из важных */
         val IMPORTANT_MESSAGES_WRITE = OAuthScope("important_messages:write")
+        /** Просмотр кастомных приложений, их журнала, исходников и имён секретов */
+        val APPS_READ = OAuthScope("apps:read")
+        /** Создание, загрузка версий, изменение и удаление кастомных приложений и их секретов */
+        val APPS_WRITE = OAuthScope("apps:write")
 
         /** Every value this SDK version lists */
-        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_MARK_READ, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_WRITE, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, COMPANY_READ, COMPANY_WRITE, INVITE_LINKS_WRITE, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, COMPANY_MESSAGES_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE, IMPORTANT_MESSAGES_READ, IMPORTANT_MESSAGES_WRITE)
+        val entries: List<OAuthScope> = listOf(CHATS_READ, CHATS_CREATE, CHATS_UPDATE, CHATS_MARK_UNREAD, CHATS_MARK_READ, CHATS_ARCHIVE, CHATS_LEAVE, CHAT_MEMBERS_READ, CHAT_MEMBERS_WRITE, CHAT_EXPORTS_READ, CHAT_EXPORTS_WRITE, MESSAGES_READ, MESSAGES_CREATE, MESSAGES_UPDATE, MESSAGES_DELETE, REACTIONS_READ, REACTIONS_WRITE, PINS_WRITE, THREADS_READ, THREADS_CREATE, LINK_PREVIEWS_WRITE, USERS_READ, USERS_CREATE, USERS_UPDATE, USERS_DELETE, GROUP_TAGS_READ, GROUP_TAGS_WRITE, BOTS_READ, BOTS_WRITE, BOT_SELF_WEBHOOK_WRITE, BOT_SELF_WRITE, PROFILE_READ, PROFILE_WRITE, PROFILE_STATUS_READ, PROFILE_STATUS_WRITE, PROFILE_AVATAR_WRITE, USER_STATUS_READ, USER_STATUS_WRITE, USER_AVATAR_WRITE, CUSTOM_PROPERTIES_READ, COMPANY_READ, COMPANY_WRITE, INVITE_LINKS_WRITE, AUDIT_EVENTS_READ, COMPANY_CHATS_READ, COMPANY_BOTS_READ, COMPANY_MESSAGES_READ, TASKS_READ, TASKS_CREATE, TASKS_UPDATE, TASKS_DELETE, FILES_READ, UPLOADS_WRITE, VIEWS_WRITE, WEBHOOKS_EVENTS_READ, WEBHOOKS_EVENTS_DELETE, SEARCH_USERS, SEARCH_CHATS, SEARCH_MESSAGES, DRAFTS_READ, DRAFTS_WRITE, IMPORTANT_MESSAGES_READ, IMPORTANT_MESSAGES_WRITE, APPS_READ, APPS_WRITE)
 
         /** The same values as an array, like `values()` of an enum class */
         fun values(): Array<OAuthScope> = entries.toTypedArray()
 
-        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:mark_read" to "CHATS_MARK_READ", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile:write" to "PROFILE_WRITE", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "company:read" to "COMPANY_READ", "company:write" to "COMPANY_WRITE", "invite_links:write" to "INVITE_LINKS_WRITE", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "company_messages:read" to "COMPANY_MESSAGES_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE", "important_messages:read" to "IMPORTANT_MESSAGES_READ", "important_messages:write" to "IMPORTANT_MESSAGES_WRITE")
+        private val knownNames: Map<String, String> = mapOf("chats:read" to "CHATS_READ", "chats:create" to "CHATS_CREATE", "chats:update" to "CHATS_UPDATE", "chats:mark_unread" to "CHATS_MARK_UNREAD", "chats:mark_read" to "CHATS_MARK_READ", "chats:archive" to "CHATS_ARCHIVE", "chats:leave" to "CHATS_LEAVE", "chat_members:read" to "CHAT_MEMBERS_READ", "chat_members:write" to "CHAT_MEMBERS_WRITE", "chat_exports:read" to "CHAT_EXPORTS_READ", "chat_exports:write" to "CHAT_EXPORTS_WRITE", "messages:read" to "MESSAGES_READ", "messages:create" to "MESSAGES_CREATE", "messages:update" to "MESSAGES_UPDATE", "messages:delete" to "MESSAGES_DELETE", "reactions:read" to "REACTIONS_READ", "reactions:write" to "REACTIONS_WRITE", "pins:write" to "PINS_WRITE", "threads:read" to "THREADS_READ", "threads:create" to "THREADS_CREATE", "link_previews:write" to "LINK_PREVIEWS_WRITE", "users:read" to "USERS_READ", "users:create" to "USERS_CREATE", "users:update" to "USERS_UPDATE", "users:delete" to "USERS_DELETE", "group_tags:read" to "GROUP_TAGS_READ", "group_tags:write" to "GROUP_TAGS_WRITE", "bots:read" to "BOTS_READ", "bots:write" to "BOTS_WRITE", "bot_self:webhook:write" to "BOT_SELF_WEBHOOK_WRITE", "bot_self:write" to "BOT_SELF_WRITE", "profile:read" to "PROFILE_READ", "profile:write" to "PROFILE_WRITE", "profile_status:read" to "PROFILE_STATUS_READ", "profile_status:write" to "PROFILE_STATUS_WRITE", "profile_avatar:write" to "PROFILE_AVATAR_WRITE", "user_status:read" to "USER_STATUS_READ", "user_status:write" to "USER_STATUS_WRITE", "user_avatar:write" to "USER_AVATAR_WRITE", "custom_properties:read" to "CUSTOM_PROPERTIES_READ", "company:read" to "COMPANY_READ", "company:write" to "COMPANY_WRITE", "invite_links:write" to "INVITE_LINKS_WRITE", "audit_events:read" to "AUDIT_EVENTS_READ", "company_chats:read" to "COMPANY_CHATS_READ", "company_bots:read" to "COMPANY_BOTS_READ", "company_messages:read" to "COMPANY_MESSAGES_READ", "tasks:read" to "TASKS_READ", "tasks:create" to "TASKS_CREATE", "tasks:update" to "TASKS_UPDATE", "tasks:delete" to "TASKS_DELETE", "files:read" to "FILES_READ", "uploads:write" to "UPLOADS_WRITE", "views:write" to "VIEWS_WRITE", "webhooks:events:read" to "WEBHOOKS_EVENTS_READ", "webhooks:events:delete" to "WEBHOOKS_EVENTS_DELETE", "search:users" to "SEARCH_USERS", "search:chats" to "SEARCH_CHATS", "search:messages" to "SEARCH_MESSAGES", "drafts:read" to "DRAFTS_READ", "drafts:write" to "DRAFTS_WRITE", "important_messages:read" to "IMPORTANT_MESSAGES_READ", "important_messages:write" to "IMPORTANT_MESSAGES_WRITE", "apps:read" to "APPS_READ", "apps:write" to "APPS_WRITE")
 
         fun valueOf(name: String): OAuthScope =
             entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No OAuthScope constant $name")
@@ -1500,14 +1605,18 @@ value class ValidationErrorCode(val value: String) {
         val SUBMIT_EXPIRED = ValidationErrorCode("submit_expired")
         /** Сервис временно недоступен, повторите запрос */
         val SERVICE_UNAVAILABLE = ValidationErrorCode("service_unavailable")
+        /** Текущая версия приложения не та, от которой сделана загрузка */
+        val VERSION_CONFLICT = ValidationErrorCode("version_conflict")
+        /** Права, хосты или события приложения изменились, а загрузка не подтверждает их */
+        val CONSENT_REQUIRED = ValidationErrorCode("consent_required")
 
         /** Every value this SDK version lists */
-        val entries: List<ValidationErrorCode> = listOf(BLANK, TOO_LONG, INVALID, INCLUSION, EXCLUSION, TAKEN, WRONG_EMOJI, NOT_FOUND, ALREADY_EXISTS, PERSONAL_CHAT, DISPLAYED_ERROR, NOT_AUTHORIZED, INVALID_DATE_RANGE, INVALID_WEBHOOK_URL, RATE_LIMIT, LICENSES_LIMIT, USER_LIMIT, UNIQUE_LIMIT, GENERAL_LIMIT, UNHANDLED, TRIGGER_NOT_FOUND, TRIGGER_EXPIRED, REQUIRED, IN, NOT_APPLICABLE, SELF_UPDATE, OWNER_PROTECTED, ALREADY_ASSIGNED, NEXT_SEND_AT_INVALID, SCHEDULE_INVALID, SCHEDULE_END_DATE_INVALID, SCHEDULED_MESSAGES_LIMIT, DRAFT_TYPE_CHANGE_FORBIDDEN, CONFIDENTIAL_DOWNLOAD_DENIED, DECRYPTION_FAILED, BOT_ADD_DENIED, SINGLE_CHAT_BOT_OCCUPIED, SINGLE_CHAT_BOT_TAG_DENIED, RESTRICTED_BOT_TAG_DENIED, BOT_CHANGED_CONCURRENTLY, TIMEOUT, DAILY_INVITES_LIMIT, WEBHOOK_URL_INVALID, WEBHOOK_URL_UNRESOLVED, WEBHOOK_URL_FORBIDDEN, BLOCKED_BY_SSO, FORBIDDEN, PERMISSION_DENIED, ACCESS_DENIED, WRONG_PARAMS, PAYMENT_REQUIRED, MIN_LENGTH, MAX_LENGTH, USE_OF_SYSTEM_WORDS, EXPORT_FILE_NOT_FOUND, CANNOT_KICK_OWNER, PIN_FAILED, MESSAGE_DELETED, THREAD_MESSAGE, VIEW_NOT_FOUND, SUBMIT_EXPIRED, SERVICE_UNAVAILABLE)
+        val entries: List<ValidationErrorCode> = listOf(BLANK, TOO_LONG, INVALID, INCLUSION, EXCLUSION, TAKEN, WRONG_EMOJI, NOT_FOUND, ALREADY_EXISTS, PERSONAL_CHAT, DISPLAYED_ERROR, NOT_AUTHORIZED, INVALID_DATE_RANGE, INVALID_WEBHOOK_URL, RATE_LIMIT, LICENSES_LIMIT, USER_LIMIT, UNIQUE_LIMIT, GENERAL_LIMIT, UNHANDLED, TRIGGER_NOT_FOUND, TRIGGER_EXPIRED, REQUIRED, IN, NOT_APPLICABLE, SELF_UPDATE, OWNER_PROTECTED, ALREADY_ASSIGNED, NEXT_SEND_AT_INVALID, SCHEDULE_INVALID, SCHEDULE_END_DATE_INVALID, SCHEDULED_MESSAGES_LIMIT, DRAFT_TYPE_CHANGE_FORBIDDEN, CONFIDENTIAL_DOWNLOAD_DENIED, DECRYPTION_FAILED, BOT_ADD_DENIED, SINGLE_CHAT_BOT_OCCUPIED, SINGLE_CHAT_BOT_TAG_DENIED, RESTRICTED_BOT_TAG_DENIED, BOT_CHANGED_CONCURRENTLY, TIMEOUT, DAILY_INVITES_LIMIT, WEBHOOK_URL_INVALID, WEBHOOK_URL_UNRESOLVED, WEBHOOK_URL_FORBIDDEN, BLOCKED_BY_SSO, FORBIDDEN, PERMISSION_DENIED, ACCESS_DENIED, WRONG_PARAMS, PAYMENT_REQUIRED, MIN_LENGTH, MAX_LENGTH, USE_OF_SYSTEM_WORDS, EXPORT_FILE_NOT_FOUND, CANNOT_KICK_OWNER, PIN_FAILED, MESSAGE_DELETED, THREAD_MESSAGE, VIEW_NOT_FOUND, SUBMIT_EXPIRED, SERVICE_UNAVAILABLE, VERSION_CONFLICT, CONSENT_REQUIRED)
 
         /** The same values as an array, like `values()` of an enum class */
         fun values(): Array<ValidationErrorCode> = entries.toTypedArray()
 
-        private val knownNames: Map<String, String> = mapOf("blank" to "BLANK", "too_long" to "TOO_LONG", "invalid" to "INVALID", "inclusion" to "INCLUSION", "exclusion" to "EXCLUSION", "taken" to "TAKEN", "wrong_emoji" to "WRONG_EMOJI", "not_found" to "NOT_FOUND", "already_exists" to "ALREADY_EXISTS", "personal_chat" to "PERSONAL_CHAT", "displayed_error" to "DISPLAYED_ERROR", "not_authorized" to "NOT_AUTHORIZED", "invalid_date_range" to "INVALID_DATE_RANGE", "invalid_webhook_url" to "INVALID_WEBHOOK_URL", "rate_limit" to "RATE_LIMIT", "licenses_limit" to "LICENSES_LIMIT", "user_limit" to "USER_LIMIT", "unique_limit" to "UNIQUE_LIMIT", "general_limit" to "GENERAL_LIMIT", "unhandled" to "UNHANDLED", "trigger_not_found" to "TRIGGER_NOT_FOUND", "trigger_expired" to "TRIGGER_EXPIRED", "required" to "REQUIRED", "in" to "IN", "not_applicable" to "NOT_APPLICABLE", "self_update" to "SELF_UPDATE", "owner_protected" to "OWNER_PROTECTED", "already_assigned" to "ALREADY_ASSIGNED", "next_send_at_invalid" to "NEXT_SEND_AT_INVALID", "schedule_invalid" to "SCHEDULE_INVALID", "schedule_end_date_invalid" to "SCHEDULE_END_DATE_INVALID", "scheduled_messages_limit" to "SCHEDULED_MESSAGES_LIMIT", "draft_type_change_forbidden" to "DRAFT_TYPE_CHANGE_FORBIDDEN", "confidential_download_denied" to "CONFIDENTIAL_DOWNLOAD_DENIED", "decryption_failed" to "DECRYPTION_FAILED", "bot_add_denied" to "BOT_ADD_DENIED", "single_chat_bot_occupied" to "SINGLE_CHAT_BOT_OCCUPIED", "single_chat_bot_tag_denied" to "SINGLE_CHAT_BOT_TAG_DENIED", "restricted_bot_tag_denied" to "RESTRICTED_BOT_TAG_DENIED", "bot_changed_concurrently" to "BOT_CHANGED_CONCURRENTLY", "timeout" to "TIMEOUT", "daily_invites_limit" to "DAILY_INVITES_LIMIT", "webhook_url_invalid" to "WEBHOOK_URL_INVALID", "webhook_url_unresolved" to "WEBHOOK_URL_UNRESOLVED", "webhook_url_forbidden" to "WEBHOOK_URL_FORBIDDEN", "blocked_by_sso" to "BLOCKED_BY_SSO", "forbidden" to "FORBIDDEN", "permission_denied" to "PERMISSION_DENIED", "access_denied" to "ACCESS_DENIED", "wrong_params" to "WRONG_PARAMS", "payment_required" to "PAYMENT_REQUIRED", "min_length" to "MIN_LENGTH", "max_length" to "MAX_LENGTH", "use_of_system_words" to "USE_OF_SYSTEM_WORDS", "export_file_not_found" to "EXPORT_FILE_NOT_FOUND", "cannot_kick_owner" to "CANNOT_KICK_OWNER", "pin_failed" to "PIN_FAILED", "message_deleted" to "MESSAGE_DELETED", "thread_message" to "THREAD_MESSAGE", "view_not_found" to "VIEW_NOT_FOUND", "submit_expired" to "SUBMIT_EXPIRED", "service_unavailable" to "SERVICE_UNAVAILABLE")
+        private val knownNames: Map<String, String> = mapOf("blank" to "BLANK", "too_long" to "TOO_LONG", "invalid" to "INVALID", "inclusion" to "INCLUSION", "exclusion" to "EXCLUSION", "taken" to "TAKEN", "wrong_emoji" to "WRONG_EMOJI", "not_found" to "NOT_FOUND", "already_exists" to "ALREADY_EXISTS", "personal_chat" to "PERSONAL_CHAT", "displayed_error" to "DISPLAYED_ERROR", "not_authorized" to "NOT_AUTHORIZED", "invalid_date_range" to "INVALID_DATE_RANGE", "invalid_webhook_url" to "INVALID_WEBHOOK_URL", "rate_limit" to "RATE_LIMIT", "licenses_limit" to "LICENSES_LIMIT", "user_limit" to "USER_LIMIT", "unique_limit" to "UNIQUE_LIMIT", "general_limit" to "GENERAL_LIMIT", "unhandled" to "UNHANDLED", "trigger_not_found" to "TRIGGER_NOT_FOUND", "trigger_expired" to "TRIGGER_EXPIRED", "required" to "REQUIRED", "in" to "IN", "not_applicable" to "NOT_APPLICABLE", "self_update" to "SELF_UPDATE", "owner_protected" to "OWNER_PROTECTED", "already_assigned" to "ALREADY_ASSIGNED", "next_send_at_invalid" to "NEXT_SEND_AT_INVALID", "schedule_invalid" to "SCHEDULE_INVALID", "schedule_end_date_invalid" to "SCHEDULE_END_DATE_INVALID", "scheduled_messages_limit" to "SCHEDULED_MESSAGES_LIMIT", "draft_type_change_forbidden" to "DRAFT_TYPE_CHANGE_FORBIDDEN", "confidential_download_denied" to "CONFIDENTIAL_DOWNLOAD_DENIED", "decryption_failed" to "DECRYPTION_FAILED", "bot_add_denied" to "BOT_ADD_DENIED", "single_chat_bot_occupied" to "SINGLE_CHAT_BOT_OCCUPIED", "single_chat_bot_tag_denied" to "SINGLE_CHAT_BOT_TAG_DENIED", "restricted_bot_tag_denied" to "RESTRICTED_BOT_TAG_DENIED", "bot_changed_concurrently" to "BOT_CHANGED_CONCURRENTLY", "timeout" to "TIMEOUT", "daily_invites_limit" to "DAILY_INVITES_LIMIT", "webhook_url_invalid" to "WEBHOOK_URL_INVALID", "webhook_url_unresolved" to "WEBHOOK_URL_UNRESOLVED", "webhook_url_forbidden" to "WEBHOOK_URL_FORBIDDEN", "blocked_by_sso" to "BLOCKED_BY_SSO", "forbidden" to "FORBIDDEN", "permission_denied" to "PERMISSION_DENIED", "access_denied" to "ACCESS_DENIED", "wrong_params" to "WRONG_PARAMS", "payment_required" to "PAYMENT_REQUIRED", "min_length" to "MIN_LENGTH", "max_length" to "MAX_LENGTH", "use_of_system_words" to "USE_OF_SYSTEM_WORDS", "export_file_not_found" to "EXPORT_FILE_NOT_FOUND", "cannot_kick_owner" to "CANNOT_KICK_OWNER", "pin_failed" to "PIN_FAILED", "message_deleted" to "MESSAGE_DELETED", "thread_message" to "THREAD_MESSAGE", "view_not_found" to "VIEW_NOT_FOUND", "submit_expired" to "SUBMIT_EXPIRED", "service_unavailable" to "SERVICE_UNAVAILABLE", "version_conflict" to "VERSION_CONFLICT", "consent_required" to "CONSENT_REQUIRED")
 
         fun valueOf(name: String): ValidationErrorCode =
             entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No ValidationErrorCode constant $name")
@@ -2389,6 +2498,84 @@ data class ApiErrorItem(
     val message: String,
     val code: ValidationErrorCode,
     val payload: Map<String, JsonElement>? = null,
+)
+
+@Serializable
+data class App(
+    val id: String,
+    val name: String,
+    val icon: String? = null,
+    @SerialName("bot_id") val botId: Long? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    val visibility: AppVisibility,
+    @SerialName("created_by_id") val createdById: Long? = null,
+    val version: Int,
+    @SerialName("published_hash") val publishedHash: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
+)
+
+@Serializable
+data class AppCreateRequest(
+    val name: String,
+    val id: String? = null,
+)
+
+@Serializable
+data class AppLogEntry(
+    @Serializable(with = OffsetDateTimeSerializer::class) val time: OffsetDateTime,
+    val kind: AppLogKind,
+    val text: String,
+    val allowed: Boolean,
+    val reason: String? = null,
+)
+
+@Serializable
+data class AppPermissionItem(
+    val kind: AppPermissionKind,
+    val text: String,
+    val scope: String? = null,
+    val new: Boolean? = null,
+    val removed: Boolean? = null,
+)
+
+@Serializable
+data class AppRelease(
+    val version: Int,
+    val hash: String,
+    val items: List<AppPermissionItem>,
+    val migrations: List<String>,
+    val warnings: List<String>,
+)
+
+@Serializable
+data class AppSecretRequest(
+    val value: String,
+)
+
+@Serializable
+data class AppSource(
+    val version: Int,
+    val files: Map<String, String>,
+)
+
+@Serializable
+data class AppUpdateRequest(
+    val name: String? = null,
+    val icon: String? = null,
+    val visibility: AppVisibility? = null,
+)
+
+@Serializable
+data class AppVersionRequest(
+    val code: String,
+    val manifest: Map<String, JsonElement>,
+    val schema: Map<String, JsonElement>,
+    val functions: Map<String, JsonElement>,
+    val static: Map<String, String>,
+    val source: Map<String, String>? = null,
+    @SerialName("base_version") val baseVersion: Int,
+    val approve: Boolean? = null,
+    val force: Boolean? = null,
 )
 
 @Serializable
@@ -3637,6 +3824,21 @@ data class UpdateUserAvatarRequest(
 )
 
 @Serializable
+data class ListAppsResponse(
+    val data: List<App>,
+)
+
+@Serializable
+data class ListAppLogsResponse(
+    val data: List<AppLogEntry>,
+)
+
+@Serializable
+data class ListAppSecretsResponse(
+    val data: List<String>,
+)
+
+@Serializable
 data class GetAuditEventsResponse(
     val data: List<AuditEvent>,
     val meta: PaginationMeta,
@@ -3783,6 +3985,15 @@ data class GetWebhookEventsResponse(
     val data: List<WebhookEvent>,
     val meta: PaginationMeta,
 )
+
+@Serializable
+data class AppDataWrapper(val data: App)
+
+@Serializable
+data class AppSourceDataWrapper(val data: AppSource)
+
+@Serializable
+data class AppReleaseDataWrapper(val data: AppRelease)
 
 @Serializable
 data class BotResponseDataWrapper(val data: BotResponse)

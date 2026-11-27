@@ -196,6 +196,17 @@ client = PachcaClient.from_client(http)
 | `client.bots.delete_webhook_event()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.bots.delete_bot_token()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |
+| `client.apps.create_app()` | [Новое приложение](/api/apps/create) |
+| `client.apps.create_app_version()` | [Загрузка версии](/api/apps/create-version) |
+| `client.apps.list_apps()` | [Список приложений](/api/apps/list) |
+| `client.apps.get_app()` | [Информация о приложении](/api/apps/get) |
+| `client.apps.list_app_logs()` | [Журнал приложения](/api/apps/list-logs) |
+| `client.apps.list_app_secrets()` | [Список секретов приложения](/api/apps/list-secrets) |
+| `client.apps.get_app_source()` | [Исходники приложения](/api/apps/get-source) |
+| `client.apps.update_app()` | [Редактирование приложения](/api/apps/update) |
+| `client.apps.set_app_secret()` | [Задание секрета приложения](/api/apps/set-secret) |
+| `client.apps.delete_app()` | [Удаление приложения](/api/apps/delete) |
+| `client.apps.delete_app_secret()` | [Удаление секрета приложения](/api/apps/delete-secret) |
 | `client.custom_properties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.upload_file()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.get_upload_params()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |

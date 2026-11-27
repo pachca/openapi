@@ -189,6 +189,17 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Bots.DeleteWebhookEvent()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.Bots.DeleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.Security.GetAuditEvents()` | [Журнал аудита событий](/api/security/list) |
+| `client.Apps.CreateApp()` | [Новое приложение](/api/apps/create) |
+| `client.Apps.CreateAppVersion()` | [Загрузка версии](/api/apps/create-version) |
+| `client.Apps.ListApps()` | [Список приложений](/api/apps/list) |
+| `client.Apps.GetApp()` | [Информация о приложении](/api/apps/get) |
+| `client.Apps.ListAppLogs()` | [Журнал приложения](/api/apps/list-logs) |
+| `client.Apps.ListAppSecrets()` | [Список секретов приложения](/api/apps/list-secrets) |
+| `client.Apps.GetAppSource()` | [Исходники приложения](/api/apps/get-source) |
+| `client.Apps.UpdateApp()` | [Редактирование приложения](/api/apps/update) |
+| `client.Apps.SetAppSecret()` | [Задание секрета приложения](/api/apps/set-secret) |
+| `client.Apps.DeleteApp()` | [Удаление приложения](/api/apps/delete) |
+| `client.Apps.DeleteAppSecret()` | [Удаление секрета приложения](/api/apps/delete-secret) |
 | `client.CustomProperties.ListProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.Files.GetUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |

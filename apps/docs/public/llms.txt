@@ -6,9 +6,9 @@
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~566K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~582K токенов — обычно не помещается в контекст целиком).
 
-> English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~37K токенов).
+> English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~38K токенов).
 
 > Индексы разделов (только нужный срез): [/api/llms.txt](https://dev.pachca.com/api/llms.txt) — методы и основы API, [/guides/llms.txt](https://dev.pachca.com/guides/llms.txt) — руководства, [/updates/llms.txt](https://dev.pachca.com/updates/llms.txt) — обновления по датам.
 
@@ -78,9 +78,9 @@
 | MCP-сервер | Адрес, вход, доступ и инструменты MCP | 144–153 |
 | Скиллы | Что знают скиллы, установка одной командой, плагин по желанию | 154–182 |
 | Руководства | Страницы-руководства (Markdown по `.md`) | 183–266 |
-| API-методы | Все методы API, сгруппированы по разделам | 267–418 |
-| Обновления | Журнал обновлений по датам | 419–426 |
-| Дополнительно | Прочие ссылки и контакты | 427–435 |
+| API-методы | Все методы API, сгруппированы по разделам | 267–421 |
+| Обновления | Журнал обновлений по датам | 422–429 |
+| Дополнительно | Прочие ссылки и контакты | 430–438 |
 
 ## Своя интеграция
 
@@ -407,6 +407,9 @@ Claude Code, Claude, VS Code, GitHub Copilot CLI, Codex и приложение 
 
 ## Безопасность
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
+
+## Кастомные приложения
+- Раздел в бете, 11 методов: [/api/llms.txt](https://dev.pachca.com/api/llms.txt)
 
 ## Дополнительные поля
 - [Список дополнительных полей](https://dev.pachca.com/api/custom-properties/list.md): GET /custom_properties

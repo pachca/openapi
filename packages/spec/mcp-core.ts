@@ -92,7 +92,7 @@ export const TOOL_PREFIX = 'pachca_';
  * build fails when a name of the set does not match this pattern whole.
  */
 export const TOOL_NAME_IN_PROSE =
-  /\b(?:get|list|search|read|send|reply|create|update|save|delete|remove|add|pin|unpin|open|answer|archive|unarchive|leave|export|download|request|react|recreate|reissue|rotate|self|mark|submit|handle)_[a-z_]+\b/g;
+  /\b(?:get|list|search|read|send|reply|create|update|save|delete|remove|add|pin|unpin|open|answer|archive|unarchive|leave|export|download|request|react|recreate|reissue|rotate|self|mark|set|submit|handle)_[a-z_]+\b/g;
 
 export type ToolKind = 'read' | 'write';
 
@@ -245,6 +245,12 @@ export const NOT_TOOLS: Record<OperationKey, string> = {
   'GET /webhooks/events/stream':
     'The answer is a link for a program to hold open as a stream of events. A model holds no connection, and the ' +
     'link, which lets whoever has it read the bot’s events with no token, would only sit in its context.',
+  'POST /apps/{id}/versions':
+    'The body is a built app — its code, schema and static files in base64, up to 32 MB — that only the build ' +
+    'of `@pachca/app-sdk` makes; a model writes no build by hand, and `npx pachca-app ship` sends it.',
+  'GET /apps/{id}/source':
+    'The answer is every file of the app folder in base64, up to 5 MB, for `npx pachca-app pull` to write ' +
+    'to disk; in a context it is only bytes nobody reads.',
 };
 
 /**
@@ -882,6 +888,9 @@ export const REFUSALS: Record<string, string> = {
     'Rate limited: wait as long as the refusal says before repeating. Sending faster will not get the ' +
     'message through, and every call made while the daily cap on one sender’s messages to one chat ' +
     'holds lengthens its block, up to a day.',
+  '502':
+    'The service behind the method did not answer, and nothing was changed: try once more, then tell the ' +
+    'person.',
   '503':
     'Temporarily unavailable: try once more, then tell the person.',
   '504':

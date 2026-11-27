@@ -1673,7 +1673,7 @@ actions:
       description: Error code
   - target: $.components.schemas.ApiErrorItem.properties.payload
     update:
-      description: "Additional error data. Content depends on the error code: `{id: number}` — for custom property errors (property ID), `{record: {type: string, id: number}, query: string}` — for authorization errors, `{draft_id: number}` — when a draft already exists in this chat, `{limit: number, remaining: number, reset_at: string}` — when the daily limit of invitation emails is used up (`reset_at` is when a slot frees up in the window). In most cases `null`."
+      description: "Additional error data. Content depends on the error code: `{id: number}` — for custom property errors (property ID), `{record: {type: string, id: number}, query: string}` — for authorization errors, `{draft_id: number}` — when a draft already exists in this chat, `{limit: number, remaining: number, reset_at: string}` — when the daily limit of invitation emails is used up (`reset_at` is when a slot frees up in the window), `{version: number}` — for `version_conflict` (the number of the current app version), `{hash: string, items: AppPermissionItem[]}` — for `consent_required` (what changed in the scopes). In most cases `null`."
   - target: $.components.schemas.AuditDetailsChatId
     update:
       description: 'For: tag_removed_from_chat'
@@ -3977,6 +3977,8 @@ actions:
         drafts_write: Create, edit, and delete drafts and scheduled messages
         important_messages_read: View important messages
         important_messages_write: Add messages to important and remove them from it
+        apps_read: View custom apps, their log, source and secret names
+        apps_write: Create, upload versions of, edit and delete custom apps and their secrets
   - target: $.components.schemas.OpenViewRequest
     update:
       description: View
@@ -4716,6 +4718,8 @@ actions:
         webhook_url_unresolved: The IP address of the domain in the webhook address could not be determined
         webhook_url_forbidden: The webhook address points to an internal or reserved network
         blocked_by_sso: "The field is filled in from SSO or is needed for signing in through SSO, and the API cannot change it (details come in the message field)"
+        version_conflict: The current version of the app is not the one the upload was made from
+        consent_required: "Scopes, hosts or events of the app changed, and the upload does not approve them"
   - target: $.components.schemas.ViewBlock
     update:
       description: View block for forms (base model, use specific block types)
@@ -5970,3 +5974,315 @@ actions:
   - target: "$.paths['/bots/{id}/avatar'].delete.parameters[?(@.name=='id')]"
     update:
       description: "Bot ID"
+  - target: $.paths['/apps'].get
+    update:
+      description: |-
+        List apps
+
+        Custom apps of the workspace in the order they were created, in one list without pagination.
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+  - target: $.paths['/apps'].post
+    update:
+      description: |-
+        New app
+
+        Creates an app with no versions and its bot with no scopes. The code is uploaded by [Upload version](POST /apps/{id}/versions), usually with the `npx pachca-app ship` command from the app folder.
+
+        A custom `id` that is not 12 characters `[0-9a-z]` or is already taken responds `400` with the `taken` or `invalid` code, and nothing is created. If the apps platform did not respond, the method responds `502`, and neither the bot nor the app remains.
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+  - target: $.paths['/apps/{id}'].get
+    update:
+      description: |-
+        App info
+
+        An app of the workspace by its ID. An app of another workspace responds `404`.
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+  - target: $.paths['/apps/{id}'].put
+    update:
+      description: |-
+        Edit app
+
+        Changes the name, the icon and the access without a new version. The name changes for the app's bot too. An empty name responds `422` with the `blank` code, an icon longer than 16 characters or with spaces responds `422` with the `invalid` code.
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+  - target: $.paths['/apps/{id}'].delete
+    update:
+      description: |-
+        Delete app
+
+        Deletes the app entirely and irreversibly: its versions, database, files, secrets and the app's bot. If the apps platform did not respond, the method responds `502`, nothing is deleted, and the request can be repeated.
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+  - target: $.paths['/apps/{id}/versions'].post
+    update:
+      description: |-
+        Upload version
+
+        Uploads a build of the app, and it becomes the current version right away. The build and the request are made by the `npx pachca-app ship` command from the app folder (the `@pachca/app-sdk` package).
+
+        The apps platform checks the build, the SDK version, changes of scopes and the database schema against the existing data. The app's bot gets the scopes and the event subscription from the version manifest.
+
+        A `409` response uploads nothing. The `version_conflict` code: the current version is not `base_version`, the app was uploaded from another folder, the number of the current version is in `payload.version`. The `consent_required` code: scopes, hosts or events changed and `approve` is not passed, the list of changes is in `payload.items`. The `invalid` code with `409` and `422`: the platform rejected the build or the schema change, the reason is in `message`. A body larger than 32 MB responds `413` with the `too_long` code.
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+  - target: $.paths['/apps/{id}/source'].get
+    update:
+      description: |-
+        App source
+
+        The source of the current version, uploaded with it. The `npx pachca-app pull` command restores the app folder from it. An app with no versions responds `404`.
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+  - target: $.paths['/apps/{id}/logs'].get
+    update:
+      description: |-
+        App log
+
+        What the app did on the platform: function errors, requests to the network and to the Pachca API, webhook calls, violations of the frontend restrictions. It shows what the platform allowed and what it blocked. Newest records first.
+
+        The log is kept in the platform's memory, the last 200 records. After the platform restarts it is empty.
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+  - target: $.paths['/apps/{id}/secrets'].get
+    update:
+      description: |-
+        List app secrets
+
+        Names of the app's secrets that are set: keys of external services and webhook signature secrets. Values are not returned.
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+  - target: $.paths['/apps/{id}/secrets/{name}'].put
+    update:
+      description: |-
+        Set app secret
+
+        Creates or replaces a secret. The app manifest declares the secret: the platform adds an external service key to the function requests to its host by itself, and checks webhook calls with a signature secret. The app code does not see the values.
+
+        A name not of `[A-Z][A-Z0-9_]`, longer than 64 characters, or a value larger than 4 KB responds `422` with the `invalid` code.
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+  - target: $.paths['/apps/{id}/secrets/{name}'].delete
+    update:
+      description: |-
+        Delete app secret
+
+        Deletes a secret. Deleting a secret that does not exist is not an error.
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
+  - target: $.paths['/apps/{id}/logs'].get.parameters[?(@.name=='n')]
+    update:
+      description: "Number of records to return. An integer outside the allowed range is replaced with the nearest bound."
+  - target: $.paths['/apps/{id}/secrets/{name}'].put.parameters[?(@.name=='name')]
+    update:
+      description: "Secret name"
+  - target: $.paths['/apps/{id}/secrets/{name}'].delete.parameters[?(@.name=='name')]
+    update:
+      description: "Secret name"
+  - target: $.paths['/apps/{id}'].get.parameters[?(@.name=='id')]
+    update:
+      description: "App ID"
+  - target: $.paths['/apps/{id}'].put.parameters[?(@.name=='id')]
+    update:
+      description: "App ID"
+  - target: $.paths['/apps/{id}'].delete.parameters[?(@.name=='id')]
+    update:
+      description: "App ID"
+  - target: $.paths['/apps/{id}/versions'].post.parameters[?(@.name=='id')]
+    update:
+      description: "App ID"
+  - target: $.paths['/apps/{id}/source'].get.parameters[?(@.name=='id')]
+    update:
+      description: "App ID"
+  - target: $.paths['/apps/{id}/logs'].get.parameters[?(@.name=='id')]
+    update:
+      description: "App ID"
+  - target: $.paths['/apps/{id}/secrets'].get.parameters[?(@.name=='id')]
+    update:
+      description: "App ID"
+  - target: $.paths['/apps/{id}/secrets/{name}'].put.parameters[?(@.name=='id')]
+    update:
+      description: "App ID"
+  - target: $.paths['/apps/{id}/secrets/{name}'].delete.parameters[?(@.name=='id')]
+    update:
+      description: "App ID"
+  - target: $.components.schemas.App
+    update:
+      description: "Custom app"
+  - target: $.components.schemas.App.properties.id
+    update:
+      description: "App ID: 12 characters `[0-9a-z]`"
+  - target: $.components.schemas.App.properties.name
+    update:
+      description: "App name. It is also the name of the app's bot."
+  - target: $.components.schemas.App.properties.icon
+    update:
+      description: "App icon: one emoji. `null` until set."
+  - target: $.components.schemas.App.properties.bot_id
+    update:
+      description: "ID of the app's bot. The app writes to chats on its behalf, and the version manifest sets its scopes."
+  - target: $.components.schemas.App.properties.avatar_url
+    update:
+      description: "App avatar: the avatar of its bot. `null` until set."
+  - target: $.components.schemas.App.properties.visibility
+    update:
+      description: "Who can open the app"
+  - target: $.components.schemas.App.properties.created_by_id
+    update:
+      description: "ID of the employee who created the app. `null` for apps created before the field appeared."
+  - target: $.components.schemas.App.properties.version
+    update:
+      description: "Number of the current version. The apps platform assigns it on every upload, `0` while there are no versions."
+  - target: $.components.schemas.App.properties.published_hash
+    update:
+      description: "Hash of the current version manifest. `null` while there are no versions."
+  - target: $.components.schemas.App.properties.created_at
+    update:
+      description: "App creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format"
+  - target: $.components.schemas.AppCreateRequest
+    update:
+      description: "App creation request"
+  - target: $.components.schemas.AppCreateRequest.properties.name
+    update:
+      description: "App name"
+  - target: $.components.schemas.AppCreateRequest.properties.id
+    update:
+      description: "Custom app ID: 12 characters `[0-9a-z]`. Generated without the field."
+  - target: $.components.schemas.AppUpdateRequest
+    update:
+      description: "App update request"
+  - target: $.components.schemas.AppUpdateRequest.properties.name
+    update:
+      description: "App name. It changes for the app's bot too."
+  - target: $.components.schemas.AppUpdateRequest.properties.icon
+    update:
+      description: "Icon: one emoji, up to 16 characters without spaces. An empty string removes the icon."
+  - target: $.components.schemas.AppUpdateRequest.properties.visibility
+    update:
+      description: "Who can open the app"
+  - target: $.components.schemas.AppVersionRequest
+    update:
+      description: "App version: the build from `dist` and the source of the folder"
+  - target: $.components.schemas.AppVersionRequest.properties.code
+    update:
+      description: "Code of the app functions (`dist/app.js`)"
+  - target: $.components.schemas.AppVersionRequest.properties.manifest
+    update:
+      description: "Build manifest (`dist/manifest.json`): scopes, hosts, webhooks, protocol and SDK versions"
+  - target: $.components.schemas.AppVersionRequest.properties.schema
+    update:
+      description: "Database schema (`dist/schema.json`)"
+  - target: $.components.schemas.AppVersionRequest.properties.functions
+    update:
+      description: "Function descriptions (`dist/functions.json`)"
+  - target: $.components.schemas.AppVersionRequest.properties.static
+    update:
+      description: "Frontend static files (`dist/static`): relative path and content in base64"
+  - target: $.components.schemas.AppVersionRequest.properties.source
+    update:
+      description: "Source of the app folder: relative path and content in base64, up to 5 MB. The platform keeps it with the version and returns it with [App source](GET /apps/{id}/source)."
+  - target: $.components.schemas.AppVersionRequest.properties.base_version
+    update:
+      description: "Number of the version the upload is made from, `0` for the first one"
+  - target: $.components.schemas.AppVersionRequest.properties.approve
+    update:
+      description: "A person saw and approved the changes of scopes, hosts and events"
+  - target: $.components.schemas.AppVersionRequest.properties.force
+    update:
+      description: "Upload even if the current version is not `base_version`. Changes made from another folder are lost."
+  - target: $.components.schemas.AppPermissionItem
+    update:
+      description: "A scope, host or event of the app shown to a person, marked relative to the previous version"
+  - target: $.components.schemas.AppPermissionItem.properties.kind
+    update:
+      description: "Record kind"
+  - target: $.components.schemas.AppPermissionItem.properties.text
+    update:
+      description: "Description for a person"
+  - target: $.components.schemas.AppPermissionItem.properties.scope
+    update:
+      description: "Scope, host or event"
+  - target: $.components.schemas.AppPermissionItem.properties.new
+    update:
+      description: "Appeared in this version"
+  - target: $.components.schemas.AppPermissionItem.properties.removed
+    update:
+      description: "Was in the previous version, not in this one"
+  - target: $.components.schemas.AppRelease
+    update:
+      description: "Uploaded version: it is already current"
+  - target: $.components.schemas.AppRelease.properties.version
+    update:
+      description: "Number of the new current version"
+  - target: $.components.schemas.AppRelease.properties.hash
+    update:
+      description: "Hash of the version manifest"
+  - target: $.components.schemas.AppRelease.properties.items
+    update:
+      description: "Scopes, hosts and events of the version marked relative to the previous one"
+  - target: $.components.schemas.AppRelease.properties.migrations
+    update:
+      description: "What changed in the app database, lines to show a person. Empty if the schema did not change."
+  - target: $.components.schemas.AppRelease.properties.warnings
+    update:
+      description: "Warnings to the author, for example about a build on a protocol version that is going out of date"
+  - target: $.components.schemas.AppSource
+    update:
+      description: "Source of the current version"
+  - target: $.components.schemas.AppSource.properties.version
+    update:
+      description: "Version number"
+  - target: $.components.schemas.AppSource.properties.files
+    update:
+      description: "Files of the app folder: relative path and content in base64. Empty if the version was uploaded without source."
+  - target: $.components.schemas.AppLogEntry
+    update:
+      description: "App log record"
+  - target: $.components.schemas.AppLogEntry.properties.time
+    update:
+      description: "Record time (ISO-8601, UTC+0)"
+  - target: $.components.schemas.AppLogEntry.properties.kind
+    update:
+      description: "Record kind"
+  - target: $.components.schemas.AppLogEntry.properties.text
+    update:
+      description: "What the app did: a function, a request address or a Pachca API operation"
+  - target: $.components.schemas.AppLogEntry.properties.allowed
+    update:
+      description: "The platform allowed the action and it went through. Always `false` for `function`: records are made only about errors."
+  - target: $.components.schemas.AppLogEntry.properties.reason
+    update:
+      description: "Reason of the refusal, response code or the beginning of an error response"
+  - target: $.components.schemas.AppSecretRequest
+    update:
+      description: "App secret"
+  - target: $.components.schemas.AppSecretRequest.properties.value
+    update:
+      description: "Secret value, up to 4 KB"
+  - target: $.components.schemas.AppVisibility
+    update:
+      description: "Who can open the app"
+      x-enum-descriptions:
+        private: "Only the app author"
+        link: "Any employee of the workspace by link, the app is not in the app overview"
+        public: "Any employee of the workspace by link and in the app overview"
+  - target: $.components.schemas.AppPermissionKind
+    update:
+      description: "Kind of a record in the app's list of scopes"
+      x-enum-descriptions:
+        bot: "A scope of the app's bot"
+        user: "A scope on behalf of the user"
+        event: "A Pachca event the bot is subscribed to"
+        net: "Network: a request host, a frontend host, a webhook or an external service key"
+        warn: "A warning, for example about a dangerous combination of scopes"
+  - target: $.components.schemas.AppLogKind
+    update:
+      description: "Kind of an app log record"
+      x-enum-descriptions:
+        function: "A call of an app function ended with an error"
+        fetch: "A function request to the external network"
+        pachca: "A request to the Pachca API"
+        webhook: "A call of the app's webhook"
+        csp: "The app frontend broke the browser restrictions"

@@ -44,6 +44,13 @@ const OPERATION_OVERRIDES: Record<string, string> = {
   // а перевыпуск ссылки читался бы как create-invite-link, хотя прежняя ссылка перестаёт работать.
   'PUT /company': '/api/company/update',
   'POST /company/invite_link': '/api/company/reissue-invite-link',
+  // Кастомные приложения: вложенные пути под /apps/{id} дали бы безликие слаги.
+  'POST /apps/{id}/versions': '/api/apps/create-version',
+  'GET /apps/{id}/source': '/api/apps/get-source',
+  'GET /apps/{id}/logs': '/api/apps/list-logs',
+  'GET /apps/{id}/secrets': '/api/apps/list-secrets',
+  'PUT /apps/{id}/secrets/{name}': '/api/apps/set-secret',
+  'DELETE /apps/{id}/secrets/{name}': '/api/apps/delete-secret',
 };
 
 export function generateUrlFromOperation(endpoint: Endpoint): string {

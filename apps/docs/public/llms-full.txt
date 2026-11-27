@@ -14,109 +14,110 @@
 
 | Раздел | Строки |
 |--------|--------|
-| LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 121–233 |
-| How-to Guides — рецепты задач с кодом TS/Python | 234–951 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 952–19962 |
-| · Обзор | 957–1061 |
-| · Быстрый старт | 1062–1174 |
-| · AI-агенты | 1175–1295 |
-| · Взаимодействие с агентом | 1296–1379 |
-| · Агент следит за тредом | 1380–1553 |
-| · Черновик вместо отправки | 1554–1646 |
-| · Оформление ответов | 1647–1721 |
-| · Скиллы | 1722–2397 |
-| · Плагин | 2398–2645 |
-| · Треды | 2646–2834 |
-| · Теги | 2835–2981 |
-| · MCP-сервер | 2982–3129 |
-| · Подключение к MCP | 3130–3871 |
-| · Инструменты MCP | 3872–4039 |
-| · Боты | 4040–4149 |
-| · Создание бота | 4150–4312 |
-| · Общение с ботом | 4313–4753 |
-| · Интерактивный бот | 4754–5259 |
-| · Настройки бота | 5260–5351 |
-| · Токены бота | 5352–5475 |
-| · Доступы к чатам и сообщениям | 5476–5580 |
-| · Витрина | 5581–5674 |
-| · Готовые примеры реализации | 5675–5732 |
-| · Входящие вебхуки | 5733–6155 |
-| · Исходящие вебхуки | 6156–6230 |
-| · Настройка и типы событий | 6231–6578 |
-| · Безопасность и обработчик | 6579–6844 |
-| · Разработка и запуск обработчика | 6845–7058 |
-| · Поллинг | 7059–7469 |
-| · Кнопки в сообщениях | 7470–7633 |
-| · Формы | 7634–7729 |
-| · Блоки представления | 7730–7946 |
-| · Обработка форм | 7947–8150 |
-| · Разворачивание ссылок | 8151–8306 |
-| · Авторизация от имени сотрудника | 8307–8403 |
-| · Чек-лист запуска | 8404–8472 |
-| · Настройка авторизации | 8473–8598 |
-| · Получение токена сотрудника | 8599–8857 |
-| · Согласие и отзыв | 8858–8937 |
-| · Агенты и MCP в пространстве | 8938–9077 |
-| · Экспорт сообщений | 9078–9251 |
-| · DLP-система | 9252–9531 |
-| · Шифрование и безопасный контур | 9532–9648 |
-| · Журнал аудита событий | 9649–9977 |
-| · Права и роли | 9978–10326 |
-| · Форматирование текста | 10327–10426 |
-| · CLI | 10427–10553 |
-| · Установка | 10554–10686 |
-| · Авторизация | 10687–10946 |
-| · Вывод | 10947–11054 |
-| · Флаги и скрипты | 11055–11348 |
-| · Файлы | 11349–11402 |
-| · Прямые запросы | 11403–11534 |
-| · Команды | 11535–11710 |
-| · SDK и генератор | 11711–11900 |
-| · TypeScript | 11901–12397 |
-| · Python | 12398–12912 |
-| · Go | 12913–13513 |
-| · Kotlin | 13514–14082 |
-| · Swift | 14083–14617 |
-| · C# | 14618–15193 |
-| · n8n | 15194–15286 |
-| · Начало работы | 15287–15524 |
-| · Ресурсы и операции | 15525–15997 |
-| · Триггер | 15998–16286 |
-| · Тестирование | 16287–16550 |
-| · Примеры workflow | 16551–16786 |
-| · Продвинутые функции | 16787–17035 |
-| · Устранение ошибок | 17036–17271 |
-| · Миграция с v1 | 17272–17395 |
-| · Последние обновления | 17396–17405 |
-| · Обзор | 17406–17508 |
-| · Авторизация | 17509–17857 |
-| · Запросы и ответы | 17858–18100 |
-| · Пагинация | 18101–18368 |
-| · Файлы | 18369–18627 |
-| · Ошибки | 18628–18720 |
-| · Лимиты | 18721–18940 |
-| · Модели | 18941–19962 |
-| API-методы — все эндпоинты со схемами и примерами | 19963–44607 |
-| · OAuth | 19965–20362 |
-| · Chats | 20363–22799 |
-| · Profile | 22800–24063 |
-| · Company | 24064–24652 |
-| · Users | 24653–26997 |
-| · Group tags | 26998–28227 |
-| · Members | 28228–29615 |
-| · Threads | 29616–30298 |
-| · Messages | 30299–32860 |
-| · Read members | 32861–33074 |
-| · Reactions | 33075–33698 |
-| · Important messages | 33699–34275 |
-| · Search | 34276–35146 |
-| · Tasks | 35147–36336 |
-| · Drafts | 36337–37722 |
-| · Views | 37723–38507 |
-| · Bots | 38508–43540 |
-| · Security | 43541–44019 |
-| · Custom Properties | 44020–44200 |
-| · Files | 44201–44607 |
+| LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 122–234 |
+| How-to Guides — рецепты задач с кодом TS/Python | 235–952 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 953–20051 |
+| · Обзор | 958–1062 |
+| · Быстрый старт | 1063–1175 |
+| · AI-агенты | 1176–1296 |
+| · Взаимодействие с агентом | 1297–1380 |
+| · Агент следит за тредом | 1381–1554 |
+| · Черновик вместо отправки | 1555–1647 |
+| · Оформление ответов | 1648–1722 |
+| · Скиллы | 1723–2398 |
+| · Плагин | 2399–2646 |
+| · Треды | 2647–2835 |
+| · Теги | 2836–2982 |
+| · MCP-сервер | 2983–3130 |
+| · Подключение к MCP | 3131–3872 |
+| · Инструменты MCP | 3873–4049 |
+| · Боты | 4050–4159 |
+| · Создание бота | 4160–4322 |
+| · Общение с ботом | 4323–4763 |
+| · Интерактивный бот | 4764–5269 |
+| · Настройки бота | 5270–5361 |
+| · Токены бота | 5362–5485 |
+| · Доступы к чатам и сообщениям | 5486–5590 |
+| · Витрина | 5591–5684 |
+| · Готовые примеры реализации | 5685–5742 |
+| · Входящие вебхуки | 5743–6165 |
+| · Исходящие вебхуки | 6166–6240 |
+| · Настройка и типы событий | 6241–6588 |
+| · Безопасность и обработчик | 6589–6854 |
+| · Разработка и запуск обработчика | 6855–7068 |
+| · Поллинг | 7069–7479 |
+| · Кнопки в сообщениях | 7480–7643 |
+| · Формы | 7644–7739 |
+| · Блоки представления | 7740–7956 |
+| · Обработка форм | 7957–8160 |
+| · Разворачивание ссылок | 8161–8316 |
+| · Авторизация от имени сотрудника | 8317–8413 |
+| · Чек-лист запуска | 8414–8482 |
+| · Настройка авторизации | 8483–8608 |
+| · Получение токена сотрудника | 8609–8867 |
+| · Согласие и отзыв | 8868–8947 |
+| · Агенты и MCP в пространстве | 8948–9087 |
+| · Экспорт сообщений | 9088–9261 |
+| · DLP-система | 9262–9541 |
+| · Шифрование и безопасный контур | 9542–9658 |
+| · Журнал аудита событий | 9659–9987 |
+| · Права и роли | 9988–10336 |
+| · Форматирование текста | 10337–10436 |
+| · CLI | 10437–10563 |
+| · Установка | 10564–10696 |
+| · Авторизация | 10697–10956 |
+| · Вывод | 10957–11064 |
+| · Флаги и скрипты | 11065–11358 |
+| · Файлы | 11359–11412 |
+| · Прямые запросы | 11413–11544 |
+| · Команды | 11545–11731 |
+| · SDK и генератор | 11732–11921 |
+| · TypeScript | 11922–12429 |
+| · Python | 12430–12955 |
+| · Go | 12956–13567 |
+| · Kotlin | 13568–14147 |
+| · Swift | 14148–14693 |
+| · C# | 14694–15280 |
+| · n8n | 15281–15373 |
+| · Начало работы | 15374–15611 |
+| · Ресурсы и операции | 15612–16084 |
+| · Триггер | 16085–16373 |
+| · Тестирование | 16374–16637 |
+| · Примеры workflow | 16638–16873 |
+| · Продвинутые функции | 16874–17122 |
+| · Устранение ошибок | 17123–17358 |
+| · Миграция с v1 | 17359–17482 |
+| · Последние обновления | 17483–17492 |
+| · Обзор | 17493–17595 |
+| · Авторизация | 17596–17946 |
+| · Запросы и ответы | 17947–18189 |
+| · Пагинация | 18190–18457 |
+| · Файлы | 18458–18716 |
+| · Ошибки | 18717–18809 |
+| · Лимиты | 18810–19029 |
+| · Модели | 19030–20051 |
+| API-методы — все эндпоинты со схемами и примерами | 20052–47014 |
+| · OAuth | 20054–20451 |
+| · Chats | 20452–22888 |
+| · Profile | 22889–24152 |
+| · Company | 24153–24741 |
+| · Users | 24742–27086 |
+| · Group tags | 27087–28316 |
+| · Members | 28317–29704 |
+| · Threads | 29705–30387 |
+| · Messages | 30388–32949 |
+| · Read members | 32950–33163 |
+| · Reactions | 33164–33787 |
+| · Important messages | 33788–34364 |
+| · Search | 34365–35235 |
+| · Tasks | 35236–36425 |
+| · Drafts | 36426–37811 |
+| · Views | 37812–38596 |
+| · Bots | 38597–43629 |
+| · Security | 43630–44108 |
+| · Apps | 44109–46426 |
+| · Custom Properties | 46427–46607 |
+| · Files | 46608–47014 |
 
 # LIBRARY RULES
 
@@ -4019,6 +4020,15 @@ if ([Environment]::GetEnvironmentVariable('PACHCA_TOKEN', 'User')) { 'сохра
 | `pachca_download_file` | [Скачивание файла](/api/files/get) | Все | Чтение |
 | `pachca_get_upload_params` | [Получение подписи, ключа и других параметров](/api/files/uploads) | Все | Изменение |
 | `pachca_list_custom_fields` | [Список дополнительных полей](/api/custom-properties/list) | Все | Чтение |
+| `pachca_list_apps` | [Список приложений](/api/apps/list) | Владелец, администратор | Чтение |
+| `pachca_create_app` | [Новое приложение](/api/apps/create) | Владелец, администратор | Опасное изменение |
+| `pachca_get_app` | [Информация о приложении](/api/apps/get) | Владелец, администратор | Чтение |
+| `pachca_update_app` | [Редактирование приложения](/api/apps/update) | Владелец, администратор | Опасное изменение |
+| `pachca_delete_app` | [Удаление приложения](/api/apps/delete) | Владелец, администратор | Опасное изменение |
+| `pachca_list_app_logs` | [Журнал приложения](/api/apps/list-logs) | Владелец, администратор | Чтение |
+| `pachca_list_app_secrets` | [Список секретов приложения](/api/apps/list-secrets) | Владелец, администратор | Чтение |
+| `pachca_set_app_secret` | [Задание секрета приложения](/api/apps/set-secret) | Владелец, администратор | Опасное изменение |
+| `pachca_delete_app_secret` | [Удаление секрета приложения](/api/apps/delete-secret) | Владелец, администратор | Опасное изменение |
 
 
 ## Манифест инструментов
@@ -11553,6 +11563,17 @@ dev.pachca.com/api/members/add      →  pachca members add
 | Команда | Метод API |
 |---------|-----------|
 | `pachca api` | Произвольный запрос к API. Список и справка: `api ls` (список методов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs` |
+| `pachca apps create` | `POST` Новое приложение |
+| `pachca apps create-version` | `POST` Загрузка версии |
+| `pachca apps delete` | `DELETE` Удаление приложения |
+| `pachca apps delete-secret` | `DELETE` Удаление секрета приложения |
+| `pachca apps get` | `GET` Информация о приложении |
+| `pachca apps get-source` | `GET` Исходники приложения |
+| `pachca apps list` | `GET` Список приложений |
+| `pachca apps list-logs` | `GET` Журнал приложения |
+| `pachca apps list-secrets` | `GET` Список секретов приложения |
+| `pachca apps set-secret` | `PUT` Задание секрета приложения |
+| `pachca apps update` | `PUT` Редактирование приложения |
 | `pachca auth list` | Список сохранённых профилей |
 | `pachca auth login` | Вход в аккаунт и сохранение профиля |
 | `pachca auth logout` | Удаление сохранённого профиля |
@@ -12068,6 +12089,17 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.bots.deleteWebhookEvent()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.bots.deleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
+| `client.apps.createApp()` | [Новое приложение](/api/apps/create) |
+| `client.apps.createAppVersion()` | [Загрузка версии](/api/apps/create-version) |
+| `client.apps.listApps()` | [Список приложений](/api/apps/list) |
+| `client.apps.getApp()` | [Информация о приложении](/api/apps/get) |
+| `client.apps.listAppLogs()` | [Журнал приложения](/api/apps/list-logs) |
+| `client.apps.listAppSecrets()` | [Список секретов приложения](/api/apps/list-secrets) |
+| `client.apps.getAppSource()` | [Исходники приложения](/api/apps/get-source) |
+| `client.apps.updateApp()` | [Редактирование приложения](/api/apps/update) |
+| `client.apps.setAppSecret()` | [Задание секрета приложения](/api/apps/set-secret) |
+| `client.apps.deleteApp()` | [Удаление приложения](/api/apps/delete) |
+| `client.apps.deleteAppSecret()` | [Удаление секрета приложения](/api/apps/delete-secret) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
@@ -12588,6 +12620,17 @@ client = PachcaClient.from_client(http)
 | `client.bots.delete_webhook_event()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.bots.delete_bot_token()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |
+| `client.apps.create_app()` | [Новое приложение](/api/apps/create) |
+| `client.apps.create_app_version()` | [Загрузка версии](/api/apps/create-version) |
+| `client.apps.list_apps()` | [Список приложений](/api/apps/list) |
+| `client.apps.get_app()` | [Информация о приложении](/api/apps/get) |
+| `client.apps.list_app_logs()` | [Журнал приложения](/api/apps/list-logs) |
+| `client.apps.list_app_secrets()` | [Список секретов приложения](/api/apps/list-secrets) |
+| `client.apps.get_app_source()` | [Исходники приложения](/api/apps/get-source) |
+| `client.apps.update_app()` | [Редактирование приложения](/api/apps/update) |
+| `client.apps.set_app_secret()` | [Задание секрета приложения](/api/apps/set-secret) |
+| `client.apps.delete_app()` | [Удаление приложения](/api/apps/delete) |
+| `client.apps.delete_app_secret()` | [Удаление секрета приложения](/api/apps/delete-secret) |
 | `client.custom_properties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.upload_file()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.get_upload_params()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
@@ -13096,6 +13139,17 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Bots.DeleteWebhookEvent()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.Bots.DeleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.Security.GetAuditEvents()` | [Журнал аудита событий](/api/security/list) |
+| `client.Apps.CreateApp()` | [Новое приложение](/api/apps/create) |
+| `client.Apps.CreateAppVersion()` | [Загрузка версии](/api/apps/create-version) |
+| `client.Apps.ListApps()` | [Список приложений](/api/apps/list) |
+| `client.Apps.GetApp()` | [Информация о приложении](/api/apps/get) |
+| `client.Apps.ListAppLogs()` | [Журнал приложения](/api/apps/list-logs) |
+| `client.Apps.ListAppSecrets()` | [Список секретов приложения](/api/apps/list-secrets) |
+| `client.Apps.GetAppSource()` | [Исходники приложения](/api/apps/get-source) |
+| `client.Apps.UpdateApp()` | [Редактирование приложения](/api/apps/update) |
+| `client.Apps.SetAppSecret()` | [Задание секрета приложения](/api/apps/set-secret) |
+| `client.Apps.DeleteApp()` | [Удаление приложения](/api/apps/delete) |
+| `client.Apps.DeleteAppSecret()` | [Удаление секрета приложения](/api/apps/delete-secret) |
 | `client.CustomProperties.ListProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.Files.GetUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
@@ -13713,6 +13767,17 @@ client.close()
 | `client.bots.deleteWebhookEvent()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.bots.deleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
+| `client.apps.createApp()` | [Новое приложение](/api/apps/create) |
+| `client.apps.createAppVersion()` | [Загрузка версии](/api/apps/create-version) |
+| `client.apps.listApps()` | [Список приложений](/api/apps/list) |
+| `client.apps.getApp()` | [Информация о приложении](/api/apps/get) |
+| `client.apps.listAppLogs()` | [Журнал приложения](/api/apps/list-logs) |
+| `client.apps.listAppSecrets()` | [Список секретов приложения](/api/apps/list-secrets) |
+| `client.apps.getAppSource()` | [Исходники приложения](/api/apps/get-source) |
+| `client.apps.updateApp()` | [Редактирование приложения](/api/apps/update) |
+| `client.apps.setAppSecret()` | [Задание секрета приложения](/api/apps/set-secret) |
+| `client.apps.deleteApp()` | [Удаление приложения](/api/apps/delete) |
+| `client.apps.deleteAppSecret()` | [Удаление секрета приложения](/api/apps/delete-secret) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
@@ -14265,6 +14330,17 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.bots.deleteWebhookEvent()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.bots.deleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
+| `client.apps.createApp()` | [Новое приложение](/api/apps/create) |
+| `client.apps.createAppVersion()` | [Загрузка версии](/api/apps/create-version) |
+| `client.apps.listApps()` | [Список приложений](/api/apps/list) |
+| `client.apps.getApp()` | [Информация о приложении](/api/apps/get) |
+| `client.apps.listAppLogs()` | [Журнал приложения](/api/apps/list-logs) |
+| `client.apps.listAppSecrets()` | [Список секретов приложения](/api/apps/list-secrets) |
+| `client.apps.getAppSource()` | [Исходники приложения](/api/apps/get-source) |
+| `client.apps.updateApp()` | [Редактирование приложения](/api/apps/update) |
+| `client.apps.setAppSecret()` | [Задание секрета приложения](/api/apps/set-secret) |
+| `client.apps.deleteApp()` | [Удаление приложения](/api/apps/delete) |
+| `client.apps.deleteAppSecret()` | [Удаление секрета приложения](/api/apps/delete-secret) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
@@ -14789,6 +14865,17 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.DeleteWebhookEventAsync()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.Bots.DeleteBotTokenAsync()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |
+| `client.Apps.CreateAppAsync()` | [Новое приложение](/api/apps/create) |
+| `client.Apps.CreateAppVersionAsync()` | [Загрузка версии](/api/apps/create-version) |
+| `client.Apps.ListAppsAsync()` | [Список приложений](/api/apps/list) |
+| `client.Apps.GetAppAsync()` | [Информация о приложении](/api/apps/get) |
+| `client.Apps.ListAppLogsAsync()` | [Журнал приложения](/api/apps/list-logs) |
+| `client.Apps.ListAppSecretsAsync()` | [Список секретов приложения](/api/apps/list-secrets) |
+| `client.Apps.GetAppSourceAsync()` | [Исходники приложения](/api/apps/get-source) |
+| `client.Apps.UpdateAppAsync()` | [Редактирование приложения](/api/apps/update) |
+| `client.Apps.SetAppSecretAsync()` | [Задание секрета приложения](/api/apps/set-secret) |
+| `client.Apps.DeleteAppAsync()` | [Удаление приложения](/api/apps/delete) |
+| `client.Apps.DeleteAppSecretAsync()` | [Удаление секрета приложения](/api/apps/delete-secret) |
 | `client.CustomProperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFileAsync()` | [Загрузка файла](/api/files/direct-url) |
 | `client.Files.GetUploadParamsAsync()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
@@ -17749,6 +17836,8 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 | `drafts:write` | Создание, изменение и удаление черновиков и отложенных сообщений | Владелец, Администратор, Сотрудник, Мульти-гость |
 | `important_messages:read` | Просмотр важных сообщений | Владелец, Администратор, Сотрудник, Мульти-гость |
 | `important_messages:write` | Добавление сообщений в важные и удаление из важных | Владелец, Администратор, Сотрудник, Мульти-гость |
+| `apps:read` | Просмотр кастомных приложений, их журнала, исходников и имён секретов | Владелец, Администратор |
+| `apps:write` | Создание, загрузка версий, изменение и удаление кастомных приложений и их секретов | Владелец, Администратор |
 
 
 ## Ошибки авторизации
@@ -18685,8 +18774,8 @@ await client.messages.create_message(MessageCreateRequest(
   - `value: string | number | boolean | array | object` (required, nullable) — Значение, которое вызвало ошибку, как его передали или как оно хранится: обычно строка, число или массив, например `id` ботов у кода `bot_add_denied`, а бывает и логическое значение или объект. `null`, если ошибка не относится к конкретному значению. Пример: `"invalid_value"`
   - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
   - `code: string` (required) — Код ошибки
-    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить, `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников. Больше не возвращается, `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий, `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `next_send_at_invalid` — Ближайшая отправка отложенного сообщения приходится на прошлое, `schedule_invalid` — Расписание отложенного сообщения не складывается в повтор, `schedule_end_date_invalid` — Расписание заканчивается раньше ближайшей отправки, `scheduled_messages_limit` — Превышен лимит отложенных сообщений на чат (50), `draft_type_change_forbidden` — Отложенное сообщение нельзя превратить обратно в черновик, `confidential_download_denied` — Скачивание файла запрещено: нужен запрос из безопасного контура или в файле найден вирус, `decryption_failed` — Не удалось расшифровать файл, `bot_add_denied` — Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`, `single_chat_bot_occupied` — Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале (архивные не в счёт): `id` таких ботов приходят в `value`, `single_chat_bot_tag_denied` — Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег, `restricted_bot_tag_denied` — В тег можно добавить только бота, которого может добавить в чат любой сотрудник, `bot_changed_concurrently` — Настройки бота изменились во время запроса: повторите его, `timeout` — Поиск не уложился по времени: сузьте запрос и повторите, `daily_invites_limit` — Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`, `webhook_url_invalid` — Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста, `webhook_url_unresolved` — Не удалось определить IP-адрес домена из адреса вебхука, `webhook_url_forbidden` — Адрес вебхука ведёт во внутреннюю или зарезервированную сеть, `blocked_by_sso` — Поле заполняется из SSO или нужно для входа через SSO, через API его не изменить (пояснения вы получите в поле message), `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде, `view_not_found` — Представление не найдено или принадлежит другому боту, `submit_expired` — Время на ответ об отправке формы истекло или ответ уже был принят, `service_unavailable` — Сервис временно недоступен, повторите запрос
-  - `payload: Record<string, object>` (required, nullable) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть, `{limit: number, remaining: number, reset_at: string}` — при исчерпанном суточном лимите писем-приглашений (`reset_at` — когда в окне освободится место). В большинстве случаев `null`. Пример: `null`
+    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить, `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников. Больше не возвращается, `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий, `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `next_send_at_invalid` — Ближайшая отправка отложенного сообщения приходится на прошлое, `schedule_invalid` — Расписание отложенного сообщения не складывается в повтор, `schedule_end_date_invalid` — Расписание заканчивается раньше ближайшей отправки, `scheduled_messages_limit` — Превышен лимит отложенных сообщений на чат (50), `draft_type_change_forbidden` — Отложенное сообщение нельзя превратить обратно в черновик, `confidential_download_denied` — Скачивание файла запрещено: нужен запрос из безопасного контура или в файле найден вирус, `decryption_failed` — Не удалось расшифровать файл, `bot_add_denied` — Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`, `single_chat_bot_occupied` — Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале (архивные не в счёт): `id` таких ботов приходят в `value`, `single_chat_bot_tag_denied` — Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег, `restricted_bot_tag_denied` — В тег можно добавить только бота, которого может добавить в чат любой сотрудник, `bot_changed_concurrently` — Настройки бота изменились во время запроса: повторите его, `timeout` — Поиск не уложился по времени: сузьте запрос и повторите, `daily_invites_limit` — Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`, `webhook_url_invalid` — Адрес вебхука должен быть URL с протоколом `http` или `https` и именем хоста, `webhook_url_unresolved` — Не удалось определить IP-адрес домена из адреса вебхука, `webhook_url_forbidden` — Адрес вебхука ведёт во внутреннюю или зарезервированную сеть, `blocked_by_sso` — Поле заполняется из SSO или нужно для входа через SSO, через API его не изменить (пояснения вы получите в поле message), `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде, `view_not_found` — Представление не найдено или принадлежит другому боту, `submit_expired` — Время на ответ об отправке формы истекло или ответ уже был принят, `service_unavailable` — Сервис временно недоступен, повторите запрос, `version_conflict` — Текущая версия приложения не та, от которой сделана загрузка, `consent_required` — Права, хосты или события приложения изменились, а загрузка не подтверждает их
+  - `payload: Record<string, object>` (required, nullable) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть, `{limit: number, remaining: number, reset_at: string}` — при исчерпанном суточном лимите писем-приглашений (`reset_at` — когда в окне освободится место), `{version: number}` — у `version_conflict` (номер текущей версии приложения), `{hash: string, items: AppPermissionItem[]}` — у `consent_required` (что изменилось в правах). В большинстве случаев `null`. Пример: `null`
     **Структура значений Record:**
     - Тип значения: `any`
 
@@ -44013,6 +44102,2324 @@ params = GetAuditEventsParams(
 )
 response = await client.security.get_audit_events(params=params)
 # → GetAuditEventsResponse(data: list[AuditEvent], meta: PaginationMeta)
+```
+
+---
+
+## API: Apps
+
+--- [Document source](https://dev.pachca.com/api/apps/list.md) ---
+
+# Список приложений
+
+**Метод**: `GET`
+
+**Путь**: `/apps`
+
+> **Скоуп:** `apps:read`
+
+Кастомные приложения пространства по порядку создания, одним списком без пагинации.
+
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+## Пример запроса
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/apps" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Ответы
+
+### 200: The request has succeeded.
+
+**Схема ответа:**
+
+- `data: array of object` (required)
+  - `id: string` (required) — Идентификатор приложения: 12 символов `[0-9a-z]`. Пример: `"k3x9q2m7a1bz"`
+  - `name: string` (required) — Название приложения. Оно же имя бота приложения. Пример: `"Заметки"`
+  - `icon: string` (required, nullable) — Иконка приложения: один эмодзи. `null`, пока не задана. Пример: `"📝"`
+  - `bot_id: integer, int64` (required, nullable) — Идентификатор бота приложения. От его имени приложение пишет в чаты, его права задаёт манифест версии. Пример: `1738816`
+  - `avatar_url: string` (required, nullable) — Аватарка приложения: это аватарка его бота. `null`, пока не задана. Пример: `null`
+  - `visibility: string` (required) — Кто может открыть приложение
+    Значения: `private` — Только автор приложения, `link` — Любой сотрудник пространства по ссылке, в обзоре приложений его нет, `public` — Любой сотрудник пространства по ссылке и в обзоре приложений
+  - `created_by_id: integer, int64` (required, nullable) — Идентификатор сотрудника, который создал приложение. `null` у приложений, созданных до появления поля. Пример: `12`
+  - `version: integer, int32` (required) — Номер текущей версии. Его выдаёт платформа приложений при каждой загрузке, `0`, пока версий нет. Пример: `3`
+  - `published_hash: string` (required, nullable) — Хэш манифеста текущей версии. `null`, пока версий нет. Пример: `"9f2c4e1a7b3d"`
+  - `created_at: date-time` (required) — Дата и время создания приложения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2026-11-20T10:30:00.000Z"`
+
+**Пример ответа:**
+
+```json
+{
+  "data": [
+    {
+      "id": "k3x9q2m7a1bz",
+      "name": "Заметки",
+      "icon": "📝",
+      "bot_id": 1738816,
+      "avatar_url": null,
+      "visibility": "private",
+      "created_by_id": 12,
+      "version": 3,
+      "published_hash": "9f2c4e1a7b3d",
+      "created_at": "2026-11-20T10:30:00.000Z"
+    }
+  ]
+}
+```
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = await client.apps.listApps()
+// → ListAppsResponse({ data: App[] })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.apps.list_apps()
+# → ListAppsResponse(data: list[App])
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/apps/create.md) ---
+
+# Новое приложение
+
+**Метод**: `POST`
+
+**Путь**: `/apps`
+
+> **Скоуп:** `apps:write`
+
+Создаёт приложение без версий и его бота без прав. Код загружают методом [Загрузка версии](/api/apps/create-version), обычно командой `npx pachca-app ship` из папки приложения.
+
+Свой `id` не из 12 символов `[0-9a-z]` или уже занятый отвечает `400` с кодом `taken` или `invalid`, ничего не создаётся. Если платформа приложений не ответила, метод отвечает `502`, бот и приложение не остаются.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+## Тело запроса
+
+**Обязательно**
+
+Формат: `application/json`
+
+### Схема
+
+- `name: string` (required, max length: 255) — Название приложения. Пример: `"Заметки"`
+- `id: string` — Свой идентификатор приложения: 12 символов `[0-9a-z]`. Без поля генерируется. Пример: `"k3x9q2m7a1bz"`
+
+### Пример
+
+```json
+{
+  "name": "Заметки",
+  "id": "k3x9q2m7a1bz"
+}
+```
+
+## Пример запроса
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/apps" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "name": "Заметки",
+  "id": "k3x9q2m7a1bz"
+}'
+```
+
+## Ответы
+
+### 201: The request has succeeded and a new resource has been created as a result.
+
+**Схема ответа:**
+
+- `data: object` (required) — Кастомное приложение
+  - `id: string` (required) — Идентификатор приложения: 12 символов `[0-9a-z]`. Пример: `"k3x9q2m7a1bz"`
+  - `name: string` (required) — Название приложения. Оно же имя бота приложения. Пример: `"Заметки"`
+  - `icon: string` (required, nullable) — Иконка приложения: один эмодзи. `null`, пока не задана. Пример: `"📝"`
+  - `bot_id: integer, int64` (required, nullable) — Идентификатор бота приложения. От его имени приложение пишет в чаты, его права задаёт манифест версии. Пример: `1738816`
+  - `avatar_url: string` (required, nullable) — Аватарка приложения: это аватарка его бота. `null`, пока не задана. Пример: `null`
+  - `visibility: string` (required) — Кто может открыть приложение
+    Значения: `private` — Только автор приложения, `link` — Любой сотрудник пространства по ссылке, в обзоре приложений его нет, `public` — Любой сотрудник пространства по ссылке и в обзоре приложений
+  - `created_by_id: integer, int64` (required, nullable) — Идентификатор сотрудника, который создал приложение. `null` у приложений, созданных до появления поля. Пример: `12`
+  - `version: integer, int32` (required) — Номер текущей версии. Его выдаёт платформа приложений при каждой загрузке, `0`, пока версий нет. Пример: `3`
+  - `published_hash: string` (required, nullable) — Хэш манифеста текущей версии. `null`, пока версий нет. Пример: `"9f2c4e1a7b3d"`
+  - `created_at: date-time` (required) — Дата и время создания приложения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2026-11-20T10:30:00.000Z"`
+
+**Пример ответа:**
+
+```json
+{
+  "data": {
+    "id": "k3x9q2m7a1bz",
+    "name": "Заметки",
+    "icon": "📝",
+    "bot_id": 1738816,
+    "avatar_url": null,
+    "visibility": "private",
+    "created_by_id": 12,
+    "version": 3,
+    "published_hash": "9f2c4e1a7b3d",
+    "created_at": "2026-11-20T10:30:00.000Z"
+  }
+}
+```
+
+### 400: The server could not understand the request due to invalid syntax.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 422: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 502: Server error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 503: Service unavailable.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { AppCreateRequest, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: AppCreateRequest = { name: "Заметки", id: "k3x9q2m7a1bz" }
+const response = await client.apps.createApp(request)
+// → App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number | null, version: number, publishedHash: string | null, createdAt: string })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import AppCreateRequest
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = AppCreateRequest(name="Заметки", id="k3x9q2m7a1bz")
+response = await client.apps.create_app(request=request)
+# → App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int | None, version: int, published_hash: str | None, created_at: datetime)
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/apps/get.md) ---
+
+# Информация о приложении
+
+**Метод**: `GET`
+
+**Путь**: `/apps/{id}`
+
+> **Скоуп:** `apps:read`
+
+Приложение пространства по его идентификатору. Приложение другого пространства отвечает `404`.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+## Параметры
+
+### Path параметры
+
+- `id: string` (required) — Идентификатор приложения
+
+
+## Пример запроса
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/apps/k3x9q2m7a1bz" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Ответы
+
+### 200: The request has succeeded.
+
+**Схема ответа:**
+
+- `data: object` (required) — Кастомное приложение
+  - `id: string` (required) — Идентификатор приложения: 12 символов `[0-9a-z]`. Пример: `"k3x9q2m7a1bz"`
+  - `name: string` (required) — Название приложения. Оно же имя бота приложения. Пример: `"Заметки"`
+  - `icon: string` (required, nullable) — Иконка приложения: один эмодзи. `null`, пока не задана. Пример: `"📝"`
+  - `bot_id: integer, int64` (required, nullable) — Идентификатор бота приложения. От его имени приложение пишет в чаты, его права задаёт манифест версии. Пример: `1738816`
+  - `avatar_url: string` (required, nullable) — Аватарка приложения: это аватарка его бота. `null`, пока не задана. Пример: `null`
+  - `visibility: string` (required) — Кто может открыть приложение
+    Значения: `private` — Только автор приложения, `link` — Любой сотрудник пространства по ссылке, в обзоре приложений его нет, `public` — Любой сотрудник пространства по ссылке и в обзоре приложений
+  - `created_by_id: integer, int64` (required, nullable) — Идентификатор сотрудника, который создал приложение. `null` у приложений, созданных до появления поля. Пример: `12`
+  - `version: integer, int32` (required) — Номер текущей версии. Его выдаёт платформа приложений при каждой загрузке, `0`, пока версий нет. Пример: `3`
+  - `published_hash: string` (required, nullable) — Хэш манифеста текущей версии. `null`, пока версий нет. Пример: `"9f2c4e1a7b3d"`
+  - `created_at: date-time` (required) — Дата и время создания приложения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2026-11-20T10:30:00.000Z"`
+
+**Пример ответа:**
+
+```json
+{
+  "data": {
+    "id": "k3x9q2m7a1bz",
+    "name": "Заметки",
+    "icon": "📝",
+    "bot_id": 1738816,
+    "avatar_url": null,
+    "visibility": "private",
+    "created_by_id": 12,
+    "version": 3,
+    "published_hash": "9f2c4e1a7b3d",
+    "created_at": "2026-11-20T10:30:00.000Z"
+  }
+}
+```
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = await client.apps.getApp("k3x9q2m7a1bz")
+// → App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number | null, version: number, publishedHash: string | null, createdAt: string })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.apps.get_app(id="k3x9q2m7a1bz")
+# → App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int | None, version: int, published_hash: str | None, created_at: datetime)
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/apps/update.md) ---
+
+# Редактирование приложения
+
+**Метод**: `PUT`
+
+**Путь**: `/apps/{id}`
+
+> **Скоуп:** `apps:write`
+
+Меняет название, иконку и доступ без новой версии. Название меняется и у бота приложения. Пустое название отвечает `422` с кодом `blank`, иконка длиннее 16 символов или с пробелами отвечает `422` с кодом `invalid`.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+## Параметры
+
+### Path параметры
+
+- `id: string` (required) — Идентификатор приложения
+
+
+## Тело запроса
+
+**Обязательно**
+
+Формат: `application/json`
+
+### Схема
+
+- `name: string` (max length: 255) — Название приложения. Меняется и у бота приложения. Пример: `"Заметки команды"`
+- `icon: string` — Иконка: один эмодзи, до 16 символов без пробелов. Пустая строка снимает иконку. Пример: `"🗒️"`
+- `visibility: string` — Кто может открыть приложение
+  Значения: `private` — Только автор приложения, `link` — Любой сотрудник пространства по ссылке, в обзоре приложений его нет, `public` — Любой сотрудник пространства по ссылке и в обзоре приложений
+
+### Пример
+
+```json
+{
+  "name": "Заметки команды",
+  "icon": "🗒️",
+  "visibility": "link"
+}
+```
+
+## Пример запроса
+
+```bash
+curl -X PUT "https://api.pachca.com/api/shared/v1/apps/k3x9q2m7a1bz" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "name": "Заметки команды",
+  "icon": "🗒️",
+  "visibility": "link"
+}'
+```
+
+## Ответы
+
+### 200: The request has succeeded.
+
+**Схема ответа:**
+
+- `data: object` (required) — Кастомное приложение
+  - `id: string` (required) — Идентификатор приложения: 12 символов `[0-9a-z]`. Пример: `"k3x9q2m7a1bz"`
+  - `name: string` (required) — Название приложения. Оно же имя бота приложения. Пример: `"Заметки"`
+  - `icon: string` (required, nullable) — Иконка приложения: один эмодзи. `null`, пока не задана. Пример: `"📝"`
+  - `bot_id: integer, int64` (required, nullable) — Идентификатор бота приложения. От его имени приложение пишет в чаты, его права задаёт манифест версии. Пример: `1738816`
+  - `avatar_url: string` (required, nullable) — Аватарка приложения: это аватарка его бота. `null`, пока не задана. Пример: `null`
+  - `visibility: string` (required) — Кто может открыть приложение
+    Значения: `private` — Только автор приложения, `link` — Любой сотрудник пространства по ссылке, в обзоре приложений его нет, `public` — Любой сотрудник пространства по ссылке и в обзоре приложений
+  - `created_by_id: integer, int64` (required, nullable) — Идентификатор сотрудника, который создал приложение. `null` у приложений, созданных до появления поля. Пример: `12`
+  - `version: integer, int32` (required) — Номер текущей версии. Его выдаёт платформа приложений при каждой загрузке, `0`, пока версий нет. Пример: `3`
+  - `published_hash: string` (required, nullable) — Хэш манифеста текущей версии. `null`, пока версий нет. Пример: `"9f2c4e1a7b3d"`
+  - `created_at: date-time` (required) — Дата и время создания приложения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2026-11-20T10:30:00.000Z"`
+
+**Пример ответа:**
+
+```json
+{
+  "data": {
+    "id": "k3x9q2m7a1bz",
+    "name": "Заметки",
+    "icon": "📝",
+    "bot_id": 1738816,
+    "avatar_url": null,
+    "visibility": "private",
+    "created_by_id": 12,
+    "version": 3,
+    "published_hash": "9f2c4e1a7b3d",
+    "created_at": "2026-11-20T10:30:00.000Z"
+  }
+}
+```
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 422: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { AppUpdateRequest, AppVisibility, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: AppUpdateRequest = {
+  name: "Заметки команды",
+  icon: "🗒️",
+  visibility: AppVisibility.Link
+}
+const response = await client.apps.updateApp("k3x9q2m7a1bz", request)
+// → App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number | null, version: number, publishedHash: string | null, createdAt: string })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import AppUpdateRequest, AppVisibility
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = AppUpdateRequest(
+    name="Заметки команды",
+    icon="🗒️",
+    visibility=AppVisibility.LINK
+)
+response = await client.apps.update_app(id="k3x9q2m7a1bz", request=request)
+# → App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int | None, version: int, published_hash: str | None, created_at: datetime)
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/apps/delete.md) ---
+
+# Удаление приложения
+
+**Метод**: `DELETE`
+
+**Путь**: `/apps/{id}`
+
+> **Скоуп:** `apps:write`
+
+Удаляет приложение целиком и необратимо: версии, базу, файлы, секреты и бота приложения. Если платформа приложений не ответила, метод отвечает `502`, ничего не удалено, запрос можно повторить.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+## Параметры
+
+### Path параметры
+
+- `id: string` (required) — Идентификатор приложения
+
+
+## Пример запроса
+
+```bash
+curl -X DELETE "https://api.pachca.com/api/shared/v1/apps/k3x9q2m7a1bz" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Ответы
+
+### 204: There is no content to send for this request, but the headers may be useful. 
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 502: Server error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 503: Service unavailable.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+await client.apps.deleteApp("k3x9q2m7a1bz")
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.apps.delete_app(id="k3x9q2m7a1bz")
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/apps/list-logs.md) ---
+
+# Журнал приложения
+
+**Метод**: `GET`
+
+**Путь**: `/apps/{id}/logs`
+
+> **Скоуп:** `apps:read`
+
+Что делало приложение на платформе: ошибки функций, запросы в сеть и к API Пачки, вызовы вебхуков, нарушения ограничений фронта. Видно, что платформа разрешила и что заблокировала. Новые записи первыми.
+
+Журнал хранится в памяти платформы, последние 200 записей. После её перезапуска он пуст.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+## Параметры
+
+### Path параметры
+
+- `id: string` (required) — Идентификатор приложения
+
+### Query параметры
+
+- `n: integer, int32` (default: 50) — Сколько записей вернуть. Целое число вне допустимых значений заменяется ближайшей границей.
+
+
+## Пример запроса
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/apps/k3x9q2m7a1bz/logs?n=50" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Ответы
+
+### 200: The request has succeeded.
+
+**Схема ответа:**
+
+- `data: array of object` (required)
+  - `time: date-time` (required) — Время записи (ISO-8601, UTC+0). Пример: `"2026-11-20T10:31:00.000Z"`
+  - `kind: string` (required) — Вид записи
+    Значения: `function` — Вызов функции приложения закончился ошибкой, `fetch` — Запрос функции во внешнюю сеть, `pachca` — Запрос к API Пачки, `webhook` — Вызов вебхука приложения, `csp` — Фронт приложения нарушил ограничения браузера
+  - `text: string` (required) — Что делало приложение: функция, адрес запроса или операция API Пачки. Пример: `"GET https://api.example.com/rates"`
+  - `allowed: boolean` (required) — Платформа разрешила действие и оно прошло. У `function` всегда `false`: записи есть только об ошибках. Пример: `true`
+  - `reason: string` — Причина отказа, код ответа или начало ответа с ошибкой. Пример: `"200"`
+
+**Пример ответа:**
+
+```json
+{
+  "data": [
+    {
+      "time": "2026-11-20T10:31:00.000Z",
+      "kind": "fetch",
+      "text": "GET https://api.example.com/rates",
+      "allowed": true,
+      "reason": "200"
+    }
+  ]
+}
+```
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 502: Server error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 503: Service unavailable.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = await client.apps.listAppLogs("k3x9q2m7a1bz", { n: 50 })
+// → ListAppLogsResponse({ data: AppLogEntry[] })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ListAppLogsParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = ListAppLogsParams(n=50)
+response = await client.apps.list_app_logs(id="k3x9q2m7a1bz", params=params)
+# → ListAppLogsResponse(data: list[AppLogEntry])
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/apps/list-secrets.md) ---
+
+# Список секретов приложения
+
+**Метод**: `GET`
+
+**Путь**: `/apps/{id}/secrets`
+
+> **Скоуп:** `apps:read`
+
+Имена заданных секретов приложения: ключей внешних сервисов и секретов подписи вебхуков. Значения не возвращаются.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+## Параметры
+
+### Path параметры
+
+- `id: string` (required) — Идентификатор приложения
+
+
+## Пример запроса
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/apps/k3x9q2m7a1bz/secrets" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Ответы
+
+### 200: The request has succeeded.
+
+**Схема ответа:**
+
+- `data: array of string` (required)
+
+**Пример ответа:**
+
+```json
+{
+  "data": [
+    "string"
+  ]
+}
+```
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 502: Server error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 503: Service unavailable.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = await client.apps.listAppSecrets("k3x9q2m7a1bz")
+// → ListAppSecretsResponse({ data: string[] })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.apps.list_app_secrets(id="k3x9q2m7a1bz")
+# → ListAppSecretsResponse(data: list[str])
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/apps/set-secret.md) ---
+
+# Задание секрета приложения
+
+**Метод**: `PUT`
+
+**Путь**: `/apps/{id}/secrets/{name}`
+
+> **Скоуп:** `apps:write`
+
+Создаёт или заменяет секрет. Секрет объявляет манифест приложения: ключ внешнего сервиса платформа сама добавляет в запросы функций к его хосту, а секретом подписи проверяет вызовы вебхука. Код приложения значения не видит.
+
+Имя не из `[A-Z][A-Z0-9_]`, длиннее 64 символов или значение больше 4 КБ отвечает `422` с кодом `invalid`.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+## Параметры
+
+### Path параметры
+
+- `id: string` (required) — Идентификатор приложения
+- `name: string` (required) — Имя секрета
+
+
+## Тело запроса
+
+**Обязательно**
+
+Формат: `application/json`
+
+### Схема
+
+- `value: string` (required) — Значение секрета, до 4 КБ. Пример: `"sk_live_51Hx"`
+
+### Пример
+
+```json
+{
+  "value": "sk_live_51Hx"
+}
+```
+
+## Пример запроса
+
+```bash
+curl -X PUT "https://api.pachca.com/api/shared/v1/apps/k3x9q2m7a1bz/secrets/API_KEY" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "value": "sk_live_51Hx"
+}'
+```
+
+## Ответы
+
+### 204: There is no content to send for this request, but the headers may be useful. 
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 422: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 502: Server error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 503: Service unavailable.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+await client.apps.setAppSecret("k3x9q2m7a1bz", "API_KEY", "sk_live_51Hx")
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.apps.set_app_secret(id="k3x9q2m7a1bz", name="API_KEY", value="sk_live_51Hx")
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/apps/delete-secret.md) ---
+
+# Удаление секрета приложения
+
+**Метод**: `DELETE`
+
+**Путь**: `/apps/{id}/secrets/{name}`
+
+> **Скоуп:** `apps:write`
+
+Удаляет секрет. Удаление секрета, которого нет, не ошибка.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+## Параметры
+
+### Path параметры
+
+- `id: string` (required) — Идентификатор приложения
+- `name: string` (required) — Имя секрета
+
+
+## Пример запроса
+
+```bash
+curl -X DELETE "https://api.pachca.com/api/shared/v1/apps/k3x9q2m7a1bz/secrets/API_KEY" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Ответы
+
+### 204: There is no content to send for this request, but the headers may be useful. 
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 422: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 502: Server error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 503: Service unavailable.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+await client.apps.deleteAppSecret("k3x9q2m7a1bz", "API_KEY")
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.apps.delete_app_secret(id="k3x9q2m7a1bz", name="API_KEY")
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/apps/get-source.md) ---
+
+# Исходники приложения
+
+**Метод**: `GET`
+
+**Путь**: `/apps/{id}/source`
+
+> **Скоуп:** `apps:read`
+
+Исходники текущей версии, загруженные вместе с ней. По ним команда `npx pachca-app pull` восстанавливает папку приложения. Приложение без версий отвечает `404`.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+## Параметры
+
+### Path параметры
+
+- `id: string` (required) — Идентификатор приложения
+
+
+## Пример запроса
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/apps/k3x9q2m7a1bz/source" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Ответы
+
+### 200: The request has succeeded.
+
+**Схема ответа:**
+
+- `data: object` (required) — Исходники текущей версии
+  - `version: integer, int32` (required) — Номер версии. Пример: `3`
+  - `files: Record<string, object>` (required) — Файлы папки приложения: относительный путь и содержимое в base64. Пусто, если версию загрузили без исходников. Пример: `{"schema.ts":"aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0="}`
+    **Структура значений Record:**
+    - Тип значения: `string`
+
+**Пример ответа:**
+
+```json
+{
+  "data": {
+    "version": 3,
+    "files": {
+      "schema.ts": "aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0="
+    }
+  }
+}
+```
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 502: Server error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 503: Service unavailable.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = await client.apps.getAppSource("k3x9q2m7a1bz")
+// → AppSource({ version: number, files: Record<string, string> })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.apps.get_app_source(id="k3x9q2m7a1bz")
+# → AppSource(version: int, files: dict[str, str])
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/apps/create-version.md) ---
+
+# Загрузка версии
+
+**Метод**: `POST`
+
+**Путь**: `/apps/{id}/versions`
+
+> **Скоуп:** `apps:write`
+
+Загружает сборку приложения, и она сразу становится текущей версией. Сборку и запрос собирает команда `npx pachca-app ship` из папки приложения (пакет `@pachca/app-sdk`).
+
+Платформа приложений проверяет сборку, версию SDK, изменения прав и схему базы на существующих данных. Бот приложения получает права и подписку на события из манифеста версии.
+
+Ответ `409` ничего не загружает. Код `version_conflict`: текущая версия не `base_version`, приложение загрузили из другой папки, номер текущей версии в `payload.version`. Код `consent_required`: права, хосты или события изменились, а `approve` не передан, список изменений в `payload.items`. Код `invalid` у `409` и `422`: платформа отклонила сборку или изменение схемы, причина в `message`. Тело больше 32 МБ отвечает `413` с кодом `too_long`.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+
+## Параметры
+
+### Path параметры
+
+- `id: string` (required) — Идентификатор приложения
+
+
+## Тело запроса
+
+**Обязательно**
+
+Формат: `application/json`
+
+### Схема
+
+- `code: string` (required) — Код функций приложения (`dist/app.js`). Пример: `"export default {};"`
+- `manifest: Record<string, object>` (required) — Манифест сборки (`dist/manifest.json`): права, хосты, вебхуки, версии протокола и SDK. Пример: `{"protocol":3,"sdk":"2026.12.0"}`
+  **Структура значений Record:**
+  - Тип значения: `any`
+- `schema: Record<string, object>` (required) — Схема базы (`dist/schema.json`). Пример: `{"tables":{}}`
+  **Структура значений Record:**
+  - Тип значения: `any`
+- `functions: Record<string, object>` (required) — Описания функций (`dist/functions.json`). Пример: `{}`
+  **Структура значений Record:**
+  - Тип значения: `any`
+- `static: Record<string, object>` (required) — Статика фронта (`dist/static`): относительный путь и содержимое в base64. Пример: `{"index.html":"PCFkb2N0eXBlIGh0bWw+"}`
+  **Структура значений Record:**
+  - Тип значения: `string`
+- `source: Record<string, object>` — Исходники папки приложения: относительный путь и содержимое в base64, до 5 МБ. Платформа хранит их с версией и отдаёт методом [Исходники приложения](/api/apps/get-source). Пример: `{"schema.ts":"aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0="}`
+  **Структура значений Record:**
+  - Тип значения: `string`
+- `base_version: integer, int32` (required, min: 0) — Номер версии, от которой сделана загрузка, `0` у первой. Пример: `2`
+- `approve: boolean` — Человек видел и подтвердил изменения прав, хостов и событий. Пример: `false`
+- `force: boolean` — Загрузить, даже если текущая версия не `base_version`. Изменения из другой папки пропадут. Пример: `false`
+
+### Пример
+
+```json
+{
+  "code": "export default {};",
+  "manifest": {
+    "protocol": 3,
+    "sdk": "2026.12.0"
+  },
+  "schema": {
+    "tables": {}
+  },
+  "functions": {},
+  "static": {
+    "index.html": "PCFkb2N0eXBlIGh0bWw+"
+  },
+  "source": {
+    "schema.ts": "aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0="
+  },
+  "base_version": 2,
+  "approve": false,
+  "force": false
+}
+```
+
+## Пример запроса
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/apps/k3x9q2m7a1bz/versions" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "code": "export default {};",
+  "manifest": {
+    "protocol": 3,
+    "sdk": "2026.12.0"
+  },
+  "schema": {
+    "tables": {}
+  },
+  "functions": {},
+  "static": {
+    "index.html": "PCFkb2N0eXBlIGh0bWw+"
+  },
+  "source": {
+    "schema.ts": "aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0="
+  },
+  "base_version": 2,
+  "approve": false,
+  "force": false
+}'
+```
+
+## Ответы
+
+### 200: The request has succeeded.
+
+**Схема ответа:**
+
+- `data: object` (required) — Загруженная версия: она уже текущая
+  - `version: integer, int32` (required) — Номер новой текущей версии. Пример: `3`
+  - `hash: string` (required) — Хэш манифеста версии. Пример: `"9f2c4e1a7b3d"`
+  - `items: array of object` (required) — Права, хосты и события версии с пометками относительно прежней
+    - `kind: string` (required) — Вид записи
+      Значения: `bot` — Право бота приложения, `user` — Право от имени пользователя, `event` — Событие Пачки, на которое подписан бот, `net` — Сеть: хост запросов, хост фронта, вебхук или ключ внешнего сервиса, `warn` — Предупреждение, например об опасной комбинации прав
+    - `text: string` (required) — Описание для человека. Пример: `"Отправка сообщений"`
+    - `scope: string` — Скоуп, хост или событие. Пример: `"messages:create"`
+    - `new: boolean` — Появилось в этой версии. Пример: `true`
+    - `removed: boolean` — Было в прежней версии, в этой нет. Пример: `false`
+  - `migrations: array of string` (required) — Что изменилось в базе приложения, строки для показа человеку. Пусто, если схема не менялась. Пример: `["Таблица notes создана"]`
+  - `warnings: array of string` (required) — Предупреждения автору, например о сборке на устаревающей версии протокола. Пример: `[]`
+
+**Пример ответа:**
+
+```json
+{
+  "data": {
+    "version": 3,
+    "hash": "9f2c4e1a7b3d",
+    "items": [
+      {
+        "kind": "bot",
+        "text": "Отправка сообщений",
+        "scope": "messages:create",
+        "new": true,
+        "removed": false
+      }
+    ],
+    "migrations": [
+      "Таблица notes создана"
+    ],
+    "warnings": []
+  }
+}
+```
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 409: The request conflicts with the current state of the server.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 413: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 422: Client error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 502: Server error
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 503: Service unavailable.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { AppVersionRequest, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: AppVersionRequest = {
+  code: "export default {};",
+  manifest: { key: {} },
+  schema: { key: {} },
+  functions: { key: {} },
+  static: { key: "example" },
+  source: { key: "example" },
+  baseVersion: 2,
+  approve: false,
+  force: false
+}
+const response = await client.apps.createAppVersion("k3x9q2m7a1bz", request)
+// → AppRelease({ version: number, hash: string, items: AppPermissionItem({ kind: AppPermissionKind, text: string, scope?: string, new?: boolean, removed?: boolean })[], migrations: string[], warnings: string[] })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import AppVersionRequest
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = AppVersionRequest(
+    code="export default {};",
+    manifest={"key": {}},
+    schema={"key": {}},
+    functions={"key": {}},
+    static={"key": "example"},
+    source={"key": "example"},
+    base_version=2,
+    approve=False,
+    force=False
+)
+response = await client.apps.create_app_version(id="k3x9q2m7a1bz", request=request)
+# → AppRelease(version: int, hash: str, items: list[AppPermissionItem(kind: AppPermissionKind, text: str, scope: str | None, new: bool | None, removed: bool | None)], migrations: list[str], warnings: list[str])
 ```
 
 ---

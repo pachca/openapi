@@ -1,4 +1,54 @@
 /**
+ * Вид записи журнала приложения
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum AppLogKind {
+  /** Вызов функции приложения закончился ошибкой */
+  Function = "function",
+  /** Запрос функции во внешнюю сеть */
+  Fetch = "fetch",
+  /** Запрос к API Пачки */
+  Pachca = "pachca",
+  /** Вызов вебхука приложения */
+  Webhook = "webhook",
+  /** Фронт приложения нарушил ограничения браузера */
+  Csp = "csp",
+}
+
+/**
+ * Вид записи в списке прав приложения
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum AppPermissionKind {
+  /** Право бота приложения */
+  Bot = "bot",
+  /** Право от имени пользователя */
+  User = "user",
+  /** Событие Пачки, на которое подписан бот */
+  Event = "event",
+  /** Сеть: хост запросов, хост фронта, вебхук или ключ внешнего сервиса */
+  Net = "net",
+  /** Предупреждение, например об опасной комбинации прав */
+  Warn = "warn",
+}
+
+/**
+ * Кто может открыть приложение
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum AppVisibility {
+  /** Только автор приложения */
+  Private = "private",
+  /** Любой сотрудник пространства по ссылке, в обзоре приложений его нет */
+  Link = "link",
+  /** Любой сотрудник пространства по ссылке и в обзоре приложений */
+  Public = "public",
+}
+
+/**
  * Тип аудит-события
  *
  * A response may carry a value this SDK does not list yet: it arrives as the raw string.
@@ -687,6 +737,10 @@ export enum OAuthScope {
   ImportantMessagesRead = "important_messages:read",
   /** Добавление сообщений в важные и удаление из важных */
   ImportantMessagesWrite = "important_messages:write",
+  /** Просмотр кастомных приложений, их журнала, исходников и имён секретов */
+  AppsRead = "apps:read",
+  /** Создание, загрузка версий, изменение и удаление кастомных приложений и их секретов */
+  AppsWrite = "apps:write",
 }
 
 /** Что передано в запросе на отзыв токена */
@@ -955,6 +1009,10 @@ export enum ValidationErrorCode {
   SubmitExpired = "submit_expired",
   /** Сервис временно недоступен, повторите запрос */
   ServiceUnavailable = "service_unavailable",
+  /** Текущая версия приложения не та, от которой сделана загрузка */
+  VersionConflict = "version_conflict",
+  /** Права, хосты или события приложения изменились, а загрузка не подтверждает их */
+  ConsentRequired = "consent_required",
 }
 
 /**
@@ -1040,6 +1098,75 @@ export interface ApiErrorItem {
   message: string;
   code: ValidationErrorCode;
   payload: Record<string, unknown> | null;
+}
+
+export interface App {
+  id: string;
+  name: string;
+  icon: string | null;
+  botId: number | null;
+  avatarUrl: string | null;
+  visibility: AppVisibility;
+  createdById: number | null;
+  version: number;
+  publishedHash: string | null;
+  createdAt: string;
+}
+
+export interface AppCreateRequest {
+  name: string;
+  id?: string;
+}
+
+export interface AppLogEntry {
+  time: string;
+  kind: AppLogKind;
+  text: string;
+  allowed: boolean;
+  reason?: string;
+}
+
+export interface AppPermissionItem {
+  kind: AppPermissionKind;
+  text: string;
+  scope?: string;
+  new?: boolean;
+  removed?: boolean;
+}
+
+export interface AppRelease {
+  version: number;
+  hash: string;
+  items: AppPermissionItem[];
+  migrations: string[];
+  warnings: string[];
+}
+
+export interface AppSecretRequest {
+  value: string;
+}
+
+export interface AppSource {
+  version: number;
+  files: Record<string, string>;
+}
+
+export interface AppUpdateRequest {
+  name?: string;
+  icon?: string;
+  visibility?: AppVisibility;
+}
+
+export interface AppVersionRequest {
+  code: string;
+  manifest: Record<string, unknown>;
+  schema: Record<string, unknown>;
+  functions: Record<string, unknown>;
+  static: Record<string, string>;
+  source?: Record<string, string>;
+  baseVersion: number;
+  approve?: boolean;
+  force?: boolean;
 }
 
 export interface AuditDetailsBot {
@@ -2561,6 +2688,10 @@ export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMar
 
 export type WebhookPayloadUnion = MessageWebhookPayload | ReactionWebhookPayload | ButtonWebhookPayload | ViewSubmitWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | LinkSharedWebhookPayload | VideoCallWebhookPayload;
 
+export interface ListAppLogsParams {
+  n?: number;
+}
+
 export interface GetAuditEventsParams {
   startTime?: string;
   endTime?: string;
@@ -2736,6 +2867,18 @@ export interface ListUsersParams {
 export interface GetWebhookEventsParams {
   limit?: number;
   cursor?: string;
+}
+
+export interface ListAppsResponse {
+  data: App[];
+}
+
+export interface ListAppLogsResponse {
+  data: AppLogEntry[];
+}
+
+export interface ListAppSecretsResponse {
+  data: string[];
 }
 
 export interface GetAuditEventsResponse {

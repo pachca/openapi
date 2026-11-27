@@ -38,12 +38,18 @@ const SPEC = "packages/spec/openapi.yaml";
 export const toCamel = (k: string) => k.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
 const toSnake = (k: string) => k.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
 
+// Управление приложениями (`apps:*`) это инструмент автора, а не данные Пачки: приложению эти скоупы не выдаются,
+// поэтому их методов нет в ctx.pachca, а манифест с ними check отклоняет как неизвестный скоуп
+const notForApps = (scope: string) => scope.startsWith("apps:");
+
 /** Скоупы API Пачки и роли, которым каждый доступен (bot это бот), `null` если роли не указаны. */
 export function scopes(spec: Spec): Record<string, string[] | null> {
   const s = spec.components.schemas.OAuthScope;
   if (!s?.enum) throw new Error(`${SPEC}: нет списка скоупов OAuthScope`);
   const roles = s["x-scope-roles"] ?? {};
-  return Object.fromEntries(s.enum.map((v) => [String(v), roles[String(v).replace(/:/g, "_")] ?? null]));
+  return Object.fromEntries(
+    s.enum.filter((v) => !notForApps(String(v))).map((v) => [String(v), roles[String(v).replace(/:/g, "_")] ?? null]),
+  );
 }
 
 const ident = (k: string) => (/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k));
@@ -184,7 +190,7 @@ export function generatePachca(spec: Spec): { source: string; ops: Record<string
       if (!["get", "post", "put", "patch", "delete"].includes(verb)) continue;
       const scope = op["x-requirements"]?.scope;
       // без скоупа это OAuth и прямая загрузка в хранилище Пачки
-      if (!scope) continue;
+      if (!scope || notForApps(scope)) continue;
       const okCode = Object.keys(op.responses ?? {}).find((c) => /^2\d\d$/.test(c));
       const okContent = okCode ? op.responses![okCode]!.content : undefined;
       const binaryResult = binary(okContent);

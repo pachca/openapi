@@ -55,9 +55,138 @@ export type ApiErrorItem = {
   message: string;
   /** Код ошибки */
   code: ValidationErrorCode;
-  /** Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть, `{limit: number, remaining: number, reset_at: string}` — при исчерпанном суточном лимите писем-приглашений (`reset_at` — когда в окне освободится место). В большинстве случаев `null`. */
+  /** Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть, `{limit: number, remaining: number, reset_at: string}` — при исчерпанном суточном лимите писем-приглашений (`reset_at` — когда в окне освободится место), `{version: number}` — у `version_conflict` (номер текущей версии приложения), `{hash: string, items: AppPermissionItem[]}` — у `consent_required` (что изменилось в правах). В большинстве случаев `null`. */
   payload: Record<string, unknown> | null;
 };
+
+/** Кастомное приложение */
+export type App = {
+  /** Идентификатор приложения: 12 символов `[0-9a-z]` */
+  id: string;
+  /** Название приложения. Оно же имя бота приложения. */
+  name: string;
+  /** Иконка приложения: один эмодзи. `null`, пока не задана. */
+  icon: string | null;
+  /** Идентификатор бота приложения. От его имени приложение пишет в чаты, его права задаёт манифест версии. */
+  botId: number | null;
+  /** Аватарка приложения: это аватарка его бота. `null`, пока не задана. */
+  avatarUrl: string | null;
+  /** Кто может открыть приложение */
+  visibility: AppVisibility;
+  /** Идентификатор сотрудника, который создал приложение. `null` у приложений, созданных до появления поля. */
+  createdById: number | null;
+  /** Номер текущей версии. Его выдаёт платформа приложений при каждой загрузке, `0`, пока версий нет. */
+  version: number;
+  /** Хэш манифеста текущей версии. `null`, пока версий нет. */
+  publishedHash: string | null;
+  /** Дата и время создания приложения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ */
+  createdAt: string;
+};
+
+/** Запрос на создание приложения */
+export type AppCreateRequest = {
+  /** Название приложения */
+  name: string;
+  /** Свой идентификатор приложения: 12 символов `[0-9a-z]`. Без поля генерируется. */
+  id?: string;
+};
+
+/** Запись журнала приложения */
+export type AppLogEntry = {
+  /** Время записи (ISO-8601, UTC+0) */
+  time: string;
+  /** Вид записи */
+  kind: AppLogKind;
+  /** Что делало приложение: функция, адрес запроса или операция API Пачки */
+  text: string;
+  /** Платформа разрешила действие и оно прошло. У `function` всегда `false`: записи есть только об ошибках. */
+  allowed: boolean;
+  /** Причина отказа, код ответа или начало ответа с ошибкой */
+  reason?: string;
+};
+
+/** Вид записи журнала приложения */
+export type AppLogKind = "function" | "fetch" | "pachca" | "webhook" | "csp";
+
+/** Право, хост или событие приложения для показа человеку, с пометками относительно прежней версии */
+export type AppPermissionItem = {
+  /** Вид записи */
+  kind: AppPermissionKind;
+  /** Описание для человека */
+  text: string;
+  /** Скоуп, хост или событие */
+  scope?: string;
+  /** Появилось в этой версии */
+  new?: boolean;
+  /** Было в прежней версии, в этой нет */
+  removed?: boolean;
+};
+
+/** Вид записи в списке прав приложения */
+export type AppPermissionKind = "bot" | "user" | "event" | "net" | "warn";
+
+/** Загруженная версия: она уже текущая */
+export type AppRelease = {
+  /** Номер новой текущей версии */
+  version: number;
+  /** Хэш манифеста версии */
+  hash: string;
+  /** Права, хосты и события версии с пометками относительно прежней */
+  items: Array<AppPermissionItem>;
+  /** Что изменилось в базе приложения, строки для показа человеку. Пусто, если схема не менялась. */
+  migrations: Array<string>;
+  /** Предупреждения автору, например о сборке на устаревающей версии протокола */
+  warnings: Array<string>;
+};
+
+/** Секрет приложения */
+export type AppSecretRequest = {
+  /** Значение секрета, до 4 КБ */
+  value: string;
+};
+
+/** Исходники текущей версии */
+export type AppSource = {
+  /** Номер версии */
+  version: number;
+  /** Файлы папки приложения: относительный путь и содержимое в base64. Пусто, если версию загрузили без исходников. */
+  files: Record<string, string>;
+};
+
+/** Запрос на изменение приложения */
+export type AppUpdateRequest = {
+  /** Название приложения. Меняется и у бота приложения. */
+  name?: string;
+  /** Иконка: один эмодзи, до 16 символов без пробелов. Пустая строка снимает иконку. */
+  icon?: string;
+  /** Кто может открыть приложение */
+  visibility?: AppVisibility;
+};
+
+/** Версия приложения: сборка из `dist` и исходники папки */
+export type AppVersionRequest = {
+  /** Код функций приложения (`dist/app.js`) */
+  code: string;
+  /** Манифест сборки (`dist/manifest.json`): права, хосты, вебхуки, версии протокола и SDK */
+  manifest: Record<string, unknown>;
+  /** Схема базы (`dist/schema.json`) */
+  schema: Record<string, unknown>;
+  /** Описания функций (`dist/functions.json`) */
+  functions: Record<string, unknown>;
+  /** Статика фронта (`dist/static`): относительный путь и содержимое в base64 */
+  static: Record<string, string>;
+  /** Исходники папки приложения: относительный путь и содержимое в base64, до 5 МБ. Платформа хранит их с версией и отдаёт методом [Исходники приложения](GET /apps/{id}/source). */
+  source?: Record<string, string>;
+  /** Номер версии, от которой сделана загрузка, `0` у первой */
+  baseVersion: number;
+  /** Человек видел и подтвердил изменения прав, хостов и событий */
+  approve?: boolean;
+  /** Загрузить, даже если текущая версия не `base_version`. Изменения из другой папки пропадут. */
+  force?: boolean;
+};
+
+/** Кто может открыть приложение */
+export type AppVisibility = "private" | "link" | "public";
 
 /** При: bot_deleted, а также bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued в записях до 7 октября 2026 года */
 export type AuditDetailsBot = {
@@ -1920,7 +2049,7 @@ export type OAuthRevokeRequest = {
 };
 
 /** Скоуп доступа OAuth токена */
-export type OAuthScope = "chats:read" | "chats:create" | "chats:update" | "chats:mark_unread" | "chats:mark_read" | "chats:archive" | "chats:leave" | "chat_members:read" | "chat_members:write" | "chat_exports:read" | "chat_exports:write" | "messages:read" | "messages:create" | "messages:update" | "messages:delete" | "reactions:read" | "reactions:write" | "pins:write" | "threads:read" | "threads:create" | "link_previews:write" | "users:read" | "users:create" | "users:update" | "users:delete" | "group_tags:read" | "group_tags:write" | "bots:read" | "bots:write" | "bot_self:webhook:write" | "bot_self:write" | "profile:read" | "profile:write" | "profile_status:read" | "profile_status:write" | "profile_avatar:write" | "user_status:read" | "user_status:write" | "user_avatar:write" | "custom_properties:read" | "company:read" | "company:write" | "invite_links:write" | "audit_events:read" | "company_chats:read" | "company_bots:read" | "company_messages:read" | "tasks:read" | "tasks:create" | "tasks:update" | "tasks:delete" | "files:read" | "uploads:write" | "views:write" | "webhooks:events:read" | "webhooks:events:delete" | "search:users" | "search:chats" | "search:messages" | "drafts:read" | "drafts:write" | "important_messages:read" | "important_messages:write";
+export type OAuthScope = "chats:read" | "chats:create" | "chats:update" | "chats:mark_unread" | "chats:mark_read" | "chats:archive" | "chats:leave" | "chat_members:read" | "chat_members:write" | "chat_exports:read" | "chat_exports:write" | "messages:read" | "messages:create" | "messages:update" | "messages:delete" | "reactions:read" | "reactions:write" | "pins:write" | "threads:read" | "threads:create" | "link_previews:write" | "users:read" | "users:create" | "users:update" | "users:delete" | "group_tags:read" | "group_tags:write" | "bots:read" | "bots:write" | "bot_self:webhook:write" | "bot_self:write" | "profile:read" | "profile:write" | "profile_status:read" | "profile_status:write" | "profile_avatar:write" | "user_status:read" | "user_status:write" | "user_avatar:write" | "custom_properties:read" | "company:read" | "company:write" | "invite_links:write" | "audit_events:read" | "company_chats:read" | "company_bots:read" | "company_messages:read" | "tasks:read" | "tasks:create" | "tasks:update" | "tasks:delete" | "files:read" | "uploads:write" | "views:write" | "webhooks:events:read" | "webhooks:events:delete" | "search:users" | "search:chats" | "search:messages" | "drafts:read" | "drafts:write" | "important_messages:read" | "important_messages:write" | "apps:read" | "apps:write";
 
 /** Токен сотрудника, выданный боту в обмен на код авторизации */
 export type OAuthToken = {
@@ -2412,7 +2541,7 @@ export type UserUpdateRequest = {
 };
 
 /** Коды ошибок валидации */
-export type ValidationErrorCode = "blank" | "too_long" | "invalid" | "inclusion" | "exclusion" | "taken" | "wrong_emoji" | "not_found" | "already_exists" | "personal_chat" | "displayed_error" | "not_authorized" | "invalid_date_range" | "invalid_webhook_url" | "rate_limit" | "licenses_limit" | "user_limit" | "unique_limit" | "general_limit" | "unhandled" | "trigger_not_found" | "trigger_expired" | "required" | "in" | "not_applicable" | "self_update" | "owner_protected" | "already_assigned" | "next_send_at_invalid" | "schedule_invalid" | "schedule_end_date_invalid" | "scheduled_messages_limit" | "draft_type_change_forbidden" | "confidential_download_denied" | "decryption_failed" | "bot_add_denied" | "single_chat_bot_occupied" | "single_chat_bot_tag_denied" | "restricted_bot_tag_denied" | "bot_changed_concurrently" | "timeout" | "daily_invites_limit" | "webhook_url_invalid" | "webhook_url_unresolved" | "webhook_url_forbidden" | "blocked_by_sso" | "forbidden" | "permission_denied" | "access_denied" | "wrong_params" | "payment_required" | "min_length" | "max_length" | "use_of_system_words" | "export_file_not_found" | "cannot_kick_owner" | "pin_failed" | "message_deleted" | "thread_message" | "view_not_found" | "submit_expired" | "service_unavailable";
+export type ValidationErrorCode = "blank" | "too_long" | "invalid" | "inclusion" | "exclusion" | "taken" | "wrong_emoji" | "not_found" | "already_exists" | "personal_chat" | "displayed_error" | "not_authorized" | "invalid_date_range" | "invalid_webhook_url" | "rate_limit" | "licenses_limit" | "user_limit" | "unique_limit" | "general_limit" | "unhandled" | "trigger_not_found" | "trigger_expired" | "required" | "in" | "not_applicable" | "self_update" | "owner_protected" | "already_assigned" | "next_send_at_invalid" | "schedule_invalid" | "schedule_end_date_invalid" | "scheduled_messages_limit" | "draft_type_change_forbidden" | "confidential_download_denied" | "decryption_failed" | "bot_add_denied" | "single_chat_bot_occupied" | "single_chat_bot_tag_denied" | "restricted_bot_tag_denied" | "bot_changed_concurrently" | "timeout" | "daily_invites_limit" | "webhook_url_invalid" | "webhook_url_unresolved" | "webhook_url_forbidden" | "blocked_by_sso" | "forbidden" | "permission_denied" | "access_denied" | "wrong_params" | "payment_required" | "min_length" | "max_length" | "use_of_system_words" | "export_file_not_found" | "cannot_kick_owner" | "pin_failed" | "message_deleted" | "thread_message" | "view_not_found" | "submit_expired" | "service_unavailable" | "version_conflict" | "consent_required";
 
 /** Тип события видеозвонка */
 export type VideoCallEventType = "started" | "finished" | "recording_ready";

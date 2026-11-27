@@ -57,6 +57,298 @@
     ]
   },
   {
+    "section": "apps",
+    "commands": [
+      {
+        "command": "pachca apps create",
+        "summary": "Новое приложение",
+        "method": "POST",
+        "path": "/apps",
+        "scope": "apps:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "name",
+            "type": "option",
+            "required": true,
+            "description": "Название приложения (макс. 255 символов)"
+          },
+          {
+            "name": "id",
+            "type": "option",
+            "required": false,
+            "description": "Свой идентификатор приложения: 12 символов `[0-9a-z]`. Без поля генерируется."
+          }
+        ]
+      },
+      {
+        "command": "pachca apps create-version",
+        "summary": "Загрузка версии",
+        "method": "POST",
+        "path": "/apps/{id}/versions",
+        "scope": "apps:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор приложения"
+          }
+        ],
+        "flags": [
+          {
+            "name": "code",
+            "type": "option",
+            "required": true,
+            "description": "Код функций приложения (`dist/app.js`)"
+          },
+          {
+            "name": "manifest",
+            "type": "option",
+            "required": true,
+            "description": "Манифест сборки (`dist/manifest.json`): права, хосты, вебхуки, версии протокола и SDK"
+          },
+          {
+            "name": "schema",
+            "type": "option",
+            "required": true,
+            "description": "Схема базы (`dist/schema.json`)"
+          },
+          {
+            "name": "functions",
+            "type": "option",
+            "required": true,
+            "description": "Описания функций (`dist/functions.json`)"
+          },
+          {
+            "name": "static",
+            "type": "option",
+            "required": true,
+            "description": "Статика фронта (`dist/static`): относительный путь и содержимое в base64"
+          },
+          {
+            "name": "source",
+            "type": "option",
+            "required": false,
+            "description": "Исходники папки приложения: относительный путь и содержимое в base64, до 5 МБ. Платформа хранит их с версией и отдаёт методом [Исходники приложения](GET /apps/{id}/source)."
+          },
+          {
+            "name": "base-version",
+            "type": "option",
+            "required": true,
+            "description": "Номер версии, от которой сделана загрузка, `0` у первой"
+          },
+          {
+            "name": "approve",
+            "type": "boolean",
+            "required": false,
+            "description": "Человек видел и подтвердил изменения прав, хостов и событий"
+          },
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить, даже если текущая версия не `base_version`. Изменения из другой папки пропадут."
+          }
+        ]
+      },
+      {
+        "command": "pachca apps delete",
+        "summary": "Удаление приложения",
+        "method": "DELETE",
+        "path": "/apps/{id}",
+        "scope": "apps:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор приложения"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca apps delete-secret",
+        "summary": "Удаление секрета приложения",
+        "method": "DELETE",
+        "path": "/apps/{id}/secrets/{name}",
+        "scope": "apps:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор приложения"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "description": "Имя секрета"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca apps get",
+        "summary": "Информация о приложении",
+        "method": "GET",
+        "path": "/apps/{id}",
+        "scope": "apps:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор приложения"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca apps get-source",
+        "summary": "Исходники приложения",
+        "method": "GET",
+        "path": "/apps/{id}/source",
+        "scope": "apps:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор приложения"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca apps list",
+        "summary": "Список приложений",
+        "method": "GET",
+        "path": "/apps",
+        "scope": "apps:read",
+        "plan": null,
+        "flags": []
+      },
+      {
+        "command": "pachca apps list-logs",
+        "summary": "Журнал приложения",
+        "method": "GET",
+        "path": "/apps/{id}/logs",
+        "scope": "apps:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор приложения"
+          }
+        ],
+        "flags": [
+          {
+            "name": "n",
+            "type": "option",
+            "required": false,
+            "description": "Сколько записей вернуть. Целое число вне допустимых значений заменяется ближайшей границей."
+          }
+        ]
+      },
+      {
+        "command": "pachca apps list-secrets",
+        "summary": "Список секретов приложения",
+        "method": "GET",
+        "path": "/apps/{id}/secrets",
+        "scope": "apps:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор приложения"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca apps set-secret",
+        "summary": "Задание секрета приложения",
+        "method": "PUT",
+        "path": "/apps/{id}/secrets/{name}",
+        "scope": "apps:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор приложения"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "description": "Имя секрета"
+          }
+        ],
+        "flags": [
+          {
+            "name": "value",
+            "type": "option",
+            "required": true,
+            "description": "Значение секрета, до 4 КБ"
+          }
+        ]
+      },
+      {
+        "command": "pachca apps update",
+        "summary": "Редактирование приложения",
+        "method": "PUT",
+        "path": "/apps/{id}",
+        "scope": "apps:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор приложения"
+          }
+        ],
+        "flags": [
+          {
+            "name": "name",
+            "type": "option",
+            "required": false,
+            "description": "Название приложения. Меняется и у бота приложения. (макс. 255 символов)"
+          },
+          {
+            "name": "icon",
+            "type": "option",
+            "required": false,
+            "description": "Иконка: один эмодзи, до 16 символов без пробелов. Пустая строка снимает иконку."
+          },
+          {
+            "name": "visibility",
+            "type": "option",
+            "required": false,
+            "description": "Кто может открыть приложение"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "section": "auth",
     "commands": [
       {

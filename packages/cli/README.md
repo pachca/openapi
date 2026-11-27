@@ -61,6 +61,22 @@ pachca auth switch bot-notify
 <!-- AUTO:COMMANDS -->
 ## Команды
 
+### apps
+
+| Команда | Описание |
+|---------|---------|
+| `pachca apps list` | Список приложений |
+| `pachca apps create` | Новое приложение |
+| `pachca apps get` | Информация о приложении |
+| `pachca apps update` | Редактирование приложения |
+| `pachca apps delete` | Удаление приложения |
+| `pachca apps list-logs` | Журнал приложения |
+| `pachca apps list-secrets` | Список секретов приложения |
+| `pachca apps set-secret` | Задание секрета приложения |
+| `pachca apps delete-secret` | Удаление секрета приложения |
+| `pachca apps get-source` | Исходники приложения |
+| `pachca apps create-version` | Загрузка версии |
+
 ### security
 
 | Команда | Описание |

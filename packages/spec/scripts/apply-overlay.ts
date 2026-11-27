@@ -66,6 +66,10 @@ const RESPONSE_WRAPPERS: Record<string, string> = {
 const RU_TO_EN: Record<string, string> = {
 	// Example values used in bot/voice examples
 	'Бот задач': 'Tasks bot',
+	'Заметки': 'Notes',
+	'Заметки команды': 'Team notes',
+	'Таблица notes создана': 'Table notes created',
+	'Отправка сообщений': 'Sending messages',
 	'Бот релизов': 'Release bot',
 	'Заказ от {{ client }} на сумму {{ amount }} ₽': 'Order from {{ client }} for {{ amount }} ₽',
 	'{"client": "ООО Ромашка", "amount": 15000}': '{"client": "Acme Corp", "amount": 15000}',

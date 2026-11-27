@@ -537,6 +537,8 @@ enum ChatSubtype {
   webhook_url_unresolved: "Не удалось определить IP-адрес домена из адреса вебхука",
   webhook_url_forbidden: "Адрес вебхука ведёт во внутреннюю или зарезервированную сеть",
   blocked_by_sso: "Поле заполняется из SSO или нужно для входа через SSO, через API его не изменить (пояснения вы получите в поле message)",
+  version_conflict: "Текущая версия приложения не та, от которой сделана загрузка",
+  consent_required: "Права, хосты или события приложения изменились, а загрузка не подтверждает их",
 })
 enum ValidationErrorCode {
   @doc("Обязательное поле (не может быть пустым)")
@@ -724,6 +726,12 @@ enum ValidationErrorCode {
 
   @doc("Сервис временно недоступен, повторите запрос")
   service_unavailable: "service_unavailable",
+
+  @doc("Текущая версия приложения не та, от которой сделана загрузка")
+  version_conflict: "version_conflict",
+
+  @doc("Права, хосты или события приложения изменились, а загрузка не подтверждает их")
+  consent_required: "consent_required",
 }
 
 @doc("Тип аудит-события")
@@ -1937,6 +1945,8 @@ model InviteLink {
   drafts_write: "Создание, изменение и удаление черновиков и отложенных сообщений",
   important_messages_read: "Просмотр важных сообщений",
   important_messages_write: "Добавление сообщений в важные и удаление из важных",
+  apps_read: "Просмотр кастомных приложений, их журнала, исходников и имён секретов",
+  apps_write: "Создание, загрузка версий, изменение и удаление кастомных приложений и их секретов",
 })
 @extension("x-scope-roles", #{
   chats_read: #["owner", "admin", "user", "multi_guest", "bot"],
@@ -2002,6 +2012,8 @@ model InviteLink {
   drafts_write: #["owner", "admin", "user", "multi_guest"],
   important_messages_read: #["owner", "admin", "user", "multi_guest"],
   important_messages_write: #["owner", "admin", "user", "multi_guest"],
+  apps_read: #["owner", "admin"],
+  apps_write: #["owner", "admin"],
 })
 enum OAuthScope {
   @doc("Просмотр чатов и списка чатов")
@@ -2192,6 +2204,12 @@ enum OAuthScope {
 
   @doc("Добавление сообщений в важные и удаление из важных")
   important_messages_write: "important_messages:write",
+
+  @doc("Просмотр кастомных приложений, их журнала, исходников и имён секретов. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.")
+  apps_read: "apps:read",
+
+  @doc("Создание, загрузка версий, изменение и удаление кастомных приложений и их секретов. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.")
+  apps_write: "apps:write",
 }
 
 @doc("Токен доступа")
@@ -2345,7 +2363,7 @@ model ApiErrorItem {
   @example(ValidationErrorCode.blank)
   code: ValidationErrorCode;
   
-  @doc("Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть, `{limit: number, remaining: number, reset_at: string}` — при исчерпанном суточном лимите писем-приглашений (`reset_at` — когда в окне освободится место). В большинстве случаев `null`.")
+  @doc("Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть, `{limit: number, remaining: number, reset_at: string}` — при исчерпанном суточном лимите писем-приглашений (`reset_at` — когда в окне освободится место), `{version: number}` — у `version_conflict` (номер текущей версии приложения), `{hash: string, items: AppPermissionItem[]}` — у `consent_required` (что изменилось в правах). В большинстве случаев `null`.")
   @example(null)
   payload: Record<unknown> | null;
 }
@@ -11299,6 +11317,702 @@ interface SecurityOperations {
   };
 }
 
+
+
+// ============================================================================
+// Custom Apps (бета)
+// ============================================================================
+
+@doc("Кто может открыть приложение")
+@extension("x-enum-descriptions", #{
+  `private`: "Только автор приложения",
+  link: "Любой сотрудник пространства по ссылке, в обзоре приложений его нет",
+  public: "Любой сотрудник пространства по ссылке и в обзоре приложений",
+})
+enum AppVisibility {
+  `private`: "private",
+  link: "link",
+  public: "public",
+}
+
+@doc("Кастомное приложение")
+model App {
+  @doc("Идентификатор приложения: 12 символов `[0-9a-z]`")
+  @example("k3x9q2m7a1bz")
+  id: string;
+
+  @doc("Название приложения. Оно же имя бота приложения.")
+  @example("Заметки")
+  name: string;
+
+  @doc("Иконка приложения: один эмодзи. `null`, пока не задана.")
+  @example("📝")
+  icon: string | null;
+
+  @doc("Идентификатор бота приложения. От его имени приложение пишет в чаты, его права задаёт манифест версии.")
+  @example(1738816)
+  bot_id: int64 | null;
+
+  @doc("Аватарка приложения: это аватарка его бота. `null`, пока не задана.")
+  @example(null)
+  avatar_url: string | null;
+
+  @doc("Кто может открыть приложение")
+  @example(AppVisibility.`private`)
+  visibility: AppVisibility;
+
+  @doc("Идентификатор сотрудника, который создал приложение. `null` у приложений, созданных до появления поля.")
+  @example(12)
+  created_by_id: int64 | null;
+
+  @doc("Номер текущей версии. Его выдаёт платформа приложений при каждой загрузке, `0`, пока версий нет.")
+  @example(3)
+  version: int32;
+
+  @doc("Хэш манифеста текущей версии. `null`, пока версий нет.")
+  @example("9f2c4e1a7b3d")
+  published_hash: string | null;
+
+  @doc("Дата и время создания приложения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @example(utcDateTime.fromISO("2026-11-20T10:30:00.000Z"))
+  created_at: utcDateTime;
+}
+
+@doc("Запрос на создание приложения")
+model AppCreateRequest {
+  @doc("Название приложения")
+  @example("Заметки")
+  @maxLength(255)
+  name: string;
+
+  @doc("Свой идентификатор приложения: 12 символов `[0-9a-z]`. Без поля генерируется.")
+  @example("k3x9q2m7a1bz")
+  id?: string;
+}
+
+@doc("Запрос на изменение приложения")
+model AppUpdateRequest {
+  @doc("Название приложения. Меняется и у бота приложения.")
+  @example("Заметки команды")
+  @maxLength(255)
+  name?: string;
+
+  @doc("Иконка: один эмодзи, до 16 символов без пробелов. Пустая строка снимает иконку.")
+  @example("🗒️")
+  icon?: string;
+
+  @doc("Кто может открыть приложение")
+  @example(AppVisibility.link)
+  visibility?: AppVisibility;
+}
+
+@doc("Версия приложения: сборка из `dist` и исходники папки")
+model AppVersionRequest {
+  @doc("Код функций приложения (`dist/app.js`)")
+  @example("export default {};")
+  code: string;
+
+  @doc("Манифест сборки (`dist/manifest.json`): права, хосты, вебхуки, версии протокола и SDK")
+  @example(#{ protocol: 3, sdk: "2026.12.0" })
+  manifest: Record<unknown>;
+
+  @doc("Схема базы (`dist/schema.json`)")
+  @example(#{ tables: #{} })
+  schema: Record<unknown>;
+
+  @doc("Описания функций (`dist/functions.json`)")
+  @example(#{})
+  functions: Record<unknown>;
+
+  @doc("Статика фронта (`dist/static`): относительный путь и содержимое в base64")
+  @example(#{ `index.html`: "PCFkb2N0eXBlIGh0bWw+" })
+  static: Record<string>;
+
+  @doc("Исходники папки приложения: относительный путь и содержимое в base64, до 5 МБ. Платформа хранит их с версией и отдаёт методом [Исходники приложения](GET /apps/{id}/source).")
+  @example(#{ `schema.ts`: "aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0=" })
+  source?: Record<string>;
+
+  @doc("Номер версии, от которой сделана загрузка, `0` у первой")
+  @example(2)
+  @minValue(0)
+  base_version: int32;
+
+  @doc("Человек видел и подтвердил изменения прав, хостов и событий")
+  @example(false)
+  approve?: boolean;
+
+  @doc("Загрузить, даже если текущая версия не `base_version`. Изменения из другой папки пропадут.")
+  @example(false)
+  force?: boolean;
+}
+
+@doc("Вид записи в списке прав приложения")
+@extension("x-enum-descriptions", #{
+  bot: "Право бота приложения",
+  user: "Право от имени пользователя",
+  event: "Событие Пачки, на которое подписан бот",
+  net: "Сеть: хост запросов, хост фронта, вебхук или ключ внешнего сервиса",
+  warn: "Предупреждение, например об опасной комбинации прав",
+})
+enum AppPermissionKind {
+  bot: "bot",
+  user: "user",
+  event: "event",
+  net: "net",
+  warn: "warn",
+}
+
+@doc("Право, хост или событие приложения для показа человеку, с пометками относительно прежней версии")
+model AppPermissionItem {
+  @doc("Вид записи")
+  @example(AppPermissionKind.bot)
+  kind: AppPermissionKind;
+
+  @doc("Описание для человека")
+  @example("Отправка сообщений")
+  text: string;
+
+  @doc("Скоуп, хост или событие")
+  @example("messages:create")
+  scope?: string;
+
+  @doc("Появилось в этой версии")
+  @example(true)
+  new?: boolean;
+
+  @doc("Было в прежней версии, в этой нет")
+  @example(false)
+  removed?: boolean;
+}
+
+@doc("Загруженная версия: она уже текущая")
+model AppRelease {
+  @doc("Номер новой текущей версии")
+  @example(3)
+  version: int32;
+
+  @doc("Хэш манифеста версии")
+  @example("9f2c4e1a7b3d")
+  hash: string;
+
+  @doc("Права, хосты и события версии с пометками относительно прежней")
+  items: AppPermissionItem[];
+
+  @doc("Что изменилось в базе приложения, строки для показа человеку. Пусто, если схема не менялась.")
+  @example(#["Таблица notes создана"])
+  migrations: string[];
+
+  @doc("Предупреждения автору, например о сборке на устаревающей версии протокола")
+  @example(#[])
+  warnings: string[];
+}
+
+@doc("Исходники текущей версии")
+model AppSource {
+  @doc("Номер версии")
+  @example(3)
+  version: int32;
+
+  @doc("Файлы папки приложения: относительный путь и содержимое в base64. Пусто, если версию загрузили без исходников.")
+  @example(#{ `schema.ts`: "aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0=" })
+  files: Record<string>;
+}
+
+@doc("Вид записи журнала приложения")
+@extension("x-enum-descriptions", #{
+  function: "Вызов функции приложения закончился ошибкой",
+  fetch: "Запрос функции во внешнюю сеть",
+  pachca: "Запрос к API Пачки",
+  webhook: "Вызов вебхука приложения",
+  csp: "Фронт приложения нарушил ограничения браузера",
+})
+enum AppLogKind {
+  function: "function",
+  fetch: "fetch",
+  pachca: "pachca",
+  webhook: "webhook",
+  csp: "csp",
+}
+
+@doc("Запись журнала приложения")
+model AppLogEntry {
+  @doc("Время записи (ISO-8601, UTC+0)")
+  @example(utcDateTime.fromISO("2026-11-20T10:31:00.000Z"))
+  time: utcDateTime;
+
+  @doc("Вид записи")
+  @example(AppLogKind.fetch)
+  kind: AppLogKind;
+
+  @doc("Что делало приложение: функция, адрес запроса или операция API Пачки")
+  @example("GET https://api.example.com/rates")
+  text: string;
+
+  @doc("Платформа разрешила действие и оно прошло. У `function` всегда `false`: записи есть только об ошибках.")
+  @example(true)
+  allowed: boolean;
+
+  @doc("Причина отказа, код ответа или начало ответа с ошибкой")
+  @example("200")
+  reason?: string;
+}
+
+@doc("Секрет приложения")
+model AppSecretRequest {
+  @doc("Значение секрета, до 4 КБ")
+  @example("sk_live_51Hx")
+  value: string;
+}
+
+@route("/apps")
+@tag("Apps")
+interface AppOperations {
+  @extension("x-requirements", #{
+    scope: "apps:read",
+  })
+  @doc("""
+Список приложений
+
+Кастомные приложения пространства по порядку создания, одним списком без пагинации.
+
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+""")
+  @get
+  listApps(): {
+    @statusCode _: 200;
+    @body body: DataResponse<App[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "apps:write",
+  })
+  @doc("""
+Новое приложение
+
+Создаёт приложение без версий и его бота без прав. Код загружают методом [Загрузка версии](POST /apps/{id}/versions), обычно командой `npx pachca-app ship` из папки приложения.
+
+Свой `id` не из 12 символов `[0-9a-z]` или уже занятый отвечает `400` с кодом `taken` или `invalid`, ничего не создаётся. Если платформа приложений не ответила, метод отвечает `502`, бот и приложение не остаются.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+""")
+  @post
+  createApp(@body request: AppCreateRequest): {
+    @statusCode _: 201;
+    @body body: DataResponse<App>;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 502;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 503;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "apps:read",
+  })
+  @doc("""
+Информация о приложении
+
+Приложение пространства по его идентификатору. Приложение другого пространства отвечает `404`.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+""")
+  @route("/{id}")
+  @get
+  getApp(
+    @doc("Идентификатор приложения")
+    @extension("example", "k3x9q2m7a1bz")
+    @path id: string
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<App>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "apps:write",
+  })
+  @doc("""
+Редактирование приложения
+
+Меняет название, иконку и доступ без новой версии. Название меняется и у бота приложения. Пустое название отвечает `422` с кодом `blank`, иконка длиннее 16 символов или с пробелами отвечает `422` с кодом `invalid`.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+""")
+  @route("/{id}")
+  @put
+  updateApp(
+    @doc("Идентификатор приложения")
+    @extension("example", "k3x9q2m7a1bz")
+    @path id: string,
+    @body request: AppUpdateRequest
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<App>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "apps:write",
+  })
+  @doc("""
+Удаление приложения
+
+Удаляет приложение целиком и необратимо: версии, базу, файлы, секреты и бота приложения. Если платформа приложений не ответила, метод отвечает `502`, ничего не удалено, запрос можно повторить.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+""")
+  @route("/{id}")
+  @delete
+  deleteApp(
+    @doc("Идентификатор приложения")
+    @extension("example", "k3x9q2m7a1bz")
+    @path id: string
+  ): {
+    @statusCode _: 204;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 502;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 503;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "apps:write",
+  })
+  @doc("""
+Загрузка версии
+
+Загружает сборку приложения, и она сразу становится текущей версией. Сборку и запрос собирает команда `npx pachca-app ship` из папки приложения (пакет `@pachca/app-sdk`).
+
+Платформа приложений проверяет сборку, версию SDK, изменения прав и схему базы на существующих данных. Бот приложения получает права и подписку на события из манифеста версии.
+
+Ответ `409` ничего не загружает. Код `version_conflict`: текущая версия не `base_version`, приложение загрузили из другой папки, номер текущей версии в `payload.version`. Код `consent_required`: права, хосты или события изменились, а `approve` не передан, список изменений в `payload.items`. Код `invalid` у `409` и `422`: платформа отклонила сборку или изменение схемы, причина в `message`. Тело больше 32 МБ отвечает `413` с кодом `too_long`.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+""")
+  @route("/{id}/versions")
+  @post
+  createAppVersion(
+    @doc("Идентификатор приложения")
+    @extension("example", "k3x9q2m7a1bz")
+    @path id: string,
+    @body request: AppVersionRequest
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<AppRelease>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 409;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 413;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 502;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 503;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "apps:read",
+  })
+  @doc("""
+Исходники приложения
+
+Исходники текущей версии, загруженные вместе с ней. По ним команда `npx pachca-app pull` восстанавливает папку приложения. Приложение без версий отвечает `404`.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+""")
+  @route("/{id}/source")
+  @get
+  getAppSource(
+    @doc("Идентификатор приложения")
+    @extension("example", "k3x9q2m7a1bz")
+    @path id: string
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<AppSource>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 502;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 503;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "apps:read",
+  })
+  @doc("""
+Журнал приложения
+
+Что делало приложение на платформе: ошибки функций, запросы в сеть и к API Пачки, вызовы вебхуков, нарушения ограничений фронта. Видно, что платформа разрешила и что заблокировала. Новые записи первыми.
+
+Журнал хранится в памяти платформы, последние 200 записей. После её перезапуска он пуст.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+""")
+  @route("/{id}/logs")
+  @get
+  listAppLogs(
+    @doc("Идентификатор приложения")
+    @extension("example", "k3x9q2m7a1bz")
+    @path id: string,
+
+    @doc("Сколько записей вернуть. Целое число вне допустимых значений заменяется ближайшей границей.")
+    @query
+    @extension("example", 50)
+    @minValue(1)
+    @maxValue(200)
+    n?: int32 = 50
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<AppLogEntry[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 502;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 503;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "apps:read",
+  })
+  @doc("""
+Список секретов приложения
+
+Имена заданных секретов приложения: ключей внешних сервисов и секретов подписи вебхуков. Значения не возвращаются.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+""")
+  @route("/{id}/secrets")
+  @get
+  listAppSecrets(
+    @doc("Идентификатор приложения")
+    @extension("example", "k3x9q2m7a1bz")
+    @path id: string
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<string[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 502;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 503;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "apps:write",
+  })
+  @doc("""
+Задание секрета приложения
+
+Создаёт или заменяет секрет. Секрет объявляет манифест приложения: ключ внешнего сервиса платформа сама добавляет в запросы функций к его хосту, а секретом подписи проверяет вызовы вебхука. Код приложения значения не видит.
+
+Имя не из `[A-Z][A-Z0-9_]`, длиннее 64 символов или значение больше 4 КБ отвечает `422` с кодом `invalid`.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+""")
+  @route("/{id}/secrets/{name}")
+  @put
+  setAppSecret(
+    @doc("Идентификатор приложения")
+    @extension("example", "k3x9q2m7a1bz")
+    @path id: string,
+
+    @doc("Имя секрета")
+    @extension("example", "API_KEY")
+    @path name: string,
+
+    @body request: AppSecretRequest
+  ): {
+    @statusCode _: 204;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 502;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 503;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "apps:write",
+  })
+  @doc("""
+Удаление секрета приложения
+
+Удаляет секрет. Удаление секрета, которого нет, не ошибка.
+
+Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+""")
+  @route("/{id}/secrets/{name}")
+  @delete
+  deleteAppSecret(
+    @doc("Идентификатор приложения")
+    @extension("example", "k3x9q2m7a1bz")
+    @path id: string,
+
+    @doc("Имя секрета")
+    @extension("example", "API_KEY")
+    @path name: string
+  ): {
+    @statusCode _: 204;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 502;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 503;
+    @body body: ApiError;
+  };
+}
 
 
 // ============================================================================

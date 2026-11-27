@@ -35,6 +35,7 @@ const TAG_TO_RESOURCE: Record<string, string> = {
 	'Search': 'search',
 	'Security': 'security',
 	'Important messages': 'importantMessage',
+	'Apps': 'app',
 	'Company': 'company',
 };
 

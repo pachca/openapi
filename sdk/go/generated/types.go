@@ -9,6 +9,37 @@ import (
 	"time"
 )
 
+// AppLogKind may hold a value this SDK does not list yet: a response keeps it as is.
+type AppLogKind string
+
+const (
+	AppLogKindFunction AppLogKind = "function" // Вызов функции приложения закончился ошибкой
+	AppLogKindFetch    AppLogKind = "fetch" // Запрос функции во внешнюю сеть
+	AppLogKindPachca   AppLogKind = "pachca" // Запрос к API Пачки
+	AppLogKindWebhook  AppLogKind = "webhook" // Вызов вебхука приложения
+	AppLogKindCsp      AppLogKind = "csp" // Фронт приложения нарушил ограничения браузера
+)
+
+// AppPermissionKind may hold a value this SDK does not list yet: a response keeps it as is.
+type AppPermissionKind string
+
+const (
+	AppPermissionKindBot   AppPermissionKind = "bot" // Право бота приложения
+	AppPermissionKindUser  AppPermissionKind = "user" // Право от имени пользователя
+	AppPermissionKindEvent AppPermissionKind = "event" // Событие Пачки, на которое подписан бот
+	AppPermissionKindNet   AppPermissionKind = "net" // Сеть: хост запросов, хост фронта, вебхук или ключ внешнего сервиса
+	AppPermissionKindWarn  AppPermissionKind = "warn" // Предупреждение, например об опасной комбинации прав
+)
+
+// AppVisibility may hold a value this SDK does not list yet: a response keeps it as is.
+type AppVisibility string
+
+const (
+	AppVisibilityPrivate AppVisibility = "private" // Только автор приложения
+	AppVisibilityLink    AppVisibility = "link" // Любой сотрудник пространства по ссылке, в обзоре приложений его нет
+	AppVisibilityPublic  AppVisibility = "public" // Любой сотрудник пространства по ссылке и в обзоре приложений
+)
+
 // AuditEventKey may hold a value this SDK does not list yet: a response keeps it as is.
 type AuditEventKey string
 
@@ -427,6 +458,8 @@ const (
 	OAuthScopeDraftsWrite            OAuthScope = "drafts:write" // Создание, изменение и удаление черновиков и отложенных сообщений
 	OAuthScopeImportantMessagesRead  OAuthScope = "important_messages:read" // Просмотр важных сообщений
 	OAuthScopeImportantMessagesWrite OAuthScope = "important_messages:write" // Добавление сообщений в важные и удаление из важных
+	OAuthScopeAppsRead               OAuthScope = "apps:read" // Просмотр кастомных приложений, их журнала, исходников и имён секретов
+	OAuthScopeAppsWrite              OAuthScope = "apps:write" // Создание, загрузка версий, изменение и удаление кастомных приложений и их секретов
 )
 
 type OAuthTokenTypeHint string
@@ -591,6 +624,8 @@ const (
 	ValidationErrorCodeViewNotFound               ValidationErrorCode = "view_not_found" // Представление не найдено или принадлежит другому боту
 	ValidationErrorCodeSubmitExpired              ValidationErrorCode = "submit_expired" // Время на ответ об отправке формы истекло или ответ уже был принят
 	ValidationErrorCodeServiceUnavailable         ValidationErrorCode = "service_unavailable" // Сервис временно недоступен, повторите запрос
+	ValidationErrorCodeVersionConflict            ValidationErrorCode = "version_conflict" // Текущая версия приложения не та, от которой сделана загрузка
+	ValidationErrorCodeConsentRequired            ValidationErrorCode = "consent_required" // Права, хосты или события приложения изменились, а загрузка не подтверждает их
 )
 
 // VideoCallEventType may hold a value this SDK does not list yet: a response keeps it as is.
@@ -670,6 +705,93 @@ type ApiErrorItem struct {
 	Code    ValidationErrorCode `json:"code"`
 	Value   any                 `json:"value"`
 	Payload map[string]any      `json:"payload"`
+}
+
+type App struct {
+	ID            string        `json:"id"`
+	Name          string        `json:"name"`
+	Visibility    AppVisibility `json:"visibility"`
+	Version       int32         `json:"version"`
+	CreatedAt     time.Time     `json:"created_at"`
+	Icon          *string       `json:"icon"`
+	BotID         *int64        `json:"bot_id"`
+	AvatarURL     *string       `json:"avatar_url"`
+	CreatedByID   *int64        `json:"created_by_id"`
+	PublishedHash *string       `json:"published_hash"`
+}
+
+type AppCreateRequest struct {
+	Name string  `json:"name"`
+	ID   *string `json:"id,omitempty"`
+}
+
+type AppLogEntry struct {
+	Time    time.Time  `json:"time"`
+	Kind    AppLogKind `json:"kind"`
+	Text    string     `json:"text"`
+	Allowed bool       `json:"allowed"`
+	Reason  *string    `json:"reason,omitempty"`
+}
+
+type AppPermissionItem struct {
+	Kind    AppPermissionKind `json:"kind"`
+	Text    string            `json:"text"`
+	Scope   *string           `json:"scope,omitempty"`
+	New     *bool             `json:"new,omitempty"`
+	Removed *bool             `json:"removed,omitempty"`
+}
+
+type AppRelease struct {
+	Version    int32               `json:"version"`
+	Hash       string              `json:"hash"`
+	Items      []AppPermissionItem `json:"items"`
+	Migrations []string            `json:"migrations"`
+	Warnings   []string            `json:"warnings"`
+}
+
+type AppSecretRequest struct {
+	Value string `json:"value"`
+}
+
+type AppSource struct {
+	Version int32             `json:"version"`
+	Files   map[string]string `json:"files"`
+}
+
+type AppUpdateRequest struct {
+	Name       *string        `json:"name,omitempty"`
+	Icon       *string        `json:"icon,omitempty"`
+	Visibility *AppVisibility `json:"visibility,omitempty"`
+}
+
+type AppVersionRequest struct {
+	Code        string            `json:"code"`
+	Manifest    map[string]any    `json:"manifest"`
+	Schema      map[string]any    `json:"schema"`
+	Functions   map[string]any    `json:"functions"`
+	Static      map[string]string `json:"static"`
+	BaseVersion int32             `json:"base_version"`
+	Source      map[string]string `json:"source,omitempty"`
+	Approve     *bool             `json:"approve,omitempty"`
+	Force       *bool             `json:"force,omitempty"`
+}
+
+func (m AppVersionRequest) MarshalJSON() ([]byte, error) {
+	type Alias AppVersionRequest
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Source != nil {
+		if raw["source"], err = json.Marshal(m.Source); err != nil {
+			return nil, err
+		}
+	}
+	return json.Marshal(raw)
 }
 
 type AuditDetailsBot struct {
@@ -3663,6 +3785,10 @@ func (u AuditDetailsBotScopesValue) MarshalJSON() ([]byte, error) {
 	return []byte("null"), nil
 }
 
+type ListAppLogsParams struct {
+	N *int32
+}
+
 type GetAuditEventsParams struct {
 	StartTime  *time.Time
 	EndTime    *time.Time
@@ -3838,6 +3964,18 @@ type ListUsersParams struct {
 type GetWebhookEventsParams struct {
 	Limit  *int32
 	Cursor *string
+}
+
+type ListAppsResponse struct {
+	Data []App `json:"data"`
+}
+
+type ListAppLogsResponse struct {
+	Data []AppLogEntry `json:"data"`
+}
+
+type ListAppSecretsResponse struct {
+	Data []string `json:"data"`
 }
 
 type GetAuditEventsResponse struct {

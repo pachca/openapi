@@ -5,6 +5,60 @@
       "PachcaClient"
     ]
   },
+  "AppOperations_listApps": {
+    "usage": "response = await client.apps.list_apps()",
+    "output": "ListAppsResponse(data: list[App])"
+  },
+  "AppOperations_getApp": {
+    "usage": "response = await client.apps.get_app(id=\"k3x9q2m7a1bz\")",
+    "output": "App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int | None, version: int, published_hash: str | None, created_at: datetime)"
+  },
+  "AppOperations_listAppLogs": {
+    "usage": "params = ListAppLogsParams(n=50)\nresponse = await client.apps.list_app_logs(id=\"k3x9q2m7a1bz\", params=params)",
+    "output": "ListAppLogsResponse(data: list[AppLogEntry])",
+    "imports": [
+      "ListAppLogsParams"
+    ]
+  },
+  "AppOperations_listAppSecrets": {
+    "usage": "response = await client.apps.list_app_secrets(id=\"k3x9q2m7a1bz\")",
+    "output": "ListAppSecretsResponse(data: list[str])"
+  },
+  "AppOperations_getAppSource": {
+    "usage": "response = await client.apps.get_app_source(id=\"k3x9q2m7a1bz\")",
+    "output": "AppSource(version: int, files: dict[str, str])"
+  },
+  "AppOperations_createApp": {
+    "usage": "request = AppCreateRequest(name=\"Заметки\", id=\"k3x9q2m7a1bz\")\nresponse = await client.apps.create_app(request=request)",
+    "output": "App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int | None, version: int, published_hash: str | None, created_at: datetime)",
+    "imports": [
+      "AppCreateRequest"
+    ]
+  },
+  "AppOperations_createAppVersion": {
+    "usage": "request = AppVersionRequest(\n    code=\"export default {};\",\n    manifest={\"key\": {}},\n    schema={\"key\": {}},\n    functions={\"key\": {}},\n    static={\"key\": \"example\"},\n    source={\"key\": \"example\"},\n    base_version=2,\n    approve=False,\n    force=False\n)\nresponse = await client.apps.create_app_version(id=\"k3x9q2m7a1bz\", request=request)",
+    "output": "AppRelease(version: int, hash: str, items: list[AppPermissionItem(kind: AppPermissionKind, text: str, scope: str | None, new: bool | None, removed: bool | None)], migrations: list[str], warnings: list[str])",
+    "imports": [
+      "AppVersionRequest"
+    ]
+  },
+  "AppOperations_updateApp": {
+    "usage": "request = AppUpdateRequest(\n    name=\"Заметки команды\",\n    icon=\"🗒️\",\n    visibility=AppVisibility.LINK\n)\nresponse = await client.apps.update_app(id=\"k3x9q2m7a1bz\", request=request)",
+    "output": "App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int | None, version: int, published_hash: str | None, created_at: datetime)",
+    "imports": [
+      "AppUpdateRequest",
+      "AppVisibility"
+    ]
+  },
+  "AppOperations_setAppSecret": {
+    "usage": "await client.apps.set_app_secret(id=\"k3x9q2m7a1bz\", name=\"API_KEY\", value=\"sk_live_51Hx\")"
+  },
+  "AppOperations_deleteApp": {
+    "usage": "await client.apps.delete_app(id=\"k3x9q2m7a1bz\")"
+  },
+  "AppOperations_deleteAppSecret": {
+    "usage": "await client.apps.delete_app_secret(id=\"k3x9q2m7a1bz\", name=\"API_KEY\")"
+  },
   "SecurityOperations_getAuditEvents": {
     "usage": "params = GetAuditEventsParams(\n    start_time=datetime.fromisoformat(\"2025-05-01T09:11:00.000+00:00\"),\n    end_time=datetime.fromisoformat(\"2025-05-02T09:11:00.000+00:00\"),\n    event_key=AuditEventKey.USER_LOGIN,\n    actor_id=\"98765\",\n    actor_type=\"User\",\n    entity_id=\"98765\",\n    entity_type=\"User\",\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.security.get_audit_events(params=params)",
     "output": "GetAuditEventsResponse(data: list[AuditEvent], meta: PaginationMeta)",

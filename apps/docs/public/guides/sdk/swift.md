@@ -188,6 +188,17 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.bots.deleteWebhookEvent()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.bots.deleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
+| `client.apps.createApp()` | [Новое приложение](/api/apps/create) |
+| `client.apps.createAppVersion()` | [Загрузка версии](/api/apps/create-version) |
+| `client.apps.listApps()` | [Список приложений](/api/apps/list) |
+| `client.apps.getApp()` | [Информация о приложении](/api/apps/get) |
+| `client.apps.listAppLogs()` | [Журнал приложения](/api/apps/list-logs) |
+| `client.apps.listAppSecrets()` | [Список секретов приложения](/api/apps/list-secrets) |
+| `client.apps.getAppSource()` | [Исходники приложения](/api/apps/get-source) |
+| `client.apps.updateApp()` | [Редактирование приложения](/api/apps/update) |
+| `client.apps.setAppSecret()` | [Задание секрета приложения](/api/apps/set-secret) |
+| `client.apps.deleteApp()` | [Удаление приложения](/api/apps/delete) |
+| `client.apps.deleteAppSecret()` | [Удаление секрета приложения](/api/apps/delete-secret) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |

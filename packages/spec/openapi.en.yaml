@@ -21,9 +21,889 @@ tags:
   - name: Views
   - name: Bots
   - name: Security
+  - name: Apps
   - name: Custom Properties
   - name: Files
 paths:
+  /apps:
+    get:
+      operationId: AppOperations_listApps
+      description: >-
+        List apps
+
+
+        Custom apps of the workspace in the order they were created, in one list without pagination.
+
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the
+        beta program, you can join at https://pachca.com/custom-apps.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/App'
+                description: Response wrapper with data
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:read
+    post:
+      operationId: AppOperations_createApp
+      description: >-
+        New app
+
+
+        Creates an app with no versions and its bot with no scopes. The code is uploaded by [Upload version](POST
+        /apps/{id}/versions), usually with the `npx pachca-app ship` command from the app folder.
+
+
+        A custom `id` that is not 12 characters `[0-9a-z]` or is already taken responds `400` with the `taken` or
+        `invalid` code, and nothing is created. If the apps platform did not respond, the method responds `502`, and
+        neither the bot nor the app remains.
+
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the
+        beta program, you can join at https://pachca.com/custom-apps.
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/App'
+                description: Response wrapper with data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppCreateRequest'
+      x-requirements:
+        scope: apps:write
+  /apps/{id}:
+    get:
+      operationId: AppOperations_getApp
+      description: >-
+        App info
+
+
+        An app of the workspace by its ID. An app of another workspace responds `404`.
+
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the
+        beta program, you can join at https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: App ID
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/App'
+                description: Response wrapper with data
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:read
+    put:
+      operationId: AppOperations_updateApp
+      description: >-
+        Edit app
+
+
+        Changes the name, the icon and the access without a new version. The name changes for the app's bot too. An
+        empty name responds `422` with the `blank` code, an icon longer than 16 characters or with spaces responds `422`
+        with the `invalid` code.
+
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the
+        beta program, you can join at https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: App ID
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/App'
+                description: Response wrapper with data
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppUpdateRequest'
+      x-requirements:
+        scope: apps:write
+    delete:
+      operationId: AppOperations_deleteApp
+      description: >-
+        Delete app
+
+
+        Deletes the app entirely and irreversibly: its versions, database, files, secrets and the app's bot. If the apps
+        platform did not respond, the method responds `502`, nothing is deleted, and the request can be repeated.
+
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the
+        beta program, you can join at https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: App ID
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:write
+  /apps/{id}/logs:
+    get:
+      operationId: AppOperations_listAppLogs
+      description: >-
+        App log
+
+
+        What the app did on the platform: function errors, requests to the network and to the Pachca API, webhook calls,
+        violations of the frontend restrictions. It shows what the platform allowed and what it blocked. Newest records
+        first.
+
+
+        The log is kept in the platform's memory, the last 200 records. After the platform restarts it is empty.
+
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the
+        beta program, you can join at https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: App ID
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+        - name: 'n'
+          in: query
+          required: false
+          description: Number of records to return. An integer outside the allowed range is replaced with the nearest bound.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 200
+            example: 50
+            default: 50
+          example: 50
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AppLogEntry'
+                description: Response wrapper with data
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:read
+  /apps/{id}/secrets:
+    get:
+      operationId: AppOperations_listAppSecrets
+      description: >-
+        List app secrets
+
+
+        Names of the app's secrets that are set: keys of external services and webhook signature secrets. Values are not
+        returned.
+
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the
+        beta program, you can join at https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: App ID
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: string
+                description: Response wrapper with data
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:read
+  /apps/{id}/secrets/{name}:
+    put:
+      operationId: AppOperations_setAppSecret
+      description: >-
+        Set app secret
+
+
+        Creates or replaces a secret. The app manifest declares the secret: the platform adds an external service key to
+        the function requests to its host by itself, and checks webhook calls with a signature secret. The app code does
+        not see the values.
+
+
+        A name not of `[A-Z][A-Z0-9_]`, longer than 64 characters, or a value larger than 4 KB responds `422` with the
+        `invalid` code.
+
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the
+        beta program, you can join at https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: App ID
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+        - name: name
+          in: path
+          required: true
+          description: Secret name
+          schema:
+            type: string
+            example: API_KEY
+          example: API_KEY
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppSecretRequest'
+      x-requirements:
+        scope: apps:write
+    delete:
+      operationId: AppOperations_deleteAppSecret
+      description: >-
+        Delete app secret
+
+
+        Deletes a secret. Deleting a secret that does not exist is not an error.
+
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the
+        beta program, you can join at https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: App ID
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+        - name: name
+          in: path
+          required: true
+          description: Secret name
+          schema:
+            type: string
+            example: API_KEY
+          example: API_KEY
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:write
+  /apps/{id}/source:
+    get:
+      operationId: AppOperations_getAppSource
+      description: >-
+        App source
+
+
+        The source of the current version, uploaded with it. The `npx pachca-app pull` command restores the app folder
+        from it. An app with no versions responds `404`.
+
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the
+        beta program, you can join at https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: App ID
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AppSource'
+                description: Response wrapper with data
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:read
+  /apps/{id}/versions:
+    post:
+      operationId: AppOperations_createAppVersion
+      description: >-
+        Upload version
+
+
+        Uploads a build of the app, and it becomes the current version right away. The build and the request are made by
+        the `npx pachca-app ship` command from the app folder (the `@pachca/app-sdk` package).
+
+
+        The apps platform checks the build, the SDK version, changes of scopes and the database schema against the
+        existing data. The app's bot gets the scopes and the event subscription from the version manifest.
+
+
+        A `409` response uploads nothing. The `version_conflict` code: the current version is not `base_version`, the
+        app was uploaded from another folder, the number of the current version is in `payload.version`. The
+        `consent_required` code: scopes, hosts or events changed and `approve` is not passed, the list of changes is in
+        `payload.items`. The `invalid` code with `409` and `422`: the platform rejected the build or the schema change,
+        the reason is in `message`. A body larger than 32 MB responds `413` with the `too_long` code.
+
+
+        Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the
+        beta program, you can join at https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: App ID
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AppRelease'
+                description: Response wrapper with data
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '413':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppVersionRequest'
+      x-requirements:
+        scope: apps:write
   /audit_events:
     get:
       operationId: SecurityOperations_getAuditEvents
@@ -10552,10 +11432,344 @@ components:
             Additional error data. Content depends on the error code: `{id: number}` — for custom property errors
             (property ID), `{record: {type: string, id: number}, query: string}` — for authorization errors, `{draft_id:
             number}` — when a draft already exists in this chat, `{limit: number, remaining: number, reset_at: string}`
-            — when the daily limit of invitation emails is used up (`reset_at` is when a slot frees up in the window).
-            In most cases `null`.
+            — when the daily limit of invitation emails is used up (`reset_at` is when a slot frees up in the window),
+            `{version: number}` — for `version_conflict` (the number of the current app version), `{hash: string, items:
+            AppPermissionItem[]}` — for `consent_required` (what changed in the scopes). In most cases `null`.
           example: null
       description: Detailed error information
+    App:
+      type: object
+      required:
+        - id
+        - name
+        - icon
+        - bot_id
+        - avatar_url
+        - visibility
+        - created_by_id
+        - version
+        - published_hash
+        - created_at
+      properties:
+        id:
+          type: string
+          description: 'App ID: 12 characters `[0-9a-z]`'
+          example: k3x9q2m7a1bz
+        name:
+          type: string
+          description: App name. It is also the name of the app's bot.
+          example: Notes
+        icon:
+          type: string
+          nullable: true
+          description: 'App icon: one emoji. `null` until set.'
+          example: 📝
+        bot_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: ID of the app's bot. The app writes to chats on its behalf, and the version manifest sets its scopes.
+          example: 1738816
+        avatar_url:
+          type: string
+          nullable: true
+          description: 'App avatar: the avatar of its bot. `null` until set.'
+          example: null
+        visibility:
+          allOf:
+            - $ref: '#/components/schemas/AppVisibility'
+          description: Who can open the app
+          example: private
+        created_by_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: ID of the employee who created the app. `null` for apps created before the field appeared.
+          example: 12
+        version:
+          type: integer
+          format: int32
+          description: >-
+            Number of the current version. The apps platform assigns it on every upload, `0` while there are no
+            versions.
+          example: 3
+        published_hash:
+          type: string
+          nullable: true
+          description: Hash of the current version manifest. `null` while there are no versions.
+          example: 9f2c4e1a7b3d
+        created_at:
+          type: string
+          format: date-time
+          description: App creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          example: '2026-11-20T10:30:00.000Z'
+      description: Custom app
+    AppCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: App name
+          example: Notes
+        id:
+          type: string
+          description: 'Custom app ID: 12 characters `[0-9a-z]`. Generated without the field.'
+          example: k3x9q2m7a1bz
+      description: App creation request
+    AppLogEntry:
+      type: object
+      required:
+        - time
+        - kind
+        - text
+        - allowed
+      properties:
+        time:
+          type: string
+          format: date-time
+          description: Record time (ISO-8601, UTC+0)
+          example: '2026-11-20T10:31:00.000Z'
+        kind:
+          allOf:
+            - $ref: '#/components/schemas/AppLogKind'
+          description: Record kind
+          example: fetch
+        text:
+          type: string
+          description: 'What the app did: a function, a request address or a Pachca API operation'
+          example: GET https://api.example.com/rates
+        allowed:
+          type: boolean
+          description: >-
+            The platform allowed the action and it went through. Always `false` for `function`: records are made only
+            about errors.
+          example: true
+        reason:
+          type: string
+          description: Reason of the refusal, response code or the beginning of an error response
+          example: '200'
+      description: App log record
+    AppLogKind:
+      type: string
+      enum:
+        - function
+        - fetch
+        - pachca
+        - webhook
+        - csp
+      description: Kind of an app log record
+      x-enum-descriptions:
+        function: A call of an app function ended with an error
+        fetch: A function request to the external network
+        pachca: A request to the Pachca API
+        webhook: A call of the app's webhook
+        csp: The app frontend broke the browser restrictions
+    AppPermissionItem:
+      type: object
+      required:
+        - kind
+        - text
+      properties:
+        kind:
+          allOf:
+            - $ref: '#/components/schemas/AppPermissionKind'
+          description: Record kind
+          example: bot
+        text:
+          type: string
+          description: Description for a person
+          example: Send messages
+        scope:
+          type: string
+          description: Scope, host or event
+          example: messages:create
+        new:
+          type: boolean
+          description: Appeared in this version
+          example: true
+        removed:
+          type: boolean
+          description: Was in the previous version, not in this one
+          example: false
+      description: A scope, host or event of the app shown to a person, marked relative to the previous version
+    AppPermissionKind:
+      type: string
+      enum:
+        - bot
+        - user
+        - event
+        - net
+        - warn
+      description: Kind of a record in the app's list of scopes
+      x-enum-descriptions:
+        bot: A scope of the app's bot
+        user: A scope on behalf of the user
+        event: A Pachca event the bot is subscribed to
+        net: 'Network: a request host, a frontend host, a webhook or an external service key'
+        warn: A warning, for example about a dangerous combination of scopes
+    AppRelease:
+      type: object
+      required:
+        - version
+        - hash
+        - items
+        - migrations
+        - warnings
+      properties:
+        version:
+          type: integer
+          format: int32
+          description: Number of the new current version
+          example: 3
+        hash:
+          type: string
+          description: Hash of the version manifest
+          example: 9f2c4e1a7b3d
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppPermissionItem'
+          description: Scopes, hosts and events of the version marked relative to the previous one
+        migrations:
+          type: array
+          items:
+            type: string
+          description: What changed in the app database, lines to show a person. Empty if the schema did not change.
+          example:
+            - Table notes created
+        warnings:
+          type: array
+          items:
+            type: string
+          description: Warnings to the author, for example about a build on a protocol version that is going out of date
+          example: []
+      description: 'Uploaded version: it is already current'
+    AppSecretRequest:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: string
+          description: Secret value, up to 4 KB
+          example: sk_live_51Hx
+      description: App secret
+    AppSource:
+      type: object
+      required:
+        - version
+        - files
+      properties:
+        version:
+          type: integer
+          format: int32
+          description: Version number
+          example: 3
+        files:
+          type: object
+          additionalProperties:
+            type: string
+          description: >-
+            Files of the app folder: relative path and content in base64. Empty if the version was uploaded without
+            source.
+          example:
+            schema.ts: aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0=
+      description: Source of the current version
+    AppUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: App name. It changes for the app's bot too.
+          example: Team notes
+        icon:
+          type: string
+          description: 'Icon: one emoji, up to 16 characters without spaces. An empty string removes the icon.'
+          example: 🗒️
+        visibility:
+          allOf:
+            - $ref: '#/components/schemas/AppVisibility'
+          description: Who can open the app
+          example: link
+      description: App update request
+    AppVersionRequest:
+      type: object
+      required:
+        - code
+        - manifest
+        - schema
+        - functions
+        - static
+        - base_version
+      properties:
+        code:
+          type: string
+          description: Code of the app functions (`dist/app.js`)
+          example: export default {};
+        manifest:
+          type: object
+          additionalProperties: {}
+          description: 'Build manifest (`dist/manifest.json`): scopes, hosts, webhooks, protocol and SDK versions'
+          example:
+            protocol: 3
+            sdk: 2026.12.0
+        schema:
+          type: object
+          additionalProperties: {}
+          description: Database schema (`dist/schema.json`)
+          example:
+            tables: {}
+        functions:
+          type: object
+          additionalProperties: {}
+          description: Function descriptions (`dist/functions.json`)
+          example: {}
+        static:
+          type: object
+          additionalProperties:
+            type: string
+          description: 'Frontend static files (`dist/static`): relative path and content in base64'
+          example:
+            index.html: PCFkb2N0eXBlIGh0bWw+
+        source:
+          type: object
+          additionalProperties:
+            type: string
+          description: >-
+            Source of the app folder: relative path and content in base64, up to 5 MB. The platform keeps it with the
+            version and returns it with [App source](GET /apps/{id}/source).
+          example:
+            schema.ts: aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0=
+        base_version:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Number of the version the upload is made from, `0` for the first one
+          example: 2
+        approve:
+          type: boolean
+          description: A person saw and approved the changes of scopes, hosts and events
+          example: false
+        force:
+          type: boolean
+          description: Upload even if the current version is not `base_version`. Changes made from another folder are lost.
+          example: false
+      description: 'App version: the build from `dist` and the source of the folder'
+    AppVisibility:
+      type: string
+      enum:
+        - private
+        - link
+        - public
+      description: Who can open the app
+      x-enum-descriptions:
+        private: Only the app author
+        link: Any employee of the workspace by link, the app is not in the app overview
+        public: Any employee of the workspace by link and in the app overview
     AuditDetailsBot:
       type: object
       required:
@@ -15869,6 +17083,8 @@ components:
         - drafts:write
         - important_messages:read
         - important_messages:write
+        - apps:read
+        - apps:write
       description: OAuth token access scope
       x-scope-roles:
         chats_read:
@@ -16179,6 +17395,12 @@ components:
           - admin
           - user
           - multi_guest
+        apps_read:
+          - owner
+          - admin
+        apps_write:
+          - owner
+          - admin
       x-enum-descriptions:
         chats_read: View chats and chat list
         chats_create: Create new chats
@@ -16243,6 +17465,8 @@ components:
         drafts_write: Create, edit, and delete drafts and scheduled messages
         important_messages_read: View important messages
         important_messages_write: Add messages to important and remove them from it
+        apps_read: View custom apps, their log, source and secret names
+        apps_write: Create, upload versions of, edit and delete custom apps and their secrets
     OAuthToken:
       type: object
       required:
@@ -17716,6 +18940,8 @@ components:
         - view_not_found
         - submit_expired
         - service_unavailable
+        - version_conflict
+        - consent_required
       description: Validation error codes
       x-enum-descriptions:
         blank: Required field (cannot be empty)
@@ -17792,6 +19018,8 @@ components:
         blocked_by_sso: >-
           The field is filled in from SSO or is needed for signing in through SSO, and the API cannot change it (details
           come in the message field)
+        version_conflict: The current version of the app is not the one the upload was made from
+        consent_required: Scopes, hosts or events of the app changed, and the upload does not approve them
     VideoCallEventType:
       type: string
       enum:

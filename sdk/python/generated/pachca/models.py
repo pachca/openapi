@@ -36,6 +36,34 @@ class OpenStrEnum(StrEnum):
         return self._value_ in type(self)._value2member_map_
 
 
+class AppLogKind(OpenStrEnum):
+    """Вид записи журнала приложения"""
+
+    FUNCTION = "function"  # Вызов функции приложения закончился ошибкой
+    FETCH = "fetch"  # Запрос функции во внешнюю сеть
+    PACHCA = "pachca"  # Запрос к API Пачки
+    WEBHOOK = "webhook"  # Вызов вебхука приложения
+    CSP = "csp"  # Фронт приложения нарушил ограничения браузера
+
+
+class AppPermissionKind(OpenStrEnum):
+    """Вид записи в списке прав приложения"""
+
+    BOT = "bot"  # Право бота приложения
+    USER = "user"  # Право от имени пользователя
+    EVENT = "event"  # Событие Пачки, на которое подписан бот
+    NET = "net"  # Сеть: хост запросов, хост фронта, вебхук или ключ внешнего сервиса
+    WARN = "warn"  # Предупреждение, например об опасной комбинации прав
+
+
+class AppVisibility(OpenStrEnum):
+    """Кто может открыть приложение"""
+
+    PRIVATE = "private"  # Только автор приложения
+    LINK = "link"  # Любой сотрудник пространства по ссылке, в обзоре приложений его нет
+    PUBLIC = "public"  # Любой сотрудник пространства по ссылке и в обзоре приложений
+
+
 class AuditEventKey(OpenStrEnum):
     """Тип аудит-события"""
 
@@ -430,6 +458,8 @@ class OAuthScope(OpenStrEnum):
     DRAFTS_WRITE = "drafts:write"  # Создание, изменение и удаление черновиков и отложенных сообщений
     IMPORTANT_MESSAGES_READ = "important_messages:read"  # Просмотр важных сообщений
     IMPORTANT_MESSAGES_WRITE = "important_messages:write"  # Добавление сообщений в важные и удаление из важных
+    APPS_READ = "apps:read"  # Просмотр кастомных приложений, их журнала, исходников и имён секретов
+    APPS_WRITE = "apps:write"  # Создание, загрузка версий, изменение и удаление кастомных приложений и их секретов
 
 
 class OAuthTokenTypeHint(StrEnum):
@@ -588,6 +618,8 @@ class ValidationErrorCode(OpenStrEnum):
     VIEW_NOT_FOUND = "view_not_found"  # Представление не найдено или принадлежит другому боту
     SUBMIT_EXPIRED = "submit_expired"  # Время на ответ об отправке формы истекло или ответ уже был принят
     SERVICE_UNAVAILABLE = "service_unavailable"  # Сервис временно недоступен, повторите запрос
+    VERSION_CONFLICT = "version_conflict"  # Текущая версия приложения не та, от которой сделана загрузка
+    CONSENT_REQUIRED = "consent_required"  # Права, хосты или события приложения изменились, а загрузка не подтверждает их
 
 
 class VideoCallEventType(OpenStrEnum):
@@ -660,6 +692,84 @@ class ApiErrorItem:
     code: ValidationErrorCode
     value: Any | None = None
     payload: dict[str, Any] | None = None
+
+
+@dataclass
+class App:
+    id: str
+    name: str
+    visibility: AppVisibility
+    version: int
+    created_at: datetime
+    icon: str | None = None
+    bot_id: int | None = None
+    avatar_url: str | None = None
+    created_by_id: int | None = None
+    published_hash: str | None = None
+
+
+@dataclass
+class AppCreateRequest:
+    name: str
+    id: str | None = None
+
+
+@dataclass
+class AppLogEntry:
+    time: datetime
+    kind: AppLogKind
+    text: str
+    allowed: bool
+    reason: str | None = None
+
+
+@dataclass
+class AppPermissionItem:
+    kind: AppPermissionKind
+    text: str
+    scope: str | None = None
+    new: bool | None = None
+    removed: bool | None = None
+
+
+@dataclass
+class AppRelease:
+    version: int
+    hash: str
+    items: list[AppPermissionItem]
+    migrations: list[str]
+    warnings: list[str]
+
+
+@dataclass
+class AppSecretRequest:
+    value: str
+
+
+@dataclass
+class AppSource:
+    version: int
+    files: dict[str, str]
+
+
+@dataclass
+class AppUpdateRequest:
+    name: str | None = None
+    icon: str | None = None
+    visibility: AppVisibility | None = None
+
+
+@dataclass
+class AppVersionRequest:
+    code: str
+    manifest: dict[str, Any]
+    schema: dict[str, Any]
+    functions: dict[str, Any]
+    static: dict[str, str]
+    base_version: int
+    source: dict[str, str] | None = None
+    approve: bool | None = None
+    force: bool | None = None
 
 
 @dataclass
@@ -2407,6 +2517,11 @@ WebhookPayloadUnion = Union[MessageWebhookPayload, ReactionWebhookPayload, Butto
 
 
 @dataclass
+class ListAppLogsParams:
+    n: int | None = None
+
+
+@dataclass
 class GetAuditEventsParams:
     start_time: datetime | None = None
     end_time: datetime | None = None
@@ -2606,6 +2721,21 @@ class ListUsersParams:
 class GetWebhookEventsParams:
     limit: int | None = None
     cursor: str | None = None
+
+
+@dataclass
+class ListAppsResponse:
+    data: list[App]
+
+
+@dataclass
+class ListAppLogsResponse:
+    data: list[AppLogEntry]
+
+
+@dataclass
+class ListAppSecretsResponse:
+    data: list[str]
 
 
 @dataclass

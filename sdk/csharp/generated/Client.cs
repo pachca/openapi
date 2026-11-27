@@ -15,6 +15,282 @@ using System.Runtime.CompilerServices;
 #pragma warning disable CS1998
 namespace Pachca.Sdk;
 
+public class AppsService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListAppsResponse> ListAppsAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Apps.listApps is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<App> GetAppAsync(string id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Apps.getApp is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<ListAppLogsResponse> ListAppLogsAsync(
+        string id,
+        int? n = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Apps.listAppLogs is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<ListAppSecretsResponse> ListAppSecretsAsync(string id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Apps.listAppSecrets is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<AppSource> GetAppSourceAsync(string id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Apps.getAppSource is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<App> CreateAppAsync(AppCreateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Apps.createApp is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<AppRelease> CreateAppVersionAsync(
+        string id,
+        AppVersionRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Apps.createAppVersion is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<App> UpdateAppAsync(
+        string id,
+        AppUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Apps.updateApp is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task SetAppSecretAsync(
+        string id,
+        string name,
+        string value,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Apps.setAppSecret is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteAppAsync(string id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Apps.deleteApp is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteAppSecretAsync(
+        string id,
+        string name,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Apps.deleteAppSecret is not implemented");
+    }
+}
+
+public sealed class AppsServiceImpl : AppsService
+{
+    private readonly string _baseUrl;
+    private readonly HttpClient _client;
+
+    internal AppsServiceImpl(string baseUrl, HttpClient client)
+    {
+        _baseUrl = baseUrl;
+        _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task<ListAppsResponse> ListAppsAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/apps";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListAppsResponse>(json);
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<App> GetAppAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/apps/{id}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AppDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<ListAppLogsResponse> ListAppLogsAsync(
+        string id,
+        int? n = null,
+        CancellationToken cancellationToken = default)
+    {
+        var queryParts = new List<string>();
+        if (n != null)
+            queryParts.Add($"n={Uri.EscapeDataString(n.Value.ToString()!)}");
+        var url = $"{_baseUrl}/apps/{id}/logs" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListAppLogsResponse>(json);
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<ListAppSecretsResponse> ListAppSecretsAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/apps/{id}/secrets";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListAppSecretsResponse>(json);
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<AppSource> GetAppSourceAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/apps/{id}/source";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AppSourceDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<App> CreateAppAsync(AppCreateRequest request, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/apps";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 201:
+                return PachcaUtils.Deserialize<AppDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<AppRelease> CreateAppVersionAsync(
+        string id,
+        AppVersionRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/apps/{id}/versions";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AppReleaseDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<App> UpdateAppAsync(
+        string id,
+        AppUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/apps/{id}";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AppDataWrapper>(json).Data;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task SetAppSecretAsync(
+        string id,
+        string name,
+        string value,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/apps/{id}/secrets/{name}";
+        using var request = new HttpRequestMessage(HttpMethod.Put, url);
+        var body = new AppSecretRequest { Value = value };
+        request.Content = new StringContent(PachcaUtils.Serialize(body), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task DeleteAppAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/apps/{id}";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task DeleteAppSecretAsync(
+        string id,
+        string name,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/apps/{id}/secrets/{name}";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            default:
+                throw PachcaUtils.ErrorFromResponse((int)response.StatusCode, json);
+        }
+    }
+}
+
 public class SecurityService
 {
 
@@ -4281,6 +4557,7 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient? _client;
 
+    public AppsService Apps { get; }
     public BotsService Bots { get; }
     public ChatsService Chats { get; }
     public CommonService Common { get; }
@@ -4304,8 +4581,9 @@ public sealed class PachcaClient : IDisposable
     public UsersService Users { get; }
     public ViewsService Views { get; }
 
-    private PachcaClient(BotsService bots, ChatsService chats, CommonService common, CompanyService company, CustomPropertiesService customProperties, DraftsService drafts, FilesService files, GroupTagsService groupTags, ImportantMessagesService importantMessages, LinkPreviewsService linkPreviews, MembersService members, MessagesService messages, OAuthService oauth, ProfileService profile, ReactionsService reactions, ReadMembersService readMembers, SearchService search, SecurityService security, TasksService tasks, ThreadsService threads, UsersService users, ViewsService views)
+    private PachcaClient(AppsService apps, BotsService bots, ChatsService chats, CommonService common, CompanyService company, CustomPropertiesService customProperties, DraftsService drafts, FilesService files, GroupTagsService groupTags, ImportantMessagesService importantMessages, LinkPreviewsService linkPreviews, MembersService members, MessagesService messages, OAuthService oauth, ProfileService profile, ReactionsService reactions, ReadMembersService readMembers, SearchService search, SecurityService security, TasksService tasks, ThreadsService threads, UsersService users, ViewsService views)
     {
+        Apps = apps;
         Bots = bots;
         Chats = chats;
         Common = common;
@@ -4330,7 +4608,7 @@ public sealed class PachcaClient : IDisposable
         Views = views;
     }
 
-    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CompanyService? company = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, AppsService? apps = null, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CompanyService? company = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
         var handler = new SocketsHttpHandler
         {
@@ -4340,6 +4618,7 @@ public sealed class PachcaClient : IDisposable
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
+        Apps = apps ?? new AppsServiceImpl(baseUrl, _client);
         Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
         Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
         Common = common ?? new CommonServiceImpl(baseUrl, _client);
@@ -4364,10 +4643,11 @@ public sealed class PachcaClient : IDisposable
         Views = views ?? new ViewsServiceImpl(baseUrl, _client);
     }
 
-    public PachcaClient(string baseUrl, HttpClient client, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CompanyService? company = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public PachcaClient(string baseUrl, HttpClient client, AppsService? apps = null, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CompanyService? company = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
         _client = client;
 
+        Apps = apps ?? new AppsServiceImpl(baseUrl, _client);
         Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
         Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
         Common = common ?? new CommonServiceImpl(baseUrl, _client);
@@ -4392,9 +4672,9 @@ public sealed class PachcaClient : IDisposable
         Views = views ?? new ViewsServiceImpl(baseUrl, _client);
     }
 
-    public static PachcaClient Stub(BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CompanyService? company = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public static PachcaClient Stub(AppsService? apps = null, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CompanyService? company = null, CustomPropertiesService? customProperties = null, DraftsService? drafts = null, FilesService? files = null, GroupTagsService? groupTags = null, ImportantMessagesService? importantMessages = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
-        return new PachcaClient(bots ?? new BotsService(), chats ?? new ChatsService(), common ?? new CommonService(), company ?? new CompanyService(), customProperties ?? new CustomPropertiesService(), drafts ?? new DraftsService(), files ?? new FilesService(), groupTags ?? new GroupTagsService(), importantMessages ?? new ImportantMessagesService(), linkPreviews ?? new LinkPreviewsService(), members ?? new MembersService(), messages ?? new MessagesService(), oauth ?? new OAuthService(), profile ?? new ProfileService(), reactions ?? new ReactionsService(), readMembers ?? new ReadMembersService(), search ?? new SearchService(), security ?? new SecurityService(), tasks ?? new TasksService(), threads ?? new ThreadsService(), users ?? new UsersService(), views ?? new ViewsService());
+        return new PachcaClient(apps ?? new AppsService(), bots ?? new BotsService(), chats ?? new ChatsService(), common ?? new CommonService(), company ?? new CompanyService(), customProperties ?? new CustomPropertiesService(), drafts ?? new DraftsService(), files ?? new FilesService(), groupTags ?? new GroupTagsService(), importantMessages ?? new ImportantMessagesService(), linkPreviews ?? new LinkPreviewsService(), members ?? new MembersService(), messages ?? new MessagesService(), oauth ?? new OAuthService(), profile ?? new ProfileService(), reactions ?? new ReactionsService(), readMembers ?? new ReadMembersService(), search ?? new SearchService(), security ?? new SecurityService(), tasks ?? new TasksService(), threads ?? new ThreadsService(), users ?? new UsersService(), views ?? new ViewsService());
     }
 
     public void Dispose()

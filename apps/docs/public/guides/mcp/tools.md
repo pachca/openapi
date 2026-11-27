@@ -153,6 +153,15 @@
 | `pachca_download_file` | [Скачивание файла](/api/files/get) | Все | Чтение |
 | `pachca_get_upload_params` | [Получение подписи, ключа и других параметров](/api/files/uploads) | Все | Изменение |
 | `pachca_list_custom_fields` | [Список дополнительных полей](/api/custom-properties/list) | Все | Чтение |
+| `pachca_list_apps` | [Список приложений](/api/apps/list) | Владелец, администратор | Чтение |
+| `pachca_create_app` | [Новое приложение](/api/apps/create) | Владелец, администратор | Опасное изменение |
+| `pachca_get_app` | [Информация о приложении](/api/apps/get) | Владелец, администратор | Чтение |
+| `pachca_update_app` | [Редактирование приложения](/api/apps/update) | Владелец, администратор | Опасное изменение |
+| `pachca_delete_app` | [Удаление приложения](/api/apps/delete) | Владелец, администратор | Опасное изменение |
+| `pachca_list_app_logs` | [Журнал приложения](/api/apps/list-logs) | Владелец, администратор | Чтение |
+| `pachca_list_app_secrets` | [Список секретов приложения](/api/apps/list-secrets) | Владелец, администратор | Чтение |
+| `pachca_set_app_secret` | [Задание секрета приложения](/api/apps/set-secret) | Владелец, администратор | Опасное изменение |
+| `pachca_delete_app_secret` | [Удаление секрета приложения](/api/apps/delete-secret) | Владелец, администратор | Опасное изменение |
 
 
 ## Манифест инструментов

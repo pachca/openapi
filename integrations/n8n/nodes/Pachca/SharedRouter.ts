@@ -103,6 +103,89 @@ const V1_OP_MAP: Record<string, Record<string, string>> = {
 // ============================================================================
 
 const ROUTES: Record<string, Record<string, RouteConfig>> = {
+	app: {
+		get: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/apps',
+		},
+		create: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/apps',
+			bodyMap: [
+				{ api: 'name', n8n: 'name' },
+			],
+			optionalBodyMap: [
+				{ api: 'id', n8n: 'id' },
+			],
+		},
+		get: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/apps/{id}',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+		},
+		update: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/apps/{id}',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+			optionalBodyMap: [
+				{ api: 'name', n8n: 'name' },
+				{ api: 'icon', n8n: 'icon' },
+				{ api: 'visibility', n8n: 'visibility' },
+			],
+		},
+		delete: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/apps/{id}',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+		},
+		getLogs: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/apps/{id}/logs',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+			queryMap: [{ api: 'n', n8n: 'n' }],
+		},
+		getSecrets: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/apps/{id}/secrets',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+		},
+		updateSecrets: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/apps/{id}/secrets/{name}',
+			pathParams: [{ api: 'id', n8n: 'id' }, { api: 'name', n8n: 'name' }],
+			bodyMap: [
+				{ api: 'value', n8n: 'value' },
+			],
+		},
+		removeSecrets: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/apps/{id}/secrets/{name}',
+			pathParams: [{ api: 'id', n8n: 'id' }, { api: 'name', n8n: 'name' }],
+		},
+		getSource: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/apps/{id}/source',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+		},
+		addVersions: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/apps/{id}/versions',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+			bodyMap: [
+				{ api: 'code', n8n: 'code' },
+				{ api: 'manifest', n8n: 'manifest', isJson: true },
+				{ api: 'schema', n8n: 'schema', isJson: true },
+				{ api: 'functions', n8n: 'functions', isJson: true },
+				{ api: 'static', n8n: 'static', isJson: true },
+				{ api: 'base_version', n8n: 'baseVersion' },
+			],
+			optionalBodyMap: [
+				{ api: 'source', n8n: 'source', isJson: true },
+				{ api: 'approve', n8n: 'approve' },
+				{ api: 'force', n8n: 'force' },
+			],
+		},
+	},
 	security: {
 		getAll: {
 			method: 'GET' as IHttpRequestMethods,

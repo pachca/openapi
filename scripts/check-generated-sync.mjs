@@ -8,6 +8,7 @@
 //   - packages/spec/typespec.tsp           → packages/spec/openapi.yaml
 //   - packages/spec/mcp-manifest{,.schema}.json
 //                                          → packages/mcp-manifest/ (npm copies)
+//   - packages/spec/openapi.yaml           → packages/app-sdk/src/generated/**
 //   - packages/cli/src/data/changelog.json → packages/cli/CHANGELOG.md
 //   - apps/docs/content/**.mdx + apps/docs/data/releases.json
 //                                          → apps/docs/public/**, llms*.txt
@@ -53,6 +54,8 @@ const GENERATED_PATHS = [
   // CLI
   'packages/cli/CHANGELOG.md',
   'packages/cli/oclif.manifest.json',
+  // App SDK: ctx.pachca types, the platform's method table and scopes
+  'packages/app-sdk/src/generated/**',
   // Docs — root + agent indices
   'AGENTS.md',
   'plugins/pachca/evals/mocks/pachca/_tools.json',
@@ -87,7 +90,7 @@ function sh(cmd) {
 // targets (C#, Go, Kotlin, Python, n8n) doesn't affect any path in
 // GENERATED_PATHS, and tying our sync check to those toolchains makes the
 // gate flaky for reasons unrelated to "is the generator output in sync".
-const BUILD_FILTERS = ['@pachca/spec', '@pachca/mcp-manifest', '@pachca/cli', '@pachca/docs'];
+const BUILD_FILTERS = ['@pachca/spec', '@pachca/mcp-manifest', '@pachca/cli', '@pachca/docs', '@pachca/app-sdk'];
 
 console.error('[check-generated-sync] regenerating artefacts via `bun turbo build`…');
 try {

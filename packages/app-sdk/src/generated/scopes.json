@@ -1,0 +1,373 @@
+{
+ "chats:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "chats:create": [
+  "owner",
+  "admin",
+  "user",
+  "bot"
+ ],
+ "chats:update": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "chats:mark_unread": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "chats:mark_read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "chats:archive": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "chats:leave": [
+  "owner",
+  "admin",
+  "user",
+  "bot"
+ ],
+ "chat_members:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "chat_members:write": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "chat_exports:read": [
+  "owner"
+ ],
+ "chat_exports:write": [
+  "owner"
+ ],
+ "messages:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "messages:create": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "messages:update": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "messages:delete": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "reactions:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "reactions:write": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "pins:write": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "threads:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "threads:create": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "link_previews:write": [
+  "owner",
+  "admin",
+  "user",
+  "bot"
+ ],
+ "users:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "users:create": [
+  "owner",
+  "admin"
+ ],
+ "users:update": [
+  "owner",
+  "admin"
+ ],
+ "users:delete": [
+  "owner",
+  "admin"
+ ],
+ "group_tags:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "group_tags:write": [
+  "owner",
+  "admin"
+ ],
+ "bots:read": [
+  "owner",
+  "admin",
+  "user"
+ ],
+ "bots:write": [
+  "owner",
+  "admin",
+  "user"
+ ],
+ "bot_self:webhook:write": [
+  "bot"
+ ],
+ "bot_self:write": [
+  "bot"
+ ],
+ "profile:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "profile:write": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest"
+ ],
+ "profile_status:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "profile_status:write": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "profile_avatar:write": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "user_status:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "user_status:write": [
+  "owner",
+  "admin"
+ ],
+ "user_avatar:write": [
+  "owner",
+  "admin"
+ ],
+ "custom_properties:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "company:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "company:write": [
+  "owner",
+  "admin"
+ ],
+ "invite_links:write": [
+  "owner",
+  "admin"
+ ],
+ "audit_events:read": [
+  "owner"
+ ],
+ "company_chats:read": [
+  "owner"
+ ],
+ "company_bots:read": [
+  "owner"
+ ],
+ "company_messages:read": [
+  "owner"
+ ],
+ "tasks:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "tasks:create": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "tasks:update": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "tasks:delete": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "files:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "uploads:write": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "views:write": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "webhooks:events:read": [
+  "owner",
+  "admin",
+  "user",
+  "bot"
+ ],
+ "webhooks:events:delete": [
+  "owner",
+  "admin",
+  "user",
+  "bot"
+ ],
+ "search:users": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "search:chats": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "search:messages": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest",
+  "bot"
+ ],
+ "drafts:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest"
+ ],
+ "drafts:write": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest"
+ ],
+ "important_messages:read": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest"
+ ],
+ "important_messages:write": [
+  "owner",
+  "admin",
+  "user",
+  "multi_guest"
+ ]
+}

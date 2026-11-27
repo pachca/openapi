@@ -1,0 +1,14 @@
+{
+  "_comment": "Имя функции в ссылке (`ref._name`): api.<модуль>.<функция> даёт \"<модуль>.<функция>\", так его ищут шлюз и /_fn/<имя>. Встроенные функции платформы с видом. Изменение требует подъёма версии протокола, см. contract/README.md.",
+  "refs": [
+    { "path": ["tasks", "list"], "name": "tasks.list" },
+    { "path": ["mail", "send"], "name": "mail.send" }
+  ],
+  "builtins": {
+    "_jobs.get": "query",
+    "_jobs.cancel": "mutation",
+    "_files.createUpload": "action",
+    "_files.createTemporary": "action",
+    "_files.downloadUrl": "action"
+  }
+}

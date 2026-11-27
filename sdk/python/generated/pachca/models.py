@@ -620,6 +620,7 @@ class ValidationErrorCode(OpenStrEnum):
     SERVICE_UNAVAILABLE = "service_unavailable"  # Сервис временно недоступен, повторите запрос
     VERSION_CONFLICT = "version_conflict"  # Текущая версия приложения не та, от которой сделана загрузка
     CONSENT_REQUIRED = "consent_required"  # Права, хосты или события приложения изменились, а загрузка не подтверждает их
+    SDK_OUTDATED = "sdk_outdated"  # Приложение собрано на версии `@pachca/app-sdk`, которую платформа не принимает: текущая версия и команда обновления — в `payload`
 
 
 class VideoCallEventType(OpenStrEnum):

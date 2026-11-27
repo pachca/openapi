@@ -2240,11 +2240,13 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
     case versionConflict
     /// Права, хосты или события приложения изменились, а загрузка не подтверждает их
     case consentRequired
+    /// Приложение собрано на версии `@pachca/app-sdk`, которую платформа не принимает: текущая версия и команда обновления — в `payload`
+    case sdkOutdated
     /// A value this SDK version does not list yet
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [ValidationErrorCode] = [.blank, .tooLong, .invalid, .inclusion, .exclusion, .taken, .wrongEmoji, .notFound, .alreadyExists, .personalChat, .displayedError, .notAuthorized, .invalidDateRange, .invalidWebhookUrl, .rateLimit, .licensesLimit, .userLimit, .uniqueLimit, .generalLimit, .unhandled, .triggerNotFound, .triggerExpired, .required, .`in`, .notApplicable, .selfUpdate, .ownerProtected, .alreadyAssigned, .nextSendAtInvalid, .scheduleInvalid, .scheduleEndDateInvalid, .scheduledMessagesLimit, .draftTypeChangeForbidden, .confidentialDownloadDenied, .decryptionFailed, .botAddDenied, .singleChatBotOccupied, .singleChatBotTagDenied, .restrictedBotTagDenied, .botChangedConcurrently, .timeout, .dailyInvitesLimit, .webhookUrlInvalid, .webhookUrlUnresolved, .webhookUrlForbidden, .blockedBySso, .forbidden, .permissionDenied, .accessDenied, .wrongParams, .paymentRequired, .minLength, .maxLength, .useOfSystemWords, .exportFileNotFound, .cannotKickOwner, .pinFailed, .messageDeleted, .threadMessage, .viewNotFound, .submitExpired, .serviceUnavailable, .versionConflict, .consentRequired]
+    public static let allCases: [ValidationErrorCode] = [.blank, .tooLong, .invalid, .inclusion, .exclusion, .taken, .wrongEmoji, .notFound, .alreadyExists, .personalChat, .displayedError, .notAuthorized, .invalidDateRange, .invalidWebhookUrl, .rateLimit, .licensesLimit, .userLimit, .uniqueLimit, .generalLimit, .unhandled, .triggerNotFound, .triggerExpired, .required, .`in`, .notApplicable, .selfUpdate, .ownerProtected, .alreadyAssigned, .nextSendAtInvalid, .scheduleInvalid, .scheduleEndDateInvalid, .scheduledMessagesLimit, .draftTypeChangeForbidden, .confidentialDownloadDenied, .decryptionFailed, .botAddDenied, .singleChatBotOccupied, .singleChatBotTagDenied, .restrictedBotTagDenied, .botChangedConcurrently, .timeout, .dailyInvitesLimit, .webhookUrlInvalid, .webhookUrlUnresolved, .webhookUrlForbidden, .blockedBySso, .forbidden, .permissionDenied, .accessDenied, .wrongParams, .paymentRequired, .minLength, .maxLength, .useOfSystemWords, .exportFileNotFound, .cannotKickOwner, .pinFailed, .messageDeleted, .threadMessage, .viewNotFound, .submitExpired, .serviceUnavailable, .versionConflict, .consentRequired, .sdkOutdated]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -2312,6 +2314,7 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
         case "service_unavailable": self = .serviceUnavailable
         case "version_conflict": self = .versionConflict
         case "consent_required": self = .consentRequired
+        case "sdk_outdated": self = .sdkOutdated
         default: self = .unknown(rawValue)
         }
     }
@@ -2386,6 +2389,7 @@ public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterab
         case .serviceUnavailable: return "service_unavailable"
         case .versionConflict: return "version_conflict"
         case .consentRequired: return "consent_required"
+        case .sdkOutdated: return "sdk_outdated"
         case .unknown(let value): return value
         }
     }

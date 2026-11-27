@@ -93,6 +93,10 @@ const conflictText = (app: string, base: number, current?: number) =>
   `Скачайте текущую версию в новую папку (npx pachca-app pull ../<папка> --app ${app}), перенесите туда свои изменения и загрузите оттуда. ` +
   'Загрузить поверх (--force) можно только по решению человека: чужие изменения пропадут';
 
+// Платформа не принимает версию SDK этой папки: одна команда обновления, дальше тот же ship.
+const sdkText = (message: string, command?: string) =>
+  command ? `${message}\n\n  ${command}\n  npx pachca-app ship` : message;
+
 /**
  * Загружает `dist` с исходниками папки, версия сразу становится текущей. Изменились права, хосты или события: загрузка
  * без подтверждения ничего не меняет, человека спрашиваем в терминале, программе нужен --approve-consent-screen.
@@ -110,6 +114,7 @@ async function upload(io: Io, a: Api, app: string, opts: ShipOptions): Promise<R
   } catch (e) {
     if (!(e instanceof ApiError)) throw e;
     if (e.code === 'version_conflict') throw new CliError(conflictText(app, base, (e.payload as { version?: number } | undefined)?.version));
+    if (e.code === 'sdk_outdated') throw new CliError(sdkText(e.message, (e.payload as { command?: string } | undefined)?.command));
     if (e.code !== 'consent_required') throw e;
     io.err(`  ${c.cyan('!')} ${'Права'.padEnd(14)}изменились, приложение сможет:\n`);
     for (const i of (e.payload as { items?: Item[] } | undefined)?.items ?? []) io.err(`    ${c.dim('·')} ${itemLine(io, i)}\n`);

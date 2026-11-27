@@ -103,6 +103,20 @@ describe('ship', () => {
     expect(stateOf(dir).production!.version).toBe(2);
   });
 
+  test('платформа не принимает версию SDK: sdk_outdated и команда обновления, ничего не загружено', async () => {
+    api.sdk = '2099.1.0';
+    try {
+      const r = await run(['ship', '--force']);
+      expect(r.code).toBe(1);
+      expect(r.stderr).toContain('платформа принимает 2099.1.0');
+      expect(r.stderr).toContain('npm i @pachca/app-sdk@2099.1.0 @pachca/app-react@2099.1.0');
+      expect(r.stderr).toContain('npx pachca-app ship');
+      expect(stateOf(dir).production!.version).toBe(2);
+    } finally {
+      api.sdk = undefined;
+    }
+  });
+
   test('--force загружает поверх', async () => {
     const r = await run(['ship', '--force']);
     expect(r.code).toBe(0);

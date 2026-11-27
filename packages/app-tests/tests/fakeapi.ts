@@ -23,6 +23,8 @@ export interface FakeApi {
   apps: Map<string, FakeApp>;
   requests: Request[];
   logs: { time: string; kind: string; text: string; allowed: boolean; reason?: string }[];
+  /** Версия SDK, которую принимает платформа: другая получает sdk_outdated. Пусто: любая. */
+  sdk?: string;
   close(): Promise<void>;
 }
 
@@ -51,6 +53,7 @@ export async function fakeApi(): Promise<FakeApi> {
   const requests: Request[] = [];
   const logs: FakeApi['logs'] = [];
   let next = 1;
+  const api = {} as FakeApi;
   const server: Server = createServer(async (req, res) => {
     const url = new URL(req.url!, 'http://x');
     const raw = await read(req);
@@ -82,6 +85,10 @@ export async function fakeApi(): Promise<FakeApi> {
     if (sub === 'versions') {
       const b = body as { manifest: Record<string, unknown>; base_version: number; approve?: boolean; force?: boolean; source?: Record<string, string> };
       if (b.base_version !== app.version && !b.force) return refuse(res, 409, 'version_conflict', 'Версия не та', { version: app.version });
+      if (api.sdk && b.manifest.sdk !== api.sdk) {
+        const command = `npm i @pachca/app-sdk@${api.sdk} @pachca/app-react@${api.sdk}`;
+        return refuse(res, 409, 'sdk_outdated', `Приложение собрано на @pachca/app-sdk ${String(b.manifest.sdk)}, платформа принимает ${api.sdk}`, { sdk: api.sdk, command });
+      }
       const perms = permissions(b.manifest);
       const items = [{ kind: 'bot', text: 'Отправка сообщений', scope: 'messages:create', new: app.consented !== perms }];
       if (app.consented !== perms && !b.approve) return refuse(res, 409, 'consent_required', 'Права изменились', { hash: 'h', items });
@@ -102,11 +109,11 @@ export async function fakeApi(): Promise<FakeApi> {
   });
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
   const { port } = server.address() as AddressInfo;
-  return {
+  return Object.assign(api, {
     url: `http://127.0.0.1:${port}/api/shared/v1`,
     apps,
     requests,
     logs,
-    close: () => new Promise((r) => server.close(() => r())),
-  };
+    close: () => new Promise<void>((r) => server.close(() => r())),
+  });
 }

@@ -1013,6 +1013,8 @@ export enum ValidationErrorCode {
   VersionConflict = "version_conflict",
   /** Права, хосты или события приложения изменились, а загрузка не подтверждает их */
   ConsentRequired = "consent_required",
+  /** Приложение собрано на версии `@pachca/app-sdk`, которую платформа не принимает: текущая версия и команда обновления — в `payload` */
+  SdkOutdated = "sdk_outdated",
 }
 
 /**

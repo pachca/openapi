@@ -1673,7 +1673,7 @@ actions:
       description: Error code
   - target: $.components.schemas.ApiErrorItem.properties.payload
     update:
-      description: "Additional error data. Content depends on the error code: `{id: number}` — for custom property errors (property ID), `{record: {type: string, id: number}, query: string}` — for authorization errors, `{draft_id: number}` — when a draft already exists in this chat, `{limit: number, remaining: number, reset_at: string}` — when the daily limit of invitation emails is used up (`reset_at` is when a slot frees up in the window), `{version: number}` — for `version_conflict` (the number of the current app version), `{hash: string, items: AppPermissionItem[]}` — for `consent_required` (what changed in the scopes). In most cases `null`."
+      description: "Additional error data. Content depends on the error code: `{id: number}` — for custom property errors (property ID), `{record: {type: string, id: number}, query: string}` — for authorization errors, `{draft_id: number}` — when a draft already exists in this chat, `{limit: number, remaining: number, reset_at: string}` — when the daily limit of invitation emails is used up (`reset_at` is when a slot frees up in the window), `{version: number}` — for `version_conflict` (the number of the current app version), `{hash: string, items: AppPermissionItem[]}` — for `consent_required` (what changed in the scopes), `{sdk: string, command: string}` — for `sdk_outdated` (the current version of `@pachca/app-sdk` and the update command). In most cases `null`."
   - target: $.components.schemas.AuditDetailsChatId
     update:
       description: 'For: tag_removed_from_chat'
@@ -4720,6 +4720,7 @@ actions:
         blocked_by_sso: "The field is filled in from SSO or is needed for signing in through SSO, and the API cannot change it (details come in the message field)"
         version_conflict: The current version of the app is not the one the upload was made from
         consent_required: "Scopes, hosts or events of the app changed, and the upload does not approve them"
+        sdk_outdated: "The app is built with a version of `@pachca/app-sdk` the platform does not accept: the current version and the update command come in `payload`"
   - target: $.components.schemas.ViewBlock
     update:
       description: View block for forms (base model, use specific block types)
@@ -6025,7 +6026,7 @@ actions:
 
         The apps platform checks the build, the SDK version, changes of scopes and the database schema against the existing data. The app's bot gets the scopes and the event subscription from the version manifest.
 
-        A `409` response uploads nothing. The `version_conflict` code: the current version is not `base_version`, the app was uploaded from another folder, the number of the current version is in `payload.version`. The `consent_required` code: scopes, hosts or events changed and `approve` is not passed, the list of changes is in `payload.items`. The `invalid` code with `409` and `422`: the platform rejected the build or the schema change, the reason is in `message`. A body larger than 32 MB responds `413` with the `too_long` code.
+        A `409` response uploads nothing. The `version_conflict` code: the current version is not `base_version`, the app was uploaded from another folder, the number of the current version is in `payload.version`. The `consent_required` code: scopes, hosts or events changed and `approve` is not passed, the list of changes is in `payload.items`. The `sdk_outdated` code: the build has no SDK version, is built with a version the platform no longer accepts, or with a beta SDK in a workspace outside the beta program, the current version is in `payload.sdk`, the update command is in `payload.command`. The `invalid` code with `409` and `422`: the platform rejected the build or the schema change, the reason is in `message`. A body larger than 32 MB responds `413` with the `too_long` code.
 
         Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.
   - target: $.paths['/apps/{id}/source'].get

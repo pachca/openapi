@@ -626,6 +626,7 @@ const (
 	ValidationErrorCodeServiceUnavailable         ValidationErrorCode = "service_unavailable" // Сервис временно недоступен, повторите запрос
 	ValidationErrorCodeVersionConflict            ValidationErrorCode = "version_conflict" // Текущая версия приложения не та, от которой сделана загрузка
 	ValidationErrorCodeConsentRequired            ValidationErrorCode = "consent_required" // Права, хосты или события приложения изменились, а загрузка не подтверждает их
+	ValidationErrorCodeSdkOutdated                ValidationErrorCode = "sdk_outdated" // Приложение собрано на версии `@pachca/app-sdk`, которую платформа не принимает: текущая версия и команда обновления — в `payload`
 )
 
 // VideoCallEventType may hold a value this SDK does not list yet: a response keeps it as is.

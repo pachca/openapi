@@ -38,6 +38,12 @@
     "bot_only": 403,
     "unknown_method": 404
   },
+  "deploy": {
+    "_comment": "Отказы загрузки версии (409, тело {code, message, ...}), по ним pachca-app ведёт агента. sdk_outdated: сборка без manifest.sdk, на версии SDK, которую платформа уже не принимает, или на бете без беты, в ответе sdk (текущая версия) и command (команда обновления).",
+    "version_conflict": 409,
+    "consent_required": 409,
+    "sdk_outdated": 409
+  },
   "http": {
     "_comment": "Ответы HTTP-входов приложения: тело {\"error\": код}.",
     "launch_required": 401,

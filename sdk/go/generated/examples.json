@@ -11,7 +11,7 @@
   },
   "AppOperations_getApp": {
     "usage": "response, err := client.Apps.GetApp(ctx, \"k3x9q2m7a1bz\")",
-    "output": "App{ID: string, Name: string, Icon: *string, BotID: *int64, AvatarURL: *string, Visibility: AppVisibility, CreatedByID: *int64, Version: int32, PublishedHash: *string, CreatedAt: time.Time}"
+    "output": "App{ID: string, Name: string, Icon: *string, BotID: *int64, AvatarURL: *string, Visibility: AppVisibility, CreatedByID: int64, Version: int32, Hash: *string, CreatedAt: time.Time}"
   },
   "AppOperations_listAppLogs": {
     "usage": "params := &pachca.ListAppLogsParams{\n\tN: pachca.Ptr(int32(50)),\n}\nresponse, err := client.Apps.ListAppLogs(ctx, \"k3x9q2m7a1bz\", params)",
@@ -30,7 +30,7 @@
   },
   "AppOperations_createApp": {
     "usage": "request := pachca.AppCreateRequest{\n\tName: \"Заметки\",\n\tID: pachca.Ptr(\"k3x9q2m7a1bz\"),\n}\nresponse, err := client.Apps.CreateApp(ctx, request)",
-    "output": "App{ID: string, Name: string, Icon: *string, BotID: *int64, AvatarURL: *string, Visibility: AppVisibility, CreatedByID: *int64, Version: int32, PublishedHash: *string, CreatedAt: time.Time}",
+    "output": "App{ID: string, Name: string, Icon: *string, BotID: *int64, AvatarURL: *string, Visibility: AppVisibility, CreatedByID: int64, Version: int32, Hash: *string, CreatedAt: time.Time}",
     "imports": [
       "AppCreateRequest"
     ]
@@ -44,7 +44,7 @@
   },
   "AppOperations_updateApp": {
     "usage": "request := pachca.AppUpdateRequest{\n\tName: pachca.Ptr(\"Заметки команды\"),\n\tIcon: pachca.Ptr(\"🗒️\"),\n\tVisibility: pachca.Ptr(pachca.AppVisibilityLink),\n}\nresponse, err := client.Apps.UpdateApp(ctx, \"k3x9q2m7a1bz\", request)",
-    "output": "App{ID: string, Name: string, Icon: *string, BotID: *int64, AvatarURL: *string, Visibility: AppVisibility, CreatedByID: *int64, Version: int32, PublishedHash: *string, CreatedAt: time.Time}",
+    "output": "App{ID: string, Name: string, Icon: *string, BotID: *int64, AvatarURL: *string, Visibility: AppVisibility, CreatedByID: int64, Version: int32, Hash: *string, CreatedAt: time.Time}",
     "imports": [
       "AppUpdateRequest",
       "AppVisibility"

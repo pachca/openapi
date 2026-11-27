@@ -73,12 +73,12 @@ export type App = {
   avatarUrl: string | null;
   /** Кто может открыть приложение */
   visibility: AppVisibility;
-  /** Идентификатор сотрудника, который создал приложение. `null` у приложений, созданных до появления поля. */
-  createdById: number | null;
+  /** Идентификатор сотрудника, который создал приложение. */
+  createdById: number;
   /** Номер текущей версии. Его выдаёт платформа приложений при каждой загрузке, `0`, пока версий нет. */
   version: number;
   /** Хэш манифеста текущей версии. `null`, пока версий нет. */
-  publishedHash: string | null;
+  hash: string | null;
   /** Дата и время создания приложения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ */
   createdAt: string;
 };

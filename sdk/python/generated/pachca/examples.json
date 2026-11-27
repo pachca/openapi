@@ -11,7 +11,7 @@
   },
   "AppOperations_getApp": {
     "usage": "response = await client.apps.get_app(id=\"k3x9q2m7a1bz\")",
-    "output": "App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int | None, version: int, published_hash: str | None, created_at: datetime)"
+    "output": "App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int, version: int, hash: str | None, created_at: datetime)"
   },
   "AppOperations_listAppLogs": {
     "usage": "params = ListAppLogsParams(n=50)\nresponse = await client.apps.list_app_logs(id=\"k3x9q2m7a1bz\", params=params)",
@@ -30,7 +30,7 @@
   },
   "AppOperations_createApp": {
     "usage": "request = AppCreateRequest(name=\"Заметки\", id=\"k3x9q2m7a1bz\")\nresponse = await client.apps.create_app(request=request)",
-    "output": "App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int | None, version: int, published_hash: str | None, created_at: datetime)",
+    "output": "App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int, version: int, hash: str | None, created_at: datetime)",
     "imports": [
       "AppCreateRequest"
     ]
@@ -44,7 +44,7 @@
   },
   "AppOperations_updateApp": {
     "usage": "request = AppUpdateRequest(\n    name=\"Заметки команды\",\n    icon=\"🗒️\",\n    visibility=AppVisibility.LINK\n)\nresponse = await client.apps.update_app(id=\"k3x9q2m7a1bz\", request=request)",
-    "output": "App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int | None, version: int, published_hash: str | None, created_at: datetime)",
+    "output": "App(id: str, name: str, icon: str | None, bot_id: int | None, avatar_url: str | None, visibility: AppVisibility, created_by_id: int, version: int, hash: str | None, created_at: datetime)",
     "imports": [
       "AppUpdateRequest",
       "AppVisibility"

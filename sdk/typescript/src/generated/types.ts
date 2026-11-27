@@ -1109,9 +1109,9 @@ export interface App {
   botId: number | null;
   avatarUrl: string | null;
   visibility: AppVisibility;
-  createdById: number | null;
+  createdById: number;
   version: number;
-  publishedHash: string | null;
+  hash: string | null;
   createdAt: string;
 }
 

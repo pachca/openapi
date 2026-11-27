@@ -11,7 +11,7 @@
   },
   "AppOperations_getApp": {
     "usage": "let response = try await client.apps.getApp(id: \"k3x9q2m7a1bz\")",
-    "output": "App(id: String, name: String, icon: String?, botId: Int64?, avatarUrl: String?, visibility: AppVisibility, createdById: Int64?, version: Int, publishedHash: String?, createdAt: String)"
+    "output": "App(id: String, name: String, icon: String?, botId: Int64?, avatarUrl: String?, visibility: AppVisibility, createdById: Int64, version: Int, hash: String?, createdAt: String)"
   },
   "AppOperations_listAppLogs": {
     "usage": "let response = try await client.apps.listAppLogs(id: \"k3x9q2m7a1bz\", n: 50)",
@@ -27,7 +27,7 @@
   },
   "AppOperations_createApp": {
     "usage": "let request = AppCreateRequest(name: \"Заметки\", id: \"k3x9q2m7a1bz\")\nlet response = try await client.apps.createApp(request: request)",
-    "output": "App(id: String, name: String, icon: String?, botId: Int64?, avatarUrl: String?, visibility: AppVisibility, createdById: Int64?, version: Int, publishedHash: String?, createdAt: String)",
+    "output": "App(id: String, name: String, icon: String?, botId: Int64?, avatarUrl: String?, visibility: AppVisibility, createdById: Int64, version: Int, hash: String?, createdAt: String)",
     "imports": [
       "AppCreateRequest"
     ]
@@ -41,7 +41,7 @@
   },
   "AppOperations_updateApp": {
     "usage": "let request = AppUpdateRequest(\n    name: \"Заметки команды\",\n    icon: \"🗒️\",\n    visibility: .link\n)\nlet response = try await client.apps.updateApp(id: \"k3x9q2m7a1bz\", request: request)",
-    "output": "App(id: String, name: String, icon: String?, botId: Int64?, avatarUrl: String?, visibility: AppVisibility, createdById: Int64?, version: Int, publishedHash: String?, createdAt: String)",
+    "output": "App(id: String, name: String, icon: String?, botId: Int64?, avatarUrl: String?, visibility: AppVisibility, createdById: Int64, version: Int, hash: String?, createdAt: String)",
     "imports": [
       "AppUpdateRequest",
       "AppVisibility"

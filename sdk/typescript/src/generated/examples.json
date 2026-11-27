@@ -11,7 +11,7 @@
   },
   "AppOperations_getApp": {
     "usage": "const response = await client.apps.getApp(\"k3x9q2m7a1bz\")",
-    "output": "App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number | null, version: number, publishedHash: string | null, createdAt: string })"
+    "output": "App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number, version: number, hash: string | null, createdAt: string })"
   },
   "AppOperations_listAppLogs": {
     "usage": "const response = await client.apps.listAppLogs(\"k3x9q2m7a1bz\", { n: 50 })",
@@ -27,7 +27,7 @@
   },
   "AppOperations_createApp": {
     "usage": "const request: AppCreateRequest = { name: \"Заметки\", id: \"k3x9q2m7a1bz\" }\nconst response = await client.apps.createApp(request)",
-    "output": "App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number | null, version: number, publishedHash: string | null, createdAt: string })",
+    "output": "App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number, version: number, hash: string | null, createdAt: string })",
     "imports": [
       "AppCreateRequest"
     ]
@@ -41,7 +41,7 @@
   },
   "AppOperations_updateApp": {
     "usage": "const request: AppUpdateRequest = {\n  name: \"Заметки команды\",\n  icon: \"🗒️\",\n  visibility: AppVisibility.Link\n}\nconst response = await client.apps.updateApp(\"k3x9q2m7a1bz\", request)",
-    "output": "App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number | null, version: number, publishedHash: string | null, createdAt: string })",
+    "output": "App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number, version: number, hash: string | null, createdAt: string })",
     "imports": [
       "AppUpdateRequest",
       "AppVisibility"

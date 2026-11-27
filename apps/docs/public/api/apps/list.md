@@ -36,9 +36,9 @@ curl "https://api.pachca.com/api/shared/v1/apps" \
   - `avatar_url: string` (required, nullable) — Аватарка приложения: это аватарка его бота. `null`, пока не задана. Пример: `null`
   - `visibility: string` (required) — Кто может открыть приложение
     Значения: `private` — Только автор приложения, `link` — Любой сотрудник пространства по ссылке, в обзоре приложений его нет, `public` — Любой сотрудник пространства по ссылке и в обзоре приложений
-  - `created_by_id: integer, int64` (required, nullable) — Идентификатор сотрудника, который создал приложение. `null` у приложений, созданных до появления поля. Пример: `12`
+  - `created_by_id: integer, int64` (required) — Идентификатор сотрудника, который создал приложение. Пример: `12`
   - `version: integer, int32` (required) — Номер текущей версии. Его выдаёт платформа приложений при каждой загрузке, `0`, пока версий нет. Пример: `3`
-  - `published_hash: string` (required, nullable) — Хэш манифеста текущей версии. `null`, пока версий нет. Пример: `"9f2c4e1a7b3d"`
+  - `hash: string` (required, nullable) — Хэш манифеста текущей версии. `null`, пока версий нет. Пример: `"9f2c4e1a7b3d"`
   - `created_at: date-time` (required) — Дата и время создания приложения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2026-11-20T10:30:00.000Z"`
 
 **Пример ответа:**
@@ -55,7 +55,7 @@ curl "https://api.pachca.com/api/shared/v1/apps" \
       "visibility": "private",
       "created_by_id": 12,
       "version": 3,
-      "published_hash": "9f2c4e1a7b3d",
+      "hash": "9f2c4e1a7b3d",
       "created_at": "2026-11-20T10:30:00.000Z"
     }
   ]

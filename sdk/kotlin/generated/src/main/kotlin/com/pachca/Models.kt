@@ -2510,9 +2510,9 @@ data class App(
     @SerialName("bot_id") val botId: Long? = null,
     @SerialName("avatar_url") val avatarUrl: String? = null,
     val visibility: AppVisibility,
-    @SerialName("created_by_id") val createdById: Long? = null,
+    @SerialName("created_by_id") val createdById: Long,
     val version: Int,
-    @SerialName("published_hash") val publishedHash: String? = null,
+    val hash: String? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
 )
 

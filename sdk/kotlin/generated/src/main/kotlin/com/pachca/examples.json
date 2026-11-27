@@ -11,7 +11,7 @@
   },
   "AppOperations_getApp": {
     "usage": "val response = client.apps.getApp(id = \"k3x9q2m7a1bz\")",
-    "output": "App(id: String, name: String, icon: String?, botId: Long?, avatarUrl: String?, visibility: AppVisibility, createdById: Long?, version: Int, publishedHash: String?, createdAt: OffsetDateTime)"
+    "output": "App(id: String, name: String, icon: String?, botId: Long?, avatarUrl: String?, visibility: AppVisibility, createdById: Long, version: Int, hash: String?, createdAt: OffsetDateTime)"
   },
   "AppOperations_listAppLogs": {
     "usage": "val response = client.apps.listAppLogs(id = \"k3x9q2m7a1bz\", n = 50)",
@@ -27,7 +27,7 @@
   },
   "AppOperations_createApp": {
     "usage": "val request = AppCreateRequest(name = \"Заметки\", id = \"k3x9q2m7a1bz\")\nval response = client.apps.createApp(request = request)",
-    "output": "App(id: String, name: String, icon: String?, botId: Long?, avatarUrl: String?, visibility: AppVisibility, createdById: Long?, version: Int, publishedHash: String?, createdAt: OffsetDateTime)",
+    "output": "App(id: String, name: String, icon: String?, botId: Long?, avatarUrl: String?, visibility: AppVisibility, createdById: Long, version: Int, hash: String?, createdAt: OffsetDateTime)",
     "imports": [
       "AppCreateRequest"
     ]
@@ -41,7 +41,7 @@
   },
   "AppOperations_updateApp": {
     "usage": "val request = AppUpdateRequest(\n    name = \"Заметки команды\",\n    icon = \"🗒️\",\n    visibility = AppVisibility.LINK\n)\nval response = client.apps.updateApp(id = \"k3x9q2m7a1bz\", request = request)",
-    "output": "App(id: String, name: String, icon: String?, botId: Long?, avatarUrl: String?, visibility: AppVisibility, createdById: Long?, version: Int, publishedHash: String?, createdAt: OffsetDateTime)",
+    "output": "App(id: String, name: String, icon: String?, botId: Long?, avatarUrl: String?, visibility: AppVisibility, createdById: Long, version: Int, hash: String?, createdAt: OffsetDateTime)",
     "imports": [
       "AppUpdateRequest",
       "AppVisibility"

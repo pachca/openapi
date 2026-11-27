@@ -709,16 +709,16 @@ type ApiErrorItem struct {
 }
 
 type App struct {
-	ID            string        `json:"id"`
-	Name          string        `json:"name"`
-	Visibility    AppVisibility `json:"visibility"`
-	Version       int32         `json:"version"`
-	CreatedAt     time.Time     `json:"created_at"`
-	Icon          *string       `json:"icon"`
-	BotID         *int64        `json:"bot_id"`
-	AvatarURL     *string       `json:"avatar_url"`
-	CreatedByID   *int64        `json:"created_by_id"`
-	PublishedHash *string       `json:"published_hash"`
+	ID          string        `json:"id"`
+	Name        string        `json:"name"`
+	Visibility  AppVisibility `json:"visibility"`
+	CreatedByID int64         `json:"created_by_id"`
+	Version     int32         `json:"version"`
+	CreatedAt   time.Time     `json:"created_at"`
+	Icon        *string       `json:"icon"`
+	BotID       *int64        `json:"bot_id"`
+	AvatarURL   *string       `json:"avatar_url"`
+	Hash        *string       `json:"hash"`
 }
 
 type AppCreateRequest struct {

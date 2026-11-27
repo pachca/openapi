@@ -11365,9 +11365,9 @@ model App {
   @example(AppVisibility.`private`)
   visibility: AppVisibility;
 
-  @doc("Идентификатор сотрудника, который создал приложение. `null` у приложений, созданных до появления поля.")
+  @doc("Идентификатор сотрудника, который создал приложение.")
   @example(12)
-  created_by_id: int64 | null;
+  created_by_id: int64;
 
   @doc("Номер текущей версии. Его выдаёт платформа приложений при каждой загрузке, `0`, пока версий нет.")
   @example(3)
@@ -11375,7 +11375,7 @@ model App {
 
   @doc("Хэш манифеста текущей версии. `null`, пока версий нет.")
   @example("9f2c4e1a7b3d")
-  published_hash: string | null;
+  hash: string | null;
 
   @doc("Дата и время создания приложения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
   @example(utcDateTime.fromISO("2026-11-20T10:30:00.000Z"))

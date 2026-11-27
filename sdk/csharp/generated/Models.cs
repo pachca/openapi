@@ -3943,11 +3943,11 @@ public class App
     [JsonPropertyName("visibility")]
     public AppVisibility Visibility { get; set; } = default!;
     [JsonPropertyName("created_by_id")]
-    public long? CreatedById { get; set; }
+    public long CreatedById { get; set; } = default!;
     [JsonPropertyName("version")]
     public int Version { get; set; } = default!;
-    [JsonPropertyName("published_hash")]
-    public string? PublishedHash { get; set; }
+    [JsonPropertyName("hash")]
+    public string? Hash { get; set; }
     [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; } = default!;
 }

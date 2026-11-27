@@ -10200,7 +10200,7 @@ components:
         - visibility
         - created_by_id
         - version
-        - published_hash
+        - hash
         - created_at
       properties:
         id:
@@ -10235,15 +10235,14 @@ components:
         created_by_id:
           type: integer
           format: int64
-          nullable: true
-          description: Идентификатор сотрудника, который создал приложение. `null` у приложений, созданных до появления поля.
+          description: Идентификатор сотрудника, который создал приложение.
           example: 12
         version:
           type: integer
           format: int32
           description: Номер текущей версии. Его выдаёт платформа приложений при каждой загрузке, `0`, пока версий нет.
           example: 3
-        published_hash:
+        hash:
           type: string
           nullable: true
           description: Хэш манифеста текущей версии. `null`, пока версий нет.

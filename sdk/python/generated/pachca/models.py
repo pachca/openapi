@@ -700,13 +700,13 @@ class App:
     id: str
     name: str
     visibility: AppVisibility
+    created_by_id: int
     version: int
     created_at: datetime
     icon: str | None = None
     bot_id: int | None = None
     avatar_url: str | None = None
-    created_by_id: int | None = None
-    published_hash: str | None = None
+    hash: str | None = None
 
 
 @dataclass

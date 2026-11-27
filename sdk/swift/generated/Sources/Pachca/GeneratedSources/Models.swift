@@ -2649,12 +2649,12 @@ public struct App: Codable {
     public let botId: Int64?
     public let avatarUrl: String?
     public let visibility: AppVisibility
-    public let createdById: Int64?
+    public let createdById: Int64
     public let version: Int
-    public let publishedHash: String?
+    public let hash: String?
     public let createdAt: String
 
-    public init(id: String, name: String, icon: String? = nil, botId: Int64? = nil, avatarUrl: String? = nil, visibility: AppVisibility, createdById: Int64? = nil, version: Int, publishedHash: String? = nil, createdAt: String) {
+    public init(id: String, name: String, icon: String? = nil, botId: Int64? = nil, avatarUrl: String? = nil, visibility: AppVisibility, createdById: Int64, version: Int, hash: String? = nil, createdAt: String) {
         self.id = id
         self.name = name
         self.icon = icon
@@ -2663,7 +2663,7 @@ public struct App: Codable {
         self.visibility = visibility
         self.createdById = createdById
         self.version = version
-        self.publishedHash = publishedHash
+        self.hash = hash
         self.createdAt = createdAt
     }
 
@@ -2676,7 +2676,7 @@ public struct App: Codable {
         case visibility
         case createdById = "created_by_id"
         case version
-        case publishedHash = "published_hash"
+        case hash
         case createdAt = "created_at"
     }
 }

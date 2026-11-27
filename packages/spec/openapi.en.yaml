@@ -11453,7 +11453,7 @@ components:
         - visibility
         - created_by_id
         - version
-        - published_hash
+        - hash
         - created_at
       properties:
         id:
@@ -11488,8 +11488,7 @@ components:
         created_by_id:
           type: integer
           format: int64
-          nullable: true
-          description: ID of the employee who created the app. `null` for apps created before the field appeared.
+          description: ID of the employee who created the app.
           example: 12
         version:
           type: integer
@@ -11498,7 +11497,7 @@ components:
             Number of the current version. The apps platform assigns it on every upload, `0` while there are no
             versions.
           example: 3
-        published_hash:
+        hash:
           type: string
           nullable: true
           description: Hash of the current version manifest. `null` while there are no versions.

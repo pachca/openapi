@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "d0fca3ccf4796675"
+    "digest": "5fc810ad75e00842"
   },
   "server": {
     "name": "pachca",
@@ -309,17 +309,14 @@
                   "description": "Who can open the app. Values: private — Only the app author; link — Any employee of the workspace by link, the app is not in the app overview; public — Any employee of the workspace by link and in the app overview."
                 },
                 "created_by_id": {
-                  "type": [
-                    "integer",
-                    "null"
-                  ],
-                  "description": "ID of the employee who created the app. `null` for apps created before the field appeared."
+                  "type": "integer",
+                  "description": "ID of the employee who created the app."
                 },
                 "version": {
                   "type": "integer",
                   "description": "Number of the current version. The apps platform assigns it on every upload, `0` while there are no versions."
                 },
-                "published_hash": {
+                "hash": {
                   "type": [
                     "string",
                     "null"
@@ -341,7 +338,7 @@
         "data[].name",
         "data[].icon",
         "data[].avatar_url",
-        "data[].published_hash"
+        "data[].hash"
       ]
     },
     {
@@ -444,17 +441,14 @@
                 "description": "Who can open the app. Values: private — Only the app author; link — Any employee of the workspace by link, the app is not in the app overview; public — Any employee of the workspace by link and in the app overview."
               },
               "created_by_id": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "description": "ID of the employee who created the app. `null` for apps created before the field appeared."
+                "type": "integer",
+                "description": "ID of the employee who created the app."
               },
               "version": {
                 "type": "integer",
                 "description": "Number of the current version. The apps platform assigns it on every upload, `0` while there are no versions."
               },
-              "published_hash": {
+              "hash": {
                 "type": [
                   "string",
                   "null"
@@ -475,7 +469,7 @@
         "data.name",
         "data.icon",
         "data.avatar_url",
-        "data.published_hash"
+        "data.hash"
       ]
     },
     {
@@ -564,17 +558,14 @@
                 "description": "Who can open the app. Values: private — Only the app author; link — Any employee of the workspace by link, the app is not in the app overview; public — Any employee of the workspace by link and in the app overview."
               },
               "created_by_id": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "description": "ID of the employee who created the app. `null` for apps created before the field appeared."
+                "type": "integer",
+                "description": "ID of the employee who created the app."
               },
               "version": {
                 "type": "integer",
                 "description": "Number of the current version. The apps platform assigns it on every upload, `0` while there are no versions."
               },
-              "published_hash": {
+              "hash": {
                 "type": [
                   "string",
                   "null"
@@ -595,7 +586,7 @@
         "data.name",
         "data.icon",
         "data.avatar_url",
-        "data.published_hash"
+        "data.hash"
       ]
     },
     {
@@ -724,17 +715,14 @@
                 "description": "Who can open the app. Values: private — Only the app author; link — Any employee of the workspace by link, the app is not in the app overview; public — Any employee of the workspace by link and in the app overview."
               },
               "created_by_id": {
-                "type": [
-                  "integer",
-                  "null"
-                ],
-                "description": "ID of the employee who created the app. `null` for apps created before the field appeared."
+                "type": "integer",
+                "description": "ID of the employee who created the app."
               },
               "version": {
                 "type": "integer",
                 "description": "Number of the current version. The apps platform assigns it on every upload, `0` while there are no versions."
               },
-              "published_hash": {
+              "hash": {
                 "type": [
                   "string",
                   "null"
@@ -755,7 +743,7 @@
         "data.name",
         "data.icon",
         "data.avatar_url",
-        "data.published_hash"
+        "data.hash"
       ]
     },
     {

@@ -6132,11 +6132,11 @@ actions:
       description: "Who can open the app"
   - target: $.components.schemas.App.properties.created_by_id
     update:
-      description: "ID of the employee who created the app. `null` for apps created before the field appeared."
+      description: "ID of the employee who created the app."
   - target: $.components.schemas.App.properties.version
     update:
       description: "Number of the current version. The apps platform assigns it on every upload, `0` while there are no versions."
-  - target: $.components.schemas.App.properties.published_hash
+  - target: $.components.schemas.App.properties.hash
     update:
       description: "Hash of the current version manifest. `null` while there are no versions."
   - target: $.components.schemas.App.properties.created_at

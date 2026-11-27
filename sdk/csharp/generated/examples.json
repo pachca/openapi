@@ -11,7 +11,7 @@
   },
   "AppOperations_getApp": {
     "usage": "var response = await client.Apps.GetAppAsync(\"k3x9q2m7a1bz\");",
-    "output": "App(Id: string, Name: string, Icon: string?, BotId: long?, AvatarUrl: string?, Visibility: AppVisibility, CreatedById: long?, Version: int, PublishedHash: string?, CreatedAt: DateTimeOffset)"
+    "output": "App(Id: string, Name: string, Icon: string?, BotId: long?, AvatarUrl: string?, Visibility: AppVisibility, CreatedById: long, Version: int, Hash: string?, CreatedAt: DateTimeOffset)"
   },
   "AppOperations_listAppLogs": {
     "usage": "var response = await client.Apps.ListAppLogsAsync(\"k3x9q2m7a1bz\", 50);",
@@ -27,7 +27,7 @@
   },
   "AppOperations_createApp": {
     "usage": "var request = new AppCreateRequest { Name = \"Заметки\", Id = \"k3x9q2m7a1bz\" };\nvar response = await client.Apps.CreateAppAsync(request);",
-    "output": "App(Id: string, Name: string, Icon: string?, BotId: long?, AvatarUrl: string?, Visibility: AppVisibility, CreatedById: long?, Version: int, PublishedHash: string?, CreatedAt: DateTimeOffset)",
+    "output": "App(Id: string, Name: string, Icon: string?, BotId: long?, AvatarUrl: string?, Visibility: AppVisibility, CreatedById: long, Version: int, Hash: string?, CreatedAt: DateTimeOffset)",
     "imports": [
       "AppCreateRequest"
     ]
@@ -41,7 +41,7 @@
   },
   "AppOperations_updateApp": {
     "usage": "var request = new AppUpdateRequest\n{\n    Name = \"Заметки команды\",\n    Icon = \"🗒️\",\n    Visibility = AppVisibility.Link\n};\nvar response = await client.Apps.UpdateAppAsync(\"k3x9q2m7a1bz\", request);",
-    "output": "App(Id: string, Name: string, Icon: string?, BotId: long?, AvatarUrl: string?, Visibility: AppVisibility, CreatedById: long?, Version: int, PublishedHash: string?, CreatedAt: DateTimeOffset)",
+    "output": "App(Id: string, Name: string, Icon: string?, BotId: long?, AvatarUrl: string?, Visibility: AppVisibility, CreatedById: long, Version: int, Hash: string?, CreatedAt: DateTimeOffset)",
     "imports": [
       "AppUpdateRequest",
       "AppVisibility"

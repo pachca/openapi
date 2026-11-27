@@ -278,3 +278,34 @@ hideTableOfContents: true
 - [Журнал аудита событий](GET /audit_events)
 
 <ModelSchema name="AuditEvent" />
+
+## Кастомное приложение
+
+- [Список приложений](GET /apps)
+- [Новое приложение](POST /apps)
+- [Информация о приложении](GET /apps/{id})
+- [Редактирование приложения](PUT /apps/{id})
+- [Удаление приложения](DELETE /apps/{id})
+- [Список секретов приложения](GET /apps/{id}/secrets)
+- [Задание секрета приложения](PUT /apps/{id}/secrets/{name})
+- [Удаление секрета приложения](DELETE /apps/{id}/secrets/{name})
+
+<ModelSchema name="App" />
+
+## Версия приложения
+
+- [Загрузка версии](POST /apps/{id}/versions)
+
+<ModelSchema name="AppRelease" />
+
+## Исходники приложения
+
+- [Исходники приложения](GET /apps/{id}/source)
+
+<ModelSchema name="AppSource" />
+
+## Запись журнала приложения
+
+- [Журнал приложения](GET /apps/{id}/logs)
+
+<ModelSchema name="AppLogEntry" />

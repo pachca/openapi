@@ -9,7 +9,6 @@ import { NodeConnectionTypes } from 'n8n-workflow';
 import { router } from '../SharedRouter';
 import { searchChats, searchUsers, searchEntities, getCustomProperties } from '../GenericFunctions';
 
-import { appOperations, appFields } from './AppDescription';
 import { securityOperations, securityFields } from './SecurityDescription';
 import { botOperations, botFields } from './BotDescription';
 import { chatOperations, chatFields } from './ChatDescription';
@@ -58,7 +57,6 @@ export class PachcaV2 implements INodeType {
 					{ name: 'Bot', value: 'bot' },
 					{ name: 'Chat', value: 'chat' },
 					{ name: 'Chat Member', value: 'member' },
-					{ name: 'Custom App', value: 'app' },
 					{ name: 'Custom Property', value: 'customProperty' },
 					{ name: 'Draft', value: 'draft' },
 					{ name: 'File', value: 'file' },
@@ -79,8 +77,6 @@ export class PachcaV2 implements INodeType {
 				],
 				default: 'message',
 			},
-			...appOperations,
-			...appFields,
 			...securityOperations,
 			...securityFields,
 			...botOperations,

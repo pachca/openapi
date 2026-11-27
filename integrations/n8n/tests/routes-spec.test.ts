@@ -35,9 +35,11 @@ const TAG_TO_RESOURCE: Record<string, string> = {
 	'Search': 'search',
 	'Security': 'security',
 	'Important messages': 'importantMessage',
-	'Apps': 'app',
 	'Company': 'company',
 };
+
+/** Sections without an n8n resource (mirrored from generate-n8n.ts). */
+const SKIPPED_TAGS = new Set(['Apps']);
 
 function tagToResource(tag: string): string {
 	return TAG_TO_RESOURCE[tag] || tag.toLowerCase().replace(/s$/, '');
@@ -206,6 +208,7 @@ function getSpecOperations(): SpecOperation[] {
 	const operations: SpecOperation[] = [];
 
 	for (const [tag, endpoints] of byTag) {
+		if (SKIPPED_TAGS.has(tag)) continue;
 		const resource = tag === 'CustomProperty' ? 'customProperty'
 			: tag === 'File' ? 'file'
 			: tag === 'Export' ? 'export'

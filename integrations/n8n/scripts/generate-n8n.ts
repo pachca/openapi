@@ -476,7 +476,8 @@ function getFieldDescription(fieldName: string, fallback: string | undefined, en
     ?? fallback;
 }
 
-// ============================================================================
+const SKIPPED_TAGS = new Set(['Apps']);
+
 // TAG → RESOURCE MAPPING
 // ============================================================================
 
@@ -3978,6 +3979,7 @@ async function main() {
   const ROOT_NODE_DIR = path.resolve(__dirname, '../nodes/Pachca');
 
   for (const [tag, endpoints] of byTag) {
+    if (SKIPPED_TAGS.has(tag)) continue;
     const resource = tag === 'CustomProperty' ? 'customProperty'
       : tag === 'File' ? 'file'
       : tag === 'Export' ? 'export'

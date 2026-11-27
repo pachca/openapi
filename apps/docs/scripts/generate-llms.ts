@@ -33,6 +33,7 @@ const SITE_URL = 'https://dev.pachca.com';
 const ROOT_UPDATES = 5;
 /** The root llms.txt must fit an agent's read: AFDocs warns above 50 000 characters. */
 const LLMS_TXT_MAX_CHARS = 50_000;
+const ROOT_HIDDEN_TAGS = new Set(['Apps']);
 
 function groupByTag(endpoints: Endpoint[]) {
   const grouped = new Map<string, Endpoint[]>();
@@ -263,7 +264,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content +=
     '| Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
   content +=
-    '| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.11.0")`, репозиторий `maven("https://jitpack.io")` |\n';
+    '| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.11.1")`, репозиторий `maven("https://jitpack.io")` |\n';
   content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n';
   content += '| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |\n\n';
   content += 'Конвенции:\n';
@@ -398,6 +399,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
 
   for (const tag of sortedTags) {
     const endpoints = grouped.get(tag)!;
+    if (ROOT_HIDDEN_TAGS.has(tag)) continue;
     content += `## ${TAG_TRANSLATIONS[tag] || tag}\n`;
     for (const endpoint of endpoints) {
       const title = generateTitle(endpoint);
@@ -659,7 +661,7 @@ function generateLibraryRules(): string {
 | TypeScript | \`@pachca/sdk\` | \`npm install @pachca/sdk\` |
 | Python | \`pachca-sdk\` | \`pip install pachca-sdk\` |
 | Go | \`github.com/pachca/openapi/sdk/go/generated\` | \`go get github.com/pachca/openapi/sdk/go/generated\` |
-| Kotlin | \`com.github.pachca:openapi\` | \`implementation("com.github.pachca:openapi:1.11.0")\`, repository \`maven("https://jitpack.io")\` |
+| Kotlin | \`com.github.pachca:openapi\` | \`implementation("com.github.pachca:openapi:1.11.1")\`, repository \`maven("https://jitpack.io")\` |
 | Swift | \`PachcaSDK\` | SPM: \`https://github.com/pachca/openapi\` |
 | C# | \`Pachca.Sdk\` | \`dotnet add package Pachca.Sdk\` |
 

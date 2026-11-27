@@ -5,6 +5,57 @@
       "PachcaClient"
     ]
   },
+  "AppOperations_listApps": {
+    "usage": "const response = await client.apps.listApps()",
+    "output": "ListAppsResponse({ data: App[] })"
+  },
+  "AppOperations_getApp": {
+    "usage": "const response = await client.apps.getApp(\"k3x9q2m7a1bz\")",
+    "output": "App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number, version: number, hash: string | null, createdAt: string })"
+  },
+  "AppOperations_listAppLogs": {
+    "usage": "const response = await client.apps.listAppLogs(\"k3x9q2m7a1bz\", { n: 50 })",
+    "output": "ListAppLogsResponse({ data: AppLogEntry[] })"
+  },
+  "AppOperations_listAppSecrets": {
+    "usage": "const response = await client.apps.listAppSecrets(\"k3x9q2m7a1bz\")",
+    "output": "ListAppSecretsResponse({ data: string[] })"
+  },
+  "AppOperations_getAppSource": {
+    "usage": "const response = await client.apps.getAppSource(\"k3x9q2m7a1bz\")",
+    "output": "AppSource({ version: number, files: Record<string, string> })"
+  },
+  "AppOperations_createApp": {
+    "usage": "const request: AppCreateRequest = { name: \"Заметки\", id: \"k3x9q2m7a1bz\" }\nconst response = await client.apps.createApp(request)",
+    "output": "App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number, version: number, hash: string | null, createdAt: string })",
+    "imports": [
+      "AppCreateRequest"
+    ]
+  },
+  "AppOperations_createAppVersion": {
+    "usage": "const request: AppVersionRequest = {\n  code: \"export default {};\",\n  manifest: { key: {} },\n  schema: { key: {} },\n  functions: { key: {} },\n  static: { key: \"example\" },\n  source: { key: \"example\" },\n  baseVersion: 2,\n  approve: false,\n  force: false\n}\nconst response = await client.apps.createAppVersion(\"k3x9q2m7a1bz\", request)",
+    "output": "AppRelease({ version: number, hash: string, items: AppPermissionItem({ kind: AppPermissionKind, text: string, scope?: string, new?: boolean, removed?: boolean })[], migrations: string[], warnings: string[] })",
+    "imports": [
+      "AppVersionRequest"
+    ]
+  },
+  "AppOperations_updateApp": {
+    "usage": "const request: AppUpdateRequest = {\n  name: \"Заметки команды\",\n  icon: \"🗒️\",\n  visibility: AppVisibility.Link\n}\nconst response = await client.apps.updateApp(\"k3x9q2m7a1bz\", request)",
+    "output": "App({ id: string, name: string, icon: string | null, botId: number | null, avatarUrl: string | null, visibility: AppVisibility, createdById: number, version: number, hash: string | null, createdAt: string })",
+    "imports": [
+      "AppUpdateRequest",
+      "AppVisibility"
+    ]
+  },
+  "AppOperations_setAppSecret": {
+    "usage": "await client.apps.setAppSecret(\"k3x9q2m7a1bz\", \"API_KEY\", \"sk_live_51Hx\")"
+  },
+  "AppOperations_deleteApp": {
+    "usage": "await client.apps.deleteApp(\"k3x9q2m7a1bz\")"
+  },
+  "AppOperations_deleteAppSecret": {
+    "usage": "await client.apps.deleteAppSecret(\"k3x9q2m7a1bz\", \"API_KEY\")"
+  },
   "SecurityOperations_getAuditEvents": {
     "usage": "const response = await client.security.getAuditEvents({\n  startTime: \"2025-05-01T09:11:00.000Z\",\n  endTime: \"2025-05-02T09:11:00.000Z\",\n  eventKey: AuditEventKey.UserLogin,\n  actorId: \"98765\",\n  actorType: \"User\",\n  entityId: \"98765\",\n  entityType: \"User\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "GetAuditEventsResponse({ data: AuditEvent[], meta: PaginationMeta })",

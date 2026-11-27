@@ -33,11 +33,18 @@
  *     --dir packages/cli --changelog packages/cli/src/data/changelog.json --changelog-type json
  *   node scripts/check-release.mjs --product mcp-manifest --npm @pachca/mcp-manifest \
  *     --package-dir packages/mcp-manifest
+ *   node scripts/check-release.mjs --product apps --npm @pachca/app-sdk --version-rule calver --allow-prerelease
+ *
+ * `--allow-prerelease` accepts `V-beta.N` too. A prerelease goes out under the
+ * `next` dist-tag and leaves `latest` alone: its core V is a valid next step
+ * after `latest`, and N is 1, or one above the beta of the same V on `next`.
+ * A release V still steps from `latest`, whatever betas of it went before.
  *
  * Prints to stdout (GITHUB_OUTPUT format):
  *   version=<V>
  *   should_publish=<true|false>
  *   first_publish=<true|false>
+ *   dist_tag=<latest|next>
  * Diagnostics go to stderr.
  */
 
@@ -59,9 +66,12 @@ const changelog = arg('changelog') ?? (packageDir ? `${packageDir}/CHANGELOG.md`
 const changelogType = arg('changelog-type') || (packageDir && !arg('changelog') ? 'md' : 'json');
 // Version format rule per library: 'calver' (CLI: YYYY.M.patch) or 'semver'.
 const versionRule = arg('version-rule') || 'semver';
+const allowPrerelease = process.argv.includes('--allow-prerelease');
+const PRERELEASE = /-beta\.([1-9]\d*)$/;
 
 /** Validate version string against the library's format rule. */
 function validFormat(v) {
+  if (allowPrerelease && PRERELEASE.test(v)) v = v.replace(PRERELEASE, '');
   // CalVer month must be a real month — `\d{1,2}` accepted 2026.13.0, which is
   // exactly what the (previously broken) new-month hint used to suggest.
   if (versionRule === 'calver') return /^\d{4}\.(1[0-2]|[1-9])\.\d+$/.test(v);
@@ -129,6 +139,18 @@ function npmUnreachable(error) {
   return true;
 }
 
+function nextTag() {
+  try {
+    const tags = JSON.parse(
+      execSync(`npm view ${npmPkg} dist-tags --json`, { stdio: ['pipe', 'pipe', 'pipe'] }).toString()
+    );
+    return tags.next ?? null;
+  } catch (error) {
+    if (npmUnreachable(error)) process.exit(1);
+    return null;
+  }
+}
+
 function latestPublished() {
   try {
     const v = execSync(`npm view ${npmPkg} version`, {
@@ -193,7 +215,22 @@ const formatOk = validFormat(version);
 // `latest` dist-tag (per library rule) — not just greater. Forbids skips
 // (1.1.4 → 1.1.6), republishes and going backwards.
 const published = latestPublished();
-const stepOk = validIncrement(version, published);
+const beta = allowPrerelease ? version.match(PRERELEASE) : null;
+let stepOk;
+if (beta) {
+  const core = version.replace(PRERELEASE, '');
+  const next = nextTag();
+  const sameCore = next && next.replace(PRERELEASE, '') === core ? next.match(PRERELEASE) : null;
+  stepOk = validIncrement(core, published) && Number(beta[1]) === (sameCore ? Number(sameCore[1]) + 1 : 1);
+  if (!stepOk) {
+    console.error(
+      `[check-release] ${product}: prerelease "${version}" needs a core that is a valid next step after npm ` +
+        `${published} and beta.${sameCore ? Number(sameCore[1]) + 1 : 1} (next dist-tag: ${next ?? 'none'})`
+    );
+  }
+} else {
+  stepOk = validIncrement(version, published);
+}
 // onNpm: this exact version number is already taken (can't republish), even
 // if it's a stray higher version not on `latest`.
 const onNpm = allPublishedVersions().includes(version);
@@ -233,7 +270,7 @@ if (!formatOk) {
     `[check-release] ${product}: version "${version}" violates ${versionRule} format rule`
   );
 }
-if (!stepOk && !onNpm) {
+if (!stepOk && !onNpm && !beta) {
   const next = allowedNext(published);
   const hint = next
     ? Object.entries(next)
@@ -248,3 +285,4 @@ if (!stepOk && !onNpm) {
 console.log(`version=${version}`);
 console.log(`should_publish=${shouldPublish}`);
 console.log(`first_publish=${firstPublish}`);
+console.log(`dist_tag=${beta ? 'next' : 'latest'}`);

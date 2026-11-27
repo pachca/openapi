@@ -1,0 +1,32 @@
+{
+  "_comment": "Ответ встроенных _jobs.get и _jobs.cancel. row это строка _scheduled, status это то, что получает клиент. Изменение требует подъёма версии протокола, см. contract/README.md.",
+  "states": ["pending", "running", "success", "failed", "canceled"],
+  "get": [
+    {
+      "row": { "state": "pending", "result": null, "error": null, "errorCode": null, "runAt": 1000, "finishedAt": null },
+      "status": { "state": "pending", "result": null, "error": null, "runAt": 1000, "finishedAt": null }
+    },
+    {
+      "row": { "state": "running", "result": null, "error": null, "errorCode": null, "runAt": 1000, "finishedAt": null },
+      "status": { "state": "running", "result": null, "error": null, "runAt": 1000, "finishedAt": null }
+    },
+    {
+      "row": { "state": "success", "result": "{\"id\":\"m1\"}", "error": null, "errorCode": null, "runAt": 1000, "finishedAt": 2000 },
+      "status": { "state": "success", "result": { "id": "m1" }, "error": null, "runAt": 1000, "finishedAt": 2000 }
+    },
+    {
+      "row": { "state": "failed", "result": null, "error": "почта не приняла", "errorCode": "mail_rejected", "runAt": 1000, "finishedAt": 2000 },
+      "status": { "state": "failed", "result": null, "error": { "code": "mail_rejected", "message": "почта не приняла" }, "runAt": 1000, "finishedAt": 2000 }
+    },
+    {
+      "row": { "state": "failed", "result": null, "error": "Не удалось выполнить задание", "errorCode": null, "runAt": 1000, "finishedAt": 2000 },
+      "status": { "state": "failed", "result": null, "error": { "code": "job_failed", "message": "Не удалось выполнить задание" }, "runAt": 1000, "finishedAt": 2000 }
+    },
+    {
+      "row": { "state": "canceled", "result": null, "error": null, "errorCode": null, "runAt": 1000, "finishedAt": 1500 },
+      "status": { "state": "canceled", "result": null, "error": null, "runAt": 1000, "finishedAt": 1500 }
+    }
+  ],
+  "foreign": null,
+  "cancel": { "own": true, "foreign": false }
+}

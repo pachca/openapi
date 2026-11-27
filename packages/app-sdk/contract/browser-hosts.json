@@ -1,0 +1,6 @@
+{
+  "ok": ["tiles.example.com", "*.basemaps.cartocdn.com", "*.example.com:8443", "api.maptiler.com", "localhost:5173", "1.2.3.4", "xn--80ak6aa92e.com"],
+  "bad": ["*", "*:443", "https:", "https://tiles.example.com", "tiles.example.com/path", "tiles.example.com?x", "*.com", "*", "**.example.com",
+    "a.*.example.com", "tiles*.example.com", "*.1.2.3", "10.0.0.0/8", "tiles.example.com:0", "tiles.example.com:70000", "tiles.example.com:",
+    "", " ", "-a.com", "a..com", "tiles_example.com", "*example.com", "*."]
+}

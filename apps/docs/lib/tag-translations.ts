@@ -23,4 +23,5 @@ export const TAG_TRANSLATIONS: Record<string, string> = {
   Search: 'Поиск',
   Files: 'Файлы',
   'Custom Properties': 'Дополнительные поля',
+  Apps: 'Кастомные приложения',
 };

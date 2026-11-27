@@ -1,9 +1,19 @@
 import {
+  ListAppsResponse,
+  OAuthError,
+  ApiError,
+  App,
+  ListAppLogsParams,
+  ListAppLogsResponse,
+  ListAppSecretsResponse,
+  AppSource,
+  AppCreateRequest,
+  AppVersionRequest,
+  AppRelease,
+  AppUpdateRequest,
   GetAuditEventsParams,
   GetAuditEventsResponse,
   AuditEvent,
-  OAuthError,
-  ApiError,
   ListBotsParams,
   ListBotsResponse,
   BotResponse,
@@ -199,6 +209,222 @@ export async function createPkce(): Promise<Pkce> {
   const codeVerifier = base64Url(webCrypto.getRandomValues(new Uint8Array(32)));
   const digest = await webCrypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier));
   return { codeVerifier, codeChallenge: base64Url(new Uint8Array(digest)) };
+}
+
+export class AppsService {
+  async listApps(): Promise<ListAppsResponse> {
+    throw new Error("Apps.listApps is not implemented");
+  }
+
+  async getApp(id: string): Promise<App> {
+    throw new Error("Apps.getApp is not implemented");
+  }
+
+  async listAppLogs(id: string, params?: ListAppLogsParams): Promise<ListAppLogsResponse> {
+    throw new Error("Apps.listAppLogs is not implemented");
+  }
+
+  async listAppSecrets(id: string): Promise<ListAppSecretsResponse> {
+    throw new Error("Apps.listAppSecrets is not implemented");
+  }
+
+  async getAppSource(id: string): Promise<AppSource> {
+    throw new Error("Apps.getAppSource is not implemented");
+  }
+
+  async createApp(request: AppCreateRequest): Promise<App> {
+    throw new Error("Apps.createApp is not implemented");
+  }
+
+  async createAppVersion(id: string, request: AppVersionRequest): Promise<AppRelease> {
+    throw new Error("Apps.createAppVersion is not implemented");
+  }
+
+  async updateApp(id: string, request: AppUpdateRequest): Promise<App> {
+    throw new Error("Apps.updateApp is not implemented");
+  }
+
+  async setAppSecret(id: string, name: string, value: string): Promise<void> {
+    throw new Error("Apps.setAppSecret is not implemented");
+  }
+
+  async deleteApp(id: string): Promise<void> {
+    throw new Error("Apps.deleteApp is not implemented");
+  }
+
+  async deleteAppSecret(id: string, name: string): Promise<void> {
+    throw new Error("Apps.deleteAppSecret is not implemented");
+  }
+}
+
+export class AppsServiceImpl extends AppsService {
+  constructor(
+    private baseUrl: string,
+    private headers: Record<string, string>,
+  ) {
+    super();
+  }
+
+  async listApps(): Promise<ListAppsResponse> {
+    const response = await fetchWithRetry(`${this.baseUrl}/apps`, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserialize(body) as ListAppsResponse;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async getApp(id: string): Promise<App> {
+    const response = await fetchWithRetry(`${this.baseUrl}/apps/${id}`, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("App", body.data) as App;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async listAppLogs(id: string, params?: ListAppLogsParams): Promise<ListAppLogsResponse> {
+    const query = new URLSearchParams();
+    if (params?.n !== undefined) query.set("n", String(params.n));
+    const url = `${this.baseUrl}/apps/${id}/logs${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserialize(body) as ListAppLogsResponse;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async listAppSecrets(id: string): Promise<ListAppSecretsResponse> {
+    const response = await fetchWithRetry(`${this.baseUrl}/apps/${id}/secrets`, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserialize(body) as ListAppSecretsResponse;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async getAppSource(id: string): Promise<AppSource> {
+    const response = await fetchWithRetry(`${this.baseUrl}/apps/${id}/source`, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("AppSource", body.data) as AppSource;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async createApp(request: AppCreateRequest): Promise<App> {
+    const response = await fetchWithRetry(`${this.baseUrl}/apps`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("AppCreateRequest", request)),
+    });
+    switch (response.status) {
+      case 201: {
+        const body = await response.json();
+        return deserializeType("App", body.data) as App;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async createAppVersion(id: string, request: AppVersionRequest): Promise<AppRelease> {
+    const response = await fetchWithRetry(`${this.baseUrl}/apps/${id}/versions`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("AppVersionRequest", request)),
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("AppRelease", body.data) as AppRelease;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async updateApp(id: string, request: AppUpdateRequest): Promise<App> {
+    const response = await fetchWithRetry(`${this.baseUrl}/apps/${id}`, {
+      method: "PUT",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("AppUpdateRequest", request)),
+    });
+    switch (response.status) {
+      case 200: {
+        const body = await response.json();
+        return deserializeType("App", body.data) as App;
+      }
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async setAppSecret(id: string, name: string, value: string): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/apps/${id}/secrets/${name}`, {
+      method: "PUT",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ value: value }),
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async deleteApp(id: string): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/apps/${id}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
+
+  async deleteAppSecret(id: string, name: string): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/apps/${id}/secrets/${name}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      default:
+        throw await errorFromResponse(response);
+    }
+  }
 }
 
 export class SecurityService {
@@ -3278,6 +3504,7 @@ export class LinkPreviewsServiceImpl extends LinkPreviewsService {
 export const PACHCA_API_URL = "https://api.pachca.com/api/shared/v1";
 
 export class PachcaClient {
+  readonly apps: AppsService;
   readonly bots: BotsService;
   readonly chats: ChatsService;
   /** @deprecated Renamed for clarity — use the new service(s). Kept working for backward compatibility. */
@@ -3304,13 +3531,14 @@ export class PachcaClient {
   readonly views: ViewsService;
 
   constructor(token: string, baseUrl?: string);
-  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; company?: CompanyService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
-  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; company?: CompanyService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; apps?: AppsService; bots?: BotsService; chats?: ChatsService; common?: CommonService; company?: CompanyService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; apps?: AppsService; bots?: BotsService; chats?: ChatsService; common?: CommonService; company?: CompanyService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
     let resolvedHeaders: Record<string, string>;
     let resolvedBaseUrl: string;
     if (typeof tokenOrConfig === 'string') {
       resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
       resolvedBaseUrl = baseUrl ?? PACHCA_API_URL;
+      this.apps = new AppsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.bots = new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.chats = new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.common = new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -3336,6 +3564,7 @@ export class PachcaClient {
     } else {
       resolvedHeaders = tokenOrConfig.headers;
       resolvedBaseUrl = tokenOrConfig.baseUrl ?? PACHCA_API_URL;
+      this.apps = tokenOrConfig.apps ?? new AppsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.bots = tokenOrConfig.bots ?? new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.chats = tokenOrConfig.chats ?? new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.common = tokenOrConfig.common ?? new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -3361,8 +3590,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; company?: CompanyService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
+  static stub(overrides: { apps?: AppsService; bots?: BotsService; chats?: ChatsService; common?: CommonService; company?: CompanyService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; importantMessages?: ImportantMessagesService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
+    client.apps = overrides.apps ?? new AppsService();
     client.bots = overrides.bots ?? new BotsService();
     client.chats = overrides.chats ?? new ChatsService();
     client.common = overrides.common ?? new CommonService();

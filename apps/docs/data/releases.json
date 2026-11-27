@@ -1,5 +1,76 @@
 [
   {
+    "product": "apps",
+    "version": "2026.11.0",
+    "date": "2026-11-27",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`@pachca/app-sdk`: типы и описание схемы, функций и манифеста приложения Пачки, сборка (`@pachca/app-sdk/build`), шаблон и команды разработки `npx pachca-app`: `check`, `build`, `ship`, `pull`, `logs`, `secret`, `edit`, `delete`. В API Пачки команды ходят через CLI Пачки и его вход"
+      },
+      {
+        "type": "+",
+        "description": "`@pachca/app-react`: хуки `useQuery`, `useMutation`, `useAction`, `useJob` и `usePachca` для фронта приложения"
+      },
+      {
+        "type": "+",
+        "description": "`@pachca/create-app`: новое приложение командой `npm create @pachca/app@latest <папка>`"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.11.8",
+    "date": "2026-11-27",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Раздел `pachca apps` (бета): кастомные приложения пространства, их журнал, исходники, секреты и загрузка версии"
+      },
+      {
+        "type": "~",
+        "description": "Ошибка API в JSON-выводе несёт `payload` из ответа, если он есть: например, номер текущей версии приложения у `version_conflict`"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.11.1",
+    "date": "2026-11-27",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Методы раздела «Кастомные приложения» (`/apps`, бета), модели `App`, `AppRelease`, `AppSource`, `AppLogEntry`, `AppPermissionItem` с запросами и перечисления `AppVisibility`, `AppPermissionKind`, `AppLogKind`"
+      },
+      {
+        "type": "+",
+        "description": "Значения `apps:read` и `apps:write` в `OAuthScope`, `version_conflict` и `consent_required` в `ValidationErrorCode`"
+      }
+    ]
+  },
+  {
+    "product": "mcp",
+    "version": "1.13.0",
+    "date": "2026-11-27",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Инструменты кастомных приложений для владельца и администраторов (бета): `pachca_list_apps`, `pachca_get_app`, `pachca_create_app`, `pachca_update_app`, `pachca_delete_app`, `pachca_list_app_logs` и секреты приложения. Для них нужны права `apps:read` и `apps:write`. Загрузку версии и исходники инструменты не отдают: это делает `npx pachca-app`"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.2.12",
+    "date": "2026-11-27",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Раздел API «Кастомные приложения» в ноду не входит: приложения создаются и загружаются командой `npx pachca-app` из папки приложения. Операции ноды не изменились"
+      }
+    ]
+  },
+  {
     "product": "sdk",
     "version": "1.11.0",
     "date": "2026-11-25",

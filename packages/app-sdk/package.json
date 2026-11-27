@@ -1,0 +1,67 @@
+{
+  "name": "@pachca/app-sdk",
+  "version": "0.0.0",
+  "description": "SDK приложений Пачки: типы window.pachca и ctx, описание схемы и функций, ссылки на функции, сборка и шаблон",
+  "type": "module",
+  "bin": {
+    "pachca-app": "./dist/cli/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    },
+    "./api": {
+      "types": "./dist/api.d.ts",
+      "default": "./dist/api.js"
+    },
+    "./build": {
+      "types": "./dist/build/index.d.ts",
+      "default": "./dist/build/index.js"
+    },
+    "./pachca": {
+      "types": "./dist/generated/pachca.d.ts",
+      "default": "./dist/generated/pachca.js"
+    },
+    "./ops.json": "./dist/generated/ops.json",
+    "./contract/*": "./contract/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "contract",
+    "template"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "generate": "bun scripts/generate.ts",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && cp src/generated/ops.json dist/generated/",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc --noEmit && vitest run"
+  },
+  "dependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "vitest": "^3.1.1",
+    "yaml": "^2.9.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pachca/openapi",
+    "directory": "packages/app-sdk"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

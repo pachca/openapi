@@ -24,6 +24,17 @@ dev.pachca.com/api/members/add      →  pachca members add
 | Команда | Метод API |
 |---------|-----------|
 | `pachca api` | Произвольный запрос к API. Список и справка: `api ls` (список методов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs` |
+| `pachca apps create` | `POST` Новое приложение |
+| `pachca apps create-version` | `POST` Загрузка версии |
+| `pachca apps delete` | `DELETE` Удаление приложения |
+| `pachca apps delete-secret` | `DELETE` Удаление секрета приложения |
+| `pachca apps get` | `GET` Информация о приложении |
+| `pachca apps get-source` | `GET` Исходники приложения |
+| `pachca apps list` | `GET` Список приложений |
+| `pachca apps list-logs` | `GET` Журнал приложения |
+| `pachca apps list-secrets` | `GET` Список секретов приложения |
+| `pachca apps set-secret` | `PUT` Задание секрета приложения |
+| `pachca apps update` | `PUT` Редактирование приложения |
 | `pachca auth list` | Список сохранённых профилей |
 | `pachca auth login` | Вход в аккаунт и сохранение профиля |
 | `pachca auth logout` | Удаление сохранённого профиля |

@@ -1,0 +1,689 @@
+{
+ "bots.createBot": {
+  "method": "POST",
+  "path": "/bots",
+  "scope": "bots:write",
+  "unwrap": "data"
+ },
+ "bots.createBotToken": {
+  "method": "POST",
+  "path": "/bots/{id}/tokens",
+  "scope": "bots:write",
+  "unwrap": "data"
+ },
+ "bots.deleteBot": {
+  "method": "DELETE",
+  "path": "/bots/{id}",
+  "scope": "bots:write",
+  "unwrap": "none"
+ },
+ "bots.deleteBotAvatar": {
+  "method": "DELETE",
+  "path": "/bots/{id}/avatar",
+  "scope": "bots:write",
+  "unwrap": "none"
+ },
+ "bots.deleteBotToken": {
+  "method": "DELETE",
+  "path": "/bots/{id}/tokens/{token_id}",
+  "scope": "bots:write",
+  "unwrap": "none"
+ },
+ "bots.deleteWebhookEvent": {
+  "method": "DELETE",
+  "path": "/webhooks/events/{id}",
+  "scope": "webhooks:events:delete",
+  "unwrap": "none",
+  "botOnly": true
+ },
+ "bots.getBot": {
+  "method": "GET",
+  "path": "/bots/{id}",
+  "scope": "bots:read",
+  "unwrap": "data"
+ },
+ "bots.getBotScopes": {
+  "method": "GET",
+  "path": "/bots/{id}/scopes",
+  "scope": "bots:read",
+  "unwrap": "full"
+ },
+ "bots.getWebhookEvents": {
+  "method": "GET",
+  "path": "/webhooks/events",
+  "scope": "webhooks:events:read",
+  "unwrap": "full",
+  "botOnly": true,
+  "resultRecords": [
+   "data.payload.data"
+  ]
+ },
+ "bots.getWebhookEventsStream": {
+  "method": "GET",
+  "path": "/webhooks/events/stream",
+  "scope": "webhooks:events:read",
+  "unwrap": "data",
+  "botOnly": true
+ },
+ "bots.listBots": {
+  "method": "GET",
+  "path": "/bots",
+  "scope": "bots:read",
+  "unwrap": "full"
+ },
+ "bots.listBotTokens": {
+  "method": "GET",
+  "path": "/bots/{id}/tokens",
+  "scope": "bots:read",
+  "unwrap": "full"
+ },
+ "bots.listCompanyBots": {
+  "method": "GET",
+  "path": "/company/bots",
+  "scope": "company_bots:read",
+  "unwrap": "full"
+ },
+ "bots.recreateBotToken": {
+  "method": "POST",
+  "path": "/bots/{id}/recreate_token",
+  "scope": "bots:write",
+  "unwrap": "data"
+ },
+ "bots.reissueBotToken": {
+  "method": "POST",
+  "path": "/bots/{id}/tokens/{token_id}/reissue",
+  "scope": "bots:write",
+  "unwrap": "data"
+ },
+ "bots.rotateBotClientSecret": {
+  "method": "POST",
+  "path": "/bots/{id}/rotate_client_secret",
+  "scope": "bots:write",
+  "unwrap": "data"
+ },
+ "bots.selfRecreateBotToken": {
+  "method": "POST",
+  "path": "/bot/recreate_token",
+  "scope": "bot_self:write",
+  "unwrap": "data"
+ },
+ "bots.selfUpdateBotWebhook": {
+  "method": "PUT",
+  "path": "/bot/webhook",
+  "scope": "bot_self:webhook:write",
+  "unwrap": "data"
+ },
+ "bots.updateBot": {
+  "method": "PUT",
+  "path": "/bots/{id}",
+  "scope": "bots:write",
+  "unwrap": "data"
+ },
+ "bots.updateBotAvatar": {
+  "method": "PUT",
+  "path": "/bots/{id}/avatar",
+  "scope": "bots:write",
+  "unwrap": "data",
+  "multipart": [
+   "image"
+  ]
+ },
+ "bots.updateBotToken": {
+  "method": "PUT",
+  "path": "/bots/{id}/tokens/{token_id}",
+  "scope": "bots:write",
+  "unwrap": "data"
+ },
+ "chats.archiveChat": {
+  "method": "PUT",
+  "path": "/chats/{id}/archive",
+  "scope": "chats:archive",
+  "unwrap": "none"
+ },
+ "chats.createChat": {
+  "method": "POST",
+  "path": "/chats",
+  "scope": "chats:create",
+  "unwrap": "full"
+ },
+ "chats.deleteChatAvatar": {
+  "method": "DELETE",
+  "path": "/chats/{id}/avatar",
+  "scope": "chats:update",
+  "unwrap": "none"
+ },
+ "chats.downloadExport": {
+  "method": "GET",
+  "path": "/chats/exports/{id}",
+  "scope": "chat_exports:read",
+  "unwrap": "none"
+ },
+ "chats.getChat": {
+  "method": "GET",
+  "path": "/chats/{id}",
+  "scope": "chats:read",
+  "unwrap": "data"
+ },
+ "chats.listChats": {
+  "method": "GET",
+  "path": "/chats",
+  "scope": "chats:read",
+  "unwrap": "full"
+ },
+ "chats.listCompanyChats": {
+  "method": "GET",
+  "path": "/company/chats",
+  "scope": "company_chats:read",
+  "unwrap": "full"
+ },
+ "chats.markChatRead": {
+  "method": "PUT",
+  "path": "/chats/{id}/read",
+  "scope": "chats:mark_read",
+  "unwrap": "data"
+ },
+ "chats.markChatUnread": {
+  "method": "PUT",
+  "path": "/chats/{id}/unread",
+  "scope": "chats:mark_unread",
+  "unwrap": "none"
+ },
+ "chats.requestExport": {
+  "method": "POST",
+  "path": "/chats/exports",
+  "scope": "chat_exports:write",
+  "unwrap": "data"
+ },
+ "chats.unarchiveChat": {
+  "method": "PUT",
+  "path": "/chats/{id}/unarchive",
+  "scope": "chats:archive",
+  "unwrap": "none"
+ },
+ "chats.updateChat": {
+  "method": "PUT",
+  "path": "/chats/{id}",
+  "scope": "chats:update",
+  "unwrap": "data"
+ },
+ "chats.updateChatAvatar": {
+  "method": "PUT",
+  "path": "/chats/{id}/avatar",
+  "scope": "chats:update",
+  "unwrap": "data",
+  "multipart": [
+   "image"
+  ]
+ },
+ "company.getCompany": {
+  "method": "GET",
+  "path": "/company",
+  "scope": "company:read",
+  "unwrap": "data"
+ },
+ "company.getInviteLink": {
+  "method": "GET",
+  "path": "/company/invite_link",
+  "scope": "invite_links:write",
+  "unwrap": "data"
+ },
+ "company.reissueInviteLink": {
+  "method": "POST",
+  "path": "/company/invite_link",
+  "scope": "invite_links:write",
+  "unwrap": "data"
+ },
+ "company.updateCompany": {
+  "method": "PUT",
+  "path": "/company",
+  "scope": "company:write",
+  "unwrap": "data"
+ },
+ "customProperties.listProperties": {
+  "method": "GET",
+  "path": "/custom_properties",
+  "scope": "custom_properties:read",
+  "unwrap": "data"
+ },
+ "drafts.createDraft": {
+  "method": "POST",
+  "path": "/drafts",
+  "scope": "drafts:write",
+  "unwrap": "data"
+ },
+ "drafts.deleteDraft": {
+  "method": "DELETE",
+  "path": "/drafts/{id}",
+  "scope": "drafts:write",
+  "unwrap": "none"
+ },
+ "drafts.getDraft": {
+  "method": "GET",
+  "path": "/drafts/{id}",
+  "scope": "drafts:read",
+  "unwrap": "data"
+ },
+ "drafts.listDrafts": {
+  "method": "GET",
+  "path": "/drafts",
+  "scope": "drafts:read",
+  "unwrap": "full"
+ },
+ "drafts.updateDraft": {
+  "method": "PUT",
+  "path": "/drafts/{id}",
+  "scope": "drafts:write",
+  "unwrap": "data"
+ },
+ "files.downloadFile": {
+  "method": "GET",
+  "path": "/files/{id}",
+  "scope": "files:read",
+  "unwrap": "binary"
+ },
+ "groupTags.createTag": {
+  "method": "POST",
+  "path": "/group_tags",
+  "scope": "group_tags:write",
+  "unwrap": "data"
+ },
+ "groupTags.deleteTag": {
+  "method": "DELETE",
+  "path": "/group_tags/{id}",
+  "scope": "group_tags:write",
+  "unwrap": "none"
+ },
+ "groupTags.getTag": {
+  "method": "GET",
+  "path": "/group_tags/{id}",
+  "scope": "group_tags:read",
+  "unwrap": "data"
+ },
+ "groupTags.getTagUsers": {
+  "method": "GET",
+  "path": "/group_tags/{id}/users",
+  "scope": "group_tags:read",
+  "unwrap": "full"
+ },
+ "groupTags.listTags": {
+  "method": "GET",
+  "path": "/group_tags",
+  "scope": "group_tags:read",
+  "unwrap": "full",
+  "queryArrays": [
+   "names"
+  ]
+ },
+ "groupTags.updateTag": {
+  "method": "PUT",
+  "path": "/group_tags/{id}",
+  "scope": "group_tags:write",
+  "unwrap": "data"
+ },
+ "importantMessages.addMessageToImportant": {
+  "method": "POST",
+  "path": "/important_messages",
+  "scope": "important_messages:write",
+  "unwrap": "none"
+ },
+ "importantMessages.listImportantMessages": {
+  "method": "GET",
+  "path": "/important_messages",
+  "scope": "important_messages:read",
+  "unwrap": "full"
+ },
+ "importantMessages.removeMessageFromImportant": {
+  "method": "DELETE",
+  "path": "/important_messages/{id}",
+  "scope": "important_messages:write",
+  "unwrap": "none"
+ },
+ "members.addMembers": {
+  "method": "POST",
+  "path": "/chats/{id}/members",
+  "scope": "chat_members:write",
+  "unwrap": "none"
+ },
+ "members.addTags": {
+  "method": "POST",
+  "path": "/chats/{id}/group_tags",
+  "scope": "chat_members:write",
+  "unwrap": "none"
+ },
+ "members.leaveChat": {
+  "method": "DELETE",
+  "path": "/chats/{id}/leave",
+  "scope": "chats:leave",
+  "unwrap": "none"
+ },
+ "members.listMembers": {
+  "method": "GET",
+  "path": "/chats/{id}/members",
+  "scope": "chat_members:read",
+  "unwrap": "full"
+ },
+ "members.removeMember": {
+  "method": "DELETE",
+  "path": "/chats/{id}/members/{user_id}",
+  "scope": "chat_members:write",
+  "unwrap": "none"
+ },
+ "members.removeTag": {
+  "method": "DELETE",
+  "path": "/chats/{id}/group_tags/{tag_id}",
+  "scope": "chat_members:write",
+  "unwrap": "none"
+ },
+ "members.updateMemberRole": {
+  "method": "PUT",
+  "path": "/chats/{id}/members/{user_id}",
+  "scope": "chat_members:write",
+  "unwrap": "none"
+ },
+ "messages.createMessage": {
+  "method": "POST",
+  "path": "/messages",
+  "scope": "messages:create",
+  "unwrap": "data"
+ },
+ "messages.deleteMessage": {
+  "method": "DELETE",
+  "path": "/messages/{id}",
+  "scope": "messages:delete",
+  "unwrap": "none"
+ },
+ "messages.getMessage": {
+  "method": "GET",
+  "path": "/messages/{id}",
+  "scope": "messages:read",
+  "unwrap": "data"
+ },
+ "messages.getMessageHistory": {
+  "method": "GET",
+  "path": "/company/messages/{id}/history",
+  "scope": "company_messages:read",
+  "unwrap": "full"
+ },
+ "messages.listChatMessages": {
+  "method": "GET",
+  "path": "/messages",
+  "scope": "messages:read",
+  "unwrap": "full"
+ },
+ "messages.listPinnedMessages": {
+  "method": "GET",
+  "path": "/chats/{id}/pinned_messages",
+  "scope": "messages:read",
+  "unwrap": "full"
+ },
+ "messages.pinMessage": {
+  "method": "POST",
+  "path": "/messages/{id}/pin",
+  "scope": "pins:write",
+  "unwrap": "none"
+ },
+ "messages.unfurl": {
+  "method": "POST",
+  "path": "/messages/{id}/link_previews",
+  "scope": "link_previews:write",
+  "unwrap": "none",
+  "botOnly": true,
+  "bodyRecords": [
+   "link_previews"
+  ]
+ },
+ "messages.unpinMessage": {
+  "method": "DELETE",
+  "path": "/messages/{id}/pin",
+  "scope": "pins:write",
+  "unwrap": "none"
+ },
+ "messages.updateMessage": {
+  "method": "PUT",
+  "path": "/messages/{id}",
+  "scope": "messages:update",
+  "unwrap": "data"
+ },
+ "profile.deleteProfileAvatar": {
+  "method": "DELETE",
+  "path": "/profile/avatar",
+  "scope": "profile_avatar:write",
+  "unwrap": "none"
+ },
+ "profile.deleteStatus": {
+  "method": "DELETE",
+  "path": "/profile/status",
+  "scope": "profile_status:write",
+  "unwrap": "none"
+ },
+ "profile.getProfile": {
+  "method": "GET",
+  "path": "/profile",
+  "scope": "profile:read",
+  "unwrap": "data"
+ },
+ "profile.getStatus": {
+  "method": "GET",
+  "path": "/profile/status",
+  "scope": "profile_status:read",
+  "unwrap": "data"
+ },
+ "profile.updateProfile": {
+  "method": "PUT",
+  "path": "/profile",
+  "scope": "profile:write",
+  "unwrap": "data"
+ },
+ "profile.updateProfileAvatar": {
+  "method": "PUT",
+  "path": "/profile/avatar",
+  "scope": "profile_avatar:write",
+  "unwrap": "data",
+  "multipart": [
+   "image"
+  ]
+ },
+ "profile.updateStatus": {
+  "method": "PUT",
+  "path": "/profile/status",
+  "scope": "profile_status:write",
+  "unwrap": "data"
+ },
+ "reactions.addReaction": {
+  "method": "POST",
+  "path": "/messages/{id}/reactions",
+  "scope": "reactions:write",
+  "unwrap": "full"
+ },
+ "reactions.listReactions": {
+  "method": "GET",
+  "path": "/messages/{id}/reactions",
+  "scope": "reactions:read",
+  "unwrap": "full"
+ },
+ "reactions.removeReaction": {
+  "method": "DELETE",
+  "path": "/messages/{id}/reactions",
+  "scope": "reactions:write",
+  "unwrap": "none"
+ },
+ "readMembers.listReadMembers": {
+  "method": "GET",
+  "path": "/messages/{id}/read_member_ids",
+  "scope": "messages:read",
+  "unwrap": "full"
+ },
+ "search.searchChats": {
+  "method": "GET",
+  "path": "/search/chats",
+  "scope": "search:chats",
+  "unwrap": "full"
+ },
+ "search.searchMessages": {
+  "method": "GET",
+  "path": "/search/messages",
+  "scope": "search:messages",
+  "unwrap": "full",
+  "queryArrays": [
+   "chat_ids",
+   "user_ids"
+  ]
+ },
+ "search.searchUsers": {
+  "method": "GET",
+  "path": "/search/users",
+  "scope": "search:users",
+  "unwrap": "full",
+  "queryArrays": [
+   "company_roles"
+  ]
+ },
+ "security.getAuditEvents": {
+  "method": "GET",
+  "path": "/audit_events",
+  "scope": "audit_events:read",
+  "unwrap": "full",
+  "resultRecords": [
+   "data.details.filters",
+   "data.details.changes"
+  ]
+ },
+ "tasks.createTask": {
+  "method": "POST",
+  "path": "/tasks",
+  "scope": "tasks:create",
+  "unwrap": "data"
+ },
+ "tasks.deleteTask": {
+  "method": "DELETE",
+  "path": "/tasks/{id}",
+  "scope": "tasks:delete",
+  "unwrap": "none"
+ },
+ "tasks.getTask": {
+  "method": "GET",
+  "path": "/tasks/{id}",
+  "scope": "tasks:read",
+  "unwrap": "data"
+ },
+ "tasks.listTasks": {
+  "method": "GET",
+  "path": "/tasks",
+  "scope": "tasks:read",
+  "unwrap": "full",
+  "queryArrays": [
+   "chat_ids",
+   "performer_ids"
+  ]
+ },
+ "tasks.updateTask": {
+  "method": "PUT",
+  "path": "/tasks/{id}",
+  "scope": "tasks:update",
+  "unwrap": "data"
+ },
+ "threads.createStandaloneThread": {
+  "method": "POST",
+  "path": "/threads",
+  "scope": "threads:create",
+  "unwrap": "data"
+ },
+ "threads.createThread": {
+  "method": "POST",
+  "path": "/messages/{id}/thread",
+  "scope": "threads:create",
+  "unwrap": "data"
+ },
+ "threads.getThread": {
+  "method": "GET",
+  "path": "/threads/{id}",
+  "scope": "threads:read",
+  "unwrap": "data"
+ },
+ "threads.listThreads": {
+  "method": "GET",
+  "path": "/threads",
+  "scope": "threads:read",
+  "unwrap": "full"
+ },
+ "users.createUser": {
+  "method": "POST",
+  "path": "/users",
+  "scope": "users:create",
+  "unwrap": "data"
+ },
+ "users.deleteUser": {
+  "method": "DELETE",
+  "path": "/users/{id}",
+  "scope": "users:delete",
+  "unwrap": "none"
+ },
+ "users.deleteUserAvatar": {
+  "method": "DELETE",
+  "path": "/users/{user_id}/avatar",
+  "scope": "user_avatar:write",
+  "unwrap": "none"
+ },
+ "users.deleteUserStatus": {
+  "method": "DELETE",
+  "path": "/users/{user_id}/status",
+  "scope": "user_status:write",
+  "unwrap": "none"
+ },
+ "users.getUser": {
+  "method": "GET",
+  "path": "/users/{id}",
+  "scope": "users:read",
+  "unwrap": "data"
+ },
+ "users.getUserStatus": {
+  "method": "GET",
+  "path": "/users/{user_id}/status",
+  "scope": "user_status:read",
+  "unwrap": "data"
+ },
+ "users.listUsers": {
+  "method": "GET",
+  "path": "/users",
+  "scope": "users:read",
+  "unwrap": "full"
+ },
+ "users.updateUser": {
+  "method": "PUT",
+  "path": "/users/{id}",
+  "scope": "users:update",
+  "unwrap": "data"
+ },
+ "users.updateUserAvatar": {
+  "method": "PUT",
+  "path": "/users/{user_id}/avatar",
+  "scope": "user_avatar:write",
+  "unwrap": "data",
+  "multipart": [
+   "image"
+  ]
+ },
+ "users.updateUserStatus": {
+  "method": "PUT",
+  "path": "/users/{user_id}/status",
+  "scope": "user_status:write",
+  "unwrap": "data"
+ },
+ "views.openView": {
+  "method": "POST",
+  "path": "/views/open",
+  "scope": "views:write",
+  "unwrap": "full",
+  "botOnly": true
+ },
+ "views.submitViewResponse": {
+  "method": "POST",
+  "path": "/views/{view_id}/submit_response",
+  "scope": "views:write",
+  "unwrap": "full",
+  "botOnly": true,
+  "bodyRecords": [
+   "errors"
+  ]
+ }
+}

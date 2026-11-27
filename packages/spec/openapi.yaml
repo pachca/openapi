@@ -21,9 +21,833 @@ tags:
   - name: Views
   - name: Bots
   - name: Security
+  - name: Apps
   - name: Custom Properties
   - name: Files
 paths:
+  /apps:
+    get:
+      operationId: AppOperations_listApps
+      description: |-
+        Список приложений
+
+        Кастомные приложения пространства по порядку создания, одним списком без пагинации.
+
+
+        Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/App'
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:read
+    post:
+      operationId: AppOperations_createApp
+      description: |-
+        Новое приложение
+
+        Создаёт приложение без версий и его бота без прав. Код загружают методом [Загрузка версии](POST /apps/{id}/versions), обычно командой `npx pachca-app ship` из папки приложения.
+
+        Свой `id` не из 12 символов `[0-9a-z]` или уже занятый отвечает `400` с кодом `taken` или `invalid`, ничего не создаётся. Если платформа приложений не ответила, метод отвечает `502`, бот и приложение не остаются.
+
+        Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/App'
+                description: Обертка ответа с данными
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppCreateRequest'
+      x-requirements:
+        scope: apps:write
+  /apps/{id}:
+    get:
+      operationId: AppOperations_getApp
+      description: |-
+        Информация о приложении
+
+        Приложение пространства по его идентификатору. Приложение другого пространства отвечает `404`.
+
+        Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор приложения
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/App'
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:read
+    put:
+      operationId: AppOperations_updateApp
+      description: |-
+        Редактирование приложения
+
+        Меняет название, иконку и доступ без новой версии. Название меняется и у бота приложения. Пустое название отвечает `422` с кодом `blank`, иконка длиннее 16 символов или с пробелами отвечает `422` с кодом `invalid`.
+
+        Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор приложения
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/App'
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppUpdateRequest'
+      x-requirements:
+        scope: apps:write
+    delete:
+      operationId: AppOperations_deleteApp
+      description: |-
+        Удаление приложения
+
+        Удаляет приложение целиком и необратимо: версии, базу, файлы, секреты и бота приложения. Если платформа приложений не ответила, метод отвечает `502`, ничего не удалено, запрос можно повторить.
+
+        Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор приложения
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:write
+  /apps/{id}/logs:
+    get:
+      operationId: AppOperations_listAppLogs
+      description: |-
+        Журнал приложения
+
+        Что делало приложение на платформе: ошибки функций, запросы в сеть и к API Пачки, вызовы вебхуков, нарушения ограничений фронта. Видно, что платформа разрешила и что заблокировала. Новые записи первыми.
+
+        Журнал хранится в памяти платформы, последние 200 записей. После её перезапуска он пуст.
+
+        Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор приложения
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+        - name: 'n'
+          in: query
+          required: false
+          description: Сколько записей вернуть. Целое число вне допустимых значений заменяется ближайшей границей.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 200
+            example: 50
+            default: 50
+          example: 50
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AppLogEntry'
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:read
+  /apps/{id}/secrets:
+    get:
+      operationId: AppOperations_listAppSecrets
+      description: |-
+        Список секретов приложения
+
+        Имена заданных секретов приложения: ключей внешних сервисов и секретов подписи вебхуков. Значения не возвращаются.
+
+        Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор приложения
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: string
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:read
+  /apps/{id}/secrets/{name}:
+    put:
+      operationId: AppOperations_setAppSecret
+      description: |-
+        Задание секрета приложения
+
+        Создаёт или заменяет секрет. Секрет объявляет манифест приложения: ключ внешнего сервиса платформа сама добавляет в запросы функций к его хосту, а секретом подписи проверяет вызовы вебхука. Код приложения значения не видит.
+
+        Имя не из `[A-Z][A-Z0-9_]`, длиннее 64 символов или значение больше 4 КБ отвечает `422` с кодом `invalid`.
+
+        Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор приложения
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+        - name: name
+          in: path
+          required: true
+          description: Имя секрета
+          schema:
+            type: string
+            example: API_KEY
+          example: API_KEY
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppSecretRequest'
+      x-requirements:
+        scope: apps:write
+    delete:
+      operationId: AppOperations_deleteAppSecret
+      description: |-
+        Удаление секрета приложения
+
+        Удаляет секрет. Удаление секрета, которого нет, не ошибка.
+
+        Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор приложения
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+        - name: name
+          in: path
+          required: true
+          description: Имя секрета
+          schema:
+            type: string
+            example: API_KEY
+          example: API_KEY
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:write
+  /apps/{id}/source:
+    get:
+      operationId: AppOperations_getAppSource
+      description: |-
+        Исходники приложения
+
+        Исходники текущей версии, загруженные вместе с ней. По ним команда `npx pachca-app pull` восстанавливает папку приложения. Приложение без версий отвечает `404`.
+
+        Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор приложения
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AppSource'
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      x-requirements:
+        scope: apps:read
+  /apps/{id}/versions:
+    post:
+      operationId: AppOperations_createAppVersion
+      description: |-
+        Загрузка версии
+
+        Загружает сборку приложения, и она сразу становится текущей версией. Сборку и запрос собирает команда `npx pachca-app ship` из папки приложения (пакет `@pachca/app-sdk`).
+
+        Платформа приложений проверяет сборку, версию SDK, изменения прав и схему базы на существующих данных. Бот приложения получает права и подписку на события из манифеста версии.
+
+        Ответ `409` ничего не загружает. Код `version_conflict`: текущая версия не `base_version`, приложение загрузили из другой папки, номер текущей версии в `payload.version`. Код `consent_required`: права, хосты или события изменились, а `approve` не передан, список изменений в `payload.items`. Код `sdk_outdated`: сборка без версии SDK, на версии, которую платформа уже не принимает, или на бете SDK у пространства вне бета-программы, текущая версия в `payload.sdk`, команда обновления в `payload.command`. Код `invalid` у `409` и `422`: платформа отклонила сборку или изменение схемы, причина в `message`. Тело больше 32 МБ отвечает `413` с кодом `too_long`.
+
+        Метод доступен владельцу и администраторам пространства. Раздел «Кастомные приложения» доступен пространствам из бета-программы, записаться можно на https://pachca.com/custom-apps.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор приложения
+          schema:
+            type: string
+            example: k3x9q2m7a1bz
+          example: k3x9q2m7a1bz
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AppRelease'
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '413':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '502':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Apps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppVersionRequest'
+      x-requirements:
+        scope: apps:write
   /audit_events:
     get:
       operationId: SecurityOperations_getAuditEvents
@@ -9362,9 +10186,333 @@ components:
           type: object
           additionalProperties: {}
           nullable: true
-          description: 'Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть, `{limit: number, remaining: number, reset_at: string}` — при исчерпанном суточном лимите писем-приглашений (`reset_at` — когда в окне освободится место). В большинстве случаев `null`.'
+          description: 'Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть, `{limit: number, remaining: number, reset_at: string}` — при исчерпанном суточном лимите писем-приглашений (`reset_at` — когда в окне освободится место), `{version: number}` — у `version_conflict` (номер текущей версии приложения), `{hash: string, items: AppPermissionItem[]}` — у `consent_required` (что изменилось в правах), `{sdk: string, command: string}` — у `sdk_outdated` (текущая версия `@pachca/app-sdk` и команда обновления). В большинстве случаев `null`.'
           example: null
       description: Детальная информация об ошибке
+    App:
+      type: object
+      required:
+        - id
+        - name
+        - icon
+        - bot_id
+        - avatar_url
+        - visibility
+        - created_by_id
+        - version
+        - hash
+        - created_at
+      properties:
+        id:
+          type: string
+          description: 'Идентификатор приложения: 12 символов `[0-9a-z]`'
+          example: k3x9q2m7a1bz
+        name:
+          type: string
+          description: Название приложения. Оно же имя бота приложения.
+          example: Заметки
+        icon:
+          type: string
+          nullable: true
+          description: 'Иконка приложения: один эмодзи. `null`, пока не задана.'
+          example: 📝
+        bot_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: Идентификатор бота приложения. От его имени приложение пишет в чаты, его права задаёт манифест версии.
+          example: 1738816
+        avatar_url:
+          type: string
+          nullable: true
+          description: 'Аватарка приложения: это аватарка его бота. `null`, пока не задана.'
+          example: null
+        visibility:
+          allOf:
+            - $ref: '#/components/schemas/AppVisibility'
+          description: Кто может открыть приложение
+          example: private
+        created_by_id:
+          type: integer
+          format: int64
+          description: Идентификатор сотрудника, который создал приложение.
+          example: 12
+        version:
+          type: integer
+          format: int32
+          description: Номер текущей версии. Его выдаёт платформа приложений при каждой загрузке, `0`, пока версий нет.
+          example: 3
+        hash:
+          type: string
+          nullable: true
+          description: Хэш манифеста текущей версии. `null`, пока версий нет.
+          example: 9f2c4e1a7b3d
+        created_at:
+          type: string
+          format: date-time
+          description: Дата и время создания приложения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+          example: '2026-11-20T10:30:00.000Z'
+      description: Кастомное приложение
+    AppCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Название приложения
+          example: Заметки
+        id:
+          type: string
+          description: 'Свой идентификатор приложения: 12 символов `[0-9a-z]`. Без поля генерируется.'
+          example: k3x9q2m7a1bz
+      description: Запрос на создание приложения
+    AppLogEntry:
+      type: object
+      required:
+        - time
+        - kind
+        - text
+        - allowed
+      properties:
+        time:
+          type: string
+          format: date-time
+          description: Время записи (ISO-8601, UTC+0)
+          example: '2026-11-20T10:31:00.000Z'
+        kind:
+          allOf:
+            - $ref: '#/components/schemas/AppLogKind'
+          description: Вид записи
+          example: fetch
+        text:
+          type: string
+          description: 'Что делало приложение: функция, адрес запроса или операция API Пачки'
+          example: GET https://api.example.com/rates
+        allowed:
+          type: boolean
+          description: 'Платформа разрешила действие и оно прошло. У `function` всегда `false`: записи есть только об ошибках.'
+          example: true
+        reason:
+          type: string
+          description: Причина отказа, код ответа или начало ответа с ошибкой
+          example: '200'
+      description: Запись журнала приложения
+    AppLogKind:
+      type: string
+      enum:
+        - function
+        - fetch
+        - pachca
+        - webhook
+        - csp
+      description: Вид записи журнала приложения
+      x-enum-descriptions:
+        function: Вызов функции приложения закончился ошибкой
+        fetch: Запрос функции во внешнюю сеть
+        pachca: Запрос к API Пачки
+        webhook: Вызов вебхука приложения
+        csp: Фронт приложения нарушил ограничения браузера
+    AppPermissionItem:
+      type: object
+      required:
+        - kind
+        - text
+      properties:
+        kind:
+          allOf:
+            - $ref: '#/components/schemas/AppPermissionKind'
+          description: Вид записи
+          example: bot
+        text:
+          type: string
+          description: Описание для человека
+          example: Отправка сообщений
+        scope:
+          type: string
+          description: Скоуп, хост или событие
+          example: messages:create
+        new:
+          type: boolean
+          description: Появилось в этой версии
+          example: true
+        removed:
+          type: boolean
+          description: Было в прежней версии, в этой нет
+          example: false
+      description: Право, хост или событие приложения для показа человеку, с пометками относительно прежней версии
+    AppPermissionKind:
+      type: string
+      enum:
+        - bot
+        - user
+        - event
+        - net
+        - warn
+      description: Вид записи в списке прав приложения
+      x-enum-descriptions:
+        bot: Право бота приложения
+        user: Право от имени пользователя
+        event: Событие Пачки, на которое подписан бот
+        net: 'Сеть: хост запросов, хост фронта, вебхук или ключ внешнего сервиса'
+        warn: Предупреждение, например об опасной комбинации прав
+    AppRelease:
+      type: object
+      required:
+        - version
+        - hash
+        - items
+        - migrations
+        - warnings
+      properties:
+        version:
+          type: integer
+          format: int32
+          description: Номер новой текущей версии
+          example: 3
+        hash:
+          type: string
+          description: Хэш манифеста версии
+          example: 9f2c4e1a7b3d
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppPermissionItem'
+          description: Права, хосты и события версии с пометками относительно прежней
+        migrations:
+          type: array
+          items:
+            type: string
+          description: Что изменилось в базе приложения, строки для показа человеку. Пусто, если схема не менялась.
+          example:
+            - Таблица notes создана
+        warnings:
+          type: array
+          items:
+            type: string
+          description: Предупреждения автору, например о сборке на устаревающей версии протокола
+          example: []
+      description: 'Загруженная версия: она уже текущая'
+    AppSecretRequest:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: string
+          description: Значение секрета, до 4 КБ
+          example: sk_live_51Hx
+      description: Секрет приложения
+    AppSource:
+      type: object
+      required:
+        - version
+        - files
+      properties:
+        version:
+          type: integer
+          format: int32
+          description: Номер версии
+          example: 3
+        files:
+          type: object
+          additionalProperties:
+            type: string
+          description: 'Файлы папки приложения: относительный путь и содержимое в base64. Пусто, если версию загрузили без исходников.'
+          example:
+            schema.ts: aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0=
+      description: Исходники текущей версии
+    AppUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Название приложения. Меняется и у бота приложения.
+          example: Заметки команды
+        icon:
+          type: string
+          description: 'Иконка: один эмодзи, до 16 символов без пробелов. Пустая строка снимает иконку.'
+          example: 🗒️
+        visibility:
+          allOf:
+            - $ref: '#/components/schemas/AppVisibility'
+          description: Кто может открыть приложение
+          example: link
+      description: Запрос на изменение приложения
+    AppVersionRequest:
+      type: object
+      required:
+        - code
+        - manifest
+        - schema
+        - functions
+        - static
+        - base_version
+      properties:
+        code:
+          type: string
+          description: Код функций приложения (`dist/app.js`)
+          example: export default {};
+        manifest:
+          type: object
+          additionalProperties: {}
+          description: 'Манифест сборки (`dist/manifest.json`): права, хосты, вебхуки, версии протокола и SDK'
+          example:
+            protocol: 3
+            sdk: 2026.12.0
+        schema:
+          type: object
+          additionalProperties: {}
+          description: Схема базы (`dist/schema.json`)
+          example:
+            tables: {}
+        functions:
+          type: object
+          additionalProperties: {}
+          description: Описания функций (`dist/functions.json`)
+          example: {}
+        static:
+          type: object
+          additionalProperties:
+            type: string
+          description: 'Статика фронта (`dist/static`): относительный путь и содержимое в base64'
+          example:
+            index.html: PCFkb2N0eXBlIGh0bWw+
+        source:
+          type: object
+          additionalProperties:
+            type: string
+          description: 'Исходники папки приложения: относительный путь и содержимое в base64, до 5 МБ. Платформа хранит их с версией и отдаёт методом [Исходники приложения](GET /apps/{id}/source).'
+          example:
+            schema.ts: aW1wb3J0IHsgZGVmaW5lU2NoZW1hIH0=
+        base_version:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Номер версии, от которой сделана загрузка, `0` у первой
+          example: 2
+        approve:
+          type: boolean
+          description: Человек видел и подтвердил изменения прав, хостов и событий
+          example: false
+        force:
+          type: boolean
+          description: Загрузить, даже если текущая версия не `base_version`. Изменения из другой папки пропадут.
+          example: false
+      description: 'Версия приложения: сборка из `dist` и исходники папки'
+    AppVisibility:
+      type: string
+      enum:
+        - private
+        - link
+        - public
+      description: Кто может открыть приложение
+      x-enum-descriptions:
+        private: Только автор приложения
+        link: Любой сотрудник пространства по ссылке, в обзоре приложений его нет
+        public: Любой сотрудник пространства по ссылке и в обзоре приложений
     AuditDetailsBot:
       type: object
       required:
@@ -14116,6 +15264,8 @@ components:
         - drafts:write
         - important_messages:read
         - important_messages:write
+        - apps:read
+        - apps:write
       description: Скоуп доступа OAuth токена
       x-scope-roles:
         chats_read:
@@ -14426,6 +15576,12 @@ components:
           - admin
           - user
           - multi_guest
+        apps_read:
+          - owner
+          - admin
+        apps_write:
+          - owner
+          - admin
       x-enum-descriptions:
         chats_read: Просмотр чатов и списка чатов
         chats_create: Создание новых чатов
@@ -14490,6 +15646,8 @@ components:
         drafts_write: Создание, изменение и удаление черновиков и отложенных сообщений
         important_messages_read: Просмотр важных сообщений
         important_messages_write: Добавление сообщений в важные и удаление из важных
+        apps_read: Просмотр кастомных приложений, их журнала, исходников и имён секретов
+        apps_write: Создание, загрузка версий, изменение и удаление кастомных приложений и их секретов
     OAuthToken:
       type: object
       required:
@@ -15804,6 +16962,9 @@ components:
         - view_not_found
         - submit_expired
         - service_unavailable
+        - version_conflict
+        - consent_required
+        - sdk_outdated
       description: Коды ошибок валидации
       x-enum-descriptions:
         blank: Обязательное поле (не может быть пустым)
@@ -15868,6 +17029,9 @@ components:
         webhook_url_unresolved: Не удалось определить IP-адрес домена из адреса вебхука
         webhook_url_forbidden: Адрес вебхука ведёт во внутреннюю или зарезервированную сеть
         blocked_by_sso: Поле заполняется из SSO или нужно для входа через SSO, через API его не изменить (пояснения вы получите в поле message)
+        version_conflict: Текущая версия приложения не та, от которой сделана загрузка
+        consent_required: Права, хосты или события приложения изменились, а загрузка не подтверждает их
+        sdk_outdated: 'Приложение собрано на версии `@pachca/app-sdk`, которую платформа не принимает: текущая версия и команда обновления — в `payload`'
     VideoCallEventType:
       type: string
       enum:

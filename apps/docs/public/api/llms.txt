@@ -158,6 +158,19 @@
 ## Безопасность
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
 
+## Кастомные приложения
+- [Список приложений](https://dev.pachca.com/api/apps/list.md): GET /apps
+- [Новое приложение](https://dev.pachca.com/api/apps/create.md): POST /apps
+- [Информация о приложении](https://dev.pachca.com/api/apps/get.md): GET /apps/{id}
+- [Редактирование приложения](https://dev.pachca.com/api/apps/update.md): PUT /apps/{id}
+- [Удаление приложения](https://dev.pachca.com/api/apps/delete.md): DELETE /apps/{id}
+- [Журнал приложения](https://dev.pachca.com/api/apps/list-logs.md): GET /apps/{id}/logs
+- [Список секретов приложения](https://dev.pachca.com/api/apps/list-secrets.md): GET /apps/{id}/secrets
+- [Задание секрета приложения](https://dev.pachca.com/api/apps/set-secret.md): PUT /apps/{id}/secrets/{name}
+- [Удаление секрета приложения](https://dev.pachca.com/api/apps/delete-secret.md): DELETE /apps/{id}/secrets/{name}
+- [Исходники приложения](https://dev.pachca.com/api/apps/get-source.md): GET /apps/{id}/source
+- [Загрузка версии](https://dev.pachca.com/api/apps/create-version.md): POST /apps/{id}/versions
+
 ## Дополнительные поля
 - [Список дополнительных полей](https://dev.pachca.com/api/custom-properties/list.md): GET /custom_properties
 

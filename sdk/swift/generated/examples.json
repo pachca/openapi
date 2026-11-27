@@ -5,6 +5,57 @@
       "PachcaClient"
     ]
   },
+  "AppOperations_listApps": {
+    "usage": "let response = try await client.apps.listApps()",
+    "output": "ListAppsResponse(data: [App])"
+  },
+  "AppOperations_getApp": {
+    "usage": "let response = try await client.apps.getApp(id: \"k3x9q2m7a1bz\")",
+    "output": "App(id: String, name: String, icon: String?, botId: Int64?, avatarUrl: String?, visibility: AppVisibility, createdById: Int64, version: Int, hash: String?, createdAt: String)"
+  },
+  "AppOperations_listAppLogs": {
+    "usage": "let response = try await client.apps.listAppLogs(id: \"k3x9q2m7a1bz\", n: 50)",
+    "output": "ListAppLogsResponse(data: [AppLogEntry])"
+  },
+  "AppOperations_listAppSecrets": {
+    "usage": "let response = try await client.apps.listAppSecrets(id: \"k3x9q2m7a1bz\")",
+    "output": "ListAppSecretsResponse(data: [String])"
+  },
+  "AppOperations_getAppSource": {
+    "usage": "let response = try await client.apps.getAppSource(id: \"k3x9q2m7a1bz\")",
+    "output": "AppSource(version: Int, files: [String: String])"
+  },
+  "AppOperations_createApp": {
+    "usage": "let request = AppCreateRequest(name: \"Заметки\", id: \"k3x9q2m7a1bz\")\nlet response = try await client.apps.createApp(request: request)",
+    "output": "App(id: String, name: String, icon: String?, botId: Int64?, avatarUrl: String?, visibility: AppVisibility, createdById: Int64, version: Int, hash: String?, createdAt: String)",
+    "imports": [
+      "AppCreateRequest"
+    ]
+  },
+  "AppOperations_createAppVersion": {
+    "usage": "let request = AppVersionRequest(\n    code: \"export default {};\",\n    manifest: [\"key\": AnyCodable([:])],\n    schema: [\"key\": AnyCodable([:])],\n    functions: [\"key\": AnyCodable([:])],\n    `static`: [\"key\": \"example\"],\n    source: [\"key\": \"example\"],\n    baseVersion: 2,\n    approve: false,\n    force: false\n)\nlet response = try await client.apps.createAppVersion(id: \"k3x9q2m7a1bz\", request: request)",
+    "output": "AppRelease(version: Int, hash: String, items: [AppPermissionItem(kind: AppPermissionKind, text: String, scope: String?, new: Bool?, removed: Bool?)], migrations: [String], warnings: [String])",
+    "imports": [
+      "AppVersionRequest"
+    ]
+  },
+  "AppOperations_updateApp": {
+    "usage": "let request = AppUpdateRequest(\n    name: \"Заметки команды\",\n    icon: \"🗒️\",\n    visibility: .link\n)\nlet response = try await client.apps.updateApp(id: \"k3x9q2m7a1bz\", request: request)",
+    "output": "App(id: String, name: String, icon: String?, botId: Int64?, avatarUrl: String?, visibility: AppVisibility, createdById: Int64, version: Int, hash: String?, createdAt: String)",
+    "imports": [
+      "AppUpdateRequest",
+      "AppVisibility"
+    ]
+  },
+  "AppOperations_setAppSecret": {
+    "usage": "try await client.apps.setAppSecret(id: \"k3x9q2m7a1bz\", name: \"API_KEY\", value: \"sk_live_51Hx\")"
+  },
+  "AppOperations_deleteApp": {
+    "usage": "try await client.apps.deleteApp(id: \"k3x9q2m7a1bz\")"
+  },
+  "AppOperations_deleteAppSecret": {
+    "usage": "try await client.apps.deleteAppSecret(id: \"k3x9q2m7a1bz\", name: \"API_KEY\")"
+  },
   "SecurityOperations_getAuditEvents": {
     "usage": "let response = try await client.security.getAuditEvents(startTime: \"2025-05-01T09:11:00.000Z\", endTime: \"2025-05-02T09:11:00.000Z\", eventKey: .userLogin, actorId: \"98765\", actorType: \"User\", entityId: \"98765\", entityType: \"User\", limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "GetAuditEventsResponse(data: [AuditEvent], meta: PaginationMeta)",

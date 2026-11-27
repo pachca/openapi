@@ -109,6 +109,167 @@ internal fun dropAuthorizationOfNoAuthRequests(client: HttpClient) {
     }
 }
 
+interface AppsService {
+    suspend fun listApps(): ListAppsResponse {
+        throw NotImplementedError("Apps.listApps is not implemented")
+    }
+
+    suspend fun getApp(id: String): App {
+        throw NotImplementedError("Apps.getApp is not implemented")
+    }
+
+    suspend fun listAppLogs(id: String, n: Int? = null): ListAppLogsResponse {
+        throw NotImplementedError("Apps.listAppLogs is not implemented")
+    }
+
+    suspend fun listAppSecrets(id: String): ListAppSecretsResponse {
+        throw NotImplementedError("Apps.listAppSecrets is not implemented")
+    }
+
+    suspend fun getAppSource(id: String): AppSource {
+        throw NotImplementedError("Apps.getAppSource is not implemented")
+    }
+
+    suspend fun createApp(request: AppCreateRequest): App {
+        throw NotImplementedError("Apps.createApp is not implemented")
+    }
+
+    suspend fun createAppVersion(id: String, request: AppVersionRequest): AppRelease {
+        throw NotImplementedError("Apps.createAppVersion is not implemented")
+    }
+
+    suspend fun updateApp(id: String, request: AppUpdateRequest): App {
+        throw NotImplementedError("Apps.updateApp is not implemented")
+    }
+
+    suspend fun setAppSecret(
+        id: String,
+        name: String,
+        value: String,
+    ) {
+        throw NotImplementedError("Apps.setAppSecret is not implemented")
+    }
+
+    suspend fun deleteApp(id: String) {
+        throw NotImplementedError("Apps.deleteApp is not implemented")
+    }
+
+    suspend fun deleteAppSecret(id: String, name: String) {
+        throw NotImplementedError("Apps.deleteAppSecret is not implemented")
+    }
+}
+
+class AppsServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : AppsService {
+    override suspend fun listApps(): ListAppsResponse {
+        val response = client.get("$baseUrl/apps")
+        return when (response.status.value) {
+            200 -> response.body()
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun getApp(id: String): App {
+        val response = client.get("$baseUrl/apps/$id")
+        return when (response.status.value) {
+            200 -> response.body<AppDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun listAppLogs(id: String, n: Int?): ListAppLogsResponse {
+        val response = client.get("$baseUrl/apps/$id/logs") {
+            n?.let { parameter("n", it) }
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun listAppSecrets(id: String): ListAppSecretsResponse {
+        val response = client.get("$baseUrl/apps/$id/secrets")
+        return when (response.status.value) {
+            200 -> response.body()
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun getAppSource(id: String): AppSource {
+        val response = client.get("$baseUrl/apps/$id/source")
+        return when (response.status.value) {
+            200 -> response.body<AppSourceDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun createApp(request: AppCreateRequest): App {
+        val response = client.post("$baseUrl/apps") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            201 -> response.body<AppDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun createAppVersion(id: String, request: AppVersionRequest): AppRelease {
+        val response = client.post("$baseUrl/apps/$id/versions") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            200 -> response.body<AppReleaseDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun updateApp(id: String, request: AppUpdateRequest): App {
+        val response = client.put("$baseUrl/apps/$id") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            200 -> response.body<AppDataWrapper>().data
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun setAppSecret(
+        id: String,
+        name: String,
+        value: String,
+    ) {
+        val response = client.put("$baseUrl/apps/$id/secrets/$name") {
+            contentType(ContentType.Application.Json)
+            setBody(AppSecretRequest(value = value))
+        }
+        when (response.status.value) {
+            204 -> return
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun deleteApp(id: String) {
+        val response = client.delete("$baseUrl/apps/$id")
+        when (response.status.value) {
+            204 -> return
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun deleteAppSecret(id: String, name: String) {
+        val response = client.delete("$baseUrl/apps/$id/secrets/$name")
+        when (response.status.value) {
+            204 -> return
+            else -> throw errorFromResponse(response)
+        }
+    }
+}
+
 interface SecurityService {
     suspend fun getAuditEvents(
         startTime: OffsetDateTime? = null,
@@ -2929,6 +3090,7 @@ const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 class PachcaClient private constructor(
     private val _client: HttpClient?,
+    val apps: AppsService,
     val bots: BotsService,
     val chats: ChatsService,
     val common: CommonService,
@@ -2961,6 +3123,7 @@ class PachcaClient private constructor(
         operator fun invoke(
             token: String,
             baseUrl: String = PACHCA_API_URL,
+            apps: AppsService? = null,
             bots: BotsService? = null,
             chats: ChatsService? = null,
             common: CommonService? = null,
@@ -2987,6 +3150,7 @@ class PachcaClient private constructor(
             val client = createClient(token)
             return PachcaClient(
                 _client = client,
+                apps = apps ?: AppsServiceImpl(baseUrl, client),
                 bots = bots ?: BotsServiceImpl(baseUrl, client),
                 chats = chats ?: ChatsServiceImpl(baseUrl, client),
                 common = common ?: CommonServiceImpl(baseUrl, client),
@@ -3013,6 +3177,7 @@ class PachcaClient private constructor(
         }
 
         fun stub(
+            apps: AppsService = object : AppsService {},
             bots: BotsService = object : BotsService {},
             chats: ChatsService = object : ChatsService {},
             common: CommonService = object : CommonService {},
@@ -3037,6 +3202,7 @@ class PachcaClient private constructor(
             views: ViewsService = object : ViewsService {}
         ): PachcaClient = PachcaClient(
             _client = null,
+            apps = apps,
             bots = bots,
             chats = chats,
             common = common,
@@ -3150,6 +3316,7 @@ class PachcaClient private constructor(
     constructor(
         client: HttpClient,
         baseUrl: String = PACHCA_API_URL,
+        apps: AppsService? = null,
         bots: BotsService? = null,
         chats: ChatsService? = null,
         common: CommonService? = null,
@@ -3174,6 +3341,7 @@ class PachcaClient private constructor(
         views: ViewsService? = null
     ) : this(
         _client = client,
+        apps = apps ?: AppsServiceImpl(baseUrl, client),
         bots = bots ?: BotsServiceImpl(baseUrl, client),
         chats = chats ?: ChatsServiceImpl(baseUrl, client),
         common = common ?: CommonServiceImpl(baseUrl, client),

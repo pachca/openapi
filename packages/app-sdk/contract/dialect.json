@@ -1,0 +1,28 @@
+{
+  "values": [
+    { "v": "string()", "schema": { "type": "string" }, "optional": false },
+    { "v": "number()", "schema": { "type": "number" }, "optional": false },
+    { "v": "boolean()", "schema": { "type": "boolean" }, "optional": false },
+    { "v": "file()", "schema": { "type": "string", "format": "uuid", "x-file": true }, "optional": false },
+    { "v": "id(\"tasks\")", "schema": { "type": "integer", "minimum": 1, "x-table": "tasks" }, "optional": false },
+    { "v": "ref(\"tasks\")", "schema": { "type": "integer", "minimum": 1, "x-table": "tasks", "x-ref": true }, "optional": false },
+    { "v": "optional(string())", "schema": { "type": "string" }, "optional": true },
+    { "v": "array(id(\"tasks\"))", "schema": { "type": "array", "items": { "type": "integer", "minimum": 1, "x-table": "tasks" } }, "optional": false },
+    {
+      "v": "object({ text: string(), note: optional(string()) })",
+      "schema": {
+        "type": "object",
+        "properties": { "text": { "type": "string" }, "note": { "type": "string" } },
+        "required": ["text"],
+        "additionalProperties": false
+      },
+      "optional": false
+    },
+    {
+      "v": "object({})",
+      "schema": { "type": "object", "properties": {}, "required": [], "additionalProperties": false },
+      "optional": false
+    }
+  ],
+  "keywords": ["additionalProperties", "format", "items", "minimum", "properties", "required", "type", "x-file", "x-ref", "x-table"]
+}

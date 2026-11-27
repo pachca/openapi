@@ -1,0 +1,28 @@
+{
+  "request": { "filename": "photo.png", "size": 1024, "contentType": "image/png" },
+  "strategies": ["presigned_upload", "proxy_s3_url", "upload_url"],
+  "sessions": {
+    "presigned": {
+      "uploadUuid": "0b6f7c1e-8d2a-4c3b-9e4f-5a6b7c8d9e0f",
+      "uploadUrl": "/_files/0b6f7c1e-8d2a-4c3b-9e4f-5a6b7c8d9e0f/content",
+      "strategy": ["presigned_upload", "upload_url"],
+      "presignedUpload": {
+        "url": "https://s3.example/bucket/key?X-Amz-Signature=1",
+        "proxyS3Url": null,
+        "method": "PUT",
+        "headers": { "Content-Type": "image/png", "If-None-Match": "*" },
+        "expiresAt": "2026-11-27T12:00:00Z",
+        "completeUrl": "/_files/0b6f7c1e-8d2a-4c3b-9e4f-5a6b7c8d9e0f/complete"
+      }
+    },
+    "direct": {
+      "uploadUuid": "0b6f7c1e-8d2a-4c3b-9e4f-5a6b7c8d9e0f",
+      "uploadUrl": "/_files/0b6f7c1e-8d2a-4c3b-9e4f-5a6b7c8d9e0f/content",
+      "strategy": ["upload_url"]
+    }
+  },
+  "routes": {
+    "upload": { "method": "PUT", "path": "/_files/{uuid}/content", "multipart": "file" },
+    "complete": { "method": "POST", "path": "/_files/{uuid}/complete" }
+  }
+}

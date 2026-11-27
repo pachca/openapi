@@ -38,6 +38,8 @@ const TAG_TO_RESOURCE: Record<string, string> = {
 	'Company': 'company',
 };
 
+const SKIPPED_TAGS = new Set(['Apps']);
+
 function tagToResource(tag: string): string {
 	return TAG_TO_RESOURCE[tag] || tag.toLowerCase().replace(/s$/, '');
 }
@@ -205,6 +207,7 @@ function getSpecOperations(): SpecOperation[] {
 	const operations: SpecOperation[] = [];
 
 	for (const [tag, endpoints] of byTag) {
+		if (SKIPPED_TAGS.has(tag)) continue;
 		const resource = tag === 'CustomProperty' ? 'customProperty'
 			: tag === 'File' ? 'file'
 			: tag === 'Export' ? 'export'

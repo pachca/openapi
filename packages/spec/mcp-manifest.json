@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "3fe3d67aa6645fc1"
+    "digest": "5fc810ad75e00842"
   },
   "server": {
     "name": "pachca",
@@ -78,6 +78,7 @@
     "410": "Too late: the button press or the form submission this id came from has run out, or has already had its answer. Repeating the call will not help — pressing the button again, or sending the form again, brings a new id.",
     "422": "Refused by the method: a required value is missing — code `blank`, with key naming it — or what was sent does not work here. The key names the field when there is one, and the message says why otherwise: fix that and try once more. A limit the method names does not lift on a retry: its description says when it does.",
     "429": "Rate limited: wait as long as the refusal says before repeating. Sending faster will not get the message through, and every call made while the daily cap on one sender’s messages to one chat holds lengthens its block, up to a day.",
+    "502": "The service behind the method did not answer, and nothing was changed: try once more, then tell the person.",
     "503": "Temporarily unavailable: try once more, then tell the person.",
     "504": "The search did not finish in time: narrow it — fewer words, or a filter the tool takes, such as chat_ids or a period — and try once more; the same request again will most likely time out again."
   },
@@ -235,6 +236,844 @@
     "unnamed_file": "{argument}.{extension}"
   },
   "tools": [
+    {
+      "name": "pachca_list_apps",
+      "title": "List apps",
+      "operation": "GET /apps",
+      "kind": "read",
+      "scope": "apps:read",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin"
+      ],
+      "bot_token_only": false,
+      "description": "List apps. Custom apps of the workspace in the order they were created, in one list without pagination. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "signature": "no arguments",
+      "request": {
+        "arguments": {}
+      },
+      "entity": "App",
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Custom app",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "App ID: 12 characters `[0-9a-z]`"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "App name. It is also the name of the app's bot."
+                },
+                "icon": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "App icon: one emoji. `null` until set."
+                },
+                "bot_id": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "ID of the app's bot. The app writes to chats on its behalf, and the version manifest sets its scopes."
+                },
+                "avatar_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "App avatar: the avatar of its bot. `null` until set."
+                },
+                "visibility": {
+                  "type": "string",
+                  "description": "Who can open the app. Values: private — Only the app author; link — Any employee of the workspace by link, the app is not in the app overview; public — Any employee of the workspace by link and in the app overview."
+                },
+                "created_by_id": {
+                  "type": "integer",
+                  "description": "ID of the employee who created the app."
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Number of the current version. The apps platform assigns it on every upload, `0` while there are no versions."
+                },
+                "hash": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Hash of the current version manifest. `null` while there are no versions."
+                },
+                "created_at": {
+                  "type": "string",
+                  "description": "App creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      },
+      "untrusted": [
+        "data[].id",
+        "data[].name",
+        "data[].icon",
+        "data[].avatar_url",
+        "data[].hash"
+      ]
+    },
+    {
+      "name": "pachca_create_app",
+      "title": "New app",
+      "operation": "POST /apps",
+      "kind": "write",
+      "scope": "apps:write",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin"
+      ],
+      "bot_token_only": false,
+      "description": "New app. Creates an app with no versions and its bot with no scopes. The code is uploaded by Upload version, usually with the `npx pachca-app ship` command from the app folder. A custom `id` that is not 12 characters `[0-9a-z]` or is already taken responds `400` with the `taken` or `invalid` code, and nothing is created. If the apps platform did not respond, the method responds `502`, and neither the bot nor the app remains. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "App name",
+            "maxLength": 255,
+            "examples": [
+              "Notes"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "Custom app ID: 12 characters `[0-9a-z]`. Generated without the field.",
+            "examples": [
+              "k3x9q2m7a1bz"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "name* (string), id (string)",
+      "request": {
+        "media_type": "application/json",
+        "arguments": {
+          "name": {
+            "in": "body",
+            "at": "name"
+          },
+          "id": {
+            "in": "body",
+            "at": "id"
+          }
+        }
+      },
+      "entity": "App",
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Custom app",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "App ID: 12 characters `[0-9a-z]`"
+              },
+              "name": {
+                "type": "string",
+                "description": "App name. It is also the name of the app's bot."
+              },
+              "icon": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "App icon: one emoji. `null` until set."
+              },
+              "bot_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "ID of the app's bot. The app writes to chats on its behalf, and the version manifest sets its scopes."
+              },
+              "avatar_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "App avatar: the avatar of its bot. `null` until set."
+              },
+              "visibility": {
+                "type": "string",
+                "description": "Who can open the app. Values: private — Only the app author; link — Any employee of the workspace by link, the app is not in the app overview; public — Any employee of the workspace by link and in the app overview."
+              },
+              "created_by_id": {
+                "type": "integer",
+                "description": "ID of the employee who created the app."
+              },
+              "version": {
+                "type": "integer",
+                "description": "Number of the current version. The apps platform assigns it on every upload, `0` while there are no versions."
+              },
+              "hash": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Hash of the current version manifest. `null` while there are no versions."
+              },
+              "created_at": {
+                "type": "string",
+                "description": "App creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "untrusted": [
+        "data.id",
+        "data.name",
+        "data.icon",
+        "data.avatar_url",
+        "data.hash"
+      ]
+    },
+    {
+      "name": "pachca_get_app",
+      "title": "App info",
+      "operation": "GET /apps/{id}",
+      "kind": "read",
+      "scope": "apps:read",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin"
+      ],
+      "bot_token_only": false,
+      "description": "App info. An app of the workspace by its ID. An app of another workspace responds `404`. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "App ID",
+            "examples": [
+              "k3x9q2m7a1bz"
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "id* (string)",
+      "request": {
+        "arguments": {
+          "id": {
+            "in": "path"
+          }
+        }
+      },
+      "entity": "App",
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Custom app",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "App ID: 12 characters `[0-9a-z]`"
+              },
+              "name": {
+                "type": "string",
+                "description": "App name. It is also the name of the app's bot."
+              },
+              "icon": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "App icon: one emoji. `null` until set."
+              },
+              "bot_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "ID of the app's bot. The app writes to chats on its behalf, and the version manifest sets its scopes."
+              },
+              "avatar_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "App avatar: the avatar of its bot. `null` until set."
+              },
+              "visibility": {
+                "type": "string",
+                "description": "Who can open the app. Values: private — Only the app author; link — Any employee of the workspace by link, the app is not in the app overview; public — Any employee of the workspace by link and in the app overview."
+              },
+              "created_by_id": {
+                "type": "integer",
+                "description": "ID of the employee who created the app."
+              },
+              "version": {
+                "type": "integer",
+                "description": "Number of the current version. The apps platform assigns it on every upload, `0` while there are no versions."
+              },
+              "hash": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Hash of the current version manifest. `null` while there are no versions."
+              },
+              "created_at": {
+                "type": "string",
+                "description": "App creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "untrusted": [
+        "data.id",
+        "data.name",
+        "data.icon",
+        "data.avatar_url",
+        "data.hash"
+      ]
+    },
+    {
+      "name": "pachca_update_app",
+      "title": "Edit app",
+      "operation": "PUT /apps/{id}",
+      "kind": "write",
+      "scope": "apps:write",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin"
+      ],
+      "bot_token_only": false,
+      "description": "Edit app. Changes the name, the icon and the access without a new version. The name changes for the app's bot too. An empty name responds `422` with the `blank` code, an icon longer than 16 characters or with spaces responds `422` with the `invalid` code. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "App ID",
+            "examples": [
+              "k3x9q2m7a1bz"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "App name. It changes for the app's bot too.",
+            "maxLength": 255,
+            "examples": [
+              "Team notes"
+            ]
+          },
+          "icon": {
+            "type": "string",
+            "description": "Icon: one emoji, up to 16 characters without spaces. An empty string removes the icon.",
+            "examples": [
+              "🗒️"
+            ]
+          },
+          "visibility": {
+            "type": "string",
+            "description": "Who can open the app. Values: private — Only the app author; link — Any employee of the workspace by link, the app is not in the app overview; public — Any employee of the workspace by link and in the app overview.",
+            "enum": [
+              "private",
+              "link",
+              "public"
+            ],
+            "examples": [
+              "link"
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "id* (string), name (string), icon (string), visibility (private | link | public)",
+      "request": {
+        "media_type": "application/json",
+        "arguments": {
+          "id": {
+            "in": "path"
+          },
+          "name": {
+            "in": "body",
+            "at": "name"
+          },
+          "icon": {
+            "in": "body",
+            "at": "icon"
+          },
+          "visibility": {
+            "in": "body",
+            "at": "visibility"
+          }
+        }
+      },
+      "entity": "App",
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Custom app",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "App ID: 12 characters `[0-9a-z]`"
+              },
+              "name": {
+                "type": "string",
+                "description": "App name. It is also the name of the app's bot."
+              },
+              "icon": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "App icon: one emoji. `null` until set."
+              },
+              "bot_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "ID of the app's bot. The app writes to chats on its behalf, and the version manifest sets its scopes."
+              },
+              "avatar_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "App avatar: the avatar of its bot. `null` until set."
+              },
+              "visibility": {
+                "type": "string",
+                "description": "Who can open the app. Values: private — Only the app author; link — Any employee of the workspace by link, the app is not in the app overview; public — Any employee of the workspace by link and in the app overview."
+              },
+              "created_by_id": {
+                "type": "integer",
+                "description": "ID of the employee who created the app."
+              },
+              "version": {
+                "type": "integer",
+                "description": "Number of the current version. The apps platform assigns it on every upload, `0` while there are no versions."
+              },
+              "hash": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Hash of the current version manifest. `null` while there are no versions."
+              },
+              "created_at": {
+                "type": "string",
+                "description": "App creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "untrusted": [
+        "data.id",
+        "data.name",
+        "data.icon",
+        "data.avatar_url",
+        "data.hash"
+      ]
+    },
+    {
+      "name": "pachca_delete_app",
+      "title": "Delete app",
+      "operation": "DELETE /apps/{id}",
+      "kind": "write",
+      "scope": "apps:write",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin"
+      ],
+      "bot_token_only": false,
+      "description": "Delete app. Deletes the app entirely and irreversibly: its versions, database, files, secrets and the app's bot. If the apps platform did not respond, the method responds `502`, nothing is deleted, and the request can be repeated. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "App ID",
+            "examples": [
+              "k3x9q2m7a1bz"
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "id* (string)",
+      "request": {
+        "arguments": {
+          "id": {
+            "in": "path"
+          }
+        }
+      },
+      "untrusted": []
+    },
+    {
+      "name": "pachca_list_app_logs",
+      "title": "App log",
+      "operation": "GET /apps/{id}/logs",
+      "kind": "read",
+      "scope": "apps:read",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin"
+      ],
+      "bot_token_only": false,
+      "description": "App log. What the app did on the platform: function errors, requests to the network and to the Pachca API, webhook calls, violations of the frontend restrictions. It shows what the platform allowed and what it blocked. Newest records first. The log is kept in the platform's memory, the last 200 records. After the platform restarts it is empty. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "App ID",
+            "examples": [
+              "k3x9q2m7a1bz"
+            ]
+          },
+          "n": {
+            "type": "integer",
+            "description": "Number of records to return. An integer outside the allowed range is replaced with the nearest bound.",
+            "default": 50,
+            "maximum": 200,
+            "minimum": 1,
+            "format": "int32",
+            "examples": [
+              50
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "id* (string), n (integer)",
+      "request": {
+        "arguments": {
+          "id": {
+            "in": "path"
+          },
+          "n": {
+            "in": "query"
+          }
+        }
+      },
+      "entity": "AppLogEntry",
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "App log record",
+              "properties": {
+                "time": {
+                  "type": "string",
+                  "description": "Record time (ISO-8601, UTC+0)",
+                  "format": "date-time"
+                },
+                "kind": {
+                  "type": "string",
+                  "description": "Record kind. Values: function — A call of an app function ended with an error; fetch — A function request to the external network; pachca — A request to the Pachca API; webhook — A call of the app's webhook; csp — The app frontend broke the browser restrictions."
+                },
+                "text": {
+                  "type": "string",
+                  "description": "What the app did: a function, a request address or a Pachca API operation"
+                },
+                "allowed": {
+                  "type": "boolean",
+                  "description": "The platform allowed the action and it went through. Always `false` for `function`: records are made only about errors."
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "Reason of the refusal, response code or the beginning of an error response"
+                }
+              }
+            }
+          }
+        }
+      },
+      "untrusted": [
+        "data[].text",
+        "data[].reason"
+      ]
+    },
+    {
+      "name": "pachca_list_app_secrets",
+      "title": "List app secrets",
+      "operation": "GET /apps/{id}/secrets",
+      "kind": "read",
+      "scope": "apps:read",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin"
+      ],
+      "bot_token_only": false,
+      "description": "List app secrets. Names of the app's secrets that are set: keys of external services and webhook signature secrets. Values are not returned. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "App ID",
+            "examples": [
+              "k3x9q2m7a1bz"
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "id* (string)",
+      "request": {
+        "arguments": {
+          "id": {
+            "in": "path"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "untrusted": [
+        "data[]"
+      ]
+    },
+    {
+      "name": "pachca_set_app_secret",
+      "title": "Set app secret",
+      "operation": "PUT /apps/{id}/secrets/{name}",
+      "kind": "write",
+      "scope": "apps:write",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin"
+      ],
+      "bot_token_only": false,
+      "description": "Set app secret. Creates or replaces a secret. The app manifest declares the secret: the platform adds an external service key to the function requests to its host by itself, and checks webhook calls with a signature secret. The app code does not see the values. A name not of `[A-Z][A-Z0-9_]`, longer than 64 characters, or a value larger than 4 KB responds `422` with the `invalid` code. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "App ID",
+            "examples": [
+              "k3x9q2m7a1bz"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Secret name",
+            "examples": [
+              "API_KEY"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "description": "Secret value, up to 4 KB",
+            "examples": [
+              "sk_live_51Hx"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "value"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "id* (string), name* (string), value* (string)",
+      "request": {
+        "media_type": "application/json",
+        "arguments": {
+          "id": {
+            "in": "path"
+          },
+          "name": {
+            "in": "path"
+          },
+          "value": {
+            "in": "body",
+            "at": "value"
+          }
+        }
+      },
+      "untrusted": []
+    },
+    {
+      "name": "pachca_delete_app_secret",
+      "title": "Delete app secret",
+      "operation": "DELETE /apps/{id}/secrets/{name}",
+      "kind": "write",
+      "scope": "apps:write",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin"
+      ],
+      "bot_token_only": false,
+      "description": "Delete app secret. Deletes a secret. Deleting a secret that does not exist is not an error. Available to the workspace owner and administrators. The Custom apps section is available to workspaces in the beta program, you can join at https://pachca.com/custom-apps.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "App ID",
+            "examples": [
+              "k3x9q2m7a1bz"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Secret name",
+            "examples": [
+              "API_KEY"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "signature": "id* (string), name* (string)",
+      "request": {
+        "arguments": {
+          "id": {
+            "in": "path"
+          },
+          "name": {
+            "in": "path"
+          }
+        }
+      },
+      "untrusted": []
+    },
     {
       "name": "pachca_get_audit_events",
       "title": "Audit event log",
@@ -14523,7 +15362,7 @@
                 "description": "List of token scopes",
                 "items": {
                   "type": "string",
-                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark own chats as unread; chats:mark_read — Mark own chats as read; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile:write — Edit own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; company:read — View workspace information and its settings; company:write — Change the workspace name and main settings; invite_links:write — Get and reissue the workspace invite link; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; company_messages:read — View the message history of the workspace; tasks:read — View reminders; tasks:create — Create reminders; tasks:update — Update reminder; tasks:delete — Delete reminder; files:read — Download files; uploads:write — Get file upload data; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it."
+                  "description": "OAuth token access scope. Values: chats:read — View chats and chat list; chats:create — Create new chats; chats:update — Update chat settings; chats:mark_unread — Mark own chats as unread; chats:mark_read — Mark own chats as read; chats:archive — Archive and unarchive chats; chats:leave — Leave chats; chat_members:read — View chat members; chat_members:write — Add, update, and remove chat members; chat_exports:read — Download chat exports; chat_exports:write — Create chat exports; messages:read — View messages in chats; messages:create — Send messages; messages:update — Edit messages; messages:delete — Delete messages; reactions:read — View message reactions; reactions:write — Add and remove reactions; pins:write — Pin and unpin messages; threads:read — View threads (comments); threads:create — Create threads (comments); link_previews:write — Unfurl (link previews); views:write — Open forms (views); users:read — View employee information and employee list; users:create — Create new employees; users:update — Edit employee data; users:delete — Delete employees; group_tags:read — View tags; group_tags:write — Create, edit, and delete tags; bots:read — View bots; bots:write — Manage bots; bot_self:webhook:write — Self-manage own webhook URL; bot_self:write — Self-manage own settings; profile:read — View own profile information; profile:write — Edit own profile information; profile_status:read — View profile status; profile_status:write — Update and delete profile status; profile_avatar:write — Update and delete profile avatar; user_status:read — View employee status; user_status:write — Update and delete employee status; user_avatar:write — Update and delete employee avatar; custom_properties:read — View custom properties; company:read — View workspace information and its settings; company:write — Change the workspace name and main settings; invite_links:write — Get and reissue the workspace invite link; audit_events:read — View audit log; company_chats:read — View the list of all workspace chats; company_bots:read — View the list of all workspace bots; company_messages:read — View the message history of the workspace; tasks:read — View reminders; tasks:create — Create reminders; tasks:update — Update reminder; tasks:delete — Delete reminder; files:read — Download files; uploads:write — Get file upload data; webhooks:events:read — View webhook logs; webhooks:events:delete — Delete webhook log entry; search:users — Search employees; search:chats — Search chats; search:messages — Search messages; drafts:read — View drafts and scheduled messages; drafts:write — Create, edit, and delete drafts and scheduled messages; important_messages:read — View important messages; important_messages:write — Add messages to important and remove them from it; apps:read — View custom apps, their log, source and secret names; apps:write — Create, upload versions of, edit and delete custom apps and their secrets."
                 }
               },
               "created_at": {
@@ -21102,6 +21941,15 @@
       "role": "owner",
       "plan": "corporation",
       "tools": [
+        "pachca_list_apps",
+        "pachca_create_app",
+        "pachca_get_app",
+        "pachca_update_app",
+        "pachca_delete_app",
+        "pachca_list_app_logs",
+        "pachca_list_app_secrets",
+        "pachca_set_app_secret",
+        "pachca_delete_app_secret",
         "pachca_get_audit_events",
         "pachca_list_bots",
         "pachca_create_bot",
@@ -21209,6 +22057,15 @@
       "role": "owner",
       "plan": null,
       "tools": [
+        "pachca_list_apps",
+        "pachca_create_app",
+        "pachca_get_app",
+        "pachca_update_app",
+        "pachca_delete_app",
+        "pachca_list_app_logs",
+        "pachca_list_app_secrets",
+        "pachca_set_app_secret",
+        "pachca_delete_app_secret",
         "pachca_list_bots",
         "pachca_create_bot",
         "pachca_get_bot",
@@ -21310,6 +22167,15 @@
       "role": "admin",
       "plan": null,
       "tools": [
+        "pachca_list_apps",
+        "pachca_create_app",
+        "pachca_get_app",
+        "pachca_update_app",
+        "pachca_delete_app",
+        "pachca_list_app_logs",
+        "pachca_list_app_secrets",
+        "pachca_set_app_secret",
+        "pachca_delete_app_secret",
         "pachca_list_bots",
         "pachca_create_bot",
         "pachca_get_bot",

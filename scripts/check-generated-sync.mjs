@@ -1,31 +1,4 @@
 #!/usr/bin/env node
-//
-// Build gate: every file produced by a generator must be in sync with the
-// source it was generated from. Run in CI (see `.github/workflows/check.yml`)
-// and locally via `bun run check:generated`.
-//
-// Why this exists: the repo has several generator → output relationships
-//   - packages/spec/typespec.tsp           → packages/spec/openapi.yaml
-//   - packages/spec/mcp-manifest{,.schema}.json
-//                                          → packages/mcp-manifest/ (npm copies)
-//   - packages/cli/src/data/changelog.json → packages/cli/CHANGELOG.md
-//   - apps/docs/content/**.mdx + apps/docs/data/releases.json
-//                                          → apps/docs/public/**, llms*.txt
-//   - plugins/pachca/** (by hand)          → apps/docs/public/.well-known/**, skills/*.zip, skill.md
-//                                            and the version in the plugin manifests
-//   - apps/docs/scripts/skills/generate.ts → AGENTS.md (template-driven)
-//
-// The deployment Docker image always regenerates these on build, so prod
-// stays correct even when committed copies are stale. But other developers
-// (and other PRs) inherit the drift: a `turbo build` on someone else's
-// branch suddenly produces unrelated diffs they then have to deal with.
-//
-// This gate runs `bun turbo build` and fails if any generator output ends
-// up different from what is checked in (modified OR untracked). The error
-// message lists the out-of-sync files and tells the author how to fix it.
-//
-// SKIP: when neither `CI` nor `--force` is set, the script no-ops with a
-// note (a full rebuild is too slow for a default local `bun check`).
 
 import { execSync } from 'node:child_process';
 
@@ -53,6 +26,7 @@ const GENERATED_PATHS = [
   // CLI
   'packages/cli/CHANGELOG.md',
   'packages/cli/oclif.manifest.json',
+  'packages/app-sdk/src/generated/**',
   // Docs — root + agent indices
   'AGENTS.md',
   'plugins/pachca/evals/mocks/pachca/_tools.json',
@@ -87,7 +61,7 @@ function sh(cmd) {
 // targets (C#, Go, Kotlin, Python, n8n) doesn't affect any path in
 // GENERATED_PATHS, and tying our sync check to those toolchains makes the
 // gate flaky for reasons unrelated to "is the generator output in sync".
-const BUILD_FILTERS = ['@pachca/spec', '@pachca/mcp-manifest', '@pachca/cli', '@pachca/docs'];
+const BUILD_FILTERS = ['@pachca/spec', '@pachca/mcp-manifest', '@pachca/cli', '@pachca/docs', '@pachca/app-sdk'];
 
 console.error('[check-generated-sync] regenerating artefacts via `bun turbo build`…');
 try {

@@ -1,0 +1,14 @@
+:root { color-scheme: light; --bg: #fff; --fg: #1f2329; --muted: #8a9099; --accent: #2e7cf6; --err: #b00020; }
+:root[data-pachca-theme="dark"] { color-scheme: dark; --bg: #1e1f22; --fg: #e8eaed; --muted: #9aa0a6; --accent: #6aa5ff; --err: #ff8a80; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-pachca-theme]) { color-scheme: dark; --bg: #1e1f22; --fg: #e8eaed; --muted: #9aa0a6; --accent: #6aa5ff; --err: #ff8a80; }
+}
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px system-ui, sans-serif; }
+main { max-width: 32rem; margin: 2rem auto; padding: 0 1rem; }
+nav { display: flex; gap: 1rem; }
+a { color: var(--accent); }
+ul { padding: 0; }
+li { padding: 0.4rem 0; cursor: pointer; list-style: none; }
+small, .muted { color: var(--muted); }
+button { margin-right: 0.5rem; }
+.err { color: var(--err); }

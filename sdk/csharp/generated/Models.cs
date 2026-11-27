@@ -8,6 +8,164 @@ using System.Text.Json.Serialization;
 
 namespace Pachca.Sdk;
 
+/// <summary>Вид записи журнала приложения</summary>
+[JsonConverter(typeof(AppLogKindConverter))]
+public readonly struct AppLogKind : IEquatable<AppLogKind>
+{
+    private readonly string? _value;
+
+    public AppLogKind(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Вызов функции приложения закончился ошибкой</summary>
+    public static AppLogKind Function { get; } = new("function");
+    /// <summary>Запрос функции во внешнюю сеть</summary>
+    public static AppLogKind Fetch { get; } = new("fetch");
+    /// <summary>Запрос к API Пачки</summary>
+    public static AppLogKind Pachca { get; } = new("pachca");
+    /// <summary>Вызов вебхука приложения</summary>
+    public static AppLogKind Webhook { get; } = new("webhook");
+    /// <summary>Фронт приложения нарушил ограничения браузера</summary>
+    public static AppLogKind Csp { get; } = new("csp");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<AppLogKind> Values { get; } = Array.AsReadOnly(new[] { Function, Fetch, Pachca, Webhook, Csp });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(AppLogKind left, AppLogKind right) => left.Equals(right);
+    public static bool operator !=(AppLogKind left, AppLogKind right) => !left.Equals(right);
+    public static implicit operator AppLogKind(string value) => new(value);
+    public bool Equals(AppLogKind other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is AppLogKind other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class AppLogKindConverter : JsonConverter<AppLogKind>
+{
+    public override AppLogKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, AppLogKind value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
+/// <summary>Вид записи в списке прав приложения</summary>
+[JsonConverter(typeof(AppPermissionKindConverter))]
+public readonly struct AppPermissionKind : IEquatable<AppPermissionKind>
+{
+    private readonly string? _value;
+
+    public AppPermissionKind(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Право бота приложения</summary>
+    public static AppPermissionKind Bot { get; } = new("bot");
+    /// <summary>Право от имени пользователя</summary>
+    public static AppPermissionKind User { get; } = new("user");
+    /// <summary>Событие Пачки, на которое подписан бот</summary>
+    public static AppPermissionKind Event { get; } = new("event");
+    /// <summary>Сеть: хост запросов, хост фронта, вебхук или ключ внешнего сервиса</summary>
+    public static AppPermissionKind Net { get; } = new("net");
+    /// <summary>Предупреждение, например об опасной комбинации прав</summary>
+    public static AppPermissionKind Warn { get; } = new("warn");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<AppPermissionKind> Values { get; } = Array.AsReadOnly(new[] { Bot, User, Event, Net, Warn });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(AppPermissionKind left, AppPermissionKind right) => left.Equals(right);
+    public static bool operator !=(AppPermissionKind left, AppPermissionKind right) => !left.Equals(right);
+    public static implicit operator AppPermissionKind(string value) => new(value);
+    public bool Equals(AppPermissionKind other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is AppPermissionKind other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class AppPermissionKindConverter : JsonConverter<AppPermissionKind>
+{
+    public override AppPermissionKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, AppPermissionKind value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
+/// <summary>Кто может открыть приложение</summary>
+[JsonConverter(typeof(AppVisibilityConverter))]
+public readonly struct AppVisibility : IEquatable<AppVisibility>
+{
+    private readonly string? _value;
+
+    public AppVisibility(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Только автор приложения</summary>
+    public static AppVisibility Private { get; } = new("private");
+    /// <summary>Любой сотрудник пространства по ссылке, в обзоре приложений его нет</summary>
+    public static AppVisibility Link { get; } = new("link");
+    /// <summary>Любой сотрудник пространства по ссылке и в обзоре приложений</summary>
+    public static AppVisibility Public { get; } = new("public");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<AppVisibility> Values { get; } = Array.AsReadOnly(new[] { Private, Link, Public });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(AppVisibility left, AppVisibility right) => left.Equals(right);
+    public static bool operator !=(AppVisibility left, AppVisibility right) => !left.Equals(right);
+    public static implicit operator AppVisibility(string value) => new(value);
+    public bool Equals(AppVisibility other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is AppVisibility other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class AppVisibilityConverter : JsonConverter<AppVisibility>
+{
+    public override AppVisibility Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, AppVisibility value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
 /// <summary>Тип аудит-события</summary>
 [JsonConverter(typeof(AuditEventKeyConverter))]
 public readonly struct AuditEventKey : IEquatable<AuditEventKey>
@@ -1737,9 +1895,13 @@ public readonly struct OAuthScope : IEquatable<OAuthScope>
     public static OAuthScope ImportantMessagesRead { get; } = new("important_messages:read");
     /// <summary>Добавление сообщений в важные и удаление из важных</summary>
     public static OAuthScope ImportantMessagesWrite { get; } = new("important_messages:write");
+    /// <summary>Просмотр кастомных приложений, их журнала, исходников и имён секретов</summary>
+    public static OAuthScope AppsRead { get; } = new("apps:read");
+    /// <summary>Создание, загрузка версий, изменение и удаление кастомных приложений и их секретов</summary>
+    public static OAuthScope AppsWrite { get; } = new("apps:write");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsMarkRead, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileWrite, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, CompanyRead, CompanyWrite, InviteLinksWrite, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, CompanyMessagesRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, UploadsWrite, ViewsWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite });
+    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsMarkRead, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileWrite, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, CompanyRead, CompanyWrite, InviteLinksWrite, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, CompanyMessagesRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, UploadsWrite, ViewsWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite, ImportantMessagesRead, ImportantMessagesWrite, AppsRead, AppsWrite });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -2393,9 +2555,15 @@ public readonly struct ValidationErrorCode : IEquatable<ValidationErrorCode>
     public static ValidationErrorCode SubmitExpired { get; } = new("submit_expired");
     /// <summary>Сервис временно недоступен, повторите запрос</summary>
     public static ValidationErrorCode ServiceUnavailable { get; } = new("service_unavailable");
+    /// <summary>Текущая версия приложения не та, от которой сделана загрузка</summary>
+    public static ValidationErrorCode VersionConflict { get; } = new("version_conflict");
+    /// <summary>Права, хосты или события приложения изменились, а загрузка не подтверждает их</summary>
+    public static ValidationErrorCode ConsentRequired { get; } = new("consent_required");
+    /// <summary>Приложение собрано на версии `@pachca/app-sdk`, которую платформа не принимает: текущая версия и команда обновления — в `payload`</summary>
+    public static ValidationErrorCode SdkOutdated { get; } = new("sdk_outdated");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<ValidationErrorCode> Values { get; } = Array.AsReadOnly(new[] { Blank, TooLong, Invalid, Inclusion, Exclusion, Taken, WrongEmoji, NotFound, AlreadyExists, PersonalChat, DisplayedError, NotAuthorized, InvalidDateRange, InvalidWebhookUrl, RateLimit, LicensesLimit, UserLimit, UniqueLimit, GeneralLimit, Unhandled, TriggerNotFound, TriggerExpired, Required, In, NotApplicable, SelfUpdate, OwnerProtected, AlreadyAssigned, NextSendAtInvalid, ScheduleInvalid, ScheduleEndDateInvalid, ScheduledMessagesLimit, DraftTypeChangeForbidden, ConfidentialDownloadDenied, DecryptionFailed, BotAddDenied, SingleChatBotOccupied, SingleChatBotTagDenied, RestrictedBotTagDenied, BotChangedConcurrently, Timeout, DailyInvitesLimit, WebhookUrlInvalid, WebhookUrlUnresolved, WebhookUrlForbidden, BlockedBySso, Forbidden, PermissionDenied, AccessDenied, WrongParams, PaymentRequired, MinLength, MaxLength, UseOfSystemWords, ExportFileNotFound, CannotKickOwner, PinFailed, MessageDeleted, ThreadMessage, ViewNotFound, SubmitExpired, ServiceUnavailable });
+    public static IReadOnlyList<ValidationErrorCode> Values { get; } = Array.AsReadOnly(new[] { Blank, TooLong, Invalid, Inclusion, Exclusion, Taken, WrongEmoji, NotFound, AlreadyExists, PersonalChat, DisplayedError, NotAuthorized, InvalidDateRange, InvalidWebhookUrl, RateLimit, LicensesLimit, UserLimit, UniqueLimit, GeneralLimit, Unhandled, TriggerNotFound, TriggerExpired, Required, In, NotApplicable, SelfUpdate, OwnerProtected, AlreadyAssigned, NextSendAtInvalid, ScheduleInvalid, ScheduleEndDateInvalid, ScheduledMessagesLimit, DraftTypeChangeForbidden, ConfidentialDownloadDenied, DecryptionFailed, BotAddDenied, SingleChatBotOccupied, SingleChatBotTagDenied, RestrictedBotTagDenied, BotChangedConcurrently, Timeout, DailyInvitesLimit, WebhookUrlInvalid, WebhookUrlUnresolved, WebhookUrlForbidden, BlockedBySso, Forbidden, PermissionDenied, AccessDenied, WrongParams, PaymentRequired, MinLength, MaxLength, UseOfSystemWords, ExportFileNotFound, CannotKickOwner, PinFailed, MessageDeleted, ThreadMessage, ViewNotFound, SubmitExpired, ServiceUnavailable, VersionConflict, ConsentRequired, SdkOutdated });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -3758,6 +3926,126 @@ public class ApiErrorItem
     public ValidationErrorCode Code { get; set; } = default!;
     [JsonPropertyName("payload")]
     public Dictionary<string, object>? Payload { get; set; }
+}
+
+public class App
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = default!;
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("icon")]
+    public string? Icon { get; set; }
+    [JsonPropertyName("bot_id")]
+    public long? BotId { get; set; }
+    [JsonPropertyName("avatar_url")]
+    public string? AvatarUrl { get; set; }
+    [JsonPropertyName("visibility")]
+    public AppVisibility Visibility { get; set; } = default!;
+    [JsonPropertyName("created_by_id")]
+    public long CreatedById { get; set; } = default!;
+    [JsonPropertyName("version")]
+    public int Version { get; set; } = default!;
+    [JsonPropertyName("hash")]
+    public string? Hash { get; set; }
+    [JsonPropertyName("created_at")]
+    public DateTimeOffset CreatedAt { get; set; } = default!;
+}
+
+public class AppCreateRequest
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("id")]
+    public string? Id { get; set; }
+}
+
+public class AppLogEntry
+{
+    [JsonPropertyName("time")]
+    public DateTimeOffset Time { get; set; } = default!;
+    [JsonPropertyName("kind")]
+    public AppLogKind Kind { get; set; } = default!;
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = default!;
+    [JsonPropertyName("allowed")]
+    public bool Allowed { get; set; } = default!;
+    [JsonPropertyName("reason")]
+    public string? Reason { get; set; }
+}
+
+public class AppPermissionItem
+{
+    [JsonPropertyName("kind")]
+    public AppPermissionKind Kind { get; set; } = default!;
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = default!;
+    [JsonPropertyName("scope")]
+    public string? Scope { get; set; }
+    [JsonPropertyName("new")]
+    public bool? @New { get; set; }
+    [JsonPropertyName("removed")]
+    public bool? Removed { get; set; }
+}
+
+public class AppRelease
+{
+    [JsonPropertyName("version")]
+    public int Version { get; set; } = default!;
+    [JsonPropertyName("hash")]
+    public string Hash { get; set; } = default!;
+    [JsonPropertyName("items")]
+    public List<AppPermissionItem> Items { get; set; } = default!;
+    [JsonPropertyName("migrations")]
+    public List<string> Migrations { get; set; } = default!;
+    [JsonPropertyName("warnings")]
+    public List<string> Warnings { get; set; } = default!;
+}
+
+public class AppSecretRequest
+{
+    [JsonPropertyName("value")]
+    public string Value { get; set; } = default!;
+}
+
+public class AppSource
+{
+    [JsonPropertyName("version")]
+    public int Version { get; set; } = default!;
+    [JsonPropertyName("files")]
+    public Dictionary<string, string> Files { get; set; } = default!;
+}
+
+public class AppUpdateRequest
+{
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+    [JsonPropertyName("icon")]
+    public string? Icon { get; set; }
+    [JsonPropertyName("visibility")]
+    public AppVisibility? Visibility { get; set; }
+}
+
+public class AppVersionRequest
+{
+    [JsonPropertyName("code")]
+    public string Code { get; set; } = default!;
+    [JsonPropertyName("manifest")]
+    public Dictionary<string, object> Manifest { get; set; } = default!;
+    [JsonPropertyName("schema")]
+    public Dictionary<string, object> Schema { get; set; } = default!;
+    [JsonPropertyName("functions")]
+    public Dictionary<string, object> Functions { get; set; } = default!;
+    [JsonPropertyName("static")]
+    public Dictionary<string, string> @Static { get; set; } = default!;
+    [JsonPropertyName("source")]
+    public Dictionary<string, string>? Source { get; set; }
+    [JsonPropertyName("base_version")]
+    public int BaseVersion { get; set; } = default!;
+    [JsonPropertyName("approve")]
+    public bool? Approve { get; set; }
+    [JsonPropertyName("force")]
+    public bool? Force { get; set; }
 }
 
 public class AuditDetailsTokenNameChange
@@ -5628,6 +5916,24 @@ public class UpdateUserAvatarRequest
     public byte[] Image { get; set; } = Array.Empty<byte>();
 }
 
+public class ListAppsResponse
+{
+    [JsonPropertyName("data")]
+    public List<App> Data { get; set; } = new();
+}
+
+public class ListAppLogsResponse
+{
+    [JsonPropertyName("data")]
+    public List<AppLogEntry> Data { get; set; } = new();
+}
+
+public class ListAppSecretsResponse
+{
+    [JsonPropertyName("data")]
+    public List<string> Data { get; set; } = new();
+}
+
 public class GetAuditEventsResponse
 {
     [JsonPropertyName("data")]
@@ -5822,6 +6128,24 @@ public class GetWebhookEventsResponse
     public List<WebhookEvent> Data { get; set; } = new();
     [JsonPropertyName("meta")]
     public PaginationMeta Meta { get; set; } = default!;
+}
+
+public class AppDataWrapper
+{
+    [JsonPropertyName("data")]
+    public App Data { get; set; } = default!;
+}
+
+public class AppSourceDataWrapper
+{
+    [JsonPropertyName("data")]
+    public AppSource Data { get; set; } = default!;
+}
+
+public class AppReleaseDataWrapper
+{
+    [JsonPropertyName("data")]
+    public AppRelease Data { get; set; } = default!;
 }
 
 public class BotResponseDataWrapper

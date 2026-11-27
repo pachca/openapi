@@ -22,6 +22,19 @@
       ],
       "cache": true
     },
+    "@pachca/app-sdk#generate": {
+      "dependsOn": [
+        "@pachca/spec#generate"
+      ],
+      "inputs": [
+        "scripts/**",
+        "../spec/openapi.yaml"
+      ],
+      "outputs": [
+        "src/generated/**"
+      ],
+      "cache": true
+    },
     "setup": {
       "cache": false
     },
@@ -379,6 +392,33 @@
       "inputs": [
         "src/**",
         "tests/**"
+      ],
+      "cache": true
+    },
+    "@pachca/app-sdk#test": {
+      "dependsOn": [
+        "generate"
+      ],
+      "inputs": [
+        "src/**",
+        "tests/**",
+        "scripts/**",
+        "contract/**",
+        "../spec/openapi.yaml"
+      ],
+      "cache": true
+    },
+    "@pachca/app-tests#test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "apps/**",
+        "tests/**",
+        "vitest.config.ts",
+        "tsconfig.json",
+        "!apps/*/_generated/**",
+        "!apps/*/dist/**"
       ],
       "cache": true
     },

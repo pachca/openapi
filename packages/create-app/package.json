@@ -1,0 +1,39 @@
+{
+  "name": "@pachca/create-app",
+  "version": "0.0.0",
+  "description": "Новое приложение Пачки: npm create @pachca/app",
+  "type": "module",
+  "bin": {
+    "create-app": "./dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/create.d.ts",
+      "default": "./dist/create.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "typescript": "^7.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pachca/openapi",
+    "directory": "packages/create-app"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

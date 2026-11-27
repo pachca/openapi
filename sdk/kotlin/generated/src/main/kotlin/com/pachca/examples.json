@@ -5,6 +5,57 @@
       "PachcaClient"
     ]
   },
+  "AppOperations_listApps": {
+    "usage": "val response = client.apps.listApps()",
+    "output": "ListAppsResponse(data: List<App>)"
+  },
+  "AppOperations_getApp": {
+    "usage": "val response = client.apps.getApp(id = \"k3x9q2m7a1bz\")",
+    "output": "App(id: String, name: String, icon: String?, botId: Long?, avatarUrl: String?, visibility: AppVisibility, createdById: Long, version: Int, hash: String?, createdAt: OffsetDateTime)"
+  },
+  "AppOperations_listAppLogs": {
+    "usage": "val response = client.apps.listAppLogs(id = \"k3x9q2m7a1bz\", n = 50)",
+    "output": "ListAppLogsResponse(data: List<AppLogEntry>)"
+  },
+  "AppOperations_listAppSecrets": {
+    "usage": "val response = client.apps.listAppSecrets(id = \"k3x9q2m7a1bz\")",
+    "output": "ListAppSecretsResponse(data: List<String>)"
+  },
+  "AppOperations_getAppSource": {
+    "usage": "val response = client.apps.getAppSource(id = \"k3x9q2m7a1bz\")",
+    "output": "AppSource(version: Int, files: Map<String, String>)"
+  },
+  "AppOperations_createApp": {
+    "usage": "val request = AppCreateRequest(name = \"Заметки\", id = \"k3x9q2m7a1bz\")\nval response = client.apps.createApp(request = request)",
+    "output": "App(id: String, name: String, icon: String?, botId: Long?, avatarUrl: String?, visibility: AppVisibility, createdById: Long, version: Int, hash: String?, createdAt: OffsetDateTime)",
+    "imports": [
+      "AppCreateRequest"
+    ]
+  },
+  "AppOperations_createAppVersion": {
+    "usage": "val request = AppVersionRequest(\n    code = \"export default {};\",\n    manifest = mapOf(\"key\" to mapOf<String, Any>()),\n    schema = mapOf(\"key\" to mapOf<String, Any>()),\n    functions = mapOf(\"key\" to mapOf<String, Any>()),\n    static = mapOf(\"key\" to \"example\"),\n    source = mapOf(\"key\" to \"example\"),\n    baseVersion = 2,\n    approve = false,\n    force = false\n)\nval response = client.apps.createAppVersion(id = \"k3x9q2m7a1bz\", request = request)",
+    "output": "AppRelease(version: Int, hash: String, items: List<AppPermissionItem(kind: AppPermissionKind, text: String, scope: String?, new: Boolean?, removed: Boolean?)>, migrations: List<String>, warnings: List<String>)",
+    "imports": [
+      "AppVersionRequest"
+    ]
+  },
+  "AppOperations_updateApp": {
+    "usage": "val request = AppUpdateRequest(\n    name = \"Заметки команды\",\n    icon = \"🗒️\",\n    visibility = AppVisibility.LINK\n)\nval response = client.apps.updateApp(id = \"k3x9q2m7a1bz\", request = request)",
+    "output": "App(id: String, name: String, icon: String?, botId: Long?, avatarUrl: String?, visibility: AppVisibility, createdById: Long, version: Int, hash: String?, createdAt: OffsetDateTime)",
+    "imports": [
+      "AppUpdateRequest",
+      "AppVisibility"
+    ]
+  },
+  "AppOperations_setAppSecret": {
+    "usage": "client.apps.setAppSecret(id = \"k3x9q2m7a1bz\", name = \"API_KEY\", value = \"sk_live_51Hx\")"
+  },
+  "AppOperations_deleteApp": {
+    "usage": "client.apps.deleteApp(id = \"k3x9q2m7a1bz\")"
+  },
+  "AppOperations_deleteAppSecret": {
+    "usage": "client.apps.deleteAppSecret(id = \"k3x9q2m7a1bz\", name = \"API_KEY\")"
+  },
   "SecurityOperations_getAuditEvents": {
     "usage": "val startTime = OffsetDateTime.parse(\"2025-05-01T09:11:00.000Z\")\nval endTime = OffsetDateTime.parse(\"2025-05-02T09:11:00.000Z\")\nval response = client.security.getAuditEvents(startTime = startTime, endTime = endTime, eventKey = AuditEventKey.USER_LOGIN, actorId = \"98765\", actorType = \"User\", entityId = \"98765\", entityType = \"User\", limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "GetAuditEventsResponse(data: List<AuditEvent>, meta: PaginationMeta)",

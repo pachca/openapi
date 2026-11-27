@@ -6,6 +6,32 @@
 
 ## 🍁 Осень 2026
 
+### 27 ноября 2026
+
+### SDK приложений v2026.11.0
+
+- `@pachca/app-sdk`: типы и описание схемы, функций и манифеста приложения Пачки, сборка (`@pachca/app-sdk/build`), шаблон и команды разработки `npx pachca-app`: `check`, `build`, `ship`, `pull`, `logs`, `secret`, `edit`, `delete`. В API Пачки команды ходят через CLI Пачки и его вход
+- `@pachca/app-react`: хуки `useQuery`, `useMutation`, `useAction`, `useJob` и `usePachca` для фронта приложения
+- `@pachca/create-app`: новое приложение командой `npm create @pachca/app@latest <папка>`
+
+### CLI v2026.11.8
+
+- Раздел `pachca apps` (бета): кастомные приложения пространства, их журнал, исходники, секреты и загрузка версии
+- Ошибка API в JSON-выводе несёт `payload` из ответа, если он есть: например, номер текущей версии приложения у `version_conflict`
+
+### SDK-библиотеки v1.11.1
+
+- Методы раздела «Кастомные приложения» (`/apps`, бета), модели `App`, `AppRelease`, `AppSource`, `AppLogEntry`, `AppPermissionItem` с запросами и перечисления `AppVisibility`, `AppPermissionKind`, `AppLogKind`
+- Значения `apps:read` и `apps:write` в `OAuthScope`, `version_conflict` и `consent_required` в `ValidationErrorCode`
+
+### MCP-инструменты v1.13.0
+
+- Инструменты кастомных приложений для владельца и администраторов (бета): `pachca_list_apps`, `pachca_get_app`, `pachca_create_app`, `pachca_update_app`, `pachca_delete_app`, `pachca_list_app_logs` и секреты приложения. Для них нужны права `apps:read` и `apps:write`. Загрузку версии и исходники инструменты не отдают: это делает `npx pachca-app`
+
+### n8n Node v2.2.12
+
+- Раздел API «Кастомные приложения» в ноду не входит: приложения создаются и загружаются командой `npx pachca-app` из папки приложения. Операции ноды не изменились
+
 ### История сообщения
 
 _25 ноября 2026_

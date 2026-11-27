@@ -12,7 +12,7 @@ export interface ParsedUpdate {
   content: string; // Markdown content
 }
 
-export type ReleaseProduct = 'mcp' | 'plugin' | 'cli' | 'sdk' | 'generator' | 'n8n';
+export type ReleaseProduct = 'mcp' | 'plugin' | 'cli' | 'sdk' | 'generator' | 'n8n' | 'apps';
 
 export interface ReleaseChange {
   type: '+' | '~' | '-';

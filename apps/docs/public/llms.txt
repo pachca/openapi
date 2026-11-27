@@ -6,9 +6,9 @@
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~566K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~583K токенов — обычно не помещается в контекст целиком).
 
-> English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~37K токенов).
+> English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~38K токенов).
 
 > Индексы разделов (только нужный срез): [/api/llms.txt](https://dev.pachca.com/api/llms.txt) — методы и основы API, [/guides/llms.txt](https://dev.pachca.com/guides/llms.txt) — руководства, [/updates/llms.txt](https://dev.pachca.com/updates/llms.txt) — обновления по датам.
 
@@ -103,7 +103,7 @@
 | TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |
 | Python | `pachca-sdk` | `pip install pachca-sdk` |
 | Go | `github.com/pachca/openapi/sdk/go/generated` | `go get github.com/pachca/openapi/sdk/go/generated` |
-| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.11.0")`, репозиторий `maven("https://jitpack.io")` |
+| Kotlin | `com.github.pachca:openapi` | `implementation("com.github.pachca:openapi:1.11.1")`, репозиторий `maven("https://jitpack.io")` |
 | Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
 | C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
 

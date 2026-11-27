@@ -292,6 +292,14 @@ describe('client', () => {
       expect(details.error).toBe('system: Search timed out');
     });
 
+    it('keeps the payload of an error: what the caller acts on', async () => {
+      const conflict = { status: 409, json: { errors: [{ key: 'system', code: 'version_conflict', message: 'Version taken', payload: { version: 5 } }] } };
+      const { error } = await send([conflict], 'POST', '/apps/k3x9q2m7a1bz/versions');
+      expect((error as ApiError).details).toMatchObject({ code: 409, validation_code: 'version_conflict', payload: { version: 5 } });
+      const none = await send([{ status: 422, json: { errors: [{ key: 'name', code: 'blank', message: 'Blank', payload: null }] } }], 'POST', '/apps');
+      expect('payload' in (none.error as ApiError).details).toBe(false);
+    });
+
     it('retries a 504 without the code timeout', async () => {
       const proxy = await send([{ status: 504, text: '<html>Gateway Timeout</html>' }, ok], 'GET');
       expect(proxy.methods).toEqual(['GET', 'GET']);

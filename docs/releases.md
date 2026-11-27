@@ -7,14 +7,14 @@
 
 Публикуемые пакеты:
 
-| Пакет                                        | Реестр             | Версионирование                   | Свой changelog                         |
-| -------------------------------------------- | ------------------ | --------------------------------- | -------------------------------------- |
-| `@pachca/cli`                                | npm                | CalVer `ГГГГ.М.патч` (`2026.5.6`) | `packages/cli/src/data/changelog.json` |
-| `n8n-nodes-pachca`                           | npm                | semver                            | `integrations/n8n/CHANGELOG.md`        |
-| `@pachca/generator`                          | npm                | semver                            | — (только портал)                      |
-| `@pachca/sdk` (TS/Python/Go/Kotlin/C#/Swift) | npm/PyPI/NuGet/git | semver, из `releases.json`        | — (только портал)                      |
-| `@pachca/mcp-manifest`                       | npm                | semver, из `package.json`         | `packages/mcp-manifest/CHANGELOG.md`   |
-| `@pachca/app-sdk`, `@pachca/app-react`, `@pachca/create-app` | npm | CalVer `ГГГГ.М.патч`, бета `-beta.N`, из `releases.json` | — (только портал) |
+| Пакет                                                        | Реестр             | Версионирование                                          | Свой changelog                         |
+| ------------------------------------------------------------ | ------------------ | -------------------------------------------------------- | -------------------------------------- |
+| `@pachca/cli`                                                | npm                | CalVer `ГГГГ.М.патч` (`2026.5.6`)                        | `packages/cli/src/data/changelog.json` |
+| `n8n-nodes-pachca`                                           | npm                | semver                                                   | `integrations/n8n/CHANGELOG.md`        |
+| `@pachca/generator`                                          | npm                | semver                                                   | — (только портал)                      |
+| `@pachca/sdk` (TS/Python/Go/Kotlin/C#/Swift)                 | npm/PyPI/NuGet/git | semver, из `releases.json`                               | — (только портал)                      |
+| `@pachca/mcp-manifest`                                       | npm                | semver, из `package.json`                                | `packages/mcp-manifest/CHANGELOG.md`   |
+| `@pachca/app-sdk`, `@pachca/app-react`, `@pachca/create-app` | npm                | CalVer `ГГГГ.М.патч`, бета `-beta.N`, из `releases.json` | — (только портал)                      |
 
 «Портал» — `apps/docs/data/releases.json`: единый список релизов всех
 продуктов, он же лента `/updates` на сайте. Формат записей — в

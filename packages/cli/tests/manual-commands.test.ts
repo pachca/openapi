@@ -600,60 +600,6 @@ describe('manual commands — functional tests', () => {
     });
   });
 
-  describe('auth token', () => {
-    it('печатает токен профиля и ничего больше', async () => {
-      setupProfile();
-      const { stdout, error } = await runCommand(['auth', 'token'], { root: CLI_ROOT });
-      expect(error).toBeUndefined();
-      expect(stdout).toBe('test-token\n');
-    });
-
-    it('токен названного профиля', async () => {
-      setupMultiProfiles();
-      const { stdout } = await runCommand(['auth', 'token', '--profile', 'bot'], { root: CLI_ROOT });
-      expect(stdout).toBe('token-bot\n');
-    });
-
-    it('вход через браузер с истекающим токеном: обновляет и печатает новый', async () => {
-      const configDir = path.join(tmpDir, 'pachca');
-      fs.mkdirSync(configDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(configDir, 'config.toml'),
-        [
-          'active_profile = "test"',
-          '',
-          '[profiles.test]',
-          'type = "user"',
-          'token = "old-token"',
-          'user = "Test User"',
-          'auth = "oauth"',
-          'refresh_token = "refresh-1"',
-          `expires_at = "${new Date(Date.now() + 30_000).toISOString()}"`,
-        ].join('\n') + '\n',
-      );
-      const bodies: string[] = [];
-      globalThis.fetch = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
-        bodies.push(String(init?.body));
-        return new Response(JSON.stringify({ access_token: 'new-token', refresh_token: 'refresh-2', expires_in: 3600, scope: 'apps:read apps:write' }), {
-          status: 200, headers: { 'content-type': 'application/json' },
-        });
-      }) as unknown as typeof fetch;
-
-      const { stdout } = await runCommand(['auth', 'token'], { root: CLI_ROOT });
-      expect(stdout).toBe('new-token\n');
-      expect(bodies).toHaveLength(1);
-      expect(bodies[0]).toContain('refresh-1');
-      expect(fs.readFileSync(path.join(configDir, 'config.toml'), 'utf8')).toContain('refresh-2');
-    });
-
-    it('без входа: ошибка в stderr, stdout пустой', async () => {
-      const { stdout, stderr, error } = await runCommand(['auth', 'token'], { root: CLI_ROOT });
-      expect(error).toBeTruthy();
-      expect(stdout).toBe('');
-      expect(stderr).toContain('pachca auth login');
-    });
-  });
-
   describe('auth status', () => {
     it('shows profile info', async () => {
       setupProfile();

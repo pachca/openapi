@@ -1,8 +1,7 @@
 // Разбор команды и флагов pachca-app. Возвращает код выхода: 0 готово, 1 ошибка, 2 неверный вызов.
 import { parseArgs } from 'node:util';
 import { BuildError, SDK_VERSION } from '../build/index.js';
-import { ApiError } from './api.js';
-import { login, logout, resolveApi, type AuthFlags } from './auth.js';
+import { ApiError, call, resolveApi, SETUP } from './api.js';
 import { edit, logs, pull, remove, runBuild, runCheck, secret, ship } from './commands.js';
 import { CliError, type Io } from './io.js';
 import { ensureLatest } from './update.js';
@@ -20,14 +19,12 @@ const HELP = `pachca-app ${SDK_VERSION}: команды разработки п�
   secret set|list|rm NAME   секреты приложения, значение вводится скрыто
   edit [--name] [--icon] [--visibility private|link|public]
   delete                    удалить приложение целиком, необратимо (только человек в терминале)
-  login | logout            сохранить или удалить готовый токен
 
   --mode <режим>            сборка с .env.<режим> и отдельное приложение этого режима (по умолчанию production)
   --app <id>                другое приложение вместо приложения папки
-  --profile <профиль>       профиль CLI Пачки, чей токен взять (pachca auth token)
-  --token <токен>           токен для этого вызова (или PACHCA_TOKEN)
+  --profile <профиль>       профиль CLI Пачки
 
-Вход: --token или PACHCA_TOKEN, токен из npx pachca-app login, затем вход CLI Пачки (pachca auth login).
+${SETUP}
 `;
 
 const OPTIONS = {
@@ -36,8 +33,6 @@ const OPTIONS = {
   name: { type: 'string' },
   icon: { type: 'string' },
   visibility: { type: 'string' },
-  token: { type: 'string' },
-  api: { type: 'string' },
   profile: { type: 'string' },
   n: { type: 'string', short: 'n' },
   follow: { type: 'boolean', short: 'f' },
@@ -76,7 +71,7 @@ async function dispatch(argv: string[], io: Io): Promise<number> {
   }
   const mode = f.mode ?? 'production';
   if (!/^[a-z][a-z0-9-]{0,31}$/.test(mode)) throw new CliError('--mode: латиница в нижнем регистре, цифры и -, например staging', 2);
-  const auth: AuthFlags = { token: f.token, api: f.api, profile: f.profile };
+  const auth = { profile: f.profile };
   const t = { mode, app: f.app };
 
   if (cmd === 'check' || cmd === 'build' || cmd === 'ship') {
@@ -90,8 +85,9 @@ async function dispatch(argv: string[], io: Io): Promise<number> {
       await runBuild(io, mode);
       return 0;
     case 'ship': {
-      // вход до сборки: человек отвечает на вопросы входа сразу, а не после минуты сборки
+      // вход и права проверяются до сборки: без них сборка была бы зря
       const a = await resolveApi(io, auth);
+      await call(io, a, 'GET', '/apps');
       return (await ship(io, a, { ...t, name: f.name, approve: Boolean(f['approve-consent-screen']), force: Boolean(f.force) })) ? 0 : 1;
     }
     case 'pull': {
@@ -113,12 +109,6 @@ async function dispatch(argv: string[], io: Io): Promise<number> {
       return 0;
     case 'delete':
       await remove(io, await resolveApi(io, auth), t);
-      return 0;
-    case 'login':
-      await login(io, auth);
-      return 0;
-    case 'logout':
-      logout(io);
       return 0;
     default:
       io.err(`Нет команды ${cmd}\n\n${HELP}`);

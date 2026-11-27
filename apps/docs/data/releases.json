@@ -6,7 +6,7 @@
     "changes": [
       {
         "type": "+",
-        "description": "`@pachca/app-sdk`: типы и описание схемы, функций и манифеста приложения Пачки, сборка (`@pachca/app-sdk/build`), шаблон и команды разработки `npx pachca-app`: `check`, `build`, `ship`, `pull`, `logs`, `secret`, `edit`, `delete`, `login`. Вход берётся у `pachca auth token`, если CLI Пачки установлен"
+        "description": "`@pachca/app-sdk`: типы и описание схемы, функций и манифеста приложения Пачки, сборка (`@pachca/app-sdk/build`), шаблон и команды разработки `npx pachca-app`: `check`, `build`, `ship`, `pull`, `logs`, `secret`, `edit`, `delete`. В API Пачки команды ходят через CLI Пачки и его вход"
       },
       {
         "type": "+",
@@ -25,11 +25,11 @@
     "changes": [
       {
         "type": "+",
-        "description": "`pachca auth token` печатает токен профиля для другой программы, обновив его, если срок подходит к концу. Так `npx pachca-app` берёт вход CLI"
+        "description": "Раздел `pachca apps` (бета): кастомные приложения пространства, их журнал, исходники, секреты и загрузка версии"
       },
       {
-        "type": "+",
-        "description": "Раздел `pachca apps` (бета): кастомные приложения пространства, их журнал, исходники, секреты и загрузка версии"
+        "type": "~",
+        "description": "Ошибка API в JSON-выводе несёт `payload` из ответа, если он есть: например, номер текущей версии приложения у `version_conflict`"
       }
     ]
   },

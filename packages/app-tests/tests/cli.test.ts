@@ -1,5 +1,6 @@
 // Бинарь pachca-app на копии apps/tasks против поддельного API Пачки: загрузка, подтверждение прав, конфликт версий,
-// режимы, pull, журнал, секреты, правка, удаление и вход без токена. Запускается настоящий dist/cli/bin.js без терминала.
+// режимы, pull, журнал, секреты, правка, удаление и вход. Запускается настоящий dist/cli/bin.js без терминала, а в API
+// он ходит через настоящий CLI Пачки из репозитория (`pachca api`) с профилем во временной папке.
 import { execFile } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -8,7 +9,10 @@ import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { copy, tmp } from './apps.js';
 import { fakeApi, TOKEN, type FakeApi } from './fakeapi.js';
 
-const bin = join(dirname(createRequire(import.meta.url).resolve('@pachca/app-sdk/package.json')), 'dist', 'cli', 'bin.js');
+const require = createRequire(import.meta.url);
+const bin = join(dirname(require.resolve('@pachca/app-sdk/package.json')), 'dist', 'cli', 'bin.js');
+const pachcaCli = join(dirname(require.resolve('@pachca/cli/package.json')), 'bin', 'run.js');
+const binDir = tmp('cli-bin');
 
 let api: FakeApi;
 let dir: string;
@@ -18,11 +22,11 @@ type Run = { code: number; stdout: string; stderr: string };
 
 function run(args: string[], opts: { cwd?: string; env?: Record<string, string | undefined>; input?: string } = {}): Promise<Run> {
   const env: Record<string, string | undefined> = {
-    PATH: process.env.PATH,
+    PATH: `${binDir}:/usr/bin:/bin`,
     HOME: home,
     XDG_CONFIG_HOME: home,
-    PACHCA_API: api.url,
-    PACHCA_TOKEN: TOKEN,
+    PACHCA_API_URL: api.url,
+    PACHCA_SKIP_NEW_VERSION_CHECK: '1',
     NO_COLOR: '1',
     ...opts.env,
   };
@@ -43,9 +47,14 @@ const uploads = () => api.requests.filter((r) => r.method === 'POST' && r.path.e
 beforeAll(async () => {
   api = await fakeApi();
   dir = copy('tasks', 'cli-tasks');
-  for (const d of ['cli-home', 'cli-pulled', 'cli-bin', 'cli-empty-path']) rmSync(tmp(d), { recursive: true, force: true });
-  mkdirSync(home, { recursive: true });
+  for (const d of ['cli-home', 'cli-pulled', 'cli-bin', 'cli-empty-path', 'cli-nobody']) rmSync(tmp(d), { recursive: true, force: true });
+  mkdirSync(join(home, 'pachca'), { recursive: true });
   mkdirSync(tmp('cli-empty-path'));
+  // вход CLI Пачки: профиль с готовым токеном, как после `pachca auth login --token`
+  writeFileSync(join(home, 'pachca', 'config.toml'), `active_profile = "admin"\n\n[profiles.admin]\ntype = "user"\ntoken = "${TOKEN}"\nuser = "Админ"\n`);
+  mkdirSync(binDir);
+  writeFileSync(join(binDir, 'pachca'), `#!/bin/sh\nexec "${process.execPath}" "${pachcaCli}" "$@"\n`);
+  chmodSync(join(binDir, 'pachca'), 0o755);
 });
 afterAll(() => api.close());
 
@@ -175,44 +184,33 @@ describe('команды приложения папки', () => {
   });
 });
 
-describe('вход', () => {
-  // без CLI Пачки в PATH: бинарь запускается по process.execPath, PATH ему не нужен
-  const noPachca = { PACHCA_TOKEN: undefined, PATH: tmp('cli-empty-path') };
-
-  test('нет токена и нет терминала: обе команды входа', async () => {
-    const r = await run(['logs'], { env: noPachca });
+describe('вход через CLI Пачки', () => {
+  test('CLI не установлен: как поставить и войти', async () => {
+    const r = await run(['logs'], { env: { PATH: tmp('cli-empty-path') } });
     expect(r.code).toBe(1);
+    expect(r.stderr).toContain('npm install -g @pachca/cli');
     expect(r.stderr).toContain('pachca auth login');
-    expect(r.stderr).toContain('npm i -g @pachca/cli');
-    expect(r.stderr).toContain('npx pachca-app login');
   });
 
-  test('токен берётся у pachca auth token', async () => {
-    const binDir = tmp('cli-bin');
-    mkdirSync(binDir, { recursive: true });
-    const fake = join(binDir, 'pachca');
-    writeFileSync(fake, `#!/bin/sh\n[ "$1 $2" = "auth token" ] && echo ${TOKEN} && exit 0\nexit 3\n`);
-    chmodSync(fake, 0o755);
-    const r = await run(['secret', 'list'], { env: { PACHCA_TOKEN: undefined, PATH: `${binDir}:${dirname(process.execPath)}:/bin:/usr/bin` } });
-    expect(r.code).toBe(0);
+  test('в CLI нет входа: как войти, приложение не создаётся', async () => {
+    const before = api.apps.size;
+    const r = await run(['ship'], { env: { XDG_CONFIG_HOME: tmp('cli-nobody') } });
+    expect(r.code).toBe(1);
+    expect(r.stderr).toContain('Нет входа в CLI Пачки');
+    expect(r.stderr).not.toContain('Проверка');
+    expect(api.apps.size).toBe(before);
   });
 
-  test('токен не подошёл: откуда он взят и что делать', async () => {
+  test('токен из PACHCA_TOKEN передаёт CLI сам; чужой токен не подходит', async () => {
     const r = await run(['secret', 'list'], { env: { PACHCA_TOKEN: 'bad' } });
     expect(r.code).toBe(1);
-    expect(r.stderr).toContain('Не подошёл токен из PACHCA_TOKEN');
-    expect(r.stderr).toContain('apps:read и apps:write');
+    expect(r.stderr).toContain('pachca auth login');
+    expect((await run(['secret', 'list'], { env: { PACHCA_TOKEN: TOKEN, XDG_CONFIG_HOME: tmp('cli-nobody') } })).code).toBe(0);
   });
 
-  test('login сохраняет проверенный токен, logout удаляет', async () => {
-    const file = join(home, 'pachca-app', 'credentials.json');
-    expect((await run(['login'], { env: { PACHCA_TOKEN: undefined }, input: 'bad\n' })).code).toBe(1);
-    expect(existsSync(file)).toBe(false);
-    expect((await run(['login'], { env: { PACHCA_TOKEN: undefined }, input: `${TOKEN}\n` })).code).toBe(0);
-    expect(JSON.parse(readFileSync(file, 'utf8')).token).toBe(TOKEN);
-    expect((await run(['secret', 'list'], { env: noPachca })).code).toBe(0);
-    expect((await run(['logout'])).code).toBe(0);
-    expect(existsSync(file)).toBe(false);
+  test('login и --token больше нет', async () => {
+    expect((await run(['login'])).code).toBe(2);
+    expect((await run(['logs', '--token', TOKEN])).code).toBe(2);
   });
 });
 

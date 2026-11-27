@@ -10,7 +10,7 @@ SDK приложений Пачки: типы `window.pachca` и `ctx`, язык
 - `@pachca/app-sdk/ops.json`: таблица методов API Пачки для платформы.
 - `@pachca/app-sdk/contract/*.json`: фикстуры контракта с платформой (`contract/README.md`).
 
-Команды разработки это бинарь `pachca-app` (`src/cli`), его запускают из папки приложения: `npx pachca-app check`, `build`, `ship`, `pull`, `logs`, `secret`, `edit`, `delete`, `login`. Перед `check`, `build` и `ship` он сверяет свою версию с npm и предлагает обновиться: платформа принимает сборки только актуального SDK. Токен берётся из `--token` или `PACHCA_TOKEN`, затем из `npx pachca-app login`, затем у CLI Пачки (`pachca auth token`). Новое приложение создаёт `npm create @pachca/app@latest <папка>` (пакет `@pachca/create-app`).
+Команды разработки это бинарь `pachca-app` (`src/cli`), его запускают из папки приложения: `npx pachca-app check`, `build`, `ship`, `pull`, `logs`, `secret`, `edit`, `delete`. Перед `check`, `build` и `ship` он сверяет свою версию с npm и предлагает обновиться: платформа принимает сборки только актуального SDK. В API Пачки он ходит через CLI Пачки (`pachca api`) и его вход: сам токены не видит и не хранит, без CLI или входа подсказывает, как поставить и войти. Новое приложение создаёт `npm create @pachca/app@latest <папка>` (пакет `@pachca/create-app`).
 
 `src/generated` строится из `packages/spec/openapi.yaml` (`bun run generate`) и коммитится.
 

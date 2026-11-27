@@ -441,15 +441,6 @@
           }
         ],
         "flags": []
-      },
-      {
-        "command": "pachca auth token",
-        "summary": "Напечатать токен профиля для другой программы, обновив его, если срок подходит к концу",
-        "method": null,
-        "path": null,
-        "scope": null,
-        "plan": null,
-        "flags": []
       }
     ]
   },

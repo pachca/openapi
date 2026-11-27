@@ -1,6 +1,6 @@
 // Всё, чем команды касаются внешнего мира: папка, переменные окружения, терминал, сеть, запуск программ.
 // Тесты подменяют это целиком и проверяют команды без процесса, терминала и сети.
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 
 export interface RunResult {
   status: number | null;
@@ -22,8 +22,18 @@ export interface Io {
   ask(prompt: string, options?: { hidden?: boolean }): Promise<string>;
   /** Запуск программы: `capture` забирает stdout, иначе вывод идёт в терминал. */
   run(command: string, args: string[], options?: { capture?: boolean; cwd?: string; env?: Record<string, string> }): RunResult;
+  /** Программа с выводом для разбора: stdout и stderr забираются, `input` уходит в stdin. Не блокирует анимацию шага. */
+  exec(command: string, args: string[], options?: { input?: string; env?: Record<string, string> }): Promise<ExecResult>;
   fetch: typeof fetch;
   sleep(ms: number): Promise<void>;
+}
+
+export interface ExecResult {
+  status: number | null;
+  stdout: string;
+  stderr: string;
+  /** Программы нет (`ENOENT`). */
+  missing: boolean;
 }
 
 /** Настоящий процесс. */
@@ -46,6 +56,22 @@ export function nodeIo(): Io {
       const missing = (r.error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT';
       return { status: r.status, stdout: r.stdout ?? '', missing };
     },
+    exec: (command, args, options = {}) =>
+      new Promise((done) => {
+        const child = spawn(command, args, {
+          env: options.env ? { ...process.env, ...options.env } : process.env,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          shell: process.platform === 'win32',
+        });
+        let stdout = '';
+        let stderr = '';
+        child.stdout.setEncoding('utf8').on('data', (c: string) => (stdout += c));
+        child.stderr.setEncoding('utf8').on('data', (c: string) => (stderr += c));
+        child.on('error', (e: NodeJS.ErrnoException) => done({ status: null, stdout, stderr, missing: e.code === 'ENOENT' }));
+        child.on('close', (status) => done({ status, stdout, stderr, missing: false }));
+        child.stdin.on('error', () => {});
+        child.stdin.end(options.input ?? '');
+      }),
     fetch: (...a) => fetch(...a),
     sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
   };

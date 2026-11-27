@@ -5,13 +5,13 @@
     "changes": [
       {
         "type": "+",
-        "command": "auth token",
-        "description": "Новая команда — печатает токен профиля для другой программы, обновив его, если срок подходит к концу. Так `npx pachca-app` берёт вход CLI"
-      },
-      {
-        "type": "+",
         "command": "apps list",
         "description": "Новый раздел `apps` (бета) — кастомные приложения пространства: `list`, `get`, `create`, `update`, `delete`, `list-logs`, `get-source`, `create-version` и секреты `list-secrets`, `set-secret`, `delete-secret`"
+      },
+      {
+        "type": "~",
+        "command": "api",
+        "description": "Ошибка API в JSON-выводе несёт `payload` из ответа, если он есть: например, номер текущей версии приложения у `version_conflict`"
       }
     ]
   },

@@ -10,14 +10,14 @@
 
 ### SDK приложений v2026.11.0
 
-- `@pachca/app-sdk`: типы и описание схемы, функций и манифеста приложения Пачки, сборка (`@pachca/app-sdk/build`), шаблон и команды разработки `npx pachca-app`: `check`, `build`, `ship`, `pull`, `logs`, `secret`, `edit`, `delete`, `login`. Вход берётся у `pachca auth token`, если CLI Пачки установлен
+- `@pachca/app-sdk`: типы и описание схемы, функций и манифеста приложения Пачки, сборка (`@pachca/app-sdk/build`), шаблон и команды разработки `npx pachca-app`: `check`, `build`, `ship`, `pull`, `logs`, `secret`, `edit`, `delete`. В API Пачки команды ходят через CLI Пачки и его вход
 - `@pachca/app-react`: хуки `useQuery`, `useMutation`, `useAction`, `useJob` и `usePachca` для фронта приложения
 - `@pachca/create-app`: новое приложение командой `npm create @pachca/app@latest <папка>`
 
 ### CLI v2026.11.8
 
-- `pachca auth token` печатает токен профиля для другой программы, обновив его, если срок подходит к концу. Так `npx pachca-app` берёт вход CLI
 - Раздел `pachca apps` (бета): кастомные приложения пространства, их журнал, исходники, секреты и загрузка версии
+- Ошибка API в JSON-выводе несёт `payload` из ответа, если он есть: например, номер текущей версии приложения у `version_conflict`
 
 ### SDK-библиотеки v1.11.1
 

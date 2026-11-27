@@ -399,7 +399,7 @@ function createApiError(
 
   // ApiError format: {errors: [{key, value, message, code, payload}]}
   if (isRecord(body) && Array.isArray(body.errors) && body.errors.length > 0) {
-    const apiErrors = body.errors as { key?: string; message?: string; code?: string; value?: unknown }[];
+    const apiErrors = body.errors as { key?: string; message?: string; code?: string; value?: unknown; payload?: unknown }[];
     const errorType: ErrorType = status === 422 ? 'PACHCA_VALIDATION_ERROR' : 'PACHCA_API_ERROR';
 
     if (apiErrors.length === 1) {
@@ -411,6 +411,8 @@ function createApiError(
         request_id: requestId,
         ...(e.key ? { field: e.key } : {}),
         ...(e.code ? { validation_code: e.code } : {}),
+        // what the code needs to act on, e.g. the current version at `version_conflict`
+        ...(e.payload !== undefined && e.payload !== null ? { payload: e.payload } : {}),
       });
     }
 
@@ -424,6 +426,7 @@ function createApiError(
         message: e.message || '',
         ...(e.code ? { code: e.code } : {}),
         ...(e.value !== undefined && e.value !== null ? { value: e.value } : {}),
+        ...(e.payload !== undefined && e.payload !== null ? { payload: e.payload } : {}),
       })),
     });
   }

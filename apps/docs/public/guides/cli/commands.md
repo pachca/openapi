@@ -40,7 +40,6 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca auth logout` | Удаление сохранённого профиля |
 | `pachca auth status` | Чей токен используют команды и какие у него права |
 | `pachca auth switch` | Переключение активного профиля |
-| `pachca auth token` | Напечатать токен профиля для другой программы, обновив его, если срок подходит к концу |
 | `pachca bots create` | `POST` Новый бот |
 | `pachca bots create-token` | `POST` Новый токен бота |
 | `pachca bots delete` | `DELETE` Удаление бота |

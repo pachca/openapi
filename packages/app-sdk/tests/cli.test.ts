@@ -1,110 +1,103 @@
-// pachca-app без процесса: вход в терминале и без него, проверка свежести SDK. Терминал, сеть и запуск программ подменены.
-import { mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+// pachca-app без процесса: запросы через CLI Пачки, проверка свежести SDK, удаление. Терминал, сеть и программы подменены.
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
-import { resolveApi } from '../src/cli/auth.ts';
-import { DEFAULT_API } from '../src/cli/api.ts';
+import { ApiError, call, DEFAULT_API, resolveApi } from '../src/cli/api.ts';
 import { remove } from '../src/cli/commands.ts';
-import { CliError, type Io, type RunResult } from '../src/cli/io.ts';
+import { CliError, type ExecResult, type Io, type RunResult } from '../src/cli/io.ts';
 import { compareVersions, ensureLatest, installCommand } from '../src/cli/update.ts';
 
-type Call = { command: string; args: string[]; env?: Record<string, string> };
+type Call = { command: string; args: string[]; env?: Record<string, string>; input?: string };
 
-function fakeIo(opts: { tty?: boolean; answers?: string[]; run?: (c: Call) => Partial<RunResult>; fetch?: (url: string) => Response; env?: Record<string, string> } = {}) {
+function fakeIo(
+  opts: {
+    tty?: boolean;
+    answers?: string[];
+    run?: (c: Call) => Partial<RunResult>;
+    exec?: (c: Call) => Partial<ExecResult>;
+    fetch?: (url: string) => Response;
+    env?: Record<string, string>;
+  } = {},
+) {
   const dir = mkdtempSync(join(tmpdir(), 'pachca-app-'));
   const calls: Call[] = [];
-  const asked: { prompt: string; hidden?: boolean }[] = [];
+  const execs: Call[] = [];
   const answers = [...(opts.answers ?? [])];
   let err = '';
   const io: Io = {
     cwd: dir,
-    env: { HOME: dir, XDG_CONFIG_HOME: dir, ...opts.env },
+    env: { HOME: dir, ...opts.env },
     tty: opts.tty ?? false,
     err: (t) => void (err += t),
     out: () => {},
-    ask: async (prompt, o) => {
-      asked.push({ prompt, hidden: o?.hidden });
-      return answers.shift() ?? '';
-    },
+    ask: async () => answers.shift() ?? '',
     run: (command, args, o) => {
       const c = { command, args, env: o?.env };
       calls.push(c);
       return { status: 0, stdout: '', missing: false, ...opts.run?.(c) };
     },
-    fetch: async (url) => (opts.fetch ?? (() => new Response('{"data":[]}')))(String(url)),
+    exec: async (command, args, o) => {
+      const c = { command, args, env: o?.env, input: o?.input };
+      execs.push(c);
+      return { status: 0, stdout: '', stderr: '', missing: false, ...opts.exec?.(c) };
+    },
+    fetch: async (url) => (opts.fetch ?? (() => new Response('{}')))(String(url)),
     sleep: async () => {},
   };
-  return { io, dir, calls, asked, err: () => err };
+  return { io, dir, calls, execs, err: () => err };
 }
 
-const pachcaMissing = (c: Call) => (c.command === 'pachca' ? { missing: true, status: null } : {});
+const api = { url: DEFAULT_API };
+const cliError = (body: object) => ({ status: 1, stderr: `${JSON.stringify(body)}\n` });
 
-describe('вход', () => {
-  test('порядок: --token, PACHCA_TOKEN, сохранённый, pachca auth token', async () => {
-    const withEnv = fakeIo({ env: { PACHCA_TOKEN: 'env' } });
-    expect(await resolveApi(withEnv.io, { token: 'flag' })).toMatchObject({ token: 'flag', source: 'flag' });
-    expect(await resolveApi(withEnv.io, {})).toMatchObject({ token: 'env', source: 'env' });
-
-    const pachca = fakeIo({ run: (c) => (c.command === 'pachca' ? { stdout: 'from-cli\n' } : {}) });
-    expect(await resolveApi(pachca.io, { profile: 'work' })).toMatchObject({ token: 'from-cli', source: 'pachca' });
-    expect(pachca.calls[0]).toMatchObject({ command: 'pachca', args: ['auth', 'token', '--profile', 'work'] });
-
+describe('CLI Пачки', () => {
+  test('не установлен: как поставить и войти', async () => {
+    const { io } = fakeIo({ exec: () => ({ missing: true, status: null }) });
+    const e = await resolveApi(io, {}).catch((x: unknown) => x);
+    expect(e).toBeInstanceOf(CliError);
+    expect((e as Error).message).toContain('npm install -g @pachca/cli');
+    expect((e as Error).message).toContain('pachca auth login');
   });
 
-  test('сохранённый токен важнее входа pachca', async () => {
-    const { io, dir, calls } = fakeIo({ run: () => ({ stdout: 'from-cli' }) });
-    mkdirSync(join(dir, 'pachca-app'));
-    writeFileSync(join(dir, 'pachca-app', 'credentials.json'), JSON.stringify({ token: 'saved' }));
-    expect(await resolveApi(io, {})).toMatchObject({ token: 'saved', source: 'saved' });
-    expect(calls).toHaveLength(0);
+  test('старый CLI: обновить; CLI из репозитория (0.0.0) подходит', async () => {
+    const old = fakeIo({ exec: () => ({ stdout: '@pachca/cli/2026.11.7 darwin-arm64 node-v22.14.0\n' }) });
+    await expect(resolveApi(old.io, {})).rejects.toThrow('pachca upgrade');
+    const dev = fakeIo({ exec: () => ({ stdout: '@pachca/cli/0.0.0 darwin-arm64 node-v22.14.0\n' }), env: { PACHCA_API_URL: 'http://127.0.0.1:9/api/' } });
+    expect(await resolveApi(dev.io, { profile: 'work' })).toEqual({ url: 'http://127.0.0.1:9/api', profile: 'work' });
   });
 
-  test('pachca есть, но вход не выполнен: в терминале предлагает pachca auth login и берёт токен после него', async () => {
-    let loggedIn = false;
-    const { io, calls } = fakeIo({
-      tty: true,
-      answers: [''],
-      run: (c) => {
-        if (c.args[1] === 'login') loggedIn = true;
-        return c.args[1] === 'token' ? (loggedIn ? { stdout: 'fresh' } : { status: 3 }) : {};
-      },
+  test('запрос: метод, путь, параметры, тело в stdin, профиль; ответ без обёртки data', async () => {
+    const { io, execs } = fakeIo({ exec: () => ({ stdout: '{"data":{"version":3}}\n' }) });
+    expect(await call(io, { url: 'http://local/api', profile: 'work' }, 'POST', '/apps/x/versions', { code: 'c' })).toEqual({ version: 3 });
+    expect(execs[0]).toEqual({
+      command: 'pachca',
+      args: ['api', 'POST', '/apps/x/versions', '-o', 'json', '--no-input', '--input', '-', '--profile', 'work'],
+      env: { PACHCA_API_URL: 'http://local/api' },
+      input: '{"code":"c"}',
     });
-    expect(await resolveApi(io, {})).toMatchObject({ token: 'fresh', source: 'pachca' });
-    expect(calls.map((c) => c.args.join(' '))).toEqual(['auth token', 'auth login', 'auth token']);
+    await call(io, api, 'GET', '/apps/x/logs?n=10');
+    expect(execs[1]!.args).toEqual(['api', 'GET', '/apps/x/logs', '-o', 'json', '--no-input', '--query', 'n=10']);
+    expect(execs[1]!.env).toBeUndefined();
   });
 
-  test('pachca нет: выбор «вставить токен» проверяет его, сохраняет с правами 0600 и не показывает', async () => {
-    const urls: string[] = [];
-    const { io, dir, asked } = fakeIo({ tty: true, answers: ['2', 'pasted'], run: pachcaMissing, fetch: (u) => (urls.push(u), new Response('{"data":[]}')) });
-    expect(await resolveApi(io, {})).toMatchObject({ token: 'pasted', source: 'saved' });
-    expect(asked.at(-1)!.hidden).toBe(true);
-    expect(urls).toEqual(['https://api.pachca.com/api/shared/v1/apps']);
-    const file = join(dir, 'pachca-app', 'credentials.json');
-    expect(JSON.parse(readFileSync(file, 'utf8'))).toEqual({ token: 'pasted' });
-    expect(statSync(file).mode & 0o777).toBe(0o600);
+  test('пустой ответ (204) это undefined', async () => {
+    const { io } = fakeIo({ exec: () => ({ stdout: 'null\n' }) });
+    expect(await call(io, api, 'DELETE', '/apps/x')).toBeUndefined();
   });
 
-  test('pachca нет: выбор «установить» ставит @pachca/cli и входит через него', async () => {
-    let installed = false;
-    const { io, calls } = fakeIo({
-      tty: true,
-      answers: ['1'],
-      run: (c) => {
-        if (c.command === 'npm') installed = true;
-        if (c.command !== 'pachca') return {};
-        if (!installed) return { missing: true, status: null };
-        return c.args[1] === 'token' ? { stdout: 'after-install' } : {};
-      },
-    });
-    expect(await resolveApi(io, {})).toMatchObject({ token: 'after-install' });
-    expect(calls.map((c) => `${c.command} ${c.args.join(' ')}`)).toEqual(['pachca auth token', 'npm install -g @pachca/cli', 'pachca auth login', 'pachca auth token']);
+  test('отказ API: код и payload для version_conflict и consent_required', async () => {
+    const { io } = fakeIo({ exec: () => cliError({ error: 'system: Версия не та', code: 409, type: 'PACHCA_API_ERROR', validation_code: 'version_conflict', payload: { version: 5 } }) });
+    const e = (await call(io, api, 'POST', '/apps/x/versions', {}).catch((x: unknown) => x)) as ApiError;
+    expect(e).toBeInstanceOf(ApiError);
+    expect(e).toMatchObject({ status: 409, code: 'version_conflict', payload: { version: 5 } });
   });
 
-  test('без терминала ничего не спрашивает', async () => {
-    const { io, asked } = fakeIo({ run: pachcaMissing });
-    await expect(resolveApi(io, {})).rejects.toThrow(/npm i -g @pachca\/cli/);
-    expect(asked).toHaveLength(0);
+  test('нет входа или прав: как войти', async () => {
+    const none = fakeIo({ exec: () => cliError({ error: 'Token not found', type: 'PACHCA_AUTH_ERROR', code: null, hint: 'pachca auth login' }) });
+    await expect(call(none.io, api, 'GET', '/apps')).rejects.toThrow('Нет входа в CLI Пачки');
+    const scope = fakeIo({ exec: () => cliError({ error: 'insufficient_scope', type: 'PACHCA_SCOPE_ERROR', code: 403, scope: 'apps:read' }) });
+    await expect(call(scope.io, api, 'GET', '/apps')).rejects.toThrow('нет прав apps:read и apps:write');
   });
 });
 
@@ -158,22 +151,22 @@ describe('свежесть SDK', () => {
 describe('удаление', () => {
   const app = 'k3x9q2m7a1bz';
   const setup = (answers: string[]) => {
-    const deleted: string[] = [];
-    const f = fakeIo({ tty: true, answers, fetch: (u) => (deleted.push(u), new Response(null, { status: 204 })) });
+    const f = fakeIo({ tty: true, answers, exec: () => ({ stdout: 'null\n' }) });
     writeFileSync(join(f.dir, '.pachca-app.json'), JSON.stringify({ production: { id: app, version: 3 } }));
-    return { ...f, deleted, a: { url: DEFAULT_API, token: 't', source: 'saved' as const } };
+    const deleted = () => f.execs.filter((c) => c.args[1] === 'DELETE').map((c) => c.args[2]);
+    return { ...f, deleted, a: api };
   };
 
   test('человек вводит id приложения: удалено, папка его забыла', async () => {
     const { io, dir, deleted, a } = setup([app]);
     await remove(io, a, { mode: 'production' });
-    expect(deleted).toEqual([`${DEFAULT_API}/apps/${app}`]);
+    expect(deleted()).toEqual([`/apps/${app}`]);
     expect(JSON.parse(readFileSync(join(dir, '.pachca-app.json'), 'utf8'))).toEqual({});
   });
 
   test('другой ответ отменяет удаление', async () => {
     const { io, deleted, a } = setup(['y']);
     await expect(remove(io, a, { mode: 'production' })).rejects.toThrow('отменено');
-    expect(deleted).toEqual([]);
+    expect(deleted()).toEqual([]);
   });
 });
